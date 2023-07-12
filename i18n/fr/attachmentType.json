@@ -1,0 +1,10 @@
+{
+  "centralApp": {
+    "AttachmentType": {
+      "null": "",
+      "PDF": "Application/pdf",
+      "IMAGEPNG": "Image/text",
+      "TEXT": "Text/plain"
+    }
+  }
+}

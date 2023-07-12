@@ -1,0 +1,34 @@
+{
+  "centralApp": {
+    "item": {
+      "home": {
+        "title": "Items",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Item",
+        "createOrEditLabel": "Créer ou éditer un Item",
+        "search": "Recherche pour Item",
+        "notFound": "Aucun Item trouvé"
+      },
+      "created": "Un nouveau Item a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Item avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Item avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Item {{ id }} ?"
+      },
+      "detail": {
+        "title": "Item"
+      },
+      "id": "ID",
+      "name": "Name",
+      "desc": "Desc",
+      "orderCount": "Order Count",
+      "avgRating": "Avg Rating",
+      "ratingCount": "Rating Count",
+      "stock": "Stock",
+      "status": "Status",
+      "attachments": "Attachments",
+      "addons": "Addons",
+      "menu": "Menu"
+    }
+  }
+}

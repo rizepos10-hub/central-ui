@@ -1,0 +1,29 @@
+{
+  "centralApp": {
+    "addon": {
+      "home": {
+        "title": "Addons",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Addon",
+        "createOrEditLabel": "Create or edit a Addon",
+        "search": "Search for Addon",
+        "notFound": "No Addons found"
+      },
+      "created": "A new Addon is created with identifier {{ param }}",
+      "updated": "A Addon is updated with identifier {{ param }}",
+      "deleted": "A Addon is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Addon {{ id }}?"
+      },
+      "detail": {
+        "title": "Addon"
+      },
+      "id": "ID",
+      "name": "Name",
+      "desc": "Desc",
+      "price": "Price",
+      "discounts": "Discounts",
+      "item": "Item"
+    }
+  }
+}

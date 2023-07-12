@@ -1,0 +1,25 @@
+{
+  "centralApp": {
+    "taxonomy": {
+      "home": {
+        "title": "Taxonomies",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Taxonomy",
+        "createOrEditLabel": "Créer ou éditer un Taxonomy",
+        "search": "Recherche pour Taxonomy",
+        "notFound": "Aucun Taxonomy trouvé"
+      },
+      "created": "Un nouveau Taxonomy a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Taxonomy avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Taxonomy avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Taxonomy {{ id }} ?"
+      },
+      "detail": {
+        "title": "Taxonomy"
+      },
+      "id": "ID",
+      "name": "Name"
+    }
+  }
+}

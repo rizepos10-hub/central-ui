@@ -1,0 +1,29 @@
+{
+  "centralApp": {
+    "addon": {
+      "home": {
+        "title": "Addons",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Addon",
+        "createOrEditLabel": "Créer ou éditer un Addon",
+        "search": "Recherche pour Addon",
+        "notFound": "Aucun Addon trouvé"
+      },
+      "created": "Un nouveau Addon a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Addon avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Addon avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Addon {{ id }} ?"
+      },
+      "detail": {
+        "title": "Addon"
+      },
+      "id": "ID",
+      "name": "Name",
+      "desc": "Desc",
+      "price": "Price",
+      "discounts": "Discounts",
+      "item": "Item"
+    }
+  }
+}
