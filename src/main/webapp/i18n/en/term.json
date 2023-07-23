@@ -1,0 +1,29 @@
+{
+  "tempApp": {
+    "term": {
+      "home": {
+        "title": "Terms",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Term",
+        "createOrEditLabel": "Create or edit a Term",
+        "search": "Search for Term",
+        "notFound": "No Terms found"
+      },
+      "created": "A new Term is created with identifier {{ param }}",
+      "updated": "A Term is updated with identifier {{ param }}",
+      "deleted": "A Term is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Term {{ id }}?"
+      },
+      "detail": {
+        "title": "Term"
+      },
+      "id": "ID",
+      "name": "Name",
+      "taxonomy": "Taxonomy",
+      "parents": "Parents",
+      "term": "Term",
+      "item": "Item"
+    }
+  }
+}

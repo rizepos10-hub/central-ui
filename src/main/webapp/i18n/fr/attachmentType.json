@@ -1,0 +1,10 @@
+{
+  "tempApp": {
+    "AttachmentType": {
+      "null": "",
+      "PDF": "Application/pdf",
+      "IMAGE_PNG": "Image/text",
+      "TEXT": "Text/plain"
+    }
+  }
+}

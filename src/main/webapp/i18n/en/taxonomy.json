@@ -1,0 +1,25 @@
+{
+  "tempApp": {
+    "taxonomy": {
+      "home": {
+        "title": "Taxonomies",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Taxonomy",
+        "createOrEditLabel": "Create or edit a Taxonomy",
+        "search": "Search for Taxonomy",
+        "notFound": "No Taxonomies found"
+      },
+      "created": "A new Taxonomy is created with identifier {{ param }}",
+      "updated": "A Taxonomy is updated with identifier {{ param }}",
+      "deleted": "A Taxonomy is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Taxonomy {{ id }}?"
+      },
+      "detail": {
+        "title": "Taxonomy"
+      },
+      "id": "ID",
+      "name": "Name"
+    }
+  }
+}

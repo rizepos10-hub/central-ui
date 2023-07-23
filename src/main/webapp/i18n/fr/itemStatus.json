@@ -1,0 +1,10 @@
+{
+  "tempApp": {
+    "ItemStatus": {
+      "null": "",
+      "ENABLED": "ENABLED",
+      "VISIBLE": "VISIBLE",
+      "DISABLED": "DISABLED"
+    }
+  }
+}
