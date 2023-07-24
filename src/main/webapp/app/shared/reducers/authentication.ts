@@ -65,11 +65,8 @@ export const login: (username: string, password: string, tenant: string, remembe
   (username, password, tenant: string, rememberMe = false) =>
   async dispatch => {
     const result = await dispatch(authenticate({ username, password, tenant, rememberMe }));
-    console.log(result, '1');
     const response = result.payload as AxiosResponse;
-    console.log(response, '2');
     const bearerToken = response?.data?.access_token;
-    console.log(bearerToken, '3');
     if (bearerToken) {
       if (rememberMe) {
         Storage.local.set(AUTH_TOKEN_KEY, bearerToken);
