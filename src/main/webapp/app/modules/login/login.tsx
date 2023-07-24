@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { login } from 'app/shared/reducers/authentication';
 import LoginModal from './login-modal';
+import TenantContext from 'app/shared/tenant/TenantContext';
 
 export const Login = () => {
   const dispatch = useAppDispatch();
@@ -13,12 +14,13 @@ export const Login = () => {
   const [showModal, setShowModal] = useState(showModalLogin);
   const navigate = useNavigate();
   const location = useLocation();
+  const tenant = useContext(TenantContext);
 
   useEffect(() => {
     setShowModal(true);
   }, []);
 
-  const handleLogin = (username, password, rememberMe = false) => dispatch(login(username, password, rememberMe));
+  const handleLogin = (username, password, rememberMe = false) => dispatch(login(username, password, tenant, rememberMe));
 
   const handleClose = () => {
     setShowModal(false);

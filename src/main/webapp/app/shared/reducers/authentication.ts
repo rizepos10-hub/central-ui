@@ -42,29 +42,36 @@ export const getAccount = createAsyncThunk('authentication/get_account', async (
 interface IAuthParams {
   username: string;
   password: string;
+  tenant: string;
   rememberMe?: boolean;
 }
 
 export const authenticate = createAsyncThunk(
   'authentication/login',
-  async (auth: IAuthParams) => axios.post<any>('api/authenticate', auth),
+  async (auth: IAuthParams) => {
+    let data = {
+      username: auth.username,
+      password: auth.password,
+      rememberMe: auth.rememberMe,
+    };
+    return axios.post<any>(`http://localhost:8089/api/login/${auth.tenant}/central-app`, data);
+  },
   {
     serializeError: serializeAxiosError,
   }
 );
 
-export const login: (username: string, password: string, rememberMe?: boolean) => AppThunk =
-  (username, password, rememberMe = false) =>
+export const login: (username: string, password: string, tenant: string, rememberMe?: boolean) => AppThunk =
+  (username, password, tenant: string, rememberMe = false) =>
   async dispatch => {
-    const result = await dispatch(authenticate({ username, password, rememberMe }));
+    const result = await dispatch(authenticate({ username, password, tenant, rememberMe }));
     const response = result.payload as AxiosResponse;
-    const bearerToken = response?.headers?.authorization;
-    if (bearerToken && bearerToken.slice(0, 7) === 'Bearer ') {
-      const jwt = bearerToken.slice(7, bearerToken.length);
+    const bearerToken = response?.data?.access_token;
+    if (bearerToken) {
       if (rememberMe) {
-        Storage.local.set(AUTH_TOKEN_KEY, jwt);
+        Storage.local.set(AUTH_TOKEN_KEY, bearerToken);
       } else {
-        Storage.session.set(AUTH_TOKEN_KEY, jwt);
+        Storage.session.set(AUTH_TOKEN_KEY, bearerToken);
       }
     }
     dispatch(getSession());
