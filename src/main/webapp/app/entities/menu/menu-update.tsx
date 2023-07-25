@@ -50,8 +50,10 @@
     const [selectedItems, setSelectedItems] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState();
     const [menuItems, setMenuItems] = useState([]);
+    const [displayedTerms, setDisplayedTerms] = useState([]);
+    const [activeTerm, setActiveTerm] = useState(null);
 
-    console.log(menuItems, 'menus')
+    console.log(itemList, 'menus')
 
 console.log(selectedCategory, 'menaa')
     const handleAddItem = () => {
@@ -80,8 +82,8 @@ console.log(selectedCategory, 'menaa')
 
     const toggleModal = () => {
       setModalOpen(!isModalOpen);
+      setActiveTerm(null);
     };
-
 
     const handleClose = () => {
       navigate('/menu' + location.search);
@@ -103,6 +105,7 @@ console.log(selectedCategory, 'menaa')
     useEffect(() => {
       if (menuEntity?.item) {
         setMenuItems(menuEntity.item.map(item => item));
+        setDisplayedTerms([...new Set(menuEntity.item.map(item => item.terms[0]?.name))]);
       }
       if (menuEntity?.category){
         setSelectedCategory(menuEntity.category.name)
@@ -142,9 +145,7 @@ console.log(selectedCategory, 'menaa')
     };
 
 
-
-    console.log(selectedCategory , 'hello world')
-    console.log(menuEntity, 'hello world')
+    console.log(itemList, 'hello items')
 
 
 
@@ -166,6 +167,24 @@ console.log(selectedCategory, 'menaa')
     const allItemsPresent = () => {
       return filteredItemList.every((item) => menuItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null));
     };
+
+
+
+
+
+
+    const groupedMenuItems = itemList.reduce((groups, item) => {
+      const termName = item.terms[0]?.name || 'Uncategorized';
+      if (!groups[termName]) {
+        groups[termName] = [];
+      }
+      groups[termName].push(item);
+      return groups;
+    }, {});
+
+
+
+
 
     if (!menuEntity) {
       return <p>Loading...</p>;
@@ -208,22 +227,6 @@ console.log(selectedCategory, 'menaa')
                   }}
                 />
                 <ValidatedField
-                  label={translate('tempApp.menu.createdAt')}
-                  id="menu-createdAt"
-                  name="createdAt"
-                  data-cy="createdAt"
-                  type="datetime-local"
-                  placeholder="YYYY-MM-DD HH:mm"
-                />
-                <ValidatedField
-                  label={translate('tempApp.menu.updatedAt')}
-                  id="menu-updatedAt"
-                  name="updatedAt"
-                  data-cy="updatedAt"
-                  type="datetime-local"
-                  placeholder="YYYY-MM-DD HH:mm"
-                />
-                <ValidatedField
                   id="menu-category"
                   name="category"
                   data-cy="category"
@@ -248,34 +251,61 @@ console.log(selectedCategory, 'menaa')
                 <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
                   <ModalHeader toggle={toggleModal}>Add New Item</ModalHeader>
                   <ModalBody>
-                    <MenuItem />
-                    <Row className="justify-content-center mt-4">
-                      {/* Replace the itemList.map with filteredItemList.map to use the filtered list */}
-                      {filteredItemList.map((item) => (
-                        <Col key={item.id} sm="6" md="4" lg="3" className="mb-4">
-                          <div
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => {
-                              if (selectedItems?.some((selectedItem) => selectedItem.id === item.id)) {
-                                setSelectedItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
-                              } else {
-                                setSelectedItems((prevItems) => [...prevItems, item]);
-                              }
-                            }}
-                          >
-                            <Card
-                              className={`border-4 shadow-sm h-100 ${
-                                selectedItems?.some((selectedItem) => selectedItem.id === item.id) ? 'border-primary bg-primary' : ''
-                              }`}
+                    <Row>
+                      <Col md="3">
+                        <ListGroup>
+                          {Object.keys(groupedMenuItems).map((termName) => (
+                            <ListGroupItem
+                              key={termName}
+                              tag="button"
+                              action
+                              onClick={() => setActiveTerm(termName)}
+                              active={termName === activeTerm}
                             >
-                              <CardBody>
-                                <h6>{item.name}</h6>
-                                <p>{item.desc}</p>
-                              </CardBody>
-                            </Card>
-                          </div>
-                        </Col>
-                      ))}
+                              {termName}
+                            </ListGroupItem>
+                          ))}
+                        </ListGroup>
+                      </Col>
+                      <Col md="9">
+                        {activeTerm ? (
+                          <>
+                            <h3>{activeTerm}</h3>
+                            <Row className="justify-content-center mt-4">
+                              {groupedMenuItems[activeTerm]
+                                .filter((item) => !menuItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null))
+                                .map((item) => (
+                                  <Col key={item.id} sm="6" md="4" lg="3" className="mb-4">
+                                    <div
+                                      style={{ cursor: 'pointer' }}
+                                      onClick={() => {
+                                        if (selectedItems?.some((selectedItem) => selectedItem.id === item.id)) {
+                                          setSelectedItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
+                                        } else {
+                                          setSelectedItems((prevItems) => [...prevItems, item]);
+                                        }
+                                      }}
+                                    >
+                                      <Card
+                                        className={`border-4 shadow-sm h-100 ${
+                                          selectedItems?.some((selectedItem) => selectedItem.id === item.id) ? 'border-primary bg-primary' : ''
+                                        }`}
+                                      >
+                                        <CardBody>
+                                          <h6>{item.name}</h6>
+                                          <p>{item.desc}</p>
+                                          <p>{item.terms[0]?.name}</p>
+                                        </CardBody>
+                                      </Card>
+                                    </div>
+                                  </Col>
+                                ))}
+                            </Row>
+                          </>
+                        ) : (
+                          <p>Please select a term to view its items.</p>
+                        )}
+                      </Col>
                     </Row>
                   </ModalBody>
                   <ModalFooter>
@@ -289,30 +319,37 @@ console.log(selectedCategory, 'menaa')
                 </Modal>
 
 
-                {menuEntity && menuEntity.item && menuEntity.item.length > 0 && (
-                  <Row className="justify-content-center container border border-dark mt-4">
-                    {menuItems && menuItems.map((item) => (
-                      <Col key={item.id} sm="6" md="4" lg="3" className="mb-4 mt-4">
-                        <Card className="border-4 shadow-sm h-100">
-                          <CardBody>
-                            <h6>{item.name}</h6>
-                            <p>{item.desc}</p>
-                            <p>Order Count: {item.orderCount}</p>
-                            <p>Average Rating: {item.avgRating}</p>
-                            {/* Delete Button */}
-                            <Button
-                              color="link"
-                              onClick={() => handleDeleteItem(item.id)}
-                              className="position-absolute top-0 end-0 text-danger"
-                            >
-                              <FontAwesomeIcon icon={faTimes} />
-                            </Button>
-                          </CardBody>
-                        </Card>
-                      </Col>
-                    ))}
-                  </Row>
-                )}
+                {displayedTerms.map((termName) => (
+                  <div key={termName}>
+                    <h3>{termName}</h3>
+                    <Row className=" mt-4">
+                      {menuItems
+                        .filter((item) => item.terms[0]?.name === termName)
+                        .map((item) => (
+                          <Col key={item.id} sm="6" md="4" lg="3" className="mb-4 mt-4">
+                            <Card className="border-4 shadow-sm h-100">
+                              <CardBody>
+                                <h6>{item.name}</h6>
+                                <p>{item.desc}</p>
+                                <p>Order Count: {item.orderCount}</p>
+                                <p>Average Rating: {item.avgRating}</p>
+                                {/* Delete Button */}
+                                <Button
+                                  color="link"
+                                  onClick={() => handleDeleteItem(item.id)}
+                                  className="position-absolute top-0 end-0 text-danger"
+                                >
+                                  <FontAwesomeIcon icon={faTimes} />
+                                </Button>
+                              </CardBody>
+                            </Card>
+                          </Col>
+                        ))}
+
+                    </Row>
+                  </div>
+                ))}
+
                 <FormText>
                   <Translate contentKey="entity.validation.required">This field is required.</Translate>
                 </FormText>
