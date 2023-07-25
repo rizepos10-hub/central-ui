@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Button, Row, Col } from 'reactstrap';
+import { Button, Row, Col, FormGroup, Input } from 'reactstrap';
 import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -78,6 +78,32 @@ export const ItemDetail = () => {
             <Translate contentKey="tempApp.item.menu">Menu</Translate>
           </dt>
           <dd>{itemEntity.menu ? itemEntity.menu.id : ''}</dd>
+
+          <dt>
+            <span id="addons">
+              <Translate contentKey="tempApp.item.addons">Addons</Translate>
+            </span>
+          </dt>
+          {itemEntity.addons?.map(addon => (
+            <dd>{addon.id + ' || ' + addon.name}</dd>
+          ))}
+          <dt>
+            <span id="terms">
+              <Translate contentKey="tempApp.item.terms">Categories</Translate>
+            </span>
+          </dt>
+          {itemEntity.terms?.map(term => (
+            <dd>{term.id + ' || ' + term.name}</dd>
+          ))}
+
+          <dt>
+            <span id="variants">
+              <Translate contentKey="tempApp.item.variants">Variants</Translate>
+            </span>
+          </dt>
+          {itemEntity.variants?.map(variant => (
+            <dd>{variant.id + ' || ' + variant.name}</dd>
+          ))}
         </dl>
         <Button tag={Link} to="/item" replace color="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" />{' '}

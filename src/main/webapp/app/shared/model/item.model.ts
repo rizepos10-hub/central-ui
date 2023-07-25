@@ -3,6 +3,7 @@ import { IAddon } from 'app/shared/model/addon.model';
 import { ITerm } from 'app/shared/model/term.model';
 import { IMenu } from 'app/shared/model/menu.model';
 import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
+import { IVariant } from 'app/shared/model/variants.model';
 
 export interface IItem {
   id?: string;
@@ -17,6 +18,7 @@ export interface IItem {
   addons?: IAddon[] | null;
   terms?: ITerm[] | null;
   menu?: IMenu | null;
+  variants?: IVariant[];
 }
 
 export const defaultValue: Readonly<IItem> = {};
