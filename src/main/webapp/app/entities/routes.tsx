@@ -3,7 +3,7 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import Menu from './menu';
+import Menu from "./menu/index"
 import Branch from './branch';
 import Discount from './discount';
 import Attachment from './attachment';

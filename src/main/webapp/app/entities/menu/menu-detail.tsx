@@ -8,6 +8,8 @@ import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity } from './menu.reducer';
+import { getEntities } from '../item/item.reducer';
+
 
 export const MenuDetail = () => {
   const dispatch = useAppDispatch();
@@ -16,9 +18,11 @@ export const MenuDetail = () => {
 
   useEffect(() => {
     dispatch(getEntity(id));
+
   }, []);
 
   const menuEntity = useAppSelector(state => state.menu.entity);
+
   return (
     <Row>
       <Col md="8">

@@ -20,10 +20,16 @@ const apiSearchUrl = 'api/_search/items';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('item/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IItem[]>(requestUrl);
-});
+export const searchEntities = createAsyncThunk(
+  'item/search_entity',
+  async ({ query, page, size, sort }: IQueryParams) => {
+    const requestUrl = `api/_search/items?query=${query}&page=${page}&size=${size}`;
+
+    // Perform the API call
+    return axios.get<IItem[]>(requestUrl);
+  }
+);
+
 
 export const getEntities = createAsyncThunk('item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
