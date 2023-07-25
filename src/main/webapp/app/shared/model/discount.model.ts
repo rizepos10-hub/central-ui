@@ -5,7 +5,6 @@ export interface IDiscount {
   id?: string;
   value?: number;
   type?: DiscountType;
-  addon?: IAddon | null;
 }
 
 export const defaultValue: Readonly<IDiscount> = {};
