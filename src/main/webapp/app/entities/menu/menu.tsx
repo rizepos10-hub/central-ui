@@ -192,7 +192,11 @@ export const Menu = () => {
                       {menu.id}
                     </Button>
                   </td>
-                  <td>{menu.name}</td>
+                  <td>
+                    <Button tag={Link} to={`/menu/${menu.id}`} color="link" size="sm">
+                    {menu.name}
+                    </Button>
+                    </td>
                   <td>{menu.createdAt ? <TextFormat type="date" value={menu.createdAt} format={APP_DATE_FORMAT} /> : null}</td>
                   <td>{menu.updatedAt ? <TextFormat type="date" value={menu.updatedAt} format={APP_DATE_FORMAT} /> : null}</td>
                   <td>{menu.category ? <Link to={`/term/${menu.category.id}`}>{menu.category.id}</Link> : ''}</td>

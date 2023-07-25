@@ -122,6 +122,7 @@ export const Term = () => {
     sortEntities();
   };
 
+  console.log(termList, 'termlist')
   return (
     <div>
       <h2 id="term-heading" data-cy="TermHeading">
@@ -193,7 +194,7 @@ export const Term = () => {
                     </Button>
                   </td>
                   <td>{term.name}</td>
-                  <td>{term.taxonomy ? <Link to={`/taxonomy/${term.taxonomy.id}`}>{term.taxonomy.id}</Link> : ''}</td>
+                  <td>{term.taxonomy ? <Link to={`/taxonomy/${term.taxonomy.id}`}>{term.taxonomy.name}</Link> : ''}</td>
                   <td>{term.term ? <Link to={`/term/${term.term.id}`}>{term.term.id}</Link> : ''}</td>
                   <td>{term.item ? <Link to={`/item/${term.item.id}`}>{term.item.id}</Link> : ''}</td>
                   <td className="text-end">
