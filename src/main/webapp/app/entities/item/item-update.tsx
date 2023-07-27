@@ -45,7 +45,10 @@ export const ItemUpdate = () => {
     .map(term => ({ value: term.id, label: term.name }));
   const [selectedTerms, setSelectedTerms] = useState(entityTerms);
 
+  const [selectedOption, setSelectedOption] = useState(null)
   const [openedModal, setOpenedModal] = useState(false);
+
+
 
   const [variants, setVariants] = useState([]);
 
@@ -106,7 +109,7 @@ export const ItemUpdate = () => {
   const handleSaveVariant = (name, price, discount) => {
     console.log('variant values');
     // variants.push()
-    console.log(name, 'name in var ');
+    console.log(discount, 'discount in var ');
     console.log(price);
     const newValues = { name: name, price: price, discounts: discount };
     const newVariants = [...variants, newValues];
@@ -116,6 +119,20 @@ export const ItemUpdate = () => {
       setVariants(prevVariants => [...prevVariants, newValues]);
     }
   };
+
+
+
+
+  const handleVariantChange = (selectedOptions:any) => {
+
+  setSelectedOption(selectedOptions)
+    console.log(selectedOption, 'selected')
+  };
+
+console.log(variants, 'variantss')
+
+
+
   const defaultValues = () =>
     isNew
       ? {}
@@ -210,14 +227,35 @@ export const ItemUpdate = () => {
                 <Translate contentKey="tempApp.item.terms">Category</Translate>
                 <Select isMulti={true} defaultValue={entityTerms} onChange={setSelectedTerms} options={termsOptions} />
               </div>
-              {variants ? (
-                variants.map((otherEntity, index) => (
-                  <option value={otherEntity.id} key={index}>
-                    {index + ' ' + otherEntity.name}
-                  </option>
-                ))
-              ) : (
-                <p>empty</p>
+              {variants && (
+                <div className="mb-3">
+                  <Translate contentKey="tempApp.item.variants">Variants</Translate>
+                  <table className="table table-striped">
+                    <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Price</th>
+                      <th>Discounts</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {variants.map((variant) => (
+                      <tr key={variant.id && variant.id}>
+                        <td>{variant.name}</td>
+                        <td>{variant.price}</td>
+                        <td>
+                          <ul>
+                            {variant.discounts.map((discount) => (
+
+                              <li key={discount?.id && discount?.id}> {`${discount?.type} ${discount?.value}`}</li>
+                            ))}
+                          </ul>
+                        </td>
+                      </tr>
+                    ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
               <Button onClick={openVariantModal}> Add Variant</Button>
               <ValidatedField id="item-menu" name="menu" data-cy="menu" label={translate('tempApp.item.menu')} type="select">

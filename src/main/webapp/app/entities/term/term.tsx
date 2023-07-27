@@ -17,7 +17,9 @@ export const Term = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-
+  const taxonomyNameParam = new URLSearchParams(location.search).get('taxonomyName');
+  const taxonomyName = taxonomyNameParam ? decodeURIComponent(taxonomyNameParam) : null;
+  console.log(taxonomyNameParam, 'here the location')
   const [search, setSearch] = useState('');
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -26,6 +28,9 @@ export const Term = () => {
   const termList = useAppSelector(state => state.term.entities);
   const loading = useAppSelector(state => state.term.loading);
   const totalItems = useAppSelector(state => state.term.totalItems);
+
+  const [filteredTermList, setFilteredTermList] = useState(termList);
+
 
   const getAllEntities = () => {
     if (search) {
@@ -85,6 +90,22 @@ export const Term = () => {
     }
   };
 
+
+
+
+
+
+
+  useEffect(() => {
+    if (taxonomyName) {
+      console.log(taxonomyName, 'taxonomyName')
+      const filteredTerms = termList.filter((term) => term.taxonomy?.name === taxonomyName);
+      setFilteredTermList(filteredTerms);
+    } else {
+      setFilteredTermList(termList);
+    }
+  }, [termList, taxonomyName]);
+
   useEffect(() => {
     sortEntities();
   }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
@@ -122,7 +143,6 @@ export const Term = () => {
     sortEntities();
   };
 
-  console.log(termList, 'termlist')
   return (
     <div>
       <h2 id="term-heading" data-cy="TermHeading">
@@ -132,7 +152,7 @@ export const Term = () => {
             <FontAwesomeIcon icon="sync" spin={loading} />{' '}
             <Translate contentKey="tempApp.term.home.refreshListLabel">Refresh List</Translate>
           </Button>
-          <Link to="/term/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
+          <Link to={`/term/new?&taxonomyName=${taxonomyName}`} className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
             <FontAwesomeIcon icon="plus" />
             &nbsp;
             <Translate contentKey="tempApp.term.home.createLabel">Create new Term</Translate>
@@ -163,7 +183,7 @@ export const Term = () => {
         </Col>
       </Row>
       <div className="table-responsive">
-        {termList && termList.length > 0 ? (
+        {filteredTermList && filteredTermList.length > 0 ? (
           <Table responsive>
             <thead>
               <tr>
@@ -186,7 +206,7 @@ export const Term = () => {
               </tr>
             </thead>
             <tbody>
-              {termList.map((term, i) => (
+              {filteredTermList.map((term, i) => (
                 <tr key={`entity-${i}`} data-cy="entityTable">
                   <td>
                     <Button tag={Link} to={`/term/${term.id}`} color="link" size="sm">
@@ -244,7 +264,7 @@ export const Term = () => {
         )}
       </div>
       {totalItems ? (
-        <div className={termList && termList.length > 0 ? '' : 'd-none'}>
+        <div className={filteredTermList && filteredTermList.length > 0 ? '' : 'd-none'}>
           <div className="justify-content-center d-flex">
             <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
           </div>
