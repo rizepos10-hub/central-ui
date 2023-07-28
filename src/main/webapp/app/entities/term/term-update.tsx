@@ -62,7 +62,7 @@ export const TermUpdate = () => {
     dispatch(getTaxonomies({}));
     dispatch(getTerms({}));
     dispatch(getItems({}));
-  }, []);
+  }, [taxonomyName]);
 
   useEffect(() => {
     if (updateSuccess) {
@@ -76,7 +76,7 @@ export const TermUpdate = () => {
       ...values,
       taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
       term: terms.find(it => it.id.toString() === values.term.toString()),
-      item: items.find(it => it.id.toString() === values.item.toString()),
+      // item: items.find(it => it.id.toString() === values.item.toString()),
     };
 
     if (isNew) {
@@ -93,15 +93,16 @@ export const TermUpdate = () => {
           ...termEntity,
           taxonomy: termEntity?.taxonomy?.id,
           term: termEntity?.term?.id,
-          item: termEntity?.item?.id,
+          // item: termEntity?.item?.id,
         };
-
+console.log(terms, 'terms')
+  console.log(taxonomyName,'taxonomies')
   return (
     <div>
       <Row className="justify-content-center">
         <Col md="8">
           <h2 id="tempApp.term.home.createOrEditLabel" data-cy="TermCreateUpdateHeading">
-            <Translate contentKey="tempApp.term.home.createOrEditLabel">Create or edit a Term</Translate>
+            Create or edit {taxonomyName && taxonomyName?.includes("Menu") ? "a Menu Category" : taxonomyName?.includes("Item") ? "an Item Category" : "a Term" }
           </h2>
         </Col>
       </Row>
@@ -139,14 +140,14 @@ export const TermUpdate = () => {
                 type="select"
                 required
               >
-                {taxonomyName !== null ? (
+                {!taxonomyName  ? (
                   taxonomies.map((otherEntity) => (
                     <option value={otherEntity.id} key={otherEntity.id}>
                       {otherEntity.name}
                     </option>
                   ))
                 ) : (
-                  taxonomies
+                   taxonomies
                     .filter((otherEntity) => otherEntity.name === taxonomyName)
                     .map((filteredEntity) => (
                       <option value={filteredEntity.id} key={filteredEntity.id}>
@@ -155,28 +156,41 @@ export const TermUpdate = () => {
                     ))
                 )}
               </ValidatedField>
-              <FormText>
-                <Translate contentKey="entity.validation.required">This field is required.</Translate>
-              </FormText>
-              <ValidatedField id="term-term" name="term" data-cy="term" label={translate('tempApp.term.parents')} type="select">
+
+              <ValidatedField
+                id="term-term"
+                name="term"
+                data-cy="term"
+                label={translate('tempApp.term.parents')}
+                type="select"
+              >
                 {terms
-                  ? terms.map(otherEntity => (
+                  ? taxonomyName
+                    ? terms
+                      .filter((term) => term.taxonomy && term.taxonomy.name === taxonomyName)
+                      .map((otherEntity) => (
+                        <option value={otherEntity.id} key={otherEntity.id}>
+                          {otherEntity.name}
+                        </option>
+                      ))
+                    : terms.map((otherEntity) => (
                       <option value={otherEntity.id} key={otherEntity.id}>
                         {otherEntity.name}
                       </option>
                     ))
                   : null}
               </ValidatedField>
-              <ValidatedField id="term-item" name="item" data-cy="item" label={translate('tempApp.term.item')} type="select">
-                <option value="" key="0" />
-                {items
-                  ? items.map(otherEntity => (
-                      <option value={otherEntity.id} key={otherEntity.id}>
-                        {otherEntity.name}
-                      </option>
-                    ))
-                  : null}
-              </ValidatedField>
+
+              {/* <ValidatedField id="term-item" name="item" data-cy="item" label={translate('tempApp.term.item')} type="select"> */}
+              {/*   <option value="" key="0" /> */}
+              {/*   {items */}
+              {/*     ? items.map(otherEntity => ( */}
+              {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
+              {/*           {otherEntity.name} */}
+              {/*         </option> */}
+              {/*       )) */}
+              {/*     : null} */}
+              {/* </ValidatedField> */}
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/term" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

@@ -41,7 +41,7 @@ export const ItemUpdate = () => {
 
   const entityTerms = itemEntity.terms?.map(term => ({ value: term.id, label: term.name }));
   const termsOptions = useAppSelector(state => state.term.entities)
-    .filter(term => term.taxonomy.name === 'Item-category')
+    .filter(term => term.taxonomy.name === 'Item Category')
     .map(term => ({ value: term.id, label: term.name }));
   const [selectedTerms, setSelectedTerms] = useState(entityTerms);
 

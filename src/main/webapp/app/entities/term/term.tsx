@@ -18,8 +18,10 @@ export const Term = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const taxonomyNameParam = new URLSearchParams(location.search).get('taxonomyName');
+  console.log(taxonomyNameParam, 'here the location param');
   const taxonomyName = taxonomyNameParam ? decodeURIComponent(taxonomyNameParam) : null;
-  console.log(taxonomyNameParam, 'here the location')
+  console.log(taxonomyName, 'here the location');
+
   const [search, setSearch] = useState('');
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -40,6 +42,7 @@ export const Term = () => {
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
+          taxonomyName,
         })
       );
     } else {
@@ -48,10 +51,12 @@ export const Term = () => {
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
+          taxonomyName,
         })
       );
     }
   };
+
 
   const startSearching = e => {
     if (search) {
@@ -84,7 +89,7 @@ export const Term = () => {
 
   const sortEntities = () => {
     getAllEntities();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}${taxonomyName ? `&taxonomyName=${encodeURIComponent(taxonomyName)}` : ''}`;
     if (location.search !== endURL) {
       navigate(`${location.pathname}${endURL}`);
     }
@@ -152,10 +157,10 @@ export const Term = () => {
             <FontAwesomeIcon icon="sync" spin={loading} />{' '}
             <Translate contentKey="tempApp.term.home.refreshListLabel">Refresh List</Translate>
           </Button>
-          <Link to={`/term/new?&taxonomyName=${taxonomyName}`} className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
+          <Link to={`/term/new?${taxonomyName ? `&taxonomyName=${encodeURIComponent(taxonomyName)}` : ''}`} className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
             <FontAwesomeIcon icon="plus" />
             &nbsp;
-            <Translate contentKey="tempApp.term.home.createLabel">Create new Term</Translate>
+            Create {taxonomyName && taxonomyName?.includes("Menu") ? " New Menu Category" : taxonomyName?.includes("Item") ? " New Item Category" : "a Term" }
           </Link>
         </div>
       </h2>
@@ -227,7 +232,7 @@ export const Term = () => {
                       </Button>
                       <Button
                         tag={Link}
-                        to={`/term/${term.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                        to={`/term/${term.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}${taxonomyName ? `&taxonomyName=${encodeURIComponent(taxonomyName)}` : ''}`}
                         color="primary"
                         size="sm"
                         data-cy="entityEditButton"
