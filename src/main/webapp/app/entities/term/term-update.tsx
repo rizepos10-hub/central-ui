@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
 import { Button, Row, Col, FormText } from 'reactstrap';
 import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,6 +21,11 @@ export const TermUpdate = () => {
 
   const navigate = useNavigate();
 
+  const location = useLocation();
+
+  const taxonomyNameParam = new URLSearchParams(location.search).get('taxonomyName');
+  const taxonomyName = taxonomyNameParam ? decodeURIComponent(taxonomyNameParam) : null;
+
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
@@ -35,6 +40,17 @@ export const TermUpdate = () => {
   const handleClose = () => {
     navigate('/term' + location.search);
   };
+
+  useEffect(() => {
+    console.log(taxonomyName, 'taxonomyName3')
+
+    if (taxonomyName) {
+
+
+    } else {
+      // setFilteredTermList(termList);
+    }
+  }, [ taxonomyName])
 
   useEffect(() => {
     if (isNew) {
@@ -123,24 +139,30 @@ export const TermUpdate = () => {
                 type="select"
                 required
               >
-                <option value="" key="0" />
-                {taxonomies
-                  ? taxonomies.map(otherEntity => (
-                      <option value={otherEntity.id} key={otherEntity.id}>
-                        {otherEntity.id}
+                {taxonomyName !== null ? (
+                  taxonomies.map((otherEntity) => (
+                    <option value={otherEntity.id} key={otherEntity.id}>
+                      {otherEntity.name}
+                    </option>
+                  ))
+                ) : (
+                  taxonomies
+                    .filter((otherEntity) => otherEntity.name === taxonomyName)
+                    .map((filteredEntity) => (
+                      <option value={filteredEntity.id} key={filteredEntity.id}>
+                        {filteredEntity.name}
                       </option>
                     ))
-                  : null}
+                )}
               </ValidatedField>
               <FormText>
                 <Translate contentKey="entity.validation.required">This field is required.</Translate>
               </FormText>
-              <ValidatedField id="term-term" name="term" data-cy="term" label={translate('tempApp.term.term')} type="select">
-                <option value="" key="0" />
+              <ValidatedField id="term-term" name="term" data-cy="term" label={translate('tempApp.term.parents')} type="select">
                 {terms
                   ? terms.map(otherEntity => (
                       <option value={otherEntity.id} key={otherEntity.id}>
-                        {otherEntity.id}
+                        {otherEntity.name}
                       </option>
                     ))
                   : null}
@@ -150,7 +172,7 @@ export const TermUpdate = () => {
                 {items
                   ? items.map(otherEntity => (
                       <option value={otherEntity.id} key={otherEntity.id}>
-                        {otherEntity.id}
+                        {otherEntity.name}
                       </option>
                     ))
                   : null}

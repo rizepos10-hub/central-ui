@@ -9,23 +9,29 @@ import Select from 'react-select';
 interface IVariantProps {
   showModal: boolean;
   handleClose?: () => void;
-  handleSave: (name: string, price: number, discount: IDiscount) => void;
+  handleSave: (name: string, price: number, discount: any) => void;
 }
 const ItemVariantModal = (props: IVariantProps) => {
-  const discounts = useAppSelector(state => state.discount.entities)?.map(discount => ({
-    label: discount.type + ' ' + discount.value,
-    value: discount.id,
-  }));
-  console.log(discounts, 'discount');
+  const discounts = useAppSelector(state => state.discount.entities);
+  console.log(discounts, 'discount1');
 
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
 
-  const handleDiscountsChange = selectedOptions => {
-    const selectedValues = selectedOptions.map(option => option.value);
+  const  handleDiscountsChange = selectedOptions => {
+    console.log(selectedOptions, 'news')
+    const selectedValues = selectedOptions.map((option) => ({
+      id: option.id,
+      type: option.type,
+      value: option.value
+    }));
+
     setSelectedDiscounts(selectedValues);
+
   };
-  const variant = ({ name, price, discount }) => {
-    props.handleSave(name, price, discount);
+  const variant = ({ name, price }) => {
+    const selectedDiscountObjects = selectedDiscounts.map((item) => ({ id: item.id, type: item.type, value: item.value}));
+    console.log(selectedDiscounts, 'selectedDiscounts');
+    props.handleSave(name, parseFloat(price), selectedDiscountObjects);
   };
 
   const {
@@ -34,14 +40,23 @@ const ItemVariantModal = (props: IVariantProps) => {
     formState: { errors, touchedFields },
   } = useForm({ mode: 'onTouched' });
 
-  const handleVariantSave = e => {
+  const handleVariantSave = (e) => {
+
+    e.preventDefault()
     console.log('handle submit');
 
-    selectedDiscounts.map(discount => ({ id: discount }));
+    // const selectedDiscountObjects:any = selectedDiscounts.map((discountId) => {
+    //   const discount = discounts.find((discount)  => discount.value === discountId);
+    //   return { id: discountId, type: discount.type, value: discount.value };
+    // });
+
     console.log(selectedDiscounts);
-    e.discounts = selectedDiscounts;
+    // e.discounts = selectedDiscountObjects;
     console.log(e.discounts);
     handleSubmit(variant)(e);
+
+    props.handleClose()
+
   };
 
   return (
@@ -95,7 +110,8 @@ const ItemVariantModal = (props: IVariantProps) => {
               {/*</ValidatedField>*/}
               <div className="mb-3">
                 <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
-                <Select isMulti={true} defaultValue={[]} onChange={handleDiscountsChange} options={discounts} />
+                <Select isMulti={true} defaultValue={[]} onChange={handleDiscountsChange}
+            options={discounts.map((discount) => ({label: `${discount.type} ${discount.value}`, id: discount.id, type: discount.type, value: discount.value  }) )} />
               </div>
             </Row>
             <ModalFooter>

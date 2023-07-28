@@ -18,6 +18,7 @@ import ErrorBoundary from 'app/shared/error/error-boundary';
 import { AUTHORITIES } from 'app/config/constants';
 import AppRoutes from 'app/routes';
 import TenantContext from 'app/shared/tenant/TenantContext';
+import Sidebar from "app/shared/sidebar/sidebar";
 
 // const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
@@ -65,8 +66,9 @@ export const App = () => {
               isOpenAPIEnabled={isOpenAPIEnabled}
             />
           </ErrorBoundary>
-          <div className="container-fluid view-container" id="app-view-container">
-            <Card className="jh-card">
+          <div className="container-fluid view-container row" id="app-view-container">
+            <Sidebar isAuthenticated={isAuthenticated} />
+            <Card className={`jh-card ${isAuthenticated ? "col-10" : "col-12"} `}>
               <ErrorBoundary>
                 <AppRoutes />
               </ErrorBoundary>
