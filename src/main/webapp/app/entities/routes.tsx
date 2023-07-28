@@ -3,7 +3,7 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import Menu from "./menu/index"
+import Menu from './menu/index';
 import Branch from './branch';
 import Discount from './discount';
 import Attachment from './attachment';
@@ -12,6 +12,8 @@ import Item from './item';
 import Taxonomy from './taxonomy';
 import Addon from './addon';
 import Term from './term';
+import Order from './order';
+
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
 export default () => {
@@ -28,6 +30,8 @@ export default () => {
         <Route path="taxonomy/*" element={<Taxonomy />} />
         <Route path="addon/*" element={<Addon />} />
         <Route path="term/*" element={<Term />} />
+        <Route path="order/*" element={<Order />} />
+
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>
     </div>
