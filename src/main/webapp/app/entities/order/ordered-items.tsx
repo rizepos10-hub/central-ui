@@ -24,18 +24,10 @@ export const OrderedItems: React.FC<OrderedItems> = ({ list }) => {
               <th>
                 <Translate contentKey="tempApp.order.id">ID</Translate>
               </th>
-              <th>
-                <Translate contentKey="tempApp.order.price">Price</Translate>
-              </th>
-              <th>
-                <Translate contentKey="tempApp.order.amount">amount</Translate>
-              </th>
-              <th>
-                <Translate contentKey="tempApp.order.type">Discount</Translate>
-              </th>
-              <th>
-                <Translate contentKey="tempApp.order.billed-item">Seats</Translate>
-              </th>
+              <th>Price</th>
+              <th>Amount</th>
+              <th>Discount</th>
+              <th>Seats</th>
               <th />
             </tr>
           </thead>
