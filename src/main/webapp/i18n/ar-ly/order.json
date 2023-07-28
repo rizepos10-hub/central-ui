@@ -1,0 +1,34 @@
+{
+  "tempApp": {
+    "order": {
+      "home": {
+        "title": "Orders",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Order",
+        "createOrEditLabel": "Create or edit a Order",
+        "search": "Search for Order",
+        "notFound": "No Orders found"
+      },
+      "created": "A new Order is created with identifier {{ param }}",
+      "updated": "A Order is updated with identifier {{ param }}",
+      "deleted": "A Order is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Order {{ id }}?"
+      },
+      "detail": {
+        "title": "Order"
+      },
+      "id": "ID",
+      "discount": "Discount",
+      "walkin": "Walkin",
+      "status": "Status",
+      "branchId": "Branch Id",
+      "sourceApp": "Source App",
+      "tables": "Tables",
+      "dateTime": "Time",
+      "payee": "Payee",
+      "type": "Transaction Type",
+      "billed-item": "Billed Item"
+    }
+  }
+}
