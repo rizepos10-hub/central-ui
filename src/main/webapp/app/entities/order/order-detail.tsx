@@ -19,6 +19,7 @@ export const OrderDetail = () => {
   }, []);
 
   const orderEntity = useAppSelector(state => state.order.entity);
+  console.log(orderEntity);
   return (
     <Row>
       <Col md="8">
@@ -68,6 +69,27 @@ export const OrderDetail = () => {
             </span>
           </dt>
           <dd>{orderEntity.tables}</dd>
+
+          {/*<dt>*/}
+          {/*  <span id="tables">*/}
+          {/*    <Translate contentKey="tempApp.order.tables">Tables</Translate>*/}
+          {/*  </span>*/}
+          {/*</dt>*/}
+          {/*<dd>{orderEntity.customer}</dd>*/}
+
+          {/*<dt>*/}
+          {/*  <span id="tables">*/}
+          {/*    <Translate contentKey="tempApp.order.tables">Tables</Translate>*/}
+          {/*  </span>*/}
+          {/*</dt>*/}
+          {/*<dd>{orderEntity.bills}</dd>*/}
+
+          {/*<dt>*/}
+          {/*  <span id="tables">*/}
+          {/*    <Translate contentKey="tempApp.order.tables">Tables</Translate>*/}
+          {/*  </span>*/}
+          {/*</dt>*/}
+          {/*<dd>{orderEntity.items}</dd>*/}
         </dl>
         <Button tag={Link} to="/order" replace color="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" />{' '}
