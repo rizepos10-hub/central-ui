@@ -1,0 +1,115 @@
+.sidebar {
+  background-color: transparent;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.sidebar .menu-wrapper {
+  border: 0px none;
+  position: relative;
+  width: 232px;
+}
+
+.sidebar .menu {
+  align-items: center;
+  background-color: #353d47;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+  height: 1024px;
+  left: 0;
+  padding: 140px 46px 0px 30px;
+  position: fixed;
+  top: 0;
+  width: 232px;
+}
+
+.sidebar .button-instance {
+  box-shadow: 0px 4px 4px #00000040, 0px 4px 4px #00000040 !important;
+  margin-left: -14px !important;
+  margin-right: -14px !important;
+}
+
+.sidebar .design-component-instance-node {
+  font-family: "Abel", Helvetica !important;
+}
+
+.sidebar .div {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-left: -14px;
+  margin-right: -14px;
+  position: relative;
+  width: fit-content;
+}
+
+.sidebar .expand-tab-instance {
+  width: 184px !important;
+}
+
+.sidebar .expand-tab-2 {
+  font-family: "Abel", Helvetica !important;
+  white-space: unset !important;
+}
+
+.sidebar .expand-tab-3 {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  padding: 13px 26px 13px 16px;
+  position: relative;
+  width: 160px;
+}
+
+.sidebar .icons-2 {
+  height: 22px;
+  min-width: 22px;
+  position: relative;
+}
+
+.sidebar .text-wrapper {
+  color: #f1f1f1;
+  font-family: "Abel", Helvetica;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: normal;
+  position: relative;
+  width: fit-content;
+}
+
+.sidebar .icons-1-wrapper {
+  color: #f1f1f1 !important;
+  font-family: "Abel", Helvetica !important;
+  white-space: unset !important;
+}
+
+.sidebar .icons-instance-wrapper {
+  align-items: flex-start;
+  background-color: #ffffff;
+  border-radius: 17px;
+  box-shadow: 2px 2px 8px #0000001a;
+  display: flex;
+  gap: 10px;
+  height: 30px;
+  left: 245px;
+  padding: 8px;
+  position: absolute;
+  top: 30px;
+  transform: rotate(-2.33deg);
+  width: 30px;
+}
+
+.sidebar .icons-instance {
+  height: 14.56px !important;
+  margin-bottom: -0.28px !important;
+  margin-left: -0.28px !important;
+  margin-right: -0.28px !important;
+  margin-top: -0.28px !important;
+  min-width: 14.56px !important;
+  position: relative !important;
+  transform: rotate(2.33deg) !important;
+}

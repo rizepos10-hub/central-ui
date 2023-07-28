@@ -42,7 +42,7 @@
     const isNew = id === undefined;
     console.log(id , 'hello id')
 
-    const terms = useAppSelector(state => state.term.entities).filter(term => term.taxonomy.name === 'menu category');
+    const terms = useAppSelector(state => state.term.entities).filter(term => term.taxonomy.name === 'Menu Category');
     const itemList = useAppSelector(state => state.item.entities);
     const menuEntity = useAppSelector(state => state.menu.entity);
     const loading = useAppSelector(state => state.menu.loading);
