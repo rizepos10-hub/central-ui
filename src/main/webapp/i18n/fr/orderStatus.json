@@ -1,0 +1,16 @@
+{
+  "tempApp": {
+    "OrderStatus": {
+      "null": "",
+      "DRAFT": "DRAFT",
+      "PROCESSING": "PROCESSING",
+      "CONFIRMED": "CONFIRMED",
+      "HANDOVER": "HANDOVER",
+      "PICKED_UP": "PICKED_UP",
+      "DELIVERED": "DELIVERED",
+      "CANCELED": "CANCELED",
+      "REFUND_REQUESTED": "REFUND_REQUESTED",
+      "REFUNDED": "REFUNDED"
+    }
+  }
+}
