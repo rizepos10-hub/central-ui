@@ -8,6 +8,10 @@ import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity } from './order.reducer';
+import CustomerDetail from 'app/entities/customer/customer-detail';
+import OrderCustomerDetail from 'app/entities/order/order-customer-details';
+import { OrderBills } from 'app/entities/order/order-bills';
+import { OrderedItems } from 'app/entities/order/ordered-items';
 
 export const OrderDetail = () => {
   const dispatch = useAppDispatch();
@@ -19,7 +23,7 @@ export const OrderDetail = () => {
   }, []);
 
   const orderEntity = useAppSelector(state => state.order.entity);
-  console.log(orderEntity);
+
   return (
     <Row>
       <Col md="8">
@@ -70,12 +74,23 @@ export const OrderDetail = () => {
           </dt>
           <dd>{orderEntity.tables}</dd>
 
-          {/*<dt>*/}
-          {/*  <span id="tables">*/}
-          {/*    <Translate contentKey="tempApp.order.tables">Tables</Translate>*/}
-          {/*  </span>*/}
-          {/*</dt>*/}
-          {/*<dd>{orderEntity.customer}</dd>*/}
+          {orderEntity.customer ? (
+            <OrderCustomerDetail
+              id={orderEntity.customer.id}
+              orderCount={orderEntity.customer.orderCount}
+              email={orderEntity.customer.email}
+              status={orderEntity.customer.status}
+              firstName={orderEntity.customer.firstName}
+              image={orderEntity.customer.image}
+              lastName={orderEntity.customer.lastName}
+              phone={orderEntity.customer.phone}
+            />
+          ) : (
+            ''
+          )}
+
+          {orderEntity.bills ? <OrderBills list={orderEntity.bills}></OrderBills> : ''}
+          {orderEntity.items ? <OrderedItems list={orderEntity.items}></OrderedItems> : ''}
 
           {/*<dt>*/}
           {/*  <span id="tables">*/}
