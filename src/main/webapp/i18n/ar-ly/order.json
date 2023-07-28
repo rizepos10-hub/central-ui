@@ -24,7 +24,11 @@
       "status": "Status",
       "branchId": "Branch Id",
       "sourceApp": "Source App",
-      "tables": "Tables"
+      "tables": "Tables",
+      "dateTime": "Time",
+      "payee": "Payee",
+      "type": "Transaction Type",
+      "billed-item": "Billed Item"
     }
   }
 }
