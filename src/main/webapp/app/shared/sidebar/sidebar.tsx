@@ -1,7 +1,6 @@
 import React from "react";
 
 import "./sidebar.scss";
-import SidebarItems from "app/shared/sidebar/sidebar-items";
 import SidebarTest from "app/shared/sidebar/SidebarTest";
 
 export interface ISideBarProps {

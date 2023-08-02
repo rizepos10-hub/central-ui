@@ -65,9 +65,9 @@ export const TermUpdate = () => {
   }, [taxonomyName]);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
+    // if (updateSuccess) {
+    //   handleClose();
+    // }
   }, [updateSuccess]);
 
   const saveEntity = values => {
@@ -75,10 +75,11 @@ export const TermUpdate = () => {
       ...termEntity,
       ...values,
       taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
-      term: terms.find(it => it.id.toString() === values.term.toString()),
+      parents: [terms.find(it => it.id.toString() === values.term.toString())],
       // item: items.find(it => it.id.toString() === values.item.toString()),
     };
 
+    console.log(entity, 'entity saved')
     if (isNew) {
       dispatch(createEntity(entity));
     } else {
@@ -91,8 +92,8 @@ export const TermUpdate = () => {
       ? {}
       : {
           ...termEntity,
-          taxonomy: termEntity?.taxonomy?.id,
-          term: termEntity?.term?.id,
+           taxonomy: termEntity?.taxonomy?.id,
+           parents: termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0].id : '',
           // item: termEntity?.item?.id,
         };
 console.log(terms, 'terms')
@@ -136,10 +137,11 @@ console.log(terms, 'terms')
                 id="term-taxonomy"
                 name="taxonomy"
                 data-cy="taxonomy"
-                label={translate('tempApp.term.taxonomy')}
+                label={'Category'}
                 type="select"
                 required
               >
+                <option value={''}></option>
                 {!taxonomyName  ? (
                   taxonomies.map((otherEntity) => (
                     <option value={otherEntity.id} key={otherEntity.id}>
@@ -164,6 +166,7 @@ console.log(terms, 'terms')
                 label={translate('tempApp.term.parents')}
                 type="select"
               >
+                <option value={''}></option>
                 {terms
                   ? taxonomyName
                     ? terms
@@ -181,6 +184,7 @@ console.log(terms, 'terms')
                   : null}
               </ValidatedField>
 
+
               {/* <ValidatedField id="term-item" name="item" data-cy="item" label={translate('tempApp.term.item')} type="select"> */}
               {/*   <option value="" key="0" /> */}
               {/*   {items */}
@@ -191,7 +195,9 @@ console.log(terms, 'terms')
               {/*       )) */}
               {/*     : null} */}
               {/* </ValidatedField> */}
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/term" replace color="info">
+              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton"
+                      to={`/term?page=1&sort=id,asc&${taxonomyName ? `taxonomyName=${taxonomyName}` : '' }`}
+                      replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">

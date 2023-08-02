@@ -20,6 +20,8 @@ const apiSearchUrl = 'api/_search/menus';
 
 // Actions
 
+
+
 export const searchEntities = createAsyncThunk('menu/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<IMenu[]>(requestUrl);
@@ -29,6 +31,17 @@ export const getEntities = createAsyncThunk('menu/fetch_entity_list', async ({ p
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IMenu[]>(requestUrl);
 });
+
+
+export const sendEvent = createAsyncThunk(
+  'menu/send_event',
+  async (id: string | number) => {
+    const requestUrl = `api/event?menuId=${id}`;
+    return axios.post<IMenu>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+
 
 export const getEntity = createAsyncThunk(
   'menu/fetch_entity',
@@ -59,6 +72,8 @@ export const updateEntity = createAsyncThunk(
   },
   { serializeError: serializeAxiosError }
 );
+
+
 
 export const partialUpdateEntity = createAsyncThunk(
   'menu/partial_update_entity',

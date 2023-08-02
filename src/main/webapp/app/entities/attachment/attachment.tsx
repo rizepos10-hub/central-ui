@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
+import {Button, Input, InputGroup, FormGroup, Form, Row, Col, Table, Modal} from 'reactstrap';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -10,7 +10,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IAttachment } from 'app/shared/model/attachment.model';
-import { searchEntities, getEntities } from './attachment.reducer';
+import {searchEntities, getEntities, createEntity, uploadImage} from './attachment.reducer';
 
 export const Attachment = () => {
   const dispatch = useAppDispatch();
@@ -26,6 +26,36 @@ export const Attachment = () => {
   const attachmentList = useAppSelector(state => state.attachment.entities);
   const loading = useAppSelector(state => state.attachment.loading);
   const totalItems = useAppSelector(state => state.attachment.totalItems);
+
+
+  const [showRow, setShowRow] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedThumbnailImage, setSelectedThumbnailImage] = useState(null);
+
+  const handleThumbnailClick = (url) => {
+    setSelectedThumbnailImage(url);
+  };
+
+
+  const handleImageUpload = async () => {
+    if (!selectedImage) {
+      console.error('No image selected.');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', selectedImage);
+    try {
+      await dispatch(uploadImage(formData));
+      console.log('Image Upload Successful');
+      setSelectedImage(null);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    }
+  };
+
+  const handleFileChange = (event) => {
+    setSelectedImage(event.target.files[0]);
+  };
 
   const getAllEntities = () => {
     if (search) {
@@ -87,7 +117,7 @@ export const Attachment = () => {
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, search,selectedImage]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -122,124 +152,48 @@ export const Attachment = () => {
     sortEntities();
   };
 
+  console.log(attachmentList, 'attachmentList')
+
   return (
     <div>
-      <h2 id="attachment-heading" data-cy="AttachmentHeading">
-        <Translate contentKey="tempApp.attachment.home.title">Attachments</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="tempApp.attachment.home.refreshListLabel">Refresh List</Translate>
-          </Button>
-          <Link to="/attachment/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="tempApp.attachment.home.createLabel">Create new Attachment</Translate>
-          </Link>
-        </div>
-      </h2>
-      <Row>
-        <Col sm="12">
-          <Form onSubmit={startSearching}>
-            <FormGroup>
-              <InputGroup>
-                <Input
-                  type="text"
-                  name="search"
-                  defaultValue={search}
-                  onChange={handleSearch}
-                  placeholder={translate('tempApp.attachment.home.search')}
-                />
-                <Button className="input-group-addon">
-                  <FontAwesomeIcon icon="search" />
-                </Button>
-                <Button type="reset" className="input-group-addon" onClick={clear}>
-                  <FontAwesomeIcon icon="trash" />
-                </Button>
-              </InputGroup>
-            </FormGroup>
-          </Form>
-        </Col>
-      </Row>
-      <div className="table-responsive">
+      <Button color="primary" onClick={() => setShowRow(!showRow)} className="mb-2">
+        Add New Image
+      </Button>
+      {showRow && (
+        <Row className="flex flex-column">
+          <Col xs="12" sm="6" className="mb-3">
+            <div className="custom-file">
+              <input type="file" className="custom-file-input" id="image" onChange={handleFileChange} />
+            </div>
+          </Col>
+          <Col xs="12" sm="6">
+            <Button color="primary" block onClick={handleImageUpload} disabled={!selectedImage}>
+              Upload New Image
+            </Button>
+          </Col>
+        </Row>
+      )}
+      <div>
         {attachmentList && attachmentList.length > 0 ? (
-          <Table responsive>
-            <thead>
-              <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="tempApp.attachment.id">ID</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('name')}>
-                  <Translate contentKey="tempApp.attachment.name">Name</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('path')}>
-                  <Translate contentKey="tempApp.attachment.path">Path</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('size')}>
-                  <Translate contentKey="tempApp.attachment.size">Size</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('type')}>
-                  <Translate contentKey="tempApp.attachment.type">Type</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.attachment.item">Item</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {attachmentList.map((attachment, i) => (
-                <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                    <Button tag={Link} to={`/attachment/${attachment.id}`} color="link" size="sm">
-                      {attachment.id}
-                    </Button>
-                  </td>
-                  <td>{attachment.name}</td>
-                  <td>{attachment.path}</td>
-                  <td>{attachment.size}</td>
-                  <td>
-                    <Translate contentKey={`tempApp.AttachmentType.${attachment.type}`} />
-                  </td>
-                  <td>{attachment.item ? <Link to={`/item/${attachment.item.id}`}>{attachment.item.id}</Link> : ''}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button tag={Link} to={`/attachment/${attachment.id}`} color="info" size="sm" data-cy="entityDetailsButton">
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        tag={Link}
-                        to={`/attachment/${attachment.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
-                      >
-                        <FontAwesomeIcon icon="pencil-alt" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.edit">Edit</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        tag={Link}
-                        to={`/attachment/${attachment.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="danger"
-                        size="sm"
-                        data-cy="entityDeleteButton"
-                      >
-                        <FontAwesomeIcon icon="trash" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.delete">Delete</Translate>
-                        </span>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {attachmentList.map((attachment, i) => (
+              <div key={i} style={{ margin: '5px', width: '10%', cursor: 'pointer' }}>
+                <img
+                  alt={attachment.name}
+                  src={attachment.url}
+                  style={{ width: '100%', height: 'auto' }}
+                  onClick={() => handleThumbnailClick(attachment)}
+                />
+                <td>
+                  {attachment.item ? (
+                    <Link to={`/item/${attachment.item.id}`}>{attachment.item.id}</Link>
+                  ) : (
+                    ''
+                  )}
+                </td>
+              </div>
+            ))}
+          </div>
         ) : (
           !loading && (
             <div className="alert alert-warning">
@@ -247,7 +201,23 @@ export const Attachment = () => {
             </div>
           )
         )}
+        {selectedThumbnailImage && (
+          <Modal isOpen={true} toggle={() => setSelectedThumbnailImage(null)}>
+            <div style={{ padding: '20px' }}>
+              <img src={selectedThumbnailImage.url} alt="Selected Image" style={{ maxWidth: '100%', maxHeight: '500px' }} />
+              <div>
+                <h5>Name: {selectedThumbnailImage.name}</h5>
+                <p>Size: {selectedThumbnailImage.size} bytes</p>
+                <p>Type: {selectedThumbnailImage.type}</p>
+              </div>
+              <Button color="secondary" onClick={() => setSelectedThumbnailImage(null)}>
+                Close
+              </Button>
+            </div>
+          </Modal>
+        )}
       </div>
+
       {totalItems ? (
         <div className={attachmentList && attachmentList.length > 0 ? '' : 'd-none'}>
           <div className="justify-content-center d-flex">

@@ -166,9 +166,7 @@ export const Menu = () => {
           <Table responsive>
             <thead>
               <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="tempApp.menu.id">ID</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
+
                 <th className="hand" onClick={sort('name')}>
                   <Translate contentKey="tempApp.menu.name">Name</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
@@ -188,26 +186,23 @@ export const Menu = () => {
               {menuList.map((menu, i) => (
                 <tr key={`entity-${i}`} data-cy="entityTable">
                   <td>
-                    <Button tag={Link} to={`/menu/${menu.id}`} color="link" size="sm">
-                      {menu.id}
-                    </Button>
-                  </td>
-                  <td>
-                    <Button tag={Link} to={`/menu/${menu.id}`} color="link" size="sm">
+                    <Button tag={Link}
+                            to={`/menu/${menu.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                            color="link" size="sm">
                     {menu.name}
                     </Button>
                     </td>
                   <td>{menu.createdAt ? <TextFormat type="date" value={menu.createdAt} format={APP_DATE_FORMAT} /> : null}</td>
                   <td>{menu.updatedAt ? <TextFormat type="date" value={menu.updatedAt} format={APP_DATE_FORMAT} /> : null}</td>
-                  <td>{menu.category ? <Link to={`/term/${menu.category.id}`}>{menu.category.id}</Link> : ''}</td>
+                  <td>{menu.category ? <Link to={`/term/${menu.category.id}`}>{menu.category.name}</Link> : ''}</td>
                   <td className="text-end">
                     <div className="btn-group flex-btn-group-container">
-                      <Button tag={Link} to={`/menu/${menu.id}`} color="info" size="sm" data-cy="entityDetailsButton">
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
+                      {/* <Button tag={Link} to={`/menu/${menu.id}`} color="info" size="sm" data-cy="entityDetailsButton"> */}
+                      {/*   <FontAwesomeIcon icon="eye" />{' '} */}
+                      {/*   <span className="d-none d-md-inline"> */}
+                      {/*     <Translate contentKey="entity.action.view">View</Translate> */}
+                      {/*   </span> */}
+                      {/* </Button> */}
                       <Button
                         tag={Link}
                         to={`/menu/${menu.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}

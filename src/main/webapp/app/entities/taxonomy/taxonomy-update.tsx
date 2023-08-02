@@ -40,6 +40,8 @@ export const TaxonomyUpdate = () => {
     if (updateSuccess) {
       handleClose();
     }
+
+    console.log('imre')
   }, [updateSuccess]);
 
   const saveEntity = values => {
@@ -88,7 +90,7 @@ export const TaxonomyUpdate = () => {
                 />
               ) : null}
               <ValidatedField
-                label={translate('tempApp.taxonomy.name')}
+                label={`Category`}
                 id="taxonomy-name"
                 name="name"
                 data-cy="name"

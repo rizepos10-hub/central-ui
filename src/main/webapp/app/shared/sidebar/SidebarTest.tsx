@@ -20,11 +20,16 @@ import {AiOutlineShopping} from "react-icons/ai";
 import {IoBagCheckOutline} from "react-icons/io5";
 import {BsCart} from "react-icons/bs";
 import {FiMenu} from "react-icons/fi";
+import { useNavigate } from "react-router-dom"; // Import useHistory
 
 const SidebarTest = () => {
+
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const [openedItems, setOpenedItems] = useState([])
+
+  const [selectedItemIndex, setSelectedItemIndex] = useState(null);
 
   const account = useAppSelector(state => state.authentication.account);
 
@@ -53,7 +58,7 @@ const SidebarTest = () => {
       name: "Menus", icon: <FiMenu />,
       subItems: [
         { path: "/menu?page=1&sort=id,asc", name: "List"  , icon: <FaBars />  },
-        { path: "/term?page=1&sort=id,asc&taxonomyName=Menu%20Category", name: "Category", icon: <FaTags />  },
+        { path: "/term/menus", name: "Category", icon: <FaTags />  },
       ],
     },
 
@@ -61,7 +66,7 @@ const SidebarTest = () => {
       name: "Catalogue", icon:  <MdViewModule />,
       subItems: [
         { path: "/item?page=1&sort=id,asc", name: "Items"  , icon: <FaThLarge />  },
-        { path: "/term?page=1&sort=id,asc&taxonomyName=Item%20Category", name: "Category"  , icon: <FaTags /> },
+        { path: "/term/items", name: "Category"  , icon: <FaTags /> },
         { path: "/addon?page=1&sort=id,asc", name: "Addons" , icon: <FaPlusCircle />},
       ],
     },
@@ -71,7 +76,7 @@ const SidebarTest = () => {
     {
       name: "Analytics", icon: <FaChartLine/>,
       subItems: [
-        { path: "/term?page=1&sort=id,asc", name: "Top Items" ,  icon: <FaTrophy/>},
+        { path: "/item/top", name: "Top Items" ,  icon: <FaTrophy/>},
         { path: "/addon?page=1&sort=id,asc", name: "End Of Day", icon: <FaMoon/> },
       ],
     },
@@ -83,6 +88,7 @@ const SidebarTest = () => {
 
 
   const handleEntitiesClick = (index) => {
+    setSelectedItemIndex(index);
     setOpenedItems((prevItems) => {
       const newItems = [...prevItems];
       newItems[index] = !newItems[index];
@@ -91,73 +97,61 @@ const SidebarTest = () => {
   };
 
   return (
-    (
-      <div style={{ backgroundColor: "whitesmoke" }}>
-        <div className="admin-container">
-          <div className="admin-sidebar">
-            <div className="admin-top_section">
-              <h1 className="admin-logo">{account.firstName}</h1>
-              <div className="admin-bars flex justify-center">
-                <img
-                  style={{ height: "10rem", width: "10rem" }}
-                  src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
-                  alt="profile pic"
-                />
-              </div>
-              <div className="admin-menu-items">
-                {menuItem.map((item, index) => (
-                  <React.Fragment key={index}>
-                    {item.subItems?.length > 0 ? (
-                      <div
-                        className="admin-link"
-                        onClick={() => handleEntitiesClick(index)} // Pass the item index to the click handler
-                      >
-                        {/* Add the triangle icon for items with subItems */}
-                        {item.subItems?.length > 0 && (
-                          <div
-                            className={`triangle ${
-                              openedItems[index] ? "active" : ""
-                            }`}
-                          ></div>
-                        )}
-                        <div className="admin-icon">{item.icon}</div>
-                        <div className="admin-link_text">{item.name}</div>
-                      </div>
-                    ) : (
-                      <NavLink
-                        to={item.path}
-                        className="admin-link"
-                        onClick={() => setOpenedItems([])} // Close all subItems when clicking a non-subItem link
-                      >
-                        <div className="admin-icon">{item.icon}</div>
-                        <div className="admin-link_text">{item.name}</div>
-                      </NavLink>
-                    )}
+    <div style={{ backgroundColor: "whitesmoke" }}>
+      <div className="admin-container">
+        <div className="admin-sidebar">
+          <div className="admin-top_section">
+            <div className="admin-menu-items">
+              {menuItem.map((item, index) => (
+                <React.Fragment key={index}>
+                  <div
+                    className={`admin-link ${
+                      selectedItemIndex === index ? "selected" : ""
+                    }`}
+                    onClick={() => {
+                      if (item.subItems?.length > 0) {
+                        handleEntitiesClick(index);
+                      } else {
+                        navigate(item.path);
+                        setSelectedItemIndex(index);
+                      }
+                    }}
+                  >
                     {item.subItems?.length > 0 && (
-                      <Collapse isOpen={openedItems[index]}>
-                        <ul>
-                          {item.subItems.map((subItem, subIndex) => (
-                            <li key={subIndex}>
-                              <NavLink
-                                to={subItem.path}
-                                className="admin-link"
-                                onClick={() => setOpenedItems([])} // Close all subItems when clicking a subItem link
-                              >
-                                <div className="admin-icon">{subItem.icon}</div>
-                                <div className="admin-link_text">{subItem.name}</div>
-                              </NavLink>
-                            </li>
-                          ))}
-                        </ul>
-                      </Collapse>
+                      <div
+                        className={`triangle ${
+                          openedItems[index] ? "active" : ""
+                        }`}
+                      ></div>
                     )}
-                  </React.Fragment>
-                ))}
-              </div>
+                    <div className="admin-icon">{item.icon}</div>
+                    <div className="admin-link_text">{item.name}</div>
+                  </div>
+                  {item.subItems?.length > 0 && (
+                    <Collapse isOpen={openedItems[index]}>
+                      <ul>
+                        {item.subItems.map((subItem, subIndex) => (
+                          <li key={subIndex}>
+                            <NavLink
+                              to={subItem.path}
+                              className="admin-link no-underline"
+                              onClick={() => setOpenedItems([])}
+                            >
+                              <div className="admin-icon">{subItem.icon}</div>
+                              <div className="admin-link_text">{subItem.name}</div>
+                            </NavLink>
+                          </li>
+                        ))}
+                      </ul>
+                    </Collapse>
+                  )}
+                </React.Fragment>
+              ))}
             </div>
           </div>
         </div>
       </div>
+    </div>
   );
 };
 

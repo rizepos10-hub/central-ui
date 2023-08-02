@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
-import { Button, Form, FormGroup, Label, Modal, ModalBody, ModalFooter, ModalHeader, Row } from 'reactstrap';
+import React, {useEffect, useState} from 'react';
+import {Button, Col, Form, FormGroup, Label, Modal, ModalBody, ModalFooter, ModalHeader, Row} from 'reactstrap';
 import { Translate, ValidatedField } from 'react-jhipster';
-import { useAppSelector } from 'app/config/store';
+import {useAppDispatch, useAppSelector} from 'app/config/store';
 import { useForm } from 'react-hook-form';
 import { IDiscount } from 'app/shared/model/discount.model';
 import Select from 'react-select';
+import {uploadImage} from "app/entities/attachment/attachment.reducer";
 
 interface IVariantProps {
   showModal: boolean;
   handleClose?: () => void;
-  handleSave: (name: string, price: number, discount: any) => void;
+  handleSave: (name: string, price: number, discount: any, attachments: any) => void;
+  onVariantImageUpload: any;
 }
 const ItemVariantModal = (props: IVariantProps) => {
+  const dispatch = useAppDispatch();
+
   const discounts = useAppSelector(state => state.discount.entities);
   console.log(discounts, 'discount1');
 
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [variantImage, setVariantImage] = useState(null)
 
   const  handleDiscountsChange = selectedOptions => {
     console.log(selectedOptions, 'news')
@@ -26,49 +32,95 @@ const ItemVariantModal = (props: IVariantProps) => {
     }));
 
     setSelectedDiscounts(selectedValues);
-
   };
   const variant = ({ name, price }) => {
     const selectedDiscountObjects = selectedDiscounts.map((item) => ({ id: item.id, type: item.type, value: item.value}));
-    console.log(selectedDiscounts, 'selectedDiscounts');
-    props.handleSave(name, parseFloat(price), selectedDiscountObjects);
+    console.log(variantImage, 'variantImage');
+    props.handleSave(name, parseFloat(price), selectedDiscountObjects, variantImage);
   };
 
   const {
     handleSubmit,
     register,
+    reset,
     formState: { errors, touchedFields },
   } = useForm({ mode: 'onTouched' });
 
-  const handleVariantSave = (e) => {
+  const handleVariantSave = async (formData) => {
+    console.log('here1');
 
-    e.preventDefault()
-    console.log('handle submit');
+    try {
+      console.log('here2');
+      const imageInfo = await handleImageUpload();
+      const selectedDiscountObjects = selectedDiscounts.map((item) => ({
+        id: item.id,
+        type: item.type,
+        value: item.value
+      }));
+      const attachments = imageInfo ? [imageInfo] : [];
+      console.log(imageInfo, 'imageInfo');
+      console.log(attachments, 'attachments');
+      props.handleSave(formData.name, parseFloat(formData.price), selectedDiscountObjects, attachments);
+      console.log('here3');
+      reset({ name: '', price: '' });
+      props.handleClose();
+      console.log('here4');
 
-    // const selectedDiscountObjects:any = selectedDiscounts.map((discountId) => {
-    //   const discount = discounts.find((discount)  => discount.value === discountId);
-    //   return { id: discountId, type: discount.type, value: discount.value };
-    // });
+    } catch (error) {
+      console.error('Error handling variant save:', error);
+    }
+  };
 
-    console.log(selectedDiscounts);
-    // e.discounts = selectedDiscountObjects;
-    console.log(e.discounts);
-    handleSubmit(variant)(e);
 
-    props.handleClose()
+  useEffect(() => {
 
+    console.log(variantImage, 'vrrr');
+  }, [variantImage]);
+
+
+  const handleImageUpload = async () => {
+    if (!selectedImage) {
+      console.error('No image selected.');
+      return null;
+    }
+    const formData = new FormData();
+    formData.append('file', selectedImage);
+    try {
+      const response: any = await dispatch(uploadImage(formData));
+      const imageUrl = response?.payload?.url;
+      const imageInfo = {
+        id: response?.payload?.id,
+        name: response?.payload?.name,
+        path: response?.payload?.path,
+        size: response?.payload?.size,
+        type: response?.payload?.type,
+        createdAt: response?.payload?.createdAt,
+        updatedAt: response?.payload?.updatedAt,
+        url: imageUrl,
+      };
+      return imageInfo;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      return null;
+    }
+  };
+
+
+  const handleFileChange = (event) => {
+    setSelectedImage(event.target.files[0]);
   };
 
   return (
     <>
       <Modal isOpen={props.showModal} toggle={props.handleClose} backdrop="static" autoFocus={false}>
-        <Form onSubmit={handleVariantSave}>
+        <Form onSubmit={handleSubmit(handleVariantSave)}>
           <ModalHeader id="variant-title" data-cy="variantTitle" toggle={props.handleClose}>
             <label>Variant</label>
           </ModalHeader>
           <ModalBody>
             <Row>
               <Translate contentKey="tempApp.item.variant.name"></Translate>
+
               <ValidatedField
                 name="name"
                 placeholder="enter variant name"
@@ -108,6 +160,17 @@ const ItemVariantModal = (props: IVariantProps) => {
               {/*    ))*/}
               {/*    : null}*/}
               {/*</ValidatedField>*/}
+              <Row className="flex flex-column">
+                <Col xs="12" sm="6" className="mb-3">
+                  <div className="custom-file">
+                    <label htmlFor="image" className="custom-file-upload">
+                      Choose Image
+                    </label>
+                    <input type="file" name="image" id="image" onChange={handleFileChange} />
+
+                  </div>
+                </Col>
+              </Row>
               <div className="mb-3">
                 <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
                 <Select isMulti={true} defaultValue={[]} onChange={handleDiscountsChange}
