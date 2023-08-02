@@ -166,9 +166,6 @@ export const Addon = () => {
           <Table responsive>
             <thead>
               <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="tempApp.addon.id">ID</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
                 <th className="hand" onClick={sort('name')}>
                   <Translate contentKey="tempApp.addon.name">Name</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
@@ -188,11 +185,10 @@ export const Addon = () => {
               {addonList.map((addon, i) => (
                 <tr key={`entity-${i}`} data-cy="entityTable">
                   <td>
-                    <Button tag={Link} to={`/addon/${addon.id}`} color="link" size="sm">
-                      {addon.id}
-                    </Button>
+                <Button tag={Link} to={`/addon/${addon.id}`} color="link" size="sm">
+                    {addon.name}
+                </Button>
                   </td>
-                  <td>{addon.name}</td>
                   <td>{addon.desc}</td>
                   <td>{addon.price}</td>
                   <td>{addon.item ? <Link to={`/item/${addon.item.id}`}>{addon.item.id}</Link> : ''}</td>

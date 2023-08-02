@@ -18,6 +18,8 @@ const initialState: EntityState<IAttachment> = {
 const apiUrl = 'api/attachments';
 const apiSearchUrl = 'api/_search/attachments';
 
+type FormDataArgument = FormData;
+
 // Actions
 
 export const searchEntities = createAsyncThunk('attachment/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
@@ -38,6 +40,16 @@ export const getEntity = createAsyncThunk(
   },
   { serializeError: serializeAxiosError }
 );
+
+
+export const uploadImage = createAsyncThunk<void, FormDataArgument>('attachment/uploadImage', async (formData) => {
+  const response = await axios.post(apiUrl, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+});
 
 export const createEntity = createAsyncThunk(
   'attachment/create_entity',

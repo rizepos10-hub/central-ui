@@ -26,8 +26,8 @@ export const searchEntities = createAsyncThunk('term/search_entity', async ({ qu
 });
 
 export const getEntities = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}${taxonomyName ? `&taxonomyName=${encodeURIComponent(taxonomyName)}` : ''}`;
-  return axios.get<ITerm[]>(requestUrl);
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
+ return  axios.get<ITerm[]>(requestUrl);
 });
 
 

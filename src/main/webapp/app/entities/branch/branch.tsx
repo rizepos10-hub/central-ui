@@ -166,21 +166,15 @@ export const Branch = () => {
           <Table responsive>
             <thead>
               <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="tempApp.branch.id">ID</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
+
                 <th className="hand" onClick={sort('name')}>
                   <Translate contentKey="tempApp.branch.name">Name</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
-                <th className="hand" onClick={sort('appId')}>
-                  <Translate contentKey="tempApp.branch.appId">App Id</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
+
                 <th className="hand" onClick={sort('numberOfEmployees')}>
                   <Translate contentKey="tempApp.branch.numberOfEmployees">Number Of Employees</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
-                <th>
-                  <Translate contentKey="tempApp.branch.menu">Menu</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
+
                 <th />
               </tr>
             </thead>
@@ -189,13 +183,10 @@ export const Branch = () => {
                 <tr key={`entity-${i}`} data-cy="entityTable">
                   <td>
                     <Button tag={Link} to={`/branch/${branch.id}`} color="link" size="sm">
-                      {branch.id}
+                    {branch.name}
                     </Button>
                   </td>
-                  <td>{branch.name}</td>
-                  <td>{branch.appId}</td>
                   <td>{branch.numberOfEmployees}</td>
-                  <td>{branch.menu ? <Link to={`/menu/${branch.menu.id}`}>{branch.menu.id}</Link> : ''}</td>
                   <td className="text-end">
                     <div className="btn-group flex-btn-group-container">
                       <Button tag={Link} to={`/branch/${branch.id}`} color="info" size="sm" data-cy="entityDetailsButton">

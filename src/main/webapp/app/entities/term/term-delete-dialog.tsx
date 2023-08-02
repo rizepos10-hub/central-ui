@@ -25,7 +25,7 @@ export const TermDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.term.updateSuccess);
 
   const handleClose = () => {
-    navigate('/term' + location.search);
+    navigate('/term/items' + location.search);
   };
 
   useEffect(() => {

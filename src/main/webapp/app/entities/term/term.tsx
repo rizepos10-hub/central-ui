@@ -29,9 +29,11 @@ export const Term = () => {
 
   const termList = useAppSelector(state => state.term.entities);
   const loading = useAppSelector(state => state.term.loading);
-  const totalItems = useAppSelector(state => state.term.totalItems);
 
   const [filteredTermList, setFilteredTermList] = useState(termList);
+
+  const totalItems = filteredTermList.length;
+
 
 
   const getAllEntities = () => {
@@ -151,7 +153,7 @@ export const Term = () => {
   return (
     <div>
       <h2 id="term-heading" data-cy="TermHeading">
-        <Translate contentKey="tempApp.term.home.title">Terms</Translate>
+        {taxonomyName}
         <div className="d-flex justify-content-end">
           <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
             <FontAwesomeIcon icon="sync" spin={loading} />{' '}
@@ -192,20 +194,9 @@ export const Term = () => {
           <Table responsive>
             <thead>
               <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="tempApp.term.id">ID</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
+
                 <th className="hand" onClick={sort('name')}>
                   <Translate contentKey="tempApp.term.name">Name</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.term.taxonomy">Taxonomy</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.term.term">Term</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.term.item">Item</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
                 <th />
               </tr>
@@ -213,15 +204,8 @@ export const Term = () => {
             <tbody>
               {filteredTermList.map((term, i) => (
                 <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                    <Button tag={Link} to={`/term/${term.id}`} color="link" size="sm">
-                      {term.id}
-                    </Button>
-                  </td>
+
                   <td>{term.name}</td>
-                  <td>{term.taxonomy ? <Link to={`/taxonomy/${term.taxonomy.id}`}>{term.taxonomy.name}</Link> : ''}</td>
-                  <td>{term.term ? <Link to={`/term/${term.term.id}`}>{term.term.id}</Link> : ''}</td>
-                  <td>{term.item ? <Link to={`/item/${term.item.id}`}>{term.item.id}</Link> : ''}</td>
                   <td className="text-end">
                     <div className="btn-group flex-btn-group-container">
                       <Button tag={Link} to={`/term/${term.id}`} color="info" size="sm" data-cy="entityDetailsButton">
