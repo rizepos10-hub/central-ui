@@ -10,6 +10,7 @@ import PasswordResetFinish from 'app/modules/account/password-reset/finish/passw
 import Logout from 'app/modules/login/logout';
 import Home from 'app/modules/home/home';
 import EntitiesRoutes from 'app/entities/routes';
+import AnalyticsRoutes from "app/modules/analytics/analyticsRoutes";
 import PrivateRoute from 'app/shared/auth/private-route';
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import PageNotFound from 'app/shared/error/page-not-found';
@@ -64,6 +65,14 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="analytics/*"
+          element={
+            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER]}>
+              <AnalyticsRoutes />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="*"
           element={
             <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER]}>
@@ -71,6 +80,7 @@ const AppRoutes = () => {
             </PrivateRoute>
           }
         />
+
         <Route path="*" element={<PageNotFound />} />
       </ErrorBoundaryRoutes>
     </div>

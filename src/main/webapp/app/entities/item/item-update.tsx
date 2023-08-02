@@ -83,12 +83,12 @@ export const ItemUpdate = () => {
     dispatch(getDiscounts({}));
     // console.log(modalVariantImages, 'variantfromchild');
 
-  }, []);
+  }, [updateSuccess]);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
+    // if (updateSuccess) {
+    //   handleClose();
+    // }
     if(itemEntity?.variants){
       setVariants(itemEntity.variants);
     }

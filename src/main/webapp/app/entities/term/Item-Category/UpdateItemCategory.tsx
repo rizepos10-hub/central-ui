@@ -125,9 +125,9 @@ export const UpdateItemCategory = () => {
                 data-cy="taxonomy"
                 label={'Category'}
                 type="select"
+                readOnly={true}
                 required
               >
-                <option value={''}></option>
                 { taxonomies &&
                   taxonomies
                     .filter((otherEntity) => otherEntity.name === "Item Category")
