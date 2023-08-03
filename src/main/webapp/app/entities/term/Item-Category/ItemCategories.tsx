@@ -10,7 +10,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ITerm } from 'app/shared/model/term.model';
-import { searchEntities, getEntities } from '../term.reducer';
+import {searchEntities, getEntities, getItemCategories} from '../term.reducer';
 
 export const ItemCategories = () => {
   const dispatch = useAppDispatch();
@@ -23,7 +23,7 @@ export const ItemCategories = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const termList = useAppSelector(state => state.term.entities).filter((term) => term.taxonomy?.name === "Item Category");
+  const termList = useAppSelector(state => state.term.entities)
   const loading = useAppSelector(state => state.term.loading);
 
   const totalItems = termList.length;
@@ -42,7 +42,7 @@ export const ItemCategories = () => {
       );
     } else {
       dispatch(
-        getEntities({
+        getItemCategories({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
@@ -76,7 +76,7 @@ export const ItemCategories = () => {
       ...paginationState,
       activePage: 1,
     });
-    dispatch(getEntities({}));
+    dispatch(getItemCategories({}));
   };
 
   const handleSearch = event => setSearch(event.target.value);

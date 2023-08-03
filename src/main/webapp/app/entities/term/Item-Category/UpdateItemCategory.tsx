@@ -10,11 +10,12 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ITaxonomy } from 'app/shared/model/taxonomy.model';
 import { getEntities as getTaxonomies } from 'app/entities/taxonomy/taxonomy.reducer';
-import { getEntities as getTerms } from 'app/entities/term/term.reducer';
+import {getEntities as getTerms, getItemCategories} from 'app/entities/term/term.reducer';
 import { IItem } from 'app/shared/model/item.model';
 import { getEntities as getItems } from 'app/entities/item/item.reducer';
 import { ITerm } from 'app/shared/model/term.model';
 import { getEntity, updateEntity, createEntity, reset } from '../term.reducer';
+import {uploadImage} from "app/entities/attachment/attachment.reducer";
 
 export const UpdateItemCategory = () => {
   const dispatch = useAppDispatch();
@@ -34,6 +35,12 @@ export const UpdateItemCategory = () => {
   const loading = useAppSelector(state => state.term.loading);
   const updating = useAppSelector(state => state.term.updating);
   const updateSuccess = useAppSelector(state => state.term.updateSuccess);
+  const newTerm = useAppSelector(state => state.term.entity)
+
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [uploadImageStatus, setUploadImageStatus] = useState('idle');
+
+  const [selectedAttachments, setSelectedAttachments] = useState([])
 
 
   console.log(termEntity, 'termEntity')
@@ -51,10 +58,63 @@ export const UpdateItemCategory = () => {
     }
 
     dispatch(getTaxonomies({}));
-    dispatch(getTerms({}));
-    dispatch(getItems({}));
+    dispatch(getItemCategories({}));
+    return () => {
+      dispatch(reset());
+    };
   }, []);
 
+
+
+  useEffect(() => {
+
+    if (termEntity?.attachments) {
+      setSelectedAttachments(termEntity.attachments.map(attachment => ({ id: attachment.id, url: attachment.url })));
+    }
+    const {id: newTermId} = newTerm
+    if (updateSuccess && newTermId) {
+      navigate(`/term/${newTermId}/items/edit?page=1&sort=id,asc`)
+    }
+
+  }, [updateSuccess, termEntity?.attachments]);
+
+
+  const handleImageChange = async (event) => {
+    const file = event.target.files[0];
+
+    if (!file) {
+      console.error('No image selected.');
+      return null;
+    }
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      setUploadImageStatus('uploading');
+      const response: any = await dispatch(uploadImage(formData));
+      const imageUrl = response?.payload?.url;
+      const imageInfo = {
+        id: response?.payload?.id,
+        name: response?.payload?.name,
+        path: response?.payload?.path,
+        size: response?.payload?.size,
+        type: response?.payload?.type,
+        createdAt: response?.payload?.createdAt,
+        updatedAt: response?.payload?.updatedAt,
+        url: imageUrl,
+      };
+      setSelectedAttachments((prevAttachments) => [...prevAttachments, imageInfo]);
+      setUploadImageStatus('success');
+      console.log(imageInfo, 'helloi')
+
+      return imageInfo;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setUploadImageStatus('error');
+
+      return null;
+    }
+
+  };
 
 
   const saveEntity = values => {
@@ -63,7 +123,8 @@ export const UpdateItemCategory = () => {
       ...values,
       taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
       parents: [terms.find(it => it.id.toString() === values.term.toString())],
-      // item: items.find(it => it.id.toString() === values.item.toString()),
+      attachments: selectedAttachments,
+
     };
 
     console.log(entity, 'entity saved')
@@ -76,12 +137,14 @@ export const UpdateItemCategory = () => {
 
   const defaultValues = () =>
     isNew
-      ? {}
+      ? {
+        taxonomy: taxonomies.find(otherEntity => otherEntity?.name === 'Item Category')?.id,
+        term: '',
+      }
       : {
         ...termEntity,
         taxonomy: termEntity?.taxonomy?.id,
-        parents: termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0].id : '',
-        // item: termEntity?.item?.id,
+        parents: termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : '',
       };
   console.log(terms, 'terms')
   return (
@@ -99,16 +162,16 @@ export const UpdateItemCategory = () => {
             <p>Loading...</p>
           ) : (
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {!isNew ? (
-                <ValidatedField
-                  name="id"
-                  required
-                  readOnly
-                  id="term-id"
-                  label={translate('global.field.id')}
-                  validate={{ required: true }}
-                />
-              ) : null}
+              {/* {!isNew ? ( */}
+              {/*   <ValidatedField */}
+              {/*     name="id" */}
+              {/*     required */}
+              {/*     readOnly */}
+              {/*     id="term-id" */}
+              {/*     label={translate('global.field.id')} */}
+              {/*     validate={{ required: true }} */}
+              {/*   /> */}
+              {/* ) : null} */}
               <ValidatedField
                 label={translate('tempApp.term.name')}
                 id="term-name"
@@ -119,45 +182,121 @@ export const UpdateItemCategory = () => {
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
-              <ValidatedField
-                id="term-taxonomy"
-                name="taxonomy"
-                data-cy="taxonomy"
-                label={'Category'}
-                type="select"
-                readOnly={true}
-                required
-              >
-                { taxonomies &&
-                  taxonomies
-                    .filter((otherEntity) => otherEntity.name === "Item Category")
-                    .map((filteredEntity) => (
-                      <option value={filteredEntity.id} key={filteredEntity.id}>
-                        {filteredEntity.name}
-                      </option>
-                    )
-                )}
-              </ValidatedField>
+              {/* <ValidatedField */}
+              {/*   id="term-taxonomy" */}
+              {/*   name="taxonomy" */}
+              {/*   data-cy="taxonomy" */}
+              {/*   label={'Category'} */}
+              {/*   type="select" */}
+              {/*   readOnly={true} */}
+              {/*   required */}
+              {/* > */}
+              {/*   { taxonomies && */}
+              {/*     taxonomies */}
+              {/*       .filter((otherEntity) => otherEntity.name === "Item Category") */}
+              {/*       .map((filteredEntity) => ( */}
+              {/*         <option value={filteredEntity.id} key={filteredEntity.id}> */}
+              {/*           {filteredEntity.name} */}
+              {/*         </option> */}
+              {/*       ) */}
+              {/*   )} */}
+              {/* </ValidatedField> */}
 
-              <ValidatedField
-                id="term-term"
-                name="term"
-                data-cy="term"
-                label={translate('tempApp.term.parents')}
-                type="select"
-              >
-                <option value={''}></option>
-                {terms
-                   && terms
-                      .filter((term) => term.taxonomy && term.taxonomy.name === "Item Category")
-                      .map((otherEntity) => (
+
+
+              <div className="mb-3">
+                <ValidatedField
+                  label={'Item Image'}
+                  id="item-image"
+                  name="image"
+                  data-cy="image"
+                  type="file"
+                  onChange={handleImageChange}
+                  accept="image/*"
+                />
+                <div className="mb-3">
+                  {selectedAttachments && selectedAttachments.length > 0 && (
+                    <div>
+                      {selectedAttachments.map((attachment, index) => (
+                        <img
+                          key={index}
+                          src={attachment.url}
+                          alt={attachment.name}
+                          className="img-fluid m-lg-1"
+                          style={{
+                            maxWidth: '100px',
+                            maxHeight: '100px',
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {selectedImage && (
+                    <img
+                      src={URL.createObjectURL(selectedImage)}
+                      alt="Selected Image"
+                      className="img-fluid m-lg-1"
+                      style={{
+                        maxWidth: '100px',
+                        maxHeight: '100px',
+                      }}
+                    />
+                  )}
+
+                  {selectedImage && uploadImageStatus === 'success' && (
+                    <div className={`alert alert-${uploadImageStatus === 'success' ? 'success' : 'danger'}`}
+                         role="alert">
+                      {uploadImageStatus === 'success' && 'Uploaded successfully!'}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+
+              {isNew ? (
+                <ValidatedField
+                  id="term-term"
+                  name="term"
+                  data-cy="term"
+                  label={translate('tempApp.term.parents')}
+                  type="select"
+                >
+                  <option value="">{''}</option>
+                  {terms &&
+                    terms
+                      .filter(term => term.taxonomy && term.taxonomy.name === 'Item Category')
+                      .map(otherEntity => (
                         <option value={otherEntity.id} key={otherEntity.id}>
                           {otherEntity.name}
                         </option>
-                              )
-                      )}
-              </ValidatedField>
+                      ))}
+                </ValidatedField>
+              ) : (
+                <ValidatedField
+                  id="term-term"
+                  name="term"
+                  data-cy="term"
+                  label={translate('tempApp.term.parents')}
+                  type="select"
+                >
+                  <option value={termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}>
+                    {termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}
+                  </option>
 
+
+                  {terms &&
+                    terms
+                      .filter(term => term.taxonomy && term.taxonomy?.name === 'Item Category')
+                      .map(otherEntity => (
+                        <option value={otherEntity.id} key={otherEntity.id}>
+                          {otherEntity?.name}
+                        </option>
+                      ))}
+                  { termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name &&
+                    <option value="">{''}</option>
+                  }
+                </ValidatedField>
+              )}
 
               {/* <ValidatedField id="term-item" name="item" data-cy="item" label={translate('tempApp.term.item')} type="select"> */}
               {/*   <option value="" key="0" /> */}

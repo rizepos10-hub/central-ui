@@ -98,7 +98,7 @@ export const ItemUpdate = () => {
     if (itemEntity?.attachments) {
       setSelectedAttachments(itemEntity.attachments.map(attachment => ({ id: attachment.id, url: attachment.url })));
     }
-
+console.log(itemEntity, 'termos')
     if(itemEntity?.addons){
       setSelectedAddons(itemEntity?.addons?.map((addon) => ({id: addon.id})))
     }

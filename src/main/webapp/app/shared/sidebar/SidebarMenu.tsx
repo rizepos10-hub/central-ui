@@ -59,7 +59,7 @@ const SidebarMenu = () => {
       name: "Menus", icon: <FiMenu />,
       subItems: [
         { path: "/menu?page=1&sort=id,asc", name: "List"  , icon: <FaBars />  },
-        { path: "/term?page=1&sort=id,asc&taxonomyName=Menu%20Category", name: "Category", icon: <FaTags />  },
+        { path: "/term/menus?page=1&sort=id,asc", name: "Category", icon: <FaTags />  },
       ],
     },
 
@@ -67,7 +67,7 @@ const SidebarMenu = () => {
       name: "Catalogue", icon:  <MdViewModule />,
       subItems: [
         { path: "/item?page=1&sort=id,asc", name: "Items"  , icon: <FaThLarge />  },
-        { path: "/term?page=1&sort=id,asc&taxonomyName=Item%20Category", name: "Category"  , icon: <FaTags /> },
+        { path: "/term/items?page=1&sort=id,asc", name: "Category"  , icon: <FaTags /> },
         { path: "/addon?page=1&sort=id,asc", name: "Addons" , icon: <FaPlusCircle />},
       ],
     },
