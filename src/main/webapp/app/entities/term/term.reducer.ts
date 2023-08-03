@@ -30,6 +30,17 @@ export const getEntities = createAsyncThunk('term/fetch_entity_list', async ({ p
  return  axios.get<ITerm[]>(requestUrl);
 });
 
+export const getMenuCategories = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
+  const requestUrl = `api/terms/search?taxonomy=Menu%20Category&${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
+  const  response = await axios.get<ITerm[]>(requestUrl)
+  return response
+});
+
+export const getItemCategories = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
+  const requestUrl = `api/terms/search?taxonomy=Item%20Category&${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
+  const  response = await axios.get<ITerm[]>(requestUrl)
+  return response
+});
 
 export const getEntity = createAsyncThunk(
   'term/fetch_entity',
@@ -75,7 +86,7 @@ export const deleteEntity = createAsyncThunk(
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
     const result = await axios.delete<ITerm>(requestUrl);
-    thunkAPI.dispatch(getEntities({}));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }

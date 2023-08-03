@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
-import { Translate, translate } from 'react-jhipster';
+import {getSortState, JhiItemCount, JhiPagination, Translate, translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
@@ -9,6 +9,8 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IOrder } from 'app/shared/model/order.model';
 import { searchEntities, getEntities } from './order.reducer';
+import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.constants";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 
 export const Order = () => {
   const dispatch = useAppDispatch();
@@ -17,31 +19,110 @@ export const Order = () => {
   const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
   const orderList = useAppSelector(state => state.order.entities);
   const loading = useAppSelector(state => state.order.loading);
+  const totalOrders = useAppSelector(state => state.order.totalOrders)
 
-  useEffect(() => {
-    dispatch(getEntities({}));
-  }, []);
+  console.log(orderList, 'orderList')
+
+  const getAllEntities = () => {
+    if (search) {
+      dispatch(
+        searchEntities({
+          query: search,
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
+    } else {
+      dispatch(
+        getEntities(({
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        }))
+      );
+    }
+  };
 
   const startSearching = e => {
     if (search) {
-      dispatch(searchEntities({ query: search }));
+      setPaginationState({
+        ...paginationState,
+        activePage: 1,
+      });
+      dispatch(
+        searchEntities({
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
     }
     e.preventDefault();
   };
 
   const clear = () => {
     setSearch('');
+    setPaginationState({
+      ...paginationState,
+      activePage: 1,
+    });
     dispatch(getEntities({}));
   };
 
   const handleSearch = event => setSearch(event.target.value);
 
-  const handleSyncList = () => {
-    dispatch(getEntities({}));
+  const sortEntities = () => {
+    getAllEntities();
+    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    if (location.search !== endURL) {
+      navigate(`${location.pathname}${endURL}`);
+    }
   };
+
+  useEffect(() => {
+    sortEntities();
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const page = params.get('page');
+    const sort = params.get(SORT);
+    if (page && sort) {
+      const sortSplit = sort.split(',');
+      setPaginationState({
+        ...paginationState,
+        activePage: +page,
+        sort: sortSplit[0],
+        order: sortSplit[1],
+      });
+    }
+  }, [location.search]);
+
+  const sort = p => () => {
+    setPaginationState({
+      ...paginationState,
+      order: paginationState.order === ASC ? DESC : ASC,
+      sort: p,
+    });
+  };
+
+  const handlePagination = currentPage =>
+    setPaginationState({
+      ...paginationState,
+      activePage: currentPage,
+    });
+
+  const handleSyncList = () => {
+    sortEntities();
+  };
+
 
   return (
     <div>
@@ -79,11 +160,14 @@ export const Order = () => {
       </Row>
       <div className="table-responsive">
         {orderList && orderList.length > 0 ? (
-          <Table responsive>
+          <Table striped bordered hover responsive className="table-sm">
             <thead>
               <tr>
                 <th>
                   <Translate contentKey="tempApp.order.id">ID</Translate>
+                </th>
+                <th>
+                 Created at
                 </th>
                 <th>
                   <Translate contentKey="tempApp.order.discount">Discount</Translate>
@@ -114,6 +198,8 @@ export const Order = () => {
                       {order.id}
                     </Button>
                   </td>
+                  <td>{order.createdDate}</td>
+
                   <td>{order.discount}</td>
                   <td>{order.walkin ? 'true' : 'false'}</td>
                   <td>
@@ -144,6 +230,24 @@ export const Order = () => {
           )
         )}
       </div>
+      {totalOrders ? (
+        <div className={orderList && orderList.length > 0 ? '' : 'd-none'}>
+          <div className="justify-content-center d-flex">
+            <JhiItemCount page={paginationState.activePage} total={totalOrders} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
+          </div>
+          <div className="justify-content-center d-flex">
+            <JhiPagination
+              activePage={paginationState.activePage}
+              onSelect={handlePagination}
+              maxButtons={5}
+              itemsPerPage={paginationState.itemsPerPage}
+              totalItems={totalOrders}
+            />
+          </div>
+        </div>
+      ) : (
+        ''
+      )}
     </div>
   );
 };

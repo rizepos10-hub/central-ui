@@ -10,7 +10,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ITerm } from 'app/shared/model/term.model';
-import { searchEntities, getEntities } from '../term.reducer';
+import {searchEntities, getEntities, getMenuCategories} from '../term.reducer';
 
 export const MenuCategories = () => {
   const dispatch = useAppDispatch();
@@ -23,12 +23,13 @@ export const MenuCategories = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const termList = useAppSelector(state => state.term.entities).filter((term) => term.taxonomy?.name === "Menu Category");
+  const termList = useAppSelector(state => state.term.entities)
   const loading = useAppSelector(state => state.term.loading);
 
   const totalItems = termList.length;
 
 
+  console.log(termList, 'termos')
 
   const getAllEntities = () => {
     if (search) {
@@ -42,7 +43,7 @@ export const MenuCategories = () => {
       );
     } else {
       dispatch(
-        getEntities({
+        getMenuCategories({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
@@ -52,23 +53,23 @@ export const MenuCategories = () => {
   };
 
 
-  const startSearching = e => {
-    if (search) {
-      setPaginationState({
-        ...paginationState,
-        activePage: 1,
-      });
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
-    e.preventDefault();
-  };
+  // const startSearching = e => {
+  //   if (search) {
+  //     setPaginationState({
+  //       ...paginationState,
+  //       activePage: 1,
+  //     });
+  //     dispatch(
+  //       searchEntities({
+  //         query: search,
+  //         page: paginationState.activePage - 1,
+  //         size: paginationState.itemsPerPage,
+  //         sort: `${paginationState.sort},${paginationState.order}`,
+  //       })
+  //     );
+  //   }
+  //   e.preventDefault();
+  // };
 
   const clear = () => {
     setSearch('');
@@ -76,7 +77,7 @@ export const MenuCategories = () => {
       ...paginationState,
       activePage: 1,
     });
-    dispatch(getEntities({}));
+    dispatch(getMenuCategories({}));
   };
 
   const handleSearch = event => setSearch(event.target.value);
@@ -143,29 +144,29 @@ export const MenuCategories = () => {
           </Link>
         </div>
       </h2>
-      <Row>
-        <Col sm="12">
-          <Form onSubmit={startSearching}>
-            <FormGroup>
-              <InputGroup>
-                <Input
-                  type="text"
-                  name="search"
-                  defaultValue={search}
-                  onChange={handleSearch}
-                  placeholder={translate('tempApp.term.home.search')}
-                />
-                <Button className="input-group-addon">
-                  <FontAwesomeIcon icon="search" />
-                </Button>
-                <Button type="reset" className="input-group-addon" onClick={clear}>
-                  <FontAwesomeIcon icon="trash" />
-                </Button>
-              </InputGroup>
-            </FormGroup>
-          </Form>
-        </Col>
-      </Row>
+      {/* <Row> */}
+      {/*   <Col sm="12"> */}
+      {/*     <Form onSubmit={startSearching}> */}
+      {/*       <FormGroup> */}
+      {/*         <InputGroup> */}
+      {/*           <Input */}
+      {/*             type="text" */}
+      {/*             name="search" */}
+      {/*             defaultValue={search} */}
+      {/*             onChange={handleSearch} */}
+      {/*             placeholder={translate('tempApp.term.home.search')} */}
+      {/*           /> */}
+      {/*           <Button className="input-group-addon"> */}
+      {/*             <FontAwesomeIcon icon="search" /> */}
+      {/*           </Button> */}
+      {/*           <Button type="reset" className="input-group-addon" onClick={clear}> */}
+      {/*             <FontAwesomeIcon icon="trash" /> */}
+      {/*           </Button> */}
+      {/*         </InputGroup> */}
+      {/*       </FormGroup> */}
+      {/*     </Form> */}
+      {/*   </Col> */}
+      {/* </Row> */}
       <div className="table-responsive">
         {termList && termList.length > 0 ? (
           <Table responsive>

@@ -1,7 +1,7 @@
 import React from "react";
 
 import "./sidebar.scss";
-import SidebarTest from "app/shared/sidebar/SidebarTest";
+import SidebarMenu from "app/shared/sidebar/SidebarMenu";
 
 export interface ISideBarProps {
   isAuthenticated: boolean;
@@ -10,7 +10,7 @@ export const Sidebar = (props: ISideBarProps) => {
 
   let sidebarContent = (<div className="sidebar invisible"></div>);
   if (props.isAuthenticated) {
-   sidebarContent = <SidebarTest />;
+   sidebarContent = <SidebarMenu />;
   }
 
   return (

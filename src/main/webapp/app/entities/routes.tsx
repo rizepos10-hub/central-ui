@@ -32,6 +32,7 @@ export default () => {
         <Route path="term/*" element={<Term />} />
         <Route path="order/*" element={<Order />} />
 
+
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>
     </div>

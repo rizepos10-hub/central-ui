@@ -14,8 +14,8 @@
   Modal,
   ModalFooter,
   ModalBody,
-  ModalHeader, Container, Nav, NavItem, NavLink, TabContent, TabPane
-  } from 'reactstrap';
+  ModalHeader, Container, Nav, NavItem, NavLink, TabContent, TabPane, Alert
+} from 'reactstrap';
   import {isNumber, TextFormat, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
   import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -48,6 +48,8 @@
     const loading = useAppSelector(state => state.menu.loading);
     const updating = useAppSelector(state => state.menu.updating);
     const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
+    const errorMessage = useAppSelector(state => state.menu.errorMessage);
+
     const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
     const initialBranches = menuEntity.branch?.map(branch => ({ value: branch.id, label: branch.name }));
 
@@ -57,12 +59,13 @@
     const [selectedItems, setSelectedItems] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState();
     const [menuItems, setMenuItems] = useState([]);
-    const [activeTab, setActiveTab] = useState(null);
     const [displayedTerms, setDisplayedTerms] = useState([]);
     const [activeTerm, setActiveTerm] = useState(null);
     const [showEdit, setShowEdit] = useState(false)
-
+    const [activeTab, setActiveTab] = useState(displayedTerms.length > 0 ? displayedTerms[0] : null);
+     const [refresh, setRefresh] = useState(false)
     const [selectedBranches, setSelectedBranches] = useState([])
+    const [isLoading, setLoading] = useState(true)
 
 
 console.log(itemList, 'itemList')
@@ -81,9 +84,13 @@ console.log(itemList, 'itemList')
 
 
     const handleDeleteItem = (itemId) => {
-      setSelectedItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-      setMenuItems((prevItems) => prevItems.filter((item) => item.id !== itemId && item.id !== null));
+      const confirmed = window.confirm('Are you sure you want to remove this item?');
+      if (confirmed) {
+        setSelectedItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+        setMenuItems((prevItems) => prevItems.filter((item) => item.id !== itemId && item.id !== null));
+      }
     };
+
 
 
     const handleCategoryChange = (event) => {
@@ -106,8 +113,8 @@ console.log(itemList, 'itemList')
       setIsEditModalOpen(!isEditModalOpen);
     };
 
-    const handleClose = () => {
-      navigate('/menu' + location.search);
+    const handleRefresh = () => {
+      setRefresh(prev => !prev)
     };
 
     useEffect(() => {
@@ -121,21 +128,23 @@ console.log(itemList, 'itemList')
       dispatch(getTerms({}));
       dispatch(getItems({}));
 
-    }, []);
+    }, [refresh]);
 
 
     useEffect(() => {
-      if (menuEntity?.item) {
+
+      if (menuEntity?.item && !activeTab) {
         setMenuItems(menuEntity.item.map(item => item));
         setDisplayedTerms([...new Set(itemList?.map(item => item.terms[0]?.name || "uncategorized"))]
           .sort((a, b) => (a === 'uncategorized' ? 1 : b === 'uncategorized' ? -1 : 0)));
+        setActiveTab(displayedTerms[0]);
 
-        if (displayedTerms.length > 0) {
-          setActiveTab(displayedTerms[0]);
-        }
-
-        console.log(itemList, 'displayed terms');
       }
+
+
+       if(updateSuccess){
+         handleRefresh()
+       }
 
       if (menuEntity?.category){
         setSelectedCategory(menuEntity.category.name)
@@ -143,16 +152,15 @@ console.log(itemList, 'itemList')
       if (menuEntity?.branch){
         setSelectedBranches(menuEntity.branch?.map((branch) => ({id: branch.id})))
       }
-        // if (updateSuccess) {
-        //   handleClose();
-        // }
-    }, [updateSuccess, menuEntity?.item]);
+
+    }, [updateSuccess, menuEntity?.item, displayedTerms]);
 
 
     console.log(itemList, 'items')
     const saveEntity = (values) => {
       values.createdAt = convertDateTimeToServer(values.createdAt);
       values.updatedAt = convertDateTimeToServer(values.updatedAt);
+      setIsEditModalOpen(false)
 
       const { category, ...restValues } = values;
 
@@ -180,6 +188,8 @@ console.log(itemList, 'itemList')
       }
 
     };
+
+
 
 
 
@@ -223,7 +233,13 @@ console.log(itemList, 'itemList')
 
 
 
-
+    if(errorMessage) {
+      return (
+        <Alert color="warning" className="mt-4">
+          {errorMessage}
+        </Alert>
+        )
+    }
 
     if (!menuEntity) {
       return <p>Loading...</p>;
@@ -337,7 +353,7 @@ console.log(itemList, 'itemList')
                   </>
                   )}
               </Modal>)}
-<Container>
+          <Container>
                 <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
                   <div className="text-end mt-4">
                 <Button color="primary" onClick={toggleModal} disabled={allItemsPresent()}>
@@ -427,7 +443,15 @@ console.log(itemList, 'itemList')
                   {displayedTerms.map((termName) => (
                     <TabPane key={termName} tabId={termName}>
                       <Row className="mt-4">
-                        {menuItems
+                        {menuItems.filter(
+                          (item) =>
+                            item.terms[0]?.name === termName || (!item.terms[0]?.name && termName === 'uncategorized')
+                        ).length === 0 ? (
+                            <Alert color="warning" className="mt-4">
+                              No items found in this category.
+                            </Alert>
+                          ) :
+                          menuItems
                           .filter(
                             (item) =>
                               item.terms[0]?.name === termName || (!item.terms[0]?.name && termName === 'uncategorized')
