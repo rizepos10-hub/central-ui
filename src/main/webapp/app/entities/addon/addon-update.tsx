@@ -51,7 +51,7 @@ export const AddonUpdate = () => {
     const entity = {
       ...addonEntity,
       ...values,
-      item: items.find(it => it.id.toString() === values.item.toString()),
+      // item: items.find(it => it.id.toString() === values.item.toString()),
     };
 
     if (isNew) {
@@ -66,7 +66,7 @@ export const AddonUpdate = () => {
       ? {}
       : {
           ...addonEntity,
-          item: addonEntity?.item?.id,
+          // item: addonEntity?.item?.id,
         };
 
   return (
@@ -116,16 +116,16 @@ export const AddonUpdate = () => {
                   validate: v => isNumber(v) || translate('entity.validation.number'),
                 }}
               />
-              <ValidatedField id="addon-item" name="item" data-cy="item" label={translate('tempApp.addon.item')} type="select">
-                <option value="" key="0" />
-                {items
-                  ? items.map(otherEntity => (
-                      <option value={otherEntity.id} key={otherEntity.id}>
-                        {otherEntity.id}
-                      </option>
-                    ))
-                  : null}
-              </ValidatedField>
+              {/* <ValidatedField id="addon-item" name="item" data-cy="item" label={translate('tempApp.addon.item')} type="select"> */}
+              {/*   <option value="" key="0" /> */}
+              {/*   {items */}
+              {/*     ? items.map(otherEntity => ( */}
+              {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
+              {/*           {otherEntity.name} */}
+              {/*         </option> */}
+              {/*       )) */}
+              {/*     : null} */}
+              {/* </ValidatedField> */}
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/addon" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

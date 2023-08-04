@@ -62,6 +62,8 @@ export const ItemUpdate = () => {
 
   const [variants, setVariants] = useState([]);
 
+  const newItem = useAppSelector(state => state.item.entity)
+
   const [modalVariantImages, setModalVariantImages] = useState([]);
 
   const handleVariantImageUpload = (variantImage) => {
@@ -82,6 +84,10 @@ export const ItemUpdate = () => {
     dispatch(getTerms({}));
     dispatch(getDiscounts({}));
     // console.log(modalVariantImages, 'variantfromchild');
+
+    return () => {
+      dispatch(reset());
+    };
 
   }, [updateSuccess]);
 
@@ -105,6 +111,11 @@ console.log(itemEntity, 'termos')
 
     if (uploadImageStatus === 'success' && saveButtonRef.current) {
       saveButtonRef.current.focus();
+    }
+
+    const {id: newTermId} = newItem
+    if (updateSuccess && newTermId) {
+      navigate(`/item/${newTermId}/edit?page=1&sort=id,asc`)
     }
 
   }, [updateSuccess, itemEntity?.variants ]);

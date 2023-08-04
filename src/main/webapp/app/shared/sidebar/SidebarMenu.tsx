@@ -13,7 +13,7 @@ import {
   FaPlusCircle,
   FaTags,
   FaThLarge,
-  FaTrophy
+  FaTrophy, FaUser
 } from "react-icons/fa";
 import {MdAssessment, MdHistory, MdToday, MdViewModule} from "react-icons/md";
 import {WiDaySunny} from "react-icons/wi";
@@ -73,7 +73,8 @@ const SidebarMenu = () => {
     },
 
     {
-      name: "Inventory", icon:  <MdAssessment /> ,path: "/"},
+      name: "Inventory", icon:  <MdAssessment /> ,path: "/"
+    },
     {
       name: "Analytics", icon: <FaChartLine/>,
       subItems: [
@@ -83,6 +84,10 @@ const SidebarMenu = () => {
 
       ],
     },
+    {
+      name: "Customers", icon:  <FaUser /> ,path: "/"
+    },
+
   ];
 
   // const handleEntitiesClick = () => {
