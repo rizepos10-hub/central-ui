@@ -163,8 +163,8 @@ console.log(termEntity)
     <div>
       <Row className="justify-content-center">
         <Col md="8">
-          <h2 id="tempApp.term.home.createOrEditLabel" data-cy="TermCreateUpdateHeading">
-            Create or edit an Menu Category
+          <h2  data-cy="TermCreateUpdateHeading">
+            {isNew ? "Create a Menu Category" : "Edit Menu Category"}
           </h2>
         </Col>
       </Row>

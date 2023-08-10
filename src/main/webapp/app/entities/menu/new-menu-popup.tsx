@@ -7,7 +7,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {createEntity, getEntity, reset, updateEntity} from "app/entities/menu/menu.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {getEntities as getTerms} from "app/entities/term/term.reducer";
+import {getEntities as getTerms, getMenuCategories} from "app/entities/term/term.reducer";
 import {getEntities as getItems} from "app/entities/item/item.reducer";
 import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime} from "app/shared/util/date-utils";
 import {result} from "lodash";
@@ -23,7 +23,7 @@ const NewMenuPopup = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const terms = useAppSelector(state => state.term.entities).filter(term => term.taxonomy.name === 'Menu Category');
+  const terms = useAppSelector(state => state.term.entities)
   const itemList = useAppSelector(state => state.item.entities);
   const menuEntity = useAppSelector(state => state.menu.entity);
   const loading = useAppSelector(state => state.menu.loading);
@@ -67,7 +67,7 @@ const NewMenuPopup = () => {
       dispatch(getEntity(id));
     }
     dispatch(getBranches({}))
-    dispatch(getTerms({}));
+    dispatch(getMenuCategories({}));
     dispatch(getItems({}));
 
   }, []);
@@ -81,6 +81,7 @@ const NewMenuPopup = () => {
     }
   }, [newMenu]);
 
+  console.log(terms, 'termos')
 
   const saveEntity = (values) => {
     values.createdAt = convertDateTimeToServer(values.createdAt);

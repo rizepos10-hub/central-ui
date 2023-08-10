@@ -85,7 +85,7 @@ const SidebarMenu = () => {
       ],
     },
     {
-      name: "Customers", icon:  <FaUser /> ,path: "/"
+      name: "Customers", icon:  <FaUser /> ,path: "/customer"
     },
 
   ];

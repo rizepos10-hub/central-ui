@@ -123,6 +123,7 @@ export const Item = () => {
     sortEntities();
   };
 
+  console.log(itemList, 'itemList')
   return (
     <div>
       <h2 id="item-heading" data-cy="ItemHeading">

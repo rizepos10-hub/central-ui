@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
-import {getSortState, JhiItemCount, JhiPagination, Translate, translate} from 'react-jhipster';
+import {getSortState, JhiItemCount, JhiPagination, TextFormat, Translate, translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import './order.css'
+import 'primereact/resources/primereact.css';
+import 'primeflex/primeflex.css';
+import 'primereact/resources/themes/lara-light-indigo/theme.css';
+
 
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -11,6 +16,11 @@ import { IOrder } from 'app/shared/model/order.model';
 import { searchEntities, getEntities } from './order.reducer';
 import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.constants";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+
+import { searchEntities as searchBranches, getEntities as getBranches } from '../branch/branch.reducer';
+import {format} from "date-fns";
+import {DataTable} from "primereact/datatable";
+import {Column} from "primereact/column";
 
 export const Order = () => {
   const dispatch = useAppDispatch();
@@ -22,12 +32,31 @@ export const Order = () => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
+  const [selectAll, setSelectAll] = useState(false);
+  const [fromDate, setFromDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [toDate, setToDate] = useState(format((new Date()), "yyyy-MM-dd"));
+  const [selectedOrder, setSelectedOrders] = useState(null);
 
   const orderList = useAppSelector(state => state.order.entities);
+  const branchList = useAppSelector(state => state.branch.entities);
+
   const loading = useAppSelector(state => state.order.loading);
   const totalOrders = useAppSelector(state => state.order.totalOrders)
 
   console.log(orderList, 'orderList')
+
+  const getBranchName = (branchId) => {
+    const branch = branchList.find(branch => branch.id === branchId);
+    return branch ? branch.name : 'Unknown Branch';
+  };
+
+  const handleFromDateChange = (event) => {
+    setFromDate(event.target.value);
+  };
+
+  const handleToDateChange = (event) => {
+    setToDate(event.target.value);
+  };
 
   const getAllEntities = () => {
     if (search) {
@@ -50,33 +79,8 @@ export const Order = () => {
     }
   };
 
-  const startSearching = e => {
-    if (search) {
-      setPaginationState({
-        ...paginationState,
-        activePage: 1,
-      });
-      dispatch(
-        searchEntities({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
-    e.preventDefault();
-  };
 
-  const clear = () => {
-    setSearch('');
-    setPaginationState({
-      ...paginationState,
-      activePage: 1,
-    });
-    dispatch(getEntities({}));
-  };
 
-  const handleSearch = event => setSearch(event.target.value);
 
   const sortEntities = () => {
     getAllEntities();
@@ -88,6 +92,7 @@ export const Order = () => {
 
   useEffect(() => {
     sortEntities();
+   dispatch(getBranches({}))
   }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
 
   useEffect(() => {
@@ -105,22 +110,18 @@ export const Order = () => {
     }
   }, [location.search]);
 
-  const sort = p => () => {
-    setPaginationState({
-      ...paginationState,
-      order: paginationState.order === ASC ? DESC : ASC,
-      sort: p,
-    });
-  };
 
-  const handlePagination = currentPage =>
-    setPaginationState({
-      ...paginationState,
-      activePage: currentPage,
-    });
+
+
 
   const handleSyncList = () => {
     sortEntities();
+  };
+
+  const onSelectionChange = (event) => {
+    const value = event.value;
+    setSelectedOrders(value)
+    setSelectAll(value.length === orderList);
   };
 
 
@@ -137,91 +138,56 @@ export const Order = () => {
       </h2>
       <Row>
         <Col sm="12">
-          <Form onSubmit={startSearching}>
-            <FormGroup>
-              <InputGroup>
-                <Input
-                  type="text"
-                  name="search"
-                  defaultValue={search}
-                  onChange={handleSearch}
-                  placeholder={translate('tempApp.order.home.search')}
-                />
-                <Button className="input-group-addon">
-                  <FontAwesomeIcon icon="search" />
-                </Button>
-                <Button type="reset" className="input-group-addon" onClick={clear}>
-                  <FontAwesomeIcon icon="trash" />
-                </Button>
-              </InputGroup>
-            </FormGroup>
-          </Form>
+          <form onSubmit={() => {}}>
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <label htmlFor="fromDate" className="form-label">From Date:</label>
+                <input type="date" id="fromDate" className="form-control" value={fromDate} onChange={handleFromDateChange} />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="toDate" className="form-label">To Date:</label>
+                <input type="date" id="toDate" className="form-control" value={toDate} onChange={handleToDateChange} />
+              </div>
+            </div>
+            <div className="text-center">
+              <button type="submit" className="btn btn-primary">{loading? "Loading..." : "Get Orders"}</button>
+            </div>
+          </form>
         </Col>
       </Row>
-      <div className="table-responsive">
+      <div >
         {orderList && orderList.length > 0 ? (
-          <Table striped bordered hover responsive className="table-sm">
-            <thead>
-              <tr>
-                <th>
-                  <Translate contentKey="tempApp.order.id">ID</Translate>
-                </th>
-                <th className="hand" onClick={sort('createdAt')}>
-                  <Translate contentKey="tempApp.menu.createdAt">Created At</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.order.discount">Discount</Translate>
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.order.walkin">Walkin</Translate>
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.order.status">Status</Translate>
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.order.branchId">Branch Id</Translate>
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.order.sourceApp">Source App</Translate>
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.order.tables">Tables</Translate>
-                </th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {orderList.map((order, i) => (
-                <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                    <Button tag={Link} to={`/order/${order.id}`} color="link" size="sm">
-                      {order.id}
-                    </Button>
-                  </td>
-                  <td>{order.createdDate}</td>
+          <div className="cardox">
 
-                  <td>{order.discount}</td>
-                  <td>{order.walkin ? 'true' : 'false'}</td>
-                  <td>
-                    <Translate contentKey={`tempApp.OrderStatus.${order.status}`} />
-                  </td>
-                  <td>{order.branchId}</td>
-                  <td>{order.sourceApp}</td>
-                  <td>{order.tables}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button tag={Link} to={`/order/${order.id}`} color="info" size="sm" data-cy="entityDetailsButton">
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+
+            <DataTable value={orderList} lazy filterDisplay="row" dataKey="id" tableStyle={{ minWidth: '75rem' }} paginator rows={10}
+                       totalRecords={300}  selectAll={selectAll} selection={selectedOrder} onSelectionChange={onSelectionChange}
+            >
+              <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
+              <Column
+                field="id"
+                header="Order ID"
+                body={(rowData): any => (
+                  <Link to={`/order/${rowData.id}`}>
+                    {rowData.id}
+                  </Link>
+                )}
+              />
+              <Column field="branchId" sortable filter header="Order Branch" body={rowData => getBranchName(rowData.branchId)}/>
+              <Column field="createdDate" filter header="Order Date" body={rowData => rowData.createdDate?
+                <TextFormat type="date" value={rowData.createdDate} format={APP_DATE_FORMAT} /> : null} />
+              <Column field="byClient" sortable filter header="Order Source" />
+              <Column field="discount" sortable filter header="Order Discount" body={rowData => rowData.discount? <p className="text-success ">&#10004;</p>:
+                <p className="text-danger   ">&#10006;</p> } filterMatchMode="custom"
+              />
+
+              <Column field="byClient" filter header="Order Source" />
+              <Column field="tables" filter header="Order Tables" />
+              <Column field="status" filter header="Order Status" />
+              createdAt
+            </DataTable>
+
+          </div>
         ) : (
           !loading && (
             <div className="alert alert-warning">
@@ -230,24 +196,7 @@ export const Order = () => {
           )
         )}
       </div>
-      {totalOrders ? (
-        <div className={orderList && orderList.length > 0 ? '' : 'd-none'}>
-          <div className="justify-content-center d-flex">
-            <JhiItemCount page={paginationState.activePage} total={totalOrders} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
-          </div>
-          <div className="justify-content-center d-flex">
-            <JhiPagination
-              activePage={paginationState.activePage}
-              onSelect={handlePagination}
-              maxButtons={5}
-              itemsPerPage={paginationState.itemsPerPage}
-              totalItems={totalOrders}
-            />
-          </div>
-        </div>
-      ) : (
-        ''
-      )}
+
     </div>
   );
 };

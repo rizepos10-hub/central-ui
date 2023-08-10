@@ -25,9 +25,45 @@ export const searchEntities = createAsyncThunk('order/search_entity', async ({ q
 });
 
 export const getEntities = createAsyncThunk('order/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+  console.log('hello from none')
+
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IOrder[]>(requestUrl);
 });
+
+// export const filterOrders = createAsyncThunk(
+//   'order/filter_orders',
+//   async ({ lazyState }: { lazyState: any }) => {
+//     console.log(lazyState, 'hello')
+//     const queryParams = {
+//       ...lazyState.filters,
+//       page: lazyState.page,
+//       size: lazyState.rows,
+//       sort: lazyState.sortField ? `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}` : undefined,
+//     };
+//
+//     const response = await  axios.get<IOrder[]>(`api/orders/filtered`, { params: queryParams });
+//     console.log(response, 'response')
+//     return response
+//   }
+// );
+
+export const filterOrders = createAsyncThunk(
+  'order/filter_orders',
+  async (queryParams: any) => {
+    console.log(queryParams, 'hello from filter');
+    try {
+      const formData = new URLSearchParams(queryParams).toString();
+
+      const response = await axios.post<IOrder[]>('api/orders/filtered', formData);
+      return response;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+);
+);
+
 
 export const getEntity = createAsyncThunk(
   'order/fetch_entity',
@@ -95,7 +131,7 @@ export const OrderSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities,filterOrders), (state, action) => {
         const { data, headers } = action.payload;
 
         return {

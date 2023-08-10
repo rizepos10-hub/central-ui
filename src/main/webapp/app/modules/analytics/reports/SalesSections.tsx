@@ -6,9 +6,9 @@ const SalesSection = ({ title, data, isTotalSales = false }) => {
   };
   console.log(data, 'dataInHere')
 
-  if (!data || !data.totalSales) {
-    return <div>No data available.</div>;
-  }
+  // if (!data || !data.totalSales) {
+  //   return <div>No data available.</div>;
+  // }
 
   console.log(data)
   return (
@@ -21,55 +21,55 @@ const SalesSection = ({ title, data, isTotalSales = false }) => {
           <div className="d-flex justify-content-between mb-4">
             <p>Orders</p>
             <p className="text-end">
-              {data.orders?.toFixed(2) ?? 0}
+              {data?.orders?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p>Subtotal</p>
             <p className="text-end">
-              {data.subTotal?.toFixed(2) ?? 0}
+              {data?.subTotal?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p>Discount</p>
             <p className="text-end">
-              {data.discount?.toFixed(2) ?? 0}
+              {data?.discount?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p>Applied Coupon</p>
             <p className="text-end">
-              {data.appliedCoupon ?? 0}
+              {data?.appliedCoupon ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p>Delivery Charge</p>
             <p className="text-end">
-              {data.deliveryCharge?.toFixed(2) ?? 0}
+              {data?.deliveryCharge?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p>Delivery TAX</p>
             <p className="text-end">
-              {data.deliveryTAX?.toFixed(2) ?? 0}
+              {data?.deliveryTAX?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p>Refunds</p>
             <p className="text-end">
-              {data.refunds?.toFixed(2) ?? 0}
+              {data?.refunds?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p>Gst</p>
             <p className="text-end">
-              {data.gst?.toFixed(2) ?? 0}
+              {data?.gst?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p>Hst</p>
             <p className="text-end">
-              {data.hst?.toFixed(2) ?? 0}
+              {data?.hst?.toFixed(2) ?? 0}
             </p>
           </div>
 
@@ -77,19 +77,19 @@ const SalesSection = ({ title, data, isTotalSales = false }) => {
           <hr />
           <div className="d-flex justify-content-between">
             <strong>NET SALES</strong>
-            {data.netSales?.toFixed(2) ?? 0}
+            {data?.netSales?.toFixed(2) ?? 0}
           </div>
           <div className="d-flex justify-content-between">
             <strong>TOTAL TAX</strong>
-            {data.totalTAX?.toFixed(2) ?? 0}
+            {data?.totalTAX?.toFixed(2) ?? 0}
           </div>
           <div className="d-flex justify-content-between">
             <strong>GROSS SALES</strong>
-            {data.grossSales?.toFixed(2) ?? 0}
+            {data?.grossSales?.toFixed(2) ?? 0}
           </div>
           <div className="d-flex justify-content-between">
             <strong>TOTAL TIP</strong>
-            {data.totalTip?.toFixed(2) ?? 0}
+            {data?.totalTip?.toFixed(2) ?? 0}
           </div>
 
         </div>

@@ -1,0 +1,10 @@
+.cardox {
+  background: var(--surface-card);
+  padding: 2rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.data-center{
+  text-align: center;
+}

@@ -13,17 +13,19 @@ import UpdateMenuCategory from "app/entities/term/Menu-Category/UpdateMenuCatego
 import MenuCategories from "app/entities/term/Menu-Category/MenuCategories";
 import DeleteITemDialog from "app/entities/term/Item-Category/DeleteItemDialog";
 import DeleteMenusDialog from "app/entities/term/Menu-Category/DeleteMenusDialog";
+import MenuCategoriesTest from "app/entities/term/Menu-Category/MenuCategoriesTest";
+import ItemCategoriesTest from "app/entities/term/Item-Category/ItemCategoriesTest";
 
 const TermRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<Term />} />
 
 
-    <Route path="items" element={<ItemCategories />} />
+    <Route path="items" element={<ItemCategoriesTest />} />
     <Route path="items/new" element={<UpdateItemCategory />} />
 
 
-    <Route path="menus" element={<MenuCategories />} />
+    <Route path="menus" element={<MenuCategoriesTest />} />
     <Route path="menus/new" element={<UpdateMenuCategory />} />
 
     <Route path="new" element={<TermUpdate />} />
