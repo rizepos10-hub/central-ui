@@ -20,7 +20,9 @@
       },
       "id": "ID",
       "orderCount": "Order Count",
-      "phone": "Phone",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone Number",
       "status": "Status"
     }
   }

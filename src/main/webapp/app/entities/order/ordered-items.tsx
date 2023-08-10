@@ -1,51 +1,88 @@
-import { IBill } from 'app/shared/model/bill.model';
-import { IBilledItem } from 'app/shared/model/billed-items.model';
-import { Button, Table } from 'reactstrap';
-import { Translate } from 'react-jhipster';
-import React from 'react';
-import { IOrderedItem } from 'app/shared/model/ordered-item.model';
-import { IOrderedAddon } from 'app/shared/model/ordered-addon.model';
+  import { IBill } from 'app/shared/model/bill.model';
+  import { IBilledItem } from 'app/shared/model/billed-items.model';
+  import {Button, Card, Col, ListGroup, ListGroupItem, Row, Table} from 'reactstrap';
+  import { Translate } from 'react-jhipster';
+  import React from 'react';
+  import { IOrderedItem } from 'app/shared/model/ordered-item.model';
+  import { IOrderedAddon } from 'app/shared/model/ordered-addon.model';
 
-interface OrderedItems {
-  list: IOrderedItem[];
-}
-export const OrderedItems: React.FC<OrderedItems> = ({ list }) => {
-  // addons?: IOrderedAddon[];
+  interface OrderedItems {
+    list: IOrderedItem[];
+  }
+  export const OrderedItems: React.FC<OrderedItems> = ({ list }) => {
+    // addons?: IOrderedAddon[];
 
-  const items = list;
+    const subtotal = list.reduce((acc, item) => acc + item.price, 0);
+    const totalDiscounts = list.reduce((acc, item) => acc + item.discount, 0);
+    const totalPrice = subtotal - totalDiscounts;
 
-  return (
-    <div className="table-responsive">
-      <h4>Items</h4>
-      {items && items.length > 0 ? (
-        <Table responsive>
-          <thead>
-            <tr>
-              <th>
-                <Translate contentKey="tempApp.order.id">ID</Translate>
-              </th>
-              <th>Price</th>
-              <th>Amount</th>
-              <th>Discount</th>
-              <th>Seats</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, i) => (
-              <tr key={`entity-${i}`} data-cy="entityTable">
-                <td>{item.id}</td>
-                <td>{item.price}</td>
-                <td>{item.amount}</td>
-                <td>{item.discount}</td>
-                <td>{item.seats}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      ) : (
-        ''
-      )}
-    </div>
-  );
-};
+
+    const items = list;
+  console.log(items, 'items')
+    return (
+      <div >
+         <h4> <strong>Items</strong></h4>
+        <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+          {list && list.length > 0 ? (
+            <ListGroup>
+              {list.map((item, i) => (
+                <ListGroupItem key={`entity-${i}`} data-cy="entityTable">
+                  <Row>
+                    <Col xs="3">
+                      <div className="d-flex flex-column">
+                        <strong>Name</strong> {item.id}
+                      </div>
+                    </Col>
+                    <Col xs="3">
+
+                      <strong>Addons</strong>
+                      {item.addons && item.addons.length > 0 && (
+                        <div className="d-flex flex-column">
+                          {item.addons.map((addon: IOrderedAddon, j: number) => (
+                            <span key={`addon-${j}`}>{addon?.id}</span>
+                          ))}
+                        </div>
+                      )}
+                    </Col>
+                    <Col xs="3">
+                      <div className="d-flex flex-column">
+                        <strong>Discount</strong> {item.discount}
+                      </div>
+                    </Col>
+                    <Col xs="3">
+                      <div className="d-flex flex-column">
+                        <strong>Price</strong> {item.price}
+                      </div>
+                    </Col>
+                  </Row>
+                </ListGroupItem>
+              ))}
+            </ListGroup>
+          ) : (
+            <div>No items available.</div>
+          )}
+        </div>
+
+        { list.length > 0 && <Card className="mt-3 p-3">
+          <div className="d-flex justify-content-between my-2">
+            <div>
+              <strong>Subtotal</strong>
+            </div>
+            <div className="text-center">$ {subtotal}</div>
+          </div>
+          <div className="d-flex justify-content-between my-2">
+            <div>
+              <strong>Total Discounts</strong>
+            </div>
+            <div className="text-center">$ {totalDiscounts}</div>
+          </div>
+          <div className="d-flex justify-content-between my-2">
+            <div>
+              <strong>Total Price</strong>
+            </div>
+            <div className="text-center">$ {totalPrice}</div>
+          </div>
+        </Card>}
+      </div>
+    );
+  };

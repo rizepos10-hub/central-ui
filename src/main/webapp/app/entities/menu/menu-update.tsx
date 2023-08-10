@@ -403,7 +403,7 @@ console.log(itemList, 'itemList')
                                       >
                                         <CardBody>
                                           <h6>{item.name}</h6>
-                                          <p>{item.desc}</p>
+                                          {/* <p>{item.desc}</p> */}
                                           <p>{item.terms[0]?.name}</p>
                                         </CardBody>
                                       </Card>
@@ -471,7 +471,7 @@ console.log(itemList, 'itemList')
                                   </div>
                                   <div style={{ flex: '1 0 67%', padding: '0 10px' }}>
                                     <h6 style={{ fontSize: '18px', fontWeight: 'bold' }}>{item.name}</h6>
-                                    <p>{item.desc}</p>
+                                    {/* <p>{item.desc}</p> */}
                                     <Button color="danger" onClick={() => handleDeleteItem(item.id)}>
                                       Remove
                                     </Button>

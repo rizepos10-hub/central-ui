@@ -139,12 +139,10 @@ console.log(termEntity)
 
     console.log(entity, 'entity saved')
     if (isNew) {
-      if (values.term) {
-        entity.parents = [terms.find(it => it.id.toString() === values.term.toString())];
-      }
+
       dispatch(createEntity(entity));
     } else {
-      entity.parents = [terms.find(it => it.id.toString() === values.term.toString())];
+      // entity.parents = [terms.find(it => it.id.toString() === values.term.toString())];
       dispatch(updateEntity(entity));
     }
   };

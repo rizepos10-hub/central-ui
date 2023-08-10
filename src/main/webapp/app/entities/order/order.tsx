@@ -166,8 +166,8 @@ export const Order = () => {
                 <th>
                   <Translate contentKey="tempApp.order.id">ID</Translate>
                 </th>
-                <th>
-                 Created at
+                <th className="hand" onClick={sort('createdAt')}>
+                  <Translate contentKey="tempApp.menu.createdAt">Created At</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
                 <th>
                   <Translate contentKey="tempApp.order.discount">Discount</Translate>

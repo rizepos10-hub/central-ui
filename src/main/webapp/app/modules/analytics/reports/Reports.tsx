@@ -1,121 +1,137 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import SalesSection from "app/modules/analytics/reports/SalesSections";
-
+import axios from "axios";
+import { format, addDays } from 'date-fns';
 const SalesSummaryReport = () => {
 
-  const totalSalesData = [
-    { label: 'Orders', value: '$0.00' },
-    { label: 'SUBTOTAL', value: '$0.00' },
-    { label: 'DISCOUNT', value: '$0.00' },
-    { label: 'APPLIED COUPON', value: '$35,200.14' },
-    { label: 'HST', value: '$4,579.38' },
-    { label: 'GST', value: '$39,779.52' },
-    { label: 'DELIVERY CHARGE', value: '$0.00' },
-    { label: 'DELIVERY TAX', value: '$0.00' },
-    { label: 'REFUNDS', value: '$0.00' },
-    { label: 'APPLIED COUPON', value: '$35,200.14' },
-  ];
+
+  const [salesData, setSalesData]:any = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [fromDate, setFromDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [toDate, setToDate] = useState(format((new Date()), "yyyy-MM-dd"));
 
 
-  const totalReceived = [
-    { payment: 'Debit', type: 'Card', tip: '$0.00', amount: '$10,000.00', refund: '$0.00', received: '$10,000.00' },
-    { payment: 'Visa', type: 'Card', tip: '$100.00', amount: '$5,000.00', refund: '$0.00', received: '$5,100.00' },
-    { payment: 'Master', type: 'Card', tip: '$50.00', amount: '$3,000.00', refund: '$0.00', received: '$3,050.00' },
-    { payment: 'Cash', type: '', tip: '$0.00', amount: '$2,000.00', refund: '$0.00', received: '$2,000.00' },
-    { payment: 'Debit', type: 'Card', tip: '$0.00', amount: '$10,000.00', refund: '$0.00', received: '$10,000.00' },
-    { payment: 'Visa', type: 'Card', tip: '$100.00', amount: '$5,000.00', refund: '$0.00', received: '$5,100.00' },
-    { payment: 'Master', type: 'Card', tip: '$50.00', amount: '$3,000.00', refund: '$0.00', received: '$3,050.00' },
-    { payment: 'Cash', type: 'Card', tip: '$0.00', amount: '$2,000.00', refund: '$0.00', received: '$2,000.00' },
-    { payment: 'Debit', type: 'Card', tip: '$0.00', amount: '$10,000.00', refund: '$0.00', received: '$10,000.00' },
-  ];
 
-
-  const newTotalSalesData = [
-    { label: 'Orders', value: '$120.00' },
-    { label: 'SUBTOTAL', value: '$180.00' },
-    { label: 'DISCOUNT', value: '$20.00' },
-    { label: 'APPLIED COUPON', value: '$10.20' },
-    { label: 'HST', value: '$8.00' },
-    { label: 'GST', value: '$12.00' },
-    { label: 'DELIVERY CHARGE', value: '$2.50' },
-    { label: 'DELIVERY TAX', value: '$1.50' },
-    { label: 'REFUNDS', value: '$15.00' },
-    { label: 'APPLIED COUPON', value: '$9.50' }
-  ];
-
-  const dineInData = [
-    { label: 'Orders', value: '$300.00' },
-    { label: 'SUBTOTAL', value: '$450.00' },
-    { label: 'DISCOUNT', value: '$100.00' },
-    { label: 'APPLIED COUPON', value: '$75.50' },
-    { label: 'HST', value: '$25.00' },
-    { label: 'GST', value: '$35.00' },
-    { label: 'DELIVERY CHARGE', value: '$10.00' },
-    { label: 'DELIVERY TAX', value: '$5.00' },
-    { label: 'REFUNDS', value: '$50.00' },
-    { label: 'APPLIED COUPON', value: '$60.00' }
-  ];
-
-  const togoData = [
-    { label: 'Orders', value: '$100.00' },
-    { label: 'SUBTOTAL', value: '$200.00' },
-    { label: 'DISCOUNT', value: '$50.00' },
-    { label: 'APPLIED COUPON', value: '$35.20' },
-    { label: 'HST', value: '$10.00' },
-    { label: 'GST', value: '$15.00' },
-    { label: 'DELIVERY CHARGE', value: '$5.00' },
-    { label: 'DELIVERY TAX', value: '$2.50' },
-    { label: 'REFUNDS', value: '$20.00' },
-    { label: 'APPLIED COUPON', value: '$15.00' }
-  ];
-
-  const deliveryData = [
-    { label: 'Orders', value: '$50.00' },
-    { label: 'SUBTOTAL', value: '$150.00' },
-    { label: 'DISCOUNT', value: '$25.00' },
-    { label: 'APPLIED COUPON', value: '$10.50' },
-    { label: 'HST', value: '$5.00' },
-    { label: 'GST', value: '$10.00' },
-    { label: 'DELIVERY CHARGE', value: '$2.00' },
-    { label: 'DELIVERY TAX', value: '$1.00' },
-    { label: 'REFUNDS', value: '$5.00' },
-    { label: 'APPLIED COUPON', value: '$7.50' }
-  ];
-
-  const calculateTotal = (data) => {
-    let total = 0;
-    data.forEach((item) => {
-      const value = parseFloat(item.value.replace('$', '').replace(',', ''));
-      total += value;
-    });
-    return total.toFixed(2);
+  const handleFromDateChange = (event) => {
+    setFromDate(event.target.value);
   };
 
-  const formatTotalWithCommas = (value) => {
-    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const handleToDateChange = (event) => {
+    setToDate(event.target.value);
   };
+
+
+  const handleSubmit = async (event?) => {
+    if (event) {
+      event.preventDefault();
+    }
+
+    // Form validation - Check if 'fromDate' is after 'toDate'
+    const fromDateObj = new Date(fromDate);
+    const toDateObj = new Date(toDate);
+    if (fromDateObj > toDateObj) {
+      alert("From date cannot be later than To date.");
+      return;
+    }
+
+    try {
+      setLoading(true)
+      const formattedFromDate = `${fromDate}T00:00:00.000Z`;
+      const formattedToDate = `${toDate}T00:00:00.000Z`;
+
+      const formData = new FormData();
+      formData.append('fromDate', formattedFromDate);
+      formData.append('toDate', formattedToDate);
+
+      const { data } = await axios.post(`/api/report/sales-summary`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      setSalesData(data);
+      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setLoading(false);
+    }
+  };
+
+
+  useEffect(() => {
+    const fetchTodayData = async () => {
+      await handleSubmit();
+    };
+
+    fetchTodayData();
+  }, []);
+
+
+  if (!salesData) {
+    return <div>No data available.</div>;
+  }
+
+
+
+
+  const sumOrderData = (orderData) => {
+    return {
+      orders: orderData.PickUp.orders + orderData.DineIn.orders + orderData.Delivery.orders,
+      subTotal: orderData.PickUp.subTotal + orderData.DineIn.subTotal + orderData.Delivery.subTotal,
+      discount: orderData.PickUp.discount + orderData.DineIn.discount + orderData.Delivery.discount,
+      appliedCoupon: orderData.PickUp.appliedCoupon    + '  |  ' +  orderData.DineIn.appliedCoupon +   '  |  ' + orderData.Delivery.appliedCoupon,
+      deliveryCharge: orderData.PickUp.deliveryCharge + orderData.Delivery.deliveryCharge,
+      deliveryTAX: orderData.PickUp.deliveryTAX + orderData.Delivery.deliveryTAX,
+      refunds: orderData.PickUp.refunds + orderData.DineIn.refunds + orderData.Delivery.refunds,
+      netSales: orderData.PickUp.netSales + orderData.DineIn.netSales + orderData.Delivery.netSales,
+      totalTAX: orderData.PickUp.totalTAX + orderData.DineIn.totalTAX + orderData.Delivery.totalTAX,
+      grossSales: orderData.PickUp.grossSales + orderData.DineIn.grossSales + orderData.Delivery.grossSales,
+      totalTip: orderData.PickUp.totalTip + orderData.DineIn.totalTip + orderData.Delivery.totalTip,
+      gst: orderData.PickUp.gst + orderData.DineIn.gst + orderData.Delivery.gst,
+      hst: orderData.PickUp.hst + orderData.Delivery.hst,
+    };
+  };
+
+  // const totalSalesData = sumOrderData(data.totalSales);
+
+  const calculateTotal = (values) => {
+    return values?.reduce((total, value) => total + value, 0);
+  };
+
 
 
   return (
+
     <div className="container mt-5">
-      <div className="text-center">
-        <h2>Pos Business 10</h2>
-        <h4>Sales Summary Report</h4>
-        <p>Location: Random Location</p>
-      </div>
-      <SalesSection title="Total Sales" data={totalSalesData} isTotalSales={true} />
-
-      <div className="row">
-
-        <div className="container mt-5">
+        <div className="text-center">
+          <h2>Pos Business 10</h2>
+          <h4>Sales Summary Report</h4>
+          <p>Location: Random Location</p>
+        </div>
+        {/* <SalesSection title="Total Sales" data={salesData.totalSales} isTotalSales={true}/> */}
+        <form onSubmit={handleSubmit}>
+          <div className="row mb-3">
+            <div className="col-md-6">
+              <label htmlFor="fromDate" className="form-label">From Date:</label>
+              <input type="date" id="fromDate" className="form-control" value={fromDate} onChange={handleFromDateChange} />
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="toDate" className="form-label">To Date:</label>
+              <input type="date" id="toDate" className="form-control" value={toDate} onChange={handleToDateChange} />
+            </div>
+          </div>
+          <div className="text-center">
+            <button type="submit" className="btn btn-primary">{loading? "Loading..." : "Get Report"}</button>
+          </div>
+        </form>
+        <div className="row mt-5">
           <div className="col-md-12">
             <h3>Total Received</h3>
             <table className="table table-bordered table-lg">
               <thead>
               <tr className="bg-light">
                 <th>PAYMENT</th>
-                <th>TYPE</th>
                 <th>TIP</th>
                 <th>AMOUNT</th>
                 <th>REFUND</th>
@@ -123,60 +139,35 @@ const SalesSummaryReport = () => {
               </tr>
               </thead>
               <tbody>
-              {totalReceived.map((item, index) => (
+              {salesData && salesData?.totalReceived?.map((item, index) => (
                 <tr key={index}>
-                  <td>{item.payment}</td>
-                  <td>{item.type}</td>
-                  <td className="text-end p-4">{item.tip}</td>
-                  <td className="text-end p-4">{item.amount}</td>
-                  <td className="text-end p-4">{item.refund}</td>
-                  <td className="text-end">{item.received}</td>
+                  <td>{item.paymentType}</td>
+                  <td className="text-end p-4">{`$ ${item.tip ? item.tip?.(2) : 0}`}</td>
+                  <td className="text-end p-4">{`$ ${item.amount?.toFixed(2)}`}</td>
+                  <td className="text-end p-4">{`$ ${item.refund ? item.refund?.toFixed(2) : 0}`}</td>
+                  <td className="text-end">{`$ ${item.received.toFixed(2)}`}</td>
                 </tr>
               ))}
+              <tr>
+                <td>Total</td>
+                <td
+                  className="text-end p-4">{`$ ${calculateTotal(salesData.totalReceived?.map((item) => item.tip + 0))?.toFixed(2)}`}</td>
+                <td
+                  className="text-end p-4">{`$ ${calculateTotal(salesData.totalReceived?.map((item) => item.amount))?.toFixed(2)}`}</td>
+                <td
+                  className="text-end p-4">{`$ ${calculateTotal(salesData.totalReceived?.map((item) => item.refund + 0))?.toFixed(2)}`}</td>
+                <td
+                  className="text-end">{`$ ${calculateTotal(salesData.totalReceived?.map((item) => item.received))?.toFixed(2)}`}</td>
+              </tr>
               </tbody>
             </table>
           </div>
         </div>
-        {/* <div className="col-md-12"> */}
-        {/*   <div className="p-3 border rounded"> */}
-        {/*     <h3 className="mb-4">Total Sales</h3> */}
-        {/*     {totalSalesData.map((item, index) => ( */}
-        {/*       <div className="d-flex justify-content-between mb-4" key={index}> */}
-        {/*         <p>{item.label}</p> */}
-        {/*         <p className="text-end">{item.value}</p> */}
-        {/*       </div> */}
-        {/*     ))} */}
-        {/*   </div> */}
-        {/* </div> */}
-        {/* <div className="row"> */}
-        {/*   <div className="col-md-12"> */}
-        {/*     <div className="p-3 border rounded bg-light"> */}
-        {/*       <h3 className="mb-4">New Total Sales <span className="text-sm" style={{ fontSize: '1rem' }}> */}
-        {/*         | Total */}
-        {/*       </span></h3> */}
+        <SalesSection title="DineIn" data={salesData.totalSalesByOrderOption?.DineIn}/>
+        {/* <SalesSection title="PickUp" data={salesData.totalSalesByOrderOption?.PickUp}/> */}
+        {/* <SalesSection title="Delivery" data={salesData.totalSalesByOrderOption?.Delivery}/> */}
 
-        {/*       {newTotalSalesData.map((item, index) => ( */}
-        {/*         <div className="d-flex justify-content-between mb-4" key={index}> */}
-        {/*           <p>{item.label}</p> */}
-        {/*           <p className="text-end">{item.value}</p> */}
-        {/*         </div> */}
-        {/*       ))} */}
-        {/*       <hr /> */}
-        {/*       <div className="d-flex justify-content-between" > */}
-
-        {/*         <p>Total</p> */}
-        {/*         <p className="text-end">{`$ ${formatTotalWithCommas(calculateTotal(newTotalSalesData))}`}</p> */}
-
-        {/*       </div> */}
-        {/*     </div> */}
-        {/*   </div> */}
-        {/* </div> */}
-        <SalesSection title="DineIn" data={dineInData} />
-        <SalesSection title="PickUp" data={togoData} />
-        <SalesSection title="Delivery" data={deliveryData} />
-
-      </div>
-    </div>
+     </div>
   );
 };
 
