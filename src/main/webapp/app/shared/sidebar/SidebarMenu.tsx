@@ -50,7 +50,7 @@ const SidebarMenu = () => {
       name: "Orders", icon: <BsCart />,
 
       subItems: [
-        { path: "/branch?page=1&sort=id,asc", name: "Today " , icon: <MdToday /> },
+        { path: "/order/today", name: "Today " , icon: <MdToday /> },
         { path: "/order?page=1&sort=id,asc", name: "History" ,   icon: <MdHistory />},
       ],
     },
