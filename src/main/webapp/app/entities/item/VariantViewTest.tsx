@@ -5,12 +5,10 @@ import { Rating } from "primereact/rating";
 import { Tag } from "primereact/tag";
 import {useLocation} from "react-router-dom";
 
-export default function VariantViewTest() {
+export default function VariantViewTest({variants, itemName}) {
 
   const [layout, setLayout] = useState<"grid" | "list">("grid");
 
-  const location :any = useLocation();
-  const { variants } = location.state || {};
 
 
   console.log(variants, 'varianto')
@@ -47,7 +45,7 @@ export default function VariantViewTest() {
               <div className="flex align-items-center gap-3">
                 <span className="flex align-items-center gap-2">
                   <i className="pi pi-tag"></i>
-                  <span className="font-semibold">{variant.category}</span>
+                  <span className="font-semibold">{itemName}</span>
                 </span>
                 <Tag
                   value={variant.inventoryStatus}
@@ -74,10 +72,10 @@ export default function VariantViewTest() {
       <div className="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
         <div className="p-4 border-1 surface-border surface-card border-round">
           <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-            {/* <div className="flex align-items-center gap-2"> */}
-            {/*   <i className="pi pi-tag"></i> */}
-            {/*   <span className="font-semibold">{variant.category}</span> */}
-            {/* </div> */}
+            <div className="flex align-items-center gap-2">
+              <i className="pi pi-tag"></i>
+              <span className="font-semibold">{itemName}</span>
+            </div>
             <Tag
               value={variant.inventoryStatus}
               severity={getSeverity(variant)}
@@ -92,14 +90,14 @@ export default function VariantViewTest() {
             <div className="text-2xl font-bold">{variant.name}</div>
             {/* <Rating value={variant.rating} readOnly cancel={false}></Rating> */}
           </div>
-          {/* <div className="flex align-items-center justify-content-between"> */}
-          {/*   <span className="text-2xl font-semibold">${variant.price}</span> */}
+          <div className="flex align-items-center justify-content-between">
+            <span className="text-2xl font-semibold">${variant.price}</span>
           {/*   <Button */}
           {/*     icon="pi pi-shopping-cart" */}
           {/*     className="p-button-rounded" */}
           {/*     disabled={variant.inventoryStatus === "OUTOFSTOCK"} */}
           {/*   ></Button> */}
-          {/* </div> */}
+          </div>
         </div>
      </div>
     );

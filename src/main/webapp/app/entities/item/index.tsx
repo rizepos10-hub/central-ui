@@ -13,7 +13,6 @@ import VariantViewTest from "app/entities/item/VariantViewTest";
 const ItemRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<ItemTest />} />
-    <Route path="/variantview" element={<VariantViewTest /> } />
     <Route path="new" element={<ItemUpdate />} />
     <Route path=":id">
       <Route index element={<ItemDetail />} />

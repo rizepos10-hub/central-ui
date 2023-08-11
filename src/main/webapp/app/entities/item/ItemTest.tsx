@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
@@ -29,6 +29,7 @@ export const Item = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
+  const [itemNameProp,setItemNameProp] = useState([])
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedVariants, setSelectedVariants] = useState([]);
 
@@ -169,6 +170,8 @@ export const Item = () => {
   const handleCreate = () => {
     navigate('/item/new')
   }
+
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Items</span>
@@ -203,11 +206,23 @@ export const Item = () => {
     );
   };
 
-  const variantColumnTemplate = (rowData) => (
-    <Button onClick={() => navigate('/item/variantview', { state: { variants: rowData.variants } })}>
-      Show Variants
-    </Button>
-  );
+  const toggleModal = () => {
+    setModalIsOpen(!modalIsOpen);
+  };
+
+  const variantColumnTemplate = (rowData) => {
+    return (
+      <div>
+        <Button  onClick={() => {
+          setSelectedVariants(rowData.variants);
+          setItemNameProp(rowData.name)
+          toggleModal();
+        }}>
+          Show Variants
+        </Button>
+      </div>
+    );
+  };
   console.log(itemList, 'itemList')
 
   return (
@@ -236,6 +251,20 @@ export const Item = () => {
           <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '5%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
         </DataTable>
+        <Modal
+          isOpen={modalIsOpen}
+          toggle={toggleModal}
+          contentClassName="custom-modal-content"
+          size="lg"
+        >
+          <div className="modal-header">
+            <h5 className="modal-title">Variant Details</h5>
+              <i onClick={toggleModal} className="pi pi-times cursor-pointer  " style={{ fontSize: '1.5rem' }}></i>
+          </div>
+          <div className="modal-body">
+            <VariantViewTest variants={selectedVariants} itemName={itemNameProp} />
+          </div>
+        </Modal>
 
       </div>
 

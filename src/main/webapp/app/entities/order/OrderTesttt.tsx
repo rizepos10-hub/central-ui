@@ -320,12 +320,13 @@ console.log(orderList.length, 'len')
                 }
               />
 
-              <Column field="discount" sortable  header="Order Discount" body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
+              <Column field="discount" sortable  style={{ width: '13%' }}
+                header="Order Discount" body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
                 <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
               />
 
               <Column field="byClient" filter header="Order Source" />
-              <Column field="tables"  header="Order Tables" />
+              <Column field="tables" style={{ width: '10%' }}   header="Order Tables" />
               <Column
                 field="customer"
                 filter
