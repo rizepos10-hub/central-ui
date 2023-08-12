@@ -37,7 +37,7 @@ export const OrderDetail = () => {
                 <Row>
                 <Col md="9">
 
-                    <div>{orderEntity.items ? <OrderedItems list={orderEntity.items} /> : ''}</div>
+                    <div>{orderEntity?.items ? <OrderedItems list={orderEntity.items} /> : ''}</div>
                 </Col>
 
                 {/* Customer Card */}
@@ -58,9 +58,10 @@ export const OrderDetail = () => {
                       <h4 data-cy="customerDetailsHeading">
                       <strong> <Translate contentKey="tempApp.customer.detail.title">Customer</Translate></strong>
                       </h4>
-                      <div >
-                      Walk In
-                      </div>
+                        <Card className="border p-3 mt-lg-3 h-100">
+
+                        Walk In
+                      </Card>
                       </>
                     )}
                 </Col>
@@ -72,7 +73,7 @@ export const OrderDetail = () => {
         <Col md="12" className="mt-lg-5">
 
 
-          {orderEntity.bills && <OrderBills orderedItems={orderEntity.items} list={orderEntity.bills}></OrderBills> }
+          {orderEntity.bills && <OrderBills orderedItems={orderEntity?.items} list={orderEntity?.bills}></OrderBills> }
         </Col>
         </div>
       </Col>

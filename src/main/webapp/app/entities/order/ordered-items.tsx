@@ -13,8 +13,18 @@
     // addons?: IOrderedAddon[];
 
     const subtotal = list.reduce((acc, item) => acc + item.price, 0);
-    const totalDiscounts = list.reduce((acc, item) => acc + item.discount, 0);
+    const totalDiscounts = list.reduce((acc, item) => {
+      if (item.discount?.type === 'PERCENTAGE') {
+        return acc + (item.price * item.discount.value) / 100;
+      } else if (item.discount?.type === 'FLAT') {
+        return acc + (item.discount.value !== undefined ? item.discount.value : 0);
+      } else {
+        return acc;
+      }
+    }, 0);
+
     const totalPrice = subtotal - totalDiscounts;
+
 
 
     const items = list;
@@ -25,12 +35,14 @@
         <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
           {list && list.length > 0 ? (
             <ListGroup>
-              {list.map((item, i) => (
+              {list.map((item, i) => {
+                console.log(item)
+                return (
                 <ListGroupItem key={`entity-${i}`} data-cy="entityTable">
                   <Row>
                     <Col xs="3">
                       <div className="d-flex flex-column">
-                        <strong>Name</strong> {item.id}
+                        <strong>Name</strong> {item.id ?? null}
                       </div>
                     </Col>
                     <Col xs="3">
@@ -46,7 +58,7 @@
                     </Col>
                     <Col xs="3">
                       <div className="d-flex flex-column">
-                        <strong>Discount</strong> {item.discount}
+                        <strong>Discount</strong> {item.discount ? item.discount?.type + ' ' + item.discount?.value : 0}
                       </div>
                     </Col>
                     <Col xs="3">
@@ -56,9 +68,9 @@
                     </Col>
                   </Row>
                 </ListGroupItem>
-              ))}
+              )})}
             </ListGroup>
-          ) : (
+          ): (
             <div>No items available.</div>
           )}
         </div>
@@ -68,19 +80,19 @@
             <div>
               <strong>Subtotal</strong>
             </div>
-            <div className="text-center">$ {subtotal}</div>
+            <div className="text-center">$ {subtotal.toFixed(2)}</div>
           </div>
           <div className="d-flex justify-content-between my-2">
             <div>
               <strong>Total Discounts</strong>
             </div>
-            <div className="text-center">$ {totalDiscounts}</div>
+            <div className="text-center">$ {totalDiscounts.toFixed(2)}</div>
           </div>
           <div className="d-flex justify-content-between my-2">
             <div>
               <strong>Total Price</strong>
             </div>
-            <div className="text-center">$ {totalPrice}</div>
+            <div className="text-center">$ {totalPrice.toFixed(2)}</div>
           </div>
         </Card>}
       </div>

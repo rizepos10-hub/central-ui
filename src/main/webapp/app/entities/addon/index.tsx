@@ -7,10 +7,11 @@ import Addon from './addon';
 import AddonDetail from './addon-detail';
 import AddonUpdate from './addon-update';
 import AddonDeleteDialog from './addon-delete-dialog';
+import AddonTest from "app/entities/addon/AddonTest";
 
 const AddonRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<Addon />} />
+    <Route index element={<AddonTest />} />
     <Route path="new" element={<AddonUpdate />} />
     <Route path=":id">
       <Route index element={<AddonDetail />} />

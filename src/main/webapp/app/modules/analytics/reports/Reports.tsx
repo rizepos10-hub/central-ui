@@ -27,14 +27,12 @@ const SalesSummaryReport = () => {
       event.preventDefault();
     }
 
-    // Form validation - Check if 'fromDate' is after 'toDate'
     const fromDateObj = new Date(fromDate);
     const toDateObj = new Date(toDate);
     if (fromDateObj > toDateObj) {
       alert("From date cannot be later than To date.");
       return;
     }
-
     try {
       setLoading(true)
       const formattedFromDate = `${fromDate}T00:00:00.000Z`;
@@ -49,7 +47,6 @@ const SalesSummaryReport = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-
       setSalesData(data);
       setLoading(false)
     } catch (error) {
@@ -108,23 +105,24 @@ const SalesSummaryReport = () => {
           <h2>Pos Business 10</h2>
           <h4>Sales Summary Report</h4>
           <p>Location: Random Location</p>
+          <form onSubmit={handleSubmit}>
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <label htmlFor="fromDate" className="form-label">From Date:</label>
+                <input type="date" id="fromDate" className="form-control" value={fromDate} onChange={handleFromDateChange} />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="toDate" className="form-label">To Date:</label>
+                <input type="date" id="toDate" className="form-control" value={toDate} onChange={handleToDateChange} />
+              </div>
+            </div>
+            <div className="text-center">
+              <button type="submit" className="btn btn-primary">{loading? "Loading..." : "Get Report"}</button>
+            </div>
+          </form>
         </div>
-        {/* <SalesSection title="Total Sales" data={salesData.totalSales} isTotalSales={true}/> */}
-        <form onSubmit={handleSubmit}>
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label htmlFor="fromDate" className="form-label">From Date:</label>
-              <input type="date" id="fromDate" className="form-control" value={fromDate} onChange={handleFromDateChange} />
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="toDate" className="form-label">To Date:</label>
-              <input type="date" id="toDate" className="form-control" value={toDate} onChange={handleToDateChange} />
-            </div>
-          </div>
-          <div className="text-center">
-            <button type="submit" className="btn btn-primary">{loading? "Loading..." : "Get Report"}</button>
-          </div>
-        </form>
+        <SalesSection title="Total Sales" data={salesData.totalSales} isTotalSales={true}/>
+
         <div className="row mt-5">
           <div className="col-md-12">
             <h3>Total Received</h3>
@@ -164,8 +162,8 @@ const SalesSummaryReport = () => {
           </div>
         </div>
         <SalesSection title="DineIn" data={salesData.totalSalesByOrderOption?.DineIn}/>
-        {/* <SalesSection title="PickUp" data={salesData.totalSalesByOrderOption?.PickUp}/> */}
-        {/* <SalesSection title="Delivery" data={salesData.totalSalesByOrderOption?.Delivery}/> */}
+        <SalesSection title="PickUp" data={salesData.totalSalesByOrderOption?.PickUp}/>
+        <SalesSection title="Delivery" data={salesData.totalSalesByOrderOption?.Delivery}/>
 
      </div>
   );

@@ -6,8 +6,8 @@ import { IItem } from 'app/shared/model/item.model';
 export interface IMenu {
   id?: string;
   name?: string;
-  createdAt?: string | null;
-  updatedAt?: string | null;
+  createdDate?: string,
+  lastModifiedDate?: string,
   category?: ITerm;
   branches?: IBranch[] | null;
   items?: IItem[];

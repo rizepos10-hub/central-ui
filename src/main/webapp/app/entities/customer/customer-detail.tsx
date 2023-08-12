@@ -28,28 +28,28 @@ export const CustomerDetail = () => {
         <dl className="jh-entity-details">
           <dt>
             <span id="id">
-              <Translate contentKey="global.field.id">ID</Translate>
+              <Translate contentKey="tempApp.customer.name">Name</Translate>
             </span>
           </dt>
-          <dd>{customerEntity.id}</dd>
+          <dd>{`${customerEntity.firstName} ${customerEntity.lastName}`}</dd>
           <dt>
-            <span id="orderCount">
-              <Translate contentKey="tempApp.customer.orderCount">Order Count</Translate>
+            <span id="email">
+              <Translate contentKey="tempApp.customer.email">Email</Translate>
             </span>
           </dt>
-          <dd>{customerEntity.orderCount}</dd>
+          <dd>{customerEntity.email}</dd>
           <dt>
             <span id="phone">
               <Translate contentKey="tempApp.customer.phone">Phone</Translate>
             </span>
           </dt>
           <dd>{customerEntity.phone}</dd>
-          <dt>
-            <span id="status">
-              <Translate contentKey="tempApp.customer.status">Status</Translate>
-            </span>
-          </dt>
-          <dd>{customerEntity.status}</dd>
+          {/* <dt> */}
+          {/*   <span id="status"> */}
+          {/*     <Translate contentKey="tempApp.customer.status">Status</Translate> */}
+          {/*   </span> */}
+          {/* </dt> */}
+          {/* <dd>{customerEntity.status}</dd> */}
         </dl>
         <Button tag={Link} to="/customer" replace color="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" />{' '}

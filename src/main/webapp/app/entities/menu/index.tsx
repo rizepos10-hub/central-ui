@@ -8,10 +8,11 @@ import MenuDetail from './menu-detail';
 import MenuUpdate from './menu-update';
 import MenuDeleteDialog from './menu-delete-dialog';
 import NewMenuPopup from "app/entities/menu/new-menu-popup";
+import TestMenu from "app/entities/menu/TestMenu";
 
 const MenuRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<Menu />} />
+    <Route index element={<TestMenu />} />
     <Route path="new" element={<NewMenuPopup />} />
     <Route path=":id">
       <Route index element={<MenuUpdate />} />
