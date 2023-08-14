@@ -2,6 +2,7 @@ import { Badge } from 'primereact/badge';
 import { Sidebar } from 'primereact/sidebar';
 import React, { useContext } from 'react';
 import { LayoutContext } from './context/layoutcontext';
+import {useNavigate} from "react-router-dom";
 
 const AppProfileSidebar = () => {
     const { layoutState, setLayoutState } = useContext(LayoutContext);
@@ -10,6 +11,7 @@ const AppProfileSidebar = () => {
         setLayoutState((prevState) => ({ ...prevState, profileSidebarVisible: false }));
     };
 
+    const navigate = useNavigate()
     return (
         <Sidebar visible={layoutState.profileSidebarVisible} onHide={onProfileSidebarHide} position="right" className="layout-profile-sidebar w-full sm:w-25rem">
             <div className="flex flex-column mx-auto md:mx-0">
@@ -55,7 +57,7 @@ const AppProfileSidebar = () => {
                             <span>
                                 <i className="pi pi-power-off text-xl text-primary"></i>
                             </span>
-                            <div className="ml-3">
+                            <div className="ml-3" onClick={() => navigate('/logout')}>
                                 <span className="mb-2 font-semibold">Sign Out</span>
                                 <p className="text-color-secondary m-0">Sed ut perspiciatis</p>
                             </div>

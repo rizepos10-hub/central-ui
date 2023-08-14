@@ -24,6 +24,7 @@ import AppBreadCrumb from "app/shared/sidebar/AppBreadCrumb";
 import AppProfileSidebar from "app/shared/sidebar/AppProfileSidebar";
 import AppConfig from "app/shared/sidebar/AppConfig";
 import type { AppTopbarRef, ChildContainerProps } from './types/types';
+import {useNavigate} from "react-router-dom";
 
 
 export interface ISideBarProps {
@@ -36,6 +37,7 @@ export const Layout = (props: ChildContainerProps) => {
   const topbarRef = useRef<AppTopbarRef>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
+  const navigate = useNavigate()
   const containerClass = classNames({
     'layout-light': layoutConfig.colorScheme === 'light',
     'layout-dim': layoutConfig.colorScheme === 'dim',
@@ -169,11 +171,14 @@ export const Layout = (props: ChildContainerProps) => {
   const isInProduction = useAppSelector(state => state.applicationProfile.inProduction);
   const isOpenAPIEnabled = useAppSelector(state => state.applicationProfile.isOpenAPIEnabled);
 
+
+
+
   return (
     <React.Fragment>
       <div className={classNames('layout-container', containerClass)}>
         <div ref={sidebarRef} className="layout-sidebar" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-          <AppSidebar />
+          {isAuthenticated && <AppSidebar/>}
         </div>
         <div className="layout-content-wrapper">
           <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" />
@@ -187,15 +192,15 @@ export const Layout = (props: ChildContainerProps) => {
             {/*   isOpenAPIEnabled={isOpenAPIEnabled} */}
             {/* /> */}
 
-              <AppTopbar ref={topbarRef} />
+            {isAuthenticated && <AppTopbar ref={topbarRef}/>}
 
-              <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>
+            {isAuthenticated && <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>}
 
                 <div className="layout-content">{props.children}</div>
             </ErrorBoundary>
           </div>
-        <AppProfileSidebar />
-        <AppConfig />
+        {isAuthenticated && <AppProfileSidebar/>}
+        {isAuthenticated && <AppConfig />}
         <div className="layout-mask"></div>
       </div>
     </React.Fragment>
