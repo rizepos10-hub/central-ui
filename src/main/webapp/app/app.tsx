@@ -18,7 +18,9 @@ import ErrorBoundary from 'app/shared/error/error-boundary';
 import { AUTHORITIES } from 'app/config/constants';
 import AppRoutes from 'app/routes';
 import TenantContext from 'app/shared/tenant/TenantContext';
-import Sidebar from "app/shared/sidebar/sidebar";
+import Sidebar, {Layout} from "app/shared/sidebar/Layout";
+import {LayoutProvider} from "app/shared/sidebar/context/layoutcontext";
+
 
 // const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
@@ -54,30 +56,34 @@ export const App = () => {
   return (
     <TenantContext.Provider value={tenant}>
       <BrowserRouter basename={baseHref}>
-        <div className="app-container" style={{ paddingTop }}>
-          <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" />
-          <ErrorBoundary>
-            <Header
-              isAuthenticated={isAuthenticated}
-              isAdmin={isAdmin}
-              currentLocale={currentLocale}
-              ribbonEnv={ribbonEnv}
-              isInProduction={isInProduction}
-              isOpenAPIEnabled={isOpenAPIEnabled}
-            />
-          </ErrorBoundary>
-          <div className="container-fluid view-container row" id="app-view-container">
-            <Sidebar isAuthenticated={isAuthenticated} />
-            <Card className={`jh-card ${isAuthenticated ? "col-10" : "col-12"} `}>
+        <LayoutProvider>
+        {/* <div className="app-container" style={{ paddingTop }}> */}
+          {/* <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" /> */}
+          {/* <ErrorBoundary> */}
+          {/*   <Header */}
+          {/*     isAuthenticated={isAuthenticated} */}
+          {/*     isAdmin={isAdmin} */}
+          {/*     currentLocale={currentLocale} */}
+          {/*     ribbonEnv={ribbonEnv} */}
+          {/*     isInProduction={isInProduction} */}
+          {/*     isOpenAPIEnabled={isOpenAPIEnabled} */}
+          {/*   /> */}
+          {/* </ErrorBoundary> */}
+          {/* <div className="container-fluid view-container row" id="app-view-container"> */}
+            <Layout isAuthenticated={isAuthenticated}>
               <ErrorBoundary>
-                <AppRoutes />
+                <AppRoutes  />
               </ErrorBoundary>
-            </Card>
             <Footer />
-          </div>
-        </div>
+          {/* </div> */}
+        {/* </div> */}
+            </Layout>
+
+        </LayoutProvider>
+
       </BrowserRouter>
-    </TenantContext.Provider>
+
+     </TenantContext.Provider>
   );
 };
 
