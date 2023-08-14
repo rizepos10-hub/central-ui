@@ -137,7 +137,7 @@ export const Order = () => {
         fromDate: lazyState.filters.createdDate?.from
           ? new Date(lazyState.filters.createdDate.from).toISOString().replace(/\T\d{2}:\d{2}:\d{2}\.\d{3}Z$/, 'T00:00:00.000Z')
           : '',
-      
+
       };
 
       dispatch(filterOrders(queryParams));
@@ -153,6 +153,7 @@ export const Order = () => {
   console.log(orderList.length, 'len')
   return (
     <div>
+      <h1>Order View</h1>
 
       <div>
 
