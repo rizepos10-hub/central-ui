@@ -233,7 +233,7 @@ export const Item = () => {
       </h2>
 
       <div >
-        <DataTable value={itemList} header={header} paginator rows={3} totalRecords={totalItems}  tableStyle={{ minWidth: '60rem' }}>
+        <DataTable value={itemList} header={header} paginator rows={10} totalRecords={totalItems}  tableStyle={{ minWidth: '60rem' }}>
           <Column field="name" header="Name" />
           <Column header="Image" body={(rowData) =>
           <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
