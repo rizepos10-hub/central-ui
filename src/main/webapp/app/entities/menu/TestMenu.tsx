@@ -129,7 +129,10 @@ export const Menu = () => {
 
       </h2>
 
-        <DataTable value={menuList} header={header} editMode="row" paginator totalRecords={totalItems} rows={5}>
+        <DataTable value={menuList} header={header} editMode="row"
+                   loading={loading}
+                   paginator totalRecords={totalItems} rows={5}>
+
           <Column field="name" header="Name" style={{ width: '20%' }}></Column>
           <Column
             field="createdDate"

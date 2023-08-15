@@ -42,6 +42,7 @@
   import {Demo} from "app/shared/sidebar/types/demo";
   import {Rating} from "primereact/rating";
   import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
+  import {Skeleton} from "primereact/skeleton";
 
 
   export const MenuUpdate = () => {
@@ -76,12 +77,17 @@
      const [refresh, setRefresh] = useState(false)
     const [selectedBranches, setSelectedBranches] = useState([])
     const [globalFilterValue, setGlobalFilterValue] = useState('');
-    const [filteredValue, setFilteredValue] = useState<Demo.Product[]>([]);
+    const [filteredValue, setFilteredValue] = useState<any>();
     const [layout, setLayout] = useState<'grid' | 'list' | (string & Record<string, unknown>)>('grid');
     const [sortKey, setSortKey] = useState(null);
     const [sortOrder, setSortOrder] = useState<0 | 1 | -1 | null>(null);
     const [sortField, setSortField] = useState('');
+    const [selectedTerm, setSelectedTerm] = useState('');
 
+    const termOptions = [
+      { label: 'All', value: '' },
+      ...displayedTerms.map((term) => ({ label: term, value: term })),
+    ];
 
 console.log(itemList, 'itemList')
 
@@ -150,8 +156,8 @@ console.log(itemList, 'itemList')
 
       if (menuEntity?.item && !activeTab) {
         setMenuItems(menuEntity.item.map(item => item));
-        setDisplayedTerms([...new Set(itemList?.map(item => item.terms[0]?.name || "uncategorized"))]
-          .sort((a, b) => (a === 'uncategorized' ? 1 : b === 'uncategorized' ? -1 : 0)));
+        setDisplayedTerms([...new Set(itemList?.map(item => item.terms[0]?.name || "Uncategorized"))]
+          .sort((a, b) => (a === 'Uncategorized' ? 1 : b === 'Uncategorized' ? -1 : 0)));
         setActiveTab(displayedTerms[0]);
 
       }
@@ -167,8 +173,12 @@ console.log(itemList, 'itemList')
       if (menuEntity?.branch){
         setSelectedBranches(menuEntity.branch?.map((branch) => ({id: branch.id})))
       }
+      onFilter();
 
-    }, [updateSuccess, menuEntity?.item, displayedTerms]);
+
+    }, [updateSuccess, menuEntity?.item, displayedTerms,selectedTerm]);
+
+
 
 
     console.log(itemList, 'items')
@@ -221,6 +231,8 @@ console.log(itemList, 'itemList')
     const allItemsPresent = () => {
       return filteredItemList.every((item) => menuItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null));
     };
+
+
     console.log(filteredItemList, 'filteredItemList')
 
     const handleBranchChange = (selectedBranches) => {
@@ -256,26 +268,26 @@ console.log(itemList, 'itemList')
 
 
 
-    // Menu Items View
-
 
     const sortOptions = [
       { label: 'Price High to Low', value: '!price' },
       { label: 'Price Low to High', value: 'price' }
     ];
 
-    const onFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setGlobalFilterValue(value);
-      if (value.length === 0) {
-        setFilteredValue([]);
+    const onFilter = () => {
+      if (selectedTerm === '') {
+        setFilteredValue(menuItems);
       } else {
         const filtered = menuItems?.filter((product) => {
-          console.log(product.name.toLowerCase().includes(value), 'log');
+          return product.terms[0]?.name === selectedTerm;
         });
         setFilteredValue(filtered);
       }
     };
+
+
+
+    console.log(menuItems, 'menu')
 
     const onSortChange = (event: DropdownChangeEvent) => {
       const value = event.value;
@@ -293,15 +305,21 @@ console.log(itemList, 'itemList')
 
     const dataViewHeader = (
       <div className="flex flex-column md:flex-row md:justify-content-between gap-2">
+        <Dropdown
+          value={selectedTerm}
+          options={termOptions}
+          optionLabel="label"
+          placeholder="Select Term"
+          onChange={(e) => setSelectedTerm(e.value)}
+        />
 
-        <Dropdown value={sortKey} options={sortOptions} optionLabel="label" placeholder="Sort By Price" onChange={onSortChange} />
-        <span className="p-input-icon-left">
-                <i className="pi pi-search" />
-                <InputText value={globalFilterValue} onChange={onFilter} placeholder="Search by Name" />
-        </span>
+        <Button color="primary"  onClick={toggleModal} disabled={allItemsPresent()}>
+          Add Item
+        </Button>
         <DataViewLayoutOptions layout={layout} onChange={(e) => setLayout(e.value)} />
       </div>
     );
+
 
     const dataviewListItem = (data: Demo.Product) => {
       return (
@@ -374,6 +392,31 @@ console.log(itemList, 'itemList')
       }
     };
 
+
+    const listItem = () => {
+      return (
+        <div className="col-12">
+          <div className="flex flex-column xl:flex-row xl:align-items-start p-4 gap-4">
+            <Skeleton className="w-9 sm:w-16rem xl:w-10rem shadow-2 h-6rem block xl:block mx-auto border-round" />
+            <div className="flex flex-column sm:flex-row justify-content-between align-items-center xl:align-items-start flex-1 gap-4">
+              <div className="flex flex-column align-items-center sm:align-items-start gap-3">
+                <Skeleton className="w-8rem border-round h-2rem" />
+                <Skeleton className="w-6rem border-round h-1rem" />
+                <div className="flex align-items-center gap-3">
+                  <Skeleton className="w-6rem border-round h-1rem" />
+                  <Skeleton className="w-3rem border-round h-1rem" />
+                </div>
+              </div>
+              <div className="flex sm:flex-column align-items-center sm:align-items-end gap-3 sm:gap-2">
+                <Skeleton className="w-4rem border-round h-2rem" />
+                <Skeleton shape="circle" className="w-3rem h-3rem" />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
     return (
       <div>
         <Card >
@@ -383,11 +426,11 @@ console.log(itemList, 'itemList')
             </h1>
             <p>
               <Translate contentKey="tempApp.menu.createdAt">Created At</Translate>:{' '}
-              {menuEntity.createdAt ? <TextFormat value={menuEntity.createdAt} type="date" format={APP_DATE_FORMAT} /> : null}
+              {menuEntity.createdDate ? <TextFormat value={menuEntity.createdDate} type="date" format={APP_DATE_FORMAT} /> : null}
             </p>
             <p>
               <Translate contentKey="tempApp.menu.updatedAt">Updated At</Translate>:{' '}
-              {menuEntity.updatedAt ? <TextFormat value={menuEntity.updatedAt} type="date" format={APP_DATE_FORMAT} /> : null}
+              {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
             </p>
             <p>
               <Translate contentKey="tempApp.menu.category">Category</Translate>:{' '}
@@ -482,7 +525,7 @@ console.log(itemList, 'itemList')
                   </>
                   )}
               </Modal>)}
-          <Container>
+          <div>
                 <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
 
                 <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
@@ -556,10 +599,18 @@ console.log(itemList, 'itemList')
                   <div className="col-12">
                     <div className="card">
                       <h5>Menu Items View</h5>
+                      <DataView
+                        value={filteredValue ?? menuItems}
+                        layout={layout}
+                        paginator
+                        rows={9}
+                        loading={loading}
+                        sortOrder={sortOrder}
+                        sortField={sortField}
+                        itemTemplate={itemTemplate}
+                        header={dataViewHeader}
+                      />
 
-                      <DataView value={ menuItems || filteredValue } layout={layout} paginator rows={9} sortOrder={sortOrder}
-                                sortField={sortField}
-                                itemTemplate={itemTemplate} header={dataViewHeader}></DataView>
                     </div>
                   </div>
                   <div className="text-start ">
@@ -570,7 +621,7 @@ console.log(itemList, 'itemList')
                   </div>
 
                 </ValidatedForm>
-                 </Container>
+                 </div>
                 <>
               </>
           </Col>

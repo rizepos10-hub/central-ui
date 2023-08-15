@@ -26,37 +26,74 @@ export const OrderBills: React.FC<OrderBills> = ({ list, orderedItems }) => {
   console.log(items, 'items' )
 
   console.log(billList, 'bill')
-  let subtotal = 0;
-  let totalDiscounts = 0;
-  let totalPrice = 0;
+  // let subtotal = 0;
+  // let totalDiscounts = 0;
+  // let totalPrice = 0;
 
-  billList.forEach((bill: any) => {
-    bill.billItems.forEach((billItem: any) => {
-      const orderedItem = orderedItems.find((item: any) => item.id === billItem.orderedItemId);
-      if (orderedItem) {
-        let itemTotal = orderedItem.price * billItem.amount;
+  // billList.forEach((bill: any) => {
+  //   bill.billItems.forEach((billItem: any) => {
+  //     const orderedItem = orderedItems.find((item: any) => item.id === billItem.orderedItemId);
+  //     if (orderedItem) {
+  //       let itemTotal = orderedItem.price * billItem.amount;
+  //
+  //       if (orderedItem.discount?.type === 'PERCENTAGE') {
+  //         const discountAmount = (orderedItem.price * orderedItem.discount.value / 100) * billItem.amount;
+  //         itemTotal -= discountAmount;
+  //         totalDiscounts += discountAmount;
+  //       } else if (orderedItem.discount?.type === 'FLAT') {
+  //         itemTotal -= orderedItem.discount.value * billItem.amount;
+  //         totalDiscounts += orderedItem.discount.value * billItem.amount;
+  //       }
+  //       subtotal += itemTotal;
+  //     }
+  //   });
+  // });
+  //
+  // totalPrice = subtotal;
 
-        if (orderedItem.discount?.type === 'PERCENTAGE') {
-          const discountAmount = (orderedItem.price * orderedItem.discount.value / 100) * billItem.amount;
-          itemTotal -= discountAmount;
-          totalDiscounts += discountAmount;
-        } else if (orderedItem.discount?.type === 'FLAT') {
-          itemTotal -= orderedItem.discount.value * billItem.amount;
-          totalDiscounts += orderedItem.discount.value * billItem.amount;
-        }
-        subtotal += itemTotal;
-      }
-    });
-  });
 
-  totalPrice = subtotal;
-
-
+  console.log(orderedItems, 'billis')
   return (
     <div className="d-flex">
       <div>
         {billList && billList.length > 0 ? (
-          billList.map((bill, billIndex) => (
+          billList.map((bill, billIndex) =>{
+            const totalPaid = bill.paymentTransactions.reduce(
+              (acc, transaction) => acc + transaction.amount,
+              0
+            );
+
+            const itemsTotal = bill.billItems.reduce((total, billItem) => {
+              const orderedItem = orderedItems.find((item) => item.id === billItem.orderedItemId);
+              if (orderedItem) {
+                let itemTotal = orderedItem.price * billItem.amount;
+                if (orderedItem.discount?.type === 'PERCENTAGE') {
+                  const discountAmount = (orderedItem.price * orderedItem.discount.value / 100) * billItem.amount;
+                  itemTotal -= discountAmount;
+                } else if (orderedItem.discount?.type === 'FLAT') {
+                  itemTotal -= orderedItem.discount.value * billItem.amount;
+                }
+                return total + itemTotal;
+              }
+              return total;
+            }, 0);
+
+            const subtotal = itemsTotal;
+            const totalDiscounts = bill.billItems.reduce((total, billItem) => {
+              const orderedItem = orderedItems.find((item) => item.id === billItem.orderedItemId);
+              if (orderedItem && orderedItem.discount?.type === 'PERCENTAGE') {
+                const discountAmount = (orderedItem.price * orderedItem.discount.value / 100) * billItem.amount;
+                return total + discountAmount;
+              } else if (orderedItem && orderedItem.discount?.type === 'FLAT') {
+                return total + (orderedItem.discount.value * billItem.amount);
+              }
+              return total;
+            }, 0);
+            const totalPrice = subtotal - totalDiscounts;
+            const remainingAmount = totalPrice - totalPaid;
+
+
+            return   (
             <Card key={`bill-${billIndex}`} className="mb-3">
               <div className="d-flex gap-2 ">
                 <div style={{ marginBottom: '20px',  maxHeight: '300px', overflowY: 'auto'  }}>
@@ -81,6 +118,8 @@ export const OrderBills: React.FC<OrderBills> = ({ list, orderedItems }) => {
                         let total = 0;
 
                         if (orderedItem) {
+                          console.log(orderedItem, 'ordered1')
+
                           if (orderedItem.discount?.type === 'PERCENTAGE') {
                             total = (orderedItem.price - (orderedItem.price * orderedItem.discount.value / 100)) * billItem.amount;
                           } else if (orderedItem.discount?.type === 'FLAT') {
@@ -127,34 +166,63 @@ export const OrderBills: React.FC<OrderBills> = ({ list, orderedItems }) => {
                   ))}
                   </Card>
               </div>
+              <Card className="mt-3 p-3">
+                <div className="d-flex justify-content-between my-2">
+                  <div>
+                    <strong>Subtotal</strong>
+                  </div>
+                  <div className="text-center">$ {subtotal.toFixed(2)}</div>
+                </div>
+                <div className="d-flex justify-content-between my-2">
+                  <div>
+                    <strong>Total Discounts</strong>
+                  </div>
+                  <div className="text-center">$ {totalDiscounts.toFixed(2)}</div>
+                </div>
+                <div className="d-flex justify-content-between my-2">
+                  <div>
+                    <strong>Total Price</strong>
+                  </div>
+                  <div className="text-center">$ {totalPrice.toFixed(2)}</div>
+                </div>
+                <div className="d-flex justify-content-between my-2">
+                  <div>
+                    <strong>Remaining Amount</strong>
+                  </div>
+                  <div className="text-center">$ {remainingAmount.toFixed(2)}</div>
+                </div>
+              </Card>
+
             </Card>
-          ))
+
+
+          )})
         ) : (
           <div>No items available.</div>
         )}
 
-        {billList.length > 0 && (
-          <Card className="mt-3 p-3">
-            <div className="d-flex justify-content-between my-2">
-              <div>
-                <strong>Subtotal</strong>
-              </div>
-              <div className="text-center">$ {subtotal.toFixed(2)}</div>
-            </div>
-            <div className="d-flex justify-content-between my-2">
-              <div>
-                <strong>Total Discounts</strong>
-              </div>
-              <div className="text-center">$ {totalDiscounts.toFixed(2)}</div>
-            </div>
-            <div className="d-flex justify-content-between my-2">
-              <div>
-                <strong>Total Price</strong>
-              </div>
-              <div className="text-center">$ {totalPrice.toFixed(2)}</div>
-            </div>
-          </Card>
-        )}
+        {/* {billList.length > 0 && ( */}
+        {/*   <Card className="mt-3 p-3"> */}
+        {/*     <div className="d-flex justify-content-between my-2"> */}
+        {/*       <div> */}
+        {/*         <strong>Subtotal</strong> */}
+        {/*       </div> */}
+        {/*       <div className="text-center">$ {subtotal.toFixed(2)}</div> */}
+        {/*     </div> */}
+        {/*     <div className="d-flex justify-content-between my-2"> */}
+        {/*       <div> */}
+        {/*         <strong>Total Discounts</strong> */}
+        {/*       </div> */}
+        {/*       <div className="text-center">$ {totalDiscounts.toFixed(2)}</div> */}
+        {/*     </div> */}
+        {/*     <div className="d-flex justify-content-between my-2"> */}
+        {/*       <div> */}
+        {/*         <strong>Total Price</strong> */}
+        {/*       </div> */}
+        {/*       <div className="text-center">$ {totalPrice.toFixed(2)}</div> */}
+        {/*     </div> */}
+        {/*   </Card> */}
+        {/* )} */}
       </div>
     </div>
   );

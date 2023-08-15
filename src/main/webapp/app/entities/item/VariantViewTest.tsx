@@ -129,6 +129,7 @@ export default function VariantViewTest({variants, itemName}) {
         itemTemplate={itemTemplate}
         layout={layout}
         header={header()}
+
       />
   );
 }
