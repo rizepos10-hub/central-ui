@@ -151,7 +151,9 @@ export const ItemCategories = () => {
       </h2>
 
       <div className="table-responsive">
-        <DataTable value={termList} editMode="row" paginator header={header} totalRecords={totalItems} rows={5}>
+        <DataTable value={termList} editMode="row" paginator header={header}
+                   loading={loading}
+                   totalRecords={totalItems} rows={5}>
           <Column field="name" header="Name" style={{ width: '20%' }} />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
