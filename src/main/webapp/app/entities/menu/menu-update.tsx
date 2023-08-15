@@ -32,6 +32,7 @@
   import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
   import Select from "react-select";
   import {APP_DATE_FORMAT} from "app/config/constants";
+  import ItemList from "app/entities/menu/ItemList";
 
 
   export const MenuUpdate = () => {
@@ -42,7 +43,7 @@
     const { id } = useParams<'id'>();
     const isNew = id === undefined;
 
-    const terms = useAppSelector(state => state.term.entities).filter(term => term.taxonomy.name === 'Menu Category');
+    const terms = useAppSelector(state => state.term.entities)
     const itemList = useAppSelector(state => state.item.entities);
     const menuEntity = useAppSelector(state => state.menu.entity);
     const loading = useAppSelector(state => state.menu.loading);
@@ -208,11 +209,11 @@ console.log(itemList, 'itemList')
             category: selectedCategory
           };
 
-    console.log(menuItems, 'menuItems')
     const filteredItemList = itemList.filter(item => !menuItems?.some(menuItem => menuItem.id === item.id && menuItem.id !== null));
     const allItemsPresent = () => {
       return filteredItemList.every((item) => menuItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null));
     };
+    console.log(filteredItemList, 'filteredItemList')
 
     const handleBranchChange = (selectedBranches) => {
       console.log(selectedBranches, 'lol')

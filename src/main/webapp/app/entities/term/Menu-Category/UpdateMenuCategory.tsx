@@ -26,6 +26,8 @@ export const UpdateMenuCategory = () => {
 
 
   const { id } = useParams<'id'>();
+  console.log(id, 'identity1')
+
   const isNew = id === undefined;
 
   const taxonomies = useAppSelector(state => state.taxonomy.entities);
@@ -79,7 +81,7 @@ export const UpdateMenuCategory = () => {
 
 
     }
-    console.log(termEntity, 'termos1')
+    console.log(termEntity, 'termEntity1')
 
   }, [updateSuccess, termEntity?.attachments ]);
 

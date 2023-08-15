@@ -1,0 +1,582 @@
+
+  import React, { useState, useEffect } from 'react';
+  import { Link, useNavigate, useParams } from 'react-router-dom';
+
+
+  import {
+  Button,
+  Row,
+  Col,
+  FormText,
+  Card,
+  ListGroup,
+  ListGroupItem,
+  CardBody,
+  Modal,
+  ModalFooter,
+  ModalBody,
+  ModalHeader, Container, Nav, NavItem, NavLink, TabContent, TabPane, Alert
+} from 'reactstrap';
+  import { Button as deleteButton } from 'primereact/button';
+
+  import {isNumber, TextFormat, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+  import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+  import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
+  import { mapIdList } from 'app/shared/util/entity-utils';
+  import { useAppDispatch, useAppSelector } from 'app/config/store';
+
+  import { ITerm } from 'app/shared/model/term.model';
+  import { getEntities as getTerms } from 'app/entities/term/term.reducer';
+  import { IMenu } from 'app/shared/model/menu.model';
+  import {getEntity, updateEntity, createEntity, reset, sendEvent} from './menu.reducer';
+  import {faTimes} from "@fortawesome/free-solid-svg-icons";
+  import {getEntities as getItems , searchEntities as searchItems} from "app/entities/item/item.reducer";
+  import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
+  import Select from "react-select";
+  import {APP_DATE_FORMAT} from "app/config/constants";
+  import ItemList from "app/entities/menu/ItemList";
+  import {DataView, DataViewLayoutOptions} from "primereact/dataview";
+  import {Dropdown, DropdownChangeEvent} from "primereact/dropdown";
+  import {InputText} from "primereact/inputtext";
+  import {Demo} from "app/shared/sidebar/types/demo";
+  import {Rating} from "primereact/rating";
+  import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
+
+
+  export const MenuUpdate = () => {
+    const dispatch = useAppDispatch();
+
+    const navigate = useNavigate();
+
+    const { id } = useParams<'id'>();
+    const isNew = id === undefined;
+
+    const terms = useAppSelector(state => state.term.entities)
+    const itemList = useAppSelector(state => state.item.entities);
+    const menuEntity = useAppSelector(state => state.menu.entity);
+    const loading = useAppSelector(state => state.menu.loading);
+    const updating = useAppSelector(state => state.menu.updating);
+    const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
+    const errorMessage = useAppSelector(state => state.menu.errorMessage);
+
+    const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
+    const initialBranches = menuEntity.branch?.map(branch => ({ value: branch.id, label: branch.name }));
+
+
+    const [isModalOpen, setModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedItems, setSelectedItems] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState();
+    const [menuItems, setMenuItems] = useState([]);
+    const [displayedTerms, setDisplayedTerms] = useState([]);
+    const [activeTerm, setActiveTerm] = useState(null);
+    const [showEdit, setShowEdit] = useState(false)
+    const [activeTab, setActiveTab] = useState(displayedTerms.length > 0 ? displayedTerms[0] : null);
+     const [refresh, setRefresh] = useState(false)
+    const [selectedBranches, setSelectedBranches] = useState([])
+    const [globalFilterValue, setGlobalFilterValue] = useState('');
+    const [filteredValue, setFilteredValue] = useState<Demo.Product[]>([]);
+    const [layout, setLayout] = useState<'grid' | 'list' | (string & Record<string, unknown>)>('grid');
+    const [sortKey, setSortKey] = useState(null);
+    const [sortOrder, setSortOrder] = useState<0 | 1 | -1 | null>(null);
+    const [sortField, setSortField] = useState('');
+
+
+console.log(itemList, 'itemList')
+
+
+    const handleAddItem = () => {
+      if (selectedItems.length > 0) {
+        setSelectedItems((prevItems) => [...prevItems, ...selectedItems]);
+        setMenuItems((prevItems) => [...prevItems, ...selectedItems]);
+      }
+      setModalOpen(false);
+      setSelectedItems([]);
+    };
+
+
+
+
+    const handleDeleteItem = (itemId) => {
+      const confirmed = window.confirm('Are you sure you want to remove this item?');
+      if (confirmed) {
+        setSelectedItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+        setMenuItems((prevItems) => prevItems.filter((item) => item.id !== itemId && item.id !== null));
+      }
+    };
+
+
+
+    const handleCategoryChange = (event) => {
+      console.log(event.target.value, 'change')
+      setSelectedCategory(event.target.value);
+    };
+
+
+    const handleTabClick = (termName) => {
+      setActiveTab(termName);
+    };
+
+
+    const toggleModal = () => {
+      setModalOpen(!isModalOpen);
+      setActiveTerm(null);
+    };
+
+    const toggleEditModal = () => {
+      setIsEditModalOpen(!isEditModalOpen);
+    };
+
+    const handleRefresh = () => {
+      setRefresh(prev => !prev)
+    };
+
+    useEffect(() => {
+      if (isNew) {
+        dispatch(reset());
+      } else {
+        dispatch(getEntity(id));
+        dispatch(getEntity(id));
+      }
+      dispatch(getBranches({}))
+      dispatch(getTerms({}));
+      dispatch(getItems({}));
+
+    }, [refresh]);
+
+
+    useEffect(() => {
+
+      if (menuEntity?.item && !activeTab) {
+        setMenuItems(menuEntity.item.map(item => item));
+        setDisplayedTerms([...new Set(itemList?.map(item => item.terms[0]?.name || "uncategorized"))]
+          .sort((a, b) => (a === 'uncategorized' ? 1 : b === 'uncategorized' ? -1 : 0)));
+        setActiveTab(displayedTerms[0]);
+
+      }
+
+
+       if(updateSuccess){
+         handleRefresh()
+       }
+
+      if (menuEntity?.category){
+        setSelectedCategory(menuEntity.category.name)
+      }
+      if (menuEntity?.branch){
+        setSelectedBranches(menuEntity.branch?.map((branch) => ({id: branch.id})))
+      }
+
+    }, [updateSuccess, menuEntity?.item, displayedTerms]);
+
+
+    console.log(itemList, 'items')
+    const saveEntity = (values) => {
+      values.createdAt = convertDateTimeToServer(values.createdAt);
+      values.updatedAt = convertDateTimeToServer(values.updatedAt);
+      setIsEditModalOpen(false)
+
+      const { category, ...restValues } = values;
+
+      const itemIds = selectedItems.filter((item) => item.id !== null).map((item) => ({ id: item.id }));
+
+      const filteredMenuItems = menuItems.filter((item) => item.id !== null)
+
+      console.log(selectedBranches, 'selectedBranches')
+
+
+      const entity = {
+        ...menuEntity,
+        ...restValues,
+        category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
+        item: [...filteredMenuItems, ...itemIds],
+        branch: selectedBranches
+      };
+
+      console.log(entity, 'entitysent')
+
+      if (isNew) {
+        dispatch(createEntity(entity));
+      } else {
+        dispatch(updateEntity(entity));
+      }
+
+    };
+
+    const defaultValues = () =>
+      isNew
+        ? {
+            createdAt: displayDefaultDateTime(),
+            updatedAt: displayDefaultDateTime(),
+          }
+        : {
+            ...menuEntity,
+            createdAt: convertDateTimeFromServer(menuEntity.createdAt),
+            updatedAt: convertDateTimeFromServer(menuEntity.updatedAt),
+            category: selectedCategory
+          };
+
+    const filteredItemList = itemList.filter(item => !menuItems?.some(menuItem => menuItem.id === item.id && menuItem.id !== null));
+    const allItemsPresent = () => {
+      return filteredItemList.every((item) => menuItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null));
+    };
+    console.log(filteredItemList, 'filteredItemList')
+
+    const handleBranchChange = (selectedBranches) => {
+      console.log(selectedBranches, 'lol')
+      setSelectedBranches(selectedBranches.map((branch) => ({id: branch.value})));
+    }
+
+
+
+
+    const groupedMenuItems = itemList.reduce((groups, item) => {
+      const termName = item.terms[0]?.name || 'Uncategorized';
+      if (!groups[termName]) {
+        groups[termName] = [];
+      }
+      groups[termName].push(item);
+      return groups;
+    }, {});
+
+
+
+    if(errorMessage) {
+      return (
+        <Alert color="warning" className="mt-4">
+          {errorMessage}
+        </Alert>
+        )
+    }
+
+    if (!menuEntity) {
+      return <p>Loading...</p>;
+    }
+
+
+
+    // Menu Items View
+
+
+    const sortOptions = [
+      { label: 'Price High to Low', value: '!price' },
+      { label: 'Price Low to High', value: 'price' }
+    ];
+
+    const onFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setGlobalFilterValue(value);
+      if (value.length === 0) {
+        setFilteredValue([]);
+      } else {
+        const filtered = menuItems?.filter((product) => {
+          console.log(product.name.toLowerCase().includes(value), 'log');
+        });
+        setFilteredValue(filtered);
+      }
+    };
+
+    const onSortChange = (event: DropdownChangeEvent) => {
+      const value = event.value;
+
+      if (value.indexOf('!') === 0) {
+        setSortOrder(-1);
+        setSortField(value.substring(1, value.length));
+        setSortKey(value);
+      } else {
+        setSortOrder(1);
+        setSortField(value);
+        setSortKey(value);
+      }
+    };
+
+    const dataViewHeader = (
+      <div className="flex flex-column md:flex-row md:justify-content-between gap-2">
+
+        <Dropdown value={sortKey} options={sortOptions} optionLabel="label" placeholder="Sort By Price" onChange={onSortChange} />
+        <span className="p-input-icon-left">
+                <i className="pi pi-search" />
+                <InputText value={globalFilterValue} onChange={onFilter} placeholder="Search by Name" />
+        </span>
+        <DataViewLayoutOptions layout={layout} onChange={(e) => setLayout(e.value)} />
+      </div>
+    );
+
+    const dataviewListItem = (data: Demo.Product) => {
+      return (
+        <div className="col-12">
+          <div className="flex flex-column md:flex-row align-items-center p-3 w-full">
+            <img src={data?.attachments && data?.attachments[0]?.url} alt={data.name} className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
+            <div className="flex-1 flex flex-column align-items-center text-center md:text-left">
+              <div className="font-bold text-2xl">{data.name}</div>
+              <div className="mb-2">{data.description}</div>
+              {/* <Rating value={data.rating} readOnly cancel={false} className="mb-2"></Rating> */}
+              <div className="flex align-items-center">
+                <i className="pi pi-tag mr-2"></i>
+                <span className="font-semibold">{data.terms[0]?.name || 'Uncategorized'}</span>
+              </div>
+            </div>
+            <div className="flex flex-row md:flex-column justify-content-between w-full md:w-auto align-items-center md:align-items-end mt-5 md:mt-0">
+              <span className="text-2xl font-semibold mb-2 align-self-center md:align-self-end">${data.variants[0]?.price}</span>
+              {/* <Button icon="pi pi-shopping-cart" label="Add to Cart" disabled={data.inventoryStatus === 'OUTOFSTOCK'} className="mb-2 p-button-sm"></Button> */}
+              {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+
+    const dataviewGridItem = (data: Demo.Product) => {
+      // @ts-ignore
+      return (
+        <div className="col-12 lg:col-4">
+          <div className="card m-3 border-1 surface-border">
+            <div className="flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
+              <div className="flex align-items-center">
+                <i className="pi pi-tag mr-2" />
+                <span className="font-semibold">{data.terms[0]?.name || 'Uncategorized'}</span>
+              </div>
+              {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
+            </div>
+            <div className="flex flex-column align-items-center text-center mb-3">
+              <img  src={data?.attachments && data?.attachments[0]?.url} alt={data.name} className="w-9 shadow-2 my-3 mx-0" />
+              <Link
+
+                to={`/item/${data.id}/edit`}
+              >
+              <div className="text-2xl font-bold">{data.name}</div>
+              </Link>
+              <div className="mb-3">{data.description}</div>
+              {/* <Rating value={data.rating} readOnly cancel={false} /> */}
+            </div>
+            <div className="flex align-items-center justify-content-between">
+              <span className="text-2xl font-semibold">${data.variants[0]?.price}</span>
+              <Button color="danger" onClick={() => handleDeleteItem(data.id)}>
+                <FontAwesomeIcon icon={faTrash} />
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const itemTemplate = (data: Demo.Product, layout: 'grid' | 'list' | (string & Record<string, unknown>)) => {
+      if (!data) {
+        return;
+      }
+
+      if (layout === 'list') {
+        return dataviewListItem(data);
+      } else if (layout === 'grid') {
+        return dataviewGridItem(data);
+      }
+    };
+
+    return (
+      <div>
+        <Card >
+          <CardBody>
+            <h1>
+             {menuEntity.name}
+            </h1>
+            <p>
+              <Translate contentKey="tempApp.menu.createdAt">Created At</Translate>:{' '}
+              {menuEntity.createdAt ? <TextFormat value={menuEntity.createdAt} type="date" format={APP_DATE_FORMAT} /> : null}
+            </p>
+            <p>
+              <Translate contentKey="tempApp.menu.updatedAt">Updated At</Translate>:{' '}
+              {menuEntity.updatedAt ? <TextFormat value={menuEntity.updatedAt} type="date" format={APP_DATE_FORMAT} /> : null}
+            </p>
+            <p>
+              <Translate contentKey="tempApp.menu.category">Category</Translate>:{' '}
+              {menuEntity.category ? menuEntity.category.name : ''}
+            </p>
+          </CardBody>
+          <div className="d-flex gap-3">
+          <Button color="primary" onClick={toggleEditModal}>
+            <FontAwesomeIcon icon="pencil-alt" />{' '}
+            <span className="d-none d-md-inline">
+            <Translate contentKey="entity.action.edit">Edit</Translate>
+           </span>
+          </Button>
+            <Button onClick={() => dispatch(sendEvent(id))} className="btn-success flex-grow-0" style={{ fontFamily: 'fantasy' }}>
+              Trigger
+            </Button>
+          </div>
+        </Card>
+
+
+        <>
+          <>
+
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <Modal isOpen={isEditModalOpen} toggle={toggleEditModal} className="modal-lg">
+                <ModalHeader toggle={toggleEditModal}>
+                  <Translate contentKey="tempApp.menu.home.createOrEditLabel">Create or edit a Menu</Translate>
+                </ModalHeader>
+                <ModalBody>
+                  <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
+
+                <ValidatedField
+                  label={translate('tempApp.menu.name')}
+                  id="menu-name"
+                  name="name"
+                  data-cy="name"
+                  type="text"
+                  validate={{
+                    required: { value: true, message: translate('entity.validation.required') },
+                    maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
+                  }}
+                />
+                <div className="mb-3">
+                  Branches
+                  <Select isMulti={true} defaultValue={initialBranches}
+                          onChange={handleBranchChange} options={branchList} />
+                </div>
+                <ValidatedField
+                  id="menu-category"
+                  name="category"
+                  data-cy="category"
+                  label={translate('tempApp.menu.category')}
+                  type="select"
+                  required
+                  value={selectedCategory}
+                  onChange={handleCategoryChange}
+                >
+                  {terms
+                    ? terms.map((otherEntity) => (
+                      <option key={otherEntity.id} value={otherEntity.name}>
+                        {otherEntity.name}
+                      </option>
+                    ))
+                    : null}
+
+                </ValidatedField>
+                    <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={toggleEditModal} replace color="info">
+                      <FontAwesomeIcon icon="arrow-left"/>
+                      &nbsp;
+                      <span className="d-none d-md-inline">
+                          <Translate contentKey="entity.action.back">Back</Translate>
+                        </span>
+                    </Button>
+                    &nbsp;
+                    <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                            disabled={updating}>
+                      <FontAwesomeIcon icon="save"/>
+                      &nbsp;
+                      <Translate contentKey="entity.action.save">Save</Translate>
+                    </Button>
+                  </ValidatedForm>
+
+                </ModalBody>
+                {!isNew && (
+                  <>
+                    <br/>
+                    <ModalFooter>
+
+                    </ModalFooter>
+                  </>
+                  )}
+              </Modal>)}
+          <Container>
+                <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
+
+                <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
+                  <ModalHeader toggle={toggleModal}>Add New Item</ModalHeader>
+                  <ModalBody>
+                    <Row>
+                      <Col md="3">
+                        <ListGroup>
+                          {Object.keys(groupedMenuItems).map((termName) => (
+                            <ListGroupItem
+                              key={termName}
+                              tag="button"
+                              action
+                              onClick={() => setActiveTerm(termName)}
+                              active={termName === activeTerm}
+                            >
+                              {termName}
+                            </ListGroupItem>
+                          ))}
+                        </ListGroup>
+                      </Col>
+                      <Col md="9">
+                        {activeTerm ? (
+                          <>
+                            <h3>{activeTerm}</h3>
+                            <Row className="justify-content-center mt-4">
+                              {groupedMenuItems[activeTerm]
+                                .filter((item) => !menuItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null))
+                                .map((item) => (
+                                  <Col key={item.id} sm="6" md="4" lg="3" className="mb-4">
+                                    <div
+                                      style={{cursor: 'pointer'}}
+                                      onClick={() => {
+                                        if (selectedItems?.some((selectedItem) => selectedItem.id === item.id)) {
+                                          setSelectedItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
+                                        } else {
+                                          setSelectedItems((prevItems) => [...prevItems, item]);
+                                        }
+                                      }}
+                                    >
+                                      <Card
+                                        className={`border-4 shadow-sm h-100 ${selectedItems?.some((selectedItem) => selectedItem.id === item.id) ? 'border-primary bg-primary' : ''}`}
+                                      >
+                                        <CardBody>
+                                          <h6>{item.name}</h6>
+                                          {/* <p>{item.desc}</p> */}
+                                          <p>{item.terms[0]?.name}</p>
+                                        </CardBody>
+                                      </Card>
+                                    </div>
+                                  </Col>
+                                ))}
+                            </Row>
+                          </>
+                        ) : (
+                          <p>Please select a term to view its items.</p>
+                        )}
+                      </Col>
+                    </Row>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="secondary" onClick={toggleModal}>
+                      Cancel
+                    </Button>
+                    <Button color="primary" onClick={handleAddItem}>
+                      Add Item
+                    </Button>
+                  </ModalFooter>
+                </Modal>
+
+                  <div className="col-12">
+                    <div className="card">
+                      <h5>Menu Items View</h5>
+
+                      <DataView value={ menuItems || filteredValue } layout={layout} paginator rows={9} sortOrder={sortOrder}
+                                sortField={sortField}
+                                itemTemplate={itemTemplate} header={dataViewHeader}></DataView>
+                    </div>
+                  </div>
+                  <div className="text-start ">
+
+                    <Button  color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                      <FontAwesomeIcon icon="save" /> <Translate contentKey="entity.action.save">Save</Translate>
+                    </Button>
+                  </div>
+
+                </ValidatedForm>
+                 </Container>
+                <>
+              </>
+          </Col>
+        </Row>
+      </div>
+    );
+  };
+
+  export default MenuUpdate;

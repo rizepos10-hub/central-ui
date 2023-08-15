@@ -26,6 +26,8 @@ export const UpdateItemCategory = () => {
 
 
   const { id } = useParams<'id'>();
+
+  console.log(id, 'identity')
   const isNew = id === undefined;
 
   const taxonomies = useAppSelector(state => state.taxonomy.entities);
@@ -116,6 +118,7 @@ export const UpdateItemCategory = () => {
 
   };
 
+  console.log(termEntity, 'termEntity')
 
   const saveEntity = values => {
     const entity = {
