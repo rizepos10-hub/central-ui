@@ -37,7 +37,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                         </span>
                     </li>
                     <li className="ml-3">
-                        <Button type="button" icon="pi pi-cog" text rounded className="p-button-text p-button-secondary flex-shrink-0" onClick={onConfigButtonClick}></Button>
+                        {/* <Button type="button" icon="pi pi-cog" text rounded className="p-button-text p-button-secondary flex-shrink-0" onClick={onConfigButtonClick}></Button> */}
                     </li>
                     <li className="topbar-profile">
                         <button type="button" className="p-link" onClick={showProfileSidebar}>

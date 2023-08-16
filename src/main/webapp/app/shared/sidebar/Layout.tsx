@@ -200,7 +200,7 @@ export const Layout = (props: ChildContainerProps) => {
             </ErrorBoundary>
           </div>
         {isAuthenticated && <AppProfileSidebar/>}
-        {isAuthenticated && <AppConfig />}
+        {/* {isAuthenticated && <AppConfig />} */}
         <div className="layout-mask"></div>
       </div>
     </React.Fragment>
