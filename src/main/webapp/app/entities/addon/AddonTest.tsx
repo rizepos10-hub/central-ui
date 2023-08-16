@@ -13,6 +13,7 @@ import { IAddon } from 'app/shared/model/addon.model';
 import { searchEntities, getEntities } from './addon.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
+import {Chip} from "primereact/chip";
 
 export const Addon = () => {
   const dispatch = useAppDispatch();
@@ -131,6 +132,19 @@ export const Addon = () => {
       </div>
     </div>
   );
+  const renderDiscounts = rowData => {
+    const discounts = rowData.discounts || [];
+    return discounts.map((discount, index) => (
+      <Chip
+        key={index}
+        label={ `${discount.value} ${discount.type}`}
+        className="p-mr-2 p-mb-2"
+      />
+    ));
+    // ${discount.type === 'PERCENTAGE' ? `${discount.value}%` :
+  };
+
+
   return (
     <div>
       <h2 >
@@ -142,8 +156,12 @@ export const Addon = () => {
         <DataTable value={addonList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={5}>
           <Column field="name" header="Name"  sortable  />
           <Column field="price" header="Price" sortable body={priceBodyTemplate} />
-          <Column field="discounts" header="Discounts"  sortable   />
-
+          <Column
+            field="discounts"
+            header="Discounts"
+            body={renderDiscounts}
+            sortable
+          />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />

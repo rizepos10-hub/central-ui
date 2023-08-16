@@ -12,6 +12,10 @@ import { IItem } from 'app/shared/model/item.model';
 import { getEntities as getItems } from 'app/entities/item/item.reducer';
 import { IAddon } from 'app/shared/model/addon.model';
 import { getEntity, updateEntity, createEntity, reset } from './addon.reducer';
+import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
+import Select from "react-select";
+import value from "*.json";
+
 
 export const AddonUpdate = () => {
   const dispatch = useAppDispatch();
@@ -26,7 +30,20 @@ export const AddonUpdate = () => {
   const loading = useAppSelector(state => state.addon.loading);
   const updating = useAppSelector(state => state.addon.updating);
   const updateSuccess = useAppSelector(state => state.addon.updateSuccess);
+  const discounts = useAppSelector(state => state.discount.entities);
 
+  const [selectedDiscounts, setSelectedDiscounts] = useState([]);
+
+  const  handleDiscountsChange = selectedOptions => {
+    console.log(selectedOptions, 'news')
+    const selectedValues = selectedOptions.map((option) => ({
+      id: option.id,
+      type: option.type,
+      value: option.value
+    }));
+
+    setSelectedDiscounts(selectedValues);
+  };
   const handleClose = () => {
     navigate('/addon' + location.search);
   };
@@ -37,21 +54,27 @@ export const AddonUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
+    dispatch(getDiscounts({}));
 
     dispatch(getItems({}));
   }, []);
 
   useEffect(() => {
+    if(addonEntity.discounts){
+
+    }
     if (updateSuccess) {
       handleClose();
     }
   }, [updateSuccess]);
 
   const saveEntity = values => {
+    console.log(values, 'values')
+    console.log(addonEntity, 'addonEntity')
     const entity = {
       ...addonEntity,
       ...values,
-      // item: items.find(it => it.id.toString() === values.item.toString()),
+      discounts: selectedDiscounts,
     };
 
     if (isNew) {
@@ -66,7 +89,7 @@ export const AddonUpdate = () => {
       ? {}
       : {
           ...addonEntity,
-          // item: addonEntity?.item?.id,
+        discounts: addonEntity.discounts,
         };
 
   return (
@@ -116,6 +139,11 @@ export const AddonUpdate = () => {
                   validate: v => isNumber(v) || translate('entity.validation.number'),
                 }}
               />
+              <div className="mb-3">
+                <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
+                <Select isMulti={true} defaultValue={addonEntity?.discounts?.map((discount) => ({label: `${discount.type} ${discount.value}`, id: discount.id, type: discount.type, value: discount.value  }) )}  onChange={handleDiscountsChange}
+                        options={discounts.map((discount) => ({label: `${discount.type} ${discount.value}`, id: discount.id, type: discount.type, value: discount.value  }) )} />
+              </div>
               {/* <ValidatedField id="addon-item" name="item" data-cy="item" label={translate('tempApp.addon.item')} type="select"> */}
               {/*   <option value="" key="0" /> */}
               {/*   {items */}

@@ -13,11 +13,16 @@ import { ChartData, ChartOptions } from 'chart.js';
 import type { ChartDataState, ChartOptionsState, Demo } from '../../shared/sidebar/types/types';
 import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
 import axios from "axios";
+import {fetchRecentSales, fetchTopCategories, fetchTopItems} from "app/modules/analytics/api";
 
 export default function ECommerce() {
   const [products, setProducts] = useState<any>([]);
   const [chartOptions, setChartOptions] = useState<ChartOptionsState>({});
   const [bestSellers, setBestSellers] = useState([]);
+  const [recentSales, setRecentSales] = useState([]);
+  const [topCategories, setTopCategories] = useState([])
+  const [recentLoading, setRecentLoading] = useState(false)
+
 
   const [weeks] = useState([
     {
@@ -105,11 +110,12 @@ export default function ECommerce() {
     setGlobalFilterValue('');
   };
 
-  const nameBodyTemplate = (rowData: Demo.Product) => {
+  const nameBodyTemplate = (rowData: any) => {
     return (
       <>
         <span className="p-column-title">Name</span>
-        {rowData.name}
+        <span className="font-medium text-lg mb-1 font-bold" key={rowData.id}>{rowData.itemName} <span className="text-sm" key={rowData.id}>({rowData.variantName})</span></span>
+
       </>
     );
   };
@@ -118,7 +124,7 @@ export default function ECommerce() {
     return (
       <>
         <span className="p-column-title">Price</span>
-        {formatCurrency(rowData.price as number)}
+        <p key={rowData.id}>{formatCurrency(rowData.price as number)}</p>
       </>
     );
   };
@@ -127,7 +133,7 @@ export default function ECommerce() {
     return (
       <>
         <span className="p-column-title">Category</span>
-        {rowData.category}
+        {rowData.categories[0]?.name}
       </>
     );
   };
@@ -151,15 +157,27 @@ export default function ECommerce() {
   };
 
   useEffect(() => {
-    const fetchTopItems = async () => {
-      try {
-        const { data } = await axios.get(`/api/orders/top/items`);
-        setBestSellers(data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+    const fetchData = async () => {
+
+
+        const topItemsData = await fetchTopItems();
+        setBestSellers(topItemsData);
+
+        const topCategoriesData = await fetchTopCategories();
+        setTopCategories(topCategoriesData);
+      console.log(topCategoriesData, 'topCategoriesData')
+
+
+      console.log(topItemsData, 'recent1')
+        setRecentLoading(true)
+        const recentSalesData = await fetchRecentSales();
+        setRecentSales(recentSalesData);
+        setRecentLoading(false)
+
+        console.log(recentSalesData, 'recent')
+
     };
-    fetchTopItems();
+    fetchData();
   }, []);
 
 
@@ -170,10 +188,10 @@ export default function ECommerce() {
     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
     const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
     const pieData: ChartData = {
-      labels: ['Electronics', 'Fashion', 'Household'],
+      labels: topCategories.map(category => category.categoryName),
       datasets: [
         {
-          data: [300, 50, 100],
+          data: topCategories.map(category => category.amount),
           backgroundColor: [documentStyle.getPropertyValue('--primary-700'), documentStyle.getPropertyValue('--primary-400'), documentStyle.getPropertyValue('--primary-100')],
           hoverBackgroundColor: [documentStyle.getPropertyValue('--primary-600'), documentStyle.getPropertyValue('--primary-300'), documentStyle.getPropertyValue('--primary-200')]
         }
@@ -273,7 +291,7 @@ export default function ECommerce() {
       pieData
     });
     initFilters();
-  }, [weeks, selectedWeek, layoutConfig]);
+  }, [weeks, selectedWeek, layoutConfig, topCategories]);
 
   return (
     <div className="grid">
@@ -396,12 +414,18 @@ export default function ECommerce() {
               <Button icon="pi pi-upload" className="p-button-rounded mx-3 export-target-button" data-pr-tooltip="Export" onClick={exportCSV}></Button>
             </div>
           </div>
-          <DataTable ref={dt} value={products} dataKey="id" paginator rows={5} className="datatable-responsive" globalFilter={globalFilterValue} emptyMessage="No products found." responsiveLayout="scroll">
-            <Column field="name" header="Name" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }}></Column>
-            <Column field="category" header="Category" sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
-            <Column field="price" header="Price" body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
-            <Column field="inventoryStatus" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
-            <Column body={searchBodyTemplate} style={{ textAlign: 'center' }}></Column>
+          <DataTable ref={dt} value={recentSales}
+                     paginator  rows={5}
+                     className="datatable-responsive"
+                     globalFilter={globalFilterValue}
+                     emptyMessage="No products found."
+                     loading={recentLoading}
+                     responsiveLayout="scroll">
+            <Column  field="name" header="Name" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
+            <Column field="category" header="Category" sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
+            <Column field="price" header="Price" body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
+            <Column field="inventoryStatus" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
+            {/* <Column body={searchBodyTemplate} style={{ textAlign: 'center' }} /> */}
           </DataTable>
         </div>
       </div>
@@ -411,11 +435,11 @@ export default function ECommerce() {
           <ul className="list-none p-0 m-0">
             {bestSellers?.map((product, i) => {
               return (
-                <li key={i} className="flex align-items-center justify-content-between p-3">
-                  <div className="inline-flex align-items-center">
-                    <img  src={product?.variantAttachments && product?.variantAttachments[0]?.url} alt={product.variantName} width="75" className="shadow-2 flex-shrink-0" />
+                <li  key={i} className="flex align-items-center justify-content-between p-3">
+                  <div className="inline-flex align-items-center" >
+                    <img  src={product?.variantAttachments && product?.variantAttachments[0]?.url || product?.attachments && product?.attachments[0]?.url} alt={product.name} width="75" className="shadow-2 flex-shrink-0" />
                     <div className="flex flex-column ml-3">
-                      <span className="font-medium text-lg mb-1 font-bold">{product.variantName}</span>
+                      <span className="font-medium text-lg mb-1 font-bold">{product.itemName} <span className="text-sm">({product.variantName})</span></span>
                       <Rating value={product.rating} readOnly cancel={false} onIconProps={{ style: { fontSize: '12px' } }} offIconProps={{ style: { fontSize: '12px' } }}></Rating>
                     </div>
                   </div>

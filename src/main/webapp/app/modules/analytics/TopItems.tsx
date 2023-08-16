@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import axios from "axios";
+import {fetchTopItems} from "app/modules/analytics/api";
 
 const TopItems = () => {
 
@@ -12,11 +13,14 @@ const TopItems = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get(`/api/orders/top/items`);
+        const data = await fetchTopItems();
         setBestSellers(data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
+
+
+
     };
     fetchData();
   }, []);

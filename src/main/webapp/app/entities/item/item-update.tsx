@@ -66,6 +66,34 @@ export const ItemUpdate = () => {
 
   const [modalVariantImages, setModalVariantImages] = useState([]);
 
+  const [editingVariantId, setEditingVariantId] = useState(null);
+
+  const handleEditExistingVariant = (editedVariant) => {
+    const updatedVariants = variants.map((variant) =>
+      variant.id === editedVariant.id ? editedVariant : variant
+    );
+    setVariants(updatedVariants);
+    setEditingVariantId(null);
+    setOpenedModal(false);
+  };
+  const archiveVariant = (variantId) => {
+    const shouldArchive = window.confirm("Are you sure you want to delete this variant?");
+    if (shouldArchive) {
+      const archivedVariants = variants.map((variant) =>
+        variant.id === variantId ? { ...variant, archived: true } : variant
+      );
+      setVariants(archivedVariants);
+    }
+  };
+
+
+  console.log(variants, 'variants')
+  const openEditVariantModal = (variant) => {
+    setEditingVariantId(variant.id);
+    setOpenedModal(true);
+  };
+
+
   const handleVariantImageUpload = (variantImage) => {
     setModalVariantImages([variantImage]);
   };
@@ -264,10 +292,15 @@ console.log(itemEntity, 'termos')
 
   return (
     <div>
-      <ItemVariantModal showModal={openedModal}
-                        handleClose={handleCloseModal}
-                        handleSave={handleSaveVariant}
-                        onVariantImageUpload={handleVariantImageUpload}></ItemVariantModal>
+      <ItemVariantModal
+        showModal={openedModal}
+        handleClose={handleCloseModal}
+        handleSave={handleSaveVariant}
+        onVariantImageUpload={handleVariantImageUpload}
+        editingVariantId={editingVariantId}
+        variants={variants}
+        handleEditExistingVariant={handleEditExistingVariant}
+      />
 
       <Row className="justify-content-center">
         <Col md="8">
@@ -415,7 +448,7 @@ console.log(itemEntity, 'termos')
                     </tr>
                     </thead>
                     <tbody>
-                    {variants.map((variant) => (
+                    {variants.filter((variant) => variant.archived !== true).map((variant) => (
                       <tr key={variant.id && variant.id}>
                         <td className="align-middle">{variant.name}</td>
                         <td className="align-middle">{variant.price}</td>
@@ -440,6 +473,17 @@ console.log(itemEntity, 'termos')
                               <li key={discount?.id && discount?.id}>{`${discount?.type} ${discount?.value}`}</li>
                             ))}
                           </ul>
+                        </td>
+
+                        <td>
+                          <Button  type={"button"}  onClick={() => openEditVariantModal(variant)} color="secondary" >
+                            <FontAwesomeIcon icon="pencil-alt" />
+                          </Button>
+                        </td>
+                        <td>
+                          <Button type={"button"} color="danger" onClick={() => archiveVariant(variant.id)}  >
+                            <FontAwesomeIcon icon="trash"  />
+                          </Button>
                         </td>
                       </tr>
                     ))}
