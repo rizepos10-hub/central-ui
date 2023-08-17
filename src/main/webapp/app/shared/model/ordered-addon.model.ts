@@ -1,6 +1,7 @@
 import { IOrderAudit } from 'app/shared/model/order-audit.model';
 
 export interface IOrderedAddon extends IOrderAudit {
+  name?: string;
   id?: string;
   price?: number;
   discount?: number;

@@ -48,10 +48,11 @@ export const BranchUpdate = () => {
   }, [updateSuccess]);
 
   const saveEntity = values => {
+    console.log('clicked')
     const entity = {
       ...branchEntity,
       ...values,
-      menu: menus.find(it => it.id.toString() === values.menu.toString()),
+      // menu: menus.find(it => it.id.toString() === values.menu.toString()),
     };
 
     if (isNew) {

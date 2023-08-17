@@ -125,6 +125,7 @@ export const Order = () => {
   //   }
   // };
   const onFilter = (event) => {
+    console.log(event,'event')
 
     console.log(fromDate,'from')
     console.log(toDate, 'to')
@@ -172,6 +173,7 @@ export const Order = () => {
           fromDate: lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '',
           toDate: lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : '',
       };
+      console.log(lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '', 'hellolog')
 
       dispatch(filterOrders(queryParams));
     } else {

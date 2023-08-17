@@ -137,9 +137,11 @@ export const OrderBills: React.FC<OrderBills> = ({ list, orderedItems }) => {
                             <td>{orderedItem ? orderedItem.price : '-'}</td>
                             <td>
                               {orderedItem && orderedItem.discount?.value !== undefined
-                                ? `${orderedItem.discount.value} ${orderedItem.discount.type}`
+                                ? `${orderedItem.discount.type === 'PERCENTAGE' ? `${orderedItem.discount.value}%` :
+                                  `${orderedItem.discount.value} ${orderedItem.discount.type}`}`
                                 : '0'}
                             </td>
+
                             <td>{total.toFixed(2)}</td>
                             <td>{format(new Date(bill.dateTime), 'MMMM dd, yyyy')}</td>
                           </tr>

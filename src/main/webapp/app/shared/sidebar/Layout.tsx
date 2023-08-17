@@ -31,7 +31,7 @@ export interface ISideBarProps {
   isAuthenticated: boolean;
 }
 
-export const Layout = (props: ChildContainerProps) => {
+export const Layout =  (props: ChildContainerProps) => {
 
   const { layoutConfig, layoutState, setLayoutState, isSlim, isSlimPlus, isHorizontal, isDesktop } = useContext(LayoutContext);
   const topbarRef = useRef<AppTopbarRef>(null);
@@ -87,23 +87,23 @@ export const Layout = (props: ChildContainerProps) => {
 
   let timeout: ReturnType<typeof setTimeout> | null = null;
 
-  const onMouseEnter = () => {
-    if (!layoutState.anchored) {
-      if (timeout) {
-        clearTimeout(timeout);
-        timeout = null;
-      }
-      setLayoutState((prevLayoutState) => ({ ...prevLayoutState, sidebarActive: true }));
-    }
-  };
-
-  const onMouseLeave = () => {
-    if (!layoutState.anchored) {
-      if (!timeout) {
-        timeout = setTimeout(() => setLayoutState((prevLayoutState) => ({ ...prevLayoutState, sidebarActive: false })), 300);
-      }
-    }
-  };
+  // const onMouseEnter = () => {
+  //   if (!layoutState.anchored) {
+  //     if (timeout) {
+  //       clearTimeout(timeout);
+  //       timeout = null;
+  //     }
+  //     setLayoutState((prevLayoutState) => ({ ...prevLayoutState, sidebarActive: true }));
+  //   }
+  // };
+  //
+  // const onMouseLeave = () => {
+  //   if (!layoutState.anchored) {
+  //     if (!timeout) {
+  //       timeout = setTimeout(() => setLayoutState((prevLayoutState) => ({ ...prevLayoutState, sidebarActive: false })), 300);
+  //     }
+  //   }
+  // };
 
   const hideMenu = useCallback(() => {
     setLayoutState((prevLayoutState) => ({
@@ -176,8 +176,10 @@ export const Layout = (props: ChildContainerProps) => {
 
   return (
     <React.Fragment>
+
       <div className={classNames('layout-container', containerClass)}>
-        <div ref={sidebarRef} className="layout-sidebar" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+        <div ref={sidebarRef} className="layout-sidebar" >
+          {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
           {isAuthenticated && <AppSidebar/>}
         </div>
         <div className="layout-content-wrapper">

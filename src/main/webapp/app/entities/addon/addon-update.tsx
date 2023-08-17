@@ -92,6 +92,22 @@ export const AddonUpdate = () => {
         discounts: addonEntity.discounts,
         };
 
+  const defaultDiscountsOptions = addonEntity?.discounts?.map(discount => ({
+    label: `${discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}`,
+    id: discount.id,
+    type: discount.type,
+    value: discount.value
+  })) || [];
+
+
+  const discountsOptions = discounts.map(discount => ({
+    label: `${discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}`,
+    id: discount.id,
+    type: discount.type,
+    value: discount.value
+  }));
+
+
   return (
     <div>
       <Row className="justify-content-center">
@@ -141,19 +157,12 @@ export const AddonUpdate = () => {
               />
               <div className="mb-3">
                 <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
-                <Select isMulti={true} defaultValue={addonEntity?.discounts?.map((discount) => ({label: `${discount.type} ${discount.value}`, id: discount.id, type: discount.type, value: discount.value  }) )}  onChange={handleDiscountsChange}
-                        options={discounts.map((discount) => ({label: `${discount.type} ${discount.value}`, id: discount.id, type: discount.type, value: discount.value  }) )} />
+                <Select isMulti={true}
+                        defaultValue={defaultDiscountsOptions}
+                        options={discountsOptions}
+                        onChange={handleDiscountsChange} />
               </div>
-              {/* <ValidatedField id="addon-item" name="item" data-cy="item" label={translate('tempApp.addon.item')} type="select"> */}
-              {/*   <option value="" key="0" /> */}
-              {/*   {items */}
-              {/*     ? items.map(otherEntity => ( */}
-              {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
-              {/*           {otherEntity.name} */}
-              {/*         </option> */}
-              {/*       )) */}
-              {/*     : null} */}
-              {/* </ValidatedField> */}
+
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/addon" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

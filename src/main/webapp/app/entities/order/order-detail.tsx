@@ -28,9 +28,10 @@ export const OrderDetail = () => {
 
   return (
     <Row>
-      <h2 data-cy="orderDetailsHeading">
-        <Translate contentKey="tempApp.order.detail.title">Order</Translate>
+      <h2 className="mb-3">
+        Order <span className="text-primary">#{orderEntity.sequenceNumber}</span>
       </h2>
+
       <Col md="8" className="d-flex flex-wrap container">
               <div className="container">
 
