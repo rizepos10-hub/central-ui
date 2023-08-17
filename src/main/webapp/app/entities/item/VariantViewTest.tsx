@@ -34,7 +34,7 @@ export default function VariantViewTest({variants, itemName}) {
       <div className="col-12">
         <div className="flex flex-column xl:flex-row xl:align-items-start p-4 gap-4">
           <img
-            className="w-9 sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round"
+            className="w-6 h-8rem sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round"
             src={variant.attachments[0]?.url}
             alt={variant.name}
           />
@@ -83,7 +83,7 @@ export default function VariantViewTest({variants, itemName}) {
           </div>
           <div className="flex flex-column align-items-center gap-3 py-5">
             <img
-              className="w-9 shadow-2 border-round"
+              className="w-6 h-8rem shadow-2 border-round img-fluid"
               src={variant.attachments[0]?.url}
               alt={variant.name}
             />

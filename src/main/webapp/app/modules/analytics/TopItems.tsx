@@ -1,44 +1,26 @@
-import React, {useEffect, useState} from 'react';
-import axios from "axios";
-import {fetchTopItems} from "app/modules/analytics/api";
+import React, { useEffect, useState } from 'react';
+import { fetchTopCustomers, fetchTopItems } from 'app/modules/analytics/api';
 
 const TopItems = () => {
-
   const [bestSellers, setBestSellers] = useState([]);
   const [bestCustomers, setBestCustomers] = useState([]);
-  const [totalSales, setTotalSales] = useState('');
-
-
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const data = await fetchTopItems();
-        setBestSellers(data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+      const topItemsData = await fetchTopItems();
+      setBestSellers(topItemsData);
 
-
-
+      const topCustomersData = await fetchTopCustomers();
+      setBestCustomers(topCustomersData);
     };
     fetchData();
   }, []);
 
-
   return (
-    <div className="container mt-5">
+    <div className="container mt-5" >
       <div className="row">
-        <div className="col-lg-12 mb-4 d-flex justify-content-center">
-          <div className="card shadow">
-            <div className="card-body">
-              <h2 className="card-title align-middle text-center">Total Sales</h2>
-              <p className="card-text display-4 ">{totalSales}</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-12 mb-4">
-          <div className="card h-100 shadow">
+        <div className="col-lg-6 mb-4">
+          <div className="card h-100 shadow" >
             <div className="card-body">
               <h4 className="card-title">Best Sellers</h4>
               <ul className="list-group">
@@ -57,14 +39,19 @@ const TopItems = () => {
                         </div>
                       </div>
                       <img
-                        src={item?.variantAttachments && item?.variantAttachments[0]?.url || 'default-image-url'}
+                        src={
+                          item?.variantAttachments && item?.variantAttachments.length > 0
+                            ? item?.variantAttachments[0]?.url
+                            : item?.itemAttachments && item?.itemAttachments.length > 0
+                              ? item?.itemAttachments[0]?.url
+                              : null
+                        }
                         alt="Best Seller"
                         style={{ width: '50px', height: '50px', marginLeft: '10px' }}
                       />
                     </li>
                   ))}
               </ul>
-
             </div>
           </div>
         </div>
@@ -73,11 +60,22 @@ const TopItems = () => {
             <div className="card-body">
               <h4 className="card-title">Best Customers</h4>
               <ul className="list-group">
-                {/* {bestCustomers.map((item, index) => ( */}
-                {/*   <li key={index} className="list-group-item"> */}
-                {/*     {item} */}
-                {/*   </li> */}
-                {/* ))} */}
+                {bestCustomers &&
+                  bestCustomers.map((customer, index) => (
+                    <li key={index} className="list-group-item d-flex align-items-center mb-3">
+                      <div className="d-flex flex-grow-1 align-items-center">
+                        <div className="me-3 d-flex flex-column">
+                          <strong>Customer Name</strong> {customer?.firstName} {customer?.lastName}
+                        </div>
+                        <div className="me-3 d-flex flex-column">
+                          <strong>Orders</strong> {customer?.count}
+                        </div>
+                        <div className="me-3 d-flex flex-column text-center">
+                          <strong>Phone Number</strong> {customer?.phone}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
               </ul>
             </div>
           </div>

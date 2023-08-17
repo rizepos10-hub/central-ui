@@ -14,37 +14,37 @@ const AppMenu = () => {
                           },
                           {
                             label: 'Branches',
-                            icon: 'pi pi-th-large',
+                            icon: 'pi pi-share-alt',
                             to: '/branch?page=1&sort=id,asc'
                           },
                           {
                             label: 'Orders',
-                            icon: 'pi pi-fw pi-envelope',
+                            icon: 'pi pi-shopping-cart',
                             items: [
                               {
                                 label: 'Today',
-                                icon: 'pi pi-fw pi-inbox',
+                                icon: 'pi pi-calendar',
                                 to: '/order/today'
                               },
                               {
                                 label: 'History',
-                                icon: 'pi pi-fw pi-pencil',
+                                icon: 'pi pi-clock',
                                 to: '/order?page=1&sort=id,asc'
                               }
                             ]
                           },
                           {
                             label: 'Menus',
-                            icon: 'pi pi-fw pi-star-fill',
+                            icon: 'pi pi-bars',
                             items: [
                               {
                                 label: 'List',
-                                icon: 'pi pi-fw pi-id-card',
+                                icon: 'pi pi-list',
                                 to: '/menu?page=1&sort=id,asc'
                               },
                               {
                                 label: 'Category',
-                                icon: 'pi pi-fw pi-check-square',
+                                icon: 'pi pi-folder',
                                 to: '/term/menus?page=1&sort=id,asc'
                               },
 
@@ -53,54 +53,59 @@ const AppMenu = () => {
 
                           {
                             label: 'Catalogue',
-                            icon: 'pi pi-fw pi-compass',
+                            icon: 'pi pi-book',
                             items: [
                               {
                                 label: 'Items',
-                                icon: 'pi pi-fw pi-prime',
+                                icon: ' pi pi-th-large',
                                 to: '/item?page=1&sort=id,asc'
                               },
                               {
                                 label: 'Category',
-                                icon: 'pi pi-fw pi-palette',
+                                icon: 'pi pi-folder-open',
                                 to: '/term/items?page=1&sort=id,asc'
                               },
                               {
                                 label: 'Addons',
-                                icon: 'pi pi-fw pi-desktop',
+                                icon: 'pi pi-plus-circle',
                                 to: '/addon?page=1&sort=id,asc'
+                              },
+                              {
+                                label: 'Discounts',
+                                icon: 'pi pi-percentage',
+                                to: '/discount?page=1&sort=id,asc'
                               },
                             ]
                           },
                           {
                             label: 'Inventory',
-                            icon: 'pi pi-home',
+                            icon: 'pi pi-box',
                             to: '/'
                           },
                           {
                             label: 'Analytics',
-                            icon: 'pi pi-fw pi-compass',
+                            icon: ' pi pi-chart-bar',
                             items: [
                               {
                                 label: 'Top Items',
-                                icon: 'pi pi-fw pi-prime',
+                                icon: 'pi pi-star',
                                 to: '/analytics/topItems'
                               },
                               {
                                 label: 'End Of Day',
-                                icon: 'pi pi-fw pi-palette',
-                                to: '/term/items?page=1&sort=id,asc'
+                                icon: 'pi pi-moon',
+                                to: '/analytics/endofday'
                               },
                               {
                                 label: 'Report',
-                                icon: 'pi pi-fw pi-desktop',
+                                icon: 'pi pi-file-pdf',
                                 to: '/analytics/reports'
                               },
                             ]
                           },
                           {
                             label: 'Customers',
-                            icon: 'pi pi-home',
+                            icon: ' pi pi-users',
                             to: '/customer'
                           },
                         ]

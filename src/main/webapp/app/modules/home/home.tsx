@@ -13,34 +13,54 @@ import { ChartData, ChartOptions } from 'chart.js';
 import type { ChartDataState, ChartOptionsState, Demo } from '../../shared/sidebar/types/types';
 import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
 import axios from "axios";
-import {fetchRecentSales, fetchTopCategories, fetchTopItems} from "app/modules/analytics/api";
+import {
+  fetchOrdersByYear,
+  fetchRecentSales,
+  fetchTopCategories,
+  fetchTopFields,
+  fetchTopItems
+} from "app/modules/analytics/api";
+import {format, subWeeks} from "date-fns";
 
 export default function ECommerce() {
+
   const [products, setProducts] = useState<any>([]);
   const [chartOptions, setChartOptions] = useState<ChartOptionsState>({});
   const [bestSellers, setBestSellers] = useState([]);
   const [recentSales, setRecentSales] = useState([]);
   const [topCategories, setTopCategories] = useState([])
+
+
+  const [fromDate, setFromDate] = useState(format(subWeeks(new Date(), 1), 'yyyy-MM-dd'));
+  const [toDate, setToDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [topFields, setTopFields]:any = useState({})
+
+
   const [recentLoading, setRecentLoading] = useState(false)
+
+  const [lineChartData, setLineChartData] = useState({});
+  const [lineChartOptions, setLineChartOptions] = useState({});
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 10 }, (_, index) => currentYear - index);
+
+
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [yearlyOrders, setYearlyOrders] :any= useState([]);
+
+
 
 
   const [weeks] = useState([
     {
-      label: 'Last Week',
+      label: 'Year',
       value: 0,
       data: [
         [65, 59, 80, 81, 56, 55, 40],
         [28, 48, 40, 19, 86, 27, 90]
       ]
     },
-    {
-      label: 'This Week',
-      value: 1,
-      data: [
-        [35, 19, 40, 61, 16, 55, 30],
-        [48, 78, 10, 29, 76, 77, 10]
-      ]
-    }
+
   ]);
   const [chartData, setChartData] = useState<ChartDataState>({});
   const [selectedWeek, setSelectedWeek] = useState(0);
@@ -124,7 +144,7 @@ export default function ECommerce() {
     return (
       <>
         <span className="p-column-title">Price</span>
-        <p key={rowData.id}>{formatCurrency(rowData.price as number)}</p>
+        <p key={rowData.id}>{formatCurrency(rowData.currentPrice as number)}</p>
       </>
     );
   };
@@ -143,7 +163,7 @@ export default function ECommerce() {
     return (
       <>
         <span className="p-column-title">Status</span>
-        <span className={'product-badge status-' + badgeClass}>{rowData.inventoryStatus}</span>
+        <span className={'product-badge status-' + badgeClass}>{rowData.inventoryStatus || 'INSTOCK'}</span>
       </>
     );
   };
@@ -158,27 +178,44 @@ export default function ECommerce() {
 
   useEffect(() => {
     const fetchData = async () => {
-
+      try {
+        const topFieldsData = await fetchTopFields(fromDate, toDate);
+        setTopFields(topFieldsData);
 
         const topItemsData = await fetchTopItems();
         setBestSellers(topItemsData);
 
         const topCategoriesData = await fetchTopCategories();
         setTopCategories(topCategoriesData);
-      console.log(topCategoriesData, 'topCategoriesData')
 
-
-      console.log(topItemsData, 'recent1')
-        setRecentLoading(true)
+        setRecentLoading(true);
         const recentSalesData = await fetchRecentSales();
         setRecentSales(recentSalesData);
-        setRecentLoading(false)
+        setRecentLoading(false);
 
-        console.log(recentSalesData, 'recent')
 
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
     };
+
     fetchData();
   }, []);
+
+  useEffect(() => {
+
+    const fetchData = async () => {
+      try {
+
+        const ordersData = await fetchOrdersByYear(selectedYear);
+        setYearlyOrders(ordersData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  },[selectedYear])
 
 
   useEffect(() => {
@@ -220,56 +257,57 @@ export default function ECommerce() {
         }
       }
     };
+    const fixedColors = [
+      '#E91E63', // Pink
+      '#03A9F4', // Light Blue
+      '#607D8B', // Gray
+      '#9C27B0', // Purple
+      '#2196F3', // Blue
+      '#00BCD4', // Cyan
+      '#8BC34A', // Light Green
+      '#FFC107', // Yellow
+      '#4CAF50', // Green
+      '#FF5733', // Red
+      '#FF9800', // Orange
+      '#673AB7', // Deep Purple
+      '#009688', // Teal
+      '#CDDC39', // Lime
+      '#FFEB3B', // Amber
+      '#9E9E9E', // Grey
+      '#795548', // Brown
+      '#FF4081', // Pink
+      '#FF5722', // Deep Orange
+      '#9E9E9E', // Grey
 
-    const barData: ChartData = {
-      labels: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
-      datasets: [
-        {
-          label: 'Revenue',
-          backgroundColor: documentStyle.getPropertyValue('--primary-500'),
-          barThickness: 12,
-          borderRadius: 12,
-          data: weeks[selectedWeek].data[0]
-        },
-        {
-          label: 'Profit',
-          backgroundColor: documentStyle.getPropertyValue('--primary-200'),
-          barThickness: 12,
-          borderRadius: 12,
-          data: weeks[selectedWeek].data[1]
-        }
-      ]
+    ];
+    const barData:any = {
+      labels: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+      datasets: yearlyOrders.map((branchData, index) => ({
+        label: branchData.branchName,
+        data: branchData.monthlyOrders.map((order) => order.ordersCount),
+        fill: false,
+        borderColor:  fixedColors[index % fixedColors.length],
+        tension: 0.4
+      }))
     };
 
-    const barOptions: ChartOptions = {
-      animation: {
-        duration: 0
-      },
-      responsive: true,
+    const barOptions = {
       maintainAspectRatio: false,
+      aspectRatio: 0.6,
       plugins: {
         legend: {
           labels: {
-            color: textColor,
-            usePointStyle: true,
-            font: {
-              weight: '700'
-            },
-            padding: 28
-          },
-          position: 'bottom'
+            color: textColor
+          }
         }
       },
       scales: {
         x: {
           ticks: {
-            color: textColorSecondary,
-            font: {
-              weight: '500'
-            }
+            color: textColorSecondary
           },
           grid: {
-            display: false
+            color: surfaceBorder
           }
         },
         y: {
@@ -291,7 +329,16 @@ export default function ECommerce() {
       pieData
     });
     initFilters();
-  }, [weeks, selectedWeek, layoutConfig, topCategories]);
+  }, [layoutConfig, yearlyOrders, topCategories]);
+
+
+
+  const onYearChange =  (event) => {
+    const selectedYearValue = event.value;
+    setSelectedYear(selectedYearValue);
+
+
+  };
 
   return (
     <div className="grid">
@@ -300,7 +347,7 @@ export default function ECommerce() {
           <span className="font-semibold text-lg">Sales</span>
           <div className="flex justify-content-between align-items-start mt-3">
             <div className="w-6">
-              <span className="text-4xl font-bold text-900">120</span>
+              <span className="text-4xl font-bold text-900">{topFields.sales}</span>
               <div className="text-green-500">
                 <span className="font-medium">+12%</span>
                 <i className="pi pi-arrow-up text-xs ml-2"></i>
@@ -323,7 +370,7 @@ export default function ECommerce() {
           <span className="font-semibold text-lg">Revenue</span>
           <div className="flex justify-content-between align-items-start mt-3">
             <div className="w-6">
-              <span className="text-4xl font-bold text-900">$450</span>
+              <span className="text-4xl font-bold text-900">{topFields?.revenue}</span>
               <div className="text-green-500">
                 <span className="font-medium">+20%</span>
                 <i className="pi pi-arrow-up text-xs ml-2"></i>
@@ -345,7 +392,7 @@ export default function ECommerce() {
           <span className="font-semibold text-lg">Visitors</span>
           <div className="flex justify-content-between align-items-start mt-3">
             <div className="w-6">
-              <span className="text-4xl font-bold text-900">360</span>
+              <span className="text-4xl font-bold text-900">{topFields?.visitors}</span>
               <div className="text-pink-500">
                 <span className="font-medium">+24%</span>
                 <i className="pi pi-arrow-down text-xs ml-2"></i>
@@ -367,7 +414,7 @@ export default function ECommerce() {
           <span className="font-semibold text-lg">Stock</span>
           <div className="flex justify-content-between align-items-start mt-3">
             <div className="w-6">
-              <span className="text-4xl font-bold text-900">164</span>
+              <span className="text-4xl font-bold text-900">{topFields?.stock}</span>
               <div className="text-green-500">
                 <span className="font-medium">+30%</span>
                 <i className="pi pi-arrow-up text-xs ml-2"></i>
@@ -389,9 +436,10 @@ export default function ECommerce() {
         <div className="card h-auto">
           <div className="flex align-items-start justify-content-between mb-6">
             <span className="text-900 text-xl font-semibold">Revenue Overview</span>
-            <Dropdown options={weeks} value={selectedWeek} className="w-10rem" optionLabel="label" onChange={onWeekChange}></Dropdown>
+            <Dropdown  options={years.map(year => ({ label: year.toString(), value: year }))}
+                       defaultValue={selectedYear} value={selectedYear} className="w-10rem" optionLabel="label" onChange={onYearChange} />
           </div>
-          <Chart height="300px" type="bar" data={chartData.barData} options={chartOptions.barOptions}></Chart>
+          <Chart type="line" data={chartData.barData} options={chartOptions.barOptions}  style={{height: '300px'}} />
         </div>
       </div>
       <div className="col-12 xl:col-3">
@@ -437,7 +485,20 @@ export default function ECommerce() {
               return (
                 <li  key={i} className="flex align-items-center justify-content-between p-3">
                   <div className="inline-flex align-items-center" >
-                    <img  src={product?.variantAttachments && product?.variantAttachments[0]?.url || product?.attachments && product?.attachments[0]?.url} alt={product.name} width="75" className="shadow-2 flex-shrink-0" />
+                    <img
+                      src={
+                        product?.variantAttachments && product?.variantAttachments.length > 0
+                          ? product?.variantAttachments[0]?.url
+                          : product?.itemAttachments && product?.itemAttachments.length > 0
+                            ? product?.itemAttachments[0]?.url
+                            : null
+                      }
+                      alt={product.name}
+                      width="75"
+                      className="shadow-2 flex-shrink-0"
+                      style={{ objectFit: 'contain', maxHeight: '75px' }}
+                    />
+
                     <div className="flex flex-column ml-3">
                       <span className="font-medium text-lg mb-1 font-bold">{product.itemName} <span className="text-sm">({product.variantName})</span></span>
                       <Rating value={product.rating} readOnly cancel={false} onIconProps={{ style: { fontSize: '12px' } }} offIconProps={{ style: { fontSize: '12px' } }}></Rating>

@@ -470,9 +470,10 @@ console.log(itemEntity, 'termos')
                         <td className="align-middle">
                           <ul>
                             {variant.discounts.map((discount) => (
-                              <li key={discount?.id && discount?.id}>{`${discount?.type} ${discount?.value}`}</li>
+                              <li key={discount?.id}>{`${discount?.type === 'PERCENTAGE' ? `${discount?.value}%` : `${discount?.value} ${discount?.type}`}`}</li>
                             ))}
                           </ul>
+
                         </td>
 
                         <td>

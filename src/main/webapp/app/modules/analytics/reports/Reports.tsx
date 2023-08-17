@@ -97,6 +97,7 @@ const SalesSummaryReport = () => {
   };
 
 
+  console.log(salesData,'salesDta')
 
   return (
 
@@ -108,11 +109,12 @@ const SalesSummaryReport = () => {
           <form onSubmit={handleSubmit}>
             <div className="row mb-3">
               <div className="col-md-6">
-                <label htmlFor="fromDate" className="form-label">From Date:</label>
+                <label htmlFor="fromDate" className="form-label fw-bold">From Date</label>
                 <input type="date" id="fromDate" className="form-control" value={fromDate} onChange={handleFromDateChange} />
               </div>
               <div className="col-md-6">
-                <label htmlFor="toDate" className="form-label">To Date:</label>
+                <label htmlFor="fromDate" className="form-label fw-bold">To Date</label>
+
                 <input type="date" id="toDate" className="form-control" value={toDate} onChange={handleToDateChange} />
               </div>
             </div>

@@ -137,12 +137,12 @@ export const Addon = () => {
     return discounts.map((discount, index) => (
       <Chip
         key={index}
-        label={ `${discount.value} ${discount.type}`}
+        label={discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}
         className="p-mr-2 p-mb-2"
       />
     ));
-    // ${discount.type === 'PERCENTAGE' ? `${discount.value}%` :
   };
+
 
 
   return (

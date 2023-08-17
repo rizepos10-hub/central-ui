@@ -142,7 +142,15 @@ const ItemVariantModal = (props: IVariantProps) => {
 
 
   const defaultDiscouts = editingVariant?.discounts?.map((discount) =>
-    ({label: `${discount.type} ${discount.value}`, id: discount.id, type: discount.type, value: discount.value  })) || []
+  ({label: `${discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}`,
+    id: discount.id, type: discount.type, value: discount.value})) || []
+
+  const formattedDiscountOptions = discounts.map((discount) => ({
+    label: `${discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}`,
+    id: discount.id,
+    type: discount.type,
+    value: discount.value
+  }));
 
   let defaultAttachments = editingVariant?.attachments
   const defaultValues = () =>
@@ -202,8 +210,10 @@ const ItemVariantModal = (props: IVariantProps) => {
               </Row>
               <div className="mb-3">
                 <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
+
                 <Select isMulti={true} defaultValue={defaultDiscouts} onChange={handleDiscountsChange}
-            options={discounts.map((discount) => ({label: `${discount.type} ${discount.value}`, id: discount.id, type: discount.type, value: discount.value  }) )} />
+                        options={formattedDiscountOptions} />
+
               </div>
             </Row>
             <ModalFooter>

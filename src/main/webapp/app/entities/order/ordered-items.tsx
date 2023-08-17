@@ -35,14 +35,15 @@
         <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
           {list && list.length > 0 ? (
             <ListGroup>
-              {list.map((item, i) => {
+              {list.map((item: IOrderedItem, i) => {
                 console.log(item)
                 return (
                 <ListGroupItem key={`entity-${i}`} data-cy="entityTable">
                   <Row>
                     <Col xs="3">
                       <div className="d-flex flex-column">
-                        <strong>Name</strong> {item.id ?? null}
+                        <strong>Name</strong>
+                        <span className="font-medium text-lg mb-1">{item.itemName} <span className="text-sm">({item.variantName})</span></span>
                       </div>
                     </Col>
                     <Col xs="3">
@@ -51,14 +52,20 @@
                       {item.addons && item.addons.length > 0 && (
                         <div className="d-flex flex-column">
                           {item.addons.map((addon: IOrderedAddon, j: number) => (
-                            <span key={`addon-${j}`}>{addon?.id}</span>
+                            <span key={`addon-${j}`} className="font-medium text-lg mb-1">
+                               {addon?.name !== '' ? addon.name : 'no'}
+                            </span>
                           ))}
                         </div>
                       )}
                     </Col>
                     <Col xs="3">
                       <div className="d-flex flex-column">
-                        <strong>Discount</strong> {item.discount ? item.discount?.type + ' ' + item.discount?.value : 0}
+                        <strong>Discount</strong>
+                        {item && item.discount?.value !== undefined
+                          ? `${item.discount.type === 'PERCENTAGE' ? `${item.discount.value}%`
+                            : `${item.discount.value} ${item.discount.type}`}`
+                          : '0'}
                       </div>
                     </Col>
                     <Col xs="3">
