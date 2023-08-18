@@ -6,7 +6,7 @@ export const OrderCustomerDetail = (props: ICustomer) => {
   const customerEntity = props;
   console.log(customerEntity, 'customerEntity');
   return (
-    <div>
+    <div style={{ height: '150px'}}>
       <h4 data-cy="customerDetailsHeading">
         <Translate contentKey="tempApp.customer.detail.title">Customer</Translate>
       </h4>

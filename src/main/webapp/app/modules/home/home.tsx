@@ -38,8 +38,7 @@ export default function ECommerce() {
 
   const [recentLoading, setRecentLoading] = useState(false)
 
-  const [lineChartData, setLineChartData] = useState({});
-  const [lineChartOptions, setLineChartOptions] = useState({});
+
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, index) => currentYear - index);
@@ -144,7 +143,7 @@ export default function ECommerce() {
     return (
       <>
         <span className="p-column-title">Price</span>
-        <p key={rowData.id}>{formatCurrency(rowData.currentPrice as number)}</p>
+        <p className="m-3" key={rowData.id}>{formatCurrency(rowData.currentPrice as number)}</p>
       </>
     );
   };
@@ -163,7 +162,7 @@ export default function ECommerce() {
     return (
       <>
         <span className="p-column-title">Status</span>
-        <span className={'product-badge status-' + badgeClass}>{rowData.inventoryStatus || 'INSTOCK'}</span>
+        <span className={' product-badge status-' + badgeClass}>{rowData.inventoryStatus || 'INSTOCK'  }</span>
       </>
     );
   };
@@ -179,14 +178,20 @@ export default function ECommerce() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const topFieldsData = await fetchTopFields(fromDate, toDate);
-        setTopFields(topFieldsData);
-
-        const topItemsData = await fetchTopItems();
-        setBestSellers(topItemsData);
 
         const topCategoriesData = await fetchTopCategories();
         setTopCategories(topCategoriesData);
+        console.log(topCategoriesData, 'topCategoriesData')
+
+        const topFieldsData = await fetchTopFields(fromDate, toDate);
+        setTopFields(topFieldsData);
+        console.log(topFieldsData, 'topFieldsData')
+
+
+        const topItemsData = await fetchTopItems(5);
+        setBestSellers(topItemsData);
+
+
 
         setRecentLoading(true);
         const recentSalesData = await fetchRecentSales();
@@ -205,6 +210,7 @@ export default function ECommerce() {
   useEffect(() => {
 
     const fetchData = async () => {
+      console.log('clicked1', selectedYear)
       try {
 
         const ordersData = await fetchOrdersByYear(selectedYear);
@@ -225,7 +231,7 @@ export default function ECommerce() {
     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
     const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
     const pieData: ChartData = {
-      labels: topCategories.map(category => category.categoryName),
+      labels: topCategories?.map(category => category.categoryName),
       datasets: [
         {
           data: topCategories.map(category => category.amount),
@@ -439,13 +445,13 @@ export default function ECommerce() {
             <Dropdown  options={years.map(year => ({ label: year.toString(), value: year }))}
                        defaultValue={selectedYear} value={selectedYear} className="w-10rem" optionLabel="label" onChange={onYearChange} />
           </div>
-          <Chart type="line" data={chartData.barData} options={chartOptions.barOptions}  style={{height: '300px'}} />
+          <Chart type="line" data={chartData.barData} options={chartOptions.barOptions}  height={'350px'} />
         </div>
       </div>
       <div className="col-12 xl:col-3">
         <div className="card h-auto">
           <div className="text-900 text-xl font-semibold mb-6">Sales by Category</div>
-          <Chart height="300px" type="pie" data={chartData.pieData} options={chartOptions.pieOptions}></Chart>
+          <Chart height="368px" type="pie" data={chartData.pieData} options={chartOptions.pieOptions}></Chart>
         </div>
       </div>
 
@@ -477,7 +483,7 @@ export default function ECommerce() {
           </DataTable>
         </div>
       </div>
-      <div className="col-12 lg:col-4">
+      <div className="col-12 lg:col-4" >
         <div className="card h-full">
           <div className="text-900 text-xl font-semibold mb-3">Top Products</div>
           <ul className="list-none p-0 m-0">

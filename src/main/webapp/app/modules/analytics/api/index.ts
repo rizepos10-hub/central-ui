@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-export const fetchTopItems = async () => {
+export const fetchTopItems = async (limit?: null | number) => {
+  const limitsize = limit?`?limit=${limit}` : ''
   try {
-    const response = await axios.get('/api/orders/top/items');
+    const response = await axios.get(`/api/orders/top/items${limitsize}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching data:', error);

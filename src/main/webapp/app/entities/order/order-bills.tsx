@@ -57,7 +57,7 @@ export const OrderBills: React.FC<OrderBills> = ({ list, orderedItems }) => {
     <div className="d-flex">
       <div>
         {billList && billList.length > 0 ? (
-          billList.map((bill, billIndex) =>{
+          billList.filter((billItem) => !billItem.archived).map((bill, billIndex) =>{
             const totalPaid = bill.paymentTransactions.reduce(
               (acc, transaction) => acc + transaction.amount,
               0
@@ -106,6 +106,10 @@ export const OrderBills: React.FC<OrderBills> = ({ list, orderedItems }) => {
                       <th>Amount</th>
                       <th>Price</th>
                       <th>Discount</th>
+                      <th>Addon</th>
+                      <th>Addon Amount</th>
+                      <th>Addon Price</th>
+                      <th>Addon Discount</th>
                       <th>Total</th>
                       <th>Date</th>
                     </tr>
@@ -140,6 +144,18 @@ export const OrderBills: React.FC<OrderBills> = ({ list, orderedItems }) => {
                                 ? `${orderedItem.discount.type === 'PERCENTAGE' ? `${orderedItem.discount.value}%` :
                                   `${orderedItem.discount.value} ${orderedItem.discount.type}`}`
                                 : '0'}
+                            </td>
+                            <td>   {orderedItem.addons.map((addon, index) => (addon.name))}</td>
+                            <td>   {orderedItem.addons.map((addon, index) => (addon.amount.toFixed(2)))}</td>
+                            <td>   {orderedItem.addons.map((addon, index) => (addon.price.toFixed(2)))}</td>
+                            <td>
+                              {orderedItem.addons.map((addon) => (
+                                    addon.discount?.value !== undefined
+                                      ? addon.discount.type === 'PERCENTAGE'
+                                        ? `${addon.discount.value}%`
+                                        : `${addon.discount.value} ${addon.discount.type}`
+                                      : '0'
+                              ))}
                             </td>
 
                             <td>{total.toFixed(2)}</td>
