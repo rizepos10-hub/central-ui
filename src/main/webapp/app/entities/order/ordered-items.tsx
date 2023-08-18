@@ -8,8 +8,9 @@
 
   interface OrderedItems {
     list: IOrderedItem[];
+    totalPayments: number
   }
-  export const OrderedItems: React.FC<OrderedItems> = ({ list }) => {
+  export const OrderedItems: React.FC<OrderedItems> = ({ list,totalPayments }) => {
     // addons?: IOrderedAddon[];
 
     const subtotal = list.reduce((acc, item) => acc + item.price, 0);
@@ -32,55 +33,65 @@
     return (
       <div >
          <h4> <strong>Items</strong></h4>
-        <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+        <div>
           {list && list.length > 0 ? (
             <ListGroup>
-              {list.map((item: IOrderedItem, i) => {
-                console.log(item)
-                return (
+              <ListGroupItem>
+                <Row>
+                  <Col xs="3">
+                    <strong>Name</strong>
+                  </Col>
+                  <Col xs="3">
+                    <strong>Addons</strong>
+                  </Col>
+                  <Col xs="3">
+                    <strong>Discount</strong>
+                  </Col>
+                  <Col xs="3">
+                    <strong>Price</strong>
+                  </Col>
+                </Row>
+              </ListGroupItem>
+              {list.map((item: IOrderedItem, i) => (
                 <ListGroupItem key={`entity-${i}`} data-cy="entityTable">
                   <Row>
                     <Col xs="3">
-                      <div className="d-flex flex-column">
-                        <strong>Name</strong>
-                        <span className="font-medium text-lg mb-1">{item.itemName} <span className="text-sm">({item.variantName})</span></span>
-                      </div>
+              <span className="font-medium text-lg mb-1">
+                {item.itemName} <span className="text-sm">({item.variantName})</span>
+              </span>
                     </Col>
                     <Col xs="3">
-
-                      <strong>Addons</strong>
-                      {item.addons && item.addons.length > 0 && (
-                        <div className="d-flex flex-column">
+                      {item.addons && item.addons.length > 0 ? (
+                        <div>
                           {item.addons.map((addon: IOrderedAddon, j: number) => (
                             <span key={`addon-${j}`} className="font-medium text-lg mb-1">
-                               {addon?.name !== '' ? addon.name : 'no'}
-                            </span>
+                      {addon?.name !== '' ? addon.name : 'no'}
+                    </span>
                           ))}
                         </div>
+                      ) : (
+                        <div>No addons</div>
                       )}
                     </Col>
                     <Col xs="3">
-                      <div className="d-flex flex-column">
-                        <strong>Discount</strong>
-                        {item && item.discount?.value !== undefined
-                          ? `${item.discount.type === 'PERCENTAGE' ? `${item.discount.value}%`
-                            : `${item.discount.value} ${item.discount.type}`}`
-                          : '0'}
-                      </div>
+              <span>
+                {item.discount?.value !== undefined
+                  ? `${item.discount.type === 'PERCENTAGE' ? `${item.discount.value}%` : `${item.discount.value} ${item.discount.type}`}`
+                  : '0'}
+              </span>
                     </Col>
                     <Col xs="3">
-                      <div className="d-flex flex-column">
-                        <strong>Price</strong> {item.price}
-                      </div>
+                      <span>{item.price}</span>
                     </Col>
                   </Row>
                 </ListGroupItem>
-              )})}
+              ))}
             </ListGroup>
-          ): (
+          ) : (
             <div>No items available.</div>
           )}
         </div>
+
 
         { list.length > 0 && <Card className="mt-3 p-3">
           <div className="d-flex justify-content-between my-2">
@@ -100,6 +111,18 @@
               <strong>Total Price</strong>
             </div>
             <div className="text-center">$ {totalPrice.toFixed(2)}</div>
+          </div>
+          <div className="d-flex justify-content-between my-2">
+            <div>
+              <strong>Paid</strong>
+            </div>
+            <div className="text-center">$ {totalPayments.toFixed(2)}</div>
+          </div>
+          <div className="d-flex justify-content-between my-2">
+            <div>
+              <strong>Remaining</strong>
+            </div>
+            <div className="text-center">$ {(totalPrice - totalPayments).toFixed(2) }</div>
           </div>
         </Card>}
       </div>

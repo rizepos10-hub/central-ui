@@ -42,7 +42,7 @@ export const Order = () => {
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
   const [lazyState, setLazyState] = useState<LazyTableState>({
-    first: 0,
+    first: 100,
     rows: 10,
     page: 0,
     sortField: null,
