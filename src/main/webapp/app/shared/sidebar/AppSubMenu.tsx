@@ -8,11 +8,14 @@ const AppSubMenu = (props) => {
     const { layoutState, setBreadcrumbs } = useContext(LayoutContext);
     const tooltipRef = useRef<Tooltip | null>(null);
 
+
     useEffect(() => {
         if (tooltipRef.current) {
             tooltipRef.current.hide();
             (tooltipRef.current as any).updateTargetEvents();
         }
+      console.log(tooltipRef.current, 'tooltipRef')
+
     }, [layoutState?.overlaySubmenuActive]);
 
     useEffect(() => {
@@ -25,6 +28,8 @@ const AppSubMenu = (props) => {
         const getBreadcrumb = (item: any, labels: string[] = []) => {
             const { label, to, items } = item;
 
+            console.log(item, 'labelo')
+
             label && labels.push(label);
             items &&
                 items.forEach((_item) => {
@@ -36,7 +41,8 @@ const AppSubMenu = (props) => {
         model.forEach((item) => {
             getBreadcrumb(item);
         });
-        // setBreadcrumbs(breadcrumbs);
+        console.log(breadcrumbs, 'breadcum')
+        setBreadcrumbs(breadcrumbs);
     };
 
     return (

@@ -97,6 +97,15 @@ export const MenuCategories = () => {
   const handleSyncList = () => {
     sortEntities();
   };
+
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/term/${rowData.id}/menus/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.name}
+      </Link>
+    );
+  };
   const editColumnTemplate = (rowData) => {
     const editUrl = `/term/${rowData.id}/menus/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
@@ -142,7 +151,7 @@ export const MenuCategories = () => {
         <DataTable value={termList} editMode="row" header={header}
                    loading={loading}
                    paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" style={{ width: '20%' }} />
+          <Column field="name" header="Name" body={nameColumnTemplate} style={{ width: '20%' }} />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />

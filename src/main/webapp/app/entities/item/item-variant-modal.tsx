@@ -19,18 +19,26 @@ interface IVariantProps {
 }
 const ItemVariantModal = (props: IVariantProps) => {
   const dispatch = useAppDispatch();
+  const editingVariant = props.editingVariantId
+    ? props.variants.find((variant) => variant.id === props.editingVariantId)
+    : null;
+
 
   const discounts = useAppSelector(state => state.discount.entities);
   console.log(discounts, 'discount1');
 
-  const isNew = props.editingVariantId === undefined;
 
+
+  const isNew = props.editingVariantId === null;
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
+  const [name, setName] = useState(editingVariant?.name || '');
+  const [price, setPrice] = useState(editingVariant?.price || '');
+
   const [selectedImage, setSelectedImage] = useState(null);
   const [variantImage, setVariantImage] = useState(null)
 
   const  handleDiscountsChange = selectedOptions => {
-    console.log(selectedOptions, 'news')
+    console.log(selectedOptions, 'new discount')
     const selectedValues = selectedOptions.map((option) => ({
       id: option.id,
       type: option.type,
@@ -38,6 +46,7 @@ const ItemVariantModal = (props: IVariantProps) => {
     }));
 
     setSelectedDiscounts(selectedValues);
+
   };
   const variant = ({ name, price }) => {
     const selectedDiscountObjects = selectedDiscounts.map((item) => ({ id: item.id, type: item.type, value: item.value}));
@@ -45,9 +54,6 @@ const ItemVariantModal = (props: IVariantProps) => {
     props.handleSave(name, parseFloat(price), selectedDiscountObjects, variantImage);
   };
 
-  const editingVariant = props.editingVariantId
-    ? props.variants.find((variant) => variant.id === props.editingVariantId)
-    : null;
 
   const {
     handleSubmit,
@@ -62,7 +68,7 @@ const ItemVariantModal = (props: IVariantProps) => {
     try {
       console.log('here2');
       const imageInfo = await handleImageUpload();
-      const selectedDiscountObjects = selectedDiscounts.map((item) => ({
+      const selectedDiscountObjects = selectedDiscounts?.map((item) => ({
         id: item.id,
         type: item.type,
         value: item.value
@@ -73,16 +79,16 @@ const ItemVariantModal = (props: IVariantProps) => {
 
       if (props.editingVariantId === null) {
 
-        props.handleSave(formData.name, parseFloat(formData.price), selectedDiscountObjects, attachments);
-
-        reset({ name: '', price: '' });
+        props.handleSave(name, parseFloat(price), selectedDiscountObjects, attachments);
+        resetForm();
+        setSelectedDiscounts([]);
       } else {
         const editedVariant = {
 
 
           ...props.variants.find((variant) => variant.id === props.editingVariantId),
-          name: formData.name,
-          price: parseFloat(formData.price),
+          name: name,
+          price: price,
           discounts: selectedDiscountObjects,
           attachments: attachments,
         };
@@ -100,11 +106,33 @@ const ItemVariantModal = (props: IVariantProps) => {
     }
   };
 
+  const resetForm = () => {
+    setName('');
+    setPrice('');
+    setSelectedDiscounts([]);
+    setSelectedImage(null);
+  };
+
 
   useEffect(() => {
+    if (editingVariant) {
+      setName(editingVariant.name || '');
+      setPrice(editingVariant.price || '');
+      const defaultDiscounts = editingVariant?.discounts?.map(discount => ({
+        id: discount.id,
+        type: discount.type,
+        value: discount.value
+      })) || [];
 
+      setSelectedDiscounts(defaultDiscounts);
+    }
 
-  }, []);
+    return () => {
+      resetForm();
+
+    }
+
+  }, [editingVariant]);
 
 
   const handleImageUpload = async () => {
@@ -142,10 +170,12 @@ const ItemVariantModal = (props: IVariantProps) => {
 
 
   const defaultDiscouts = editingVariant?.discounts?.map((discount) =>
-  ({label: `${discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}`,
-    id: discount.id, type: discount.type, value: discount.value})) || []
+    ({label: `${discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}`,
+      id: discount.id, type: discount.type, value: discount.value})) || []
 
-  const formattedDiscountOptions = discounts.map((discount) => ({
+
+
+  const formattedDiscountOptions = discounts?.map((discount) => ({
     label: `${discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}`,
     id: discount.id,
     type: discount.type,
@@ -153,48 +183,37 @@ const ItemVariantModal = (props: IVariantProps) => {
   }));
 
   let defaultAttachments = editingVariant?.attachments
-  const defaultValues = () =>
-    isNew
-      ? {}
-      : {
-        name: editingVariant ? editingVariant.name : '',
-        price: editingVariant ? editingVariant.price : '',
-        attachments: defaultAttachments
-      };
+  console.log(editingVariant, 'editingVariant?')
+  console.log(isNew, 'isnew?')
+
+
   console.log(defaultAttachments, 'defaultAttachments')
+
 
   return (
     <>
       <Modal isOpen={props.showModal} toggle={props.handleClose} backdrop="static" autoFocus={false}>
-        <ValidatedForm onSubmit={handleSubmit(handleVariantSave)} defaultValue={defaultValues()}>
+        <ValidatedForm onSubmit={handleVariantSave}>
           <ModalHeader id="variant-title" data-cy="variantTitle" toggle={props.handleClose}>
             <label>Variant</label>
           </ModalHeader>
           <ModalBody>
             <Row>
               <Translate contentKey="tempApp.item.variant.name"></Translate>
+              <ValidatedField
+                type="text"
+                placeholder="enter variant name"
+                name="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
 
               <ValidatedField
-                name="name"
-                placeholder="enter variant name"
-                data-cy="name"
-                validate={{ required: 'name cannot be empty!' }}
-                register={register}
-                error={errors.name}
-                isTouched={touchedFields.name}
-                defaultValue={defaultValues().name}
-              />
-              <Translate contentKey="tempApp.item.variant.price"></Translate>
-              <ValidatedField
-                name="price"
                 type="number"
                 placeholder="enter variant price"
-                data-cy="price"
-                validate={{ required: 'price cannot be empty!' }}
-                register={register}
-                error={errors.price}
-                isTouched={touchedFields.price}
-                defaultValue={defaultValues().price}
+                name="price"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
               />
 
               <Row className="flex flex-column">
@@ -203,24 +222,26 @@ const ItemVariantModal = (props: IVariantProps) => {
                     <label htmlFor="image" className="custom-file-upload">
                       Choose Image
                     </label>
-                    <input type="file"  name="image" id="image" onChange={handleFileChange} />
-
+                    <input type="file" name="image" id="image" onChange={handleFileChange} />
                   </div>
                 </Col>
               </Row>
               <div className="mb-3">
                 <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
 
-                <Select isMulti={true} defaultValue={defaultDiscouts} onChange={handleDiscountsChange}
-                        options={formattedDiscountOptions} />
-
+                <Select
+                  isMulti={true}
+                  defaultValue={defaultDiscouts}
+                  onChange={handleDiscountsChange}
+                  options={formattedDiscountOptions}
+                />
               </div>
             </Row>
             <ModalFooter>
               <Button color="secondary" onClick={props.handleClose} tabIndex={1}>
                 <Translate contentKey="entity.action.cancel">Cancel</Translate>
               </Button>{' '}
-              <Button color="primary" type="submit" data-cy="submit">
+              <Button color="primary" type="button" onClick={handleVariantSave} data-cy="submit">
                 Save Variant
               </Button>
             </ModalFooter>

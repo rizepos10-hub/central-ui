@@ -11,6 +11,8 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IDiscount } from 'app/shared/model/discount.model';
 import { searchEntities, getEntities } from './discount.reducer';
+import {DataTable} from "primereact/datatable";
+import {Column} from "primereact/column";
 
 export const Discount = () => {
   const dispatch = useAppDispatch();
@@ -112,6 +114,8 @@ export const Discount = () => {
     });
   };
 
+  console.log(discountList, 'lisdis')
+
   const handlePagination = currentPage =>
     setPaginationState({
       ...paginationState,
@@ -122,142 +126,64 @@ export const Discount = () => {
     sortEntities();
   };
 
+
+  const editColumnTemplate = (rowData) => {
+    const editUrl = `/discount/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+      </Link>
+    );
+  };
+
+  const deleteColumnTemplate = (rowData) => {
+    const deleteUrl = `/discount/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={deleteUrl}>
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+      </Link>
+    );
+  };
+  const handleCreate = () => {
+    navigate('/discount/new')
+  }
+  const header = (
+    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
+      <span className="text-xl text-900 font-bold">Discounts</span>
+      <div className="ms-auto">
+        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+          &nbsp;
+          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
+        </Button>
+        <Button label="Create new Branch" raised onClick={handleCreate} disabled={loading}>
+          &nbsp;
+        </Button>
+      </div>
+    </div>
+  );
   return (
     <div>
-      <h2 id="discount-heading" data-cy="DiscountHeading">
-        <Translate contentKey="tempApp.discount.home.title">Discounts</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="tempApp.discount.home.refreshListLabel">Refresh List</Translate>
-          </Button>
-          <Link to="/discount/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="tempApp.discount.home.createLabel">Create new Discount</Translate>
-          </Link>
-        </div>
+      <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
+        Branches View
+
       </h2>
-      <Row>
-        <Col sm="12">
-          <Form onSubmit={startSearching}>
-            <FormGroup>
-              <InputGroup>
-                <Input
-                  type="text"
-                  name="search"
-                  defaultValue={search}
-                  onChange={handleSearch}
-                  placeholder={translate('tempApp.discount.home.search')}
-                />
-                <Button className="input-group-addon">
-                  <FontAwesomeIcon icon="search" />
-                </Button>
-                <Button type="reset" className="input-group-addon" onClick={clear}>
-                  <FontAwesomeIcon icon="trash" />
-                </Button>
-              </InputGroup>
-            </FormGroup>
-          </Form>
-        </Col>
-      </Row>
+
       <div className="table-responsive">
-        {discountList && discountList.length > 0 ? (
-          <Table responsive>
-            <thead>
-              <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="tempApp.discount.id">ID</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('value')}>
-                  <Translate contentKey="tempApp.discount.value">Value</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('type')}>
-                  <Translate contentKey="tempApp.discount.type">Type</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.discount.addon">Addon</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {discountList.map((discount, i) => (
-                <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                    <Button tag={Link} to={`/discount/${discount.id}`} color="link" size="sm">
-                      {discount.id}
-                    </Button>
-                  </td>
-                  <td>{discount.value}</td>
-                  <td>
-                    <Translate contentKey={`tempApp.DiscountType.${discount.type}`} />
-                  </td>
-                  <td>{discount.addon ? <Link to={`/addon/${discount.addon.id}`}>{discount.addon.id}</Link> : ''}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button tag={Link} to={`/discount/${discount.id}`} color="info" size="sm" data-cy="entityDetailsButton">
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        tag={Link}
-                        to={`/discount/${discount.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
-                      >
-                        <FontAwesomeIcon icon="pencil-alt" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.edit">Edit</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        tag={Link}
-                        to={`/discount/${discount.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="danger"
-                        size="sm"
-                        data-cy="entityDeleteButton"
-                      >
-                        <FontAwesomeIcon icon="trash" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.delete">Delete</Translate>
-                        </span>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        ) : (
-          !loading && (
-            <div className="alert alert-warning">
-              <Translate contentKey="tempApp.discount.home.notFound">No Discounts found</Translate>
-            </div>
-          )
-        )}
+        <DataTable value={discountList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={5}>
+
+          <Column field="value" header="Value" sortable  />
+          <Column field="type" sortable header="Type" body={(rowData) => rowData.type === "PERCENTAGE" ? "%" : rowData.type} />
+
+
+          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+
+          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+
+
+        </DataTable>
       </div>
-      {totalItems ? (
-        <div className={discountList && discountList.length > 0 ? '' : 'd-none'}>
-          <div className="justify-content-center d-flex">
-            <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
-          </div>
-          <div className="justify-content-center d-flex">
-            <JhiPagination
-              activePage={paginationState.activePage}
-              onSelect={handlePagination}
-              maxButtons={5}
-              itemsPerPage={paginationState.itemsPerPage}
-              totalItems={totalItems}
-            />
-          </div>
-        </div>
-      ) : (
-        ''
-      )}
     </div>
   );
 };

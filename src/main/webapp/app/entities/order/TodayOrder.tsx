@@ -173,6 +173,7 @@ export const Order = () => {
             filters={lazyState.filters}
             onFilter={onFilter}
             loading={loading}
+            emptyMessage="No Orders Found"
             tableStyle={{ minWidth: '75rem' , alignContent: 'center'}}
             selection={selectedOrders}
             onSelectionChange={onSelectionChange}

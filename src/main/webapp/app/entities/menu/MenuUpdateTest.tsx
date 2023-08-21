@@ -19,11 +19,11 @@
 } from 'reactstrap';
   import { Button as deleteButton } from 'primereact/button';
 
-  import {isNumber, TextFormat, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+  import {getSortState, isNumber, TextFormat, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
   import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
   import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-  import { mapIdList } from 'app/shared/util/entity-utils';
+  import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
   import { useAppDispatch, useAppSelector } from 'app/config/store';
 
   import { ITerm } from 'app/shared/model/term.model';
@@ -43,6 +43,7 @@
   import {Rating} from "primereact/rating";
   import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
   import {Skeleton} from "primereact/skeleton";
+  import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 
   export const MenuUpdate = () => {
@@ -60,6 +61,7 @@
     const updating = useAppSelector(state => state.menu.updating);
     const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
     const errorMessage = useAppSelector(state => state.menu.errorMessage);
+
 
     const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
     const initialBranches = menuEntity.branch?.map(branch => ({ value: branch.id, label: branch.name }));
@@ -83,13 +85,16 @@
     const [sortOrder, setSortOrder] = useState<0 | 1 | -1 | null>(null);
     const [sortField, setSortField] = useState('');
     const [selectedTerm, setSelectedTerm] = useState('');
+    const [paginationState, setPaginationState] = useState(
+      overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+    );
 
     const termOptions = [
       { label: 'All', value: '' },
       ...displayedTerms.map((term) => ({ label: term, value: term })),
     ];
 
-console.log(itemList, 'itemList')
+console.log(itemList, 'itemList1')
 
 
     const handleAddItem = () => {
@@ -147,7 +152,11 @@ console.log(itemList, 'itemList')
       }
       dispatch(getBranches({}))
       dispatch(getTerms({}));
-      dispatch(getItems({}));
+      dispatch(getItems({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      }));
 
     }, [refresh]);
 
@@ -181,7 +190,6 @@ console.log(itemList, 'itemList')
 
 
 
-    console.log(itemList, 'items')
     const saveEntity = (values) => {
       values.createdAt = convertDateTimeToServer(values.createdAt);
       values.updatedAt = convertDateTimeToServer(values.updatedAt);
@@ -244,6 +252,7 @@ console.log(itemList, 'itemList')
 
 
     const groupedMenuItems = itemList.reduce((groups, item) => {
+      console.log(item, 'itemlol')
       const termName = item.terms[0]?.name || 'Uncategorized';
       if (!groups[termName]) {
         groups[termName] = [];
@@ -347,7 +356,6 @@ console.log(itemList, 'itemList')
 
 
     const dataviewGridItem = (data: Demo.Product) => {
-      // @ts-ignore
       return (
         <div className="col-12 lg:col-4">
           <div className="card m-3 border-1 surface-border">
@@ -358,17 +366,19 @@ console.log(itemList, 'itemList')
               </div>
               {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
             </div>
+            <Link
+
+              to={`/item/${data.id}/edit`}
+            >
             <div className="flex flex-column align-items-center text-center mb-3">
               <img  src={data?.attachments && data?.attachments[0]?.url} alt={data.name} className="w-9 shadow-2 my-3 mx-0" />
-              <Link
 
-                to={`/item/${data.id}/edit`}
-              >
               <div className="text-2xl font-bold">{data.name}</div>
-              </Link>
               <div className="mb-3">{data.description}</div>
               {/* <Rating value={data.rating} readOnly cancel={false} /> */}
             </div>
+            </Link>
+              
             <div className="flex align-items-center justify-content-between">
               <span className="text-2xl font-semibold">${data.variants[0]?.price}</span>
               <Button color="danger" onClick={() => handleDeleteItem(data.id)}>
@@ -624,8 +634,8 @@ console.log(itemList, 'itemList')
                  </div>
                 <>
               </>
-          </Col>
-        </Row>
+          </>
+        </>
       </div>
     );
   };

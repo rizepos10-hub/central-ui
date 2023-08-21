@@ -133,7 +133,12 @@ export const Menu = () => {
                    loading={loading}
                    paginator totalRecords={totalItems} rows={5}>
 
-          <Column field="name" header="Name" style={{ width: '20%' }}></Column>
+          <Column
+            header="Name"
+            body={(rowData) => (
+              <Link to={`/menu/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>{rowData.name}</Link>)}
+            style={{ width: '20%' }}
+          />
           <Column
             field="createdDate"
             header="Created At"

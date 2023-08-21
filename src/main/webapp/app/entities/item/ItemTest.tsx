@@ -187,6 +187,15 @@ export const Item = () => {
     </div>
   );
 
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/item/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.name}
+      </Link>
+    );
+  };
+
 
   const editColumnTemplate = (rowData) => {
     const editUrl = `/item/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
@@ -237,8 +246,8 @@ export const Item = () => {
                    loading={loading}
                    totalRecords={totalItems}
                    tableStyle={{ minWidth: '60rem' }}>
-          
-          <Column field="name" header="Name" />
+
+          <Column field="name" header="Name" body={nameColumnTemplate} />
           <Column header="Image" body={(rowData) =>
           <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
           {/* <Column field="desc" header="Description" /> */}

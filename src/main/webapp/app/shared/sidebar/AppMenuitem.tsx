@@ -121,6 +121,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
                         data-pr-tooltip={item?.label}
                         data-pr-disabled={!(isSlim() && props.root && !layoutState.menuHoverActive)}
                         tabIndex={0}
+                        style={{ fontWeight: isActiveRoute ? 'bold' : 'normal' }}
                         onMouseEnter={onMouseEnter}
                     >
                         <i className={classNames('layout-menuitem-icon', item?.icon)}></i>
@@ -133,7 +134,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
 
             {item?.to && !item?.items && item?.visible !== false ? (
                 <>
-                    <Link to={item?.to} replace={item?.replaceUrl} onClick={(e) => itemClick(e)} className={classNames(item?.class, 'p-ripple ', { 'active-route': isActiveRoute })} tabIndex={0} onMouseEnter={onMouseEnter}>
+                    <Link   style={{ fontWeight: isActiveRoute ? 'bold' : 'normal' }} to={item?.to} replace={item?.replaceUrl} onClick={(e) => itemClick(e)} className={classNames(item?.class, 'p-ripple ', { 'active-route': isActiveRoute })} tabIndex={0} onMouseEnter={onMouseEnter}>
                         <i className={classNames('layout-menuitem-icon', item?.icon)}></i>
                         <span className="layout-menuitem-text">{item?.label}</span>
                         {badge}
