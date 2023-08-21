@@ -107,6 +107,15 @@ export const ItemCategories = () => {
   };
 
   console.log(totalItems, 'totalItemCategories')
+
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/term/${rowData.id}/items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.name}
+      </Link>
+    );
+  };
   const editColumnTemplate = (rowData) => {
     const editUrl = `/term/${rowData.id}/items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
@@ -154,7 +163,7 @@ export const ItemCategories = () => {
         <DataTable value={termList} editMode="row" paginator header={header}
                    loading={loading}
                    totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" style={{ width: '20%' }} />
+          <Column field="name" header="Name" body={nameColumnTemplate} style={{ width: '20%' }} />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />

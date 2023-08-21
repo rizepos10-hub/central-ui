@@ -8,14 +8,14 @@ const AppMenu = () => {
                         icon: 'pi pi-home',
                         items: [
                           {
-                            label: 'Dashboard',
-                            icon: 'pi pi-fw pi-home',
+                            label:'Dashboard',
+                            icon: 'pi pi-home',
                             to: '/'
                           },
                           {
                             label: 'Branches',
                             icon: 'pi pi-share-alt',
-                            to: '/branch?page=1&sort=id,asc'
+                            to: '/branch'
                           },
                           {
                             label: 'Orders',
@@ -29,7 +29,7 @@ const AppMenu = () => {
                               {
                                 label: 'History',
                                 icon: 'pi pi-clock',
-                                to: '/order?page=1&sort=id,asc'
+                                to: '/order'
                               }
                             ]
                           },
@@ -40,12 +40,12 @@ const AppMenu = () => {
                               {
                                 label: 'List',
                                 icon: 'pi pi-list',
-                                to: '/menu?page=1&sort=id,asc'
+                                to: '/menu'
                               },
                               {
                                 label: 'Category',
                                 icon: 'pi pi-folder',
-                                to: '/term/menus?page=1&sort=id,asc'
+                                to: '/term/menus'
                               },
 
                             ]
@@ -58,22 +58,22 @@ const AppMenu = () => {
                               {
                                 label: 'Items',
                                 icon: ' pi pi-th-large',
-                                to: '/item?page=1&sort=id,asc'
+                                to: '/item'
                               },
                               {
                                 label: 'Category',
                                 icon: 'pi pi-folder-open',
-                                to: '/term/items?page=1&sort=id,asc'
+                                to: '/term/items'
                               },
                               {
                                 label: 'Addons',
                                 icon: 'pi pi-plus-circle',
-                                to: '/addon?page=1&sort=id,asc'
+                                to: '/addon'
                               },
                               {
                                 label: 'Discounts',
                                 icon: 'pi pi-percentage',
-                                to: '/discount?page=1&sort=id,asc'
+                                to: '/discount'
                               },
                             ]
                           },

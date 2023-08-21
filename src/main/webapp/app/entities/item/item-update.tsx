@@ -69,7 +69,7 @@ export const ItemUpdate = () => {
   const [editingVariantId, setEditingVariantId] = useState(null);
 
   const handleEditExistingVariant = (editedVariant) => {
-    const updatedVariants = variants.map((variant) =>
+    const updatedVariants = variants?.map((variant) =>
       variant.id === editedVariant.id ? editedVariant : variant
     );
     setVariants(updatedVariants);
@@ -79,7 +79,7 @@ export const ItemUpdate = () => {
   const archiveVariant = (variantId) => {
     const shouldArchive = window.confirm("Are you sure you want to delete this variant?");
     if (shouldArchive) {
-      const archivedVariants = variants.map((variant) =>
+      const archivedVariants = variants?.map((variant) =>
         variant.id === variantId ? { ...variant, archived: true } : variant
       );
       setVariants(archivedVariants);
@@ -130,7 +130,7 @@ export const ItemUpdate = () => {
       setSelectedTerms(itemEntity.terms?.map((term) => ({id: term.id})))
     }
     if (itemEntity?.attachments) {
-      setSelectedAttachments(itemEntity.attachments.map(attachment => ({ id: attachment.id, url: attachment.url })));
+      setSelectedAttachments(itemEntity.attachments?.map(attachment => ({ id: attachment.id, url: attachment.url })));
     }
 console.log(itemEntity, 'termos')
     if(itemEntity?.addons){
@@ -145,6 +145,9 @@ console.log(itemEntity, 'termos')
     if (updateSuccess && newTermId) {
       navigate(`/item/${newTermId}/edit?page=1&sort=id,asc`)
     }
+    return () => {
+      dispatch(reset());
+    };
 
   }, [updateSuccess, itemEntity?.variants ]);
 
@@ -157,7 +160,7 @@ console.log(itemEntity, 'termos')
     setSelectedAddons(selectedAddon.map((addon) => ({id: addon.value})));
   }
 
-
+console.log(editingVariantId, 'editingVariantId')
   const saveEntity = values => {
 
     const entity = {
@@ -176,6 +179,7 @@ console.log(itemEntity, 'termos')
     }
   };
   const handleCloseModal = () => {
+    setEditingVariantId(null);
     setOpenedModal(false);
   };
   const openVariantModal = () => {
@@ -335,39 +339,39 @@ console.log(itemEntity, 'termos')
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
-              <ValidatedField label={translate('tempApp.item.desc')} id="item-desc" name="desc" data-cy="desc" type="text" />
-              <ValidatedField
-                label={translate('tempApp.item.orderCount')}
-                id="item-orderCount"
-                name="orderCount"
-                data-cy="orderCount"
-                type="text"
-              />
-              <ValidatedField
-                label={translate('tempApp.item.avgRating')}
-                id="item-avgRating"
-                name="avgRating"
-                data-cy="avgRating"
-                type="text"
-              />
-              <ValidatedField
-                label={translate('tempApp.item.ratingCount')}
-                id="item-ratingCount"
-                name="ratingCount"
-                data-cy="ratingCount"
-                type="text"
-              />
-              <ValidatedField
-                label={translate('tempApp.item.stock')}
-                id="item-stock"
-                name="stock"
-                data-cy="stock"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                  validate: v => isNumber(v) || translate('entity.validation.number'),
-                }}
-              />
+              <ValidatedField label={translate('tempApp.item.desc')} id="item-desc" name="desc" data-cy="desc" type="textarea" />
+              {/* <ValidatedField */}
+              {/*   label={translate('tempApp.item.orderCount')} */}
+              {/*   id="item-orderCount" */}
+              {/*   name="orderCount" */}
+              {/*   data-cy="orderCount" */}
+              {/*   type="text" */}
+              {/* /> */}
+              {/* <ValidatedField */}
+              {/*   label={translate('tempApp.item.avgRating')} */}
+              {/*   id="item-avgRating" */}
+              {/*   name="avgRating" */}
+              {/*   data-cy="avgRating" */}
+              {/*   type="text" */}
+              {/* /> */}
+              {/* <ValidatedField */}
+              {/*   label={translate('tempApp.item.ratingCount')} */}
+              {/*   id="item-ratingCount" */}
+              {/*   name="ratingCount" */}
+              {/*   data-cy="ratingCount" */}
+              {/*   type="text" */}
+              {/* /> */}
+              {/* <ValidatedField */}
+              {/*   label={translate('tempApp.item.stock')} */}
+              {/*   id="item-stock" */}
+              {/*   name="stock" */}
+              {/*   data-cy="stock" */}
+              {/*   type="text" */}
+              {/*   validate={{ */}
+              {/*     required: { value: true, message: translate('entity.validation.required') }, */}
+              {/*     validate: v => isNumber(v) || translate('entity.validation.number'), */}
+              {/*   }} */}
+              {/* /> */}
 
               <ValidatedField label={translate('tempApp.item.status')} id="item-status" name="status" data-cy="status" type="select">
                 {itemStatusValues.map(itemStatus => (
@@ -448,12 +452,12 @@ console.log(itemEntity, 'termos')
                     </tr>
                     </thead>
                     <tbody>
-                    {variants.filter((variant) => variant.archived !== true).map((variant) => (
+                    {variants.filter((variant) => variant.archived !== true)?.map((variant) => (
                       <tr key={variant.id && variant.id}>
                         <td className="align-middle">{variant.name}</td>
                         <td className="align-middle">{variant.price}</td>
                         <td className="align-middle">
-                          {variant.attachments.map((attachment) => (
+                          {variant.attachments?.map((attachment) => (
                             <img
                               key={attachment.id}
                               alt={attachment.name}
@@ -469,7 +473,7 @@ console.log(itemEntity, 'termos')
                         </td>
                         <td className="align-middle">
                           <ul>
-                            {variant.discounts.map((discount) => (
+                            {variant.discounts?.map((discount) => (
                               <li key={discount?.id}>{`${discount?.type === 'PERCENTAGE' ? `${discount?.value}%` : `${discount?.value} ${discount?.type}`}`}</li>
                             ))}
                           </ul>

@@ -125,6 +125,15 @@ export const Customer = () => {
     sortEntities();
   };
 
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.firstName} {rowData.lastName}
+      </Link>
+    );
+  };
+
   const editColumnTemplate = (rowData) => {
     const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
@@ -169,7 +178,7 @@ export const Customer = () => {
 
       <div >
         <DataTable value={customerList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={5}>
-          <Column header="Name" body={(rowData) => `${rowData.firstName} ${rowData.lastName}` }  sortable  />
+          <Column header="Name" body={nameColumnTemplate }  sortable  />
           <Column field="email" header="Email"  sortable   />
           <Column field="phone" header="Phone Number"  sortable  />
 

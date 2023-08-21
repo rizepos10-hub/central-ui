@@ -77,6 +77,17 @@ export const Branch = () => {
   const handleSyncList = () => {
     sortEntities();
   };
+
+
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/branch/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl} >
+        {rowData.name}
+      </Link>
+    );
+  };
+
   const editColumnTemplate = (rowData) => {
     const editUrl = `/branch/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
@@ -120,7 +131,7 @@ export const Branch = () => {
 
       <div className="table-responsive">
         <DataTable value={branchList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name"  sortable   />
+          <Column field="name" header="Name" sortable body={nameColumnTemplate} />
           <Column field="numberOfEmployees" sortable header="Employees"  />
 
 

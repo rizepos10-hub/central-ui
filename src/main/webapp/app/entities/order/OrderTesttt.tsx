@@ -23,7 +23,7 @@ import {fromPairs} from "lodash";
 import {Dropdown} from "primereact/dropdown";
 
 interface LazyTableState {
-  first: number;
+  first?: number;
   rows: number;
   page: number;
   sortField?: string;
@@ -39,26 +39,31 @@ export const Order = () => {
 
   const [selectAll, setSelectAll] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState(null);
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+  const defaultFromDate = new Date();
+  defaultFromDate.setMonth(defaultFromDate.getMonth() - 1);
+  const defaultToDate = new Date();
+  const [fromDate, setFromDate] = useState(defaultFromDate);
+  const [toDate, setToDate] = useState(defaultToDate);
+
   const [lazyState, setLazyState] = useState<LazyTableState>({
-    first: 100,
+    first: 0,
     rows: 10,
     page: 0,
     sortField: null,
     sortOrder: null,
-
-      filters: {
-        createdDate: {
-          from: fromDate ? fromDate.toISOString() : '',
-          to: toDate ? toDate.toISOString() : ''
-        },
+    filters: {
+      createdDate: {
+        from: fromDate ? fromDate.toISOString() : '',
+        to: toDate ? toDate.toISOString() : ''
+      },
+      id:{value: '', matchMode: 'contains'},
       byClient: { value: '', matchMode: 'contains' },
-      status: { value: '', matchMode: 'contains' } ,
-      customer: { value: '', matchMode: 'equals' } ,
-      branchId: { value: '', matchMode: 'equals' } ,
-
-  }});
+      status: { value: '', matchMode: 'contains' },
+      customer: { value: '', matchMode: 'equals' },
+      branchId: { value: '', matchMode: 'equals' },
+      tables: {value: '', matchMode: 'contains'}
+    }
+  });
 
 
   const orderList = useAppSelector(state => state.order.entities);
@@ -156,22 +161,28 @@ export const Order = () => {
 
   useEffect(() => {
     if (
+      lazyState.first ||
       lazyState.filters.createdDate?.from ||
       lazyState.filters.createdDate?.to ||
       lazyState.filters.byClient?.value ||
       lazyState.filters.status?.value ||
       lazyState.filters.customer?.value ||
       lazyState.filters.branchId?.value ||
+      lazyState.filters.id?.value ||
+      lazyState.filters.tables?.value ||
       lazyState.filters.orderSource?.value
     ) {
       const queryParams = {
         orderSource: lazyState.filters.byClient?.value || '',
-        page: lazyState.page || 0,
-        customerEmail: lazyState.filters.customer?.value || '',
+        first: lazyState.first,
+        sequenceId:lazyState.filters.id?.value || '',
+        page: lazyState.page ,
+        customerPhone: lazyState.filters.customer?.value || '',
         branch: lazyState.filters.branchId?.value || '',
-        limit: lazyState.rows || 10,
-          fromDate: lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '',
-          toDate: lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : '',
+        tables: lazyState.filters.tables?.value || '',
+        size: lazyState.rows ,
+        fromDate: lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '',
+        toDate: lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : '',
       };
       console.log(lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '', 'hellolog')
 
@@ -179,6 +190,7 @@ export const Order = () => {
     } else {
       dispatch(getEntities({}));
     }
+
     dispatch(getBranches({}))
     console.log(lazyState, 'lol')
   }, [lazyState]);
@@ -226,6 +238,7 @@ console.log(orderList.length, 'len')
               first={lazyState.first}
               rows={10}
               totalRecords={totalOrders}
+              emptyMessage="No Orders Found"
               onPage={onPage}
               onSort={onSort}
               sortOrder={lazyState.sortOrder}
@@ -242,8 +255,9 @@ console.log(orderList.length, 'len')
               {/* <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} /> */}
               <Column
                 field="id"
-                style={{ width: '6%' }}
+                style={{ width: '10%' }}
                 header="Order ID"
+                filter
                 body={(rowData): any => (
                   <Link to={`/order/${rowData.id}`}>
                     {rowData.sequenceNumber}
@@ -329,12 +343,12 @@ console.log(orderList.length, 'len')
               />
 
               <Column field="byClient" filter header="Order Source" />
-              <Column field="tables" style={{ width: '10%' }}   header="Order Tables" />
+              <Column field="tables" style={{ width: '10%' }} filter  header="Order Tables" />
               <Column
                 field="customer"
                 filter
                 header="Order Customer"
-                body={(rowData) => rowData.customer ? `${rowData.customer.firstName} ${rowData.customer.lastName}` : ''}
+                body={(rowData) => rowData.customer ? `${rowData.customer.phone}` : ''}
               />
 
               <Column field="status" filter header="Order Status" />

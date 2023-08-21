@@ -18,10 +18,13 @@ export default () => next => action => {
     const headers = payload?.headers;
     let alert: string | null = null;
     let alertParams: string | null = null;
+    console.log('headers12', Object.entries<string>(headers))
     headers &&
       Object.entries<string>(headers).forEach(([k, v]) => {
         if (k.toLowerCase().endsWith('app-alert')) {
-          alert = v;
+          alert = v.replace('centralApp', 'tempApp');
+          console.log(k, 'kamel' , alert , 'vebuck')
+
         } else if (k.toLowerCase().endsWith('app-params')) {
           alertParams = decodeURIComponent(v.replace(/\+/g, ' '));
         }

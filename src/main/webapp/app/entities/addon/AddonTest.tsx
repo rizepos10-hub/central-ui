@@ -97,6 +97,15 @@ export const Addon = () => {
     const price = item.price
     return formatCurrency(price);
   };
+
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/addon/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.name}
+      </Link>
+    );
+  };
   const editColumnTemplate = (rowData) => {
     const editUrl = `/addon/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
@@ -154,7 +163,7 @@ export const Addon = () => {
 
       <div >
         <DataTable value={addonList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name"  sortable  />
+          <Column field="name" header="Name" body={nameColumnTemplate}  sortable  />
           <Column field="price" header="Price" sortable body={priceBodyTemplate} />
           <Column
             field="discounts"
