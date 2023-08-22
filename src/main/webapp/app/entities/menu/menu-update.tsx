@@ -177,7 +177,7 @@ console.log(itemList, 'itemList')
         ...restValues,
         category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
         item: [...filteredMenuItems, ...itemIds],
-        branch: selectedBranches
+        branch: selectedBranches,
       };
 
       console.log(entity, 'entitysent')

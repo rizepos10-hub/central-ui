@@ -77,22 +77,42 @@ export const CustomerUpdate = () => {
             <p>Loading...</p>
           ) : (
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {!isNew ? (
-                <ValidatedField
-                  name="id"
-                  required
-                  readOnly
-                  id="customer-id"
-                  label={translate('global.field.id')}
-                  validate={{ required: true }}
-                />
-              ) : null}
+              {/* {!isNew ? ( */}
+              {/*   <ValidatedField */}
+              {/*     name="id" */}
+              {/*     required */}
+              {/*     readOnly */}
+              {/*     id="customer-id" */}
+              {/*     label={translate('global.field.id')} */}
+              {/*     validate={{ required: true }} */}
+              {/*   /> */}
+              {/* ) : null} */}
+              {/* <ValidatedField */}
+              {/*   label={translate('tempApp.customer.orderCount')} */}
+              {/*   id="customer-orderCount" */}
+              {/*   name="orderCount" */}
+              {/*   data-cy="orderCount" */}
+              {/*   type="text" */}
+              {/* /> */}
               <ValidatedField
-                label={translate('tempApp.customer.orderCount')}
-                id="customer-orderCount"
-                name="orderCount"
-                data-cy="orderCount"
+                label={translate('tempApp.customer.firstName')}
+                id="customer-firstName"
+                name="firstName"
+                data-cy="firstName"
                 type="text"
+                validate={{
+                  required: { value: true, message: translate('entity.validation.required') },
+                }}
+              />
+              <ValidatedField
+                label={translate('tempApp.customer.lastName')}
+                id="customer-lastName"
+                name="lastName"
+                data-cy="lastName"
+                type="text"
+                validate={{
+                  required: { value: true, message: translate('entity.validation.required') },
+                }}
               />
               <ValidatedField
                 label={translate('tempApp.customer.phone')}
@@ -105,12 +125,22 @@ export const CustomerUpdate = () => {
                 }}
               />
               <ValidatedField
-                label={translate('tempApp.customer.status')}
-                id="customer-status"
-                name="status"
-                data-cy="status"
+                label={translate('tempApp.customer.email')}
+                id="customer-email"
+                name="email"
+                data-cy="email"
                 type="text"
+                validate={{
+                  required: { value: true, message: translate('entity.validation.required') },
+                }}
               />
+              {/* <ValidatedField */}
+              {/*   label={translate('tempApp.customer.status')} */}
+              {/*   id="customer-status" */}
+              {/*   name="status" */}
+              {/*   data-cy="status" */}
+              {/*   type="text" */}
+              {/* /> */}
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/customer" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

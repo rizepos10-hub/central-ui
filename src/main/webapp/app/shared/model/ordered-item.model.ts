@@ -2,6 +2,7 @@ import { IOrderedAddon } from './ordered-addon.model';
 import { IOrderAudit } from 'app/shared/model/order-audit.model';
 
 export interface IOrderedItem extends IOrderAudit {
+  returnedAmount?: number;
   sequenceNumber?: number ;
   itemName?: string;
   variantName?: string;

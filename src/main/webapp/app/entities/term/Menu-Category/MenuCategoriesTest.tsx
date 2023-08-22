@@ -14,6 +14,7 @@ import { ITerm } from 'app/shared/model/term.model';
 import {searchEntities, getEntities, getMenuCategories} from '../term.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
+import {FilterMatchMode} from "primereact/api";
 
 export const MenuCategories = () => {
   const dispatch = useAppDispatch();
@@ -28,7 +29,9 @@ export const MenuCategories = () => {
 
   const termList = useAppSelector(state => state.term.entities)
   const loading = useAppSelector(state => state.term.loading);
-
+  const [filters, setFilters] = useState({
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  });
   const totalItems = termList.length;
 
 
@@ -149,9 +152,12 @@ export const MenuCategories = () => {
 
       <div className="table-responsive">
         <DataTable value={termList} editMode="row" header={header}
-                   loading={loading}
+                   loading={loading} removableSort filters={filters} filterDisplay="row"
                    paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" body={nameColumnTemplate} style={{ width: '20%' }} />
+          <Column field="name" sortable header="Name" filterPlaceholder={"Search by name"}  filter body={nameColumnTemplate} style={{ width: '20%' }} />
+
+          <Column header="Image"  body={(rowData) =>
+            <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />

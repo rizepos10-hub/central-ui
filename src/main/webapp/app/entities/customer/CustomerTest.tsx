@@ -13,6 +13,7 @@ import { searchEntities, getEntities } from './customer.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Button} from "primereact/button";
+import {FilterMatchMode} from "primereact/api";
 
 export const Customer = () => {
   const dispatch = useAppDispatch();
@@ -28,6 +29,14 @@ export const Customer = () => {
   const customerList = useAppSelector(state => state.customer.entities);
   const loading = useAppSelector(state => state.customer.loading);
   const totalItems = useAppSelector(state => state.customer.totalItems);
+
+  const [filters, setFilters] = useState({
+    firstName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    lastName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    phone: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  });
+
 
   console.log(customerList,'customerList')
   const getAllEntities = () => {
@@ -125,15 +134,23 @@ export const Customer = () => {
     sortEntities();
   };
 
-  const nameColumnTemplate = rowData => {
+  const firstNameColumnTemplate = rowData => {
     const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        {rowData.firstName} {rowData.lastName}
+        {rowData.firstName}
       </Link>
     );
   };
 
+  const lastNameColumnTemplate = rowData => {
+    const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.lastName}
+      </Link>
+    );
+  };
   const editColumnTemplate = (rowData) => {
     const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
@@ -177,10 +194,14 @@ export const Customer = () => {
       </h2>
 
       <div >
-        <DataTable value={customerList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={5}>
-          <Column header="Name" body={nameColumnTemplate }  sortable  />
-          <Column field="email" header="Email"  sortable   />
-          <Column field="phone" header="Phone Number"  sortable  />
+        <DataTable value={customerList} editMode="row" header={header}  paginator
+                   globalFilterFields={['firstName', 'lastName' ]}
+                   filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
+          <Column header="First Name" filter filterPlaceholder="Search by first name" body={firstNameColumnTemplate }  sortable field={"firstName"}  />
+          <Column header="Last Name" filter filterPlaceholder="Search by last name" body={lastNameColumnTemplate }  sortable field={"lastName"}  />
+
+          <Column field="email" header="Email" filter filterPlaceholder="Search by email"  sortable   />
+          <Column field="phone" header="Phone Number"  filter filterPlaceholder="Search by phone number"  sortable  />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />

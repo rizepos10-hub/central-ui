@@ -21,6 +21,7 @@ import {DataTable, DataTableFilterMeta} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {fromPairs} from "lodash";
 import {Dropdown} from "primereact/dropdown";
+import { startOfDay, endOfDay } from 'date-fns';
 
 interface LazyTableState {
   first: number;
@@ -36,13 +37,14 @@ interface LazyTableState {
 export const Order = () => {
   const dispatch = useAppDispatch();
 
-
   const today = new Date();
+
+  const from = startOfDay(today);
+  const to = endOfDay(today);
 
   const [selectAll, setSelectAll] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState(null);
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
     rows: 10,
@@ -52,14 +54,15 @@ export const Order = () => {
 
     filters: {
       createdDate: {
-        from: today ? today.toISOString() : '',
-        to: today ? today.toISOString() : ''
+        from: from.toISOString(),
+        to: to.toISOString(),
       },
+      id:{value: '', matchMode: 'contains'},
       byClient: { value: '', matchMode: 'contains' },
-      status: { value: '', matchMode: 'contains' } ,
-      customer: { value: '', matchMode: 'equals' } ,
-      branchId: { value: '', matchMode: 'equals' } ,
-
+      status: { value: '', matchMode: 'contains' },
+      customer: { value: '', matchMode: 'equals' },
+      branchId: { value: '', matchMode: 'equals' },
+      tables: {value: '', matchMode: 'contains'}
     }});
 
 
@@ -98,8 +101,8 @@ export const Order = () => {
 
   const onFilter = (event) => {
 
-    console.log(fromDate,'from')
-    console.log(toDate, 'to')
+    console.log(from,'from')
+    console.log(to, 'to')
     event['first'] = 0;
     setLazyState(event);
   };
@@ -127,17 +130,18 @@ export const Order = () => {
 
   useEffect(() => {
 
-      const queryParams = {
-        orderSource: lazyState.filters.byClient?.value || '',
-        page: lazyState.page || 0,
-        customerEmail: lazyState.filters.customer?.value || '',
-        branch: lazyState.filters.branchId?.value || '',
-        limit: lazyState.rows || 10,
-        fromDate: lazyState.filters.createdDate?.from
-          ? new Date(lazyState.filters.createdDate.from).toISOString().replace(/\T\d{2}:\d{2}:\d{2}\.\d{3}Z$/, 'T00:00:00.000Z')
-          : '',
-
-      };
+    const queryParams = {
+      orderSource: lazyState.filters.byClient?.value || '',
+      first: lazyState.first,
+      sequenceId:lazyState.filters.id?.value || '',
+      page: lazyState.page ,
+      customerPhone: lazyState.filters.customer?.value || '',
+      branch: lazyState.filters.branchId?.value || '',
+      tables: lazyState.filters.tables?.value || '',
+      size: lazyState.rows ,
+      fromDate: lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '',
+      toDate: lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : '',
+    };
 
       dispatch(filterOrders(queryParams));
 
@@ -180,8 +184,9 @@ export const Order = () => {
           >
             <Column
               field="id"
-              style={{ width: '6%' }}
+              style={{ width: '10%' }}
               header="Order ID"
+              filter
               body={(rowData): any => (
                 <Link to={`/order/${rowData.id}`}>
                   {rowData.sequenceNumber}
@@ -227,12 +232,12 @@ export const Order = () => {
             />
 
             <Column field="byClient" filter header="Order Source" />
-            <Column field="tables" style={{ width: '13%' }} header="Order Tables" />
+            <Column field="tables" style={{ width: '13%' }} filter header="Order Tables" />
             <Column
               field="customer"
               filter
               header="Order Customer"
-              body={(rowData) => rowData.customer ? `${rowData.customer.firstName} ${rowData.customer.lastName}` : ''}
+              body={(rowData) => rowData.customer ? rowData.customer.phone : ''}
             />
 
             <Column field="status" filter header="Order Status" />

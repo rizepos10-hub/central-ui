@@ -16,7 +16,7 @@ import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.consta
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 
 import { searchEntities as searchBranches, getEntities as getBranches } from '../branch/branch.reducer';
-import {format, formatISO} from "date-fns";
+import {endOfDay, format, formatISO, startOfDay} from "date-fns";
 import {DataTable, DataTableFilterMeta} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {fromPairs} from "lodash";
@@ -181,8 +181,10 @@ export const Order = () => {
         branch: lazyState.filters.branchId?.value || '',
         tables: lazyState.filters.tables?.value || '',
         size: lazyState.rows ,
-        fromDate: lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '',
-        toDate: lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : '',
+        fromDate: lazyState.filters.createdDate?.from ? startOfDay(new Date(lazyState.filters.createdDate.from)).toISOString() : '',
+        toDate: lazyState.filters.createdDate?.to ? endOfDay(new Date(lazyState.filters.createdDate.to)).toISOString() : '',
+
+
       };
       console.log(lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '', 'hellolog')
 

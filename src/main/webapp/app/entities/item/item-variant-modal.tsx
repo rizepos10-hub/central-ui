@@ -7,6 +7,8 @@ import { IDiscount } from 'app/shared/model/discount.model';
 import Select from 'react-select';
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {useParams} from "react-router-dom";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 
 interface IVariantProps {
   showModal: boolean;
@@ -23,6 +25,7 @@ const ItemVariantModal = (props: IVariantProps) => {
     ? props.variants.find((variant) => variant.id === props.editingVariantId)
     : null;
 
+  const defaultAttachments = editingVariant?.attachments
 
   const discounts = useAppSelector(state => state.discount.entities);
   console.log(discounts, 'discount1');
@@ -37,6 +40,7 @@ const ItemVariantModal = (props: IVariantProps) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [variantImage, setVariantImage] = useState(null)
 
+  const [attachments, setAttachments] = useState([]);
   const  handleDiscountsChange = selectedOptions => {
     console.log(selectedOptions, 'new discount')
     const selectedValues = selectedOptions.map((option) => ({
@@ -62,45 +66,42 @@ const ItemVariantModal = (props: IVariantProps) => {
     formState: { errors, touchedFields },
   } = useForm({ mode: 'onTouched' });
 
-  const handleVariantSave = async (formData) => {
-    console.log('here1');
-
+  const handleVariantSave = async () => {
     try {
-      console.log('here2');
-      const imageInfo = await handleImageUpload();
       const selectedDiscountObjects = selectedDiscounts?.map((item) => ({
         id: item.id,
         type: item.type,
-        value: item.value
+        value: item.value,
       }));
-      const attachments = imageInfo ? [imageInfo] : defaultAttachments;
-      console.log(imageInfo, 'imageInfo');
-      console.log(attachments, 'attachments');
+
+      let attachmentsToSend = [];
+
+      if (selectedImage) {
+        const imageInfo = await handleImageUpload();
+        attachmentsToSend.push(imageInfo);
+      }
+
+      if (attachments.length > 0) {
+        attachmentsToSend = attachmentsToSend.concat(attachments);
+      }
+      console.log(attachmentsToSend, 'attachmentsToSend')
 
       if (props.editingVariantId === null) {
-
-        props.handleSave(name, parseFloat(price), selectedDiscountObjects, attachments);
+        props.handleSave(name, parseFloat(price), selectedDiscountObjects, attachmentsToSend);
         resetForm();
         setSelectedDiscounts([]);
       } else {
         const editedVariant = {
-
-
           ...props.variants.find((variant) => variant.id === props.editingVariantId),
           name: name,
           price: price,
           discounts: selectedDiscountObjects,
-          attachments: attachments,
+          attachments: attachmentsToSend,
         };
-
         props.handleEditExistingVariant(editedVariant);
       }
 
-      console.log('here3');
-
       props.handleClose();
-      console.log('here4');
-
     } catch (error) {
       console.error('Error handling variant save:', error);
     }
@@ -124,6 +125,7 @@ const ItemVariantModal = (props: IVariantProps) => {
         value: discount.value
       })) || [];
 
+      setAttachments(defaultAttachments)
       setSelectedDiscounts(defaultDiscounts);
     }
 
@@ -167,6 +169,11 @@ const ItemVariantModal = (props: IVariantProps) => {
     setSelectedImage(event.target.files[0]);
   };
 
+  const removeAttachment = (attachmentId) => {
+    setAttachments((prevAttachments) =>
+      prevAttachments.filter((attachment) => attachment && attachment.id !== attachmentId)
+    );
+  };
 
 
   const defaultDiscouts = editingVariant?.discounts?.map((discount) =>
@@ -182,7 +189,6 @@ const ItemVariantModal = (props: IVariantProps) => {
     value: discount.value
   }));
 
-  let defaultAttachments = editingVariant?.attachments
   console.log(editingVariant, 'editingVariant?')
   console.log(isNew, 'isnew?')
 
@@ -226,6 +232,47 @@ const ItemVariantModal = (props: IVariantProps) => {
                   </div>
                 </Col>
               </Row>
+              <div className="mb-3">
+                {attachments?.map((attachment) => attachment && (
+                  <div key={attachment.id} style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
+                    {/* ... (attachment rendering code) */}
+                    <img
+                      src={attachment.url}
+                      alt="Selected Image"
+                      className="img-fluid m-lg-1"
+                      style={{
+                        maxWidth: '100px',
+                        maxHeight: '100px',
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '5px',
+                        right: '5px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        borderRadius: '50%',
+                        padding: '2px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => removeAttachment(attachment.id)}
+                    >
+                      <FontAwesomeIcon icon={faTrashAlt} />
+                    </div>
+                  </div>
+                ))}
+                {selectedImage && (
+                  <img
+                    src={URL.createObjectURL(selectedImage)}
+                    alt="Selected Image"
+                    className="img-fluid m-lg-1"
+                    style={{
+                      maxWidth: '100px',
+                      maxHeight: '100px',
+                    }}
+                  />
+                )}
+              </div>
               <div className="mb-3">
                 <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
 

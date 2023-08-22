@@ -23,7 +23,9 @@
       "name": "Name",
       "email": "Email",
       "phone": "Phone Number",
-      "status": "Status"
+      "status": "Status",
+      "firstName": "First Name",
+      "lastName": "Last Name"
     }
   }
 }

@@ -50,11 +50,13 @@ export const TestBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
       },
     };
   };
+  console.log(billList, 'bill List')
   const transformBillToTreeNode = (bill, orderedItems) => {
     const treeNodes = [];
-
+console.log(bill.billItems, 'bill.billItems')
     bill.billItems.forEach((billItem) => {
       const orderedItem = orderedItems.find((item) => item.id === billItem.orderedItemId);
+      console.log(orderedItem, 'ordered Item')
 
       if (orderedItem) {
         const addonTotal = orderedItem.addons.reduce((total, addon) => {
@@ -79,6 +81,7 @@ export const TestBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
         const treeNode = {
           key: `bill-${bill.id}-item-${orderedItem.id}`,
           data: {
+            id: bill.sequenceNumber,
             name: orderedItem.itemName,
             amount: billItem.amount.toFixed(2),
             price: orderedItem.price.toFixed(2),
@@ -181,13 +184,14 @@ export const TestBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
 
 
             return   (
-              <Card key={`bill-${billIndex}`} className="mb-3">
+              <Card key={`bill-${bill.sequenceNumber}`} className="mb-3">
                 <div className="d-flex gap-2 ">
                   <div className="flex-grow-1 flex-shrink-1-l" style={{ marginBottom: '20px',  width: '80%' }}>
                     {/* maxHeight: '300px', overflowY: 'auto', */}
-                    <h4>Order Bill {billIndex + 1}</h4>
+                    <h4>Order Bill {bill.sequenceNumber}</h4>
 
                   <TreeTable value={transformedTreeData} className="mt-4" >
+                        <Column field="id" header="ID" />
                         <Column field="name" header="Name" expander style={{width: '30%'}} />
                         <Column field="amount" header="Amount" />
                         <Column field="price" header="Price" />
