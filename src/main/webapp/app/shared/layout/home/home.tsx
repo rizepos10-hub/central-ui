@@ -10,7 +10,7 @@ import { Rating } from 'primereact/rating';
 
 import { Tooltip } from 'primereact/tooltip';
 import { ChartData, ChartOptions } from 'chart.js';
-import type { ChartDataState, ChartOptionsState, Demo } from '../../shared/sidebar/types/types';
+import type { ChartDataState, ChartOptionsState, Demo } from '../../sidebar/types/types';
 import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
 import axios from "axios";
 import {
@@ -143,7 +143,7 @@ export default function ECommerce() {
     return (
       <>
         <span className="p-column-title">Price</span>
-        <p className="m-3" key={rowData.id}>{formatCurrency(rowData.currentPrice as number)}</p>
+        <p className="m-3" key={rowData.id}>{(rowData.currentPrice as number).toFixed(2)}</p>
       </>
     );
   };
@@ -510,7 +510,7 @@ export default function ECommerce() {
                       <Rating value={product.rating} readOnly cancel={false} onIconProps={{ style: { fontSize: '12px' } }} offIconProps={{ style: { fontSize: '12px' } }}></Rating>
                     </div>
                   </div>
-                  <span className="ml-auto font-semibold text-xl p-text-secondary">${product.currentPrice}</span>
+                  <span className="ml-auto font-semibold text-xl p-text-secondary">${(product.currentPrice).toFixed(2)}</span>
                 </li>
               );
             })}

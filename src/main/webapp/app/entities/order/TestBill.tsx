@@ -74,8 +74,10 @@ console.log(bill.billItems, 'bill.billItems')
           return total + addonTotalPrice;
         }, 0);
 
-        const itemTotal = (orderedItem.price * billItem.amount) - (orderedItem.discount ? orderedItem.discount.value * billItem.amount : 0);
-        const total = itemTotal ;
+        const itemTotal = (orderedItem.price * billItem.amount) - (orderedItem.discount && orderedItem.discount.type === "PERCENTAGE" ?
+          (orderedItem.discount.value / 100) * (orderedItem.price * billItem.amount) : (orderedItem.discount ? orderedItem.discount.value * billItem.amount : 0));
+        const total = itemTotal;
+
 
 
         const treeNode = {

@@ -5,7 +5,7 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
 import Settings from './settings/settings';
 import Password from './password/password';
-import Home from "app/modules/home/home";
+import Home from "app/shared/layout/home/home";
 
 const AccountRoutes = () => (
   <div>
