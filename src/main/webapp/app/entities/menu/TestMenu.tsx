@@ -14,6 +14,8 @@ import { searchEntities, getEntities } from './menu.reducer';
 import { DataTable } from 'primereact/datatable';
 import {Column} from "primereact/column";
 import {format} from "date-fns";
+import {FilterMatchMode} from "primereact/api";
+import {Dropdown} from "primereact/dropdown";
 
 export const Menu = () => {
   const dispatch = useAppDispatch();
@@ -29,6 +31,10 @@ export const Menu = () => {
   const menuList = useAppSelector(state => state.menu.entities);
   const loading = useAppSelector(state => state.menu.loading);
   const totalItems = useAppSelector(state => state.menu.totalItems);
+  const [filters, setFilters] = useState({
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    'category.name': { value: null, matchMode: FilterMatchMode.EQUALS },
+  });
 
   const getAllEntities = () => {
     if (search) {
@@ -82,13 +88,33 @@ export const Menu = () => {
     }
   }, [location.search]);
 
-
+console.log(menuList, 'menu list')
 
   const handleSyncList = () => {
     sortEntities();
   };
 
+  const categoryNames = new Set(menuList.map((menu) => menu.category.name));
+  const categoryFilterOptions = Array.from(categoryNames).map((categoryName) => ({
+    label: categoryName,
+    value: categoryName,
+  }));
 
+  const categoryFilter = (
+    <Dropdown
+      value={filters['category.name']?.value}
+      options={categoryFilterOptions}
+      onChange={(e) => {
+        const updatedFilters = {
+          ...filters,
+          'category.name': { value: e.value, matchMode: FilterMatchMode.EQUALS },
+        };
+        setFilters(updatedFilters);
+      }}
+      placeholder="Select a category"
+    />
+
+  );
   const editColumnTemplate = (rowData) => {
     const editUrl = `/menu/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
@@ -130,11 +156,14 @@ export const Menu = () => {
       </h2>
 
         <DataTable value={menuList} header={header} editMode="row"
-                   loading={loading}
+                   loading={loading} filters={filters} filterDisplay="row"
                    paginator totalRecords={totalItems} rows={5}>
 
           <Column
             header="Name"
+            field="name"
+            sortable
+            filterPlaceholder={"Search by name"}  filter
             body={(rowData) => (
               <Link to={`/menu/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>{rowData.name}</Link>)}
             style={{ width: '20%' }}
@@ -142,16 +171,23 @@ export const Menu = () => {
           <Column
             field="createdDate"
             header="Created At"
+            sortable
             body={(rowData) => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
           />
           <Column
             field="lastModifiedDate"
             header="Updated At"
+            sortable
             body={(rowData) => format(new Date(rowData.lastModifiedDate), 'yyyy-MM-dd HH:mm:ss')}
           />
           <Column
-            field="category"
+            field="category.name"
             header="Category"
+            sortable
+            filter
+            filterElement={categoryFilter}
+            filterField={"category.name"}
+            sortField={"category.name"}
             body={(rowData) => (rowData.category ? <span>{rowData.category.name}</span> : null)}
           ></Column>
           <Column header="Edit" body={editColumnTemplate} headerStyle={{ width: '5%' }} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />

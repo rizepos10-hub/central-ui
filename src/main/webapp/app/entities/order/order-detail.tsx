@@ -20,6 +20,8 @@ export const OrderDetail = () => {
   const { id } = useParams<'id'>();
   const orderEntity = useAppSelector(state => state.order.entity);
 
+  console.log(orderEntity, 'orderEntity')
+
   useEffect(() => {
     dispatch(getEntity(id));
   }, []);
@@ -39,14 +41,14 @@ export const OrderDetail = () => {
 
   const totalPaymentAmount = orderEntity?.bills?.reduce((total, bill) => {
     const billPaymentTotal = bill.paymentTransactions.reduce(
-      (acc, transaction) => acc + transaction.amount > 0 ? transaction.amount : 0,
+      (acc, transaction) => acc + transaction.amount ? transaction.amount : 0,
       0
     );
     return total + billPaymentTotal;
   }, 0);
 
 
-  console.log(orderEntity, 'orderEntityorderEntity')
+  console.log(orderEntity.bills, 'orderEntityorderEntity')
   console.log(totalItemsPrice, 'totalItemsPrice')
 
   console.log(totalPaymentAmount, 'totalPaymentAmount')
@@ -57,8 +59,9 @@ export const OrderDetail = () => {
       <h2 className="mb-3">
         Order <span className="text-primary">#{orderEntity.sequenceNumber}</span>
       </h2>
-
       <Col md="12" className="d-flex flex-wrap ">
+        <Card>
+
               <div className="d-flex flex-grow-1 gap-2">
 
                 <Col md="9">
@@ -66,9 +69,9 @@ export const OrderDetail = () => {
                     <div>{orderEntity?.items ? <OrderedItems list={orderEntity.items} totalPayments={totalPaymentAmount} /> : ''}</div>
                 </Col>
 
-                <Col md="3" className="mb-3">
+                <Col md="3" className="mt-3">
                     {orderEntity.customer ? (
-                      <Card className="border p-3 mt-lg-3 " >
+                      <Card className="border p-3 mt-lg-3 " style={{ height: '28.5rem'}} >
 
                       <OrderCustomerDetail
                         email={orderEntity.customer.email}
@@ -83,7 +86,7 @@ export const OrderDetail = () => {
                       <h4 data-cy="customerDetailsHeading">
                       <strong> <Translate contentKey="tempApp.customer.detail.title">Customer</Translate></strong>
                       </h4>
-                        <Card className="border p-3 mt-lg-3 " style={{ height: '50px'}}>
+                        <Card className="border p-3 mt-lg-3 "  style={{ height: '28.5rem'}}>
 
                         Walk In
                       </Card>
@@ -92,6 +95,7 @@ export const OrderDetail = () => {
                 </Col>
 
 </div>
+        </Card>
         <div className="">
 
         <Col md="12" className="mt-lg-5">

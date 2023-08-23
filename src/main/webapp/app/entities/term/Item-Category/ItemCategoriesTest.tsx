@@ -12,6 +12,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import {searchEntities, getEntities, getItemCategories} from '../term.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
+import {FilterMatchMode} from "primereact/api";
 
 export const ItemCategories = () => {
   const dispatch = useAppDispatch();
@@ -29,7 +30,9 @@ export const ItemCategories = () => {
 
   const totalItems = termList.length;
 
-
+  const [filters, setFilters] = useState({
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  });
 
   const getAllEntities = () => {
     if (search) {
@@ -152,6 +155,8 @@ export const ItemCategories = () => {
     </div>
   );
 
+  console.log(termList, 'termlist')
+
   return (
     <div>
       <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
@@ -161,9 +166,12 @@ export const ItemCategories = () => {
 
       <div className="table-responsive">
         <DataTable value={termList} editMode="row" paginator header={header}
-                   loading={loading}
+                   loading={loading} removableSort  filters={filters} filterDisplay="row"
                    totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" body={nameColumnTemplate} style={{ width: '20%' }} />
+          <Column field="name" header="Name" filterPlaceholder={"Search by name"} filter sortable body={nameColumnTemplate} style={{ width: '20%' }} />
+
+          <Column header="Image"  body={(rowData) =>
+            <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />

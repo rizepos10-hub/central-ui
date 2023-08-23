@@ -21,6 +21,7 @@ import Select from 'react-select';
 import ItemVariantModal from 'app/entities/item/item-variant-modal';
 import {at} from "lodash";
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
+import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -70,7 +71,7 @@ export const ItemUpdate = () => {
 
   const handleEditExistingVariant = (editedVariant) => {
     const updatedVariants = variants?.map((variant) =>
-      variant.id === editedVariant.id ? editedVariant : variant
+      variant?.id === editedVariant?.id ? editedVariant : variant
     );
     setVariants(updatedVariants);
     setEditingVariantId(null);
@@ -95,6 +96,7 @@ export const ItemUpdate = () => {
 
 
   const handleVariantImageUpload = (variantImage) => {
+    console.log(variantImage, 'handleVariantImageUpload')
     setModalVariantImages([variantImage]);
   };
   const handleClose = () => {
@@ -160,7 +162,13 @@ console.log(itemEntity, 'termos')
     setSelectedAddons(selectedAddon.map((addon) => ({id: addon.value})));
   }
 
-console.log(editingVariantId, 'editingVariantId')
+  const removeAttachment = (attachmentId) => {
+    setSelectedAttachments((prevAttachments) =>
+      prevAttachments.filter((attachment) => attachment.id !== attachmentId)
+    );
+  };
+
+  console.log(editingVariantId, 'editingVariantId')
   const saveEntity = values => {
 
     const entity = {
@@ -391,22 +399,34 @@ console.log(editingVariantId, 'editingVariantId')
                   accept="image/*"
                 />
                 <div className="mb-3">
-                  {selectedAttachments && selectedAttachments.length > 0 && (
-                    <div>
-                      {selectedAttachments.map((attachment, index) => (
-                        <img
-                          key={index}
-                          src={attachment.url}
-                          alt={attachment.name}
-                          className="img-fluid m-lg-1"
-                          style={{
-                            maxWidth: '100px',
-                            maxHeight: '100px',
-                          }}
-                        />
-                      ))}
+                  {selectedAttachments.map((attachment, index) => (
+                    <div key={index} style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
+                      <img
+                        src={attachment.url}
+                        alt={attachment.name}
+                        className="img-fluid"
+                        style={{
+                          maxWidth: '100px',
+                          maxHeight: '100px',
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '5px',
+                          right: '5px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                          borderRadius: '50%',
+                          padding: '2px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => removeAttachment(attachment.id)}
+                      >
+                        <FontAwesomeIcon icon={faTrashAlt}  />
+                      </div>
                     </div>
-                  )}
+
+                  ))}
                   {selectedImage && (
                     <img
                       src={URL.createObjectURL(selectedImage)}
@@ -459,9 +479,9 @@ console.log(editingVariantId, 'editingVariantId')
                         <td className="align-middle">
                           {variant.attachments?.map((attachment) => (
                             <img
-                              key={attachment.id}
-                              alt={attachment.name}
-                              src={attachment.url}
+                              key={attachment?.id}
+                              alt={attachment?.name}
+                              src={attachment?.url}
                               className="img-fluid m-lg-1"
                               style={{
 

@@ -16,7 +16,7 @@ import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.consta
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 
 import { searchEntities as searchBranches, getEntities as getBranches } from '../branch/branch.reducer';
-import {format, formatISO} from "date-fns";
+import {endOfDay, format, formatISO, startOfDay} from "date-fns";
 import {DataTable, DataTableFilterMeta} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {fromPairs} from "lodash";
@@ -181,8 +181,10 @@ export const Order = () => {
         branch: lazyState.filters.branchId?.value || '',
         tables: lazyState.filters.tables?.value || '',
         size: lazyState.rows ,
-        fromDate: lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '',
-        toDate: lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : '',
+        fromDate: lazyState.filters.createdDate?.from ? startOfDay(new Date(lazyState.filters.createdDate.from)).toISOString() : '',
+        toDate: lazyState.filters.createdDate?.to ? endOfDay(new Date(lazyState.filters.createdDate.to)).toISOString() : '',
+
+
       };
       console.log(lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '', 'hellolog')
 
@@ -245,6 +247,7 @@ console.log(orderList.length, 'len')
               sortField={lazyState.sortField}
               filters={lazyState.filters}
               onFilter={onFilter}
+              removableSort
               loading={loading}
               tableStyle={{ minWidth: '75rem' , alignContent: 'center'}}
               selection={selectedOrders}
@@ -257,6 +260,7 @@ console.log(orderList.length, 'len')
                 field="id"
                 style={{ width: '10%' }}
                 header="Order ID"
+                sortable
                 filter
                 body={(rowData): any => (
                   <Link to={`/order/${rowData.id}`}>
@@ -291,6 +295,7 @@ console.log(orderList.length, 'len')
                 body={(rowData) => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
                 field="createdDate"
                 filter
+                sortable
                 header="Order Date"
                 filterElement={
                   <div className="d-flex gap-1">
@@ -342,16 +347,17 @@ console.log(orderList.length, 'len')
                 <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
               />
 
-              <Column field="byClient" filter header="Order Source" />
-              <Column field="tables" style={{ width: '10%' }} filter  header="Order Tables" />
+              <Column field="byClient" sortable filter header="Order Source" />
+              <Column field="tables" sortable style={{ width: '10%' }} filter  header="Order Tables" />
               <Column
                 field="customer"
                 filter
+                sortable
                 header="Order Customer"
                 body={(rowData) => rowData.customer ? `${rowData.customer.phone}` : ''}
               />
 
-              <Column field="status" filter header="Order Status" />
+              <Column field="status" sortable filter header="Order Status" />
             </DataTable>
           </div>
 

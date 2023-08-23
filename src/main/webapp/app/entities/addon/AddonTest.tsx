@@ -14,6 +14,7 @@ import { searchEntities, getEntities } from './addon.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
+import {FilterMatchMode} from "primereact/api";
 
 export const Addon = () => {
   const dispatch = useAppDispatch();
@@ -29,6 +30,9 @@ export const Addon = () => {
   const addonList = useAppSelector(state => state.addon.entities);
   const loading = useAppSelector(state => state.addon.loading);
   const totalItems = useAppSelector(state => state.addon.totalItems);
+  const [filters, setFilters] = useState({
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  });
 
   const getAllEntities = () => {
     if (search) {
@@ -162,8 +166,8 @@ export const Addon = () => {
       </h2>
 
       <div >
-        <DataTable value={addonList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" body={nameColumnTemplate}  sortable  />
+        <DataTable value={addonList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
+          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
           <Column field="price" header="Price" sortable body={priceBodyTemplate} />
           <Column
             field="discounts"

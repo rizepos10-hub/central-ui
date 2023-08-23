@@ -17,6 +17,8 @@ import {Rating} from "primereact/rating";
 import {Button} from "primereact/button";
 import VariantViewTest from "app/entities/item/VariantViewTest";
 import {Modal} from "reactstrap";
+import {FilterMatchMode} from "primereact/api";
+import {Dropdown} from "primereact/dropdown";
 
 export const Item = () => {
   const dispatch = useAppDispatch();
@@ -36,6 +38,16 @@ export const Item = () => {
   const itemList = useAppSelector(state => state.item.entities);
   const loading = useAppSelector(state => state.item.loading);
   const totalItems = useAppSelector(state => state.item.totalItems);
+
+  const [filters, setFilters] = useState({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    status: { value: null, matchMode: FilterMatchMode.EQUALS },
+    categoryForSorting: { value: null, matchMode: FilterMatchMode.EQUALS },
+  });
+
+
+
 
   const getAllEntities = () => {
     if (search) {
@@ -149,6 +161,26 @@ export const Item = () => {
     }
   };
 
+  const categoryNames = new Set(itemList.map((item) => item.terms[0]?.name));
+  const categoryFilterOptions = Array.from(categoryNames).map((categoryName) => ({
+    label: categoryName,
+    value: categoryName,
+  }));
+
+  const categoryFilter = (
+    <Dropdown
+      value={filters.categoryForSorting?.value}
+      options={categoryFilterOptions}
+      onChange={(e) => {
+        const updatedFilters = {
+          ...filters,
+          categoryForSorting: { value: e.value, matchMode: FilterMatchMode.EQUALS },
+        };
+        setFilters(updatedFilters);
+      }}
+      placeholder="Select a category"
+    />
+  );
   const formatCurrency = (value: number) => {
     return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   };
@@ -234,6 +266,12 @@ export const Item = () => {
   };
   console.log(itemList, 'itemList')
 
+  const processedItemList = itemList.map(item => ({
+    ...item,
+    categoryForSorting: item.terms[0]?.name || '',
+  }));
+
+
   return (
     <div>
       <h2 id="item-heading" data-cy="ItemHeading">
@@ -242,22 +280,31 @@ export const Item = () => {
       </h2>
 
       <div >
-        <DataTable value={itemList} header={header} paginator rows={10}
+        <DataTable value={processedItemList} header={header} paginator rows={10}
+                   removableSort
                    loading={loading}
                    totalRecords={totalItems}
+                   globalFilterFields={['name',  ]}
+                   filters={filters} filterDisplay="row"
                    tableStyle={{ minWidth: '60rem' }}>
 
-          <Column field="name" header="Name" body={nameColumnTemplate} />
-          <Column header="Image" body={(rowData) =>
+          <Column field="name"  sortable header="Name" filter filterPlaceholder="Search by name" body={nameColumnTemplate} />
+          <Column header="Image"  body={(rowData) =>
           <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
           {/* <Column field="desc" header="Description" /> */}
-          <Column header="Variant" body={variantColumnTemplate} />
+          <Column header="Variant"  body={variantColumnTemplate} />
           {/* <Column field="price" header="Price" body={priceBodyTemplate} /> */}
-          <Column  header="Category" body={(rowData) => rowData.terms[0]?.name}  />
+          <Column
+            header="Category"
+            field="categoryForSorting"
+            sortable
+            filter
+            filterElement={categoryFilter}
+          />
           <Column field="avgRating" header="Reviews" body={ratingBodyTemplate} />
           <Column field="orderCount" header="Order Count" />
-          <Column field="stock" header="In Stock" />
-          <Column header="Status" body={statusBodyTemplate}></Column>
+          <Column field="stock" sortable header="In Stock" />
+          <Column header="Status"  sortable body={statusBodyTemplate}></Column>
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '5%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 

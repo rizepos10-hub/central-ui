@@ -16,6 +16,7 @@ import { getEntities as getItems } from 'app/entities/item/item.reducer';
 import { ITerm } from 'app/shared/model/term.model';
 import { getEntity, updateEntity, createEntity, reset } from '../term.reducer';
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
+import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 
 export const UpdateMenuCategory = () => {
   const dispatch = useAppDispatch();
@@ -149,6 +150,12 @@ console.log(termEntity)
     }
   };
 
+  const removeAttachment = (attachmentId) => {
+    setSelectedAttachments((prevAttachments) =>
+      prevAttachments.filter((attachment) => attachment.id !== attachmentId)
+    );
+  };
+
   const defaultValues = () =>
     isNew
       ? {
@@ -228,22 +235,34 @@ console.log(termEntity)
                   accept="image/*"
                 />
                 <div className="mb-3">
-                  {selectedAttachments && selectedAttachments.length > 0 && (
-                    <div>
-                      {selectedAttachments.map((attachment, index) => (
-                        <img
-                          key={index}
-                          src={attachment.url}
-                          alt={attachment?.name}
-                          className="img-fluid m-lg-1"
-                          style={{
-                            maxWidth: '100px',
-                            maxHeight: '100px',
-                          }}
-                        />
-                      ))}
+                  {selectedAttachments.map((attachment, index) => (
+                    <div key={index} style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
+                      <img
+                        src={attachment.url}
+                        alt={attachment.name}
+                        className="img-fluid"
+                        style={{
+                          maxWidth: '100px',
+                          maxHeight: '100px',
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '5px',
+                          right: '5px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                          borderRadius: '50%',
+                          padding: '2px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => removeAttachment(attachment.id)}
+                      >
+                        <FontAwesomeIcon icon={faTrashAlt}  />
+                      </div>
                     </div>
-                  )}
+
+                  ))}
                   {selectedImage && (
                     <img
                       src={URL.createObjectURL(selectedImage)}
