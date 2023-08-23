@@ -88,7 +88,7 @@ export const Menu = () => {
     }
   }, [location.search]);
 
-
+console.log(menuList, 'menu list')
 
   const handleSyncList = () => {
     sortEntities();

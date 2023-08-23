@@ -187,6 +187,7 @@ export const Order = () => {
               style={{ width: '10%' }}
               header="Order ID"
               filter
+              sortable
               body={(rowData): any => (
                 <Link to={`/order/${rowData.id}`}>
                   {rowData.sequenceNumber}
@@ -221,7 +222,7 @@ export const Order = () => {
               field="createdDate"
               header="Order Date"
               style={{ width: '10%' }}
-
+              sortable
 
             />
 
@@ -231,16 +232,17 @@ export const Order = () => {
 
             />
 
-            <Column field="byClient" filter header="Order Source" />
-            <Column field="tables" style={{ width: '13%' }} filter header="Order Tables" />
+            <Column field="byClient" sortable filter header="Order Source" />
+            <Column field="tables" sortable style={{ width: '13%' }} filter header="Order Tables" />
             <Column
               field="customer"
               filter
+              sortable
               header="Order Customer"
               body={(rowData) => rowData.customer ? rowData.customer.phone : ''}
             />
 
-            <Column field="status" filter header="Order Status" />
+            <Column field="status" sortable filter header="Order Status" />
           </DataTable>
         </div>
 
