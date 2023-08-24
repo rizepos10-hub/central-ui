@@ -13,6 +13,18 @@ const AppMenu = () => {
                             to: '/'
                           },
                           {
+                            label: 'Users',
+                            icon: 'pi pi-shopping-cart',
+                            items: [
+                              {
+                                label: 'Backoffice users',
+                                icon: 'pi pi-calendar',
+                                to: '/user'
+                              },
+
+                            ]
+                          },
+                          {
                             label: 'Branches',
                             icon: 'pi pi-share-alt',
                             to: '/branch'

@@ -10,7 +10,7 @@ import { Rating } from 'primereact/rating';
 
 import { Tooltip } from 'primereact/tooltip';
 import { ChartData, ChartOptions } from 'chart.js';
-import type { ChartDataState, ChartOptionsState, Demo } from '../../shared/sidebar/types/types';
+import type { ChartDataState, ChartOptionsState, Demo } from '../../sidebar/types/types';
 import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
 import axios from "axios";
 import {
@@ -29,6 +29,8 @@ export default function ECommerce() {
   const [bestSellers, setBestSellers] = useState([]);
   const [recentSales, setRecentSales] = useState([]);
   const [topCategories, setTopCategories] = useState([])
+
+
 
 
   const [fromDate, setFromDate] = useState(format(subWeeks(new Date(), 1), 'yyyy-MM-dd'));
@@ -95,8 +97,10 @@ export default function ECommerce() {
     let _filters = { ...filters };
     (_filters['global'] as any).value = value;
 
+    console.log(value)
     setFilters(_filters);
     setGlobalFilterValue(value);
+    console.log(recentSales, 'recenthere')
   };
 
   const initFilters = () => {
@@ -143,7 +147,7 @@ export default function ECommerce() {
     return (
       <>
         <span className="p-column-title">Price</span>
-        <p className="m-3" key={rowData.id}>{formatCurrency(rowData.currentPrice as number)}</p>
+        <p className="m-3" key={rowData.id}>{(rowData.currentPrice as number).toFixed(2)}</p>
       </>
     );
   };
@@ -162,7 +166,7 @@ export default function ECommerce() {
     return (
       <>
         <span className="p-column-title">Status</span>
-        <span className={' product-badge status-' + badgeClass}>{rowData.inventoryStatus || 'INSTOCK'  }</span>
+        <span className={' product-badge status-' + badgeClass}>{rowData.inventoryStatus ?? 'INSTOCK'  }</span>
       </>
     );
   };
@@ -376,7 +380,7 @@ export default function ECommerce() {
           <span className="font-semibold text-lg">Revenue</span>
           <div className="flex justify-content-between align-items-start mt-3">
             <div className="w-6">
-              <span className="text-4xl font-bold text-900">{topFields?.revenue}</span>
+              <span className="text-4xl font-bold text-900">{topFields?.revenue?.toFixed(2)}</span>
               <div className="text-green-500">
                 <span className="font-medium">+20%</span>
                 <i className="pi pi-arrow-up text-xs ml-2"></i>
@@ -475,9 +479,9 @@ export default function ECommerce() {
                      emptyMessage="No products found."
                      loading={recentLoading}
                      responsiveLayout="scroll">
-            <Column  field="name" header="Name" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
-            <Column field="category" header="Category" sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
-            <Column field="price" header="Price" body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
+            <Column  field="itemName" header="Name" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
+            <Column field="category[0].name" header="Category" sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
+            <Column field="currentPrice" header="Price" body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
             <Column field="inventoryStatus" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
             {/* <Column body={searchBodyTemplate} style={{ textAlign: 'center' }} /> */}
           </DataTable>
@@ -510,7 +514,7 @@ export default function ECommerce() {
                       <Rating value={product.rating} readOnly cancel={false} onIconProps={{ style: { fontSize: '12px' } }} offIconProps={{ style: { fontSize: '12px' } }}></Rating>
                     </div>
                   </div>
-                  <span className="ml-auto font-semibold text-xl p-text-secondary">${product.currentPrice}</span>
+                  <span className="ml-auto font-semibold text-xl p-text-secondary">${(product.currentPrice).toFixed(2)}</span>
                 </li>
               );
             })}

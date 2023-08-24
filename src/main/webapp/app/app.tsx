@@ -74,7 +74,6 @@ export const App = () => {
               <ErrorBoundary>
                 <AppRoutes  />
               </ErrorBoundary>
-            <Footer />
           {/* </div> */}
         {/* </div> */}
             </Layout>

@@ -1,4 +1,5 @@
 export interface IUser {
+  phone?:string;
   id?: any;
   login?: string;
   firstName?: string;
@@ -12,6 +13,8 @@ export interface IUser {
   lastModifiedBy?: string;
   lastModifiedDate?: Date | null;
   password?: string;
+  permissions?: any[];
+  isActive?: boolean;
 }
 
 export const defaultValue: Readonly<IUser> = {

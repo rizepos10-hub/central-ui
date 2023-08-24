@@ -40,12 +40,22 @@ export const OrderDetail = () => {
   const totalItemsPrice = subtotal - totalDiscounts;
 
   const totalPaymentAmount = orderEntity?.bills?.reduce((total, bill) => {
-    const billPaymentTotal = bill.paymentTransactions.reduce(
-      (acc, transaction) => acc + transaction.amount ? transaction.amount : 0,
+    const billPaymentTotal = bill.paymentTransactions.filter((payment) => payment.returnType !== "refund").reduce(
+      (acc, transaction) => {
+        const transactionAmount = transaction.amount ? transaction.amount : 0;
+        console.log(`Transaction amount: ${transactionAmount}`);
+        return acc + transactionAmount;
+      },
       0
     );
+
+    console.log(`Bill payment total: ${billPaymentTotal}`);
+
     return total + billPaymentTotal;
   }, 0);
+
+  console.log(`Total payment amount: ${totalPaymentAmount}`);
+
 
 
   console.log(orderEntity.bills, 'orderEntityorderEntity')

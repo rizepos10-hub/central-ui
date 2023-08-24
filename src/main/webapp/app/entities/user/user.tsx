@@ -1,0 +1,258 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
+import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+
+import { IUser } from 'app/shared/model/user.model';
+import { searchEntities, getEntities } from './user.reducer';
+import {DataTable} from "primereact/datatable";
+import {Column} from "primereact/column";
+import {Button} from "primereact/button";
+import {FilterMatchMode} from "primereact/api";
+import {InputText} from "primereact/inputtext";
+
+export const User = () => {
+  const dispatch = useAppDispatch();
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [search, setSearch] = useState('');
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
+
+  // const userList = useAppSelector(state => state.user.entities);
+  // const loading = useAppSelector(state => state.user.loading);
+  // const totalItems = useAppSelector(state => state.user.totalItems);
+  const loading = false
+
+  const userList = [
+    { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com', phone: '123-456-7890', isActive: true },
+    { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', phone: '987-654-3210', isActive: false },
+    { id: 3, firstName: 'Alice', lastName: 'Johnson', email: 'alice@example.com', phone: '555-555-5555', isActive: true },
+    { id: 4, firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com', phone: '123-123-1234', isActive: false },
+    { id: 5, firstName: 'Emily', lastName: 'Williams', email: 'emily@example.com', phone: '888-888-8888', isActive: true },
+    { id: 6, firstName: 'Michael', lastName: 'Davis', email: 'michael@example.com', phone: '777-777-7777', isActive: true },
+    { id: 7, firstName: 'Sophia', lastName: 'Wilson', email: 'sophia@example.com', phone: '555-123-4567', isActive: false },
+    { id: 8, firstName: 'William', lastName: 'Miller', email: 'william@example.com', phone: '123-789-4560', isActive: true },
+    { id: 9, firstName: 'Olivia', lastName: 'Anderson', email: 'olivia@example.com', phone: '333-333-3333', isActive: false },
+    { id: 10, firstName: 'James', lastName: 'Jackson', email: 'james@example.com', phone: '444-444-4444', isActive: true },
+  ];
+
+  const totalItems = userList.length
+
+  const [filters, setFilters] = useState({
+    firstName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    lastName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    phone: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  });
+
+  const modifiedUserList = userList.map(user => ({
+    ...user,
+    name: `${user.firstName} ${user.lastName}`
+  }));
+
+  console.log(userList,'userList')
+  const getAllEntities = () => {
+    if (search) {
+      dispatch(
+        searchEntities({
+          query: search,
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
+    } else {
+      dispatch(
+        getEntities({
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
+    }
+  };
+
+  const startSearching = e => {
+    if (search) {
+      setPaginationState({
+        ...paginationState,
+        activePage: 1,
+      });
+      dispatch(
+        searchEntities({
+          query: search,
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
+    }
+    e.preventDefault();
+  };
+
+  const clear = () => {
+    setSearch('');
+    setPaginationState({
+      ...paginationState,
+      activePage: 1,
+    });
+    dispatch(getEntities({}));
+  };
+
+  const handleSearch = event => setSearch(event.target.value);
+
+  const sortEntities = () => {
+    getAllEntities();
+    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    if (location.search !== endURL) {
+      navigate(`${location.pathname}${endURL}`);
+    }
+  };
+
+  // useEffect(() => {
+  //   sortEntities();
+  // }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
+  //
+  // useEffect(() => {
+  //   const params = new URLSearchParams(location.search);
+  //   const page = params.get('page');
+  //   const sort = params.get(SORT);
+  //   if (page && sort) {
+  //     const sortSplit = sort.split(',');
+  //     setPaginationState({
+  //       ...paginationState,
+  //       activePage: +page,
+  //       sort: sortSplit[0],
+  //       order: sortSplit[1],
+  //     });
+  //   }
+  // }, [location.search]);
+
+  const sort = p => () => {
+    setPaginationState({
+      ...paginationState,
+      order: paginationState.order === ASC ? DESC : ASC,
+      sort: p,
+    });
+  };
+
+  const handlePagination = currentPage =>
+    setPaginationState({
+      ...paginationState,
+      activePage: currentPage,
+    });
+
+  const handleSyncList = () => {
+    sortEntities();
+  };
+
+  const nameColumnTemplate = (rowData) => {
+    const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {`${rowData.firstName} ${rowData.lastName}`}
+      </Link>
+    );
+  };
+
+  const handleNameFilterChange = (e) => {
+    const filterValue = e.target.value;
+    if (filterValue === '') {
+      setFilters({
+        ...filters,
+        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      });
+    } else {
+      setFilters({
+        ...filters,
+        name: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
+      });
+    }
+  };
+  const editColumnTemplate = (rowData) => {
+    const editUrl = `/user/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+      </Link>
+    );
+  };
+
+  const deleteColumnTemplate = (rowData) => {
+    const deleteUrl = `/user/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={deleteUrl}>
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+      </Link>
+    );
+  };
+  const handleCreate = () => {
+    navigate('/user/new')
+  }
+
+  const activeColumnTemplate = rowData => {
+    return rowData.isActive ?<p className="text-success ml-2  ">&#10004;</p>:
+      <p className="text-danger ml-2 ">&#10006;</p>
+  };
+
+
+  console.log(userList, 'userList')
+  const header = (
+    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
+      <span className="text-xl text-900 font-bold">Users</span>
+      <div className="ms-auto">
+        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+          &nbsp;
+          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
+        </Button>
+        <Button label="Create new User" raised onClick={handleCreate} disabled={loading}>
+          &nbsp;
+        </Button>
+      </div>
+    </div>
+  );
+  return (
+    <div>
+      <h2 >
+    Users View
+
+      </h2>
+
+      <div >
+        <DataTable value={modifiedUserList} editMode="row" header={header}  paginator
+                   globalFilterFields={['firstName', 'lastName' ]}
+                   filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
+          <Column
+            field="name" header="Name" filter
+            filterElement={ <InputText  placeholder="Search by name" onChange={handleNameFilterChange}/> }
+            filterField="name" body={nameColumnTemplate} sortable
+          />
+
+          <Column field="email" header="Email" filter filterPlaceholder="Search by email"  sortable   />
+          <Column field="phone" header="Phone Number"  filter filterPlaceholder="Search by phone number"  sortable  />
+
+          <Column header="Active" body={activeColumnTemplate} style={{width: '10%'}}   />
+          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+
+          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+
+
+        </DataTable>
+      </div>
+    </div>
+  );
+};
+
+export default User;

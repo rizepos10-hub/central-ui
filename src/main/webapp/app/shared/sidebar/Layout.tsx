@@ -25,6 +25,7 @@ import AppProfileSidebar from "app/shared/sidebar/AppProfileSidebar";
 import AppConfig from "app/shared/sidebar/AppConfig";
 import type { AppTopbarRef, ChildContainerProps } from './types/types';
 import {useNavigate} from "react-router-dom";
+import Footer from "app/shared/layout/footer/footer";
 
 
 export interface ISideBarProps {
@@ -205,6 +206,8 @@ export const Layout =  (props: ChildContainerProps) => {
         {/* {isAuthenticated && <AppConfig />} */}
         <div className="layout-mask"></div>
       </div>
+      <Footer />
+
     </React.Fragment>
   );
 };

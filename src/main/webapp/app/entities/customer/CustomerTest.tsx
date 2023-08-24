@@ -14,6 +14,7 @@ import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
+import {InputText} from "primereact/inputtext";
 
 export const Customer = () => {
   const dispatch = useAppDispatch();
@@ -33,10 +34,16 @@ export const Customer = () => {
   const [filters, setFilters] = useState({
     firstName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     lastName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     phone: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
 
+
+  const modifiedCustomerList = customerList.map(customer => ({
+    ...customer,
+    name: `${customer.firstName} ${customer.lastName}`
+  }));
 
   console.log(customerList,'customerList')
   const getAllEntities = () => {
@@ -143,14 +150,32 @@ export const Customer = () => {
     );
   };
 
-  const lastNameColumnTemplate = rowData => {
+  const nameColumnTemplate = (rowData) => {
     const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        {rowData.lastName}
+        {`${rowData.firstName} ${rowData.lastName}`}
       </Link>
     );
   };
+
+  const handleNameFilterChange = (e) => {
+    const filterValue = e.target.value;
+    if (filterValue === '') {
+      setFilters({
+        ...filters,
+        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      });
+    } else {
+      setFilters({
+        ...filters,
+        name: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
+      });
+    }
+  };
+
+
+
   const editColumnTemplate = (rowData) => {
     const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
@@ -185,7 +210,10 @@ export const Customer = () => {
         </Button>
       </div>
     </div>
+
   );
+
+
   return (
     <div>
       <h2 >
@@ -194,11 +222,14 @@ export const Customer = () => {
       </h2>
 
       <div >
-        <DataTable value={customerList} editMode="row" header={header}  paginator
-                   globalFilterFields={['firstName', 'lastName' ]}
+        <DataTable value={modifiedCustomerList} editMode="row" header={header}  paginator
                    filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
-          <Column header="First Name" filter filterPlaceholder="Search by first name" body={firstNameColumnTemplate }  sortable field={"firstName"}  />
-          <Column header="Last Name" filter filterPlaceholder="Search by last name" body={lastNameColumnTemplate }  sortable field={"lastName"}  />
+
+          <Column
+            field="name" header="Name" filter
+            filterElement={ <InputText  placeholder="Search by name" onChange={handleNameFilterChange}/> }
+            filterField="name" body={nameColumnTemplate} sortable
+          />
 
           <Column field="email" header="Email" filter filterPlaceholder="Search by email"  sortable   />
           <Column field="phone" header="Phone Number"  filter filterPlaceholder="Search by phone number"  sortable  />

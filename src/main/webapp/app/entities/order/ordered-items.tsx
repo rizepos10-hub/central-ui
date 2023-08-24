@@ -33,8 +33,8 @@ console.log(totalPayments, 'totalPayments')
       data: {
         name: item.itemName,
         variant: item.variantName,
-        amount: item.amount,
-        returnedAmount: item.returnedAmount,
+        amount: item.amount.toFixed(2),
+        returnedAmount: item.returnedAmount.toFixed(2),
         totalAmount: (item.amount - item.returnedAmount).toFixed(2),
         discount: item.discount
           ? item.discount.type === 'PERCENTAGE'
