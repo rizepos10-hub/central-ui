@@ -31,6 +31,8 @@ export default function ECommerce() {
   const [topCategories, setTopCategories] = useState([])
 
 
+
+
   const [fromDate, setFromDate] = useState(format(subWeeks(new Date(), 1), 'yyyy-MM-dd'));
   const [toDate, setToDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [topFields, setTopFields]:any = useState({})
@@ -95,8 +97,10 @@ export default function ECommerce() {
     let _filters = { ...filters };
     (_filters['global'] as any).value = value;
 
+    console.log(value)
     setFilters(_filters);
     setGlobalFilterValue(value);
+    console.log(recentSales, 'recenthere')
   };
 
   const initFilters = () => {
@@ -162,7 +166,7 @@ export default function ECommerce() {
     return (
       <>
         <span className="p-column-title">Status</span>
-        <span className={' product-badge status-' + badgeClass}>{rowData.inventoryStatus || 'INSTOCK'  }</span>
+        <span className={' product-badge status-' + badgeClass}>{rowData.inventoryStatus ?? 'INSTOCK'  }</span>
       </>
     );
   };
@@ -376,7 +380,7 @@ export default function ECommerce() {
           <span className="font-semibold text-lg">Revenue</span>
           <div className="flex justify-content-between align-items-start mt-3">
             <div className="w-6">
-              <span className="text-4xl font-bold text-900">{topFields?.revenue}</span>
+              <span className="text-4xl font-bold text-900">{topFields?.revenue?.toFixed(2)}</span>
               <div className="text-green-500">
                 <span className="font-medium">+20%</span>
                 <i className="pi pi-arrow-up text-xs ml-2"></i>
@@ -475,9 +479,9 @@ export default function ECommerce() {
                      emptyMessage="No products found."
                      loading={recentLoading}
                      responsiveLayout="scroll">
-            <Column  field="name" header="Name" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
-            <Column field="category" header="Category" sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
-            <Column field="price" header="Price" body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
+            <Column  field="itemName" header="Name" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
+            <Column field="category[0].name" header="Category" sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
+            <Column field="currentPrice" header="Price" body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
             <Column field="inventoryStatus" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
             {/* <Column body={searchBodyTemplate} style={{ textAlign: 'center' }} /> */}
           </DataTable>

@@ -14,6 +14,7 @@ import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
+import {InputText} from "primereact/inputtext";
 
 export const User = () => {
   const dispatch = useAppDispatch();
@@ -49,10 +50,15 @@ export const User = () => {
   const [filters, setFilters] = useState({
     firstName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     lastName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     phone: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
 
+  const modifiedUserList = userList.map(user => ({
+    ...user,
+    name: `${user.firstName} ${user.lastName}`
+  }));
 
   console.log(userList,'userList')
   const getAllEntities = () => {
@@ -150,22 +156,28 @@ export const User = () => {
     sortEntities();
   };
 
-  const firstNameColumnTemplate = rowData => {
-    const editUrl = `/user/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+  const nameColumnTemplate = (rowData) => {
+    const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        {rowData.firstName}
+        {`${rowData.firstName} ${rowData.lastName}`}
       </Link>
     );
   };
 
-  const lastNameColumnTemplate = rowData => {
-    const editUrl = `/user/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.lastName}
-      </Link>
-    );
+  const handleNameFilterChange = (e) => {
+    const filterValue = e.target.value;
+    if (filterValue === '') {
+      setFilters({
+        ...filters,
+        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      });
+    } else {
+      setFilters({
+        ...filters,
+        name: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
+      });
+    }
   };
   const editColumnTemplate = (rowData) => {
     const editUrl = `/user/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
@@ -217,11 +229,14 @@ export const User = () => {
       </h2>
 
       <div >
-        <DataTable value={userList} editMode="row" header={header}  paginator
+        <DataTable value={modifiedUserList} editMode="row" header={header}  paginator
                    globalFilterFields={['firstName', 'lastName' ]}
                    filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
-          <Column header="First Name" filter filterPlaceholder="Search by first name" body={firstNameColumnTemplate }  sortable field={"firstName"}  />
-          <Column header="Last Name" filter filterPlaceholder="Search by last name" body={lastNameColumnTemplate }  sortable field={"lastName"}  />
+          <Column
+            field="name" header="Name" filter
+            filterElement={ <InputText  placeholder="Search by name" onChange={handleNameFilterChange}/> }
+            filterField="name" body={nameColumnTemplate} sortable
+          />
 
           <Column field="email" header="Email" filter filterPlaceholder="Search by email"  sortable   />
           <Column field="phone" header="Phone Number"  filter filterPlaceholder="Search by phone number"  sortable  />
