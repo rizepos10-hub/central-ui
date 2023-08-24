@@ -22,6 +22,9 @@ import ItemVariantModal from 'app/entities/item/item-variant-modal';
 import {at} from "lodash";
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
+import {toast} from "react-toastify";
+import { Button as PrimeButton } from 'primereact/button';
+
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -32,6 +35,7 @@ export const ItemUpdate = () => {
   const isNew = id === undefined;
 
   const saveButtonRef = useRef(null);
+  const toastId = useRef(null);
 
 
   const menus = useAppSelector(state => state.menu.entities);
@@ -78,13 +82,49 @@ export const ItemUpdate = () => {
     setOpenedModal(false);
   };
   const archiveVariant = (variantId) => {
-    const shouldArchive = window.confirm("Are you sure you want to delete this variant?");
-    if (shouldArchive) {
+
       const archivedVariants = variants?.map((variant) =>
         variant.id === variantId ? { ...variant, archived: true } : variant
       );
       setVariants(archivedVariants);
+  };
+
+  const handleArchiveVariant = (variantId) => {
+
+    if (toast.isActive(toastId.current)) {
+      return;
     }
+     toastId.current = toast.info(
+      <div>
+        <span>Are you sure you want to delete this variant?</span>
+        <div className="d-flex mt-2 h-2rem">
+          <PrimeButton
+            label="Yes"
+            onClick={() => {
+              toast.dismiss(toastId.current);
+              archiveVariant(variantId)
+            }}
+            className="p-button-sm"
+          />
+
+          <PrimeButton
+            label="No"
+            className="p-button-secondary p-button-sm ms-2"
+            onClick={() => {
+              toast.dismiss(toastId.current);
+            }}
+          />
+        </div>
+      </div>,
+      {
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: false,
+        closeButton: false,
+        closeOnClick: false,
+        draggable: false,
+
+      }
+    );
   };
 
 
@@ -506,7 +546,7 @@ console.log(itemEntity, 'termos')
                           </Button>
                         </td>
                         <td>
-                          <Button type={"button"} color="danger" onClick={() => archiveVariant(variant.id)}  >
+                          <Button type={"button"} color="danger" onClick={() => handleArchiveVariant(variant.id)}  >
                             <FontAwesomeIcon icon="trash"  />
                           </Button>
                         </td>

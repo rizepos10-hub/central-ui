@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import './order.css'
 
 
-import { Calendar } from 'primereact/calendar';
+import {Calendar, CalendarChangeEvent} from 'primereact/calendar';
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -39,22 +39,20 @@ export const Order = () => {
 
   const [selectAll, setSelectAll] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState(null);
-  const defaultFromDate = new Date();
-  defaultFromDate.setMonth(defaultFromDate.getMonth() - 1);
-  const defaultToDate = new Date();
-  const [fromDate, setFromDate] = useState(defaultFromDate);
-  const [toDate, setToDate] = useState(defaultToDate);
+
+
+  const [dates, setDates] = useState<string | Date | Date[] | null>(null);
 
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
     rows: 10,
     page: 0,
-    sortField: null,
-    sortOrder: null,
+    sortField: 'createdDate',
+    sortOrder: "asc",
     filters: {
       createdDate: {
-        from: fromDate ? fromDate.toISOString() : '',
-        to: toDate ? toDate.toISOString() : ''
+        from: dates ? dates[0]?.toISOString() : '',
+        to: dates ? dates[1]?.toISOString() : ''
       },
       id:{value: '', matchMode: 'contains'},
       byClient: { value: '', matchMode: 'contains' },
@@ -65,6 +63,7 @@ export const Order = () => {
     }
   });
 
+  console.log(dates, 'dates')
 
   const orderList = useAppSelector(state => state.order.entities);
   const totalOrders = useAppSelector(state => state.order.totalOrders);
@@ -130,10 +129,11 @@ export const Order = () => {
   //   }
   // };
   const onFilter = (event) => {
-    console.log(event,'event')
+    console.log(event, 'event');
 
-    console.log(fromDate,'from')
-    console.log(toDate, 'to')
+    const newDates = event.filters.createdDate || null;
+    setDates(newDates);
+
     event['first'] = 0;
     setLazyState(event);
   };
@@ -148,7 +148,6 @@ export const Order = () => {
     const sortOrder = event.sortOrder;
     setLazyState((prev) => ({
       ...prev,
-      first: 10,
       sortField: sortField,
       sortOrder: sortOrder,
     }));
@@ -162,6 +161,8 @@ export const Order = () => {
   useEffect(() => {
     if (
       lazyState.first ||
+      lazyState.sortOrder ||
+      lazyState.sortField ||
       lazyState.filters.createdDate?.from ||
       lazyState.filters.createdDate?.to ||
       lazyState.filters.byClient?.value ||
@@ -170,7 +171,8 @@ export const Order = () => {
       lazyState.filters.branchId?.value ||
       lazyState.filters.id?.value ||
       lazyState.filters.tables?.value ||
-      lazyState.filters.orderSource?.value
+      lazyState.filters.orderSource?.value ||
+      dates
     ) {
       const queryParams = {
         orderSource: lazyState.filters.byClient?.value || '',
@@ -181,8 +183,9 @@ export const Order = () => {
         branch: lazyState.filters.branchId?.value || '',
         tables: lazyState.filters.tables?.value || '',
         size: lazyState.rows ,
-        fromDate: lazyState.filters.createdDate?.from ? startOfDay(new Date(lazyState.filters.createdDate.from)).toISOString() : '',
-        toDate: lazyState.filters.createdDate?.to ? endOfDay(new Date(lazyState.filters.createdDate.to)).toISOString() : '',
+        fromDate: dates && dates[0] ?  startOfDay(new Date(dates[0])).toISOString() : '',
+        toDate: dates && dates[1] ? endOfDay(new Date(dates[1])).toISOString() : '',
+        sort: `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}`
 
 
       };
@@ -195,7 +198,7 @@ export const Order = () => {
 
     dispatch(getBranches({}))
     console.log(lazyState, 'lol')
-  }, [lazyState]);
+  }, [lazyState,dates]);
 
 
 
@@ -292,55 +295,27 @@ console.log(orderList.length, 'len')
                 }
               />
               <Column
-                body={(rowData) => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
                 field="createdDate"
                 filter
                 sortable
+                style={{width: '20%'}}
+
                 header="Order Date"
+                body={(rowData) => (
+                  <span>
+      {rowData.createdDate &&
+        `${new Date(rowData.createdDate).toLocaleString()} `}
+    </span>
+                )}
                 filterElement={
-                  <div className="d-flex gap-1">
-                    <div className="p-mr-2 text-center">
-                      <label>From</label>
-                      <Calendar
-                        value={fromDate}
-                        onChange={(e) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            filters: {
-                              ...prevState.filters,
-                              createdDate: {
-                                ...prevState.filters.createdDate,
-                                from: e.value,
-                              },
-                            },
-                          }))
-                        }
-                        dateFormat={APP_LOCAL_DATE_FORMAT}
-                        className="p-mb-2"
-                      />
-                    </div>
-                    <div className="text-center">
-                      <label>To</label>
-                      <Calendar
-                        value={toDate}
-                        onChange={(e) =>
-                          setLazyState((prevState) => ({
-                            ...prevState,
-                            filters: {
-                              ...prevState.filters,
-                              createdDate: {
-                                ...prevState.filters.createdDate,
-                                to: e.value,
-                              },
-                            },
-                          }))
-                        }
-                        dateFormat={APP_LOCAL_DATE_FORMAT}
-                      />
-                    </div>
-                  </div>
+                  <Calendar
+                    value={dates}
+                    onChange={(e: CalendarChangeEvent) => setDates(e.value)}
+                    selectionMode="range"
+                  />
                 }
               />
+
 
               <Column field="discount" sortable  style={{ width: '13%' }}
                 header="Order Discount" body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:

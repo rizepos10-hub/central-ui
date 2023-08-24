@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity } from './user.reducer';
 
-export const CustomerDetail = () => {
+export const UserDetail = () => {
   const dispatch = useAppDispatch();
 
   const { id } = useParams<'id'>();
@@ -18,47 +18,47 @@ export const CustomerDetail = () => {
     dispatch(getEntity(id));
   }, []);
 
-  const customerEntity = useAppSelector(state => state.customer.entity);
+  const userEntity = useAppSelector(state => state.user.entity);
   return (
     <Row>
       <Col md="8">
-        <h2 data-cy="customerDetailsHeading">
-          <Translate contentKey="tempApp.customer.detail.title">Customer</Translate>
+        <h2 data-cy="userDetailsHeading">
+          <Translate contentKey="tempApp.user.detail.title">User</Translate>
         </h2>
         <dl className="jh-entity-details">
           <dt>
             <span id="id">
-              <Translate contentKey="tempApp.customer.name">Name</Translate>
+              <Translate contentKey="tempApp.user.name">Name</Translate>
             </span>
           </dt>
-          <dd>{`${customerEntity.firstName} ${customerEntity.lastName}`}</dd>
+          <dd>{`${userEntity.firstName} ${userEntity.lastName}`}</dd>
           <dt>
             <span id="email">
-              <Translate contentKey="tempApp.customer.email">Email</Translate>
+              <Translate contentKey="tempApp.user.email">Email</Translate>
             </span>
           </dt>
-          <dd>{customerEntity.email}</dd>
+          <dd>{userEntity.email}</dd>
           <dt>
             <span id="phone">
-              <Translate contentKey="tempApp.customer.phone">Phone</Translate>
+              <Translate contentKey="tempApp.user.phone">Phone</Translate>
             </span>
           </dt>
-          <dd>{customerEntity.phone}</dd>
+          <dd>{userEntity.phone}</dd>
           {/* <dt> */}
           {/*   <span id="status"> */}
-          {/*     <Translate contentKey="tempApp.customer.status">Status</Translate> */}
+          {/*     <Translate contentKey="tempApp.user.status">Status</Translate> */}
           {/*   </span> */}
           {/* </dt> */}
-          {/* <dd>{customerEntity.status}</dd> */}
+          {/* <dd>{userEntity.status}</dd> */}
         </dl>
-        <Button tag={Link} to="/customer" replace color="info" data-cy="entityDetailsBackButton">
+        <Button tag={Link} to="/user" replace color="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" />{' '}
           <span className="d-none d-md-inline">
             <Translate contentKey="entity.action.back">Back</Translate>
           </span>
         </Button>
         &nbsp;
-        <Button tag={Link} to={`/customer/${customerEntity.id}/edit`} replace color="primary">
+        <Button tag={Link} to={`/user/${userEntity.id}/edit`} replace color="primary">
           <FontAwesomeIcon icon="pencil-alt" />{' '}
           <span className="d-none d-md-inline">
             <Translate contentKey="entity.action.edit">Edit</Translate>
@@ -69,4 +69,4 @@ export const CustomerDetail = () => {
   );
 };
 
-export default CustomerDetail;
+export default UserDetail;

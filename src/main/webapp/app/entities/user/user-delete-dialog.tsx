@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './user.reducer';
 
-export const CustomerDeleteDialog = () => {
+export const UserDeleteDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -21,11 +21,11 @@ export const CustomerDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const customerEntity = useAppSelector(state => state.customer.entity);
-  const updateSuccess = useAppSelector(state => state.customer.updateSuccess);
+  const userEntity = useAppSelector(state => state.user.entity);
+  const updateSuccess = useAppSelector(state => state.user.updateSuccess);
 
   const handleClose = () => {
-    navigate('/customer' + location.search);
+    navigate('/user' + location.search);
   };
 
   useEffect(() => {
@@ -36,17 +36,17 @@ export const CustomerDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(customerEntity.id));
+    dispatch(deleteEntity(userEntity.id));
   };
 
   return (
     <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="customerDeleteDialogHeading">
+      <ModalHeader toggle={handleClose} data-cy="userDeleteDialogHeading">
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="tempApp.customer.delete.question">
-        <Translate contentKey="tempApp.customer.delete.question" interpolate={{ id: customerEntity.id }}>
-          Are you sure you want to delete this Customer?
+      <ModalBody id="tempApp.user.delete.question">
+        <Translate contentKey="tempApp.user.delete.question" interpolate={{ id: userEntity.id }}>
+          Are you sure you want to delete this User?
         </Translate>
       </ModalBody>
       <ModalFooter>
@@ -55,7 +55,7 @@ export const CustomerDeleteDialog = () => {
           &nbsp;
           <Translate contentKey="entity.action.cancel">Cancel</Translate>
         </Button>
-        <Button id="jhi-confirm-delete-customer" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+        <Button id="jhi-confirm-delete-user" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
           <FontAwesomeIcon icon="trash" />
           &nbsp;
           <Translate contentKey="entity.action.delete">Delete</Translate>
@@ -65,4 +65,4 @@ export const CustomerDeleteDialog = () => {
   );
 };
 
-export default CustomerDeleteDialog;
+export default UserDeleteDialog;

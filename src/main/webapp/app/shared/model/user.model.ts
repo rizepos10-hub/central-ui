@@ -15,10 +15,17 @@ export interface IUser {
   password?: string;
   permissions?: any[];
   isActive?: boolean;
+  username?: string ;
+}
+
+export interface AvailableRoles {
+id?: string;
+name?: string;
+
+description:string;
 }
 
 export const defaultValue: Readonly<IUser> = {
-  id: '',
   login: '',
   firstName: '',
   lastName: '',
@@ -31,4 +38,5 @@ export const defaultValue: Readonly<IUser> = {
   lastModifiedBy: '',
   lastModifiedDate: null,
   password: '',
+  username: '',
 };

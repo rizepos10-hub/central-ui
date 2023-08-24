@@ -12,10 +12,11 @@ import reducer, {
   getEntity,
   updateEntity,
   partialUpdateEntity,
-  reset,
+  reset, getAvailableRoles, getAssignedRoles, getAllRoles,
 } from './user.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { ICustomer, defaultValue } from 'app/shared/model/customer.model';
+import {IUser, defaultValue, AvailableRoles} from 'app/shared/model/user.model';
+import any = jasmine.any;
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {
@@ -26,7 +27,7 @@ describe('Entities reducer tests', () => {
     }
   }
 
-  const initialState: EntityState<ICustomer> = {
+  const initialState: EntityState<IUser> = {
     loading: false,
     errorMessage: null,
     entities: [],
@@ -34,6 +35,9 @@ describe('Entities reducer tests', () => {
     totalItems: 0,
     updating: false,
     updateSuccess: false,
+    availableRoles: [] ,
+    assignedRoles: [],
+    allRoles: [],
   };
 
   function testInitialState(state) {
@@ -159,6 +163,43 @@ describe('Entities reducer tests', () => {
         ...initialState,
         loading: false,
         entity: payload.data,
+      });
+    });
+    it('should fetch all roles', () => {
+      const payload :any = { id: 'de', name: 'RORT', description: 'User has accessorts' }
+      expect(
+        reducer(undefined, {
+          type: getAllRoles.fulfilled.type,
+          payload,
+        })
+      ).toEqual({
+        ...initialState,
+        allRoles: payload.data,
+      });
+    });
+    it('should fetch available roles', () => {
+      const payload :any = { id: 'de', name: 'RORT', description: 'User has accessorts' }
+      expect(
+        reducer(undefined, {
+          type: getAvailableRoles.fulfilled.type,
+          payload,
+        })
+      ).toEqual({
+        ...initialState,
+        availableRoles: payload.data,
+      });
+    });
+
+    it('should fetch assigned roles', () => {
+      const payload :any = { id: 'de', name: 'RORT', description: 'User has accessorts' }
+      expect(
+        reducer(undefined, {
+          type: getAssignedRoles.fulfilled.type,
+          payload,
+        })
+      ).toEqual({
+        ...initialState,
+        assignedRoles: payload.data,
       });
     });
 

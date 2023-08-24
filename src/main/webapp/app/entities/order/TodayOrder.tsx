@@ -30,6 +30,7 @@ interface LazyTableState {
   sortField?: string;
   sortOrder?: any;
   filters: any;
+  modifiedDate?: boolean;
 }
 
 
@@ -51,7 +52,7 @@ export const Order = () => {
     page: 0,
     sortField: null,
     sortOrder: null,
-
+    modifiedDate: true,
     filters: {
       createdDate: {
         from: from.toISOString(),
@@ -141,6 +142,8 @@ export const Order = () => {
       size: lazyState.rows ,
       fromDate: lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '',
       toDate: lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : '',
+      modifiedDate: true
+
     };
 
       dispatch(filterOrders(queryParams));
