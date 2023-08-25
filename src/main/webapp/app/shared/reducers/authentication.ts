@@ -54,7 +54,7 @@ export const authenticate = createAsyncThunk(
       password: auth.password,
       rememberMe: auth.rememberMe,
     };
-    return axios.post<any>(`http://164.92.188.249:8089/api/login/${auth.tenant}/central-app`, data);
+    return axios.post<any>(SERVER_ADMIN_API_URL + `/api/login/${auth.tenant}/central-app`, data);
   },
   {
     serializeError: serializeAxiosError,
