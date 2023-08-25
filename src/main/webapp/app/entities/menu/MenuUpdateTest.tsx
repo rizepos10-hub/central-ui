@@ -1,5 +1,5 @@
 
-  import React, { useState, useEffect } from 'react';
+  import React, {useState, useEffect, useRef} from 'react';
   import { Link, useNavigate, useParams } from 'react-router-dom';
 
 
@@ -17,7 +17,7 @@
   ModalBody,
   ModalHeader, Container, Nav, NavItem, NavLink, TabContent, TabPane, Alert
 } from 'reactstrap';
-  import { Button as deleteButton } from 'primereact/button';
+  import {Button as PrimeButton, Button as deleteButton} from 'primereact/button';
 
   import {getSortState, isNumber, TextFormat, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
   import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -29,7 +29,7 @@
   import { ITerm } from 'app/shared/model/term.model';
   import { getEntities as getTerms } from 'app/entities/term/term.reducer';
   import { IMenu } from 'app/shared/model/menu.model';
-  import {getEntity, updateEntity, createEntity, reset, sendEvent} from './menu.reducer';
+  import {getEntity, updateEntity, createEntity, reset, sendEvent, duplicateMenu} from './menu.reducer';
   import {faTimes} from "@fortawesome/free-solid-svg-icons";
   import {getEntities as getItems , searchEntities as searchItems} from "app/entities/item/item.reducer";
   import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
@@ -44,12 +44,14 @@
   import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
   import {Skeleton} from "primereact/skeleton";
   import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+  import {toast} from "react-toastify";
 
 
   export const MenuUpdate = () => {
     const dispatch = useAppDispatch();
 
     const navigate = useNavigate();
+    const toastId = useRef(null);
 
     const { id } = useParams<'id'>();
     const isNew = id === undefined;
@@ -109,12 +111,52 @@ console.log(itemList, 'itemList1')
 
 
 
+    // const handleDeleteItem = (itemId) => {
+    //   const confirmed = window.confirm('Are you sure you want to remove this item?');
+    //   if (confirmed) {
+    //     setSelectedItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+    //     setMenuItems((prevItems) => prevItems.filter((item) => item.id !== itemId && item.id !== null));
+    //   }
+    // };
+
     const handleDeleteItem = (itemId) => {
-      const confirmed = window.confirm('Are you sure you want to remove this item?');
-      if (confirmed) {
-        setSelectedItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-        setMenuItems((prevItems) => prevItems.filter((item) => item.id !== itemId && item.id !== null));
+
+      if (toast.isActive(toastId.current)) {
+        return;
       }
+      toastId.current = toast.info(
+        <div>
+          <span>Are you sure you want to remove this item?</span>
+          <div className="d-flex mt-2 h-2rem">
+            <PrimeButton
+              label="Yes"
+              onClick={() => {
+                setSelectedItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+                setMenuItems((prevItems) => prevItems.filter((item) => item.id !== itemId && item.id !== null));
+                toast.dismiss(toastId.current);
+
+              }}
+              className="p-button-sm"
+            />
+
+            <PrimeButton
+              label="No"
+              className="p-button-secondary p-button-sm ms-2"
+              onClick={() => {
+                toast.dismiss(toastId.current);
+              }}
+            />
+          </div>
+        </div>,
+        {
+          position: toast.POSITION.TOP_RIGHT,
+          autoClose: false,
+          closeButton: false,
+          closeOnClick: false,
+          draggable: false,
+
+        }
+      );
     };
 
 
@@ -158,7 +200,14 @@ console.log(itemList, 'itemList1')
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
 
-    }, [refresh]);
+
+      if(updateSuccess){
+        handleRefresh()
+      }
+      return () => {
+        reset()
+      }
+    }, [refresh, selectedItems,navigate]);
 
 
     useEffect(() => {
@@ -184,8 +233,11 @@ console.log(itemList, 'itemList1')
       }
       onFilter();
 
+      return () => {
+        reset()
+      }
 
-    }, [updateSuccess, menuEntity?.item, displayedTerms,selectedTerm]);
+    }, [updateSuccess, menuEntity?.item, displayedTerms,selectedTerm ]);
 
 
 
@@ -252,7 +304,6 @@ console.log(itemList, 'itemList1')
 
 
     const groupedMenuItems = itemList.reduce((groups, item) => {
-      console.log(item, 'itemlol')
       const termName = item.terms[0]?.name || 'Uncategorized';
       if (!groups[termName]) {
         groups[termName] = [];
@@ -378,7 +429,7 @@ console.log(itemList, 'itemList1')
               {/* <Rating value={data.rating} readOnly cancel={false} /> */}
             </div>
             </Link>
-              
+
             <div className="flex align-items-center justify-content-between">
               <span className="text-2xl font-semibold">${data.variants[0]?.price}</span>
               <Button color="danger" onClick={() => handleDeleteItem(data.id)}>
@@ -401,6 +452,17 @@ console.log(itemList, 'itemList1')
         return dataviewGridItem(data);
       }
     };
+
+    const handleDuplicateAction = () => {
+      dispatch(duplicateMenu(id))
+        .then((result:any) => {
+          console.log('Duplicate successful:', result);
+
+          navigate(`/menu/${result?.payload?.id}/edit`)
+        })
+      setRefresh(prev => !prev)
+    };
+
 
 
     const listItem = () => {
@@ -429,11 +491,25 @@ console.log(itemList, 'itemList1')
 
     return (
       <div>
-        <Card >
+        <Card>
+          <div className="d-flex justify-content-between align-items-center p-3">
+            <h1>{menuEntity.name}</h1>
+            <div>
+              <Button color="primary" onClick={toggleEditModal}>
+                <FontAwesomeIcon icon="pencil-alt" />{' '}
+                <span className="d-none d-md-inline">
+            <Translate contentKey="entity.action.edit">Edit</Translate>
+          </span>
+              </Button>
+              <Button onClick={() => dispatch(sendEvent(id))} className="btn-success ms-2" style={{ fontFamily: 'fantasy' }}>
+                Trigger
+              </Button>
+              <Button onClick={handleDuplicateAction} className="btn-success ms-2" style={{ fontFamily: 'fantasy' }}>
+                Duplicate Menu
+              </Button>
+            </div>
+          </div>
           <CardBody>
-            <h1>
-             {menuEntity.name}
-            </h1>
             <p>
               <Translate contentKey="tempApp.menu.createdAt">Created At</Translate>:{' '}
               {menuEntity.createdDate ? <TextFormat value={menuEntity.createdDate} type="date" format={APP_DATE_FORMAT} /> : null}
@@ -443,21 +519,9 @@ console.log(itemList, 'itemList1')
               {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
             </p>
             <p>
-              <Translate contentKey="tempApp.menu.category">Category</Translate>:{' '}
-              {menuEntity.category ? menuEntity.category.name : ''}
+              <Translate contentKey="tempApp.menu.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
             </p>
           </CardBody>
-          <div className="d-flex gap-3">
-          <Button color="primary" onClick={toggleEditModal}>
-            <FontAwesomeIcon icon="pencil-alt" />{' '}
-            <span className="d-none d-md-inline">
-            <Translate contentKey="entity.action.edit">Edit</Translate>
-           </span>
-          </Button>
-            <Button onClick={() => dispatch(sendEvent(id))} className="btn-success flex-grow-0" style={{ fontFamily: 'fantasy' }}>
-              Trigger
-            </Button>
-          </div>
         </Card>
 
 

@@ -8,6 +8,8 @@ import taxonomy from 'app/entities/taxonomy/taxonomy.reducer';
 import addon from 'app/entities/addon/addon.reducer';
 import term from 'app/entities/term/term.reducer';
 import order from 'app/entities/order/order.reducer';
+import user from 'app/entities/user/user.reducer';
+
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
@@ -22,6 +24,7 @@ const entitiesReducers = {
   addon,
   term,
   order,
+  user,
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };

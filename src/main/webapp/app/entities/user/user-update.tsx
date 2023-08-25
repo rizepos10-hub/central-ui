@@ -8,7 +8,15 @@ import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IUser } from 'app/shared/model/user.model';
-import { getEntity, updateEntity, createEntity, reset } from './user.reducer';
+import {
+  getEntity,
+  updateEntity,
+  createEntity,
+  reset,
+  getAvailableRoles,
+  getAssignedRoles,
+  getAllRoles, assignRole
+} from './user.reducer';
 import {InputText} from "primereact/inputtext";
 import {Checkbox} from "primereact/checkbox";
 import {Button} from "primereact/button";
@@ -21,26 +29,38 @@ export const UserUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  // const userEntity = useAppSelector(state => state.user.entity);
-  // const loading = useAppSelector(state => state.user.loading);
-  // const updating = useAppSelector(state => state.user.updating);
-  // const updateSuccess = useAppSelector(state => state.user.updateSuccess);
+  const userEntity = useAppSelector(state => state.user.entity);
+  const loading = useAppSelector(state => state.user.loading);
+  const updating = useAppSelector(state => state.user.updating);
+  const updateSuccess = useAppSelector(state => state.user.updateSuccess);
+  const availableRoles = useAppSelector(state => state.user.availableRoles);
+  const assignedRoles = useAppSelector(state => state.user.assignedRoles);
+  const allRoles = useAppSelector(state => state.user.allRoles);
 
 
-  const updateSuccess = false
-  const newUser:IUser = {
-    id: 3,
-    firstName: 'Alice',
-    lastName: 'Johnson',
-    email: 'alice@example.com',
-    phone: '555-123-4567',
-    isActive: true,
+  console.log(userEntity, 'userEntity')
+  console.log(availableRoles, 'availableRoles')
+  console.log(assignedRoles, 'assignedRoles')
+  console.log(allRoles, 'allRoles')
+  const [selectedRoles, setSelectedRoles] = useState([]);
+  const [user, setUser] = useState({
+    username: '',
+    firstName: '',
+    lastName: '',
+    email: '',
     permissions: [],
+    enabled: false,
+  });
 
-  };
-  const [user, setUser] = useState(newUser);
-  const [loading, setLoading] = useState(false);
-  const [updating, setUpdating] = useState(false);
+  const permissions = [
+    '[BO-Write] User has write access to the Back Office',
+    '[BO-REPORT] User has write access to the Back Office reports',
+    '[BO-CONFIG] User can edit the configuration',
+    '[BO-USERS] User has manage users and their access rights ',
+    '[BO-PMG] User can access the receipt quick-view page',
+    ' User can manage taxes',
+  ];
+
   const handleClose = () => {
     navigate('/user' + location.search);
   };
@@ -53,50 +73,91 @@ export const UserUpdate = () => {
       [name]: value,
     }));
   };
-  const permissions = [
-    '[BO-Write] User has write access to the Back Office',
-    '[BO-REPORT] User has write access to the Back Office reports',
-    '[BO-CONFIG] User can edit the configuration',
-    '[BO-USERS] User has manage users and their access rights ',
-    '[BO-PMG] User can access the receipt quick-view page',
-    ' User can manage taxes',
 
-  ];
-
-  const handleCheckboxChange = (event) => {
+  const handleEnabledChange = (event) => {
     const { value, checked } = event.target;
-    setUser((prevUser: IUser) => {
+    setUser((prevUser) => {
       if (checked) {
         return {
           ...prevUser,
-          permissions: [...prevUser.permissions, value],
+        enabled:  checked,
         };
       } else {
         return {
           ...prevUser,
-          permissions: prevUser.permissions.filter((permission) => permission !== value),
+          enabled: checked,
         };
       }
     });
   };
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Handle form submission logic here
+
+  const handleCheckboxChange = (event, role) => {
+    const { checked } = event.target;
+
+    if (checked) {
+      setSelectedRoles((prevSelectedRoles) => [...prevSelectedRoles, role]);
+    } else {
+      setSelectedRoles((prevSelectedRoles) =>
+        prevSelectedRoles.filter((selectedRole) => selectedRole.id !== role.id)
+      );
+    }
   };
 
-  // useEffect(() => {
-  //   if (isNew) {
-  //     dispatch(reset());
-  //   } else {
-  //     dispatch(getEntity(id));
-  //   }
-  // }, []);
-  //
-  // useEffect(() => {
-  //   if (updateSuccess) {
-  //     handleClose();
-  //   }
-  // }, [updateSuccess]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      if (isNew) {
+        console.log("post")
+        await dispatch(createEntity(user));
+      } else {
+        console.log("put")
+console.log(selectedRoles, 'selectedRoles')
+        await dispatch(assignRole({id, selectedRoles}))
+        await dispatch(updateEntity(user));
+      }
+
+      if (isNew) {
+        console.log('User created successfully');
+      } else {
+        console.log('User updated successfully');
+      }
+
+      // handleClose();
+    } catch (error) {
+      console.error('Error occurred while submitting:', error);
+    }
+  };
+
+
+  useEffect(() => {
+    if (isNew) {
+      dispatch(reset());
+    } else {
+      dispatch(getEntity(id));
+      dispatch(getAvailableRoles(id))
+      dispatch(getAssignedRoles(id))
+      dispatch(getAllRoles())
+    }
+
+    console.log(selectedRoles, 'selectedRole2')
+
+  }, []);
+
+  useEffect(() => {
+    if (updateSuccess) {
+      handleClose();
+    }
+    if(userEntity){
+      setUser(userEntity)
+    }
+
+    if (assignedRoles && assignedRoles.length > 0) {
+      const initialSelectedRoles = assignedRoles.map(role => ({id: role.id, name: role.name, description: role.description}));
+      setSelectedRoles(initialSelectedRoles);
+    }
+  }, [updateSuccess,userEntity,assignedRoles]);
 
 
 
@@ -130,13 +191,27 @@ export const UserUpdate = () => {
         <div className="p-col-12">
           <form onSubmit={handleSubmit}>
             <div className="p-field d-flex flex-column mb-3">
+              <label htmlFor="username">
+                <Translate contentKey="tempApp.user.username">Username</Translate>
+              </label>
+              <InputText
+                id="username"
+                name="username"
+                readOnly={!isNew}
+                value={user.username || ''}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="firstName">
                 <Translate contentKey="tempApp.user.firstName">First Name</Translate>
               </label>
               <InputText
                 id="firstName"
                 name="firstName"
-                value={user.firstName}
+                value={user.firstName || ''}
                 onChange={handleInputChange}
                 required
               />
@@ -148,23 +223,12 @@ export const UserUpdate = () => {
               <InputText
                 id="lastName"
                 name="lastName"
-                value={user.lastName}
+                value={user.lastName || ''}
                 onChange={handleInputChange}
                 required
               />
             </div>
-            <div className="p-field d-flex flex-column mb-3">
-              <label htmlFor="phone">
-                <Translate contentKey="tempApp.user.phone">Phone</Translate>
-              </label>
-              <InputText
-                id="phone"
-                name="phone"
-                value={user.phone}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="email">
                 <Translate contentKey="tempApp.user.email">Email</Translate>
@@ -177,30 +241,44 @@ export const UserUpdate = () => {
                 required
               />
             </div>
+            <div className="p-field d-flex flex-column mb-3">
+              <label htmlFor="enabled">
+                <Translate contentKey="tempApp.user.enabled">Enabled</Translate>
+              </label>
+              <Checkbox
+                inputId={`enabled-${user.enabled}`}
+                name="Enabled"
+                value={user.enabled}
+                onChange={handleEnabledChange}
+                checked={user.enabled}
+              />
+            </div>
             <div className="p-field d-flex flex-column gap-3 mb-3">
               <label className="font-bold">
                 Permissions
               </label>
               <ul className="p-field d-flex flex-column gap-1 mb-0">
-                {permissions.map(permission => (
-                  <li key={permission} className="d-flex align-items-center gap-1">
+                {allRoles?.map(role => (
+                  <li key={role.id} className="d-flex align-items-center gap-1">
                     <Checkbox
-                      inputId={`permission-${permission}`}
-                      name={permission}
-                      value={permission}
-                      onChange={handleCheckboxChange}
-                      checked={user.permissions.includes(permission)}
+                      inputId={`permission-${role.id}`}
+                      name={role.name}
+                      value={role.id}
+                      onChange={(event) => handleCheckboxChange(event, role)}
+                      checked={selectedRoles.some(selectedRole => selectedRole.id === role.id)}
                     />
-                   <strong>{permission}</strong>
+                    <p><strong>{role.name} - {role.description}</strong></p>
                   </li>
                 ))}
               </ul>
+
             </div>
             <div className="p-field d-flex gap-2 align-items-center mb-3">
               <Button
                 id="cancel-save"
                 icon="pi pi-arrow-left"
                 className="p-button-secondary"
+                onClick={() => navigate('/user')}
               >
                 Back
               </Button>

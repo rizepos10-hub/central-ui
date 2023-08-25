@@ -74,6 +74,29 @@ export const updateEntity = createAsyncThunk(
 );
 
 
+export const duplicateMenu = createAsyncThunk(
+  'menu/duplicate_entity',
+  async (id: string) => {
+    const formData = new FormData();
+    formData.append('id', id);
+
+    const result = await axios.post<IMenu>(
+      `${apiUrl}/duplicate`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+
+    return result.data;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+
+
 
 export const partialUpdateEntity = createAsyncThunk(
   'menu/partial_update_entity',

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Button, Col, Form, FormGroup, Label, Modal, ModalBody, ModalFooter, ModalHeader, Row} from 'reactstrap';
-import {Translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import {translate, Translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import {useAppDispatch, useAppSelector} from 'app/config/store';
 import { useForm } from 'react-hook-form';
 import { IDiscount } from 'app/shared/model/discount.model';
@@ -67,6 +67,9 @@ const ItemVariantModal = (props: IVariantProps) => {
   } = useForm({ mode: 'onTouched' });
 
   const handleVariantSave = async () => {
+    if(!name || !price){
+      return
+    }
     try {
       const selectedDiscountObjects = selectedDiscounts?.map((item) => ({
         id: item.id,
@@ -211,15 +214,22 @@ const ItemVariantModal = (props: IVariantProps) => {
                 placeholder="enter variant name"
                 name="name"
                 value={name}
+                required
                 onChange={(e) => setName(e.target.value)}
+                validate={{
+                  required: { value: true, message: translate('entity.validation.required') },
+                }}
               />
-
               <ValidatedField
                 type="number"
                 placeholder="enter variant price"
                 name="price"
+                required
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
+                validate={{
+                  required: { value: true, message: translate('entity.validation.required') },
+                }}
               />
 
               <Row className="flex flex-column">
@@ -288,7 +298,7 @@ const ItemVariantModal = (props: IVariantProps) => {
               <Button color="secondary" onClick={props.handleClose} tabIndex={1}>
                 <Translate contentKey="entity.action.cancel">Cancel</Translate>
               </Button>{' '}
-              <Button color="primary" type="button" onClick={handleVariantSave} data-cy="submit">
+              <Button color="primary" type="submit"  data-cy="submit">
                 Save Variant
               </Button>
             </ModalFooter>

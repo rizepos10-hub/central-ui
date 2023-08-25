@@ -4,19 +4,19 @@
       "home": {
         "title": "Users",
         "refreshListLabel": "Refresh list",
-        "createLabel": "Create a new Customer",
-        "createOrEditLabel": "Create or edit a Customer",
-        "search": "Search for Customer",
+        "createLabel": "Create a new User",
+        "createOrEditLabel": "Create or edit a User",
+        "search": "Search for User",
         "notFound": "No Users found"
       },
-      "created": "A new Customer is created with identifier {{ param }}",
-      "updated": "A Customer is updated with identifier {{ param }}",
-      "deleted": "A Customer is deleted with identifier {{ param }}",
+      "created": "A new User is created with identifier {{ param }}",
+      "updated": "A User is updated with identifier {{ param }}",
+      "deleted": "A User is deleted with identifier {{ param }}",
       "delete": {
-        "question": "Are you sure you want to delete Customer {{ id }}?"
+        "question": "Are you sure you want to delete User {{ id }}?"
       },
       "detail": {
-        "title": "Customer"
+        "title": "User"
       },
       "id": "ID",
       "orderCount": "Order Count",
@@ -25,7 +25,9 @@
       "phone": "Phone Number",
       "status": "Status",
       "firstName": "First Name",
-      "lastName": "Last Name"
+      "lastName": "Last Name",
+      "username": "User name",
+      "enabled": "Enabled"
     }
   }
 }

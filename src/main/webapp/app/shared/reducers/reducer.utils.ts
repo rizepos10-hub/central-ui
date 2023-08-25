@@ -40,6 +40,7 @@ export function isPendingAction(action: AnyAction) {
  * Check if the async action type is completed
  */
 export function isFulfilledAction(action: AnyAction) {
+  console.log("action type", action.type)
   return action.type.endsWith('/fulfilled');
 }
 
@@ -76,6 +77,9 @@ export interface EntityState<T> {
   updating: boolean;
   totalItems?: number;
   updateSuccess: boolean;
+  availableRoles?: [];
+  assignedRoles?: [];
+  allRoles?: [];
 }
 
 /**
