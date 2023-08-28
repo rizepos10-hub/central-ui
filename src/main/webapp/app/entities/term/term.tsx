@@ -17,6 +17,10 @@ export const Term = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const taxonomyNameParam = new URLSearchParams(location.search).get('taxonomyName');
+  console.log(taxonomyNameParam, 'here the location param');
+  const taxonomyName = taxonomyNameParam ? decodeURIComponent(taxonomyNameParam) : null;
+  console.log(taxonomyName, 'here the location');
 
   const [search, setSearch] = useState('');
   const [paginationState, setPaginationState] = useState(
@@ -25,7 +29,12 @@ export const Term = () => {
 
   const termList = useAppSelector(state => state.term.entities);
   const loading = useAppSelector(state => state.term.loading);
-  const totalItems = useAppSelector(state => state.term.totalItems);
+
+  const [filteredTermList, setFilteredTermList] = useState(termList);
+
+  const totalItems = filteredTermList.length;
+
+
 
   const getAllEntities = () => {
     if (search) {
@@ -35,6 +44,7 @@ export const Term = () => {
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
+          taxonomyName,
         })
       );
     } else {
@@ -43,10 +53,12 @@ export const Term = () => {
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
+          taxonomyName,
         })
       );
     }
   };
+
 
   const startSearching = e => {
     if (search) {
@@ -79,11 +91,27 @@ export const Term = () => {
 
   const sortEntities = () => {
     getAllEntities();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}${taxonomyName ? `&taxonomyName=${encodeURIComponent(taxonomyName)}` : ''}`;
     if (location.search !== endURL) {
       navigate(`${location.pathname}${endURL}`);
     }
   };
+
+
+
+
+
+
+
+  useEffect(() => {
+    if (taxonomyName) {
+      console.log(taxonomyName, 'taxonomyName')
+      const filteredTerms = termList.filter((term) => term.taxonomy?.name === taxonomyName);
+      setFilteredTermList(filteredTerms);
+    } else {
+      setFilteredTermList(termList);
+    }
+  }, [termList, taxonomyName]);
 
   useEffect(() => {
     sortEntities();
@@ -125,16 +153,16 @@ export const Term = () => {
   return (
     <div>
       <h2 id="term-heading" data-cy="TermHeading">
-        <Translate contentKey="tempApp.term.home.title">Terms</Translate>
+        {taxonomyName}
         <div className="d-flex justify-content-end">
           <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
             <FontAwesomeIcon icon="sync" spin={loading} />{' '}
             <Translate contentKey="tempApp.term.home.refreshListLabel">Refresh List</Translate>
           </Button>
-          <Link to="/term/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
+          <Link to={`/term/new?${taxonomyName ? `&taxonomyName=${encodeURIComponent(taxonomyName)}` : ''}`} className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
             <FontAwesomeIcon icon="plus" />
             &nbsp;
-            <Translate contentKey="tempApp.term.home.createLabel">Create new Term</Translate>
+            Create {taxonomyName && taxonomyName?.includes("Menu") ? " New Menu Category" : taxonomyName?.includes("Item") ? " New Item Category" : "a Term" }
           </Link>
         </div>
       </h2>
@@ -162,40 +190,22 @@ export const Term = () => {
         </Col>
       </Row>
       <div className="table-responsive">
-        {termList && termList.length > 0 ? (
+        {filteredTermList && filteredTermList.length > 0 ? (
           <Table responsive>
             <thead>
               <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="tempApp.term.id">ID</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
+
                 <th className="hand" onClick={sort('name')}>
                   <Translate contentKey="tempApp.term.name">Name</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.term.taxonomy">Taxonomy</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.term.term">Term</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.term.item">Item</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {termList.map((term, i) => (
+              {filteredTermList.map((term, i) => (
                 <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                    <Button tag={Link} to={`/term/${term.id}`} color="link" size="sm">
-                      {term.id}
-                    </Button>
-                  </td>
+
                   <td>{term.name}</td>
-                  <td>{term.taxonomy ? <Link to={`/taxonomy/${term.taxonomy.id}`}>{term.taxonomy.id}</Link> : ''}</td>
-                  <td>{term.term ? <Link to={`/term/${term.term.id}`}>{term.term.id}</Link> : ''}</td>
-                  <td>{term.item ? <Link to={`/item/${term.item.id}`}>{term.item.id}</Link> : ''}</td>
                   <td className="text-end">
                     <div className="btn-group flex-btn-group-container">
                       <Button tag={Link} to={`/term/${term.id}`} color="info" size="sm" data-cy="entityDetailsButton">
@@ -206,7 +216,7 @@ export const Term = () => {
                       </Button>
                       <Button
                         tag={Link}
-                        to={`/term/${term.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                        to={`/term/${term.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}${taxonomyName ? `&taxonomyName=${encodeURIComponent(taxonomyName)}` : ''}`}
                         color="primary"
                         size="sm"
                         data-cy="entityEditButton"
@@ -243,7 +253,7 @@ export const Term = () => {
         )}
       </div>
       {totalItems ? (
-        <div className={termList && termList.length > 0 ? '' : 'd-none'}>
+        <div className={filteredTermList && filteredTermList.length > 0 ? '' : 'd-none'}>
           <div className="justify-content-center d-flex">
             <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
           </div>

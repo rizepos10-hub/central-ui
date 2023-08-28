@@ -53,7 +53,6 @@ export const AttachmentUpdate = () => {
     const entity = {
       ...attachmentEntity,
       ...values,
-      item: items.find(it => it.id.toString() === values.item.toString()),
     };
 
     if (isNew) {
@@ -135,16 +134,7 @@ export const AttachmentUpdate = () => {
                   </option>
                 ))}
               </ValidatedField>
-              <ValidatedField id="attachment-item" name="item" data-cy="item" label={translate('tempApp.attachment.item')} type="select">
-                <option value="" key="0" />
-                {items
-                  ? items.map(otherEntity => (
-                      <option value={otherEntity.id} key={otherEntity.id}>
-                        {otherEntity.id}
-                      </option>
-                    ))
-                  : null}
-              </ValidatedField>
+
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/attachment" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

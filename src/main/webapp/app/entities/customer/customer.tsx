@@ -27,6 +27,7 @@ export const Customer = () => {
   const loading = useAppSelector(state => state.customer.loading);
   const totalItems = useAppSelector(state => state.customer.totalItems);
 
+  console.log(customerList,'customerList')
   const getAllEntities = () => {
     if (search) {
       dispatch(
@@ -166,17 +167,18 @@ export const Customer = () => {
           <Table responsive>
             <thead>
               <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="tempApp.customer.id">ID</Translate> <FontAwesomeIcon icon="sort" />
+                <th className="hand" onClick={sort('name')}>
+                  <Translate contentKey="tempApp.customer.name">Name</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
-                <th className="hand" onClick={sort('orderCount')}>
-                  <Translate contentKey="tempApp.customer.orderCount">Order Count</Translate> <FontAwesomeIcon icon="sort" />
+                {/* <th className="hand" onClick={sort('orderCount')}> */}
+                {/*   <Translate contentKey="tempApp.customer.orderCount">Order Count</Translate> <FontAwesomeIcon icon="sort" /> */}
+                {/* </th> */}
+
+                <th className="hand" onClick={sort('status')}>
+                  <Translate contentKey="tempApp.customer.email">Email</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
                 <th className="hand" onClick={sort('phone')}>
                   <Translate contentKey="tempApp.customer.phone">Phone</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('status')}>
-                  <Translate contentKey="tempApp.customer.status">Status</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
                 <th />
               </tr>
@@ -186,12 +188,12 @@ export const Customer = () => {
                 <tr key={`entity-${i}`} data-cy="entityTable">
                   <td>
                     <Button tag={Link} to={`/customer/${customer.id}`} color="link" size="sm">
-                      {customer.id}
+                      {`${customer.firstName} ${customer.lastName}`}
                     </Button>
                   </td>
-                  <td>{customer.orderCount}</td>
+                  {/* <td>{customer.orderCount}</td> */}
+                  <td>{customer.email}</td>
                   <td>{customer.phone}</td>
-                  <td>{customer.status}</td>
                   <td className="text-end">
                     <div className="btn-group flex-btn-group-container">
                       <Button tag={Link} to={`/customer/${customer.id}`} color="info" size="sm" data-cy="entityDetailsButton">

@@ -17,9 +17,26 @@ import { hasAnyAuthority } from 'app/shared/auth/private-route';
 import ErrorBoundary from 'app/shared/error/error-boundary';
 import { AUTHORITIES } from 'app/config/constants';
 import AppRoutes from 'app/routes';
+import TenantContext from 'app/shared/tenant/TenantContext';
+import Sidebar, {Layout} from "app/shared/sidebar/Layout";
+import {LayoutProvider} from "app/shared/sidebar/context/layoutcontext";
 
-const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
+// const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
+
+function getTenantFromURL() {
+  // const subdomain = window.location.hostname.split('.')[0]; // for subdomain
+  const pathname = window.location.pathname;
+  const pathSegments = pathname.split('/').filter(segment => segment !== '');
+
+  // The first non-empty path segment will be considered as the base path (tenant)
+  if (pathSegments.length > 0) {
+    return pathSegments[0];
+  }
+}
+
+const tenant = getTenantFromURL();
+const baseHref = `/${tenant}/`;
 export const App = () => {
   const dispatch = useAppDispatch();
 
@@ -37,29 +54,35 @@ export const App = () => {
 
   const paddingTop = '60px';
   return (
-    <BrowserRouter basename={baseHref}>
-      <div className="app-container" style={{ paddingTop }}>
-        <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" />
-        <ErrorBoundary>
-          <Header
-            isAuthenticated={isAuthenticated}
-            isAdmin={isAdmin}
-            currentLocale={currentLocale}
-            ribbonEnv={ribbonEnv}
-            isInProduction={isInProduction}
-            isOpenAPIEnabled={isOpenAPIEnabled}
-          />
-        </ErrorBoundary>
-        <div className="container-fluid view-container" id="app-view-container">
-          <Card className="jh-card">
-            <ErrorBoundary>
-              <AppRoutes />
-            </ErrorBoundary>
-          </Card>
-          <Footer />
-        </div>
-      </div>
-    </BrowserRouter>
+    <TenantContext.Provider value={tenant}>
+      <BrowserRouter basename={baseHref}>
+        <LayoutProvider>
+        {/* <div className="app-container" style={{ paddingTop }}> */}
+          {/* <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" /> */}
+          {/* <ErrorBoundary> */}
+          {/*   <Header */}
+          {/*     isAuthenticated={isAuthenticated} */}
+          {/*     isAdmin={isAdmin} */}
+          {/*     currentLocale={currentLocale} */}
+          {/*     ribbonEnv={ribbonEnv} */}
+          {/*     isInProduction={isInProduction} */}
+          {/*     isOpenAPIEnabled={isOpenAPIEnabled} */}
+          {/*   /> */}
+          {/* </ErrorBoundary> */}
+          {/* <div className="container-fluid view-container row" id="app-view-container"> */}
+            <Layout isAuthenticated={isAuthenticated}>
+              <ErrorBoundary>
+                <AppRoutes  />
+              </ErrorBoundary>
+          {/* </div> */}
+        {/* </div> */}
+            </Layout>
+
+        </LayoutProvider>
+
+      </BrowserRouter>
+
+     </TenantContext.Provider>
   );
 };
 

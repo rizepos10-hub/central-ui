@@ -7,10 +7,12 @@ import Item from './item';
 import ItemDetail from './item-detail';
 import ItemUpdate from './item-update';
 import ItemDeleteDialog from './item-delete-dialog';
+import ItemTest from "app/entities/item/ItemTest";
+import VariantViewTest from "app/entities/item/VariantViewTest";
 
 const ItemRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<Item />} />
+    <Route index element={<ItemTest />} />
     <Route path="new" element={<ItemUpdate />} />
     <Route path=":id">
       <Route index element={<ItemDetail />} />

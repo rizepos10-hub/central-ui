@@ -15,13 +15,19 @@ export default () => next => action => {
    * The notification middleware serves to add success and error notifications
    */
   if (isFulfilledAction(action) && payload && payload.headers) {
+    console.log("enter here")
     const headers = payload?.headers;
     let alert: string | null = null;
     let alertParams: string | null = null;
+    console.log('headers12', Object.entries<string>(headers))
     headers &&
       Object.entries<string>(headers).forEach(([k, v]) => {
+        console.log(k, 'im k')
         if (k.toLowerCase().endsWith('app-alert')) {
-          alert = v;
+          console.log(v, 'vivo')
+          alert = v.replace('centralApp', 'tempApp');
+          console.log(k, 'kamel' , alert , 'vebuck')
+
         } else if (k.toLowerCase().endsWith('app-params')) {
           alertParams = decodeURIComponent(v.replace(/\+/g, ' '));
         }

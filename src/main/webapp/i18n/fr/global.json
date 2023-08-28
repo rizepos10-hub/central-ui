@@ -1,6 +1,6 @@
 {
   "global": {
-    "title": "Temp",
+    "title": "Business UI",
     "browsehappy": "Vous utilisez un <strong>ancien</strong> navigateur. Veuillez <a href=\"http://browsehappy.com/?locale=fr\">mettre à jour votre navigateur</a> pour une meilleure expérience.",
     "menu": {
       "home": "Accueil",
@@ -16,6 +16,7 @@
         "taxonomy": "Taxonomy",
         "addon": "Addon",
         "term": "Term",
+        "order": "Order",
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)"
       },
       "account": {

@@ -20,14 +20,26 @@ const apiSearchUrl = 'api/_search/terms';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('term/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+export const searchEntities = createAsyncThunk('term/search_entity', async ({ query, page, size, sort, taxonomyName }: IQueryParams) => {
+  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}${taxonomyName ? `&taxonomyName=${encodeURIComponent(taxonomyName)}` : ''}`;
   return axios.get<ITerm[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
-  return axios.get<ITerm[]>(requestUrl);
+export const getEntities = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
+ return  axios.get<ITerm[]>(requestUrl);
+});
+
+export const getMenuCategories = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
+  const requestUrl = `api/terms/search?taxonomy=Menu%20Category&${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
+  const  response = await axios.get<ITerm[]>(requestUrl)
+  return response
+});
+
+export const getItemCategories = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
+  const requestUrl = `api/terms/search?taxonomy=Item%20Category&${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
+  const  response = await axios.get<ITerm[]>(requestUrl)
+  return response
 });
 
 export const getEntity = createAsyncThunk(
@@ -74,7 +86,7 @@ export const deleteEntity = createAsyncThunk(
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
     const result = await axios.delete<ITerm>(requestUrl);
-    thunkAPI.dispatch(getEntities({}));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }

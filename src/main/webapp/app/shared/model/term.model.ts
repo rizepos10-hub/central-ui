@@ -1,13 +1,12 @@
 import { ITaxonomy } from 'app/shared/model/taxonomy.model';
-import { IItem } from 'app/shared/model/item.model';
+import {IAttachment} from "app/shared/model/attachment.model";
 
 export interface ITerm {
   id?: string;
   name?: string;
   taxonomy?: ITaxonomy;
   parents?: ITerm[] | null;
-  term?: ITerm | null;
-  item?: IItem | null;
+  attachments?: IAttachment | null;
 }
 
 export const defaultValue: Readonly<ITerm> = {};

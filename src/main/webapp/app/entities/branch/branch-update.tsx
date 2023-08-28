@@ -48,10 +48,11 @@ export const BranchUpdate = () => {
   }, [updateSuccess]);
 
   const saveEntity = values => {
+    console.log('clicked')
     const entity = {
       ...branchEntity,
       ...values,
-      menu: menus.find(it => it.id.toString() === values.menu.toString()),
+      // menu: menus.find(it => it.id.toString() === values.menu.toString()),
     };
 
     if (isNew) {
@@ -84,16 +85,16 @@ export const BranchUpdate = () => {
             <p>Loading...</p>
           ) : (
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {!isNew ? (
-                <ValidatedField
-                  name="id"
-                  required
-                  readOnly
-                  id="branch-id"
-                  label={translate('global.field.id')}
-                  validate={{ required: true }}
-                />
-              ) : null}
+              {/* {!isNew ? ( */}
+              {/*   <ValidatedField */}
+              {/*     name="id" */}
+              {/*     required */}
+              {/*     readOnly */}
+              {/*     id="branch-id" */}
+              {/*     label={translate('global.field.id')} */}
+              {/*     validate={{ required: true }} */}
+              {/*   /> */}
+              {/* ) : null} */}
               <ValidatedField
                 label={translate('tempApp.branch.name')}
                 id="branch-name"
@@ -105,7 +106,7 @@ export const BranchUpdate = () => {
                   maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
                 }}
               />
-              <ValidatedField label={translate('tempApp.branch.appId')} id="branch-appId" name="appId" data-cy="appId" type="text" />
+              {/* <ValidatedField label={translate('tempApp.branch.appId')} id="branch-appId" name="appId" data-cy="appId" type="text" /> */}
               <ValidatedField
                 label={translate('tempApp.branch.numberOfEmployees')}
                 id="branch-numberOfEmployees"
@@ -113,16 +114,16 @@ export const BranchUpdate = () => {
                 data-cy="numberOfEmployees"
                 type="text"
               />
-              <ValidatedField id="branch-menu" name="menu" data-cy="menu" label={translate('tempApp.branch.menu')} type="select">
-                <option value="" key="0" />
-                {menus
-                  ? menus.map(otherEntity => (
-                      <option value={otherEntity.id} key={otherEntity.id}>
-                        {otherEntity.id}
-                      </option>
-                    ))
-                  : null}
-              </ValidatedField>
+              {/* <ValidatedField id="branch-menu" name="menu" data-cy="menu" label={translate('tempApp.branch.menu')} type="select"> */}
+              {/*   <option value="" key="0" /> */}
+              {/*   {menus */}
+              {/*     ? menus.map(otherEntity => ( */}
+              {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
+              {/*           {otherEntity.name} */}
+              {/*         </option> */}
+              {/*       )) */}
+              {/*     : null} */}
+              {/* </ValidatedField> */}
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/branch" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

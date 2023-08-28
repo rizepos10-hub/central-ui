@@ -7,10 +7,11 @@ import Branch from './branch';
 import BranchDetail from './branch-detail';
 import BranchUpdate from './branch-update';
 import BranchDeleteDialog from './branch-delete-dialog';
+import BranchTest from "app/entities/branch/branchTest";
 
 const BranchRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<Branch />} />
+    <Route index element={<BranchTest />} />
     <Route path="new" element={<BranchUpdate />} />
     <Route path=":id">
       <Route index element={<BranchDetail />} />

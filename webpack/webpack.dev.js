@@ -57,13 +57,13 @@ module.exports = async options =>
       proxy: [
         {
           context: ['/api', '/services', '/management', '/v3/api-docs', '/h2-console', '/auth'],
-          target: `http${options.tls ? 's' : ''}://localhost:8080`,
+          target: `http${options.tls ? 's' : ''}://164.92.188.249:8080`,
           secure: false,
           changeOrigin: options.tls,
         },
         {
           context: ['/websocket'],
-          target: 'ws://127.0.0.1:8080',
+          target: 'ws://164.92.188.249:8080',
           ws: true,
         },
       ],
@@ -107,7 +107,7 @@ module.exports = async options =>
         }
       ),
       new WebpackNotifierPlugin({
-        title: 'Temp',
+        title: 'Business UI',
         contentImage: path.join(__dirname, 'logo-jhipster.png'),
       }),
     ].filter(Boolean),

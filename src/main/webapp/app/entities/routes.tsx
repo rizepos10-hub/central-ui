@@ -3,7 +3,7 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import Menu from './menu';
+import Menu from './menu/index';
 import Branch from './branch';
 import Discount from './discount';
 import Attachment from './attachment';
@@ -12,6 +12,10 @@ import Item from './item';
 import Taxonomy from './taxonomy';
 import Addon from './addon';
 import Term from './term';
+import Order from './order';
+import Home from "app/shared/layout/home/home";
+import User from "./user";
+
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
 export default () => {
@@ -19,8 +23,10 @@ export default () => {
     <div>
       <ErrorBoundaryRoutes>
         {/* prettier-ignore */}
+        <Route index element={<Home />} />
         <Route path="menu/*" element={<Menu />} />
         <Route path="branch/*" element={<Branch />} />
+        <Route path="user/*" element={<User />} />
         <Route path="discount/*" element={<Discount />} />
         <Route path="attachment/*" element={<Attachment />} />
         <Route path="customer/*" element={<Customer />} />
@@ -28,6 +34,9 @@ export default () => {
         <Route path="taxonomy/*" element={<Taxonomy />} />
         <Route path="addon/*" element={<Addon />} />
         <Route path="term/*" element={<Term />} />
+        <Route path="order/*" element={<Order />} />
+
+
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>
     </div>

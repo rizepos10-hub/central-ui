@@ -20,8 +20,12 @@
       },
       "id": "ID",
       "orderCount": "Order Count",
-      "phone": "Phone",
-      "status": "Status"
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone Number",
+      "status": "Status",
+      "firstName": "First Name",
+      "lastName": "Last Name"
     }
   }
 }

@@ -48,6 +48,7 @@ export const Item = () => {
     }
   };
 
+
   const startSearching = e => {
     if (search) {
       setPaginationState({
@@ -122,6 +123,7 @@ export const Item = () => {
     sortEntities();
   };
 
+  console.log(itemList, 'itemList')
   return (
     <div>
       <h2 id="item-heading" data-cy="ItemHeading">
@@ -166,9 +168,6 @@ export const Item = () => {
           <Table responsive>
             <thead>
               <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="tempApp.item.id">ID</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
                 <th className="hand" onClick={sort('name')}>
                   <Translate contentKey="tempApp.item.name">Name</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
@@ -190,9 +189,9 @@ export const Item = () => {
                 <th className="hand" onClick={sort('status')}>
                   <Translate contentKey="tempApp.item.status">Status</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
-                <th>
-                  <Translate contentKey="tempApp.item.menu">Menu</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
+                {/* <th> */}
+                {/*   <Translate contentKey="tempApp.item.menu">Menu</Translate> <FontAwesomeIcon icon="sort" /> */}
+                {/* </th> */}
                 <th />
               </tr>
             </thead>
@@ -200,11 +199,10 @@ export const Item = () => {
               {itemList.map((item, i) => (
                 <tr key={`entity-${i}`} data-cy="entityTable">
                   <td>
-                    <Button tag={Link} to={`/item/${item.id}`} color="link" size="sm">
-                      {item.id}
+                    <Button tag={Link} to={`/item/${item.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`} color="link" size="sm">
+                    {item.name}
                     </Button>
                   </td>
-                  <td>{item.name}</td>
                   <td>{item.desc}</td>
                   <td>{item.orderCount}</td>
                   <td>{item.avgRating}</td>
@@ -216,12 +214,12 @@ export const Item = () => {
                   <td>{item.menu ? <Link to={`/menu/${item.menu.id}`}>{item.menu.id}</Link> : ''}</td>
                   <td className="text-end">
                     <div className="btn-group flex-btn-group-container">
-                      <Button tag={Link} to={`/item/${item.id}`} color="info" size="sm" data-cy="entityDetailsButton">
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
+                      {/* <Button tag={Link} to={`/item/${item.id}`} color="info" size="sm" data-cy="entityDetailsButton"> */}
+                      {/*   <FontAwesomeIcon icon="eye" />{' '} */}
+                      {/*   <span className="d-none d-md-inline"> */}
+                      {/*     <Translate contentKey="entity.action.view">View</Translate> */}
+                      {/*   </span> */}
+                      {/* </Button> */}
                       <Button
                         tag={Link}
                         to={`/item/${item.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
