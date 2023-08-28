@@ -9,6 +9,8 @@ const { hashElement } = require('folder-hash');
 const MergeJsonWebpackPlugin = require('merge-jsons-webpack-plugin');
 const utils = require('./utils.js');
 const environment = require('./environment');
+const environmentDev = require('./environment.dev');
+const environmentProd = require('./environment.prod');
 
 const getTsLoaderRule = env => {
   const rules = [
@@ -52,6 +54,8 @@ module.exports = async options => {
             __filename,
             path.resolve(__dirname, `webpack.${development ? 'dev' : 'prod'}.js`),
             path.resolve(__dirname, 'environment.js'),
+            path.resolve(__dirname, 'environment.dev.js'),
+            path.resolve(__dirname, 'environment.prod.js'),
             path.resolve(__dirname, 'utils.js'),
             path.resolve(__dirname, '../postcss.config.js'),
             path.resolve(__dirname, '../tsconfig.json'),
@@ -98,8 +102,10 @@ module.exports = async options => {
           I18N_HASH: JSON.stringify(languagesHash.hash),
           DEVELOPMENT: JSON.stringify(development),
           VERSION: JSON.stringify(environment.VERSION),
-          SERVER_API_URL: JSON.stringify(environment.SERVER_API_URL),
-          SERVER_ADMIN_API_URL: JSON.stringify(environment.SERVER_ADMIN_API_URL),
+          SERVER_API_URL: `${development ? JSON.stringify(environmentDev.SERVER_API_URL) : JSON.stringify(environmentProd.SERVER_API_URL)}`,
+          SERVER_ADMIN_API_URL: `${
+            development ? JSON.stringify(environmentDev.SERVER_ADMIN_API_URL) : JSON.stringify(environmentProd.SERVER_ADMIN_API_URL)
+          }`,
         }),
         new ESLintPlugin({
           baseConfig: {

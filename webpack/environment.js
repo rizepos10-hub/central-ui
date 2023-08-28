@@ -5,9 +5,4 @@ module.exports = {
   // If this URL is left empty (""), then it will be relative to the current context.
   // If you use an API server, in `prod` mode, you will need to enable CORS
   // (see the `jhipster.cors` common JHipster property in the `application-*.yml` configurations)
-
-  SERVER_ADMIN_API_URL: process.env.hasOwnProperty('SERVER_ADMIN_API_URL')
-    ? process.env.SERVER_ADMIN_API_URL
-    : 'http://164.92.188.249:8089',
-  SERVER_API_URL: process.env.hasOwnProperty('SERVER_API_URL') ? process.env.SERVER_API_URL : 'http://164.92.188.249:8080',
 };
