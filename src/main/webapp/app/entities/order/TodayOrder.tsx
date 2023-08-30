@@ -84,6 +84,13 @@ export const Order = () => {
     return branch ? branch.name : 'Unknown Branch';
   };
 
+  const statusOptions = [
+    { label: 'DRAFT', value: 'DRAFT' },
+    { label: 'Kitchen', value: 'KITCHEN' },
+    { label: 'Delivered', value: 'DELIVERED' },
+    { label: 'Done', value: 'DONE' }
+  ];
+
   const filteredBranchOptions = branchList
     .map((branch) => ({
       label: branch.name,
@@ -133,6 +140,7 @@ export const Order = () => {
 
     const queryParams = {
       orderSource: lazyState.filters.byClient?.value || '',
+      orderStatus: lazyState.filters.status?.value || '',
       first: lazyState.first,
       sequenceId:lazyState.filters.id?.value || '',
       page: lazyState.page ,
@@ -245,7 +253,24 @@ export const Order = () => {
               body={(rowData) => rowData.customer ? rowData.customer.phone : ''}
             />
 
-            <Column field="status" sortable filter header="Order Status" />
+            <Column field="status" sortable filter header="Order Status"
+                    filterElement={
+                      <Dropdown
+                        value={lazyState.filters.status?.value || ''}
+                        options={statusOptions}
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              status: { value: e.value, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder="Select a status"
+                      />
+                    }
+            />
           </DataTable>
         </div>
 

@@ -45,6 +45,7 @@
   import {Skeleton} from "primereact/skeleton";
   import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
   import {toast} from "react-toastify";
+  import {OrderList} from "primereact/orderlist";
 
 
   export const MenuUpdate = () => {
@@ -66,8 +67,14 @@
 
 
     const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
-    const initialBranches = menuEntity.branch?.map(branch => ({ value: branch.id, label: branch.name }));
+    const initialBranches = {label : menuEntity?.branch?.name , value: menuEntity?.branch?.id}
 
+
+
+
+
+    console.log('initalBranches', initialBranches)
+//?.map(branch => ({ value: branch.id, label: branch.name }));
 
     const [isModalOpen, setModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -79,7 +86,8 @@
     const [showEdit, setShowEdit] = useState(false)
     const [activeTab, setActiveTab] = useState(displayedTerms.length > 0 ? displayedTerms[0] : null);
      const [refresh, setRefresh] = useState(false)
-    const [selectedBranches, setSelectedBranches] = useState([])
+    const [selectedBranches, setSelectedBranches] = useState<any>();
+
     const [globalFilterValue, setGlobalFilterValue] = useState('');
     const [filteredValue, setFilteredValue] = useState<any>();
     const [layout, setLayout] = useState<'grid' | 'list' | (string & Record<string, unknown>)>('grid');
@@ -90,6 +98,8 @@
     const [paginationState, setPaginationState] = useState(
       overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
     );
+
+    console.log(menuItems, 'menuItems')
 
     const termOptions = [
       { label: 'All', value: '' },
@@ -229,8 +239,9 @@ console.log(itemList, 'itemList1')
         setSelectedCategory(menuEntity.category.name)
       }
       if (menuEntity?.branch){
-        setSelectedBranches(menuEntity.branch?.map((branch) => ({id: branch.id})))
+        setSelectedBranches({label: menuEntity?.branch?.name , value: menuEntity?.branch?.id})
       }
+      console.log(menuEntity, 'menuEntity')
       onFilter();
 
       return () => {
@@ -238,6 +249,24 @@ console.log(itemList, 'itemList1')
       }
 
     }, [updateSuccess, menuEntity?.item, displayedTerms,selectedTerm ]);
+
+
+
+    function getPriceForBranch(data) {
+      const branchId = menuEntity?.branch?.id;
+
+      let foundPrice = null;
+
+      data.variants?.forEach(variant => {
+        const branchVariantDetails = variant.branchVariantDetails;
+
+        if (branchVariantDetails && branchVariantDetails[branchId]) {
+          foundPrice = branchVariantDetails[branchId].price;
+        }
+      });
+
+      return foundPrice;
+    }
 
 
 
@@ -261,7 +290,7 @@ console.log(itemList, 'itemList1')
         ...restValues,
         category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
         item: [...filteredMenuItems, ...itemIds],
-        branch: selectedBranches
+        branch: { id: selectedBranches.value }
       };
 
       console.log(entity, 'entitysent')
@@ -296,8 +325,8 @@ console.log(itemList, 'itemList1')
     console.log(filteredItemList, 'filteredItemList')
 
     const handleBranchChange = (selectedBranches) => {
-      console.log(selectedBranches, 'lol')
-      setSelectedBranches(selectedBranches.map((branch) => ({id: branch.value})));
+      console.log(selectedBranches, 'lol branch')
+      setSelectedBranches(selectedBranches);
     }
 
 
@@ -396,7 +425,8 @@ console.log(itemList, 'itemList1')
               </div>
             </div>
             <div className="flex flex-row md:flex-column justify-content-between w-full md:w-auto align-items-center md:align-items-end mt-5 md:mt-0">
-              <span className="text-2xl font-semibold mb-2 align-self-center md:align-self-end">${data.variants[0]?.price}</span>
+              <span className="text-2xl font-semibold mb-2 align-self-center md:align-self-end">  ${getPriceForBranch(data) ?? data.variants[0]?.price}</span>
+
               {/* <Button icon="pi pi-shopping-cart" label="Add to Cart" disabled={data.inventoryStatus === 'OUTOFSTOCK'} className="mb-2 p-button-sm"></Button> */}
               {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
             </div>
@@ -431,7 +461,7 @@ console.log(itemList, 'itemList1')
             </Link>
 
             <div className="flex align-items-center justify-content-between">
-              <span className="text-2xl font-semibold">${data.variants[0]?.price}</span>
+              <span className="text-2xl font-semibold">${getPriceForBranch(data) ?? data.variants[0]?.price}</span>
               <Button color="danger" onClick={() => handleDeleteItem(data.id)}>
                 <FontAwesomeIcon icon={faTrash} />
               </Button>
@@ -549,11 +579,11 @@ console.log(itemList, 'itemList1')
                     maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
                   }}
                 />
-                <div className="mb-3">
-                  Branches
-                  <Select isMulti={true} defaultValue={initialBranches}
-                          onChange={handleBranchChange} options={branchList} />
-                </div>
+                    <div className="mb-3">
+                      Branches
+                      <Select defaultValue={initialBranches}
+                              onChange={handleBranchChange} options={branchList} />
+                    </div>
                 <ValidatedField
                   id="menu-category"
                   name="category"

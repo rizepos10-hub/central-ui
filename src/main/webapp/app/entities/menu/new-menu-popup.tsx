@@ -31,15 +31,16 @@ const NewMenuPopup = () => {
   const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
   const newMenu = useAppSelector(state => state.menu.entity)
   const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
-  const initialBranches = menuEntity.branch?.map(branch => ({ value: branch.id, label: branch.name }));
+  const initialBranches = {label : menuEntity?.branch?.name , value: menuEntity?.branch?.id}
+
 
 
   const [selectedCategory, setSelectedCategory] = useState();
   const [menuItems, setMenuItems] = useState([]);
 
 
-  const [selectedBranches, setSelectedBranches] = useState([])
 
+  const [selectedBranches, setSelectedBranches] = useState<{ value: string; label: string } | undefined>();
 
 
 
@@ -95,7 +96,8 @@ const NewMenuPopup = () => {
       ...menuEntity,
       ...restValues,
       category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
-      branch: selectedBranches
+      branch: { id: selectedBranches.value }
+
     };
 
     console.log(entity, 'entitysent')
@@ -128,10 +130,9 @@ const NewMenuPopup = () => {
 
 
   const handleBranchChange = (selectedBranches) => {
-    console.log(selectedBranches, 'lol')
-    setSelectedBranches(selectedBranches.map((branch) => ({id: branch.value})));
+    console.log(selectedBranches, 'lol branch')
+    setSelectedBranches(selectedBranches);
   }
-
 
 
 
@@ -159,7 +160,7 @@ const NewMenuPopup = () => {
           />
           <div className="mb-3">
             Branches
-            <Select isMulti={true} defaultValue={initialBranches}
+            <Select defaultValue={initialBranches}
                     onChange={handleBranchChange} options={branchList} />
           </div>
           <ValidatedField
