@@ -87,6 +87,13 @@ export const Order = () => {
       label: branch.name,
       value: branch.id,
     }));
+
+  const statusOptions = [
+    { label: 'DRAFT', value: 'DRAFT' },
+    { label: 'Kitchen', value: 'KITCHEN' },
+    { label: 'Delivered', value: 'DELIVERED' },
+    { label: 'Done', value: 'DONE' }
+  ];
   // const handleFromDateChange = event => {
   //   setLazyState(prevState => ({
   //     ...prevState,
@@ -172,10 +179,12 @@ export const Order = () => {
       lazyState.filters.id?.value ||
       lazyState.filters.tables?.value ||
       lazyState.filters.orderSource?.value ||
+      lazyState.filters.status?.value ||
       dates
     ) {
       const queryParams = {
         orderSource: lazyState.filters.byClient?.value || '',
+        orderStatus: lazyState.filters.status?.value || '',
         first: lazyState.first,
         sequenceId:lazyState.filters.id?.value || '',
         page: lazyState.page ,
@@ -322,17 +331,36 @@ console.log(orderList.length, 'len')
                 <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
               />
 
-              <Column field="byClient" sortable filter header="Order Source" />
+              <Column field="byClient" style={{ width: '10%' }} sortable filter header="Order Source" />
               <Column field="tables" sortable style={{ width: '10%' }} filter  header="Order Tables" />
               <Column
                 field="customer"
                 filter
                 sortable
                 header="Order Customer"
+                style={{ width: '15%' }}
+
                 body={(rowData) => rowData.customer ? `${rowData.customer.phone}` : ''}
               />
 
-              <Column field="status" sortable filter header="Order Status" />
+              <Column field="status" sortable filter header="Order Status"
+                      filterElement={
+                        <Dropdown
+                          value={lazyState.filters.status?.value || ''}
+                          options={statusOptions}
+                          onChange={(e) =>
+                            setLazyState((prevState) => ({
+                              ...prevState,
+                              filters: {
+                                ...prevState.filters,
+                                status: { value: e.value, matchMode: 'equals' },
+                              },
+                            }))
+                          }
+                          placeholder="Select a status"
+                        />
+                      }
+              />
             </DataTable>
           </div>
 

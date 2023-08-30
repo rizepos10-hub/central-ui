@@ -120,8 +120,91 @@ const AppMenu = () => {
                             icon: ' pi pi-users',
                             to: '/customer'
                           },
+                          {
+                            label: 'Settings',
+                            icon: 'pi pi-book',
+                            items: [
+                              {
+                                label: 'Business settings',
+                                icon: ' pi pi-th-large',
+                                to: '/settings'
+                              },
+                              {
+                                label: 'Reporting shifts ',
+                                icon: 'pi pi-folder-open',
+                                to: '/reporting-shifts'
+                              },
+                              {
+                                label: 'Currencies',
+                                icon: 'pi pi-plus-circle',
+                                to: '/currencies'
+                              },
+                              {
+                                label: 'Discounts',
+                                icon: 'pi pi-percentage',
+                                to: '/discount'
+                              },
+                              {
+                                label: 'Account profiles',
+                                icon: ' pi pi-th-large',
+                                to: '/account-profiles'
+                              },
+                              {
+                                label: 'Taxes',
+                                icon: ' pi pi-th-large',
+                                to: '/settings/taxes'
+                              },
+                              {
+                                label: 'Tax profiles ',
+                                icon: 'pi pi-folder-open',
+                                to: '/tax-profiles'
+                              },
+                              {
+                                label: 'Payment methods ',
+                                icon: 'pi pi-folder-open',
+                                to: '/payment-methods'
+                              },
+                              {
+                                label: 'Floor plans',
+                                icon: 'pi pi-plus-circle',
+                                to: '/floor-plans'
+                              },
+                              {
+                                label: 'Transfer Operations',
+                                icon: 'pi pi-percentage',
+                                to: '/transfer-operations'
+                              },
+                              {
+                                label: 'Web extensions',
+                                icon: 'pi pi-percentage',
+                                to: '/web-extensions'
+                              },
+                              {
+                                label: 'Stock',
+                                icon: ' pi pi-th-large',
+                                to: '/stock'
+                              },
+                              {
+                                label: 'Voids ',
+                                icon: 'pi pi-folder-open',
+                                to: '/term/items'
+                              },
+                              {
+                                label: 'Reporting automations',
+                                icon: 'pi pi-plus-circle',
+                                to: '/reporting-automations'
+                              },
+                              {
+                                label: 'Item languages',
+                                icon: 'pi pi-percentage',
+                                to: '/items-languages'
+                              },
+                            ]
+                          },
                         ]
                       },
+
+
 
 
 

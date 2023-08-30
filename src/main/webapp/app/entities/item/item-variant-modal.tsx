@@ -1,5 +1,17 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Col, Form, FormGroup, Label, Modal, ModalBody, ModalFooter, ModalHeader, Row} from 'reactstrap';
+import {
+  Button,
+  Col,
+  Form,
+  FormGroup,
+  FormText,
+  Label,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Row, Table
+} from 'reactstrap';
 import {translate, Translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import {useAppDispatch, useAppSelector} from 'app/config/store';
 import { useForm } from 'react-hook-form';
@@ -9,11 +21,13 @@ import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {useParams} from "react-router-dom";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
+import { getEntities as getBranches } from '../branch/branch.reducer';
+import {  getEntities as getItems } from './item.reducer';
 
 interface IVariantProps {
   showModal: boolean;
   handleClose?: () => void;
-  handleSave: (name: string, price: number, discount: any, attachments: any) => void;
+  handleSave: (name: string, price: number, discount: any, attachments: any, branchPrices: any) => void;
   onVariantImageUpload: any;
   editingVariantId: any;
   variants: any;
@@ -30,7 +44,13 @@ const ItemVariantModal = (props: IVariantProps) => {
   const discounts = useAppSelector(state => state.discount.entities);
   console.log(discounts, 'discount1');
 
+  const branchList = useAppSelector(state => state.branch.entities);
 
+  const itemList = useAppSelector(state => state.item.entities);
+
+
+
+  const [branchPrices, setBranchPrices] = useState({});
 
   const isNew = props.editingVariantId === null;
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
@@ -55,7 +75,8 @@ const ItemVariantModal = (props: IVariantProps) => {
   const variant = ({ name, price }) => {
     const selectedDiscountObjects = selectedDiscounts.map((item) => ({ id: item.id, type: item.type, value: item.value}));
     console.log(variantImage, 'variantImage');
-    props.handleSave(name, parseFloat(price), selectedDiscountObjects, variantImage);
+
+    props.handleSave(name, parseFloat(price), selectedDiscountObjects, variantImage, branchPrices);
   };
 
 
@@ -88,9 +109,14 @@ const ItemVariantModal = (props: IVariantProps) => {
         attachmentsToSend = attachmentsToSend.concat(attachments);
       }
       console.log(attachmentsToSend, 'attachmentsToSend')
+      const formattedBranchPrices = {};
+      Object.keys(branchPrices).forEach(branchId => {
+        formattedBranchPrices[branchId] = { price: parseFloat(branchPrices[branchId]) };
+      });
+      console.log(formattedBranchPrices, 'formattedBranchPrices')
 
       if (props.editingVariantId === null) {
-        props.handleSave(name, parseFloat(price), selectedDiscountObjects, attachmentsToSend);
+        props.handleSave(name, parseFloat(price), selectedDiscountObjects, attachmentsToSend, formattedBranchPrices);
         resetForm();
         setSelectedDiscounts([]);
       } else {
@@ -100,6 +126,7 @@ const ItemVariantModal = (props: IVariantProps) => {
           price: price,
           discounts: selectedDiscountObjects,
           attachments: attachmentsToSend,
+          branchVariantDetails: formattedBranchPrices
         };
         props.handleEditExistingVariant(editedVariant);
       }
@@ -115,13 +142,25 @@ const ItemVariantModal = (props: IVariantProps) => {
     setPrice('');
     setSelectedDiscounts([]);
     setSelectedImage(null);
+    setBranchPrices({})
+    setAttachments([])
   };
 
 
   useEffect(() => {
     if (editingVariant) {
+      console.log(editingVariant, 'editingVariant')
       setName(editingVariant.name || '');
       setPrice(editingVariant.price || '');
+
+      const formattedBranchPrices = {};
+      if (editingVariant.branchVariantDetails) {
+        Object.keys(editingVariant.branchVariantDetails).forEach((branchId) => {
+          formattedBranchPrices[branchId] = editingVariant.branchVariantDetails[branchId].price;
+        });
+      }
+      setBranchPrices(formattedBranchPrices);
+
       const defaultDiscounts = editingVariant?.discounts?.map(discount => ({
         id: discount.id,
         type: discount.type,
@@ -132,6 +171,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       setSelectedDiscounts(defaultDiscounts);
     }
 
+
     return () => {
       resetForm();
 
@@ -139,6 +179,13 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   }, [editingVariant]);
 
+
+  useEffect(() => {
+
+    dispatch(getBranches({}))
+    dispatch(getItems({}))
+
+  }, [])
 
   const handleImageUpload = async () => {
     if (!selectedImage) {
@@ -198,6 +245,12 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   console.log(defaultAttachments, 'defaultAttachments')
 
+  const handleBranchPriceChange = (branchId, price) => {
+    setBranchPrices((prevPrices) => ({
+      ...prevPrices,
+      [branchId]: price,
+    }));
+  };
 
   return (
     <>
@@ -220,17 +273,8 @@ const ItemVariantModal = (props: IVariantProps) => {
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
-              <ValidatedField
-                type="number"
-                placeholder="enter variant price"
-                name="price"
-                required
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                }}
-              />
+
+
 
               <Row className="flex flex-column">
                 <Col xs="12" sm="6" className="mb-3">
@@ -293,6 +337,54 @@ const ItemVariantModal = (props: IVariantProps) => {
                   options={formattedDiscountOptions}
                 />
               </div>
+              <FormGroup>
+                <h4>Prices</h4>
+                <div>
+                  <label className="font-semibold">Original Price</label>
+                  <ValidatedField
+                    type="number"
+                    placeholder="enter variant price"
+                    name="price"
+                    required
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    validate={{
+                      required: { value: true, message: translate('entity.validation.required') },
+                    }}
+                  />
+                  {/* <FormText color="danger">{'originalPriceError'}</FormText> */}
+                </div>
+                <Table>
+                  <thead>
+                  <tr>
+                    <th>Branch</th>
+                    <th>Price</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {branchList.map((branch) => (
+                    <tr key={branch.id}>
+                      <td>{branch.name}</td>
+                      <td>
+                        <ValidatedField
+                          type="number"
+                          name={`branchPrice_${branch.id}`}
+                          placeholder={`Enter price for ${branch.name}`}
+                          value={branchPrices[branch.id] || ''}
+                          onChange={(e) => handleBranchPriceChange(branch.id, e.target.value)}
+                          validate={{
+                            required: { value: true, message: translate('entity.validation.required') },
+                          }}
+                        />
+                        <FormText color="danger">{errors[`branchPrice_${branch.id}`]?.message}</FormText>
+                      </td>
+                    </tr>
+                  ))}
+                  </tbody>
+                </Table>
+              </FormGroup>
+
+
             </Row>
             <ModalFooter>
               <Button color="secondary" onClick={props.handleClose} tabIndex={1}>

@@ -211,6 +211,7 @@ console.log(itemEntity, 'termos')
   console.log(editingVariantId, 'editingVariantId')
   const saveEntity = values => {
 
+    console.log(variants, 'variantshere')
     const entity = {
       ...itemEntity,
       ...values,
@@ -225,6 +226,7 @@ console.log(itemEntity, 'termos')
     } else {
       dispatch(updateEntity(entity));
     }
+    console.log(entity, 'entity sent')
   };
   const handleCloseModal = () => {
     setEditingVariantId(null);
@@ -233,12 +235,16 @@ console.log(itemEntity, 'termos')
   const openVariantModal = () => {
     setOpenedModal(true);
   };
-  const handleSaveVariant = (name, price, discount, variantImage) => {
-    const newValues = { name, price, discounts: discount, attachments: variantImage  };
+  const handleSaveVariant = (name, price, discount, variantImage, branchPrices) => {
+    console.log(variants, 'variants new')
+
+
+
+    const newValues = { name, price, discounts: discount, attachments: variantImage, branchVariantDetails: branchPrices   };
     setVariants(prevVariants => [...prevVariants, newValues]);
   };
 
-
+console.log(itemEntity, 'itemEntity')
 
   // const handleImageSubmit = async () => {
   //   setUploadImageStatus('uploading');
