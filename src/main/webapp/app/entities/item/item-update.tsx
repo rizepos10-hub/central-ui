@@ -1,6 +1,18 @@
 import React, {useState, useEffect, useRef} from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormText, FormGroup, Input, Alert } from 'reactstrap';
+import {
+  Button,
+  Row,
+  Col,
+  FormText,
+  FormGroup,
+  Input,
+  Alert,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ListGroup, ListGroupItem, Card, CardBody, ModalFooter
+} from 'reactstrap';
 import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -57,6 +69,7 @@ export const ItemUpdate = () => {
 
 
   const [selectedTerms, setSelectedTerms] = useState(entityTerms);
+  const [isModalOpen, setModalOpen] = useState(false);
 
   const [selectedOption, setSelectedOption] = useState(null)
   const [openedModal, setOpenedModal] = useState(false);
@@ -335,6 +348,26 @@ console.log(itemEntity, 'itemEntity')
   };
 
 
+// to work this
+
+  const handleAddItem = () => {
+    // if (selectedItems.length > 0) {
+    //   setSelectedItems((prevItems) => [...prevItems, ...selectedItems]);
+    //   setMenuItems((prevItems) => [...prevItems, ...selectedItems]);
+    // }
+    // setModalOpen(false);
+    // setSelectedItems([]);
+  };
+
+  const toggleModal = () => {
+    // setModalOpen(!isModalOpen);
+    // setActiveTerm(null);
+  };
+
+
+
+
+
 
 
 
@@ -373,7 +406,11 @@ console.log(itemEntity, 'itemEntity')
             <p>Loading...</p>
           ) : (
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {!isNew ? (
+              <Col md={8}>
+
+
+
+                {!isNew ? (
                 <ValidatedField
                   name="id"
                   required
@@ -383,6 +420,10 @@ console.log(itemEntity, 'itemEntity')
                   validate={{ required: true }}
                 />
               ) : null}
+                <div className="d-flex justify-content-between mb-1">
+
+                  <div style={{width: '55%'}}>
+
               <ValidatedField
                 label={translate('tempApp.item.name')}
                 id="item-name"
@@ -393,7 +434,13 @@ console.log(itemEntity, 'itemEntity')
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
-              <ValidatedField label={translate('tempApp.item.desc')} id="item-desc" name="desc" data-cy="desc" type="textarea" />
+                  </div>
+                  <div style={{width: '35%'}}>
+                    <Translate contentKey="tempApp.item.terms">Category</Translate>
+                    <Select isMulti={true} defaultValue={entityTerms} onChange={handleTermChange} options={termsOptions} />
+                  </div>
+
+                </div>
               {/* <ValidatedField */}
               {/*   label={translate('tempApp.item.orderCount')} */}
               {/*   id="item-orderCount" */}
@@ -426,6 +473,8 @@ console.log(itemEntity, 'itemEntity')
               {/*     validate: v => isNumber(v) || translate('entity.validation.number'), */}
               {/*   }} */}
               {/* /> */}
+                <div className="d-flex justify-content-between mb-1">
+                  <div style={{width: '55%'}}>
 
               <ValidatedField label={translate('tempApp.item.status')} id="item-status" name="status" data-cy="status" type="select">
                 {itemStatusValues.map(itemStatus => (
@@ -434,6 +483,13 @@ console.log(itemEntity, 'itemEntity')
                   </option>
                 ))}
               </ValidatedField>
+                  </div>
+                  <div style={{width: '35%'}}>
+
+                  <ValidatedField label={translate('tempApp.item.desc')} id="item-desc" name="desc" data-cy="desc" type="textarea" />
+                </div>
+                </div>
+                <div className="d-flex justify-content-between mb-1">
               <div className="mb-3">
                 <ValidatedField
                   label={'Item Image'}
@@ -444,7 +500,6 @@ console.log(itemEntity, 'itemEntity')
                   onChange={handleImageChange}
                   accept="image/*"
                 />
-                <div className="mb-3">
                   {selectedAttachments.map((attachment, index) => (
                     <div key={index} style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
                       <img
@@ -492,18 +547,13 @@ console.log(itemEntity, 'itemEntity')
                     </div>
                   )}
                 </div>
-              </div>
-
-
-
+                </div>
               <div className="mb-3">
                 <Translate contentKey="tempApp.item.addons"></Translate>
                 <Select isMulti={true} defaultValue={initSelectedAddons} onChange={handleAddonChange} options={addonsOptions} />
               </div>
-              <div className="mb-3">
-                <Translate contentKey="tempApp.item.terms">Category</Translate>
-                <Select isMulti={true} defaultValue={entityTerms} onChange={handleTermChange} options={termsOptions} />
-              </div>
+
+              </Col>
               {variants && (
                 <div className="mb-3">
                   <Translate contentKey="tempApp.item.variants">Variants</Translate>
@@ -561,7 +611,76 @@ console.log(itemEntity, 'itemEntity')
                     </tbody>
                   </table>
                 </div>
-              )}<div className="mt-4 mb-4">
+              )}
+
+              <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
+                <ModalHeader toggle={toggleModal}>Add New Item</ModalHeader>
+                <ModalBody>
+                  <Row>
+                    <Col md="3">
+                      {/* <ListGroup> */}
+                      {/*   {Object.keys(groupedMenuItems).map((termName) => ( */}
+                      {/*     <ListGroupItem */}
+                      {/*       key={termName} */}
+                      {/*       tag="button" */}
+                      {/*       action */}
+                      {/*       onClick={() => setActiveTerm(termName)} */}
+                      {/*       active={termName === activeTerm} */}
+                      {/*     > */}
+                      {/*       {termName} */}
+                      {/*     </ListGroupItem> */}
+                      {/*   ))} */}
+                      {/* </ListGroup> */}
+                    </Col>
+                    {/* <Col md="9"> */}
+                    {/*   {activeTerm ? ( */}
+                    {/*     <> */}
+                    {/*       <h3>{activeTerm}</h3> */}
+                    {/*       <Row className="justify-content-center mt-4"> */}
+                    {/*         {groupedMenuItems[activeTerm] */}
+                    {/*           .filter((item) => !menuItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null)) */}
+                    {/*           .map((item) => ( */}
+                    {/*             <Col key={item.id} sm="6" md="4" lg="3" className="mb-4"> */}
+                    {/*               <div */}
+                    {/*                 style={{cursor: 'pointer'}} */}
+                    {/*                 onClick={() => { */}
+                    {/*                   if (selectedItems?.some((selectedItem) => selectedItem.id === item.id)) { */}
+                    {/*                     setSelectedItems((prevItems) => prevItems.filter((i) => i.id !== item.id)); */}
+                    {/*                   } else { */}
+                    {/*                     setSelectedItems((prevItems) => [...prevItems, item]); */}
+                    {/*                   } */}
+                    {/*                 }} */}
+                    {/*               > */}
+                    {/*                 <Card */}
+                    {/*                   className={`border-4 shadow-sm h-100 ${selectedItems?.some((selectedItem) => selectedItem.id === item.id) ? 'border-primary bg-primary' : ''}`} */}
+                    {/*                 > */}
+                    {/*                   <CardBody> */}
+                    {/*                     <h6>{item.name}</h6> */}
+                    {/*                     /!* <p>{item.desc}</p> *!/ */}
+                    {/*                     <p>{item.terms[0]?.name}</p> */}
+                    {/*                   </CardBody> */}
+                    {/*                 </Card> */}
+                    {/*               </div> */}
+                    {/*             </Col> */}
+                    {/*           ))} */}
+                    {/*       </Row> */}
+                    {/*     </> */}
+                    {/*   ) : ( */}
+                    {/*     <p>Please select a term to view its items.</p> */}
+                    {/*   )} */}
+                    {/* </Col> */}
+                  </Row>
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="secondary" onClick={toggleModal}>
+                    Cancel
+                  </Button>
+                  <Button color="primary" onClick={handleAddItem}>
+                    Add Item
+                  </Button>
+                </ModalFooter>
+              </Modal>
+              <div className="mt-4 mb-4">
               <Button onClick={openVariantModal}> Add Variant</Button>
               {/* <ValidatedField id="item-menu" name="menu" data-cy="menu" label={translate('tempApp.item.menu')} type="select"> */}
               {/*   <option value="" key="0" /> */}
