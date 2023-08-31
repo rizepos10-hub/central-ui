@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {
-  Button,
+  Button, Card, CardBody,
   Col,
   Form,
   FormGroup,
   FormText,
-  Label,
+  Label, ListGroup, ListGroupItem,
   Modal,
   ModalBody,
   ModalFooter,
@@ -23,6 +23,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 import { getEntities as getBranches } from '../branch/branch.reducer';
 import {  getEntities as getItems } from './item.reducer';
+import {InputText} from "primereact/inputtext";
 
 interface IVariantProps {
   showModal: boolean;
@@ -31,7 +32,8 @@ interface IVariantProps {
   onVariantImageUpload: any;
   editingVariantId: any;
   variants: any;
-  handleEditExistingVariant: any
+  handleEditExistingVariant: any;
+  addonsOptions: any
 }
 const ItemVariantModal = (props: IVariantProps) => {
   const dispatch = useAppDispatch();
@@ -56,11 +58,25 @@ const ItemVariantModal = (props: IVariantProps) => {
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
   const [name, setName] = useState(editingVariant?.name || '');
   const [price, setPrice] = useState(editingVariant?.price || '');
-
+  const [selectedVariantAddons, setSelectedVariantAddons] = useState([])
   const [selectedImage, setSelectedImage] = useState(null);
   const [variantImage, setVariantImage] = useState(null)
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [activeTerm, setActiveTerm] = useState(null);
+  const [selectedItemsForRecipe, setSelectedItemsForRecipe] = useState([]);
+
+  const [variantItems, setVariantItems] = useState([]);
+
+  const [itemDetails, setItemDetails] = useState({});
+
+
+
 
   const [attachments, setAttachments] = useState([]);
+
+
+
   const  handleDiscountsChange = selectedOptions => {
     console.log(selectedOptions, 'new discount')
     const selectedValues = selectedOptions.map((option) => ({
@@ -72,6 +88,51 @@ const ItemVariantModal = (props: IVariantProps) => {
     setSelectedDiscounts(selectedValues);
 
   };
+
+  const handleQuantityChange = (itemId, quantity) => {
+    setItemDetails((prevDetails) => ({
+      ...prevDetails,
+      [itemId]: {
+        ...prevDetails[itemId],
+        quantity: quantity,
+      },
+    }));
+  };
+
+  const handleAddonChange = (itemId, selectedAddons) => {
+    setItemDetails((prevDetails) => ({
+      ...prevDetails,
+      [itemId]: {
+        ...prevDetails[itemId],
+        selectedAddons: selectedAddons,
+      },
+    }));
+  };
+
+
+  const handleRecipeAddItem = () => {
+    if (selectedItems.length > 0) {
+      setSelectedItemsForRecipe((prevItems) => [...prevItems, ...selectedItems]);
+    }
+    setModalOpen(false);
+    setSelectedItems([]);
+  };
+  const allItemsPresent = () => {
+    return false
+    // return editingVariant.every((item) => variantItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null));
+  };
+
+
+  const groupedMenuItems = itemList.reduce((groups, item) => {
+    const termName = item.terms[0]?.name || 'Uncategorized';
+    if (!groups[termName]) {
+      groups[termName] = [];
+    }
+    groups[termName].push(item);
+    return groups;
+  }, {});
+
+
   const variant = ({ name, price }) => {
     const selectedDiscountObjects = selectedDiscounts.map((item) => ({ id: item.id, type: item.type, value: item.value}));
     console.log(variantImage, 'variantImage');
@@ -137,6 +198,10 @@ const ItemVariantModal = (props: IVariantProps) => {
     }
   };
 
+  // const handleAddonChange = (selectedAddon) => {
+  //   setSelectedVariantAddons(selectedAddon.map((addon) => ({id: addon.value})));
+  // }
+
   const resetForm = () => {
     setName('');
     setPrice('');
@@ -146,12 +211,31 @@ const ItemVariantModal = (props: IVariantProps) => {
     setAttachments([])
   };
 
+  const handleAddItem = () => {
+    if (selectedItems.length > 0) {
+      setSelectedItems((prevItems) => [...prevItems, ...selectedItems]);
+      setVariantItems((prevItems) => [...prevItems, ...selectedItems]);
+    }
+    setModalOpen(false);
+    setSelectedItems([]);
+  };
+
+  const toggleModal = () => {
+    setModalOpen(!isModalOpen);
+    setActiveTerm(null);
+  };
+
+
+
+
 
   useEffect(() => {
     if (editingVariant) {
       console.log(editingVariant, 'editingVariant')
       setName(editingVariant.name || '');
       setPrice(editingVariant.price || '');
+
+      setSelectedVariantAddons(editingVariant.addons)
 
       const formattedBranchPrices = {};
       if (editingVariant.branchVariantDetails) {
@@ -177,7 +261,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
     }
 
-  }, [editingVariant]);
+  }, [editingVariant,selectedItemsForRecipe]);
 
 
   useEffect(() => {
@@ -254,7 +338,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   return (
     <>
-      <Modal isOpen={props.showModal} toggle={props.handleClose} backdrop="static" autoFocus={false}>
+      <Modal isOpen={props.showModal} toggle={props.handleClose} backdrop="static" size="xl" autoFocus={false}>
         <ValidatedForm onSubmit={handleVariantSave}>
           <ModalHeader id="variant-title" data-cy="variantTitle" toggle={props.handleClose}>
             <label>Variant</label>
@@ -327,6 +411,14 @@ const ItemVariantModal = (props: IVariantProps) => {
                   />
                 )}
               </div>
+
+              <div className="mb-3">
+                <Translate contentKey="tempApp.item.addons"></Translate>
+                <Select isMulti={true} defaultValue={selectedVariantAddons} onChange={handleAddonChange} options={props.addonsOptions} />
+              </div>
+
+
+
               <div className="mb-3">
                 <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
 
@@ -383,9 +475,154 @@ const ItemVariantModal = (props: IVariantProps) => {
                   </tbody>
                 </Table>
               </FormGroup>
-
-
+              <FormGroup>
+              <h3>Recipe</h3>
+                <div className="d-flex justify-content-end mr-4">
+                <Button color="primary" onClick={toggleModal} disabled={allItemsPresent()}>
+                  Add Item
+                </Button>
+                </div>
+              <Table>
+                <thead>
+                <tr>
+                  <th>Item Name</th>
+                  <th>Quantity</th>
+                  <th>Addons</th>
+                </tr>
+                </thead>
+                <tbody>
+                {variantItems.map((selectedItem) => (
+                  <tr key={selectedItem.id}>
+                    <td>{selectedItem.name}</td>
+                    <td>
+                      <InputText
+                        type="number"
+                        name={`quantity_${selectedItem.id}`}
+                        placeholder={`Enter quantity for ${selectedItem.name}`}
+                        value={itemDetails[selectedItem.id]?.quantity || ''}
+                        onChange={(e) => handleQuantityChange(selectedItem.id, e.target.value)}
+                      />
+                    </td>
+                    <td>
+                        <Select
+                          isMulti
+                          defaultValue={itemDetails[selectedItem.id]?.selectedAddons}
+                          options={selectedItem.addons.map((addon) => ({
+                            value: addon.id,
+                            label: addon.name,
+                          }))}
+                          onChange={(selectedOptions) =>
+                            handleAddonChange(
+                              selectedItem.id,
+                              selectedOptions.map((option) => ({
+                                id: option.value,
+                                name: option.label,
+                              }))
+                            )
+                          }
+                        />
+                    </td>
+                  </tr>
+                ))}
+                </tbody>
+              </Table>
+              </FormGroup>
             </Row>
+
+
+            <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
+              <ModalHeader toggle={toggleModal}>Add New Item</ModalHeader>
+              <ModalBody>
+                <Row>
+                  <Col md="3">
+                    <ListGroup>
+                      {Object.keys(groupedMenuItems).map((termName) => (
+                        <ListGroupItem
+                          key={termName}
+                          tag="button"
+                          action
+                          onClick={() => setActiveTerm(termName)}
+                          active={termName === activeTerm}
+                        >
+                          {termName}
+                        </ListGroupItem>
+                      ))}
+                    </ListGroup>
+                  </Col>
+                  <Col md="9">
+                    {activeTerm ? (
+                      <>
+                        <h3>{activeTerm}</h3>
+                        <Row className="justify-content-center mt-4">
+                          {groupedMenuItems[activeTerm]
+                            .filter((item) => !variantItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null))
+                            .map((item) => (
+
+                              <Col key={item.id} sm="6" md="4" lg="4" className="mb-4">
+
+                                <div
+                                  style={{cursor: 'pointer',
+                                    border: selectedItems?.some((selectedItem) => selectedItem.id === item.id) ? '2px solid #007bff' : '2px solid #dee2e6',
+                                }}
+                                  onClick={() => {
+                                    if (selectedItems?.some((selectedItem) => selectedItem.id === item.id)) {
+                                      setSelectedItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
+                                    } else {
+                                      setSelectedItems((prevItems) => [...prevItems, item]);
+                                    }
+                                  }}
+                                  className={`${selectedItems?.some((selectedItem) => selectedItem.id === item.id) ? 'border-primary' : ''}`}
+
+                                >
+                                  <Card
+                                    style={{
+                                      background: `url(${item.attachments[0].url})`,
+                                      backgroundSize: 'cover',
+                                      backgroundPosition: 'center',
+                                    }}
+                                    className={`border-4 shadow-sm h-100`}
+                                  >
+
+                                      <CardBody>
+                                        <div
+                                          className="overlay"
+                                          style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                          }}
+                                        >
+                                        <h5 style={{ color: '#fff' }}>{item.name}</h5>
+                                        </div>
+
+                                      </CardBody>
+                                  </Card>
+                                </div>
+                              </Col>
+                            ))}
+                        </Row>
+                      </>
+                    ) : (
+                      <p>Please select a term to view its items.</p>
+                    )}
+                  </Col>
+                </Row>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="secondary" onClick={toggleModal}>
+                  Cancel
+                </Button>
+                <Button color="primary" onClick={handleAddItem}>
+                  Add Item
+                </Button>
+              </ModalFooter>
+            </Modal>
             <ModalFooter>
               <Button color="secondary" onClick={props.handleClose} tabIndex={1}>
                 <Translate contentKey="entity.action.cancel">Cancel</Translate>

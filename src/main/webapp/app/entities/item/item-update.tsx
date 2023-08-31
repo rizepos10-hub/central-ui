@@ -62,6 +62,7 @@ export const ItemUpdate = () => {
   const addonsOptions = addons.map(addon => ({ value: addon.id, label: addon.name }));
 
 
+
   const entityTerms = itemEntity.terms?.map(term => ({ value: term.id, label: term.name }));
 
   const termsOptions = useAppSelector(state => state.term.entities)
@@ -75,6 +76,7 @@ export const ItemUpdate = () => {
   const [openedModal, setOpenedModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
+  const [name, setName] = useState('')
 
   const [selectedAttachments, setSelectedAttachments] = useState([])
 
@@ -196,6 +198,9 @@ console.log(itemEntity, 'termos')
       saveButtonRef.current.focus();
     }
 
+    if(itemEntity.name){
+      setName(itemEntity.name)
+    }
     const {id: newTermId} = newItem
     if (updateSuccess && newTermId) {
       navigate(`/item/${newTermId}/edit?page=1&sort=id,asc`)
@@ -233,6 +238,7 @@ console.log(itemEntity, 'termos')
       terms : selectedTerms,
       attachments: selectedAttachments,
       variants: variants,
+      name,
     };
     if (isNew) {
       dispatch(createEntity(entity));
@@ -391,6 +397,7 @@ console.log(itemEntity, 'itemEntity')
         editingVariantId={editingVariantId}
         variants={variants}
         handleEditExistingVariant={handleEditExistingVariant}
+        addonsOptions={addonsOptions}
       />
 
       <Row className="justify-content-center">
@@ -406,7 +413,6 @@ console.log(itemEntity, 'itemEntity')
             <p>Loading...</p>
           ) : (
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              <Col md={8}>
 
 
 
@@ -420,6 +426,8 @@ console.log(itemEntity, 'itemEntity')
                   validate={{ required: true }}
                 />
               ) : null}
+              <Col md={8}>
+
                 <div className="d-flex justify-content-between mb-1">
 
                   <div style={{width: '55%'}}>
@@ -430,6 +438,8 @@ console.log(itemEntity, 'itemEntity')
                 name="name"
                 data-cy="name"
                 type="text"
+                defaultValue={itemEntity.name}
+                onChange={(e) => setName(e.target.value)}
                 validate={{
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
@@ -613,73 +623,7 @@ console.log(itemEntity, 'itemEntity')
                 </div>
               )}
 
-              <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
-                <ModalHeader toggle={toggleModal}>Add New Item</ModalHeader>
-                <ModalBody>
-                  <Row>
-                    <Col md="3">
-                      {/* <ListGroup> */}
-                      {/*   {Object.keys(groupedMenuItems).map((termName) => ( */}
-                      {/*     <ListGroupItem */}
-                      {/*       key={termName} */}
-                      {/*       tag="button" */}
-                      {/*       action */}
-                      {/*       onClick={() => setActiveTerm(termName)} */}
-                      {/*       active={termName === activeTerm} */}
-                      {/*     > */}
-                      {/*       {termName} */}
-                      {/*     </ListGroupItem> */}
-                      {/*   ))} */}
-                      {/* </ListGroup> */}
-                    </Col>
-                    {/* <Col md="9"> */}
-                    {/*   {activeTerm ? ( */}
-                    {/*     <> */}
-                    {/*       <h3>{activeTerm}</h3> */}
-                    {/*       <Row className="justify-content-center mt-4"> */}
-                    {/*         {groupedMenuItems[activeTerm] */}
-                    {/*           .filter((item) => !menuItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null)) */}
-                    {/*           .map((item) => ( */}
-                    {/*             <Col key={item.id} sm="6" md="4" lg="3" className="mb-4"> */}
-                    {/*               <div */}
-                    {/*                 style={{cursor: 'pointer'}} */}
-                    {/*                 onClick={() => { */}
-                    {/*                   if (selectedItems?.some((selectedItem) => selectedItem.id === item.id)) { */}
-                    {/*                     setSelectedItems((prevItems) => prevItems.filter((i) => i.id !== item.id)); */}
-                    {/*                   } else { */}
-                    {/*                     setSelectedItems((prevItems) => [...prevItems, item]); */}
-                    {/*                   } */}
-                    {/*                 }} */}
-                    {/*               > */}
-                    {/*                 <Card */}
-                    {/*                   className={`border-4 shadow-sm h-100 ${selectedItems?.some((selectedItem) => selectedItem.id === item.id) ? 'border-primary bg-primary' : ''}`} */}
-                    {/*                 > */}
-                    {/*                   <CardBody> */}
-                    {/*                     <h6>{item.name}</h6> */}
-                    {/*                     /!* <p>{item.desc}</p> *!/ */}
-                    {/*                     <p>{item.terms[0]?.name}</p> */}
-                    {/*                   </CardBody> */}
-                    {/*                 </Card> */}
-                    {/*               </div> */}
-                    {/*             </Col> */}
-                    {/*           ))} */}
-                    {/*       </Row> */}
-                    {/*     </> */}
-                    {/*   ) : ( */}
-                    {/*     <p>Please select a term to view its items.</p> */}
-                    {/*   )} */}
-                    {/* </Col> */}
-                  </Row>
-                </ModalBody>
-                <ModalFooter>
-                  <Button color="secondary" onClick={toggleModal}>
-                    Cancel
-                  </Button>
-                  <Button color="primary" onClick={handleAddItem}>
-                    Add Item
-                  </Button>
-                </ModalFooter>
-              </Modal>
+
               <div className="mt-4 mb-4">
               <Button onClick={openVariantModal}> Add Variant</Button>
               {/* <ValidatedField id="item-menu" name="menu" data-cy="menu" label={translate('tempApp.item.menu')} type="select"> */}
