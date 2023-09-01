@@ -205,11 +205,9 @@ console.log(itemEntity, 'termos')
     if (updateSuccess && newTermId) {
       navigate(`/item/${newTermId}/edit?page=1&sort=id,asc`)
     }
-    return () => {
-      dispatch(reset());
-    };
 
-  }, [updateSuccess, itemEntity?.variants ]);
+
+  }, [updateSuccess, itemEntity?.variants, ]);
 
 
   const handleTermChange = (selectedTerm) => {
@@ -227,6 +225,14 @@ console.log(itemEntity, 'termos')
   };
 
   console.log(editingVariantId, 'editingVariantId')
+  const handleSaveVariant = (name, price, discount, variantImage, branchPrices,ingredients) => {
+    console.log(variants, 'variants new')
+
+
+
+    const newValues = { name, price, discounts: discount, attachments: variantImage, branchVariantDetails: branchPrices, ingredients: ingredients   };
+    setVariants(prevVariants => [...prevVariants, newValues]);
+  };
   const saveEntity = values => {
 
     console.log(variants, 'variantshere')
@@ -254,14 +260,7 @@ console.log(itemEntity, 'termos')
   const openVariantModal = () => {
     setOpenedModal(true);
   };
-  const handleSaveVariant = (name, price, discount, variantImage, branchPrices) => {
-    console.log(variants, 'variants new')
 
-
-
-    const newValues = { name, price, discounts: discount, attachments: variantImage, branchVariantDetails: branchPrices   };
-    setVariants(prevVariants => [...prevVariants, newValues]);
-  };
 
 console.log(itemEntity, 'itemEntity')
 
@@ -354,21 +353,6 @@ console.log(itemEntity, 'itemEntity')
   };
 
 
-// to work this
-
-  const handleAddItem = () => {
-    // if (selectedItems.length > 0) {
-    //   setSelectedItems((prevItems) => [...prevItems, ...selectedItems]);
-    //   setMenuItems((prevItems) => [...prevItems, ...selectedItems]);
-    // }
-    // setModalOpen(false);
-    // setSelectedItems([]);
-  };
-
-  const toggleModal = () => {
-    // setModalOpen(!isModalOpen);
-    // setActiveTerm(null);
-  };
 
 
 
@@ -389,16 +373,17 @@ console.log(itemEntity, 'itemEntity')
 
   return (
     <div>
-      <ItemVariantModal
+      {openedModal && <ItemVariantModal
         showModal={openedModal}
         handleClose={handleCloseModal}
         handleSave={handleSaveVariant}
         onVariantImageUpload={handleVariantImageUpload}
         editingVariantId={editingVariantId}
+        itemId={id}
         variants={variants}
         handleEditExistingVariant={handleEditExistingVariant}
         addonsOptions={addonsOptions}
-      />
+      />}
 
       <Row className="justify-content-center">
         <Col md="8">

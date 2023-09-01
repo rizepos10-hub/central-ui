@@ -30,6 +30,15 @@ export const searchEntities = createAsyncThunk(
   }
 );
 
+export const getItemsForRecipe = createAsyncThunk(
+  'item/fetch_entity_list',
+  async ({ itemId, variantId }: { itemId: string; variantId: string }) => {
+    const requestUrl = `/api/items/for-recipe?itemId=${itemId}&variantId=${variantId}`;
+    const response = await axios.get<IItem[]>(requestUrl);
+    console.log(response, 'response');
+    return response;
+  }
+);
 
 export const getEntities = createAsyncThunk('item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
@@ -46,6 +55,8 @@ export const getEntity = createAsyncThunk(
   },
   { serializeError: serializeAxiosError }
 );
+
+
 
 export const createEntity = createAsyncThunk(
   'item/create_entity',
@@ -104,7 +115,7 @@ export const ItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities,getItemsForRecipe), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -120,7 +131,7 @@ export const ItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities,getItemsForRecipe), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

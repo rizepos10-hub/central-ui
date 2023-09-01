@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {
   Button, Card, CardBody,
-  Col,
+  Col, DropdownToggle,
   Form,
   FormGroup,
   FormText,
@@ -10,7 +10,7 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
-  Row, Table
+  Row, Table, Dropdown, DropdownMenu, DropdownItem
 } from 'reactstrap';
 import {translate, Translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import {useAppDispatch, useAppSelector} from 'app/config/store';
@@ -22,18 +22,19 @@ import {useParams} from "react-router-dom";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 import { getEntities as getBranches } from '../branch/branch.reducer';
-import {  getEntities as getItems } from './item.reducer';
+import { getItemsForRecipe, getEntities } from './item.reducer';
 import {InputText} from "primereact/inputtext";
 
 interface IVariantProps {
   showModal: boolean;
   handleClose?: () => void;
-  handleSave: (name: string, price: number, discount: any, attachments: any, branchPrices: any) => void;
+  handleSave: (name: string, price: number, discount: any, attachments: any, branchPrices: any, ingredients: any) => void;
   onVariantImageUpload: any;
   editingVariantId: any;
   variants: any;
   handleEditExistingVariant: any;
   addonsOptions: any
+  itemId:string
 }
 const ItemVariantModal = (props: IVariantProps) => {
   const dispatch = useAppDispatch();
@@ -50,11 +51,27 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   const itemList = useAppSelector(state => state.item.entities);
 
+  console.log(itemList, 'itemlo')
+
+
+
+
+
+
 
 
   const [branchPrices, setBranchPrices] = useState({});
+  const [selectedItemVariants, setSelectedItemVariants] = useState([]);
+  const [selectedItemWithVariants, setSelectedItemWithVariants] = useState(null);
+
+  const [selectedVariants, setSelectedVariants] = useState({});
 
   const isNew = props.editingVariantId === null;
+
+  const itemId = props.itemId
+  const variantId = props.editingVariantId
+
+
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
   const [name, setName] = useState(editingVariant?.name || '');
   const [price, setPrice] = useState(editingVariant?.price || '');
@@ -68,10 +85,10 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   const [variantItems, setVariantItems] = useState([]);
 
-  const [itemDetails, setItemDetails] = useState({});
+  const [recipeDetails, setRecipeDetails] = useState({});
 
 
-
+  const [ingredients, setIngredients] = useState([]);
 
   const [attachments, setAttachments] = useState([]);
 
@@ -88,26 +105,65 @@ const ItemVariantModal = (props: IVariantProps) => {
     setSelectedDiscounts(selectedValues);
 
   };
+  const handleVariantSelection = (itemId, variant, isSelected) => {
+    setSelectedVariants((prevVariants) => {
+      const updatedVariants = { ...prevVariants };
+      if (isSelected) {
+        updatedVariants[itemId] = [...(updatedVariants[itemId] || []), variant];
+      } else {
+        updatedVariants[itemId] = (updatedVariants[itemId] || []).filter((v) => v.id !== variant.id);
+      }
+      return updatedVariants;
+    });
 
+    if (isSelected) {
+      setSelectedItems((prevItems) => {
+        if (!prevItems.some((selectedItem) => selectedItem.id === itemId)) {
+          return [...prevItems, itemList.find((item) => item.id === itemId)];
+        }
+        return prevItems;
+      });
+    } else {
+      if (!selectedVariants[itemId] || selectedVariants[itemId].length === 0) {
+        setSelectedItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+      }
+    }
+  };
   const handleQuantityChange = (itemId, quantity) => {
-    setItemDetails((prevDetails) => ({
+    setRecipeDetails((prevDetails) => ({
       ...prevDetails,
       [itemId]: {
         ...prevDetails[itemId],
-        quantity: quantity,
+        quantity: parseInt(quantity) || 0,
       },
     }));
+
+    setIngredients((prevIngredients) => {
+      return prevIngredients.map((ingredient) => {
+        if (ingredient.item.id === itemId) {
+          return {
+            ...ingredient,
+            amount: parseInt(quantity) || 0,
+          };
+        }
+        return ingredient;
+      });
+    });
   };
 
-  const handleAddonChange = (itemId, selectedAddons) => {
-    setItemDetails((prevDetails) => ({
-      ...prevDetails,
-      [itemId]: {
-        ...prevDetails[itemId],
-        selectedAddons: selectedAddons,
-      },
-    }));
-  };
+
+
+  console.log(recipeDetails, 'recipeDetails')
+
+  // const handleAddonChange = (itemId, selectedAddons) => {
+  //   setRecipeDetails((prevDetails) => ({
+  //     ...prevDetails,
+  //     [itemId]: {
+  //       ...prevDetails[itemId],
+  //       selectedAddons: selectedAddons,
+  //     },
+  //   }));
+  // };
 
 
   const handleRecipeAddItem = () => {
@@ -124,6 +180,8 @@ const ItemVariantModal = (props: IVariantProps) => {
 
 
   const groupedMenuItems = itemList.reduce((groups, item) => {
+
+
     const termName = item.terms[0]?.name || 'Uncategorized';
     if (!groups[termName]) {
       groups[termName] = [];
@@ -137,7 +195,7 @@ const ItemVariantModal = (props: IVariantProps) => {
     const selectedDiscountObjects = selectedDiscounts.map((item) => ({ id: item.id, type: item.type, value: item.value}));
     console.log(variantImage, 'variantImage');
 
-    props.handleSave(name, parseFloat(price), selectedDiscountObjects, variantImage, branchPrices);
+    props.handleSave(name, parseFloat(price), selectedDiscountObjects, variantImage, branchPrices, ingredients);
   };
 
 
@@ -147,7 +205,7 @@ const ItemVariantModal = (props: IVariantProps) => {
     reset,
     formState: { errors, touchedFields },
   } = useForm({ mode: 'onTouched' });
-
+console.log(ingredients, 'ingredients')
   const handleVariantSave = async () => {
     if(!name || !price){
       return
@@ -169,6 +227,17 @@ const ItemVariantModal = (props: IVariantProps) => {
       if (attachments.length > 0) {
         attachmentsToSend = attachmentsToSend.concat(attachments);
       }
+      const updatedData = ingredients.map((itemData) => {
+        const quantity = recipeDetails[itemData.itemId]?.quantity || 0;
+        const addons = recipeDetails[itemData.itemId]?.selectedAddons || [];
+
+        return {
+          ...itemData,
+          quantity,
+          addons,
+        };
+      });
+      setIngredients(updatedData)
       console.log(attachmentsToSend, 'attachmentsToSend')
       const formattedBranchPrices = {};
       Object.keys(branchPrices).forEach(branchId => {
@@ -177,7 +246,8 @@ const ItemVariantModal = (props: IVariantProps) => {
       console.log(formattedBranchPrices, 'formattedBranchPrices')
 
       if (props.editingVariantId === null) {
-        props.handleSave(name, parseFloat(price), selectedDiscountObjects, attachmentsToSend, formattedBranchPrices);
+        console.log(ingredients,'ingredients')
+        props.handleSave(name, parseFloat(price), selectedDiscountObjects, attachmentsToSend, formattedBranchPrices, ingredients);
         resetForm();
         setSelectedDiscounts([]);
       } else {
@@ -187,7 +257,8 @@ const ItemVariantModal = (props: IVariantProps) => {
           price: price,
           discounts: selectedDiscountObjects,
           attachments: attachmentsToSend,
-          branchVariantDetails: formattedBranchPrices
+          branchVariantDetails: formattedBranchPrices,
+          ingredients
         };
         props.handleEditExistingVariant(editedVariant);
       }
@@ -198,9 +269,9 @@ const ItemVariantModal = (props: IVariantProps) => {
     }
   };
 
-  // const handleAddonChange = (selectedAddon) => {
-  //   setSelectedVariantAddons(selectedAddon.map((addon) => ({id: addon.value})));
-  // }
+  const handleAddonChange = (selectedAddon) => {
+    setSelectedVariantAddons(selectedAddon.map((addon) => ({id: addon.value})));
+  }
 
   const resetForm = () => {
     setName('');
@@ -213,12 +284,32 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   const handleAddItem = () => {
     if (selectedItems.length > 0) {
-      setSelectedItems((prevItems) => [...prevItems, ...selectedItems]);
+      const newIngredientsData = selectedItems.map((selectedItem) => {
+        const selectedVariant = selectedVariants[selectedItem.id] && selectedVariants[selectedItem.id].length > 0
+          ? selectedVariants[selectedItem.id][0]
+          : null;
+
+        // Create the base ingredient object
+        const ingredient = {
+          item: {
+            id: selectedItem.id,
+          },
+          variantId: selectedVariant ? selectedVariant.id : null,
+          amount: 0,
+          addons: [],
+        };
+
+        return ingredient;
+      });
+
+
+      setIngredients((prevData) => [...prevData, ...newIngredientsData]);
+      setSelectedItems([]); // Clear selected items after adding them to state
       setVariantItems((prevItems) => [...prevItems, ...selectedItems]);
     }
     setModalOpen(false);
-    setSelectedItems([]);
   };
+
 
   const toggleModal = () => {
     setModalOpen(!isModalOpen);
@@ -235,6 +326,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       setName(editingVariant.name || '');
       setPrice(editingVariant.price || '');
 
+      console.log(editingVariant.ingredients, 'ba')
       setSelectedVariantAddons(editingVariant.addons)
 
       const formattedBranchPrices = {};
@@ -266,10 +358,13 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   useEffect(() => {
 
+    dispatch(getItemsForRecipe({itemId,variantId}))
     dispatch(getBranches({}))
-    dispatch(getItems({}))
 
-  }, [])
+
+  }, [props.editingVariantId])
+
+
 
   const handleImageUpload = async () => {
     if (!selectedImage) {
@@ -299,6 +394,12 @@ const ItemVariantModal = (props: IVariantProps) => {
   };
 
 
+  const handleItemClick = (item) => {
+    setSelectedItemWithVariants(item);
+  };
+
+
+
   const handleFileChange = (event) => {
     setSelectedImage(event.target.files[0]);
   };
@@ -322,6 +423,153 @@ const ItemVariantModal = (props: IVariantProps) => {
     type: discount.type,
     value: discount.value
   }));
+  const AddonDropdown = ({ addons, selectedAddons, onAddAddon, onIncrement, onDecrement }) => {
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
+
+    console.log(selectedAddons,'selectedAddons')
+    const filteredAddons = addons?.filter((addon) => !selectedAddons.some((selectedAddon) => selectedAddon.id === addon.id));
+    const toggle = () => setDropdownOpen(!dropdownOpen);
+    return (
+      <Dropdown isOpen={dropdownOpen} toggle={toggle}>
+        <DropdownToggle caret>Add Addons</DropdownToggle>
+        <DropdownMenu>
+          {filteredAddons?.map((addon) => (
+            <DropdownItem key={addon.id} onClick={() => onAddAddon(addon)}>
+              {addon.name}
+            </DropdownItem>
+               ))}
+            </DropdownMenu>
+          <div>
+            {selectedAddons.map((selectedAddon) => (
+              <div key={selectedAddon.id} className="mt-2">
+            <span style={{ width: "130px", display: "inline-block" }}>
+              {selectedAddon.name}:
+            </span>
+              <Button
+                className="decrement-button"
+                onClick={() => onDecrement(selectedAddon)}
+                style={{ display: "inline-block", marginRight: "10px" }}
+              >
+                -
+              </Button>
+              <span className="p-3" style={{ display: "inline-block" }}>
+                {selectedAddon.amount || 0}
+              </span>
+              <Button
+                className="increment-button"
+                onClick={() => onIncrement(selectedAddon)}
+                style={{ display: "inline-block", marginLeft: "10px" }}
+              >
+                +
+              </Button>
+            </div>
+          ))}
+        </div>
+      </Dropdown>
+    );
+  };
+  const handleAddAddon = (itemId, addon) => {
+    setRecipeDetails((prevDetails) => ({
+      ...prevDetails,
+      [itemId]: {
+        ...prevDetails[itemId],
+        selectedAddons: [
+          ...(prevDetails[itemId]?.selectedAddons || []),
+          { id: addon.id, name: addon.name, amount: 0 },
+        ],
+      },
+    }));
+  };
+  const handleAddonAmountChange = (itemId, addonId, action) => {
+    setRecipeDetails((prevDetails) => {
+      const updatedSelectedAddons = [...(prevDetails[itemId]?.selectedAddons || [])];
+      const addonIndex = updatedSelectedAddons.findIndex((addon) => addon.id === addonId);
+
+      if (addonIndex !== -1) {
+        if (action === "increment") {
+          updatedSelectedAddons[addonIndex].amount++;
+        } else if (action === "decrement") {
+          updatedSelectedAddons[addonIndex].amount = Math.max(0, updatedSelectedAddons[addonIndex].amount - 1);
+        }
+
+        // Update the ingredients state with the updated addons and their amounts
+        setIngredients((prevIngredients) => {
+          return prevIngredients.map((ingredient) => {
+            if (ingredient.item.id === itemId) {
+              const updatedAddons = ingredient.addons || [];
+              const existingAddonIndex = updatedAddons.findIndex((addon) => addon.addon.id === addonId);
+
+              if (existingAddonIndex !== -1) {
+                // If the addon already exists, update its amount
+                updatedAddons[existingAddonIndex].amount = updatedSelectedAddons[addonIndex].amount;
+              } else {
+                // If the addon doesn't exist, add it with the updated amount
+                updatedAddons.push({
+                  addon: {
+                    id: addonId,
+                  },
+                  amount: updatedSelectedAddons[addonIndex].amount,
+                });
+              }
+
+              return {
+                ...ingredient,
+                addons: updatedAddons,
+              };
+            }
+            return ingredient;
+          });
+        });
+      }
+
+      return {
+        ...prevDetails,
+        [itemId]: {
+          ...prevDetails[itemId],
+          selectedAddons: updatedSelectedAddons,
+        },
+      };
+    });
+  };
+
+  useEffect(() => {
+
+
+    // Declare an empty object for selectedVariants outside of the map function
+    const selectedVariants = {};
+
+    const mappedData = editingVariant?.ingredients?.map((itemData) => {
+      const { item, variantId, amount, addons } = itemData;
+      const id = item.id;
+
+      const name = item.name;
+      const itemVariants = item.variants || [];
+
+      // Populate selectedVariants based on id
+      selectedVariants[id] = selectedVariants[id] || [];
+
+      // Create a structure that matches your original structure
+      const quantity = recipeDetails[id]?.quantity || 0;
+      const selectedAddons = recipeDetails[id]?.selectedAddons || [];
+
+      return {
+        id,
+        name,
+        itemVariants,
+        variantId,
+        selectedVariants: selectedVariants[id],
+        quantity,
+        selectedAddons,
+      };
+    });
+
+    setVariantItems(mappedData);
+
+
+  }, []);
+
+  console.log(variantItems, 'helloss')
 
   console.log(editingVariant, 'editingVariant?')
   console.log(isNew, 'isnew?')
@@ -486,6 +734,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                 <thead>
                 <tr>
                   <th>Item Name</th>
+                  <th>Item Variants</th>
                   <th>Quantity</th>
                   <th>Addons</th>
                 </tr>
@@ -495,35 +744,39 @@ const ItemVariantModal = (props: IVariantProps) => {
                   <tr key={selectedItem.id}>
                     <td>{selectedItem.name}</td>
                     <td>
+                      {selectedVariants[selectedItem.id] && selectedVariants[selectedItem.id].length > 0 ? (
+                        <ul>
+                          {selectedVariants[selectedItem.id].map((variant) => (
+                            <li key={variant.id}>{variant.name}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        'No variants selected'
+                      )}
+                    </td>
+                    <td>
                       <InputText
                         type="number"
                         name={`quantity_${selectedItem.id}`}
                         placeholder={`Enter quantity for ${selectedItem.name}`}
-                        value={itemDetails[selectedItem.id]?.quantity || ''}
+                        value={recipeDetails[selectedItem.id]?.quantity || ''}
                         onChange={(e) => handleQuantityChange(selectedItem.id, e.target.value)}
                       />
                     </td>
                     <td>
-                        <Select
-                          isMulti
-                          defaultValue={itemDetails[selectedItem.id]?.selectedAddons}
-                          options={selectedItem.addons.map((addon) => ({
-                            value: addon.id,
-                            label: addon.name,
-                          }))}
-                          onChange={(selectedOptions) =>
-                            handleAddonChange(
-                              selectedItem.id,
-                              selectedOptions.map((option) => ({
-                                id: option.value,
-                                name: option.label,
-                              }))
-                            )
-                          }
+                      <div className="addon-select-wrapper">
+                        <AddonDropdown
+                          addons={selectedItem.addons}
+                          selectedAddons={recipeDetails[selectedItem.id]?.selectedAddons || []}
+                          onAddAddon={(addon) => handleAddAddon(selectedItem.id, { id: addon.id, name: addon.name })}
+                          onIncrement={(selectedAddon) => handleAddonAmountChange(selectedItem.id, selectedAddon.id, 'increment')}
+                          onDecrement={(selectedAddon) => handleAddonAmountChange(selectedItem.id, selectedAddon.id, 'decrement')}
                         />
+                      </div>
                     </td>
                   </tr>
                 ))}
+
                 </tbody>
               </Table>
               </FormGroup>
@@ -555,24 +808,25 @@ const ItemVariantModal = (props: IVariantProps) => {
                         <h3>{activeTerm}</h3>
                         <Row className="justify-content-center mt-4">
                           {groupedMenuItems[activeTerm]
-                            .filter((item) => !variantItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null))
                             .map((item) => (
 
                               <Col key={item.id} sm="6" md="4" lg="4" className="mb-4">
-
                                 <div
-                                  style={{cursor: 'pointer',
-                                    border: selectedItems?.some((selectedItem) => selectedItem.id === item.id) ? '2px solid #007bff' : '2px solid #dee2e6',
-                                }}
+                                  style={{
+                                    cursor: 'pointer',
+                                    border: selectedItems?.some((selectedItem) => selectedItem.id === item.id)
+                                      ? '2px solid #007bff'
+                                      : '2px solid #dee2e6',
+                                  }}
                                   onClick={() => {
                                     if (selectedItems?.some((selectedItem) => selectedItem.id === item.id)) {
-                                      setSelectedItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
+                                      setSelectedItems((prevItems) => prevItems?.filter((i) => i.id !== item.id));
+                                      setSelectedVariants((prevVariants) => ({ ...prevVariants, [item.id]: [] }));
                                     } else {
                                       setSelectedItems((prevItems) => [...prevItems, item]);
                                     }
                                   }}
                                   className={`${selectedItems?.some((selectedItem) => selectedItem.id === item.id) ? 'border-primary' : ''}`}
-
                                 >
                                   <Card
                                     style={{
@@ -582,29 +836,48 @@ const ItemVariantModal = (props: IVariantProps) => {
                                     }}
                                     className={`border-4 shadow-sm h-100`}
                                   >
-
-                                      <CardBody>
-                                        <div
-                                          className="overlay"
-                                          style={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            right: 0,
-                                            bottom: 0,
-                                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                          }}
-                                        >
+                                    <CardBody>
+                                      <div
+                                        className="overlay"
+                                        style={{
+                                          position: 'absolute',
+                                          top: 0,
+                                          left: 0,
+                                          right: 0,
+                                          bottom: 0,
+                                          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                        }}
+                                        onClick={() => handleItemClick(item)}
+                                      >
                                         <h5 style={{ color: '#fff' }}>{item.name}</h5>
-                                        </div>
-
-                                      </CardBody>
+                                      </div>
+                                    </CardBody>
                                   </Card>
+
+                                </div>
+                                <div className="mt-2">
+                                  <h6>Variants:</h6>
+                                  {item.variants.map((variant) => (
+                                    <div key={variant.id} className="form-check">
+                                      <input
+                                        type="radio"
+                                        className="form-check-input"
+                                        id={`variant-${variant.id}`}
+                                        name={`variant-${item.id}`} // Use the same name for all variant radios within the same item
+                                        checked={selectedVariants[item.id]?.some((v) => v.id === variant.id)}
+                                        onChange={(e) => handleVariantSelection(item.id, variant, e.target.checked)}
+                                      />
+                                      <label className="form-check-label" htmlFor={`variant-${variant.id}`}>
+                                        {variant.name}
+                                      </label>
+                                    </div>
+                                  ))}
                                 </div>
                               </Col>
+
                             ))}
                         </Row>
                       </>
