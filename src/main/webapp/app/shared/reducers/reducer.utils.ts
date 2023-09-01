@@ -72,7 +72,7 @@ export interface EntityState<T> {
   loading: boolean;
   errorMessage: string | null;
   entities: ReadonlyArray<T>;
-  entity: T;
+  entity: any;
   links?: any;
   updating: boolean;
   totalItems?: number;
