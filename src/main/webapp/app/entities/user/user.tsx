@@ -36,6 +36,7 @@ export const User = () => {
     lastName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    username: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     phone: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
 
@@ -139,7 +140,7 @@ export const User = () => {
 
       <div >
         <DataTable value={modifiedUserList} editMode="row" header={header}  paginator
-                   globalFilterFields={['firstName', 'lastName' ]}
+                   globalFilterFields={['firstName', 'lastName' ]} loading={loading}
                    filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
           <Column
             field="name" header="Name" filter
