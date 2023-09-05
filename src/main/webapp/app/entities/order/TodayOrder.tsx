@@ -243,7 +243,7 @@ export const Order = () => {
 
             />
 
-            <Column field="byClient" body={(rowData) => rowData.sourceApp.name} sortable filter header="Order Source" />
+            <Column field="byClient" body={(rowData) => rowData.sourceApp.name} sortable filter header="Order Source"  style={{ width: '13%' }} />
             <Column field="tables" sortable style={{ width: '13%' }} filter header="Order Tables" />
             <Column
               field="customer"
