@@ -331,7 +331,9 @@ console.log(orderList.length, 'len')
                 <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
               />
 
-              <Column field="byClient" style={{ width: '10%' }} sortable filter header="Order Source" />
+              <Column field="byClient" body={(rowData) => rowData.sourceApp.name} sortable filter header="Order Source"  style={{ width: '13%' }} />
+
+
               <Column field="tables" sortable style={{ width: '10%' }} filter  header="Order Tables" />
               <Column
                 field="customer"
