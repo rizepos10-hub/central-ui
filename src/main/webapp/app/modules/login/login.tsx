@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-import { useAppDispatch, useAppSelector } from 'app/config/store';
+import store, { useAppDispatch, useAppSelector } from 'app/config/store';
 import { login } from 'app/shared/reducers/authentication';
 import LoginModal from './login-modal';
-import TenantContext from 'app/shared/tenant/TenantContext';
 import { Checkbox } from 'primereact/checkbox';
-import {Button} from "primereact/button";
-import {InputText} from "primereact/inputtext";
-import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
-
+import { Button } from 'primereact/button';
+import { InputText } from 'primereact/inputtext';
+import { LayoutContext } from 'app/shared/sidebar/context/layoutcontext';
+import { getTenant, tenantReducer } from 'app/shared/tenant/TenantContext';
 export const Login = () => {
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
@@ -18,18 +17,21 @@ export const Login = () => {
   const [showModal, setShowModal] = useState(showModalLogin);
   const navigate = useNavigate();
   const location = useLocation();
-  const tenant = useContext(TenantContext);
+
+  const tenant = useAppSelector(state => state.tenant.tenant);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false);
   const handleLogin = () => {
     if (email && password) {
-      dispatch(login(email, password,tenant, rememberMe));
+      dispatch(login(email, password, tenant, rememberMe));
     }
   };
 
   useEffect(() => {
     setShowModal(true);
+    dispatch(getTenant);
   }, []);
 
   // const handleLogin = (username, password, rememberMe = false) => dispatch(login(username, password, tenant, rememberMe));
@@ -48,7 +50,12 @@ export const Login = () => {
   }
   return (
     <>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800" className="fixed left-0 top-0 min-h-screen min-w-screen" preserveAspectRatio="none">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1600 800"
+        className="fixed left-0 top-0 min-h-screen min-w-screen"
+        preserveAspectRatio="none"
+      >
         <rect fill={dark ? 'var(--primary-900)' : 'var(--primary-500)'} width="1600" height="800" />
         <path
           fill={dark ? 'var(--primary-800)' : 'var(--primary-400)'}
@@ -62,7 +69,10 @@ export const Login = () => {
           fill={dark ? 'var(--primary-600)' : 'var(--primary-200)'}
           d="M454.9 86.3C600.7 177 751.6 269.3 924.1 325c208.6 67.4 431.3 60.8 637.9-5.3c12.8-4.1 25.4-8.4 38.1-12.9V0H288.1c56 21.3 108.7 50.6 159.7 82C450.2 83.4 452.5 84.9 454.9 86.3z"
         />
-        <path fill={dark ? 'var(--primary-500)' : 'var(--primary-100)'} d="M1397.5 154.8c47.2-10.6 93.6-25.3 138.6-43.8c21.7-8.9 43-18.8 63.9-29.5V0H643.4c62.9 41.7 129.7 78.2 202.1 107.4C1020.4 178.1 1214.2 196.1 1397.5 154.8z" />
+        <path
+          fill={dark ? 'var(--primary-500)' : 'var(--primary-100)'}
+          d="M1397.5 154.8c47.2-10.6 93.6-25.3 138.6-43.8c21.7-8.9 43-18.8 63.9-29.5V0H643.4c62.9 41.7 129.7 78.2 202.1 107.4C1020.4 178.1 1214.2 196.1 1397.5 154.8z"
+        />
       </svg>
       <div className="px-5 min-h-screen flex justify-content-center align-items-center ">
         <div className="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 z-1">
@@ -71,28 +81,28 @@ export const Login = () => {
             <span className="text-600 font-medium">Please enter your details</span>
           </div>
           <div className="flex flex-column">
-                        <span className="p-input-icon-left w-full mb-4">
-                            <i className="pi pi-envelope"></i>
-                            <InputText
-                              id="email"
-                              type="text"
-                              className="w-full md:w-25rem"
-                              placeholder="Email"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </span>
             <span className="p-input-icon-left w-full mb-4">
-                            <i className="pi pi-lock"></i>
-                            <InputText
-                              id="password"
-                              type="password"
-                              className="w-full md:w-25rem"
-                              placeholder="Password"
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </span>
+              <i className="pi pi-envelope"></i>
+              <InputText
+                id="email"
+                type="text"
+                className="w-full md:w-25rem"
+                placeholder="Email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+              />
+            </span>
+            <span className="p-input-icon-left w-full mb-4">
+              <i className="pi pi-lock"></i>
+              <InputText
+                id="password"
+                type="password"
+                className="w-full md:w-25rem"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
+            </span>
             <div className="mb-4 flex flex-wrap gap-3">
               <div>
                 {/* <Checkbox name="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.checked ?? false)} className="mr-2"></Checkbox> */}
@@ -100,14 +110,16 @@ export const Login = () => {
                   Remember Me
                 </label>
               </div>
-              <a className="text-600 cursor-pointer hover:text-primary cursor-pointer ml-auto transition-colors transition-duration-300">Reset password</a>
+              <a className="text-600 cursor-pointer hover:text-primary cursor-pointer ml-auto transition-colors transition-duration-300">
+                Reset password
+              </a>
             </div>
             <Button label="Log In" className="w-full" onClick={handleLogin}></Button>
           </div>
         </div>
       </div>
     </>
-  )
+  );
 };
 
 export default Login;

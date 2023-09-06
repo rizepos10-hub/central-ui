@@ -16,6 +16,9 @@ let listener: Observable<any>;
 let listenerObserver: any;
 let alreadyConnectedOnce = false;
 
+let tenantValue = sessionStorage.getItem('TENANT');
+let tenant = tenantValue.replace(/['"]+/g, '');
+
 const createConnection = (): Promise<any> => new Promise(resolve => (connectedPromise = resolve));
 
 const createListener = (): Observable<any> =>
@@ -24,10 +27,14 @@ const createListener = (): Observable<any> =>
   });
 
 export const sendActivity = (page: string) => {
+  const token = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
+
+  let activity = '/topic/activity/' + tenant;
+
   connection?.then(() => {
     stompClient?.send(
-      '/topic/activity', // destination
-      JSON.stringify({ page }), // body
+      activity, // destination
+      JSON.stringify({ page, token }), // body
       {} // header
     );
   });
@@ -35,7 +42,7 @@ export const sendActivity = (page: string) => {
 
 const subscribe = () => {
   connection.then(() => {
-    subscriber = stompClient.subscribe('/topic/tracker', data => {
+    subscriber = stompClient.subscribe('/topic/tracker/' + tenant, data => {
       listenerObserver.next(JSON.parse(data.body));
     });
   });
@@ -54,7 +61,7 @@ const connect = () => {
   const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
   const headers = {};
-  let url = '//' + loc.host + baseHref + '/websocket/tracker';
+  let url = SERVER_API_URL + '/websocket/tracker';
   const authToken = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
   if (authToken) {
     url += '?access_token=' + authToken;

@@ -7,7 +7,7 @@ import { AppThunk } from 'app/config/store';
 import { setLocale } from 'app/shared/reducers/locale';
 
 const AUTH_TOKEN_KEY = 'jhi-authenticationToken';
-
+const TENANT_KEY = 'TENANT';
 export const initialState = {
   loading: false,
   isAuthenticated: false,
@@ -68,6 +68,7 @@ export const login: (username: string, password: string, tenant: string, remembe
     const response = result.payload as AxiosResponse;
     const bearerToken = response?.data?.access_token;
     if (bearerToken) {
+      Storage.session.set(TENANT_KEY, tenant);
       if (rememberMe) {
         Storage.local.set(AUTH_TOKEN_KEY, bearerToken);
       } else {
@@ -80,6 +81,9 @@ export const login: (username: string, password: string, tenant: string, remembe
 export const clearAuthToken = () => {
   if (Storage.local.get(AUTH_TOKEN_KEY)) {
     Storage.local.remove(AUTH_TOKEN_KEY);
+  }
+  if (Storage.session.get(TENANT_KEY)) {
+    Storage.session.remove(TENANT_KEY);
   }
   if (Storage.session.get(AUTH_TOKEN_KEY)) {
     Storage.session.remove(AUTH_TOKEN_KEY);
