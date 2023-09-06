@@ -17,7 +17,7 @@ let listenerObserver: any;
 let alreadyConnectedOnce = false;
 
 let tenantValue = sessionStorage.getItem('TENANT');
-let tenant = tenantValue.replace(/['"]+/g, '');
+let tenant = tenantValue ? tenantValue.replace(/['"]+/g, '') : '';
 
 const createConnection = (): Promise<any> => new Promise(resolve => (connectedPromise = resolve));
 
