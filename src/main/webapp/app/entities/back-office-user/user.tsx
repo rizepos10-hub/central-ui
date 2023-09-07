@@ -90,7 +90,7 @@ export const User = () => {
     }
   };
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/user/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/back-office-user/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
@@ -99,7 +99,7 @@ export const User = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/user/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/back-office-user/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -107,7 +107,7 @@ export const User = () => {
     );
   };
   const handleCreate = () => {
-    navigate('/user/new')
+    navigate('/back-office-user/new')
   }
 
   const activeColumnTemplate = rowData => {

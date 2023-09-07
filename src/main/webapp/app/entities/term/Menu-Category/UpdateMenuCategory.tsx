@@ -292,11 +292,9 @@ console.log(termEntity)
                   label={translate('tempApp.term.parents')}
                   type="select"
                 >
-                  {/* Add an empty option */}
                   <option value="">{''}</option>
                   {terms &&
                     terms
-                      .filter(term => term.taxonomy && term.taxonomy?.name === 'Menu Category')
                       .map(otherEntity => (
                         <option value={otherEntity.id} key={otherEntity.id}>
                           {otherEntity?.name}
@@ -315,18 +313,18 @@ console.log(termEntity)
                     {termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}
                   </option>
 
-
+                  { termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name &&
+                    <option value="">{''}</option>
+                  }
                   {terms &&
                     terms
-                      .filter(term => term.taxonomy && term.taxonomy?.name === 'Menu Category')
+                      .filter(otherEntity => otherEntity.id !== termEntity.id)
                       .map(otherEntity => (
                         <option value={otherEntity.id} key={otherEntity.id}>
                           {otherEntity?.name}
                         </option>
                       ))}
-                  { termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name &&
-                    <option value="">{''}</option>
-                  }
+
                 </ValidatedField>
               )}
 

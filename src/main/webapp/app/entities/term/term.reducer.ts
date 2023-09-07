@@ -65,7 +65,7 @@ export const updateEntity = createAsyncThunk(
   'term/update_entity',
   async (entity: ITerm, thunkAPI) => {
     const result = await axios.put<ITerm>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -75,7 +75,7 @@ export const partialUpdateEntity = createAsyncThunk(
   'term/partial_update_entity',
   async (entity: ITerm, thunkAPI) => {
     const result = await axios.patch<ITerm>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }

@@ -15,23 +15,30 @@ const initialState: EntityState<IUser> = {
   updateSuccess: false,
 };
 
-const apiUrl = 'api/users';
+const apiUrl = '/api/users/branch';
 const apiSearchUrl = 'api/_search/users';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('user/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
+export const searchEntities = createAsyncThunk('branch-pos-user/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<IUser[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('user/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
-  return axios.get<IUser[]>(requestUrl);
+export const getEntities :any = createAsyncThunk('branch-pos-user/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+  const requestUrl = '/api/users/branch';
+
+  console.log('Fetching user entities with parameters:', { page, size, sort, requestUrl });
+
+  const response = await axios.get<IUser[]>(requestUrl);
+
+    console.log('Received response data:', response);
+
+  return response;
 });
 
 export const getEntity = createAsyncThunk(
-  'user/fetch_entity',
+  'branch-pos-user/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
     return axios.get<IUser>(requestUrl);
@@ -39,46 +46,12 @@ export const getEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-export const getAllRoles = createAsyncThunk(
-  'user/fetch_all_roles', // Corrected action name
-  async () => {
-    console.log('im heree12')
-    const requestUrl = `/api/roles`;
-    const response = await axios.get<IUser>(requestUrl);
-    console.log(response, 'response1')
 
-    return response
-  },
-  { serializeError: serializeAxiosError }
-);
-export const getAvailableRoles = createAsyncThunk(
-  'user/fetch_available_roles', // Corrected action name
-  async (id: string | number) => {
 
-    const requestUrl = `${apiUrl}/${id}/roles-available`;
-   const response = await axios.get<IUser>(requestUrl);
-    console.log(response, 'response')
 
-   return response
-  },
-  { serializeError: serializeAxiosError }
-);
-
-export const getAssignedRoles = createAsyncThunk(
-  'user/fetch_assigned_roles', // Corrected action name
-  async (id: string | number) => {
-
-    const requestUrl = `${apiUrl}/${id}/roles`;
-    const response = await axios.get<IUser>(requestUrl);
-    console.log(response, 'response')
-
-    return response
-  },
-  { serializeError: serializeAxiosError }
-);
 
 export const assignRole = createAsyncThunk(
-  'user/assign_role',
+  'branch-pos-user/assign_role',
   async ({ id, selectedRoles }: { id: string; selectedRoles: any[] }, ) => {
     const rolesData = selectedRoles.map(roleId => ({ id: roleId }));
     console.log(rolesData, '12roles12')
@@ -96,7 +69,7 @@ export const assignRole = createAsyncThunk(
 
 
 export const createEntity = createAsyncThunk(
-  'user/create_entity',
+  'branch-pos-user/create_entity',
   async (entity: IUser, thunkAPI) => {
     const result = await axios.post<IUser>(apiUrl, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
@@ -106,8 +79,10 @@ export const createEntity = createAsyncThunk(
 );
 
 export const updateEntity = createAsyncThunk(
-  'user/update_entity',
+  'branch-pos-user/update_entity',
   async (entity: IUser, thunkAPI) => {
+    console.log(entity.id, 'moliso')
+
     const result = await axios.put<IUser>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
@@ -116,7 +91,7 @@ export const updateEntity = createAsyncThunk(
 );
 
 export const partialUpdateEntity = createAsyncThunk(
-  'user/partial_update_entity',
+  'branch-pos-user/partial_update_entity',
   async (entity: IUser, thunkAPI) => {
     const result = await axios.patch<IUser>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
@@ -126,7 +101,7 @@ export const partialUpdateEntity = createAsyncThunk(
 );
 
 export const deleteEntity = createAsyncThunk(
-  'user/delete_entity',
+  'branch-pos-user/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
     const result = await axios.delete<IUser>(requestUrl);
@@ -152,15 +127,7 @@ export const UserSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addCase(getAllRoles.fulfilled, (state, action :any) => {
-        state.allRoles = action.payload.data;
-      })
-      .addCase(getAvailableRoles.fulfilled, (state, action :any) => {
-      state.availableRoles = action.payload.data;
-       })
-      .addCase(getAssignedRoles.fulfilled, (state, action :any) => {
-        state.assignedRoles = action.payload.data;
-      })
+
       .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
         const { data, headers } = action.payload;
 

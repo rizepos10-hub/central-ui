@@ -44,7 +44,7 @@ describe('private-route component', () => {
     console.error = originalError;
   });
 
-  it('Should render an error message when the user has no authorities', () => {
+  it('Should render an error message when the back-office-user has no authorities', () => {
     const { container } = wrapper(
       <PrivateRoute>
         <TestComp />

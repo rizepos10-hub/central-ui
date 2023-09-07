@@ -14,7 +14,8 @@ import Addon from './addon';
 import Term from './term';
 import Order from './order';
 import Home from "app/shared/layout/home/home";
-import User from "./user";
+import BranchPosUserRoutes from "./branch-pos-user";
+import BackOfficeUserRoutes from "./back-office-user";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -26,7 +27,9 @@ export default () => {
         <Route index element={<Home />} />
         <Route path="menu/*" element={<Menu />} />
         <Route path="branch/*" element={<Branch />} />
-        <Route path="user/*" element={<User />} />
+        <Route path="back-office-user/*" element={<BackOfficeUserRoutes />} />
+        <Route path="branch-pos-user/*" element={<BranchPosUserRoutes />} />
+
         <Route path="discount/*" element={<Discount />} />
         <Route path="attachment/*" element={<Attachment />} />
         <Route path="customer/*" element={<Customer />} />

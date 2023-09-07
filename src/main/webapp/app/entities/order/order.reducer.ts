@@ -31,6 +31,13 @@ export const getEntities = createAsyncThunk('order/fetch_entity_list', async ({ 
   return axios.get<IOrder[]>(requestUrl);
 });
 
+
+export const getOrderSources = createAsyncThunk('order/fetch_orderSource_list', async () => {
+  const requestUrl = `/api/applications`;
+  const response = await axios.get<IOrder[]>(requestUrl);
+  return response.data
+});
+
 // export const filterOrders = createAsyncThunk(
 //   'order/filter_orders',
 //   async ({ lazyState }: { lazyState: any }) => {

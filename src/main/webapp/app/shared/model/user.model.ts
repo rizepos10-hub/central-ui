@@ -7,7 +7,6 @@ export interface IUser {
   email?: string;
   activated?: boolean;
   langKey?: string;
-  authorities?: any[];
   createdBy?: string;
   createdDate?: Date | null;
   lastModifiedBy?: string;
@@ -16,6 +15,7 @@ export interface IUser {
   permissions?: any[];
   isActive?: boolean;
   username?: string ;
+  authorities?: any[];
 }
 
 export interface AvailableRoles {

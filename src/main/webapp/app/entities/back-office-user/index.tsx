@@ -2,14 +2,14 @@ import React from 'react';
 import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
-import User from "app/entities/user/user";
-import UserUpdate from "app/entities/user/user-update";
-import UserDetail from "app/entities/user/user-detail";
-import UserDeleteDialog from "app/entities/user/user-delete-dialog";
+import User from "app/entities/back-office-user/user";
+import UserUpdate from "app/entities/back-office-user/user-update";
+import UserDetail from "app/entities/back-office-user/user-detail";
+import UserDeleteDialog from "app/entities/back-office-user/user-delete-dialog";
 
 
 
-const UserRoutes = () => (
+const BackOfficeUserRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={< User />} />
     <Route path="new" element={< UserUpdate/>} />
@@ -21,4 +21,4 @@ const UserRoutes = () => (
   </ErrorBoundaryRoutes>
 );
 
-export default UserRoutes;
+export default BackOfficeUserRoutes;

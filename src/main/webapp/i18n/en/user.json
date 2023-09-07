@@ -27,7 +27,9 @@
       "firstName": "First Name",
       "lastName": "Last Name",
       "username": "User name",
-      "enabled": "Enabled"
+      "enabled": "Enabled",
+      "activated": "Activated",
+      "password": "Password"
     }
   }
 }

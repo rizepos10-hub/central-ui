@@ -47,6 +47,7 @@ export const UserUpdate = () => {
     username: '',
     firstName: '',
     lastName: '',
+    password: '',
     email: '',
     permissions: [],
     enabled: false,
@@ -62,7 +63,7 @@ export const UserUpdate = () => {
   ];
 
   const handleClose = () => {
-    navigate('/user' + location.search);
+    navigate('/back-office-user' + location.search);
   };
 
 
@@ -109,8 +110,30 @@ export const UserUpdate = () => {
 
     try {
       if (isNew) {
-        console.log("post")
-        await dispatch(createEntity(user));
+
+        const newUser = {
+          user: {
+            id: null,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            emailVerified: true,
+            enabled: user.enabled,
+            username: user.username,
+          },
+          credential: {
+            type: 'password',
+            temporary: false,
+            value: user.password,
+          },
+        };
+
+
+        const createdUserResponse :any = await dispatch(createEntity(newUser));
+
+        const createdUserId  = createdUserResponse.payload.data.id;
+
+        await dispatch(assignRole({ id: createdUserId, selectedRoles }));
       } else {
         console.log("put")
 console.log(selectedRoles, 'selectedRoles')
@@ -134,12 +157,13 @@ console.log(selectedRoles, 'selectedRoles')
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
+      setSelectedRoles([])
     } else {
       dispatch(getEntity(id));
       dispatch(getAvailableRoles(id))
       dispatch(getAssignedRoles(id))
-      dispatch(getAllRoles())
     }
+    dispatch(getAllRoles())
 
     console.log(selectedRoles, 'selectedRole2')
 
@@ -172,7 +196,7 @@ console.log(selectedRoles, 'selectedRoles')
   //   // } else {
   //   //   dispatch(updateEntity(entity));
   //   // }
-  //   console.log('Saving user:', values);
+  //   console.log('Saving back-office-user:', values);
   //   handleClose();
   //
   // };
@@ -241,6 +265,18 @@ console.log(selectedRoles, 'selectedRoles')
                 required
               />
             </div>
+            {isNew && <div className="p-field d-flex flex-column mb-3">
+              <label htmlFor="password">
+                <Translate contentKey="tempApp.user.password">Password</Translate>
+              </label>
+              <InputText
+                id="password"
+                name="password"
+                value={user.password || ''}
+                onChange={handleInputChange}
+                required
+              />
+            </div>}
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="enabled">
                 <Translate contentKey="tempApp.user.enabled">Enabled</Translate>
@@ -278,7 +314,7 @@ console.log(selectedRoles, 'selectedRoles')
                 id="cancel-save"
                 icon="pi pi-arrow-left"
                 className="p-button-secondary"
-                onClick={() => navigate('/user')}
+                onClick={() => navigate('/back-office-user')}
               >
                 Back
               </Button>

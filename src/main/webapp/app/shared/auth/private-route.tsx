@@ -63,8 +63,8 @@ export const hasAnyAuthority = (authorities: string[], hasAnyAuthorities: string
 
 /**
  * Checks authentication before showing the children and redirects to the
- * login page if the user is not authenticated.
+ * login page if the back-office-user is not authenticated.
  * If hasAnyAuthorities is provided the authorization status is also
- * checked and an error message is shown if the user is not authorized.
+ * checked and an error message is shown if the back-office-user is not authorized.
  */
 export default PrivateRoute;
