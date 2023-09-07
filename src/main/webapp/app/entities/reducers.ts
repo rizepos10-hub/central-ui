@@ -8,7 +8,8 @@ import taxonomy from 'app/entities/taxonomy/taxonomy.reducer';
 import addon from 'app/entities/addon/addon.reducer';
 import term from 'app/entities/term/term.reducer';
 import order from 'app/entities/order/order.reducer';
-import user from 'app/entities/user/user.reducer';
+import user from 'app/entities/back-office-user/user.reducer';
+import PosBranchUser from "app/entities/branch-pos-user/user.reducer";
 
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
@@ -25,6 +26,7 @@ const entitiesReducers = {
   term,
   order,
   user,
+  PosBranchUser
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };

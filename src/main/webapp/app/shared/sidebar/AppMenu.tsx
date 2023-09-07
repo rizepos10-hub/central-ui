@@ -18,10 +18,14 @@ const AppMenu = () => {
                             items: [
                               {
                                 label: 'Backoffice users',
-                                icon: 'pi pi-calendar',
-                                to: '/user'
+                                icon: 'pi pi-user',
+                                to: '/back-office-user'
                               },
-
+                              {
+                                label: 'Pos users',
+                                icon: 'pi pi-user',
+                                to: '/branch-pos-user'
+                              },
                             ]
                           },
                           {

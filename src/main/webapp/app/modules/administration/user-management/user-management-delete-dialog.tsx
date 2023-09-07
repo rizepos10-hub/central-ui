@@ -19,7 +19,7 @@ export const UserManagementDeleteDialog = () => {
 
   const handleClose = event => {
     event.stopPropagation();
-    navigate('/admin/user-management');
+    navigate('/admin/back-office-user-management');
   };
 
   const user = useAppSelector(state => state.userManagement.user);

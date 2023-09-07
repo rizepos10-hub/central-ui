@@ -46,7 +46,7 @@ export const UserDetail = () => {
           <dd>{userEntity.phone}</dd>
           {/* <dt> */}
           {/*   <span id="status"> */}
-          {/*     <Translate contentKey="tempApp.user.status">Status</Translate> */}
+          {/*     <Translate contentKey="tempApp.back-office-user.status">Status</Translate> */}
           {/*   </span> */}
           {/* </dt> */}
           {/* <dd>{userEntity.status}</dd> */}
