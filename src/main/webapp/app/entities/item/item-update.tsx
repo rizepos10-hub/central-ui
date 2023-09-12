@@ -210,7 +210,7 @@ export const ItemUpdate = () => {
   };
 
   console.log(editingVariantId, 'editingVariantId');
-  const handleSaveVariant = (name, price, discount, variantImage, branchPrices, ingredients) => {
+  const handleSaveVariant = (name, price, discount, variantImage, branchPrices, ingredients, addons) => {
     console.log(variants, 'variants new');
 
     const newValues = {
@@ -220,6 +220,7 @@ export const ItemUpdate = () => {
       attachments: variantImage,
       branchVariantDetails: branchPrices,
       ingredients: ingredients,
+      addons: addons
     };
     setVariants(prevVariants => [...prevVariants, newValues]);
   };
@@ -346,47 +347,50 @@ export const ItemUpdate = () => {
 
   return (
     <div>
-      {openedModal && (
-        <ItemVariantModal
-          showModal={openedModal}
-          handleClose={handleCloseModal}
-          handleSave={handleSaveVariant}
-          onVariantImageUpload={handleVariantImageUpload}
-          editingVariantId={editingVariantId}
-          itemId={id}
-          variants={variants}
-          handleEditExistingVariant={handleEditExistingVariant}
-          addonsOptions={addonsOptions}
-        />
-      )}
-      <Card>
-        <Row className="justify-content-center">
-          <Col md="12">
-            <h2 id="tempApp.item.home.createOrEditLabel" data-cy="ItemCreateUpdateHeading">
-              <Translate contentKey="tempApp.item.home.createOrEditLabel">Create or edit a Item</Translate>
-            </h2>
-          </Col>
-        </Row>
-        <Row className="justify-content-center">
-          <Col md="12">
-            {loading ? (
-              <p>Loading...</p>
-            ) : (
-              <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
+      {openedModal && <ItemVariantModal
+        showModal={openedModal}
+        handleClose={handleCloseModal}
+        handleSave={handleSaveVariant}
+        onVariantImageUpload={handleVariantImageUpload}
+        editingVariantId={editingVariantId}
+        itemId={id}
+        variants={variants}
+        handleEditExistingVariant={handleEditExistingVariant}
+        addonsOptions={addonsOptions}
+      />}
+
+      <Row className="justify-content-center">
+        <Col md="8">
+          <h2 id="tempApp.item.home.createOrEditLabel" data-cy="ItemCreateUpdateHeading">
+            <Translate contentKey="tempApp.item.home.createOrEditLabel">Create or edit a Item</Translate>
+          </h2>
+        </Col>
+      </Row>
+      <Row className="justify-content-center">
+        <Col md="8">
+          {loading ? (
+            <p>Loading...</p>
+          ) : (
+            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
+
+
+
+              {!isNew ? (
+                <ValidatedField
+                  name="id"
+                  required
+                  readOnly
+                  id="item-id"
+                  label={translate('global.field.id')}
+                  validate={{ required: true }}
+                />
+              ) : null}
+              <Col md={8}>
+
                 <div className="d-flex justify-content-between mb-1">
-                  <div>
-                    {!isNew ? (
-                      <ValidatedField
-                        name="id"
-                        required
-                        readOnly
-                        id="item-id"
-                        label={translate('global.field.id')}
-                        validate={{ required: true }}
-                      />
-                    ) : null}
-                  </div>
-                  <div>
+
+                  <div style={{width: '55%'}}>
+
                     <ValidatedField
                       label={translate('tempApp.item.name')}
                       id="item-name"
@@ -394,19 +398,53 @@ export const ItemUpdate = () => {
                       data-cy="name"
                       type="text"
                       defaultValue={itemEntity.name}
-                      onChange={e => setName(e.target.value)}
+                      onChange={(e) => setName(e.target.value)}
                       validate={{
                         required: { value: true, message: translate('entity.validation.required') },
                       }}
                     />
                   </div>
-                  <div>
+                  <div style={{width: '35%'}}>
                     <Translate contentKey="tempApp.item.terms">Category</Translate>
                     <Select isMulti={true} defaultValue={entityTerms} onChange={handleTermChange} options={termsOptions} />
                   </div>
+
                 </div>
+                {/* <ValidatedField */}
+                {/*   label={translate('tempApp.item.orderCount')} */}
+                {/*   id="item-orderCount" */}
+                {/*   name="orderCount" */}
+                {/*   data-cy="orderCount" */}
+                {/*   type="text" */}
+                {/* /> */}
+                {/* <ValidatedField */}
+                {/*   label={translate('tempApp.item.avgRating')} */}
+                {/*   id="item-avgRating" */}
+                {/*   name="avgRating" */}
+                {/*   data-cy="avgRating" */}
+                {/*   type="text" */}
+                {/* /> */}
+                {/* <ValidatedField */}
+                {/*   label={translate('tempApp.item.ratingCount')} */}
+                {/*   id="item-ratingCount" */}
+                {/*   name="ratingCount" */}
+                {/*   data-cy="ratingCount" */}
+                {/*   type="text" */}
+                {/* /> */}
+                {/* <ValidatedField */}
+                {/*   label={translate('tempApp.item.stock')} */}
+                {/*   id="item-stock" */}
+                {/*   name="stock" */}
+                {/*   data-cy="stock" */}
+                {/*   type="text" */}
+                {/*   validate={{ */}
+                {/*     required: { value: true, message: translate('entity.validation.required') }, */}
+                {/*     validate: v => isNumber(v) || translate('entity.validation.number'), */}
+                {/*   }} */}
+                {/* /> */}
                 <div className="d-flex justify-content-between mb-1">
-                  <div>
+                  <div style={{width: '55%'}}>
+
                     <ValidatedField label={translate('tempApp.item.status')} id="item-status" name="status" data-cy="status" type="select">
                       {itemStatusValues.map(itemStatus => (
                         <option value={itemStatus} key={itemStatus}>
@@ -415,7 +453,8 @@ export const ItemUpdate = () => {
                       ))}
                     </ValidatedField>
                   </div>
-                  <div>
+                  <div style={{width: '35%'}}>
+
                     <ValidatedField label={translate('tempApp.item.desc')} id="item-desc" name="desc" data-cy="desc" type="textarea" />
                   </div>
                 </div>
@@ -453,9 +492,10 @@ export const ItemUpdate = () => {
                           }}
                           onClick={() => removeAttachment(attachment.id)}
                         >
-                          <FontAwesomeIcon icon={faTrashAlt} />
+                          <FontAwesomeIcon icon={faTrashAlt}  />
                         </div>
                       </div>
+
                     ))}
                     {selectedImage && (
                       <img
@@ -470,7 +510,8 @@ export const ItemUpdate = () => {
                     )}
 
                     {selectedImage && uploadImageStatus === 'success' && (
-                      <div className={`alert alert-${uploadImageStatus === 'success' ? 'success' : 'danger'}`} role="alert">
+                      <div className={`alert alert-${uploadImageStatus === 'success' ? 'success' : 'danger'}`}
+                           role="alert">
                         {uploadImageStatus === 'success' && 'Uploaded successfully!'}
                       </div>
                     )}
@@ -480,104 +521,99 @@ export const ItemUpdate = () => {
                   <Translate contentKey="tempApp.item.addons"></Translate>
                   <Select isMulti={true} defaultValue={initSelectedAddons} onChange={handleAddonChange} options={addonsOptions} />
                 </div>
-                {variants && (
-                  <div className="mb-3">
-                    <Translate contentKey="tempApp.item.variants">Variants</Translate>
-                    <table className="table table-striped">
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Price</th>
-                          <th>Image</th>
-                          <th>Discounts</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {variants
-                          .filter(variant => variant.archived !== true)
-                          ?.map(variant => (
-                            <tr key={variant.id && variant.id}>
-                              <td className="align-middle">{variant.name}</td>
-                              <td className="align-middle">{variant.price}</td>
-                              <td className="align-middle">
-                                {variant.attachments?.map(attachment => (
-                                  <img
-                                    key={attachment?.id}
-                                    alt={attachment?.name}
-                                    src={attachment?.url}
-                                    className="img-fluid m-lg-1"
-                                    style={{
-                                      maxWidth: '40px',
-                                      maxHeight: '45px',
-                                    }}
-                                  />
-                                ))}
-                              </td>
-                              <td className="align-middle">
-                                <ul>
-                                  {variant.discounts?.map(discount => (
-                                    <li key={discount?.id}>{`${
-                                      discount?.type === 'PERCENTAGE' ? `${discount?.value}%` : `${discount?.value} ${discount?.type}`
-                                    }`}</li>
-                                  ))}
-                                </ul>
-                              </td>
 
-                              <td>
-                                <Button type={'button'} onClick={() => openEditVariantModal(variant)} color="secondary">
-                                  <FontAwesomeIcon icon="pencil-alt" />
-                                </Button>
-                              </td>
-                              <td>
-                                <Button type={'button'} color="danger" onClick={() => handleArchiveVariant(variant.id)}>
-                                  <FontAwesomeIcon icon="trash" />
-                                </Button>
-                              </td>
-                            </tr>
+              </Col>
+              {variants && (
+                <div className="mb-3">
+                  <Translate contentKey="tempApp.item.variants">Variants</Translate>
+                  <table className="table table-striped">
+                    <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Price</th>
+                      <th>Image</th>
+                      <th>Discounts</th>
+
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {variants.filter((variant) => variant.archived !== true)?.map((variant) => (
+                      <tr key={variant.id && variant.id}>
+                        <td className="align-middle">{variant.name}</td>
+                        <td className="align-middle">{variant.price}</td>
+                        <td className="align-middle">
+                          {variant.attachments?.map((attachment) => (
+                            <img
+                              key={attachment?.id}
+                              alt={attachment?.name}
+                              src={attachment?.url}
+                              className="img-fluid m-lg-1"
+                              style={{
+
+                                maxWidth: '40px',
+                                maxHeight: '45px',
+                              }}
+                            />
                           ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-                <div className="mt-4 mb-4">
-                  <Button onClick={openVariantModal}> Add Variant</Button>
-                  {/* <ValidatedField id="item-menu" name="menu" data-cy="menu" label={translate('tempApp.item.menu')} type="select"> */}
-                  {/*   <option value="" key="0" /> */}
-                  {/*   {menus */}
-                  {/*     ? menus.map(otherEntity => ( */}
-                  {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
-                  {/*           {otherEntity.id + ' ' + otherEntity.name} */}
-                  {/*         </option> */}
-                  {/*       )) */}
-                  {/*     : null} */}
-                  {/* </ValidatedField> */}
+                        </td>
+                        <td className="align-middle">
+                          <ul>
+                            {variant.discounts?.map((discount) => (
+                              <li key={discount?.id}>{`${discount?.type === 'PERCENTAGE' ? `${discount?.value}%` : `${discount?.value} ${discount?.type}`}`}</li>
+                            ))}
+                          </ul>
+
+                        </td>
+
+                        <td>
+                          <Button  type={"button"}  onClick={() => openEditVariantModal(variant)} color="secondary" >
+                            <FontAwesomeIcon icon="pencil-alt" />
+                          </Button>
+                        </td>
+                        <td>
+                          <Button type={"button"} color="danger" onClick={() => handleArchiveVariant(variant.id)}  >
+                            <FontAwesomeIcon icon="trash"  />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                    </tbody>
+                  </table>
                 </div>
-                <br />
-                <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/item" replace color="info">
-                  <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;
-                  <span className="d-none d-md-inline">
-                    <Translate contentKey="entity.action.back">Back</Translate>
-                  </span>
-                </Button>
+              )}
+
+
+              <div className="mt-4 mb-4">
+                <Button onClick={openVariantModal}> Add Variant</Button>
+                {/* <ValidatedField id="item-menu" name="menu" data-cy="menu" label={translate('tempApp.item.menu')} type="select"> */}
+                {/*   <option value="" key="0" /> */}
+                {/*   {menus */}
+                {/*     ? menus.map(otherEntity => ( */}
+                {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
+                {/*           {otherEntity.id + ' ' + otherEntity.name} */}
+                {/*         </option> */}
+                {/*       )) */}
+                {/*     : null} */}
+                {/* </ValidatedField> */}
+              </div>
+              <br />
+              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/item" replace color="info">
+                <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
-                <Button
-                  color="primary"
-                  id="save-entity"
-                  data-cy="entityCreateSaveButton"
-                  type="submit"
-                  disabled={updating}
-                  innerRef={saveButtonRef}
-                >
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-              </ValidatedForm>
-            )}
-          </Col>
-        </Row>
-      </Card>
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
+              </Button>
+              &nbsp;
+              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating} innerRef={saveButtonRef}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+            </ValidatedForm>
+          )}
+        </Col>
+      </Row>
     </div>
   );
 };

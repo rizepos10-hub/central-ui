@@ -272,8 +272,9 @@ console.log(itemList, 'itemList1')
 
 
     const saveEntity = (values) => {
-      values.createdAt = convertDateTimeToServer(values.createdAt);
-      values.updatedAt = convertDateTimeToServer(values.updatedAt);
+      console.log(values, 'lololo')
+      values.createdDate = convertDateTimeToServer(values.createdDate);
+      values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate);
       setIsEditModalOpen(false)
 
       const { category, ...restValues } = values;
@@ -306,13 +307,13 @@ console.log(itemList, 'itemList1')
     const defaultValues = () =>
       isNew
         ? {
-            createdAt: displayDefaultDateTime(),
-            updatedAt: displayDefaultDateTime(),
+          createdDate: displayDefaultDateTime(),
+          lastModifiedDate: displayDefaultDateTime(),
           }
         : {
             ...menuEntity,
-            createdAt: convertDateTimeFromServer(menuEntity.createdAt),
-            updatedAt: convertDateTimeFromServer(menuEntity.updatedAt),
+            createdDate: convertDateTimeFromServer(menuEntity.createdDate),
+          lastModifiedDate: convertDateTimeFromServer(menuEntity.lastModifiedDate),
             category: selectedCategory
           };
 
