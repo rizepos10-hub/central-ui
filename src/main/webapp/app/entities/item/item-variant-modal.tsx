@@ -37,7 +37,7 @@ import { InputText } from 'primereact/inputtext';
 interface IVariantProps {
   showModal: boolean;
   handleClose?: () => void;
-  handleSave: (name: string, price: number, discount: any, attachments: any, branchPrices: any, ingredients: any) => void;
+  handleSave: (name: string, price: number, discount: any, attachments: any, branchPrices: any, ingredients: any , selectedVariantAddons: any) => void;
   onVariantImageUpload: any;
   editingVariantId: any;
   variants: any;
@@ -64,6 +64,8 @@ const ItemVariantModal = (props: IVariantProps) => {
   const [branchPrices, setBranchPrices] = useState({});
   const [selectedItemVariants, setSelectedItemVariants] = useState([]);
   const [selectedItemWithVariants, setSelectedItemWithVariants] = useState(null);
+
+  const [itemNameMap, setItemNameMap] = useState({});
 
   const [selectedVariants, setSelectedVariants] = useState({});
 
@@ -101,6 +103,9 @@ const ItemVariantModal = (props: IVariantProps) => {
 
     setSelectedDiscounts(selectedValues);
   };
+
+
+
   const handleVariantSelection = (itemId, variant, isSelected) => {
     setSelectedVariants(prevVariants => {
       const updatedVariants = { ...prevVariants };
@@ -114,38 +119,44 @@ const ItemVariantModal = (props: IVariantProps) => {
 
     if (isSelected) {
       setSelectedItems(prevItems => {
-        if (!prevItems.some(selectedItem => selectedItem.id === itemId)) {
-          return [...prevItems, itemList.find(item => item.id === itemId)];
+        if (!prevItems.some(selectedItem => selectedItem?.id === itemId)) {
+          return [...prevItems, itemList.find(item => item?.id === itemId)];
         }
         return prevItems;
       });
     } else {
       if (!selectedVariants[itemId] || selectedVariants[itemId].length === 0) {
-        setSelectedItems(prevItems => prevItems.filter(item => item.id !== itemId));
+        setSelectedItems(prevItems => prevItems.filter(item => item?.id !== itemId));
       }
     }
   };
-  const handleQuantityChange = (itemId, quantity) => {
-    setRecipeDetails(prevDetails => ({
+  const handleQuantityChange = (itemId, variantId, quantity) => {
+    const parsedQuantity = parseFloat(quantity);
+
+    setRecipeDetails((prevDetails) => ({
       ...prevDetails,
       [itemId]: {
         ...prevDetails[itemId],
-        quantity: parseInt(quantity) || 0,
+        variantQuantities: {
+          ...(prevDetails[itemId]?.variantQuantities || {}),
+          [variantId]: parsedQuantity,
+        },
       },
     }));
 
-    setIngredients(prevIngredients => {
-      return prevIngredients.map(ingredient => {
-        if (ingredient.item.id === itemId) {
+    setIngredients((prevIngredients) => {
+      return prevIngredients.map((ingredient) => {
+        if (ingredient.item?.id === itemId && ingredient.variantId === variantId) {
           return {
             ...ingredient,
-            amount: parseInt(quantity) || 0,
+            amount: parsedQuantity,
           };
         }
         return ingredient;
       });
     });
   };
+
 
   console.log(recipeDetails, 'recipeDetails');
 
@@ -188,7 +199,7 @@ const ItemVariantModal = (props: IVariantProps) => {
     }));
     console.log(variantImage, 'variantImage');
 
-    props.handleSave(name, parseFloat(price), selectedDiscountObjects, variantImage, branchPrices, ingredients);
+    props.handleSave(name, parseFloat(price), selectedDiscountObjects,selectedVariantAddons, variantImage, branchPrices, ingredients);
   };
 
   const {
@@ -202,67 +213,81 @@ const ItemVariantModal = (props: IVariantProps) => {
     if (!name || !price) {
       return;
     }
+
     try {
       const selectedDiscountObjects = selectedDiscounts?.map(item => ({
         id: item.id,
         type: item.type,
         value: item.value,
-      }));
+      })) || [];
 
+      // Prepare attachments to send
       let attachmentsToSend = [];
-
       if (selectedImage) {
         const imageInfo = await handleImageUpload();
         attachmentsToSend.push(imageInfo);
       }
-
       if (attachments.length > 0) {
         attachmentsToSend = attachmentsToSend.concat(attachments);
       }
-      const updatedData = ingredients.map(itemData => {
-        const quantity = recipeDetails[itemData.itemId]?.quantity || 0;
-        const addons = recipeDetails[itemData.itemId]?.selectedAddons || [];
+
+      const formattedIngredients = ingredients.map((ingredient) => {
+        // Filter out addons with an amount of 0
+        const filteredAddons = ingredient.addons.filter((addon) => addon.amount > 0);
 
         return {
-          ...itemData,
-          quantity,
-          addons,
+          item: { id: ingredient.item.id },
+          variantId: ingredient.variantId,
+          amount: ingredient.amount,
+          addons: filteredAddons.map((addon) => ({
+            addon: { id: addon.addon.id },
+            amount: addon.amount,
+          })),
         };
       });
-      setIngredients(updatedData);
-      console.log(attachmentsToSend, 'attachmentsToSend');
+
+      console.log(formattedIngredients, 'formattedIngredients')
+
       const formattedBranchPrices = {};
       Object.keys(branchPrices).forEach(branchId => {
         formattedBranchPrices[branchId] = { price: parseFloat(branchPrices[branchId]) };
       });
-      console.log(formattedBranchPrices, 'formattedBranchPrices');
 
-      if (props.editingVariantId === null) {
-        console.log(ingredients, 'ingredients');
-        props.handleSave(name, parseFloat(price), selectedDiscountObjects, attachmentsToSend, formattedBranchPrices, ingredients);
+      const editedVariant = {
+        name,
+        price: parseFloat(price),
+        discounts: selectedDiscountObjects,
+        attachments: attachmentsToSend,
+        addons: selectedVariantAddons,
+        branchVariantDetails: formattedBranchPrices,
+        ingredients: formattedIngredients,
+      };
+
+      // If editing an existing variant, update it
+      if (props.editingVariantId !== null) {
+        const existingVariant = props.variants.find(variant => variant.id === props.editingVariantId);
+        const updatedVariant = { ...existingVariant, ...editedVariant };
+        props.handleEditExistingVariant(updatedVariant);
+      } else {
+        // If creating a new variant, save it
+        props.handleSave(name, parseFloat(price), selectedDiscountObjects, selectedVariantAddons, attachmentsToSend, formattedBranchPrices, formattedIngredients);
         resetForm();
         setSelectedDiscounts([]);
-      } else {
-        const editedVariant = {
-          ...props.variants.find(variant => variant.id === props.editingVariantId),
-          name: name,
-          price: price,
-          discounts: selectedDiscountObjects,
-          attachments: attachmentsToSend,
-          branchVariantDetails: formattedBranchPrices,
-          ingredients,
-        };
-        props.handleEditExistingVariant(editedVariant);
       }
 
+      // Close the modal
       props.handleClose();
     } catch (error) {
       console.error('Error handling variant save:', error);
     }
   };
 
-  const handleAddonChange = selectedAddon => {
-    setSelectedVariantAddons(selectedAddon.map(addon => ({ id: addon.value })));
+
+  const handleAddonChange = (selectedAddon) => {
+    setSelectedVariantAddons((prevAddons) => [
+      ...prevAddons,
+      ...selectedAddon.map((addon) => ({ id: addon.value })),
+    ]);
   };
 
   const resetForm = () => {
@@ -274,31 +299,81 @@ const ItemVariantModal = (props: IVariantProps) => {
     setAttachments([]);
   };
 
+
+  const updateRecipeDetails = (itemId, variantId, data) => {
+    setRecipeDetails((prevState) => ({
+      ...prevState,
+      [itemId]: {
+        ...(prevState[itemId] || {}),
+        variantQuantities: {
+          ...(prevState[itemId]?.variantQuantities || {}),
+          [variantId]: data.quantity,
+        },
+        selectedAddons: {
+          ...(prevState[itemId]?.selectedAddons || {}),
+          [variantId]: data.selectedAddons,
+        },
+      },
+    }));
+  };
+
+
   const handleAddItem = () => {
     if (selectedItems.length > 0) {
-      const newIngredientsData = selectedItems.map(selectedItem => {
-        const selectedVariant =
-          selectedVariants[selectedItem.id] && selectedVariants[selectedItem.id].length > 0 ? selectedVariants[selectedItem.id][0] : null;
+      const newIngredientsData = selectedItems.flatMap((selectedItem) => {
+        return selectedVariants[selectedItem.id].map((variant) => {
+          const quantityFieldName = `quantity_${selectedItem.id}_${variant.id}`;
+          const variantQuantity = parseFloat(recipeDetails[selectedItem.id]?.variantQuantities?.[variant.id] || 0);
 
-        // Create the base ingredient object
-        const ingredient = {
-          item: {
-            id: selectedItem.id,
-          },
-          variantId: selectedVariant ? selectedVariant.id : null,
-          amount: 0,
-          addons: [],
-        };
+          const newIngredient = {
+            item: {
+              id: selectedItem.id,
+            },
+            variantId: variant.id,
+            amount: variantQuantity,
+            addons: [],
+          };
 
-        return ingredient;
+          // Check if the ingredient already exists in ingredients state
+          const existingIngredientIndex = ingredients.findIndex((ingredient) => {
+            return (
+              ingredient.item?.id === newIngredient.item?.id &&
+              ingredient.variantId === newIngredient.variantId
+            );
+          });
+
+          if (existingIngredientIndex !== -1) {
+            // If the ingredient already exists, update it
+            ingredients[existingIngredientIndex].amount += newIngredient.amount;
+
+            newIngredient.addons.forEach((addon) => {
+              const existingAddonIndex = ingredients[existingIngredientIndex].addons.findIndex(
+                (existingAddon) => existingAddon.addon.id === addon.addon.id
+              );
+
+              if (existingAddonIndex !== -1) {
+                ingredients[existingIngredientIndex].addons[existingAddonIndex].amount += addon.amount;
+              } else {
+                ingredients[existingIngredientIndex].addons.push(addon);
+              }
+            });
+          } else {
+            // If the ingredient does not exist, add it to ingredients state
+            ingredients.push(newIngredient);
+          }
+
+          return newIngredient;
+        });
       });
 
-      setIngredients(prevData => [...prevData, ...newIngredientsData]);
-      setSelectedItems([]); // Clear selected items after adding them to state
-      setVariantItems(prevItems => [...prevItems, ...selectedItems]);
+      setIngredients([...ingredients]);
+
+      setSelectedItemsForRecipe((prevItems) => [...prevItems, ...selectedItems]);
+      setSelectedItems([]);
+      setModalOpen(false);
     }
-    setModalOpen(false);
   };
+
 
   const toggleModal = () => {
     setModalOpen(!isModalOpen);
@@ -310,13 +385,17 @@ const ItemVariantModal = (props: IVariantProps) => {
       console.log(editingVariant, 'editingVariant');
       setName(editingVariant.name || '');
       setPrice(editingVariant.price || '');
+      if(editingVariant?.addons){
+        setSelectedVariantAddons(editingVariant?.addons.map((addon) => ({label: addon.name, value: addon.id})))
 
-      console.log(editingVariant.ingredients, 'ba');
-      setSelectedVariantAddons(editingVariant.addons);
+      }
+
+      console.log(editingVariant, 'ba');
+      console.log(selectedVariantAddons, 'ba');
 
       const formattedBranchPrices = {};
       if (editingVariant.branchVariantDetails) {
-        Object.keys(editingVariant.branchVariantDetails).forEach(branchId => {
+        Object.keys(editingVariant.branchVariantDetails)?.forEach(branchId => {
           formattedBranchPrices[branchId] = editingVariant.branchVariantDetails[branchId].price;
         });
       }
@@ -338,10 +417,103 @@ const ItemVariantModal = (props: IVariantProps) => {
     };
   }, [editingVariant, selectedItemsForRecipe]);
 
+
+
+
+
   useEffect(() => {
     dispatch(getItemsForRecipe({ itemId, variantId }));
+
+
     dispatch(getBranches({}));
-  }, [props.editingVariantId]);
+  }, [props.editingVariantId,editingVariant]);
+
+
+  useEffect(() => {
+    const initialSelectedVariants = {};
+    const initialVariantItems = [];
+    const initialRecipeDetails = {};
+    const initialIngredients = [];
+
+    const initialItemNameMap = {};
+
+    if (editingVariant && recipeDetails) {
+      editingVariant?.ingredients?.forEach((itemData) => {
+        const { item, variant, amount, addons } = itemData;
+        const id = item?.id;
+
+        if (!initialSelectedVariants[id]) {
+          initialSelectedVariants[id] = [];
+        }
+
+        const selectedAddons = recipeDetails[id]?.selectedAddons?.[variant.id] || [];
+
+        initialSelectedVariants[id].push({
+          id: variant.id,
+          name: variant.name,
+          quantity: amount,
+          selectedAddons: selectedAddons,
+        });
+
+        initialVariantItems.push({
+          id,
+          name: item?.name,
+          variantId: variant.id,
+          quantity: amount,
+          selectedAddons,
+        });
+
+        initialRecipeDetails[id] = {
+          ...(initialRecipeDetails[id] || {}),
+          variantQuantities: {
+            ...(initialRecipeDetails[id]?.variantQuantities || {}),
+            [variant.id]: amount,
+          },
+          selectedAddons: {
+            ...(initialRecipeDetails[id]?.selectedAddons || {}),
+            [variant.id]: addons.map((addon) => ({
+              id: addon.addonId,
+              name: addon.addon.name,
+              amount: addon.amount,
+            })),
+          },
+        };
+
+        const ingredient = {
+          item: {
+            id: id,
+            name: item?.name, // Store the item name in the ingredient
+          },
+          variantId: variant.id,
+          amount: amount,
+          addons: addons.map((addon) => ({
+            addon: {
+              id: addon.addonId,
+            },
+            amount: addon.amount,
+          })),
+        };
+
+        initialIngredients.push(ingredient);
+
+        // Populate the itemNameMap
+        if (id && item?.name) {
+          initialItemNameMap[id] = item.name;
+        }
+      });
+    }
+
+    setSelectedVariants(initialSelectedVariants);
+    setVariantItems(initialVariantItems);
+    setRecipeDetails(initialRecipeDetails);
+    setIngredients(initialIngredients);
+    setItemNameMap(initialItemNameMap); // Set the itemNameMap
+
+  }, []);
+
+
+
+
 
   const handleImageUpload = async () => {
     if (!selectedImage) {
@@ -390,42 +562,53 @@ const ItemVariantModal = (props: IVariantProps) => {
       value: discount.value,
     })) || [];
 
+  const defaultAddons = editingVariant?.addons?.map(addon => ({
+      label: addon.name,
+      value: addon.id,
+    })) || [];
+
   const formattedDiscountOptions = discounts?.map(discount => ({
     label: `${discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}`,
     id: discount.id,
     type: discount.type,
     value: discount.value,
   }));
-  const AddonDropdown = ({ addons, selectedAddons, onAddAddon, onIncrement, onDecrement }) => {
+  const AddonDropdown = ({ itemAddons = [], variantAddons = [], selectedAddons, onAddAddon, onIncrement, onDecrement }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const allAddons = [...itemAddons, ...variantAddons];
 
-    console.log(selectedAddons, 'selectedAddons');
-    const filteredAddons = addons?.filter(addon => !selectedAddons.some(selectedAddon => selectedAddon.id === addon.id));
     const toggle = () => setDropdownOpen(!dropdownOpen);
+
+    const isAllAddonsSelected = allAddons.every((addon) => selectedAddons.some((selectedAddon) => selectedAddon?.id === addon?.id));
+
+
     return (
       <Dropdown isOpen={dropdownOpen} toggle={toggle}>
-        <DropdownToggle caret>Add Addons</DropdownToggle>
-        <DropdownMenu>
-          {filteredAddons?.map(addon => (
-            <DropdownItem key={addon.id} onClick={() => onAddAddon(addon)}>
-              {addon.name}
-            </DropdownItem>
-          ))}
+        <DropdownToggle disabled={allAddons.length < 1 || isAllAddonsSelected} caret>Add Addons</DropdownToggle>
+        <DropdownMenu >
+          {allAddons
+            .filter((addon) => !selectedAddons.some((selectedAddon) => selectedAddon?.id === addon?.id))
+            .map((addon) => (
+              <DropdownItem key={addon?.id} onClick={() => onAddAddon(addon)}>
+                {addon.name}
+              </DropdownItem>
+            ))}
         </DropdownMenu>
         <div>
-          {selectedAddons.map(selectedAddon => (
-            <div key={selectedAddon.id} className="mt-2">
+          {selectedAddons.map((selectedAddon) => (
+            <div key={selectedAddon?.id} className="mt-2">
               <span style={{ width: '130px', display: 'inline-block' }}>{selectedAddon.name}:</span>
               <Button
                 className="decrement-button"
                 onClick={() => onDecrement(selectedAddon)}
                 style={{ display: 'inline-block', marginRight: '10px' }}
+                disabled={selectedAddon.amount <= 0}
               >
                 -
               </Button>
               <span className="p-3" style={{ display: 'inline-block' }}>
-                {selectedAddon.amount || 0}
-              </span>
+              {selectedAddon.amount || 0}
+            </span>
               <Button
                 className="increment-button"
                 onClick={() => onIncrement(selectedAddon)}
@@ -433,50 +616,105 @@ const ItemVariantModal = (props: IVariantProps) => {
               >
                 +
               </Button>
+
             </div>
           ))}
         </div>
       </Dropdown>
     );
   };
-  const handleAddAddon = (itemId, addon) => {
-    setRecipeDetails(prevDetails => ({
-      ...prevDetails,
-      [itemId]: {
-        ...prevDetails[itemId],
-        selectedAddons: [...(prevDetails[itemId]?.selectedAddons || []), { id: addon.id, name: addon.name, amount: 0 }],
-      },
-    }));
+
+  const handleAddAddon = (itemId, variantId, addon) => {
+    setRecipeDetails((prevDetails) => {
+      const existingSelectedAddons = prevDetails[itemId]?.selectedAddons?.[variantId] || [];
+
+      // Check if the addon already exists in the selected addons
+      const isAddonExist = existingSelectedAddons.some((selectedAddon) => selectedAddon.id === addon.id);
+
+      // If the addon doesn't exist, add it
+      if (!isAddonExist) {
+        const updatedSelectedAddons = {
+          ...prevDetails[itemId]?.selectedAddons,
+          [variantId]: [
+            ...(prevDetails[itemId]?.selectedAddons?.[variantId] || []),
+            { id: addon.id, name: addon.name, amount: 0 },
+          ],
+        };
+
+        return {
+          ...prevDetails,
+          [itemId]: {
+            ...prevDetails[itemId],
+            selectedAddons: updatedSelectedAddons,
+          },
+        };
+      }
+
+      // If the addon already exists, don't make any changes
+      return prevDetails;
+    });
   };
-  const handleAddonAmountChange = (itemId, addonId, action) => {
-    setRecipeDetails(prevDetails => {
-      const updatedSelectedAddons = [...(prevDetails[itemId]?.selectedAddons || [])];
-      const addonIndex = updatedSelectedAddons.findIndex(addon => addon.id === addonId);
+
+  const handleDeleteItem = (itemId, variantId) => {
+    // Filter out the selected variant from the selectedVariants state
+    setSelectedVariants(prevVariants => {
+      const updatedVariants = { ...prevVariants };
+      if (updatedVariants[itemId]) {
+        updatedVariants[itemId] = updatedVariants[itemId].filter(v => v.id !== variantId);
+      }
+      return updatedVariants;
+    });
+
+    // Filter out the ingredient associated with the variant
+    setIngredients(prevIngredients => prevIngredients.filter(ingredient => !(ingredient.item.id === itemId && ingredient.variantId === variantId)));
+  };
+
+
+
+
+  const handleAddonAmountChange = (itemId, variantId, addonId, action) => {
+    setRecipeDetails((prevDetails) => {
+      const updatedSelectedAddons = {
+        ...prevDetails[itemId]?.selectedAddons,
+        [variantId]: [...(prevDetails[itemId]?.selectedAddons?.[variantId] || [])],
+      };
+
+      const addonIndex = updatedSelectedAddons[variantId].findIndex(
+        (addon) => addon?.id === addonId
+      );
 
       if (addonIndex !== -1) {
-        if (action === 'increment') {
-          updatedSelectedAddons[addonIndex].amount++;
-        } else if (action === 'decrement') {
-          updatedSelectedAddons[addonIndex].amount = Math.max(0, updatedSelectedAddons[addonIndex].amount - 1);
+        if (action === "increment") {
+          updatedSelectedAddons[variantId][addonIndex].amount++;
+        } else if (action === "decrement") {
+          updatedSelectedAddons[variantId][addonIndex].amount = Math.max(
+            0,
+            updatedSelectedAddons[variantId][addonIndex].amount - 1
+          );
         }
 
-        // Update the ingredients state with the updated addons and their amounts
-        setIngredients(prevIngredients => {
-          return prevIngredients.map(ingredient => {
-            if (ingredient.item.id === itemId) {
+        setIngredients((prevIngredients) => {
+          return prevIngredients.map((ingredient) => {
+            if (
+              ingredient.item?.id === itemId &&
+              ingredient.variantId === variantId
+            ) {
               const updatedAddons = ingredient.addons || [];
-              const existingAddonIndex = updatedAddons.findIndex(addon => addon.addon.id === addonId);
+              const existingAddonIndex = updatedAddons.findIndex(
+                (addon) => addon.addon?.id === addonId
+              );
 
               if (existingAddonIndex !== -1) {
                 // If the addon already exists, update its amount
-                updatedAddons[existingAddonIndex].amount = updatedSelectedAddons[addonIndex].amount;
+                updatedAddons[existingAddonIndex].amount =
+                  updatedSelectedAddons[variantId][addonIndex].amount;
               } else {
                 // If the addon doesn't exist, add it with the updated amount
                 updatedAddons.push({
                   addon: {
                     id: addonId,
                   },
-                  amount: updatedSelectedAddons[addonIndex].amount,
+                  amount: updatedSelectedAddons[variantId][addonIndex].amount,
                 });
               }
 
@@ -500,37 +738,8 @@ const ItemVariantModal = (props: IVariantProps) => {
     });
   };
 
-  useEffect(() => {
-    // Declare an empty object for selectedVariants outside of the map function
-    const selectedVariants = {};
 
-    const mappedData = editingVariant?.ingredients?.map(itemData => {
-      const { item, variantId, amount, addons } = itemData;
-      const id = item.id;
 
-      const name = item.name;
-      const itemVariants = item.variants || [];
-
-      // Populate selectedVariants based on id
-      selectedVariants[id] = selectedVariants[id] || [];
-
-      // Create a structure that matches your original structure
-      const quantity = recipeDetails[id]?.quantity || 0;
-      const selectedAddons = recipeDetails[id]?.selectedAddons || [];
-
-      return {
-        id,
-        name,
-        itemVariants,
-        variantId,
-        selectedVariants: selectedVariants[id],
-        quantity,
-        selectedAddons,
-      };
-    });
-
-    setVariantItems(mappedData ? mappedData : []);
-  }, []);
 
   console.log(variantItems, 'helloss');
 
@@ -538,6 +747,7 @@ const ItemVariantModal = (props: IVariantProps) => {
   console.log(isNew, 'isnew?');
 
   console.log(defaultAttachments, 'defaultAttachments');
+  console.log('recipeDetails:', recipeDetails);
 
   const handleBranchPriceChange = (branchId, price) => {
     setBranchPrices(prevPrices => ({
@@ -625,7 +835,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
               <div className="mb-3">
                 <Translate contentKey="tempApp.item.addons"></Translate>
-                <Select isMulti={true} defaultValue={selectedVariantAddons} onChange={handleAddonChange} options={props.addonsOptions} />
+                <Select isMulti={true} defaultValue={defaultAddons} onChange={handleAddonChange} options={props.addonsOptions} />
               </div>
 
               <div className="mb-3">
@@ -688,53 +898,105 @@ const ItemVariantModal = (props: IVariantProps) => {
                 </div>
                 <Table>
                   <thead>
-                    <tr>
-                      <th>Item Name</th>
-                      <th>Item Variants</th>
-                      <th>Quantity</th>
-                      <th>Addons</th>
-                    </tr>
+                  <tr>
+                    <th>Item Name</th>
+                    <th>Item Variants</th>
+                    <th>Quantity</th>
+                    <th>Addons</th>
+                    <th>Delete</th>
+                  </tr>
                   </thead>
                   <tbody>
-                    {variantItems?.map(selectedItem => (
-                      <tr key={selectedItem.id}>
-                        <td>{selectedItem.name}</td>
-                        <td>
-                          {selectedVariants[selectedItem.id] && selectedVariants[selectedItem.id].length > 0 ? (
-                            <ul>
-                              {selectedVariants[selectedItem.id].map(variant => (
-                                <li key={variant.id}>{variant.name}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            'No variants selected'
-                          )}
-                        </td>
-                        <td>
-                          <InputText
-                            type="number"
-                            name={`quantity_${selectedItem.id}`}
-                            placeholder={`Enter quantity for ${selectedItem.name}`}
-                            value={recipeDetails[selectedItem.id]?.quantity || ''}
-                            onChange={e => handleQuantityChange(selectedItem.id, e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <div className="addon-select-wrapper">
-                            <AddonDropdown
-                              addons={selectedItem.addons}
-                              selectedAddons={recipeDetails[selectedItem.id]?.selectedAddons || []}
-                              onAddAddon={addon => handleAddAddon(selectedItem.id, { id: addon.id, name: addon.name })}
-                              onIncrement={selectedAddon => handleAddonAmountChange(selectedItem.id, selectedAddon.id, 'increment')}
-                              onDecrement={selectedAddon => handleAddonAmountChange(selectedItem.id, selectedAddon.id, 'decrement')}
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                  {Object.keys(selectedVariants).map((itemId) => (
+                    <React.Fragment key={itemId}>
+                      {console.log('Debug - itemId:', itemId)}
+                      {console.log('Debug - selectedVariants[itemId]:', selectedVariants[itemId])}
+
+                      {/* Debugging */}
+                      {selectedVariants[itemId].map((variant) => {
+                        const item = itemList.find((item) => item?.id === itemId);
+                        const itemName = itemNameMap[itemId];
+                        console.log(selectedVariants, 'lolili')
+
+                        const recipeDetail = recipeDetails[itemId] || {};
+                        const variantQuantity = recipeDetail.variantQuantities?.[variant?.id] || "";
+                        const selectedAddons = recipeDetail.selectedAddons?.[variant?.id] || [];
+
+                        console.log('Debug - item:', item);
+                        console.log('Debug - itemList:', itemList);
+
+                        console.log('Debug - variant:', variant);
+                        console.log('Debug - recipeDetail:', recipeDetail);
+                        console.log('Debug - variantQuantity:', variantQuantity);
+                        console.log('Debug - selectedAddons:', selectedAddons);
+
+                        return (
+                          <tr key={variant?.id}>
+                            <td>{item?.name || itemName}</td>
+                            <td>{variant?.name}</td>
+                            <td>
+                              Quantity:{" "}
+                              <ValidatedField
+                                type="number"
+                                name={`quantity_${itemId}_${variant?.id}`}
+                                placeholder={`Enter quantity for ${variant.name}`}
+                                value={variantQuantity}
+                                onChange={(e) =>
+                                  handleQuantityChange(itemId, variant?.id, e.target.value)
+                                }
+                              />
+                            </td>
+                            <td>
+                              Addons:
+                              <div className="addon-select-wrapper">
+
+                                <AddonDropdown
+                                  itemAddons={item?.addons}
+                                  variantAddons={variant?.addons}
+                                  selectedAddons={selectedAddons}
+                                  onAddAddon={(addon) =>
+                                    handleAddAddon(itemId, variant?.id, {
+                                      id: addon?.id,
+                                      name: addon.name,
+                                    })
+                                  }
+                                  onIncrement={(selectedAddon) =>
+                                    handleAddonAmountChange(
+                                      itemId,
+                                      variant?.id,
+                                      selectedAddon?.id,
+                                      "increment"
+                                    )
+                                  }
+
+                                  onDecrement={(selectedAddon) =>
+                                    handleAddonAmountChange(
+                                      itemId,
+                                      variant?.id,
+                                      selectedAddon?.id,
+                                      "decrement"
+                                    )
+                                  }
+
+                                />
+                              </div>
+                            </td>
+
+                                <td>
+                                  <Button type={"button"} color="danger"  onClick={() => handleDeleteItem(itemId, variant.id)}  >
+                                    <FontAwesomeIcon icon="trash"  />
+                                  </Button>
+                                </td>
+                          </tr>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
                   </tbody>
                 </Table>
               </FormGroup>
+
+
             </Row>
 
             <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
@@ -816,10 +1078,10 @@ const ItemVariantModal = (props: IVariantProps) => {
                                     <input
                                       type="radio"
                                       className="form-check-input"
-                                      id={`variant-${variant.id}`}
-                                      name={`variant-${item.id}`} // Use the same name for all variant radios within the same item
-                                      checked={selectedVariants[item.id]?.some(v => v.id === variant.id)}
-                                      onChange={e => handleVariantSelection(item.id, variant, e.target.checked)}
+                                      id={`variant-${variant?.id}`}
+                                      name={`variant-${item?.id}`} // Use the same name for all variant radios within the same item
+                                      checked={selectedVariants[item?.id]?.some(v => v.id === variant.id)}
+                                      onChange={e => handleVariantSelection(item?.id, variant, e.target.checked)}
                                     />
                                     <label className="form-check-label" htmlFor={`variant-${variant.id}`}>
                                       {variant.name}
