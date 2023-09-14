@@ -10,7 +10,10 @@ import term from 'app/entities/term/term.reducer';
 import order from 'app/entities/order/order.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
 import PosBranchUser from "app/entities/branch-pos-user/user.reducer";
+import tax from "app/entities/settings/taxes/tax.reducer";
+import accountingGroups from "app/entities/settings/accounting-groups/accounting-groups.reducer";
 
+import taxProfiles from "app/entities/settings/tax-profiles/tax-profile.reducer";
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
@@ -26,8 +29,10 @@ const entitiesReducers = {
   term,
   order,
   user,
-  PosBranchUser
-
+  PosBranchUser,
+  tax,
+  taxProfiles,
+  accountingGroups
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };
 

@@ -16,7 +16,6 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import PageNotFound from 'app/shared/error/page-not-found';
 import { AUTHORITIES } from 'app/config/constants';
 import { sendActivity } from 'app/config/websocket-middleware';
-import SettingRoutes from "app/modules/administration/settings";
 
 const loading = <div>loading ...</div>;
 
@@ -83,14 +82,14 @@ const AppRoutes = () => {
         />
 
 
-        <Route
-          path="settings/*"
-          element={
-            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER]}>
-             <SettingRoutes />
-            </PrivateRoute>
-          }
-        />
+        {/* <Route */}
+        {/*   path="settings/*" */}
+        {/*   element={ */}
+        {/*     <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER]}> */}
+        {/*      <SettingRoutes /> */}
+        {/*     </PrivateRoute> */}
+        {/*   } */}
+        {/* /> */}
 
 
 
