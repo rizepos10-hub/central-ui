@@ -485,13 +485,25 @@ console.log(itemList, 'itemList1')
     };
 
     const handleDuplicateAction = () => {
-      dispatch(duplicateMenu(id))
-        .then((result:any) => {
-          console.log('Duplicate successful:', result);
+      const isConfirmed = window.confirm('Are you sure you want to duplicate this menu?');
 
-          navigate(`/menu/${result?.payload?.id}/edit`)
-        })
-      setRefresh(prev => !prev)
+      if (isConfirmed) {
+        dispatch(duplicateMenu(id))
+          .then((result:any) => {
+            console.log('Duplicate successful:', result);
+
+            if (result?.payload?.id) {
+              navigate(`/menu/${result.payload.id}/edit`);
+            } else {
+              console.error('Failed to duplicate menu: No ID returned');
+            }
+
+            setRefresh(prev => !prev);
+          })
+          .catch(error => {
+            console.error('Error duplicating menu:', error);
+          });
+      }
     };
 
 
