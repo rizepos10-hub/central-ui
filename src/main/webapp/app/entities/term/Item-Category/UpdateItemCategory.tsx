@@ -127,6 +127,9 @@ export const UpdateItemCategory = () => {
   console.log(termEntity, 'termEntity')
 
   const saveEntity = values => {
+
+    console.log(values, 'values')
+
     const entity = {
       ...termEntity,
       ...values,
@@ -296,6 +299,7 @@ export const UpdateItemCategory = () => {
               ) : (
                 <ValidatedField
                   name="parents"
+                  data-cy="parents"
                   label={translate('tempApp.term.parents')}
                   type="select"
                 >

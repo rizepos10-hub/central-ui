@@ -263,14 +263,16 @@ const ItemVariantModal = (props: IVariantProps) => {
         ingredients: formattedIngredients,
       };
 
+      console.log(formattedBranchPrices, 'formattedBranchPrices')
+
       // If editing an existing variant, update it
       if (props.editingVariantId !== null) {
         const existingVariant = props.variants.find(variant => variant.id === props.editingVariantId);
         const updatedVariant = { ...existingVariant, ...editedVariant };
         props.handleEditExistingVariant(updatedVariant);
       } else {
-        // If creating a new variant, save it
-        props.handleSave(name, parseFloat(price), selectedDiscountObjects, selectedVariantAddons, attachmentsToSend, formattedBranchPrices, formattedIngredients);
+
+       props.handleSave(name, parseFloat(price), selectedDiscountObjects, selectedVariantAddons, attachmentsToSend, formattedBranchPrices, formattedIngredients);
         resetForm();
         setSelectedDiscounts([]);
       }
@@ -415,17 +417,17 @@ const ItemVariantModal = (props: IVariantProps) => {
     return () => {
       resetForm();
     };
-  }, [editingVariant, selectedItemsForRecipe]);
+  }, [editingVariant, selectedItemsForRecipe,isNew]);
 
 
 
 
 
   useEffect(() => {
-    dispatch(getItemsForRecipe({ itemId, editingVariant: editingVariant.id || null }));
+    dispatch(getItemsForRecipe({ itemId, editingVariant: editingVariant?.id || null }));
 
     dispatch(getBranches({}));
-  }, [props.editingVariantId,editingVariant]);
+  }, [props.editingVariantId,editingVariant,isNew]);
 
 
   useEffect(() => {
