@@ -9,12 +9,12 @@ import addon from 'app/entities/addon/addon.reducer';
 import term from 'app/entities/term/term.reducer';
 import order from 'app/entities/order/order.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
-import PosBranchUser from "app/entities/branch-pos-user/user.reducer";
-import tax from "app/entities/settings/taxes/tax.reducer";
-import accountingGroups from "app/entities/settings/accounting-groups/accounting-groups.reducer";
+import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
+import tax from 'app/entities/settings/taxes/tax.reducer';
+import accountingGroups from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 
-import taxProfiles from "app/entities/settings/tax-profiles/tax-profile.reducer";
-
+import taxProfiles from 'app/entities/settings/tax-profiles/tax-profile.reducer';
+import BusinessDetail from 'app/entities/business-details/business-detail.reducer';
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
 const entitiesReducers = {
@@ -32,7 +32,8 @@ const entitiesReducers = {
   PosBranchUser,
   tax,
   taxProfiles,
-  accountingGroups
+  accountingGroups,
+  BusinessDetail,
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };
 
