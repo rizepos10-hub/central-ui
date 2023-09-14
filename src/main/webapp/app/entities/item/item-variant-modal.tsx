@@ -237,7 +237,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
         return {
           item: { id: ingredient.item.id },
-          variantId: ingredient.variantId,
+          variant: {id: ingredient.variantId},
           amount: ingredient.amount,
           addons: filteredAddons.map((addon) => ({
             addon: { id: addon.addon.id },
@@ -422,8 +422,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
 
   useEffect(() => {
-    dispatch(getItemsForRecipe({ itemId, variantId }));
-
+    dispatch(getItemsForRecipe({ itemId, editingVariant: editingVariant.id || null }));
 
     dispatch(getBranches({}));
   }, [props.editingVariantId,editingVariant]);

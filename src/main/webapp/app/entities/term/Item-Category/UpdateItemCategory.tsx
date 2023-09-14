@@ -130,13 +130,13 @@ export const UpdateItemCategory = () => {
     const entity = {
       ...termEntity,
       ...values,
-      taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
-      parents: [terms.find(it => it.id.toString() === values.term.toString())],
+      taxonomy: values.taxonomy ? taxonomies.find(it => it.id.toString() === values.taxonomy.toString()) : null,
+      parents: values.parents ? [{ id: values.parents }] : [],
       attachments: selectedAttachments,
-
     };
 
-    console.log(entity, 'entity saved')
+    console.log(entity, 'entity saved');
+
     if (isNew) {
       dispatch(createEntity(entity));
     } else {
@@ -144,11 +144,12 @@ export const UpdateItemCategory = () => {
     }
   };
 
+
+
   const defaultValues = () =>
     isNew
       ? {
         taxonomy: taxonomies.find(otherEntity => otherEntity?.name === 'Item Category')?.id,
-        term: '',
       }
       : {
         ...termEntity,
@@ -276,9 +277,9 @@ export const UpdateItemCategory = () => {
 
               {isNew ? (
                 <ValidatedField
-                  id="term-term"
-                  name="term"
-                  data-cy="term"
+                  id="term-parents"
+                  name="parents"
+                  data-cy="parents"
                   label={translate('tempApp.term.parents')}
                   type="select"
                 >
@@ -294,16 +295,13 @@ export const UpdateItemCategory = () => {
                 </ValidatedField>
               ) : (
                 <ValidatedField
-                  id="term-term"
-                  name="term"
-                  data-cy="term"
+                  name="parents"
                   label={translate('tempApp.term.parents')}
                   type="select"
                 >
                   <option value={termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}>
                     {termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}
                   </option>
-
 
                   {terms &&
                     terms
@@ -313,9 +311,9 @@ export const UpdateItemCategory = () => {
                           {otherEntity?.name}
                         </option>
                       ))}
-                  { termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name &&
+                  {termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name && (
                     <option value="">{''}</option>
-                  }
+                  )}
                 </ValidatedField>
               )}
 

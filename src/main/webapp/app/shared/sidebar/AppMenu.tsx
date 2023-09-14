@@ -191,7 +191,7 @@ const AppMenu = () => {
                               {
                                 label: 'Voids ',
                                 icon: 'pi pi-folder-open',
-                                to: '/term/items'
+                                to: '/voids'
                               },
                               {
                                 label: 'Reporting automations',

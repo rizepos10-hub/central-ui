@@ -225,6 +225,8 @@ export const ItemUpdate = () => {
     setVariants(prevVariants => [...prevVariants, newValues]);
   };
   const saveEntity = values => {
+
+
     console.log(variants, 'variantshere');
     const entity = {
       ...itemEntity,
