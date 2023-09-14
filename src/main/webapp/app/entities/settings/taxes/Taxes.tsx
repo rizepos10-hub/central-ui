@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { searchEntities, getEntities } from './tax.reducer';
 
 // import { ITax } from 'app/shared/model/tax.model';
 import {DataTable} from "primereact/datatable";
@@ -13,7 +14,7 @@ import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
 import {InputText} from "primereact/inputtext";
-import AddTaxModal from "app/modules/administration/settings/AddTaxtModal";
+import AddTaxModal from "app/entities/settings/taxes/AddTaxtModal";
 
 export const Tax = () => {
   const dispatch = useAppDispatch();
@@ -25,46 +26,44 @@ export const Tax = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  // const taxList = useAppSelector(state => state.tax.entities);
-  // const loading = useAppSelector(state => state.tax.loading);
-  // const totalItems = useAppSelector(state => state.tax.totalItems);
-  //
-  const loading = false
+  const taxList = useAppSelector(state => state.tax.entities);
+  const loading = useAppSelector(state => state.tax.loading);
+  const totalItems = useAppSelector(state => state.tax.totalItems);
 
 
-  const [isModalVisible, setModalVisible] = useState(false);
+  console.log(taxList, 'lol')
+
+
+
+  const [isModalVisible, setModalVisible] = useState(false)
+
+  const [selectedTaxId, setSelectedTaxId] = useState(null);
+
 
   const handleCreate = () => {
+    setSelectedTaxId(null)
+
     setModalVisible(true);
+  };
+
+  console.log("Selected Tax ID:", selectedTaxId);
+  console.log("Modal Visibility:", isModalVisible);
+
+  const handleEdit = (id) => {
+    setModalVisible(true);
+    setSelectedTaxId(id)
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
   };
 
-  const dummyTaxData = [
-    {
-      id: 1,
-      code: 'TAX001',
-      description: 'Dummy Tax 1',
-      rate: 10,
-      taxInclusive: true,
-    },
-    {
-      id: 2,
-      code: 'TAX002',
-      description: 'Dummy Tax 2',
-      rate: 15,
-      taxInclusive: false,
-    },
-  ];
 
 
   const [filters, setFilters] = useState({
     code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     description: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    taxInclusive: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    rate: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    value: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 
   });
 
@@ -76,13 +75,13 @@ export const Tax = () => {
 
 
 
-  const getTaxs = () => {
-
+  const getTaxes = () => {
+  dispatch(getEntities({}))
   };
 
 
   useEffect(() => {
-    getTaxs()
+    getTaxes()
   }, []);
 
 
@@ -113,15 +112,15 @@ export const Tax = () => {
       });
     }
   };
-  // const editColumnTemplate = (rowData) => {
-  //   const editUrl = `/tax/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-  //   return (
-  //     <Link to={editUrl}>
-  //       <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-  //     </Link>
-  //   );
-  // };
-  //
+  const editColumnTemplate = (rowData) => {
+    return (
+      <Button raised onClick={() => handleEdit(rowData.id)} disabled={loading}>
+
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+      </Button>
+    );
+  };
+
   // const deleteColumnTemplate = (rowData) => {
   //   const deleteUrl = `/tax/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
   //   return (
@@ -141,9 +140,9 @@ export const Tax = () => {
   // console.log(taxList, 'taxList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Taxs</span>
+      <span className="text-xl text-900 font-bold">Taxes</span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={getTaxs} disabled={loading}>
+        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={getTaxes} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
@@ -156,27 +155,31 @@ export const Tax = () => {
   return (
     <div>
       <h2 >
-        Taxs View
+        Taxes View
 
       </h2>
 
       <div >
-        <DataTable value={dummyTaxData} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={dummyTaxData.length} rows={5}>
+        <DataTable value={taxList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
           <Column
             field="code" header="Code" filter
-            filterElement={ <InputText  placeholder="Search by name" onChange={handleNameFilterChange}/> }
+            filterElement={ <InputText  placeholder="Search by Code" onChange={handleNameFilterChange}/> }
             filterField="code"  sortable
           />
+          <Column field="value" header="Value" filter filterPlaceholder="Search by value"  sortable   />
 
-          <Column field="description" header="Description" filter filterPlaceholder="Search by taxname"  sortable   />
-
-          <Column field="rate" header="Rate" filter filterPlaceholder="Search by email"  sortable   />
-
-          <Column header="Tax Inclusive" body={activeColumnTemplate} style={{width: '10%'}}   />
+          <Column field="description" header="Description"   sortable   />
 
 
+          {/* <Column header="Tax Inclusive" body={activeColumnTemplate} style={{width: '10%'}}   /> */}
+
+          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+
+          {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}
+          {/*          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} /> */}
         </DataTable>
-        <AddTaxModal visible={isModalVisible} onHide={handleCloseModal} />
+        {isModalVisible && <AddTaxModal visible={isModalVisible} onHide={handleCloseModal} taxId={selectedTaxId}/>}
       </div>
     </div>
   );

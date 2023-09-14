@@ -156,12 +156,17 @@ const AppMenu = () => {
                               {
                                 label: 'Taxes',
                                 icon: ' pi pi-th-large',
-                                to: '/settings/taxes'
+                                to: '/tax'
                               },
                               {
                                 label: 'Tax profiles ',
                                 icon: 'pi pi-folder-open',
                                 to: '/tax-profiles'
+                              },
+                              {
+                                label: 'Accounting Groups ',
+                                icon: 'pi pi-folder-open',
+                                to: '/accounting-groups'
                               },
                               {
                                 label: 'Payment methods ',
