@@ -136,7 +136,7 @@ export const UserUpdate = () => {
         await dispatch(assignRole({ id: createdUserId, selectedRoles }));
       } else {
         console.log("put")
-console.log(selectedRoles, 'selectedRoles')
+     console.log(selectedRoles, 'selectedRoles')
         await dispatch(assignRole({id, selectedRoles}))
         await dispatch(updateEntity(user));
       }
@@ -180,6 +180,9 @@ console.log(selectedRoles, 'selectedRoles')
     if (assignedRoles && assignedRoles.length > 0) {
       const initialSelectedRoles = assignedRoles.map(role => ({id: role.id, name: role.name, description: role.description}));
       setSelectedRoles(initialSelectedRoles);
+    }
+    return () => {
+      setSelectedRoles([])
     }
   }, [updateSuccess,userEntity,assignedRoles]);
 

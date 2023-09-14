@@ -100,6 +100,8 @@ export const ItemUpdate = () => {
   };
 
   const handleArchiveVariant = variantId => {
+
+    console.log(variantId, 'loli')
     if (toast.isActive(toastId.current)) {
       return;
     }
@@ -210,7 +212,8 @@ export const ItemUpdate = () => {
   };
 
   console.log(editingVariantId, 'editingVariantId');
-  const handleSaveVariant = (name, price, discount, variantImage, branchPrices, ingredients, addons) => {
+
+  const handleSaveVariant = (name, price, discount, addons, variantImage, branchVariantDetails,ingredients) => {
     console.log(variants, 'variants new');
 
     const newValues = {
@@ -218,7 +221,7 @@ export const ItemUpdate = () => {
       price,
       discounts: discount,
       attachments: variantImage,
-      branchVariantDetails: branchPrices,
+      branchVariantDetails: branchVariantDetails,
       ingredients: ingredients,
       addons: addons
     };
@@ -250,7 +253,9 @@ export const ItemUpdate = () => {
     setOpenedModal(false);
   };
   const openVariantModal = () => {
+
     setOpenedModal(true);
+
   };
 
   console.log(itemEntity, 'itemEntity');
@@ -599,7 +604,7 @@ export const ItemUpdate = () => {
                 {/* </ValidatedField> */}
               </div>
               <br />
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/item" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton"  onClick={() => navigate(-1)} replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
