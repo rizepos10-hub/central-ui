@@ -550,6 +550,9 @@ console.log(itemList, 'itemList1')
               {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
             </p>
             <p>
+              <Translate contentKey="tempApp.menu.menuUrl">Menu URl</Translate>: {menuEntity.menuUrl ? menuEntity.menuUrl : ''}
+            </p>
+            <p>
               <Translate contentKey="tempApp.menu.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
             </p>
           </CardBody>
@@ -580,6 +583,14 @@ console.log(itemList, 'itemList1')
                     maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
                   }}
                 />
+                    <ValidatedField
+                      label={translate('tempApp.menu.menuUrl')}
+                      id="menu-menuUrl"
+                      name="menuUrl"
+                      data-cy="menuUrl"
+                      type="text"
+
+                    />
                     <div className="mb-3">
                       Branches
                       <Select defaultValue={initialBranches}

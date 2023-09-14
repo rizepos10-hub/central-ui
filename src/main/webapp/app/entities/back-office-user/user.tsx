@@ -67,7 +67,7 @@ export const User = () => {
 
 
   const nameColumnTemplate = (rowData) => {
-    const editUrl = `/user/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/back-office-user/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         {rowData.name}

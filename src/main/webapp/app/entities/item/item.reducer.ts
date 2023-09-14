@@ -32,13 +32,14 @@ export const searchEntities = createAsyncThunk(
 
 export const getItemsForRecipe = createAsyncThunk(
   'item/fetch_entity_list',
-  async ({ itemId, variantId }: { itemId: string; variantId: string }) => {
-    const requestUrl = `/api/items/for-recipe?itemId=${itemId}&variantId=${variantId}`;
+  async ({ itemId, editingVariant }: { itemId: string; editingVariant?: string }) => {
+    const requestUrl = `/api/items/for-recipe?itemId=${itemId}${editingVariant ? `&variantId=${editingVariant}` : ''}`;
     const response = await axios.get<IItem[]>(requestUrl);
     console.log(response, 'response');
     return response;
   }
 );
+
 
 export const getEntities = createAsyncThunk('item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;

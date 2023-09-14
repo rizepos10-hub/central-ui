@@ -85,8 +85,8 @@ const NewMenuPopup = () => {
   console.log(terms, 'termos')
 
   const saveEntity = (values) => {
-    values.createdAt = convertDateTimeToServer(values.createdAt);
-    values.updatedAt = convertDateTimeToServer(values.updatedAt);
+    values.createdDate = convertDateTimeToServer(values.createdDate);
+    values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate);
 
     const { category, ...restValues } = values;
 
@@ -117,13 +117,13 @@ const NewMenuPopup = () => {
 
   const defaultValues = () =>
     isNew ? {
-        createdAt: displayDefaultDateTime(),
-        updatedAt: displayDefaultDateTime(),
+        createdDate: displayDefaultDateTime(),
+        lastModifiedDate: displayDefaultDateTime(),
       }
       : {
         ...menuEntity,
-        createdAt: convertDateTimeFromServer(menuEntity.createdAt),
-        updatedAt: convertDateTimeFromServer(menuEntity.updatedAt),
+        createdDate: convertDateTimeFromServer(menuEntity.createdDate),
+        lastModifiedDate: convertDateTimeFromServer(menuEntity.lastModifiedDate),
         category: selectedCategory
       };
 
@@ -157,6 +157,14 @@ const NewMenuPopup = () => {
               required: { value: true, message: translate('entity.validation.required') },
               maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
             }}
+          />
+          <ValidatedField
+            label={translate('tempApp.menu.menuUrl')}
+            id="menu-menuUrl"
+            name="menuUrl"
+            data-cy="menuUrl"
+            type="text"
+
           />
           <div className="mb-3">
             Branches

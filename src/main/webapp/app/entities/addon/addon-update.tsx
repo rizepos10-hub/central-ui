@@ -156,7 +156,7 @@ export const AddonUpdate = () => {
                 }}
               />
               <div className="mb-3">
-                <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
+                <Translate contentKey="tempApp.addon.discount">Discount</Translate>
                 <Select isMulti={true}
                         defaultValue={defaultDiscountsOptions}
                         options={discountsOptions}

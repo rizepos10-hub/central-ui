@@ -134,7 +134,7 @@ console.log(termEntity)
       ...termEntity,
       ...values,
       taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
-      parents: [terms.find(it => it.id.toString() === values.term.toString())],
+      parents: values.parents ? [{ id: values.parents }] : [],
       attachments: selectedAttachments,
 
       // item: items.find(it => it.id.toString() === values.item.toString()),
@@ -160,7 +160,6 @@ console.log(termEntity)
     isNew
       ? {
         taxonomy: taxonomies.find(otherEntity => otherEntity?.name === 'Menu Category')?.id,
-        term: '',
       }
       : {
         ...termEntity,
@@ -286,26 +285,25 @@ console.log(termEntity)
 
               {isNew ? (
                 <ValidatedField
-                  id="term-term"
-                  name="term"
-                  data-cy="term"
+                  id="term-parents"
+                  name="parents"
+                  data-cy="parents"
                   label={translate('tempApp.term.parents')}
                   type="select"
                 >
                   <option value="">{''}</option>
                   {terms &&
                     terms
+                      .filter(term => term.taxonomy && term.taxonomy.name === 'Menu Category')
                       .map(otherEntity => (
                         <option value={otherEntity.id} key={otherEntity.id}>
-                          {otherEntity?.name}
+                          {otherEntity.name}
                         </option>
                       ))}
                 </ValidatedField>
               ) : (
                 <ValidatedField
-                  id="term-term"
-                  name="term"
-                  data-cy="term"
+                  name="parents"
                   label={translate('tempApp.term.parents')}
                   type="select"
                 >
@@ -313,18 +311,17 @@ console.log(termEntity)
                     {termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}
                   </option>
 
-                  { termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name &&
-                    <option value="">{''}</option>
-                  }
                   {terms &&
                     terms
-                      .filter(otherEntity => otherEntity.id !== termEntity.id)
+                      .filter(term => term.taxonomy && term.taxonomy?.name === 'Menu Category')
                       .map(otherEntity => (
                         <option value={otherEntity.id} key={otherEntity.id}>
                           {otherEntity?.name}
                         </option>
                       ))}
-
+                  {termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name && (
+                    <option value="">{''}</option>
+                  )}
                 </ValidatedField>
               )}
 
