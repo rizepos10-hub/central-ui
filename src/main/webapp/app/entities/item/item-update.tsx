@@ -17,11 +17,11 @@ import {
   CardBody,
   ModalFooter,
 } from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import { mapIdList } from 'app/shared/util/entity-utils';
+import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IMenu } from 'app/shared/model/menu.model';
@@ -33,7 +33,7 @@ import { getEntities as getAccountingGroups } from 'app/entities/settings/accoun
 
 import { IItem } from 'app/shared/model/item.model';
 import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
-import { getEntity, updateEntity, createEntity, reset } from './item.reducer';
+import {getEntity, updateEntity, createEntity, reset, getEntities as getItems} from './item.reducer';
 import Select from 'react-select';
 import ItemVariantModal from 'app/entities/item/item-variant-modal';
 import { at } from 'lodash';
@@ -42,6 +42,7 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { Button as PrimeButton } from 'primereact/button';
 import {it} from "date-fns/locale";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -54,6 +55,9 @@ export const ItemUpdate = () => {
   const saveButtonRef = useRef(null);
   const toastId = useRef(null);
 
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
   const menus = useAppSelector(state => state.menu.entities);
   const itemEntity = useAppSelector(state => state.item.entity);
   const loading = useAppSelector(state => state.item.loading);
@@ -167,7 +171,11 @@ export const ItemUpdate = () => {
     }
     dispatch(getMenus({}));
     dispatch(getAddons({}));
-    dispatch(getTerms({}));
+    dispatch(getTerms({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
     dispatch(getDiscounts({}));
     dispatch(getAccountingGroups({}));
 
