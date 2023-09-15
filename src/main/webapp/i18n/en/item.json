@@ -21,6 +21,8 @@
       "id": "ID",
       "name": "Name",
       "desc": "Desc",
+      "accountingGroups": "Accounting Group",
+
       "orderCount": "Order Count",
       "avgRating": "Avg Rating",
       "ratingCount": "Rating Count",

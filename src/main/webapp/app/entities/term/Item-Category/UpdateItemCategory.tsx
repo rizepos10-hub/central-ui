@@ -15,8 +15,11 @@ import { IItem } from 'app/shared/model/item.model';
 import { getEntities as getItems } from 'app/entities/item/item.reducer';
 import { ITerm } from 'app/shared/model/term.model';
 import { getEntity, updateEntity, createEntity, reset } from '../term.reducer';
+import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
+
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
+import Select from "react-select";
 
 export const UpdateItemCategory = () => {
   const dispatch = useAppDispatch();
@@ -32,7 +35,7 @@ export const UpdateItemCategory = () => {
   const isNew = id === undefined;
 
   const taxonomies = useAppSelector(state => state.taxonomy.entities);
-  const terms = useAppSelector(state => state.term.entities);
+  const terms = useAppSelector(state => state.term.entities).map((term) => ({label: term.name, value: term.id}))
   const items = useAppSelector(state => state.item.entities);
   const termEntity = useAppSelector(state => state.term.entity);
   const loading = useAppSelector(state => state.term.loading);
@@ -44,6 +47,17 @@ export const UpdateItemCategory = () => {
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
 
   const [selectedAttachments, setSelectedAttachments] = useState([])
+
+  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities).map(term => ({ value: term.id, label: term.name }));
+
+  const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
+
+  const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
+  const [selectedParents, setSelectedParents] :any = useState();
+
+  const [parentsToSave, setParentsToSave] :any = useState([]);
+
+
 
 
   console.log(termEntity, 'termEntity')
@@ -62,10 +76,12 @@ export const UpdateItemCategory = () => {
 
     dispatch(getTaxonomies({}));
     dispatch(getItemCategories({}));
+    dispatch(getAccountingGroups({}));
+
     return () => {
       dispatch(reset());
     };
-  }, []);
+  }, [updateSuccess]);
 
 
 
@@ -73,6 +89,17 @@ export const UpdateItemCategory = () => {
 
     if (termEntity?.attachments) {
       setSelectedAttachments(termEntity.attachments.map(attachment => ({ id: attachment.id, url: attachment.url })));
+    }
+
+    if (termEntity?.accountingGroups) {
+      setSelectedAccountingGroups(termEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
+      setAccountingGroupsToSave(termEntity.accountingGroups?.map(group => ({  id : group.id })));
+    }
+
+    if(termEntity?.parents && termEntity.parents.length > 0){
+      setSelectedParents({label : termEntity.parents[0]?.name, value: termEntity.parents[0]?.id})
+      setParentsToSave(termEntity?.parents?.map(group => ({  id : group?.id })));
+
     }
     const {id: newTermId} = newTerm
     if (updateSuccess && newTermId) {
@@ -86,6 +113,16 @@ export const UpdateItemCategory = () => {
       prevAttachments.filter((attachment) => attachment.id !== attachmentId)
     );
   };
+  const handleAccountingGroupsChange = selectedAccounting => {
+    setSelectedAccountingGroups(selectedAccounting);
+    setAccountingGroupsToSave([{id: selectedAccounting.value}])
+  };
+
+  const handleParentsChange = selectedParent => {
+    setSelectedParents(selectedParent);
+    setParentsToSave([{id: selectedParent.value}])
+  };
+
 
   const handleImageChange = async (event) => {
     const file = event.target.files[0];
@@ -127,19 +164,17 @@ export const UpdateItemCategory = () => {
   console.log(termEntity, 'termEntity')
 
   const saveEntity = values => {
-
-    console.log(values, 'values')
-
     const entity = {
       ...termEntity,
       ...values,
-      taxonomy: values.taxonomy ? taxonomies.find(it => it.id.toString() === values.taxonomy.toString()) : null,
-      parents: values.parents ? [{ id: values.parents }] : [],
+      accountingGroups: accountingGroupsToSave,
+      taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
+      parents: parentsToSave,
       attachments: selectedAttachments,
+
     };
 
-    console.log(entity, 'entity saved');
-
+    console.log(entity, 'entity saved')
     if (isNew) {
       dispatch(createEntity(entity));
     } else {
@@ -147,17 +182,15 @@ export const UpdateItemCategory = () => {
     }
   };
 
-
-
   const defaultValues = () =>
     isNew
       ? {
         taxonomy: taxonomies.find(otherEntity => otherEntity?.name === 'Item Category')?.id,
+        term: '',
       }
       : {
         ...termEntity,
         taxonomy: termEntity?.taxonomy?.id,
-        parents: termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : '',
       };
   console.log(terms, 'terms')
   return (
@@ -214,9 +247,15 @@ export const UpdateItemCategory = () => {
               {/*       ) */}
               {/*   )} */}
               {/* </ValidatedField> */}
+              <div className="mb-3">
+              <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
+              <Select  value={selectedAccountingGroups}  onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
+              </div>
 
-
-
+              <div className="mb-3">
+                <Translate contentKey="tempApp.term.parents">Parents</Translate>
+                <Select  value={selectedParents}  onChange={handleParentsChange} options={terms} />
+              </div>
               <div className="mb-3">
                 <ValidatedField
                   label={'Item Image'}
@@ -278,48 +317,50 @@ export const UpdateItemCategory = () => {
               </div>
 
 
-              {isNew ? (
-                <ValidatedField
-                  id="term-parents"
-                  name="parents"
-                  data-cy="parents"
-                  label={translate('tempApp.term.parents')}
-                  type="select"
-                >
-                  <option value="">{''}</option>
-                  {terms &&
-                    terms
-                      .filter(term => term.taxonomy && term.taxonomy.name === 'Item Category')
-                      .map(otherEntity => (
-                        <option value={otherEntity.id} key={otherEntity.id}>
-                          {otherEntity.name}
-                        </option>
-                      ))}
-                </ValidatedField>
-              ) : (
-                <ValidatedField
-                  name="parents"
-                  data-cy="parents"
-                  label={translate('tempApp.term.parents')}
-                  type="select"
-                >
-                  <option value={termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}>
-                    {termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}
-                  </option>
+              {/* {isNew ? ( */}
+              {/*   <ValidatedField */}
+              {/*     id="term-term" */}
+              {/*     name="term" */}
+              {/*     data-cy="term" */}
+              {/*     label={translate('tempApp.term.parents')} */}
+              {/*     type="select" */}
+              {/*   > */}
+              {/*     <option value="">{''}</option> */}
+              {/*     {terms && */}
+              {/*       terms */}
+              {/*         .filter(term => term.taxonomy && term.taxonomy.name === 'Item Category') */}
+              {/*         .map(otherEntity => ( */}
+              {/*           <option value={otherEntity.id} key={otherEntity.id}> */}
+              {/*             {otherEntity.name} */}
+              {/*           </option> */}
+              {/*         ))} */}
+              {/*   </ValidatedField> */}
+              {/* ) : ( */}
+              {/*   <ValidatedField */}
+              {/*     id="term-term" */}
+              {/*     name="term" */}
+              {/*     data-cy="term" */}
+              {/*     label={translate('tempApp.term.parents')} */}
+              {/*     type="select" */}
+              {/*   > */}
+              {/*     <option value={termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}> */}
+              {/*       {termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''} */}
+              {/*     </option> */}
 
-                  {terms &&
-                    terms
-                      .filter(term => term.taxonomy && term.taxonomy?.name === 'Item Category')
-                      .map(otherEntity => (
-                        <option value={otherEntity.id} key={otherEntity.id}>
-                          {otherEntity?.name}
-                        </option>
-                      ))}
-                  {termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name && (
-                    <option value="">{''}</option>
-                  )}
-                </ValidatedField>
-              )}
+
+              {/*     {terms && */}
+              {/*       terms */}
+              {/*         .filter(term => term.taxonomy && term.taxonomy?.name === 'Item Category') */}
+              {/*         .map(otherEntity => ( */}
+              {/*           <option value={otherEntity.id} key={otherEntity.id}> */}
+              {/*             {otherEntity?.name} */}
+              {/*           </option> */}
+              {/*         ))} */}
+              {/*     { termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name && */}
+              {/*       <option value="">{''}</option> */}
+              {/*     } */}
+              {/*   </ValidatedField> */}
+              {/* )} */}
 
               {/* <ValidatedField id="term-item" name="item" data-cy="item" label={translate('tempApp.term.item')} type="select"> */}
               {/*   <option value="" key="0" /> */}
