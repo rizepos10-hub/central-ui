@@ -14,7 +14,7 @@ import tax from 'app/entities/settings/taxes/tax.reducer';
 import accountingGroups from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 
 import taxProfiles from 'app/entities/settings/tax-profiles/tax-profile.reducer';
-import BusinessDetail from 'app/entities/business-details/business-detail.reducer';
+import businessDetail from 'app/entities/business-details/business-detail.reducer';
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
 const entitiesReducers = {
@@ -33,7 +33,7 @@ const entitiesReducers = {
   tax,
   taxProfiles,
   accountingGroups,
-  BusinessDetail,
+  businessDetail,
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };
 
