@@ -131,7 +131,7 @@ const AppMenu = () => {
                               {
                                 label: 'Business settings',
                                 icon: ' pi pi-th-large',
-                                to: '/business-details'
+                                to: '/details'
                               },
                               {
                                 label: 'Reporting shifts ',
