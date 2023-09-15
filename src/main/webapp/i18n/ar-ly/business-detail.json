@@ -1,0 +1,26 @@
+{
+  "tempApp": {
+    "businessDetail": {
+      "home": {
+        "title": "Business Details",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new business detail",
+        "createOrEditLabel": "Create or edit a business detail",
+        "search": "Search for Branch",
+        "notFound": "No Branches found"
+      },
+      "created": "A new business detail is created with identifier {{ param }}",
+      "updated": "A business detail is updated with identifier {{ param }}",
+      "deleted": "A business detail is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Business detail {{ id }}?"
+      },
+      "detail": {
+        "title": "Business detail"
+      },
+      "id": "ID",
+      "name": "Name",
+      "appId": "App Id"
+    }
+  }
+}
