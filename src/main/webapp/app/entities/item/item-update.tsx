@@ -27,8 +27,9 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IMenu } from 'app/shared/model/menu.model';
 import { getEntities as getMenus } from 'app/entities/menu/menu.reducer';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
-import { getEntities as getTerms } from 'app/entities/term/term.reducer';
+import { getItemCategories as getTerms } from 'app/entities/term/term.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
+import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 
 import { IItem } from 'app/shared/model/item.model';
 import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
@@ -40,6 +41,7 @@ import { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { Button as PrimeButton } from 'primereact/button';
+import {it} from "date-fns/locale";
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -65,9 +67,13 @@ export const ItemUpdate = () => {
 
   const entityTerms = itemEntity.terms?.map(term => ({ value: term.id, label: term.name }));
 
-  const termsOptions = useAppSelector(state => state.term.entities)
-    .filter(term => term.taxonomy.name === 'Item Category')
-    .map(term => ({ value: term.id, label: term.name }));
+
+  const termsOptions = useAppSelector(state => state.term.entities).map(term => ({ value: term.id, label: term.name }));
+
+  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities).map(term => ({ value: term.id, label: term.name }));
+
+  const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
+
 
   const [selectedTerms, setSelectedTerms] = useState(entityTerms);
   const [isModalOpen, setModalOpen] = useState(false);
@@ -77,6 +83,8 @@ export const ItemUpdate = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
   const [name, setName] = useState('');
+
+  const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
 
   const [selectedAttachments, setSelectedAttachments] = useState([]);
 
@@ -95,7 +103,7 @@ export const ItemUpdate = () => {
     setOpenedModal(false);
   };
   const archiveVariant = variantId => {
-    const archivedVariants = variants?.map(variant => (variant.id === variantId ? { ...variant, archived: true } : variant));
+    const archivedVariants = variants?.map(variant => (variant.id === variantId ? { ...variant, isArchived: true } : variant));
     setVariants(archivedVariants);
   };
 
@@ -161,6 +169,9 @@ export const ItemUpdate = () => {
     dispatch(getAddons({}));
     dispatch(getTerms({}));
     dispatch(getDiscounts({}));
+    dispatch(getAccountingGroups({}));
+
+
     // console.log(modalVariantImages, 'variantfromchild');
 
     return () => {
@@ -177,6 +188,10 @@ export const ItemUpdate = () => {
     }
     if (itemEntity?.terms) {
       setSelectedTerms(itemEntity.terms?.map(term => ({ id: term.id })));
+    }
+    if (itemEntity?.accountingGroups) {
+      setSelectedAccountingGroups(itemEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
+      setAccountingGroupsToSave(itemEntity.accountingGroups?.map(group => ({  id : group.id })));
     }
     if (itemEntity?.attachments) {
       setSelectedAttachments(itemEntity.attachments?.map(attachment => ({ id: attachment.id, url: attachment.url })));
@@ -201,6 +216,14 @@ export const ItemUpdate = () => {
 
   const handleTermChange = selectedTerm => {
     setSelectedTerms(selectedTerm.map(term => ({ id: term.value })));
+  };
+
+  const handleAccountingGroupsChange = selectedAccounting => {
+    setSelectedAccountingGroups(selectedAccounting);
+
+    setAccountingGroupsToSave([{id: selectedAccounting.value}])
+
+
   };
 
   const handleAddonChange = selectedAddon => {
@@ -234,7 +257,7 @@ export const ItemUpdate = () => {
     const entity = {
       ...itemEntity,
       ...values,
-      // menu: menus.find(it => it.id.toString() === values.menu.toString()),
+       accountingGroups: accountingGroupsToSave,
       addons: selectedAddons,
       terms: selectedTerms,
       attachments: selectedAttachments,
@@ -392,31 +415,38 @@ export const ItemUpdate = () => {
                   validate={{ required: true }}
                 />
               ) : null}
-              <Col md={8}>
 
-                <div className="d-flex justify-content-between mb-1">
+              <div className="d-flex justify-content-between mb-1 gap-3">
 
-                  <div style={{width: '55%'}}>
+                <div style={{width: '33%'}}>
 
-                    <ValidatedField
-                      label={translate('tempApp.item.name')}
-                      id="item-name"
-                      name="name"
-                      data-cy="name"
-                      type="text"
-                      defaultValue={itemEntity.name}
-                      onChange={(e) => setName(e.target.value)}
-                      validate={{
-                        required: { value: true, message: translate('entity.validation.required') },
-                      }}
-                    />
-                  </div>
-                  <div style={{width: '35%'}}>
-                    <Translate contentKey="tempApp.item.terms">Category</Translate>
-                    <Select isMulti={true} defaultValue={entityTerms} onChange={handleTermChange} options={termsOptions} />
-                  </div>
+                  <ValidatedField
+                    label={translate('tempApp.item.name')}
+                    id="item-name"
+                    name="name"
+                    data-cy="name"
+                    type="text"
+                    defaultValue={itemEntity.name}
+                    onChange={(e) => setName(e.target.value)}
+                    validate={{
+                      required: { value: true, message: translate('entity.validation.required') },
+                    }}
+                  />
 
                 </div>
+                <div style={{width: '33%'}}>
+                  <Translate contentKey="tempApp.item.terms">Category</Translate>
+                  <Select isMulti={true} defaultValue={entityTerms} onChange={handleTermChange} options={termsOptions} />
+                </div>
+                <div style={{width: '34%'}}>
+                  <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
+                  <Select  value={selectedAccountingGroups}  onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
+                </div>
+
+              </div>
+              <Col md={8}>
+
+
                 {/* <ValidatedField */}
                 {/*   label={translate('tempApp.item.orderCount')} */}
                 {/*   id="item-orderCount" */}
@@ -544,7 +574,7 @@ export const ItemUpdate = () => {
                     </tr>
                     </thead>
                     <tbody>
-                    {variants.filter((variant) => variant.archived !== true)?.map((variant) => (
+                    {variants.filter((variant) => variant.isArchived !== true)?.map((variant) => (
                       <tr key={variant.id && variant.id}>
                         <td className="align-middle">{variant.name}</td>
                         <td className="align-middle">{variant.price}</td>

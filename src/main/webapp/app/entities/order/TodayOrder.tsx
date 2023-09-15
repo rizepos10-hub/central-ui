@@ -11,7 +11,7 @@ import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IOrder } from 'app/shared/model/order.model';
-import {searchEntities, getEntities, filterOrders} from './order.reducer';
+import {searchEntities, getEntities, filterOrders, getOrderSources} from './order.reducer';
 import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.constants";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 
@@ -45,6 +45,9 @@ export const Order = () => {
 
   const [selectAll, setSelectAll] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState(null);
+
+  const [orderSources, setOrderSources]:any = useState([]);
+
 
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
@@ -139,7 +142,7 @@ export const Order = () => {
   useEffect(() => {
 
     const queryParams = {
-      orderSource: lazyState.filters.byClient?.value || '',
+      orderSource: lazyState.filters.orderSource?.value || '',
       orderStatus: lazyState.filters.status?.value || '',
       first: lazyState.first,
       sequenceId:lazyState.filters.id?.value || '',
@@ -157,6 +160,11 @@ export const Order = () => {
       dispatch(filterOrders(queryParams));
 
     dispatch(getBranches({}))
+
+    dispatch(getOrderSources())
+      .then((response) => {
+        setOrderSources(response.payload);
+      })
     console.log(lazyState, 'lol')
   }, [lazyState]);
 
@@ -188,6 +196,7 @@ export const Order = () => {
             filters={lazyState.filters}
             onFilter={onFilter}
             loading={loading}
+            removableSort
             emptyMessage="No Orders Found"
             tableStyle={{ minWidth: '75rem' , alignContent: 'center'}}
             selection={selectedOrders}
@@ -243,14 +252,34 @@ export const Order = () => {
 
             />
 
-            <Column field="byClient" body={(rowData) => rowData.sourceApp.name} sortable filter header="Order Source"  style={{ width: '13%' }} />
+            <Column field="orderSource" body={(rowData) => rowData.sourceApp.type} sortable filter
+                    filterElement={
+                      <Dropdown
+                        value={lazyState.filters.orderSource?.value || ''}
+                        options={orderSources?.map((source) => ({label: source, value: source}))}
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              orderSource: { value: e.value, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder="Select a source"
+                      />
+                    }
+                    header="Order Source"  style={{ width: '13%' }} />
+
             <Column field="tables" sortable style={{ width: '13%' }} filter header="Order Tables" />
             <Column
               field="customer"
               filter
               sortable
               header="Order Customer"
-              body={(rowData) => rowData.customer ? rowData.customer.phone : ''}
+              style={{ width: '15%' }}
+
+              body={(rowData) => rowData.customer ? `${rowData.customer.phone}` : ''}
             />
 
             <Column field="status" sortable filter header="Order Status"
