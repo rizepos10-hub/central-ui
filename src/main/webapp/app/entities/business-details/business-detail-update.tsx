@@ -113,20 +113,15 @@ export const BusinessDetailUpdate = () => {
 
   const businessDayDetailsByBranch = businessDetailEntity?.businessDayDetailsByBranch;
 
-  if (businessDayDetailsByBranch) {
-    const entries = Object.entries(businessDayDetailsByBranch);
+  console.log(businessDayDetailsByBranch, 'lol')
 
-    for (const [branchId, detailsArray] of entries) {
-      console.log('Branch ID:', branchId);
-      console.log('Details Array:', detailsArray);
-    }
-  } else {
-    console.log('businessDayDetailsByBranch is missing or undefined');
-  }
-
-  console.log(businessDetailEntity, 'entity details');
-  // const branchKeys = Object.keys(businessDetailEntity?.businessDayDetailsByBranch);
-  // console.log(branchDetailsArray, "entries")
+  // businessDayDetailsByBranch &&  Object.keys(businessDayDetailsByBranch).forEach((branchId) => {
+  //   const branchDetails = businessDayDetailsByBranch[branchId];
+  //
+  //   branchDetails.forEach((dayDetail) => {
+  //     console.log(dayDetail, 'houssein');
+  //   });
+  // });
   return (
     <div>
       <Row className="justify-content-center">
@@ -275,9 +270,19 @@ export const BusinessDetailUpdate = () => {
               />
               <h4>Opening Hours By Branch</h4>
               {businessDetailEntity?.businessDayDetailsByBranch ? (
-                <div>{businessDetailEntity.businessDayDetailsByBranch.entries()}</div>
+                Object.entries(businessDetailEntity.businessDayDetailsByBranch).map(([branchId, branchDetails]) => (
+                  <div key={branchId}>
+                    <h5>Branch ID: {branchId}</h5>
+                    {(branchDetails as any[]).map((dayDetail, index) => (
+                      <div key={index}>
+                        <p>Day: {dayDetail.day}</p>
+                        <p>Status: {dayDetail.status}</p>
+                      </div>
+                    ))}
+                  </div>
+                ))
               ) : (
-                ''
+                <p>No business day details available</p>
               )}
               {/*{Object.keys(businessDetailEntity.businessDayDetailsByBranch).map((branchId) => (*/}
               {/*  // <BranchComponent key={branchId} branchId={branchId} businessDayDetails={businessDayDetailsByBranch[branchId]} />*/}
