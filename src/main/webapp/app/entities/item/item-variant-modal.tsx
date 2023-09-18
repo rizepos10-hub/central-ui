@@ -417,14 +417,14 @@ const ItemVariantModal = (props: IVariantProps) => {
     return () => {
       resetForm();
     };
-  }, [editingVariant, selectedItemsForRecipe,isNew]);
+  }, [editingVariant,isNew]);
 
 
 
 
 
   useEffect(() => {
-    dispatch(getItemsForRecipe({ itemId, editingVariant: editingVariant?.id || null }));
+    dispatch(getItemsForRecipe({ itemId: itemId ?? null, editingVariant: editingVariant?.id ?? null }));
 
     dispatch(getBranches({}));
   }, [props.editingVariantId,editingVariant,isNew]);
@@ -891,7 +891,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                 </Table>
               </FormGroup>
               <FormGroup>
-                <h3>Recipe</h3>
+                <h3>Combo</h3>
                 <div className="d-flex justify-content-end mr-4">
                   <Button color="primary" onClick={toggleModal} disabled={allItemsPresent()}>
                     Add Item
