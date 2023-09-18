@@ -24,8 +24,9 @@ export const BusinessDetailUpdate = () => {
   const updateSuccess = useAppSelector(state => state.businessDetail.updateSuccess);
 
   const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedAttachments, setSelectedAttachments] = useState([]);
+  const [selectedAttachment, setSelectedAttachment] = useState({});
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
+  // const [selectedAddress, setSelectedAddress] = useState(null);
 
   const handleClose = () => {
     navigate('/details' + location.search);
@@ -41,21 +42,24 @@ export const BusinessDetailUpdate = () => {
 
   useEffect(() => {
     if (businessDetailEntity?.logo) {
-      setSelectedAttachments(businessDetailEntity.logo);
+      setSelectedAttachment(businessDetailEntity.logo);
     }
+    // if (businessDetailEntity?.address) {
+    //   setSelectedAddress(businessDetailEntity.address);
+    // }
     if (updateSuccess) {
       handleClose();
     }
-  }, [updateSuccess, businessDetailEntity?.logo]);
+  }, [updateSuccess, businessDetailEntity?.logo, businessDetailEntity?.address]);
 
-  const removeAttachment = attachmentId => {
-    setSelectedAttachments(prevAttachments => prevAttachments.filter(attachment => attachment.id !== attachmentId));
+  const removeAttachment = () => {
+    setSelectedAttachment({});
   };
   const saveEntity = values => {
     const entity = {
       ...businessDetailEntity,
       ...values,
-      logo: selectedAttachments,
+      logo: selectedAttachment,
     };
 
     if (isNew) {
@@ -87,7 +91,7 @@ export const BusinessDetailUpdate = () => {
         updatedAt: response?.payload?.updatedAt,
         url: imageUrl,
       };
-      setSelectedAttachments(prevAttachments => [...prevAttachments, imageInfo]);
+      setSelectedAttachment(imageInfo);
       setUploadImageStatus('success');
       console.log(imageInfo, 'helloi');
 
@@ -106,7 +110,23 @@ export const BusinessDetailUpdate = () => {
       : {
           ...businessDetailEntity,
         };
+
+  const businessDayDetailsByBranch = businessDetailEntity?.businessDayDetailsByBranch;
+
+  if (businessDayDetailsByBranch) {
+    const entries = Object.entries(businessDayDetailsByBranch);
+
+    for (const [branchId, detailsArray] of entries) {
+      console.log('Branch ID:', branchId);
+      console.log('Details Array:', detailsArray);
+    }
+  } else {
+    console.log('businessDayDetailsByBranch is missing or undefined');
+  }
+
   console.log(businessDetailEntity, 'entity details');
+  // const branchKeys = Object.keys(businessDetailEntity?.businessDayDetailsByBranch);
+  // console.log(branchDetailsArray, "entries")
   return (
     <div>
       <Row className="justify-content-center">
@@ -140,7 +160,7 @@ export const BusinessDetailUpdate = () => {
                 type="text"
                 validate={{
                   required: { value: true, message: translate('entity.validation.required') },
-                  validate: v => isNumber(v) || translate('entity.validation.number'),
+                  maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 30 }) },
                 }}
               />
               <ValidatedField
@@ -149,69 +169,136 @@ export const BusinessDetailUpdate = () => {
                 name="slogan"
                 data-cy="value"
                 type="text"
-                value={businessDetailEntity.slogan}
                 validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                  validate: v => isNumber(v) || translate('entity.validation.number'),
+                  maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
                 }}
               />
-              {/*<div className="mb-3">*/}
-              {/*  <ValidatedField*/}
-              {/*    label={'Item Image'}*/}
-              {/*    id="item-image"*/}
-              {/*    name="image"*/}
-              {/*    data-cy="image"*/}
-              {/*    type="file"*/}
-              {/*    onChange={handleImageChange}*/}
-              {/*    accept="image/*"*/}
-              {/*  />*/}
-              {/*  <div className="mb-3">*/}
-              {/*    {selectedAttachments => (*/}
-              {/*      <div key={index} style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>*/}
-              {/*        <img*/}
-              {/*          src={selectedAttachments.url}*/}
-              {/*          alt={selectedAttachments.name}*/}
-              {/*          className="img-fluid"*/}
-              {/*          style={{*/}
-              {/*            maxWidth: '100px',*/}
-              {/*            maxHeight: '100px',*/}
-              {/*          }}*/}
-              {/*        />*/}
-              {/*        <div*/}
-              {/*          style={{*/}
-              {/*            position: 'absolute',*/}
-              {/*            top: '5px',*/}
-              {/*            right: '5px',*/}
-              {/*            backgroundColor: 'rgba(255, 255, 255, 0.8)',*/}
-              {/*            borderRadius: '50%',*/}
-              {/*            padding: '2px',*/}
-              {/*            cursor: 'pointer',*/}
-              {/*          }}*/}
-              {/*          onClick={() => removeAttachment(attachment.id)}*/}
-              {/*        >*/}
-              {/*          <FontAwesomeIcon icon={faTrashAlt}  />*/}
-              {/*        </div>*/}
-              {/*      </div>*/}
-              {/*    ))}*/}
-              {/*    {selectedImage && (*/}
-              {/*      <img*/}
-              {/*        src={URL.createObjectURL(selectedImage)}*/}
-              {/*        alt="Selected Image"*/}
-              {/*        className="img-fluid m-lg-1"*/}
-              {/*        style={{*/}
-              {/*          maxWidth: '100px',*/}
-              {/*          maxHeight: '100px',*/}
-              {/*        }}*/}
-              {/*      />*/}
-              {/*    )}*/}
-              {/*    {selectedImage && uploadImageStatus === 'success' && (*/}
-              {/*      <div className={`alert alert-${uploadImageStatus === 'success' ? 'success' : 'danger'}`}*/}
-              {/*           role="alert">*/}
-              {/*        {uploadImageStatus === 'success' && 'Uploaded successfully!'}*/}
-              {/*      </div>*/}
-              {/*    )}*/}
+              <div className="mb-3">
+                <ValidatedField
+                  label={'Logo'}
+                  id="item-image"
+                  name="image"
+                  data-cy="image"
+                  type="file"
+                  onChange={handleImageChange}
+                  accept="image/*"
+                />
+                <div className="mb-3">
+                  {selectedImage ? (
+                    <div key={selectedImage.id} style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
+                      <img
+                        src={selectedImage.url}
+                        alt={selectedImage.name}
+                        className="img-fluid"
+                        style={{
+                          maxWidth: '100px',
+                          maxHeight: '100px',
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '5px',
+                          right: '5px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                          borderRadius: '50%',
+                          padding: '2px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => removeAttachment()}
+                      >
+                        <FontAwesomeIcon icon={faTrashAlt} />
+                      </div>
+                    </div>
+                  ) : (
+                    ''
+                  )}
+                  {selectedImage && (
+                    <img
+                      src={URL.createObjectURL(selectedImage)}
+                      alt="Selected Image"
+                      className="img-fluid m-lg-1"
+                      style={{
+                        maxWidth: '100px',
+                        maxHeight: '100px',
+                      }}
+                    />
+                  )}
+
+                  {selectedImage && uploadImageStatus === 'success' && (
+                    <div className={`alert alert-${uploadImageStatus === 'success' ? 'success' : 'danger'}`} role="alert">
+                      {uploadImageStatus === 'success' && 'Uploaded successfully!'}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <h4>Address Details</h4>
+              <ValidatedField
+                label={'address-street'}
+                id="details-address-street"
+                name="address.street"
+                data-cy="value"
+                type="text"
+                validate={{
+                  maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
+                }}
+              />
+              <ValidatedField
+                label={'address-city'}
+                id="details-address-city"
+                name="address.city"
+                data-cy="value"
+                type="text"
+                validate={{
+                  maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
+                }}
+              />
+              <ValidatedField
+                label={'address-state'}
+                id="details-address-state"
+                name="address.state"
+                data-cy="value"
+                type="text"
+                validate={{
+                  maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
+                }}
+              />
+              <ValidatedField
+                label={'address-postalCode'}
+                id="details-address-postalCode"
+                name="address.postalCode"
+                data-cy="value"
+                type="text"
+                validate={{
+                  maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
+                }}
+              />
+              <h4>Opening Hours By Branch</h4>
+              {businessDetailEntity?.businessDayDetailsByBranch ? (
+                <div>{businessDetailEntity.businessDayDetailsByBranch.entries()}</div>
+              ) : (
+                ''
+              )}
+              {/*{Object.keys(businessDetailEntity.businessDayDetailsByBranch).map((branchId) => (*/}
+              {/*  // <BranchComponent key={branchId} branchId={branchId} businessDayDetails={businessDayDetailsByBranch[branchId]} />*/}
+              {/*  <div>*/}
+              {/*    {branchId}*/}
               {/*  </div>*/}
-              {/*</div>*/}
+              {/*))}*/}
+              {/*{branchIds.map((branchId) => (*/}
+              {/*  <div key={branchId}>*/}
+              {/*    <h2>Branch ID: {branchId}</h2>*/}
+              {/*    <ul>*/}
+              {/*      {Array.from(businessDetailEntity.businessDayDetailsByBranch[branchId]).map((businessDayDetail, index) => (*/}
+              {/*        <li key={index}>*/}
+              {/*          <p>Day of Week: {businessDetailEntity?.day}</p>*/}
+              {/*          /!*<p>Opening Time: {businessDayDetail.openingTime}</p>*!/*/}
+              {/*          /!*<p>Closing Time: {businessDayDetail.closingTime}</p>*!/*/}
+              {/*        </li>*/}
+              {/*      ))}*/}
+              {/*    </ul>*/}
+              {/*  </div>*/}
+              {/*))}*/}
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/details" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
