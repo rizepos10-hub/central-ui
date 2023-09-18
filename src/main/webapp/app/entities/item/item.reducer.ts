@@ -32,13 +32,31 @@ export const searchEntities = createAsyncThunk(
 
 export const getItemsForRecipe = createAsyncThunk(
   'item/fetch_entity_list',
-  async ({ itemId, editingVariant }: { itemId: string; editingVariant?: string }) => {
-    const requestUrl = `/api/items/for-recipe?itemId=${itemId}${editingVariant ? `&variantId=${editingVariant}` : ''}`;
+  async ({ itemId, editingVariant }: { itemId?: string; editingVariant?: string }) => {
+    const requestUrl = `/api/items/for-recipe?${itemId ?`itemId=${itemId}` : ''}${editingVariant ? `&variantId=${editingVariant}` : ''}`;
     const response = await axios.get<IItem[]>(requestUrl);
     console.log(response, 'response');
     return response;
   }
 );
+
+
+export const importData = createAsyncThunk('importData', async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'ITEM');
+
+    const response = await axios.post('/api/import-data', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    console.log(response, 'resdata')
+    return response
+
+});
+
 
 
 export const getEntities = createAsyncThunk('item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {

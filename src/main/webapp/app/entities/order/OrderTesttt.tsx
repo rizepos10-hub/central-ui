@@ -85,7 +85,6 @@ export const Order = () => {
   };
 
   const filteredBranchOptions = branchList
-    .filter((branch) => orderList.some((order) => order.branchId === branch.id))
     .map((branch) => ({
       label: branch.name,
       value: branch.id,

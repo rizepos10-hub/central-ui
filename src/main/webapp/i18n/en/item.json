@@ -9,6 +9,7 @@
         "search": "Search for Item",
         "notFound": "No Items found"
       },
+      "imported": "File imported successfully!",
       "created": "A new Item is created with identifier {{ param }}",
       "updated": "An Item is updated with identifier {{ param }}",
       "deleted": "An Item is deleted with identifier {{ param }}",
