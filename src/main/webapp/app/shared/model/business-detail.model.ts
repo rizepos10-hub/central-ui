@@ -7,7 +7,7 @@ export interface IBusinessDetail {
   logo?: IAttachment;
   slogan?: string;
   address?: IAddress;
-  businessDayDetails?: IBusinessDayDetail[];
+  businessDayDetailsByBranch?: { [branchId: string]: Set<IBusinessDayDetail> };
 }
 
 export const defaultValue: Readonly<IBusinessDetail> = {};
