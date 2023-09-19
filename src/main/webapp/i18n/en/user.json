@@ -29,7 +29,8 @@
       "username": "User name",
       "enabled": "Enabled",
       "activated": "Activated",
-      "password": "Password"
+      "password": "Password",
+      "pinCode": "Pin Code"
     }
   }
 }

@@ -87,6 +87,7 @@ export const ItemUpdate = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
   const [name, setName] = useState('');
+  const [desc, setDesc] = useState('');
 
   const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
 
@@ -195,7 +196,7 @@ export const ItemUpdate = () => {
       setVariants(itemEntity.variants);
     }
     if (itemEntity?.terms) {
-      setSelectedTerms(itemEntity.terms?.map(term => ({ id: term.id })));
+      setSelectedTerms(itemEntity.terms?.map(term => ({ id: term.id, label: term.name, value: term.id })));
     }
     if (itemEntity?.accountingGroups) {
       setSelectedAccountingGroups(itemEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
@@ -206,7 +207,7 @@ export const ItemUpdate = () => {
     }
     console.log(itemEntity, 'termos');
     if (itemEntity?.addons) {
-      setSelectedAddons(itemEntity?.addons?.map(addon => ({ id: addon.id })));
+      setSelectedAddons(itemEntity?.addons?.map(addon => ({ id: addon.id, label: addon.name, value: addon.id  })));
     }
 
     if (uploadImageStatus === 'success' && saveButtonRef.current) {
@@ -222,10 +223,9 @@ export const ItemUpdate = () => {
     }
   }, [updateSuccess, itemEntity?.variants]);
 
-  const handleTermChange = selectedTerm => {
-    setSelectedTerms(selectedTerm.map(term => ({ id: term.value })));
+  const handleTermChange = (selectedOptions) => {
+    setSelectedTerms(selectedOptions);
   };
-
   const handleAccountingGroupsChange = selectedAccounting => {
     setSelectedAccountingGroups(selectedAccounting);
 
@@ -235,7 +235,7 @@ export const ItemUpdate = () => {
   };
 
   const handleAddonChange = selectedAddon => {
-    setSelectedAddons(selectedAddon.map(addon => ({ id: addon.value })));
+    setSelectedAddons(selectedAddon);
   };
 
   const removeAttachment = attachmentId => {
@@ -261,13 +261,13 @@ export const ItemUpdate = () => {
   const saveEntity = values => {
 
 
-    console.log(variants, 'variantshere');
+    console.log(values, 'values');
     const entity = {
       ...itemEntity,
       ...values,
        accountingGroups: accountingGroupsToSave,
-      addons: selectedAddons,
-      terms: selectedTerms,
+      addons: selectedAddons.map((addon) => ({id: addon.value})),
+      terms: selectedTerms.map((term) => ({ id: term.value })),
       attachments: selectedAttachments,
       variants: variants,
       name,
@@ -444,7 +444,7 @@ export const ItemUpdate = () => {
                 </div>
                 <div style={{width: '33%'}}>
                   <Translate contentKey="tempApp.item.terms">Category</Translate>
-                  <Select isMulti={true} defaultValue={entityTerms} onChange={handleTermChange} options={termsOptions} />
+                  <Select isMulti={true} value={selectedTerms} onChange={handleTermChange} options={termsOptions} />
                 </div>
                 <div style={{width: '34%'}}>
                   <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
@@ -500,7 +500,16 @@ export const ItemUpdate = () => {
                   </div>
                   <div style={{width: '35%'}}>
 
-                    <ValidatedField label={translate('tempApp.item.desc')} id="item-desc" name="desc" data-cy="desc" type="textarea" />
+                    <ValidatedField
+                      label={translate('tempApp.item.desc')}
+                      id="item-desc"
+                      name="desc"
+                      data-cy="desc"
+                      type="text"
+                      value={desc}
+                      onChange={(e) => setDesc(e.target.value)}
+
+                    />
                   </div>
                 </div>
                 <div className="d-flex justify-content-between mb-1">
@@ -564,7 +573,7 @@ export const ItemUpdate = () => {
                 </div>
                 <div className="mb-3">
                   <Translate contentKey="tempApp.item.addons"></Translate>
-                  <Select isMulti={true} defaultValue={initSelectedAddons} onChange={handleAddonChange} options={addonsOptions} />
+                  <Select isMulti={true} value={selectedAddons}  onChange={handleAddonChange} options={addonsOptions} />
                 </div>
 
               </Col>

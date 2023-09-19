@@ -21,6 +21,29 @@ const SalesSummaryReport = () => {
     setToDate(event.target.value);
   };
 
+  const fetchLastYearData = async () => {
+    const today = new Date();
+    const lastYearStartDate = format(addDays(today, -365), "yyyy-MM-dd");
+    const lastYearEndDate = format(today, "yyyy-MM-dd");
+    setFromDate(lastYearStartDate);
+    setToDate(lastYearEndDate);
+  };
+
+  const fetchLastMonthData = async () => {
+    const today = new Date();
+    const lastMonthStartDate = format(addDays(today, -30), "yyyy-MM-dd");
+    const lastMonthEndDate = format(today, "yyyy-MM-dd");
+    setFromDate(lastMonthStartDate);
+    setToDate(lastMonthEndDate);
+  };
+
+  const fetchLastWeekData = async () => {
+    const today = new Date();
+    const lastWeekStartDate = format(addDays(today, -7), "yyyy-MM-dd");
+    const lastWeekEndDate = format(today, "yyyy-MM-dd");
+    setFromDate(lastWeekStartDate);
+    setToDate(lastWeekEndDate);
+  };
 
   const handleSubmit = async (event?) => {
     if (event) {
@@ -33,8 +56,9 @@ const SalesSummaryReport = () => {
       alert("From date cannot be later than To date.");
       return;
     }
+
     try {
-      setLoading(true)
+      setLoading(true);
       const formattedFromDate = `${fromDate}T00:00:00.000Z`;
       const formattedToDate = `${toDate}T00:00:00.000Z`;
 
@@ -47,28 +71,33 @@ const SalesSummaryReport = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
+
       setSalesData(data);
-      setLoading(false)
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
       setLoading(false);
     }
   };
 
-
   useEffect(() => {
-    const fetchTodayData = async () => {
-      await handleSubmit();
-    };
-
     fetchTodayData();
   }, []);
+
+  useEffect(() => {
+    if (fromDate && toDate) {
+      handleSubmit();
+    }
+  }, [fromDate, toDate]);
+
+  const fetchTodayData = async () => {
+    await handleSubmit();
+  };
 
 
   if (!salesData) {
     return <div>No data available.</div>;
   }
-
 
 
 
@@ -119,9 +148,33 @@ const SalesSummaryReport = () => {
               </div>
             </div>
             <div className="text-center">
-              <button type="submit" className="btn btn-primary">{loading? "Loading..." : "Get Report"}</button>
+              <button type="submit" className="btn btn-primary" >Get Report</button>
+            </div>
+            <div className="d-flex justify-content-end gap-3">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={fetchLastYearData}
+              >
+                Last Year
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={fetchLastMonthData}
+              >
+                Last Month
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={fetchLastWeekData}
+              >
+                Last Week
+              </button>
             </div>
           </form>
+
         </div>
         <SalesSection title="Total Sales" data={salesData.totalSales} isTotalSales={true}/>
 
