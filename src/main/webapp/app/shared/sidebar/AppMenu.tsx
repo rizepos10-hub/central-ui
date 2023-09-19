@@ -122,7 +122,7 @@ const AppMenu = () => {
                           {
                             label: 'Inventory',
                             icon: 'pi pi-box',
-                            to: '/'
+                            to: '/inventory'
                           },
                           {
                             label: 'Settings',
@@ -196,7 +196,7 @@ const AppMenu = () => {
                               {
                                 label: 'Voids ',
                                 icon: 'pi pi-folder-open',
-                                to: '/term/items'
+                                to: '/void-reasons'
                               },
                               {
                                 label: 'Reporting automations',

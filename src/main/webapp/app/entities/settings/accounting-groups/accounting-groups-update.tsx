@@ -76,7 +76,7 @@ export const AccountingGroupsUpdate = () => {
 
   return (
     <div className="bg-light">
-      <h2>Edit Accounting Groups {accountingGroupsEntity.name}</h2>
+      <h2>{isNew ? `Add New Accounting Groups` : `Edit Accounting Groups ${accountingGroupsEntity.name}` }</h2>
       <Row>
         <Col md="6">
       <FormGroup>

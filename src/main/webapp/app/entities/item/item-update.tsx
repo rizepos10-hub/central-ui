@@ -107,7 +107,7 @@ export const ItemUpdate = () => {
     setOpenedModal(false);
   };
   const archiveVariant = variantId => {
-    const archivedVariants = variants?.map(variant => (variant.id === variantId ? { ...variant, isArchived: true } : variant));
+    const archivedVariants = variants?.map(variant => (variant.id === variantId ? { ...variant, archived: true } : variant));
     setVariants(archivedVariants);
   };
 
@@ -202,7 +202,7 @@ export const ItemUpdate = () => {
       setAccountingGroupsToSave(itemEntity.accountingGroups?.map(group => ({  id : group.id })));
     }
     if (itemEntity?.attachments) {
-      setSelectedAttachments(itemEntity.attachments?.map(attachment => ({ id: attachment.id, url: attachment.url })));
+      setSelectedAttachments(itemEntity.attachments?.map(attachment => ({ id: attachment.id, url: attachment?.url })));
     }
     console.log(itemEntity, 'termos');
     if (itemEntity?.addons) {
@@ -517,7 +517,7 @@ export const ItemUpdate = () => {
                     {selectedAttachments.map((attachment, index) => (
                       <div key={index} style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
                         <img
-                          src={attachment.url}
+                          src={attachment?.url}
                           alt={attachment.name}
                           className="img-fluid"
                           style={{
@@ -582,7 +582,7 @@ export const ItemUpdate = () => {
                     </tr>
                     </thead>
                     <tbody>
-                    {variants.filter((variant) => variant.isArchived !== true)?.map((variant) => (
+                    {variants.filter((variant) => variant.archived !== true)?.map((variant) => (
                       <tr key={variant.id && variant.id}>
                         <td className="align-middle">{variant.name}</td>
                         <td className="align-middle">{variant.price}</td>

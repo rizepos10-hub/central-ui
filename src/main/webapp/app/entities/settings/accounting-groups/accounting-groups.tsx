@@ -41,7 +41,7 @@ export const AccountingGroups = () => {
   const handleCreate = () => {
     navigate('/accounting-groups/new')
   };
-  console.log("Selected AccountingGroups ID:", selectedAccountingGroupsId);
+  console.log("Selected VoidReasons ID:", selectedAccountingGroupsId);
 
 
 
@@ -159,7 +159,7 @@ export const AccountingGroups = () => {
           <Column field="profiles" header="Profiles" body={(rowData) => rowData.profiles.map((profile) => profile.name).join(' | ')}   sortable   />
 
 
-          {/* <Column header="AccountingGroups Inclusive" body={activeColumnTemplate} style={{width: '10%'}}   /> */}
+          {/* <Column header="VoidReasons Inclusive" body={activeColumnTemplate} style={{width: '10%'}}   /> */}
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
