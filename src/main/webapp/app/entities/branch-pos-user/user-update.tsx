@@ -249,7 +249,7 @@ export const UserUpdate = () => {
       <div className="p-grid">
         <div className="p-col-12">
           <h2>
-            <Translate contentKey="tempApp.user.home.createOrEditLabel">Create or edit a User</Translate>
+            {isNew ? "Create New User" : `Edit User`}
           </h2>
         </div>
       </div>

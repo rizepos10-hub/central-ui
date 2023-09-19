@@ -796,7 +796,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                       <div key={attachment.id} style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
                         {/* ... (attachment rendering code) */}
                         <img
-                          src={attachment.url}
+                          src={attachment?.url}
                           alt="Selected Image"
                           className="img-fluid m-lg-1"
                           style={{
@@ -1045,7 +1045,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                               >
                                 <Card
                                   style={{
-                                    background: `url(${item.attachments[0].url})`,
+                                    background: `url(${item.attachments[0]?.url})`,
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center',
                                   }}

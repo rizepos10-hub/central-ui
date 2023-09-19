@@ -75,7 +75,7 @@ export const BranchUpdate = () => {
       <Row className="justify-content-center">
         <Col md="8">
           <h2 id="tempApp.branch.home.createOrEditLabel" data-cy="BranchCreateUpdateHeading">
-            <Translate contentKey="tempApp.branch.home.createOrEditLabel">Create or edit a Branch</Translate>
+            {isNew ? `Create New Branch` : `Edit ${branchEntity.name}`}
           </h2>
         </Col>
       </Row>

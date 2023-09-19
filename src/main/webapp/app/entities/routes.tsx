@@ -16,6 +16,7 @@ import Order from './order';
 import Tax from './settings/taxes';
 import TaxesProfile from './settings/tax-profiles';
 import AccountingGroups from './settings/accounting-groups';
+import VoidReasons from './settings/void-reasons';
 
 import Home from 'app/shared/layout/home/home';
 import BranchPosUserRoutes from './branch-pos-user';
@@ -47,6 +48,8 @@ export default () => {
         <Route path="tax/*" element={<Tax />} />
         <Route path="tax-profiles/*" element={<TaxesProfile />} />
         <Route path="accounting-groups/*" element={<AccountingGroups />} />
+        <Route path="void-reasons/*" element={<VoidReasons />} />
+
         <Route path="details/*" element={<BusinessDetailRoutes />} />
 
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
