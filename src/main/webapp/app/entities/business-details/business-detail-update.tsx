@@ -155,19 +155,19 @@ export const BusinessDetailUpdate = () => {
     updatedBranchDetails[index] = { ...updatedBranchDetails[index], day: selectedDay };
     console.log(updatedBranchDetails);
     // Update the branch details in your component's state
-    updateBusinessDayDetailsForBranch(branchId, updatedBranchDetails);
 
+    // updateBusinessDayDetailsForBranch(branchId, updatedBranchDetails);
     // setBusinessDayDetailsByBranchMap((pre) =>[...pre, businessDayDetailsByBranchMap[branchId] = updatedBranchDetails])
-    // setBusinessDayDetailsByBranchMap(businessDayDetailsByBranchMap)
+    setBusinessDayDetailsByBranchMap(businessDayDetailsByBranchMap);
     // You may need to use setBusinessDetailEntity to update the state if it's a React state variable
   };
-  const updateBusinessDayDetailsForBranch = (branchId, updatedBranchDetails) => {
-    setBusinessDayDetailsByBranchMap(prevMap => {
-      const newMap = new Map(prevMap);
-      newMap.set(branchId, updatedBranchDetails);
-      return newMap;
-    });
-  };
+  // const updateBusinessDayDetailsForBranch = (branchId, updatedBranchDetails) => {
+  //   setBusinessDayDetailsByBranchMap(prevMap => {
+  //     const newMap = new Map(prevMap);
+  //     newMap.set(branchId, updatedBranchDetails);
+  //     return newMap;
+  //   });
+  // };
 
   // Handle opening hour change
   // Handle opening hour change
