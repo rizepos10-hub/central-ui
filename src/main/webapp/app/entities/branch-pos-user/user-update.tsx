@@ -21,6 +21,7 @@ import {InputText} from "primereact/inputtext";
 import {Checkbox} from "primereact/checkbox";
 import {Button} from "primereact/button";
 import Select from "react-select";
+import {Alert} from "reactstrap";
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
@@ -76,6 +77,7 @@ export const UserUpdate = () => {
     permissions: [],
     activated: false,
     authorities: [],
+    pinCode: '',
 
   });
 
@@ -144,9 +146,19 @@ export const UserUpdate = () => {
   };
 
 
+  const isPinCodeValid = (pinCode) => {
+    return /^\d{4}$/.test(pinCode);
+  };
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+
+    if (!isPinCodeValid(user.pinCode)) {
+      console.error('Invalid pinCode. Please enter 4 digits.');
+      return;
+    }
 
     try {
       if (isNew) {
@@ -180,6 +192,7 @@ export const UserUpdate = () => {
         permissions: [],
         activated: false,
         authorities: [],
+        pinCode: '',
 
 
       });
@@ -204,6 +217,7 @@ export const UserUpdate = () => {
         permissions: [],
         activated: false,
         authorities: [],
+        pinCode: '',
       });
       setSelectedBranch({})
       setPassword('')
@@ -267,6 +281,7 @@ export const UserUpdate = () => {
                 value={user.firstName || ''}
                 onChange={handleInputChange}
                 required
+                placeholder="Enter first name"
               />
             </div>
             <div className="p-field d-flex flex-column mb-3">
@@ -279,6 +294,7 @@ export const UserUpdate = () => {
                 value={user.lastName || ''}
                 onChange={handleInputChange}
                 required
+                placeholder="Enter last name"
               />
             </div>
 
@@ -293,6 +309,25 @@ export const UserUpdate = () => {
                 value={user.email}
                 onChange={handleInputChange}
                 required
+                placeholder="Enter email"
+              />
+            </div>
+
+            <div className="p-field d-flex flex-column mb-3">
+              <Alert color="warning">Pin code must be at least 4 digits</Alert>
+              <label htmlFor="pinCode">
+                <Translate contentKey="tempApp.user.pinCode">pinCode</Translate>
+              </label>
+              <InputText
+                id="pinCode"
+                name="pinCode"
+                value={user.pinCode}
+                onChange={handleInputChange}
+                required
+                minLength={4}
+                placeholder="Enter pin code"
+
+
               />
             </div>
             {isNew && <div className="p-field d-flex flex-column mb-3">
@@ -302,9 +337,12 @@ export const UserUpdate = () => {
               <InputText
                 id="password"
                 name="password"
+                type="password"
                 value={password}
                 onChange={handlePasswordChange}
                 required
+                placeholder="Enter password"
+
               />
             </div>}
 
