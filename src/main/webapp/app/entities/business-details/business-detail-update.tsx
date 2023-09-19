@@ -9,6 +9,9 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset } from './business-detail.reducer';
 import { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { DayOfWeek } from 'app/shared/model/enumerations/day-of-week.model';
+
+const dayOfWeekValues = Object.keys(DayOfWeek);
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
@@ -26,8 +29,8 @@ export const BusinessDetailUpdate = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedAttachment, setSelectedAttachment] = useState({});
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
-  // const [selectedAddress, setSelectedAddress] = useState(null);
-
+  const branchList = useAppSelector(state => state.branch.entities);
+  const [businessDayDetailsByBranchMap, setBusinessDayDetailsByBranchMap] = useState(new Map());
   const handleClose = () => {
     navigate('/details' + location.search);
   };
@@ -44,9 +47,9 @@ export const BusinessDetailUpdate = () => {
     if (businessDetailEntity?.logo) {
       setSelectedAttachment(businessDetailEntity.logo);
     }
-    // if (businessDetailEntity?.address) {
-    //   setSelectedAddress(businessDetailEntity.address);
-    // }
+    if (businessDetailEntity?.businessDayDetailsByBranch) {
+      setBusinessDayDetailsByBranchMap(businessDetailEntity.businessDayDetailsByBranch);
+    }
     if (updateSuccess) {
       handleClose();
     }
@@ -60,6 +63,7 @@ export const BusinessDetailUpdate = () => {
       ...businessDetailEntity,
       ...values,
       logo: selectedAttachment,
+      businessDayDetailsByBranch: businessDayDetailsByBranchMap,
     };
 
     if (isNew) {
@@ -111,17 +115,90 @@ export const BusinessDetailUpdate = () => {
           ...businessDetailEntity,
         };
 
-  const businessDayDetailsByBranch = businessDetailEntity?.businessDayDetailsByBranch;
+  const backgroundStyle = {
+    backgroundColor: 'white',
+  };
 
-  console.log(businessDayDetailsByBranch, 'lol')
+  // Handle branch selection
+  // const handleBranchSelection = (e, branchId) => {
+  //   const selectedBranchId = e.target.value;
+  //   // Update the branch details in your component's state
+  //   const updatedBranchDetails = { ...businessDetailEntity.businessDayDetailsByBranch[branchId] };
+  //   businessDetailEntity.businessDayDetailsByBranch[selectedBranchId] = updatedBranchDetails;
+  //   // Remove the branch from the old key if it's not the same as the new one
+  //   if (branchId !== selectedBranchId) {
+  //     delete businessDetailEntity.businessDayDetailsByBranch[branchId];
+  //   }
+  //   // Update the selected branch
+  //   setBusinessDayDetailsByBranchMap({ ...businessDetailEntity });
+  // };
 
-  // businessDayDetailsByBranch &&  Object.keys(businessDayDetailsByBranch).forEach((branchId) => {
-  //   const branchDetails = businessDayDetailsByBranch[branchId];
+  // Handle day change
+  //   const handleDayChange = (e, branchId, index) => {
+  //     const selectedDay = e.target.value;
+  //     // Update the day in your component's state
   //
-  //   branchDetails.forEach((dayDetail) => {
-  //     console.log(dayDetail, 'houssein');
+  //     const updatedBranchDetails = { ...businessDetailEntity.businessDayDetailsByBranch[branchId] };
+  //     updatedBranchDetails[index].day = selectedDay;
+  //     // console.log(updatedBranchDetails[index].day)
+  //     console.log(updatedBranchDetails, "updated")
+  //     businessDetailEntity.businessDayDetailsByBranch[branchId] = updatedBranchDetails;
+  //     // setBusinessDetailEntity({ ...businessDetailEntity });
+  //   };
+
+  // Handle day change
+  const handleDayChange = (e, branchId, index) => {
+    const selectedDay = e.target.value;
+    // Create a copy of the branch details
+    const updatedBranchDetails = [...businessDayDetailsByBranchMap[branchId]];
+    // Update the day in the copy
+    updatedBranchDetails[index] = { ...updatedBranchDetails[index], day: selectedDay };
+    console.log(updatedBranchDetails);
+    // Update the branch details in your component's state
+
+    // updateBusinessDayDetailsForBranch(branchId, updatedBranchDetails);
+    // setBusinessDayDetailsByBranchMap((pre) =>[...pre, businessDayDetailsByBranchMap[branchId] = updatedBranchDetails])
+    setBusinessDayDetailsByBranchMap(businessDayDetailsByBranchMap);
+    // You may need to use setBusinessDetailEntity to update the state if it's a React state variable
+  };
+  // const updateBusinessDayDetailsForBranch = (branchId, updatedBranchDetails) => {
+  //   setBusinessDayDetailsByBranchMap(prevMap => {
+  //     const newMap = new Map(prevMap);
+  //     newMap.set(branchId, updatedBranchDetails);
+  //     return newMap;
   //   });
-  // });
+  // };
+
+  // Handle opening hour change
+  // Handle opening hour change
+  const handleOpeningHourChange = (e, branchId, index, hourIndex) => {
+    const newOpeningHour = e.target.value;
+    // Create a deep copy of the branch details
+    const updatedBranchDetails = { ...businessDetailEntity.businessDayDetailsByBranch };
+    updatedBranchDetails[branchId] = [...updatedBranchDetails[branchId]];
+    updatedBranchDetails[branchId][index] = { ...updatedBranchDetails[branchId][index] };
+    updatedBranchDetails[branchId][index].openingHours = [...updatedBranchDetails[branchId][index].openingHours];
+    updatedBranchDetails[branchId][index].openingHours[hourIndex] = {
+      ...updatedBranchDetails[branchId][index].openingHours[hourIndex],
+      from: newOpeningHour,
+    };
+    console.log(businessDetailEntity);
+
+    // Update the branch details in your component's state
+    // setBusinessDetailEntity({ ...businessDetailEntity, businessDayDetailsByBranch: updatedBranchDetails });
+  };
+
+  // Handle closing hour change
+  const handleClosingHourChange = (e, branchId, index, hourIndex) => {
+    const newClosingHour = e.target.value;
+    // Update the closing hour in your component's state
+    const updatedBranchDetails = { ...businessDetailEntity.businessDayDetailsByBranch[branchId] };
+    updatedBranchDetails[index].openingHours[hourIndex].to = newClosingHour;
+    businessDetailEntity.businessDayDetailsByBranch[branchId] = updatedBranchDetails;
+    console.log(businessDetailEntity);
+    // setBusinessDetailEntity({ ...businessDetailEntity });
+  };
+
   return (
     <div>
       <Row className="justify-content-center">
@@ -269,41 +346,99 @@ export const BusinessDetailUpdate = () => {
                 }}
               />
               <h4>Opening Hours By Branch</h4>
+              {/*todo
+              should list the opening hours by day in branch
+              can assign new branch opening hours from the available branches
+              edit opening hours in a day for a branch*/}
               {businessDetailEntity?.businessDayDetailsByBranch ? (
                 Object.entries(businessDetailEntity.businessDayDetailsByBranch).map(([branchId, branchDetails]) => (
                   <div key={branchId}>
                     <h5>Branch ID: {branchId}</h5>
+
                     {(branchDetails as any[]).map((dayDetail, index) => (
-                      <div key={index}>
-                        <p>Day: {dayDetail.day}</p>
-                        <p>Status: {dayDetail.status}</p>
-                      </div>
+                      <section key={index}>
+                        {/*<select*/}
+                        {/*  name={`branchId${index}`}*/}
+                        {/*  onChange={(e) => handleBranchSelection(e, branchId)}*/}
+                        {/*  value={branchId}*/}
+                        {/*>*/}
+                        {/*  {branchList.map((branch) => (*/}
+                        {/*    <option key={branch.id} value={branch.id}>*/}
+                        {/*      {branch.name}*/}
+                        {/*    </option>*/}
+                        {/*  ))}*/}
+                        {/*</select>*/}
+                        {/* Display the selected day */}
+                        <ValidatedField
+                          label={translate('tempApp.businessDetail.day')}
+                          id={`day-${branchId}-${index}`}
+                          name={`day-${branchId}-${index}`}
+                          data-cy={`day-${branchId}-${index}`}
+                          type="select"
+                          defaultValue={dayDetail.day} // Set the selected day
+                          onChange={e => handleDayChange(e, branchId, index)} // Implement handleDayChange
+                        >
+                          {dayOfWeekValues.map(day => (
+                            <option value={day} key={day}>
+                              {translate('tempApp.businessDetail.' + day)}
+                            </option>
+                          ))}
+                        </ValidatedField>
+
+                        {/* Display opening hours for the selected day */}
+                        {dayDetail.openingHours.map((openingHour, hourIndex) => (
+                          <div key={hourIndex}>
+                            <input
+                              type="text"
+                              defaultValue={openingHour.from}
+                              // value={openingHour.from} // Set the opening hour value
+                              onChange={e => handleOpeningHourChange(e, branchId, index, hourIndex)} // Implement handleOpeningHourChange
+                            />
+                            <input
+                              type="text"
+                              defaultValue={openingHour.from}
+                              onChange={e => handleClosingHourChange(e, branchId, index, hourIndex)} // Implement handleClosingHourChange
+                            />
+                          </div>
+                        ))}
+                      </section>
                     ))}
                   </div>
                 ))
               ) : (
                 <p>No business day details available</p>
               )}
-              {/*{Object.keys(businessDetailEntity.businessDayDetailsByBranch).map((branchId) => (*/}
-              {/*  // <BranchComponent key={branchId} branchId={branchId} businessDayDetails={businessDayDetailsByBranch[branchId]} />*/}
-              {/*  <div>*/}
-              {/*    {branchId}*/}
-              {/*  </div>*/}
-              {/*))}*/}
-              {/*{branchIds.map((branchId) => (*/}
-              {/*  <div key={branchId}>*/}
-              {/*    <h2>Branch ID: {branchId}</h2>*/}
-              {/*    <ul>*/}
-              {/*      {Array.from(businessDetailEntity.businessDayDetailsByBranch[branchId]).map((businessDayDetail, index) => (*/}
-              {/*        <li key={index}>*/}
-              {/*          <p>Day of Week: {businessDetailEntity?.day}</p>*/}
-              {/*          /!*<p>Opening Time: {businessDayDetail.openingTime}</p>*!/*/}
-              {/*          /!*<p>Closing Time: {businessDayDetail.closingTime}</p>*!/*/}
-              {/*        </li>*/}
+              {/***********************************************/}
+              {/*{businessDetailEntity?.businessDayDetailsByBranch ? (*/}
+              {/*  Object.entries(businessDetailEntity.businessDayDetailsByBranch).map(([branchId, branchDetails]) => (*/}
+              {/*    <div key={branchId}>*/}
+              {/*      <h5>Branch ID: {branchId}</h5>*/}
+              {/*      {(branchDetails as any[]).map((dayDetail, index) => (*/}
+              {/*        <section key={index}  >*/}
+              {/*          <ValidatedField label={translate('tempApp.businessDetail.day')} id="item-status" name="day" data-cy="day" type="select">*/}
+              {/*            {dayOfWeekValues.map(day => (*/}
+              {/*              <option value={day} key={day} selected={dayDetail.day}>*/}
+              {/*                {translate('tempApp.businessDetail.' + day)}*/}
+              {/*              </option>*/}
+              {/*            ))}*/}
+              {/*          </ValidatedField>*/}
+              {/*          /!*<p>Status: {dayDetail.status}</p>*!/*/}
+              {/*          {*/}
+              {/*            dayDetail.openingHours.map((openingHour, index) => (*/}
+              {/*              <div key={index}>{openingHour.from} {openingHour.to}</div>*/}
+              {/*            ))*/}
+              {/*          }*/}
+              {/*          <svg width="200" height="100">*/}
+              {/*            <line x1="10" y1="50" x2="190" y2="50" stroke="black" strokeWidth="2" />*/}
+              {/*          </svg>*/}
+              {/*        </section>*/}
               {/*      ))}*/}
-              {/*    </ul>*/}
-              {/*  </div>*/}
-              {/*))}*/}
+              {/*    </div>*/}
+              {/*  ))*/}
+              {/*) : (*/}
+              {/*  <p>No business day details available</p>*/}
+              {/*)}*/}
+              {/************************************************/}
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/details" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
