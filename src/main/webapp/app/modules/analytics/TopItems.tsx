@@ -33,7 +33,7 @@ const TopItems = () => {
                           <strong>Name</strong>
                         </Col>
                         <Col xs="3">
-                          <strong>Addons</strong>
+                          <strong>Variant</strong>
                         </Col>
                         <Col xs="3">
                           <strong>Discount</strong>

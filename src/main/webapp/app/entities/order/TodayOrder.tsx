@@ -64,7 +64,11 @@ export const Order = () => {
       id:{value: '', matchMode: 'contains'},
       byClient: { value: '', matchMode: 'contains' },
       status: { value: '', matchMode: 'contains' },
-      customer: { value: '', matchMode: 'equals' },
+      customer:
+        {
+          email:         { value: '', matchMode: 'equals' },
+          phone:         { value: '', matchMode: 'equals' },
+        },
       branchId: { value: '', matchMode: 'equals' },
       tables: {value: '', matchMode: 'contains'}
     }});
@@ -147,7 +151,8 @@ export const Order = () => {
       first: lazyState.first,
       sequenceId:lazyState.filters.id?.value || '',
       page: lazyState.page ,
-      customerPhone: lazyState.filters.customer?.value || '',
+      customerPhone: lazyState.filters.customer?.phone?.value || '',
+      customerEmail: lazyState.filters.customer?.email?.value || '',
       branch: lazyState.filters.branchId?.value || '',
       tables: lazyState.filters.tables?.value || '',
       size: lazyState.rows ,
@@ -273,15 +278,24 @@ export const Order = () => {
 
             <Column field="tables" sortable style={{ width: '13%' }} filter header="Order Tables" />
             <Column
-              field="customer"
+              field="customer.email"
               filter
               sortable
-              header="Order Customer"
+              header="Customer Email "
+              style={{ width: '15%' }}
+
+              body={(rowData) => rowData.customer ? `${rowData.customer.email}` : ''}
+            />
+
+            <Column
+              field="customer.phone"
+              filter
+              sortable
+              header="Customer Phone"
               style={{ width: '15%' }}
 
               body={(rowData) => rowData.customer ? `${rowData.customer.phone}` : ''}
             />
-
             <Column field="status" sortable filter header="Order Status"
                     filterElement={
                       <Dropdown

@@ -60,7 +60,8 @@ export const Order = () => {
       id:{value: '', matchMode: 'contains'},
       byClient: { value: '', matchMode: 'contains' },
       status: { value: '', matchMode: 'contains' },
-      customer: { value: '', matchMode: 'equals' },
+        "customer.email": { value: '', matchMode: 'contains' },
+        "customer.phone": { value: '', matchMode: 'contains' },
       branchId: { value: '', matchMode: 'equals' },
       tables: {value: '', matchMode: 'contains'}
     }
@@ -74,7 +75,7 @@ export const Order = () => {
   const loading = useAppSelector(state => state.order.loading);
   const branchList = useAppSelector(state => state.branch.entities);
 
-  console.log(orderList)
+  console.log(orderList, 'orderList')
 
   const getBranchName = (branchId) => {
     console.log(branchId, 'branchID')
@@ -137,15 +138,15 @@ export const Order = () => {
   //     setSelectedCustomers([]);
   //   }
   // };
-  const onFilter = (event) => {
-    console.log(event, 'event');
+    const onFilter = (event) => {
+      console.log(event, 'event');
 
-    const newDates = event.filters.createdDate || null;
-    setDates(newDates);
+      const newDates = event.filters.createdDate || null;
+      setDates(newDates);
 
-    event['first'] = 0;
-    setLazyState(event);
-  };
+      event['first'] = 0;
+      setLazyState(event);
+    };
 
 
 
@@ -176,7 +177,8 @@ export const Order = () => {
       lazyState.filters.createdDate?.to ||
       lazyState.filters.byClient?.value ||
       lazyState.filters.status?.value ||
-      lazyState.filters.customer?.value ||
+      lazyState.filters.customer?.phone?.value ||
+      lazyState.filters.customer?.email?.value ||
       lazyState.filters.branchId?.value ||
       lazyState.filters.id?.value ||
       lazyState.filters.tables?.value ||
@@ -190,7 +192,8 @@ export const Order = () => {
         first: lazyState.first,
         sequenceId:lazyState.filters.id?.value || '',
         page: lazyState.page ,
-        customerPhone: lazyState.filters.customer?.value || '',
+        customerPhone:lazyState.filters['customer.phone']?.value || '',
+        customerEmail: lazyState.filters['customer.email']?.value || '',
         branch: lazyState.filters.branchId?.value || '',
         tables: lazyState.filters.tables?.value || '',
         size: lazyState.rows ,
@@ -201,6 +204,7 @@ export const Order = () => {
 
       };
       console.log(lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '', 'hellolog')
+      console.log(lazyState.filters.customer?.phone, 'hellologs')
 
       dispatch(filterOrders(queryParams));
     } else {
@@ -360,13 +364,22 @@ console.log(orderList.length, 'len')
 
               <Column field="tables" sortable style={{ width: '10%' }} filter  header="Order Tables" />
               <Column
-                field="customer"
+                field="customer.email"
+                filter
+                filterField="customer.email"
+                sortable
+                header="Customer Email "
+                style={{ width: '15%' }}
+              />
+
+              <Column
+                field="customer.phone"
                 filter
                 sortable
-                header="Order Customer"
-                style={{ width: '15%' }}
+                filterField="customer.phone"
 
-                body={(rowData) => rowData.customer ? `${rowData.customer.phone}` : ''}
+                header="Customer Phone"
+                style={{ width: '15%' }}
               />
 
               <Column field="status" sortable filter header="Order Status"
