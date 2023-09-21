@@ -9,7 +9,7 @@ import BusinessDetailUpdate from './business-detail-update';
 
 const BusinessDetailRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<Business />} />
+    <Route index element={<BusinessDetailUpdate />} />
     <Route path="new" element={<BusinessDetailUpdate />} />
     <Route path=":id">
       <Route index element={<BusinessDetail />} />
