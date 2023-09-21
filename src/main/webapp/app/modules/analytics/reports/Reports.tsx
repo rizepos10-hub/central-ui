@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import SalesSection from "app/modules/analytics/reports/SalesSections";
 import axios from "axios";
-import { format, addDays } from 'date-fns';
+import {format, addDays, addMonths} from 'date-fns';
 const SalesSummaryReport = () => {
 
 
@@ -21,22 +21,6 @@ const SalesSummaryReport = () => {
     setToDate(event.target.value);
   };
 
-  const fetchLastYearData = async () => {
-    const today = new Date();
-    const lastYearStartDate = format(addDays(today, -365), "yyyy-MM-dd");
-    const lastYearEndDate = format(today, "yyyy-MM-dd");
-    setFromDate(lastYearStartDate);
-    setToDate(lastYearEndDate);
-  };
-
-  const fetchLastMonthData = async () => {
-    const today = new Date();
-    const lastMonthStartDate = format(addDays(today, -30), "yyyy-MM-dd");
-    const lastMonthEndDate = format(today, "yyyy-MM-dd");
-    setFromDate(lastMonthStartDate);
-    setToDate(lastMonthEndDate);
-  };
-
   const fetchLastWeekData = async () => {
     const today = new Date();
     const lastWeekStartDate = format(addDays(today, -7), "yyyy-MM-dd");
@@ -44,6 +28,31 @@ const SalesSummaryReport = () => {
     setFromDate(lastWeekStartDate);
     setToDate(lastWeekEndDate);
   };
+
+  const fetchLastTwoWeeksData = async () => {
+    const today = new Date();
+    const lastTwoWeeksStartDate = format(addDays(today, -14), "yyyy-MM-dd");
+    const lastTwoWeeksEndDate = format(today, "yyyy-MM-dd");
+    setFromDate(lastTwoWeeksStartDate);
+    setToDate(lastTwoWeeksEndDate);
+  };
+
+  const fetchLastMonthData = async () => {
+    const today = new Date();
+    const lastMonthStartDate = format(addMonths(today, -1), "yyyy-MM-dd");
+    const lastMonthEndDate = format(today, "yyyy-MM-dd");
+    setFromDate(lastMonthStartDate);
+    setToDate(lastMonthEndDate);
+  };
+
+  const fetchLastThreeMonthsData = async () => {
+    const today = new Date();
+    const lastThreeMonthsStartDate = format(addMonths(today, -3), "yyyy-MM-dd");
+    const lastThreeMonthsEndDate = format(today, "yyyy-MM-dd");
+    setFromDate(lastThreeMonthsStartDate);
+    setToDate(lastThreeMonthsEndDate);
+  };
+
 
   const handleSubmit = async (event?) => {
     if (event) {
@@ -154,9 +163,16 @@ const SalesSummaryReport = () => {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={fetchLastYearData}
+                onClick={fetchLastWeekData}
               >
-                Last Year
+                Last Week
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={fetchLastTwoWeeksData}
+              >
+                Last Two Weeks
               </button>
               <button
                 type="button"
@@ -168,9 +184,9 @@ const SalesSummaryReport = () => {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={fetchLastWeekData}
+                onClick={fetchLastThreeMonthsData}
               >
-                Last Week
+                Last 3 Months
               </button>
             </div>
           </form>
