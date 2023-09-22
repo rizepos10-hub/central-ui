@@ -11,7 +11,7 @@ import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IOrder } from 'app/shared/model/order.model';
-import {searchEntities, getEntities, filterOrders, getOrderSources} from './order.reducer';
+import {searchEntities, getEntities, filterOrders, getOrderSources, getOrderStatuses} from './order.reducer';
 import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.constants";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 
@@ -44,6 +44,9 @@ export const Order = () => {
   const [dates, setDates] = useState<string | Date | Date[] | null>(null);
 
   const [orderSources, setOrderSources]:any = useState([]);
+
+  const [orderStatuses, setOrderStatuses]:any = useState([]);
+
 
 
   const [lazyState, setLazyState] = useState<LazyTableState>({
@@ -93,7 +96,7 @@ export const Order = () => {
 
   const statusOptions = [
     { label: 'DRAFT', value: 'DRAFT' },
-    { label: 'Kitchen', value: 'KITCHEN' },
+    { label: 'PROCESSING', value: 'PROCESSING' },
     { label: 'Delivered', value: 'DELIVERED' },
     { label: 'Done', value: 'DONE' }
   ];
@@ -214,10 +217,12 @@ export const Order = () => {
     dispatch(getBranches({}))
     dispatch(getOrderSources())
       .then((response) => {
-        console.log(response, 'resoo')
         setOrderSources(response.payload);
       })
-    console.log(lazyState, 'lol')
+    dispatch(getOrderStatuses())
+      .then((response :any) => {
+        setOrderStatuses(response.payload?.map((status) => ({label: status, value: status})));
+      })
   }, [lazyState,dates]);
 
 
@@ -386,7 +391,7 @@ console.log(orderList.length, 'len')
                       filterElement={
                         <Dropdown
                           value={lazyState.filters.status?.value || ''}
-                          options={statusOptions}
+                          options={orderStatuses}
                           onChange={(e) =>
                             setLazyState((prevState) => ({
                               ...prevState,

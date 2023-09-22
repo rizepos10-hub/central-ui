@@ -38,6 +38,12 @@ export const getOrderSources = createAsyncThunk('order/fetch_orderSource_list', 
   return response.data
 });
 
+export const getOrderStatuses = createAsyncThunk('order/fetch_orderStatus_list', async () => {
+  const requestUrl = `/api/orders/statuses`;
+  const response = await axios.get<IOrder[]>(requestUrl);
+  return response.data
+});
+
 // export const filterOrders = createAsyncThunk(
 //   'order/filter_orders',
 //   async ({ lazyState }: { lazyState: any }) => {
@@ -69,7 +75,7 @@ export const filterOrders = createAsyncThunk(
     }
   }
 );
-);
+
 
 
 export const getEntity = createAsyncThunk(
