@@ -38,7 +38,7 @@ export const UserUpdate = () => {
 
   const branchList = useAppSelector(state => state.branch.entities)
 
-  const [selectedBranch, setSelectedBranch] :any = useState();
+  const [selectedBranches, setSelectedBranches] :any = useState([]);
 
   const [selectedAuthorities, setSelectedAuthorities] :any = useState()
 
@@ -71,8 +71,9 @@ export const UserUpdate = () => {
   const [user, setUser] = useState({
     firstName: '',
     lastName: '',
+    userName: '',
     id: null,
-    branchId: '',
+    branches: [],
     email: '',
     permissions: [],
     activated: false,
@@ -102,13 +103,13 @@ export const UserUpdate = () => {
   };
 
   const handleBranchChange = (selectedBranches) => {
-    console.log(selectedBranches, 'seee1')
     setUser((prev) => ({
       ...prev,
-        branchId : selectedBranches.value
-    }))
-    setSelectedBranch(selectedBranches)
-  }
+      branches: selectedBranches.map((branch) => ({ id: branch.value, value: branch.value })),
+    }));
+    setSelectedBranches(selectedBranches);
+  };
+
 
   const handleAuthoritiesChange = (authorities) => {
     setUser((prev) => ({
@@ -186,8 +187,9 @@ export const UserUpdate = () => {
       setUser({
         firstName: '',
         lastName: '',
+        userName: '',
         id: '',
-        branchId: '',
+        branches: [],
         email: '',
         permissions: [],
         activated: false,
@@ -211,21 +213,28 @@ export const UserUpdate = () => {
       setUser({
         firstName: '',
         lastName: '',
+        userName: '',
         id: null,
-        branchId: '',
+        branches: [],
         email: '',
         permissions: [],
         activated: false,
         authorities: [],
         pinCode: '',
       });
-      setSelectedBranch({})
+      setSelectedBranches([])
       setPassword('')
       setSelectedAuthorities('')
     }
 
-    if (userEntity?.branchId) {
-      setSelectedBranch({ label: getBranchName(userEntity.branchId), value: userEntity.branchId });
+
+
+    if (userEntity?.branches){
+      setSelectedBranches(userEntity.branches?.map((branch) => ({ label: getBranchName(userEntity.branchId), value: userEntity.branchId })))
+    }
+
+    if (userEntity?.branches){
+      setSelectedBranches(userEntity.branches?.map((branch) => ({  label: getBranchName(branch.id),value: branch.id,id: branch.id})))
     }
 
     if (userEntity?.authorities) {
@@ -237,7 +246,7 @@ export const UserUpdate = () => {
     }
 
 
-  }, [updateSuccess, userEntity?.branchId, userEntity?.authorities]);
+  }, [updateSuccess, userEntity?.branches, userEntity?.authorities]);
 
 
 
@@ -298,6 +307,19 @@ export const UserUpdate = () => {
               />
             </div>
 
+            <div className="p-field d-flex flex-column mb-3">
+              <label htmlFor="userName">
+                <Translate contentKey="tempApp.user.username">User Name</Translate>
+              </label>
+              <InputText
+                id="userName"
+                name="userName"
+                value={user.userName || ''}
+                onChange={handleInputChange}
+                required
+                placeholder="Enter user name"
+              />
+            </div>
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="email">
@@ -357,7 +379,8 @@ export const UserUpdate = () => {
             <div className="mb-3">
               Branches
               <Select  defaultValue={initialBranches}
-                       value={selectedBranch}
+                       value={selectedBranches}
+                       isMulti
                        onChange={handleBranchChange}
                        options={branchList.map(branch => ({ value: branch.id, label: branch.name }))} />
             </div>
