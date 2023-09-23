@@ -148,7 +148,7 @@ export const UserUpdate = () => {
 
 
   const isPinCodeValid = (pinCode) => {
-    return /^\d{4}$/.test(pinCode);
+    return /^\d{3}$/.test(pinCode);
   };
 
 
@@ -336,9 +336,8 @@ export const UserUpdate = () => {
             </div>
 
             <div className="p-field d-flex flex-column mb-3">
-              <Alert color="warning">Pin code must be at least 4 digits</Alert>
               <label htmlFor="pinCode">
-                <Translate contentKey="tempApp.user.pinCode">pinCode</Translate>
+                <Translate contentKey="tempApp.user.pinCode">pinCode</Translate>&nbsp;<label className="text-sm"> (3 digits)</label>
               </label>
               <InputText
                 id="pinCode"
@@ -346,7 +345,9 @@ export const UserUpdate = () => {
                 value={user.pinCode}
                 onChange={handleInputChange}
                 required
-                minLength={4}
+                pattern="[0-9]{3}"
+                minLength={3}
+                maxLength={3}
                 placeholder="Enter pin code"
 
 
