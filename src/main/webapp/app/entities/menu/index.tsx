@@ -10,7 +10,7 @@ import MenuDeleteDialog from './menu-delete-dialog';
 import NewMenuPopup from "app/entities/menu/new-menu-popup";
 import TestMenu from "app/entities/menu/TestMenu";
 import MenuUpdateTest from "app/entities/menu/MenuUpdateTest";
-import MenuUpdateTest2 from "app/entities/menu/men-update-test2";
+import MenuUpdateTest2 from "app/entities/menu/menu-update-test2";
 
 const MenuRoutes = () => (
   <ErrorBoundaryRoutes>
