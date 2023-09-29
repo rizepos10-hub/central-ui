@@ -16,6 +16,8 @@ const initialState: EntityState<IItem> = {
 };
 
 const apiUrl = 'api/items';
+const summaryUrl = 'api/items/summary';
+
 const apiSearchUrl = 'api/_search/items';
 
 // Actions
@@ -61,6 +63,13 @@ export const importData = createAsyncThunk('importData', async (file: File) => {
 
 export const getEntities = createAsyncThunk('item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+  const response  = await axios.get<IItem[]>(requestUrl);
+  console.log(response, 'responsin')
+  return response
+});
+
+export const getItemsSummary = createAsyncThunk('item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+  const requestUrl = `${summaryUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   const response  = await axios.get<IItem[]>(requestUrl);
   console.log(response, 'responsin')
   return response

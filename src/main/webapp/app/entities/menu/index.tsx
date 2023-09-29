@@ -10,17 +10,17 @@ import MenuDeleteDialog from './menu-delete-dialog';
 import NewMenuPopup from "app/entities/menu/new-menu-popup";
 import TestMenu from "app/entities/menu/TestMenu";
 import MenuUpdateTest from "app/entities/menu/MenuUpdateTest";
-import MenuUpdateTest2 from "app/entities/menu/men-update-test2";
+import MenuUpdateTest2 from "app/entities/menu/menu-update-test2";
 
 const MenuRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<TestMenu />} />
     <Route path="new" element={<NewMenuPopup />} />
-    <Route path="edit" element={<MenuUpdateTest2 />} />
+    {/* <Route path="edit" element={<MenuUpdateTest2 />} /> */}
 
     <Route path=":id">
       <Route index element={<MenuUpdateTest />} />
-      <Route path="edit" element={<MenuUpdateTest2 />} />
+      <Route path="edit" element={<MenuUpdateTest />} />
       <Route path="delete" element={<MenuDeleteDialog />} />
     </Route>
   </ErrorBoundaryRoutes>
