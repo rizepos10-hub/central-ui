@@ -17,6 +17,7 @@ const TopItems = () => {
     fetchData();
   }, []);
 
+  console.log(bestSellers, 'best')
   return (
     <div className="container mt-5" >
       <div className="row">
@@ -24,6 +25,7 @@ const TopItems = () => {
           <div className="card h-100 shadow" >
             <div className="card-body">
               <h4 className="card-title">Best Sellers</h4>
+
               <ListGroup>
 
                 {bestSellers &&
@@ -36,19 +38,19 @@ const TopItems = () => {
                           <strong>Variant</strong>
                         </Col>
                         <Col xs="3">
-                          <strong>Discount</strong>
+                          <strong>Order Count</strong>
                         </Col>
                         <Col xs="3">
-                          <strong>Price</strong>
+                          <strong>Image</strong>
                         </Col>
                       </Row>
                     </ListGroupItem>}
-                {bestSellers.map((item, index) => (
+                {bestSellers.filter((item)=> item.itemId !== null).map((item, index) => (
                   <ListGroupItem key={`entity-${index}`} data-cy="entityTable">
                     <Row>
                       <Col xs="3">
               <span className="font-medium text-lg mb-1">
-                {item.itemName}
+                {item.itemName }
               </span>
                       </Col>
                       <Col xs="3">
