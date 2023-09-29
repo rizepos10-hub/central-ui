@@ -16,11 +16,11 @@ const MenuRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<TestMenu />} />
     <Route path="new" element={<NewMenuPopup />} />
-    <Route path="edit" element={<MenuUpdateTest2 />} />
+    {/* <Route path="edit" element={<MenuUpdateTest2 />} /> */}
 
     <Route path=":id">
       <Route index element={<MenuUpdateTest />} />
-      <Route path="edit" element={<MenuUpdateTest2 />} />
+      <Route path="edit" element={<MenuUpdateTest />} />
       <Route path="delete" element={<MenuDeleteDialog />} />
     </Route>
   </ErrorBoundaryRoutes>

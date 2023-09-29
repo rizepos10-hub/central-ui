@@ -30,6 +30,7 @@ import {APP_DATE_FORMAT} from "app/config/constants";
 import {convertDateTimeToServer} from "app/shared/util/date-utils";
 import ItemSelectionModal from "app/entities/menu/item-selection-modal";
 import {it} from "date-fns/locale";
+import {FaBars} from "react-icons/fa";
 
 function LargeCard() {
 
@@ -39,6 +40,8 @@ function LargeCard() {
 
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
+
+
 
   const terms = useAppSelector(state => state.term.entities)
   const menuEntity = useAppSelector(state => state.menu.entity);
@@ -69,14 +72,13 @@ function LargeCard() {
   const [newSubScreenName, setNewSubScreenName] = useState('');
   const [newSubScreenColor, setNewSubScreenColor] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
-  const [editSubScreenName, setEditSubScreenName] = useState('');
-  const [editSubScreenColor, setEditSubScreenColor] = useState('');
+  const [selectedScreenIndex, setSelectedScreenIndex] = useState(null);
+  const [selectedScreenType, setSelectedScreenType] = useState(null);
+  const [editScreenName, setEditScreenName] = useState('');
+  const [editScreenColor, setEditScreenColor] = useState('');
   const [breadcrumb, setBreadcrumb] = useState([]);
 
-  const [editSubScreen, setEditSubScreen] = useState(null);
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
+
   const [subScreenStack, setSubScreenStack] = useState([]);
 
   const handleMainScreenAdd = () => {
@@ -89,87 +91,84 @@ function LargeCard() {
 
 
 
-  const openEditModal = (selectedSubScreen) => {
-    console.log(selectedSubScreen, 'lol')
-    setEditSubScreen(selectedSubScreen);
-    setEditSubScreenName(selectedSubScreen.name);
-    setEditSubScreenColor(selectedSubScreen.backgroundColor);
-
-    setIsModalOpen({...isModalOpen, isEditModalOpen: true});
-
+  const openEditModal = (selectedScreen, screenIndex, screenType) => {
+    setSelectedScreenIndex(screenIndex);
+    setSelectedScreenType(screenType);
+    setEditScreenName(selectedScreen.name);
+    setEditScreenColor(selectedScreen.backgroundColor);
+    setIsModalOpen({ ...isModalOpen, isEditModalOpen: true });
   };
 
 
 
-  const handleEditSubScreen = () => {
-    if (!editSubScreenName.trim()) {
-      alert('Please enter a sub-screen name.');
+
+  const handleEditScreen = () => {
+    if (!editScreenName.trim()) {
+      alert('Please enter a screen name.');
       return;
     }
+console.log(editScreenColor, 'editScreenColor' )
+    setData((prevData) => {
+      const updatedMenuScreens = prevData.menuScreens.map((mainScreen, i) => {
+        console.log("im here1")
+        console.log("im here1",mainScreen)
+        console.log("im here1", i)
+        console.log("im here1", selectedScreenIndex)
 
-    const updatedMenuScreens = [...data.menuScreens];
 
-    if (editSubScreen !== null) {
 
-      editSubScreen.name = editSubScreenName;
-      editSubScreen.backgroundColor = editSubScreenColor;
+          if (selectedScreenType === 'main') {
+            console.log("im here3")
 
-      setData({
-        ...data,
-        menuScreens: updatedMenuScreens,
+            return {
+              ...mainScreen,
+              name: editScreenName,
+              backgroundColor: editScreenColor,
+            };
+          } else if (selectedScreenType === 'sub') {
+            console.log("im here")
+            const updatedSubScreens = mainScreen.subScreens.map((subScreen, j) => {
+              console.log("im here", j)
+              console.log("im here selectedScreenIndex", selectedScreenIndex)
+
+              if (j === selectedScreenIndex) {
+                console.log("im here", j)
+                console.log("im here selectedScreenIndex", selectedScreenIndex)
+
+                return {
+                  ...subScreen,
+                  name: editScreenName,
+                  backgroundColor: editScreenColor,
+                };
+              }
+              return subScreen;
+            });
+            return {
+              ...mainScreen,
+              subScreens: updatedSubScreens,
+            };
+          }
+        return mainScreen;
       });
-    }
 
-    setIsModalOpen({...isModalOpen, isEditModalOpen: false});
-
-  };
-
-
-
-
-  const handleAddSelectedItem = (item) => {
-    if (selectedMainScreen !== null) {
-      const newItemSubScreen = {
-        name: item.name,
-        backgroundColor: selectedColorTheme,
-        managerOnlyAccess: false,
-        componentType: 'ITEM',
-        component: {
-          item: { id : item.id},
-        },
+      return {
+        ...prevData,
+        menuScreens: updatedMenuScreens,
       };
+    });
 
-      const updatedMenuScreens = data.menuScreens.map((menuScreen, index) => {
-        if (index === selectedMainScreen) {
-          const newMenuScreen = {
-            ...menuScreen,
-            subScreens: [
-              ...(menuScreen.subScreens || []),
-              newItemSubScreen,
-            ],
-          };
-          return newMenuScreen;
-        }
-        return menuScreen;
-      });
-
-      setData({
-        ...data,
-        menuScreens: updatedMenuScreens,
-      });
-
-    } else {
-      alert('Please select a main screen first.');
-    }
+    setIsModalOpen({ ...isModalOpen, isEditModalOpen: false });
   };
+
+
+
+
+
 
 
 
   const handleToggleSelect = (item) => {
-    setSelectedItems((prevSelectedItems) => {
-      console.log(prevSelectedItems, 'prevSelectedItems')
-      return [ ...prevSelectedItems,item ]
-    });
+    setSelectedItems((prevSelectedItems) => [...prevSelectedItems, item]);
     handleAddSelectedItem(item)
   };
 
@@ -193,25 +192,25 @@ function LargeCard() {
     '#17a2b8', '#20c997', '#ffc107', '#6c757d', '#856404', '#6c757d'
   ];
 
-    const handleModalSubmit = () => {
-      const newMainScreen = {
-        name: newMainScreenName,
-        backgroundColor: selectedColorTheme,
-        managerOnlyAccess: '',
-        componentType: "SUB_SCREENS",
+  const handleModalSubmit = () => {
+    const newMainScreen = {
+      name: newMainScreenName,
+      backgroundColor: selectedColorTheme,
+      managerOnlyAccess: '',
+      componentType: "SUB_SCREENS",
 
-        subscreens: [],
-      };
-
-      setData({
-        ...data,
-        menuScreens: [...data.menuScreens, newMainScreen],
-      });
-
-      setIsModalOpen({...isModalOpen, isMainScreenModalOpen: false});
-      setNewMainScreenName('');
-      setSelectedColorTheme('');
+      subscreens: [],
     };
+
+    setData({
+      ...data,
+      menuScreens: [...data.menuScreens, newMainScreen],
+    });
+
+    setIsModalOpen({...isModalOpen, isMainScreenModalOpen: false});
+    setNewMainScreenName('');
+    setSelectedColorTheme('');
+  };
 
 
 
@@ -229,6 +228,101 @@ function LargeCard() {
       alert('Please select a main screen first.');
     }
   };
+  const findAndAddItem = (subScreens, targetSubScreen, newItem) => {
+    return subScreens.map((subScreen) => {
+      if (subScreen === targetSubScreen) {
+        return {
+          ...subScreen,
+          subScreens: [...(subScreen.subScreens || []), newItem],
+        };
+      } else if (subScreen.subScreens) {
+        const updatedNestedSubScreens = findAndAddItem(
+          subScreen.subScreens,
+          targetSubScreen,
+          newItem
+        );
+        if (updatedNestedSubScreens !== subScreen.subScreens) {
+          return {
+            ...subScreen,
+            subScreens: updatedNestedSubScreens,
+          };
+        }
+      }
+      return subScreen;
+    });
+  };
+
+  const handleAddSelectedItem = (item) => {
+    console.log("I entered here");
+    if (selectedMainScreen !== null) {
+      const newItemSubScreen = {
+        name: item.name,
+        backgroundColor: selectedColorTheme,
+        managerOnlyAccess: false,
+        componentType: 'ITEM',
+        component: {
+          item: { id: item.id },
+        },
+      };
+
+      const updatedData = { ...data };
+      const updatedMenuScreens = [...updatedData.menuScreens];
+
+      if (subScreenStack.length === 0) {
+        console.log("Correct");
+
+        updatedMenuScreens[selectedMainScreen] = {
+          ...updatedMenuScreens[selectedMainScreen],
+          subScreens: [
+            ...(updatedMenuScreens[selectedMainScreen].subScreens || []),
+            newItemSubScreen,
+          ],
+        };
+      } else {
+        const topSubScreen = subScreenStack[subScreenStack.length - 1];
+        console.log("Kamel topSubScreen", topSubScreen);
+
+        updatedMenuScreens[selectedMainScreen] = {
+          ...updatedMenuScreens[selectedMainScreen],
+          subScreens: findAndAddItem(
+            updatedMenuScreens[selectedMainScreen].subScreens,
+            topSubScreen,
+            newItemSubScreen
+          ),
+        };
+      }
+
+      updatedData.menuScreens = updatedMenuScreens;
+
+      setData(updatedData);
+    } else {
+      alert('Please select a main screen first.');
+    }
+  };
+
+  const findAndAddSubScreen = (subScreens, targetSubScreen, newSubScreen) => {
+    return subScreens.map((subScreen) => {
+      if (subScreen === targetSubScreen) {
+        return {
+          ...subScreen,
+          subScreens: [...(subScreen.subScreens || []), newSubScreen],
+        };
+      } else if (subScreen.subScreens) {
+        const updatedNestedSubScreens = findAndAddSubScreen(
+          subScreen.subScreens,
+          targetSubScreen,
+          newSubScreen
+        );
+        if (updatedNestedSubScreens !== subScreen.subScreens) {
+          return {
+            ...subScreen,
+            subScreens: updatedNestedSubScreens,
+          };
+        }
+      }
+      return subScreen;
+    });
+  };
 
   const handleSubScreenModalSubmit = () => {
     if (!newSubScreenName.trim()) {
@@ -236,33 +330,49 @@ function LargeCard() {
       return;
     }
 
-    const updatedMenuScreens = data.menuScreens.map((menuScreen, index) => {
-      console.log(index, 'kamel', menuScreen, 'kamel1')
-      if (index === selectedMainScreen) {
-        const newMenuScreen = {
-          ...menuScreen,
-          subScreens: [
-            ...(menuScreen.subScreens || []),
-            {
-              name: newSubScreenName,
-              backgroundColor: newSubScreenColor,
-              componentType: 'SUB_SCREENS',
-              managerOnlyAccess: false,
-              subScreens: [],
-            },
-          ],
-        };
-        return newMenuScreen;
-      }
-      return menuScreen;
-    });
+    const updatedData = { ...data };
+    const updatedMenuScreens = [...updatedData.menuScreens];
 
-    setData({
-      ...data,
-      menuScreens: updatedMenuScreens,
-    });
+    if (subScreenStack.length === 0) {
+      console.log("imhere1")
+      updatedMenuScreens[selectedMainScreen] = {
+        ...updatedMenuScreens[selectedMainScreen],
+        subScreens: [
+          ...(updatedMenuScreens[selectedMainScreen].subScreens || []),
+          {
+            name: newSubScreenName,
+            backgroundColor: newSubScreenColor,
+            componentType: 'SUB_SCREENS',
+            managerOnlyAccess: false,
+            subScreens: [],
+          },
+        ],
+      };
 
-    setIsModalOpen({...isModalOpen, isSubScreenModalOpen: false});
+    } else {
+      const topSubScreen = subScreenStack[subScreenStack.length - 1];
+
+      updatedMenuScreens[selectedMainScreen] = {
+        ...updatedMenuScreens[selectedMainScreen],
+        subScreens: findAndAddSubScreen(
+          updatedMenuScreens[selectedMainScreen].subScreens,
+          topSubScreen,
+          {
+            name: newSubScreenName,
+            backgroundColor: newSubScreenColor,
+            componentType: 'SUB_SCREENS',
+            managerOnlyAccess: false,
+            subScreens: [],
+          }
+        ),
+      };
+    }
+
+    updatedData.menuScreens = updatedMenuScreens;
+
+    setData(updatedData);
+
+    setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: false });
 
     setNewSubScreenName('');
     setNewSubScreenColor('');
@@ -271,16 +381,43 @@ function LargeCard() {
 
 
 
+
+
+
   const handleRemoveCard = (mainScreenIndex, subScreenIndex) => {
     setData((prevData) => {
       const updatedMenuScreens = prevData.menuScreens.map((mainScreen, i) => {
         if (i === mainScreenIndex) {
-          const updatedSubScreens = [...mainScreen.subScreens];
-          updatedSubScreens.splice(subScreenIndex, 1);
-          return {
-            ...mainScreen,
-            subScreens: updatedSubScreens,
-          };
+          if (subScreenStack.length === 0) {
+            const updatedSubScreens = mainScreen.subScreens.filter(
+              (subScreen, j) => j !== subScreenIndex
+            );
+            return {
+              ...mainScreen,
+              subScreens: updatedSubScreens,
+            };
+          } else {
+            const topSubScreen = subScreenStack[subScreenStack.length - 1];
+            if (mainScreen === topSubScreen) {
+              const updatedSubScreens = mainScreen.subScreens.map(
+                (subScreen, j) => {
+                  if (j === subScreenIndex) {
+                    return {
+                      ...subScreen,
+                      subScreens: subScreen.subScreens.filter(
+                        (item, k) => k !== subScreenIndex
+                      ),
+                    };
+                  }
+                  return subScreen;
+                }
+              );
+              return {
+                ...mainScreen,
+                subScreens: updatedSubScreens,
+              };
+            }
+          }
         }
         return mainScreen;
       });
@@ -296,42 +433,57 @@ function LargeCard() {
 
 
 
+
   const renderSubScreens = (subscreens, mainScreenIndex) => {
     if (!subscreens || subscreens.length === 0) {
       return null;
     }
 
-    return subscreens.map((item, index) => {
-      if (!item) {
-        return null;
-      }
+    console.log(subscreens, 'hellloizz');
 
-      return (
-        <div key={index} className="mb-3">
-          <Card
-            className="d-flex p-3 cursor-pointer"
-            onClick={() => {
-              if (item.componentType === 'SUB_SCREENS') {
-                handleNavigateToSubScreen(item);
-              }
-            }}
-          >
-            <h5 className="m-0 mr-3 mb-2">{item.name}</h5>
+    return (
+      <div className="d-flex flex-wrap mb-3">
+        {subscreens.map((item, index) => (
+          <div key={index} className="d-flex flex-column p-1 cursor-pointer mb-3">
+            <Card
+              style={{ width: '400px' }}
+              className="mb-3 position-relative"
+            >
+                <div className="d-flex justify-content-end">
+                  <FaBars onClick={() => openEditModal(item, index, 'sub')} />
+                </div>
+              <div  onClick={() => {
+                if (item.componentType === 'SUB_SCREENS') {
+                  handleNavigateToSubScreen(item);
+                }
+              }}>
 
-          </Card>
-          <Button
-            color="danger"
-            size="sm"
-            onClick={() => handleRemoveCard(mainScreenIndex, index)}
-          >
-            Remove
-          </Button>
-        </div>
-      );
-    });
+
+              <h4 className="m-0 mb-2">{item.name}</h4>
+                <div className="d-flex align-items-center">
+                  <Button
+                    style={{ backgroundColor: item.backgroundColor, width: '55px', height: '30px', marginRight: '10px' }}
+                  />
+                  <span className="m-0">{item.componentType}</span>
+                </div>
+              </div>
+              <div className="d-flex justify-content-end">
+                <Button
+                  color="danger"
+                  size="sm"
+                  onClick={() => handleRemoveCard(mainScreenIndex, index)}
+                >
+                  Remove
+                </Button>
+              </div>
+            </Card>
+          </div>
+        ))}
+      </div>
+    );
   };
 
-// ...
+
 
   const renderCurrentSubScreen = () => {
     if (!data.menuScreens || data.menuScreens.length === 0 || selectedMainScreen === null) {
@@ -348,23 +500,22 @@ function LargeCard() {
       return renderSubScreens(mainScreen.subScreens, selectedMainScreen);
     }
 
-    return subScreenStack.map((subscreen, index) => {
-      return (
-        <div key={index}>
-          <div className="ml-3">
-            {renderSubScreens(subscreen?.subScreens, selectedMainScreen)}
-          </div>
+    return (
+      <div>
+        <div className="ml-3">
+          {renderSubScreens(subScreenStack[subScreenStack.length - 1].subScreens, selectedMainScreen)}
         </div>
-      );
-    });
+      </div>
+    );
   };
+
+  console.log(breadcrumb, 'breadcr')
 
 
   const handleNavigateToSubScreen = (subscreen) => {
 
-    const updatedStack = [...subScreenStack, subscreen];
-    setSubScreenStack(updatedStack);
-console.log(subScreenStack, 'subScreenStack1')
+    setSubScreenStack((prev) => [...prev, subscreen]);
+
     const updatedBreadcrumb = [...breadcrumb, subscreen.name];
     setBreadcrumb(updatedBreadcrumb);
   };
@@ -402,13 +553,7 @@ console.log(subScreenStack, 'subScreenStack1')
     }
     dispatch(getBranches({}))
     dispatch(getTerms({}));
-    {isModalOpen.isItemModalOpen &&
-      dispatch(getItemsSummary({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }));
-    }
+
 
 
     return () => {
@@ -493,7 +638,7 @@ console.log(subScreenStack, 'subScreenStack1')
   console.log(data, 'dataa')
 
   return (
-    <Container className="mt-5">
+    <Container className="mt-5" >
       <Card>
         <div className="d-flex justify-content-between align-items-center p-3">
           <h1>{menuEntity.name}</h1>
@@ -529,9 +674,9 @@ console.log(subScreenStack, 'subScreenStack1')
           </p>
         </CardBody>
       </Card>
-      <Card>
-        <Row>
-          <Col md="4">
+      <Card >
+        <Row style={{ minHeight: '55rem' }}>
+          <Col md="4" className="border-right-1">
             <div className="d-flex justify-content-between align-items-center">
               <div>
                 <h2 className="border- border-dark pb-3">Main Screens</h2>
@@ -548,6 +693,10 @@ console.log(subScreenStack, 'subScreenStack1')
                     className="d-flex p-3 cursor-pointer"
 
                   >
+
+                    <div className="d-flex justify-content-end">
+                      <FaBars onClick={() => openEditModal(mainScreen, index, 'main')} />
+                    </div>
                     <h5 className="m-0 mr-3 mb-2">{mainScreen.name}</h5>
                     <div className='d-flex flex-row justify-content-between'>
                       <Button
@@ -572,31 +721,31 @@ console.log(subScreenStack, 'subScreenStack1')
                 </button>
               )}
 
-                <div>
-                  <Button color="primary" id="addButton" onClick={() => setPopoverOpen(!popoverOpen)} className="ml-2">
-                    Add Button
-                  </Button>
-                  <Popover isOpen={popoverOpen} target="addButton" toggle={() => setPopoverOpen(!popoverOpen)}>
-                    <PopoverHeader>Add Button</PopoverHeader>
-                    <PopoverBody>
-                      <p onClick={() => {
-                        handleButtonAdd('Sub-screen')
-                        setPopoverOpen(false)
-                      }} className="p-2" style={{ cursor: 'pointer' }}>
-                        Sub-screen
-                      </p>
-                      <p onClick={() => {
-                        handleButtonAdd('Item')
-                        setPopoverOpen(false)
-                      }} className="p-2" style={{ cursor: 'pointer' }}>
-                        Item
-                      </p>
-                    </PopoverBody>
-                  </Popover>
-                  <Button color="primary" onClick={handleSaveClick} className="ml-2">
-                    Save
-                  </Button>
-                </div>
+              <div>
+                <Button color="primary" id="addButton" onClick={() => setPopoverOpen(!popoverOpen)} className="ml-2">
+                  Add Button
+                </Button>
+                <Popover isOpen={popoverOpen} target="addButton" toggle={() => setPopoverOpen(!popoverOpen)}>
+                  <PopoverHeader>Add Button</PopoverHeader>
+                  <PopoverBody>
+                    <p onClick={() => {
+                      handleButtonAdd('Sub-screen')
+                      setPopoverOpen(false)
+                    }} className="p-2" style={{ cursor: 'pointer' }}>
+                      Sub-screen
+                    </p>
+                    <p onClick={() => {
+                      handleButtonAdd('Item')
+                      setPopoverOpen(false)
+                    }} className="p-2" style={{ cursor: 'pointer' }}>
+                      Item
+                    </p>
+                  </PopoverBody>
+                </Popover>
+                <Button color="primary" onClick={handleSaveClick} className="ml-2">
+                  Save
+                </Button>
+              </div>
             </div>
             <ListGroup className="mt-3">{renderCurrentSubScreen()}</ListGroup>
           </Col>
@@ -679,9 +828,8 @@ console.log(subScreenStack, 'subScreenStack1')
 
 
 
-      <Modal isOpen={isModalOpen.isEditModalOpen}
-             toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: !isModalOpen.isEditModalOpen })}>
-        <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: !isModalOpen.isEditModalOpen })}>
+      <Modal isOpen={isModalOpen.isEditModalOpen} toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: false })}>
+        <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: false })}>
           Edit Sub-Screen
         </ModalHeader>
         <ModalBody>
@@ -690,8 +838,8 @@ console.log(subScreenStack, 'subScreenStack1')
             <Input
               type="text"
               id="subScreenName"
-              value={editSubScreenName}
-              onChange={(e) => setEditSubScreenName(e.target.value)}
+              value={editScreenName}
+              onChange={(e) => setEditScreenName(e.target.value)}
             />
           </FormGroup>
           <FormGroup>
@@ -701,15 +849,16 @@ console.log(subScreenStack, 'subScreenStack1')
                 <Button
                   key={index}
                   style={{ backgroundColor: color, width: '55px', height: '30px', border: 'none', marginRight: '10px', marginBottom: '10px' }}
-                  className={editSubScreenColor === color ? 'active' : ''}
-                  onClick={() => setEditSubScreenColor(color)}
+                  className={editScreenColor === color ? 'active' : ''}
+                  onClick={() => setEditScreenColor(color)}
                 ></Button>
               ))}
             </div>
           </FormGroup>
-          <Button color="primary" onClick={handleEditSubScreen}>Save</Button>
+          <Button color="primary" onClick={handleEditScreen}>Save</Button>
         </ModalBody>
       </Modal>
+
     </Container>
   );
 }
