@@ -14,7 +14,7 @@ const initialState: EntityState<ICustomer> = {
   totalItems: 0,
   updateSuccess: false,
 };
-
+const priceApiUrl = 'api/customer-item-price';
 const apiUrl = 'api/customers';
 const apiSearchUrl = 'api/_search/customers';
 
@@ -48,6 +48,30 @@ export const createEntity = createAsyncThunk(
   },
   { serializeError: serializeAxiosError }
 );
+
+
+
+export const getPricesForCustomer = createAsyncThunk(
+  'customer/fetch_customer_prices',
+  async (customerId: string | number) => {
+    const requestUrl = `api/customer-item-price/customer/${customerId}`;
+    return axios.get(requestUrl);
+  },
+
+);
+
+export const updatePrices = createAsyncThunk(
+  'customer/update_prices',
+  async ({pricesData, customerId} :any) => {
+    const request  = `${priceApiUrl}/${customerId}`
+    const result = await axios.put(request, (pricesData));
+
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+
 
 export const updateEntity = createAsyncThunk(
   'customer/update_entity',

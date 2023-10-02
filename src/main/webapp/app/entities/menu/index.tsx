@@ -19,8 +19,8 @@ const MenuRoutes = () => (
     {/* <Route path="edit" element={<MenuUpdateTest2 />} /> */}
 
     <Route path=":id">
-      <Route index element={<MenuUpdateTest />} />
-      <Route path="edit" element={<MenuUpdateTest />} />
+      <Route index element={<MenuUpdateTest2 />} />
+      <Route path="edit" element={<MenuUpdateTest2 />} />
       <Route path="delete" element={<MenuDeleteDialog />} />
     </Route>
   </ErrorBoundaryRoutes>

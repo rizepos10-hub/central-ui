@@ -14,7 +14,7 @@ import {
   FormGroup,
   Popover,
   PopoverHeader,
-  PopoverBody, CardBody,
+  PopoverBody, CardBody, ModalFooter,
 } from 'reactstrap';
 import {useNavigate, useParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "app/config/store";
@@ -23,14 +23,15 @@ import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {getEntities as getTerms} from "app/entities/term/term.reducer";
 import {getItemsSummary} from "app/entities/item/item.reducer";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState, TextFormat, Translate} from "react-jhipster";
+import {getSortState, TextFormat, translate, Translate, ValidatedField, ValidatedForm} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {APP_DATE_FORMAT} from "app/config/constants";
-import {convertDateTimeToServer} from "app/shared/util/date-utils";
+import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime} from "app/shared/util/date-utils";
 import ItemSelectionModal from "app/entities/menu/item-selection-modal";
 import {it} from "date-fns/locale";
 import {FaBars} from "react-icons/fa";
+import Select from "react-select";
 
 function LargeCard() {
 
@@ -50,9 +51,11 @@ function LargeCard() {
   const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
   const errorMessage = useAppSelector(state => state.menu.errorMessage);
 
-
-
-
+// For Menu Edit Modal
+  const [selectedCategory, setSelectedCategory] = useState();
+  const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
+  const initialBranches = {label : menuEntity?.branch?.name , value: menuEntity?.branch?.id}
+  const [selectedBranches, setSelectedBranches] = useState<any>();
 
   const [data, setData] :any= useState({
     name: '',
@@ -61,11 +64,13 @@ function LargeCard() {
   });
   const [selectedMainScreen, setSelectedMainScreen] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState({
+    isMenuModalOpen: false,
     isMainScreenModalOpen: false,
     isSubScreenModalOpen: false,
     isItemModalOpen: false,
     isEditModalOpen: false,
   });
+
   const [newMainScreenName, setNewMainScreenName] = useState('');
   const [selectedColorTheme, setSelectedColorTheme] = useState('');
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -89,6 +94,9 @@ function LargeCard() {
     setSelectedMainScreen(null);
   };
 
+  useEffect(() => {
+    console.log("Data updated: ", data);
+  }, [data]);
 
 
   const openEditModal = (selectedScreen, screenIndex, screenType) => {
@@ -166,11 +174,33 @@ console.log(editScreenColor, 'editScreenColor' )
 
 
 
-
   const handleToggleSelect = (item) => {
-    setSelectedItems((prevSelectedItems) => [...prevSelectedItems, item]);
-    handleAddSelectedItem(item)
+    setSelectedItems((prevSelectedItems) => {
+      console.log("Before:", prevSelectedItems); // Log initial state
+      console.log("Toggling item:", item); // Log item being toggled
+
+      const isSelected = prevSelectedItems.some(
+        (selected) => selected.id === item.id
+      );
+
+      if (isSelected) {
+        console.log("Item is selected, removing...");
+        handleRemoveSelectedItem(item.id); // Handle removal in your main data structure
+        const updatedItems = prevSelectedItems.filter(
+          (selected) => selected.id !== item.id
+        );
+        console.log("After removal:", updatedItems); // Log state after removal
+        return updatedItems;
+      }
+
+      console.log("Item is not selected, adding...");
+      handleAddSelectedItem(item);
+      const updatedItems = [...prevSelectedItems, item];
+      console.log("After adding:", updatedItems); // Log state after adding
+      return updatedItems;
+    });
   };
+
 
   const togglePopover = () => {
     setPopoverOpen(!popoverOpen);
@@ -228,9 +258,44 @@ console.log(editScreenColor, 'editScreenColor' )
       alert('Please select a main screen first.');
     }
   };
+
+  const findAndRemoveItem = (subScreens, targetSubScreen, itemId) => {
+    console.log("im here1")
+    return subScreens.map((subScreen) => {
+      if (subScreen.name === targetSubScreen.name) {
+        console.log("im here11", subScreen.name, targetSubScreen.name)
+        console.log("im here11", subScreen.name, targetSubScreen.name)
+
+        return {
+          ...subScreen,
+          subScreens: (subScreen.subScreens || []).filter(sub => {
+            console.log(sub, 'im here1subb')
+            console.log(itemId, 'im here1subb')
+
+            sub.component?.item?.id !== itemId
+          }),
+        };
+      } else if (subScreen.subScreens) {
+        const updatedNestedSubScreens = findAndRemoveItem(
+          subScreen.subScreens,
+          targetSubScreen,
+          itemId
+        );
+        if (updatedNestedSubScreens !== subScreen.subScreens) {
+          return {
+            ...subScreen,
+            subScreens: updatedNestedSubScreens,
+          };
+        }
+      }
+      return subScreen;
+    });
+  };
+
   const findAndAddItem = (subScreens, targetSubScreen, newItem) => {
     return subScreens.map((subScreen) => {
-      if (subScreen === targetSubScreen) {
+      if (subScreen.name === targetSubScreen.name) {
+
         return {
           ...subScreen,
           subScreens: [...(subScreen.subScreens || []), newItem],
@@ -252,6 +317,58 @@ console.log(editScreenColor, 'editScreenColor' )
     });
   };
 
+  const handleRemoveSelectedItem = (itemId) => {
+    console.log("Handling removal of item with ID:", itemId);
+
+    if (selectedMainScreen !== null) {
+      const updatedData = { ...data };
+      const updatedMenuScreens = [...updatedData.menuScreens];
+      let updatedSubScreenStack;
+
+      if (subScreenStack.length === 0) {
+        updatedMenuScreens[selectedMainScreen] = {
+          ...updatedMenuScreens[selectedMainScreen],
+          subScreens: (
+            updatedMenuScreens[selectedMainScreen].subScreens || []
+          ).filter(subScreen => {
+            console.log(subScreen, 'imsubss');
+            return subScreen.component?.item?.id !== itemId;
+          }),
+        };
+      } else {
+        const topSubScreen = subScreenStack[subScreenStack.length - 1];
+        updatedMenuScreens[selectedMainScreen] = {
+          ...updatedMenuScreens[selectedMainScreen],
+          subScreens: findAndRemoveItem(
+            updatedMenuScreens[selectedMainScreen].subScreens,
+            topSubScreen,
+            itemId
+          ),
+        };
+
+        // Update the subScreenStack to remove the sub-screen with itemId
+        updatedSubScreenStack = subScreenStack.map((subScreen) =>
+          subScreen === topSubScreen
+            ? {
+              ...topSubScreen,
+              subScreens: topSubScreen.subScreens.filter(subScreen => subScreen.component?.item?.id !== itemId),
+            }
+            : subScreen
+        );
+      }
+
+      updatedData.menuScreens = updatedMenuScreens;
+      setData(updatedData);
+
+      if (updatedSubScreenStack) {
+        setSubScreenStack(updatedSubScreenStack);
+      }
+    } else {
+      alert('Please select a main screen first.');
+    }
+  };
+
+
   const handleAddSelectedItem = (item) => {
     console.log("I entered here");
     if (selectedMainScreen !== null) {
@@ -267,6 +384,8 @@ console.log(editScreenColor, 'editScreenColor' )
 
       const updatedData = { ...data };
       const updatedMenuScreens = [...updatedData.menuScreens];
+
+      let updatedSubScreenStack;
 
       if (subScreenStack.length === 0) {
         console.log("Correct");
@@ -290,19 +409,31 @@ console.log(editScreenColor, 'editScreenColor' )
             newItemSubScreen
           ),
         };
-      }
 
+        updatedSubScreenStack = subScreenStack.map((subScreen) =>
+          subScreen === topSubScreen
+            ? { ...topSubScreen, subScreens: [...(topSubScreen.subScreens || []), newItemSubScreen] }
+            : subScreen
+        );
+      }
       updatedData.menuScreens = updatedMenuScreens;
 
+      console.log(updatedData, 'updatddd')
+
       setData(updatedData);
+
+      if(updatedSubScreenStack){
+        setSubScreenStack(updatedSubScreenStack);
+      }
     } else {
       alert('Please select a main screen first.');
     }
   };
 
+
   const findAndAddSubScreen = (subScreens, targetSubScreen, newSubScreen) => {
     return subScreens.map((subScreen) => {
-      if (subScreen === targetSubScreen) {
+      if (subScreen.name === targetSubScreen.name) {
         return {
           ...subScreen,
           subScreens: [...(subScreen.subScreens || []), newSubScreen],
@@ -332,6 +463,9 @@ console.log(editScreenColor, 'editScreenColor' )
 
     const updatedData = { ...data };
     const updatedMenuScreens = [...updatedData.menuScreens];
+
+    let updatedSubScreenStack;
+
 
     if (subScreenStack.length === 0) {
       console.log("imhere1")
@@ -366,11 +500,27 @@ console.log(editScreenColor, 'editScreenColor' )
           }
         ),
       };
+      updatedSubScreenStack = subScreenStack.map((subScreen) =>
+        subScreen === topSubScreen
+          ? { ...topSubScreen, subScreens: [...(topSubScreen.subScreens || []), {
+              name: newSubScreenName,
+              backgroundColor: newSubScreenColor,
+              componentType: 'SUB_SCREENS',
+              managerOnlyAccess: false,
+              subScreens: [],
+            }] }
+          : subScreen
+      );
     }
 
     updatedData.menuScreens = updatedMenuScreens;
 
+
+
     setData(updatedData);
+    if(updatedSubScreenStack){
+      setSubScreenStack(updatedSubScreenStack);
+    }
 
     setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: false });
 
@@ -397,8 +547,9 @@ console.log(editScreenColor, 'editScreenColor' )
               subScreens: updatedSubScreens,
             };
           } else {
-            const topSubScreen = subScreenStack[subScreenStack.length - 1];
-            if (mainScreen === topSubScreen) {
+            const isMainScreenInStack = subScreenStack.includes(mainScreen);
+
+            if (isMainScreenInStack) {
               const updatedSubScreens = mainScreen.subScreens.map(
                 (subScreen, j) => {
                   if (j === subScreenIndex) {
@@ -416,6 +567,19 @@ console.log(editScreenColor, 'editScreenColor' )
                 ...mainScreen,
                 subScreens: updatedSubScreens,
               };
+            } else {
+              const updatedSubScreenStack = subScreenStack.map((subScreen) =>
+                subScreen === subScreenStack[subScreenStack.length - 1]
+                  ? {
+                    ...subScreen,
+                    subScreens: subScreen.subScreens.filter(
+                      (item, k) => k !== subScreenIndex
+                    ),
+                  }
+                  : subScreen
+              );
+
+              setSubScreenStack(updatedSubScreenStack);
             }
           }
         }
@@ -434,7 +598,10 @@ console.log(editScreenColor, 'editScreenColor' )
 
 
 
+
   const renderSubScreens = (subscreens, mainScreenIndex) => {
+    console.log("Rendering with subscreens: ", subscreens);
+
     if (!subscreens || subscreens.length === 0) {
       return null;
     }
@@ -446,7 +613,7 @@ console.log(editScreenColor, 'editScreenColor' )
         {subscreens.map((item, index) => (
           <div key={index} className="d-flex flex-column p-1 cursor-pointer mb-3">
             <Card
-              style={{ width: '400px' }}
+              style={{ width: '390px' }}
               className="mb-3 position-relative"
             >
                 <div className="d-flex justify-content-end">
@@ -499,6 +666,7 @@ console.log(editScreenColor, 'editScreenColor' )
     if (subScreenStack.length === 0) {
       return renderSubScreens(mainScreen.subScreens, selectedMainScreen);
     }
+    console.log(subScreenStack, 'subScreenStacksubScreenStack')
 
     return (
       <div>
@@ -568,7 +736,12 @@ console.log(editScreenColor, 'editScreenColor' )
         branch: menuEntity.branch,
         menuScreens: menuEntity.menuScreens ,
       };
-
+      if (menuEntity?.category){
+        setSelectedCategory(menuEntity.category.name)
+      }
+      if (menuEntity?.branch){
+        setSelectedBranches({label: menuEntity?.branch?.name , value: menuEntity?.branch?.id})
+      }
       setData(newData);
     }
   }, [menuEntity]);
@@ -613,15 +786,52 @@ console.log(editScreenColor, 'editScreenColor' )
       menuScreens: updatedMenuScreens,
     });
   };
-  const saveEntity = () => {
+
+
+  // For Menu Edit Modal
+
+  const defaultValues = () =>
+    isNew
+      ? {
+        createdDate: displayDefaultDateTime(),
+        lastModifiedDate: displayDefaultDateTime(),
+      }
+      : {
+        ...menuEntity,
+        createdDate: convertDateTimeFromServer(menuEntity.createdDate),
+        lastModifiedDate: convertDateTimeFromServer(menuEntity.lastModifiedDate),
+        category: selectedCategory
+      };
+
+      const handleCategoryChange = (event) => {
+        console.log(event.target.value, 'change')
+        setSelectedCategory(event.target.value);
+      };
+
+      const handleBranchChange = (selectedBranches) => {
+        console.log(selectedBranches, 'lol branch')
+        setSelectedBranches(selectedBranches);
+      }
+
+  const saveEntity = (values = null) => {
     if (!data.name) {
       alert('Please enter a menu name.');
       return;
     }
+    console.log(values, 'values')
+    if(values) {
+      values.createdDate = convertDateTimeToServer(values.createdDate);
+      values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate)
+    }
+
+    const { ...restValues } = values;
+
     const updatedMenuEntity = {
       ...menuEntity,
+      ...restValues,
       name: data.name,
-      branch: data.branch,
+      branch: { id: selectedBranches.value },
+      category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
       menuScreens: data.menuScreens,
     };
 
@@ -643,7 +853,7 @@ console.log(editScreenColor, 'editScreenColor' )
         <div className="d-flex justify-content-between align-items-center p-3">
           <h1>{menuEntity.name}</h1>
           <div>
-            <Button color="primary" onClick={() => {}}>
+            <Button color="primary" onClick={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: true })}>
               <FontAwesomeIcon icon="pencil-alt" />{' '}
               <span className="d-none d-md-inline">
             <Translate contentKey="entity.action.edit">Edit</Translate>
@@ -713,15 +923,17 @@ console.log(editScreenColor, 'editScreenColor' )
             </ListGroup>
           </Col>
           <Col md="8" className="border-left">
+
             <div className="d-flex justify-content-between">
               <h2>{breadcrumb?.join(' / ') || 'Sub Screens'}</h2>
-              {subScreenStack?.length > 0 && (
-                <button onClick={navigateBack} className="btn btn-primary">
-                  Back
-                </button>
-              )}
 
               <div>
+                {subScreenStack?.length > 0 && (
+                  <button onClick={navigateBack} className="btn btn-primary">
+                    Back
+                  </button>
+                )}
+
                 <Button color="primary" id="addButton" onClick={() => setPopoverOpen(!popoverOpen)} className="ml-2">
                   Add Button
                 </Button>
@@ -858,6 +1070,78 @@ console.log(editScreenColor, 'editScreenColor' )
           <Button color="primary" onClick={handleEditScreen}>Save</Button>
         </ModalBody>
       </Modal>
+
+      {isModalOpen.isMenuModalOpen && ( <Modal isOpen={isModalOpen.isMenuModalOpen} className="modal-lg"
+             toggle={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} >
+        <ModalHeader  toggle={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} >
+          <Translate contentKey="tempApp.menu.home.createOrEditLabel">Create or edit a Menu</Translate>
+        </ModalHeader>
+        <ModalBody>
+          <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
+
+            <ValidatedField
+              label={translate('tempApp.menu.name')}
+              id="menu-name"
+              name="name"
+              data-cy="name"
+              type="text"
+              validate={{
+                required: { value: true, message: translate('entity.validation.required') },
+                maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
+              }}
+            />
+            <ValidatedField
+              label={translate('tempApp.menu.menuUrl')}
+              id="menu-menuUrl"
+              name="menuUrl"
+              data-cy="menuUrl"
+              type="text"
+
+            />
+            <div className="mb-3">
+              Branches
+              <Select defaultValue={initialBranches}
+                      onChange={handleBranchChange} options={branchList} />
+            </div>
+            <ValidatedField
+              id="menu-category"
+              name="category"
+              data-cy="category"
+              label={translate('tempApp.menu.category')}
+              type="select"
+              required
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+            >
+              {terms
+                ? terms.map((otherEntity) => (
+                  <option key={otherEntity.id} value={otherEntity.name}>
+                    {otherEntity.name}
+                  </option>
+                ))
+                : null}
+
+            </ValidatedField>
+            <Button  id="cancel-save" data-cy="entityCreateCancelButton"
+                     onClick={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} replace color="info">
+              <FontAwesomeIcon icon="arrow-left"/>
+              &nbsp;
+              <span className="d-none d-md-inline">
+                          <Translate contentKey="entity.action.back">Back</Translate>
+                        </span>
+            </Button>
+            &nbsp;
+            <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                    disabled={updating}>
+              <FontAwesomeIcon icon="save"/>
+              &nbsp;
+              <Translate contentKey="entity.action.save">Save</Translate>
+            </Button>
+          </ValidatedForm>
+
+        </ModalBody>
+
+      </Modal>)}
 
     </Container>
   );

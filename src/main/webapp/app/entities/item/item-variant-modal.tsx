@@ -37,7 +37,8 @@ import { InputText } from 'primereact/inputtext';
 interface IVariantProps {
   showModal: boolean;
   handleClose?: () => void;
-  handleSave: (name: string, price: number, discount: any, attachments: any, branchPrices: any, ingredients: any , selectedVariantAddons: any) => void;
+  handleSave: (name: string, price: number, discount: any, attachments: any, branchPrices: any, ingredients: any ,
+               selectedVariantAddons: any, specialPrices : any  ) => void;
   onVariantImageUpload: any;
   editingVariantId: any;
   variants: any;
@@ -92,6 +93,37 @@ const ItemVariantModal = (props: IVariantProps) => {
   const [ingredients, setIngredients] = useState([]);
 
   const [attachments, setAttachments] = useState([]);
+
+  const [wholesalePrices, setWholesalePrices] = useState({
+    "PRICE_1": null,
+    "PRICE_2": null,
+    "PRICE_3": null,
+    "PRICE_4": null,
+    "PRICE_5": null
+  });
+
+  const [retailPrices, setRetailPrices] = useState({
+    "PRICE_1": null,
+    "PRICE_2": null,
+    "PRICE_3": null,
+    "PRICE_4": null,
+    "PRICE_5": null
+  });
+
+  const handleWholesalePriceChange = (priceKey, value) => {
+    setWholesalePrices({
+      ...wholesalePrices,
+      [priceKey]: value
+    });
+  };
+
+  const handleRetailPriceChange = (priceKey, value) => {
+    setRetailPrices({
+      ...retailPrices,
+      [priceKey]: value
+    });
+  };
+
 
   const handleDiscountsChange = selectedOptions => {
     console.log(selectedOptions, 'new discount');
@@ -199,7 +231,14 @@ const ItemVariantModal = (props: IVariantProps) => {
     }));
     console.log(variantImage, 'variantImage');
 
-    props.handleSave(name, parseFloat(price), selectedDiscountObjects,selectedVariantAddons, variantImage, branchPrices, ingredients);
+    const specialPrices = {
+      specialPrices: {
+        WHOLE_SALE: wholesalePrices,
+        Retail: retailPrices
+      }
+    }
+
+    props.handleSave(name, parseFloat(price), selectedDiscountObjects,selectedVariantAddons, variantImage, branchPrices, ingredients, specialPrices  );
   };
 
   const {
@@ -253,6 +292,13 @@ const ItemVariantModal = (props: IVariantProps) => {
         formattedBranchPrices[branchId] = { price: parseFloat(branchPrices[branchId]) };
       });
 
+      const specialPricesValues =
+         {
+          WHOLE_SALE: wholesalePrices,
+          RETAIL: retailPrices
+        }
+
+
       const editedVariant = {
         name,
         price: parseFloat(price),
@@ -261,18 +307,26 @@ const ItemVariantModal = (props: IVariantProps) => {
         addons: selectedVariantAddons,
         branchVariantDetails: formattedBranchPrices,
         ingredients: formattedIngredients,
+        specialPrices: specialPricesValues
       };
 
       console.log(formattedBranchPrices, 'formattedBranchPrices')
 
-      // If editing an existing variant, update it
+
+
       if (props.editingVariantId !== null) {
         const existingVariant = props.variants.find(variant => variant.id === props.editingVariantId);
         const updatedVariant = { ...existingVariant, ...editedVariant };
+
+        console.log(updatedVariant, 'updatedVariant')
+        console.log(specialPricesValues, 'specialPrices')
+
+
         props.handleEditExistingVariant(updatedVariant);
       } else {
 
-       props.handleSave(name, parseFloat(price), selectedDiscountObjects, selectedVariantAddons, attachmentsToSend, formattedBranchPrices, formattedIngredients);
+       props.handleSave(name, parseFloat(price), selectedDiscountObjects, selectedVariantAddons,
+         attachmentsToSend, formattedBranchPrices, formattedIngredients, specialPricesValues);
         resetForm();
         setSelectedDiscounts([]);
       }
@@ -390,6 +444,18 @@ const ItemVariantModal = (props: IVariantProps) => {
       if(editingVariant?.addons){
         setSelectedVariantAddons(editingVariant?.addons.map((addon) => ({label: addon.name, value: addon.id})))
 
+      }
+
+      if (editingVariant.specialPrices) {
+        setWholesalePrices((prevPrices) => ({
+          ...prevPrices,
+          ...(editingVariant.specialPrices.WHOLE_SALE || {}),
+        }));
+
+        setRetailPrices((prevPrices) => ({
+          ...prevPrices,
+          ...(editingVariant.specialPrices.RETAIL || {}),
+        }));
       }
 
       console.log(editingVariant, 'ba');
@@ -860,7 +926,42 @@ const ItemVariantModal = (props: IVariantProps) => {
                     }}
                   />
                   {/* <FormText color="danger">{'originalPriceError'}</FormText> */}
+
                 </div>
+
+                <h4>Special Prices</h4>
+                <Row>
+                <Col>
+                  <h5 className="font-semibold">Wholesale Prices</h5>
+                  {Object.keys(wholesalePrices).map((priceKey, index) => (
+                    <>
+                      <label className="font-semibold">{priceKey}</label><ValidatedField
+                      key={index}
+                      type="number"
+                      placeholder={`Enter price ${index + 1}`}
+                      name={`wholesale_price_${index + 1}`}
+                      value={wholesalePrices[priceKey]}
+                      onChange={(e) => handleWholesalePriceChange(priceKey, e.target.value)}
+                    />
+                    </>
+                  ))}
+                </Col>
+                <Col>
+                  <h5 className="font-semibold">Retail Prices</h5>
+                  {Object.keys(retailPrices).map((priceKey, index) => (
+                    <>
+                      <label className="font-semibold">{priceKey}</label><ValidatedField
+                      key={index}
+                      type="number"
+                      placeholder={`Enter price ${index + 1}`}
+                      name={`retail_price_${index + 1}`}
+                      value={retailPrices[priceKey]}
+                      onChange={(e) => handleRetailPriceChange(priceKey, e.target.value)}
+                    />
+                    </>
+                  ))}
+</Col>
+                </Row>
                 <Table>
                   <thead>
                     <tr>
