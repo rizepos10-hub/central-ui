@@ -244,7 +244,7 @@ export const ItemUpdate = () => {
 
   console.log(editingVariantId, 'editingVariantId');
 
-  const handleSaveVariant = (name, price, discount, addons, variantImage, branchVariantDetails,ingredients) => {
+  const handleSaveVariant = (name, price, discount, addons, variantImage, branchVariantDetails,ingredients,specialPricesValues ) => {
     console.log(variants, 'variants new');
 
     const newValues = {
@@ -254,7 +254,9 @@ export const ItemUpdate = () => {
       attachments: variantImage,
       branchVariantDetails: branchVariantDetails,
       ingredients: ingredients,
-      addons: addons
+      addons: addons,
+      specialPrices: specialPricesValues
+
     };
     setVariants(prevVariants => [...prevVariants, newValues]);
   };
@@ -262,6 +264,8 @@ export const ItemUpdate = () => {
 
 
     console.log(values, 'values');
+    console.log(variants, 'variants');
+
     const entity = {
       ...itemEntity,
       ...values,

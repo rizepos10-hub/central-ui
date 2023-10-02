@@ -176,7 +176,7 @@ console.log(termList, 'loll')
     }
   };
 
-  const categoryNames = new Set(itemList.map((item) => item.terms[0]?.name));
+  const categoryNames = new Set(itemList?.map((item) => item.terms[0]?.name));
   const categoryFilterOptions = Array.from(categoryNames).map((categoryName) => ({
     label: categoryName,
     value: categoryName,
