@@ -113,14 +113,14 @@ const ItemVariantModal = (props: IVariantProps) => {
   const handleWholesalePriceChange = (priceKey, value) => {
     setWholesalePrices({
       ...wholesalePrices,
-      [priceKey]: value
+      [priceKey]: parseFloat(value)
     });
   };
 
   const handleRetailPriceChange = (priceKey, value) => {
     setRetailPrices({
       ...retailPrices,
-      [priceKey]: value
+      [priceKey]: parseFloat(value)
     });
   };
 
@@ -935,13 +935,15 @@ const ItemVariantModal = (props: IVariantProps) => {
                   <h5 className="font-semibold">Wholesale Prices</h5>
                   {Object.keys(wholesalePrices).map((priceKey, index) => (
                     <>
-                      <label className="font-semibold">{priceKey}</label><ValidatedField
+                      <label className="font-semibold">{priceKey}</label>
+                      <ValidatedField
                       key={index}
                       type="number"
                       placeholder={`Enter price ${index + 1}`}
                       name={`wholesale_price_${index + 1}`}
-                      value={wholesalePrices[priceKey]}
+                      value={parseFloat(wholesalePrices[priceKey])}
                       onChange={(e) => handleWholesalePriceChange(priceKey, e.target.value)}
+
                     />
                     </>
                   ))}
@@ -951,12 +953,15 @@ const ItemVariantModal = (props: IVariantProps) => {
                   {Object.keys(retailPrices).map((priceKey, index) => (
                     <>
                       <label className="font-semibold">{priceKey}</label><ValidatedField
-                      key={index}
+                      key={priceKey}
                       type="number"
                       placeholder={`Enter price ${index + 1}`}
                       name={`retail_price_${index + 1}`}
-                      value={retailPrices[priceKey]}
+                      value={parseFloat(retailPrices[priceKey])}
                       onChange={(e) => handleRetailPriceChange(priceKey, e.target.value)}
+                      validate={{
+                        required: { value: true, message: translate('entity.validation.required') },
+                      }}
                     />
                     </>
                   ))}
