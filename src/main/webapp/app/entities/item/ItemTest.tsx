@@ -40,6 +40,8 @@ export const Item = () => {
 
   const itemList = useAppSelector(state => state.item.entities);
   const loading = useAppSelector(state => state.item.loading);
+  const errorMessage = useAppSelector(state => state.item.errorMessage);
+
   const totalItems = useAppSelector(state => state.item.totalItems);
 
   const termList = useAppSelector(state => state.term.entities)
@@ -53,7 +55,7 @@ export const Item = () => {
   });
 
 
-console.log(termList, 'loll')
+console.log(errorMessage, 'errorMessage')
 
   const getAllEntities = () => {
     if (search) {
@@ -156,8 +158,13 @@ console.log(termList, 'loll')
     sortEntities();
   };
 
-  const handleImportData = (selectedFile) => {
-    dispatch(importData(selectedFile))
+  async function handleImportData (selectedFile) {
+   const response = await dispatch(importData(selectedFile)).then((response) => {
+     console.log(response, 'ba33')
+     const errMsg = response.payload.response.data.message
+     alert(`Error importing data: ${errMsg} `)
+   })
+    console.log(response, 'resopp')
   };
 
   const getSeverity = (item) => {

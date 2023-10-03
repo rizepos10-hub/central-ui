@@ -44,6 +44,7 @@ export const getItemsForRecipe = createAsyncThunk(
 
 
 export const importData = createAsyncThunk('importData', async (file: File) => {
+  try {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('type', 'ITEM');
@@ -54,8 +55,12 @@ export const importData = createAsyncThunk('importData', async (file: File) => {
       },
     });
 
-    console.log(response, 'resdata')
-    return response
+    return response;
+  } catch (error) {
+    console.error('Error during data import:', error.response ? error.response.data.message : error.message);
+
+    return error
+  }
 
 });
 
