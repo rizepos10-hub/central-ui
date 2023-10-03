@@ -176,8 +176,8 @@ console.log(termList, 'loll')
     }
   };
 
-  const categoryNames = new Set(itemList?.map((item) => item.terms[0]?.name));
-  const categoryFilterOptions = Array.from(categoryNames).map((categoryName) => ({
+  const categoryNames = itemList && new  Set(itemList?.map((item) => item.terms[0]?.name));
+  const categoryFilterOptions = Array.from(categoryNames)?.map((categoryName) => ({
     label: categoryName,
     value: categoryName,
   }));
@@ -185,7 +185,7 @@ console.log(termList, 'loll')
   const categoryFilter = (
     <Dropdown
       value={filters.categoryForSorting?.value}
-      options={termList.map((term) => term.name)}
+      options={termList?.map((term) => term.name)}
       onChange={(e) => {
         const updatedFilters = {
           ...filters,
@@ -295,7 +295,7 @@ console.log(termList, 'loll')
   };
   console.log(itemList, 'itemList')
 
-  const processedItemList = itemList.map(item => ({
+  const processedItemList = itemList?.map(item => ({
     ...item,
     categoryForSorting: item.terms[0]?.name || '',
   }));

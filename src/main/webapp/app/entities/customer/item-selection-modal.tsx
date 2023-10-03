@@ -73,11 +73,19 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   };
 
   const handleVariantSelect = (itemIndex, variant) => {
+    console.log(variant, 'hello')
+    if (
+      variant &&
+      (Object.keys(variant.specialPrices).length === 0 || Object.values(variant.specialPrices).every((value) => value === null))) {
+      alert("Variant has no special prices!");
+      return null;
+    }
     handleToggleSelect(itemIndex, variant);
     const newDropdownOpen = [...dropdownOpen];
     newDropdownOpen[itemIndex] = false;
     setDropdownOpen(newDropdownOpen);
   };
+
 
   return (
     <Modal size="lg" isOpen={isOpen} toggle={toggle}>
@@ -98,7 +106,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           </tr>
           </thead>
           <tbody>
-          {itemList.filter((item) => item.variants.filter((variant) => variant.specialPrices && Object.values(variant.specialPrices).some((val) => val !== null)).length > 0).map((item, index) => (
+          {itemList.map((item, index) => (
 
             <tr key={item.id}>
               <td>{item.id}</td>

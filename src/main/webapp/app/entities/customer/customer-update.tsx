@@ -93,32 +93,26 @@ console.log(fetchedPrices, 'fetchedd')
       ...customerEntity,
       ...values,
     };
-
     const customerId = customerEntity.id;
-    const pricesData:any = []; // Initialize as an empty array
 
-    selectedVariants.forEach((selected) => {
-      const { itemId, variantId } = selected;
-      const priceNumberByCustomerType = {
-        WHOLE_SALE: "PRICE_5",
-        RETAIL: "PRICE_1",
-      };
+    console.log(selectedVariants, 'selectedVariants')
 
-      if (selectedWholeSalesPrice[itemId] && selectedWholeSalesPrice[itemId][variantId]) {
-        priceNumberByCustomerType.WHOLE_SALE = selectedWholeSalesPrice[itemId][variantId];
-      }
+    const pricesData = selectedVariants.map(({ itemId, variantId, specialPrices }) => ({
+      customer: { id: customerId },
+      item: { id: itemId },
+      variantId,
+      priceNumberByCustomerType: {
+        ...specialPrices,
+        ...(selectedWholeSalesPrice[itemId]?.[variantId] && {
+          WHOLE_SALE: selectedWholeSalesPrice[itemId][variantId],
+        }),
+        ...(selectedRetailPrice[itemId]?.[variantId] && {
+          RETAIL: selectedRetailPrice[itemId][variantId],
+        }),
+      },
+    }));
 
-      if (selectedRetailPrice[itemId] && selectedRetailPrice[itemId][variantId]) {
-        priceNumberByCustomerType.RETAIL = selectedRetailPrice[itemId][variantId];
-      }
 
-      pricesData.push({
-        customer: { id: customerId },
-        item: { id: itemId },
-        priceNumberByCustomerType,
-        variantId,
-      });
-    });
 
 
 
@@ -133,6 +127,8 @@ console.log(fetchedPrices, 'fetchedd')
     }
   };
 
+  console.log(selectedRetailPrice, '5555selectedRetailPrice')
+  console.log(selectedWholeSalesPrice, '5555selectedWholeSalesPrice')
 
   console.log(selectedVariants, 'sle')
   console.log(customerEntity, 'customerEntity')
@@ -240,7 +236,7 @@ console.log(fetchedPrices, 'fetchedd')
               {selectedVariants.length > 0 && (
                 <div>
                   <h2>Selected Variants:</h2>
-                  <Table>
+                  <Table  bordered >
                     <thead>
                     <tr>
                       <th>Item Name</th>
@@ -252,19 +248,30 @@ console.log(fetchedPrices, 'fetchedd')
                     </thead>
                     <tbody>
                     {selectedVariants.map((selected, index) => {
-   console.log(selected, 'see')
+                      console.log(selected.specialPricesOptions.WHOLE_SALE[selected.specialPrices?.WHOLE_SALE], 'see11')
+                      console.log(selected.specialPricesOptions.WHOLE_SALE, 'see111')
+                      console.log(  selected.specialPrices?.WHOLE_SALE, 'see1111')
+                      console.log(selected.specialPricesOptions.RETAIL[selected.specialPrices?.RETAIL], 'see22')
+                      console.log(selected.specialPricesOptions.RETAIL, 'see222')
+                      console.log(  selected.specialPrices?.RETAIL, 'see2222')
+
+                      console.log(selected, 'see')
                    return   (
                         <tr key={index}>
                           <td>{selected.itemName}</td>
                           <td>{selected.variantName}</td>
                           <td>
                             <Select
-                              options={ Object.entries(selected?.specialPricesOptions?.WHOLE_SALE).filter(([, value]) => value !== null)
+                              options={Object.entries(selected?.specialPricesOptions?.WHOLE_SALE || {})
+                                .filter(([item, value]) => value !== null && value !== undefined)
                                 .map(([item, value]) => ({
-                                  label: `${item}: ${selected?.specialPricesOptions?.WHOLE_SALE[item]}`,
+                                  label: `${item}: ${value}`,
                                   value: item,
-                                }))}
-                              defaultValue={{label: `${selected.specialPrices?.WHOLE_SALE} ${selected.specialPricesOptions.WHOLE_SALE[selected.specialPrices?.WHOLE_SALE && selected.specialPrices?.WHOLE_SALE]}`, value: selected.specialPrices?.WHOLE_SALE}}
+                                }))
+                              }
+                              placeholder={"Select WHOLESALE Price"}
+                              defaultValue={ selected?.specialPrices?.WHOLE_SALE &&{label: selected.specialPrices?.WHOLE_SALE &&
+                            `${selected.specialPrices?.WHOLE_SALE} ${selected.specialPricesOptions.WHOLE_SALE[selected.specialPrices?.WHOLE_SALE]}`, value: selected.specialPrices?.WHOLE_SALE}}
                               onChange={(selectedOption) =>
                                 handlePriceSelect(selected.itemId, selected.variantId, 'WholeSales', selectedOption.value)
                               }
@@ -272,12 +279,16 @@ console.log(fetchedPrices, 'fetchedd')
                           </td>
                           <td>
                             <Select
-                              options={ Object.entries(selected?.specialPricesOptions?.RETAIL).filter(([, value]) => value !== null)
+                              options={Object.entries(selected?.specialPricesOptions?.RETAIL || {})
+                                .filter(([item, value]) => value !== null && value !== undefined)
                                 .map(([item, value]) => ({
-                                label: `${item}: ${selected?.specialPricesOptions?.RETAIL[item]}`,
-                                value: item,
-                              }))}
-                              defaultValue={{label: `${selected.specialPrices?.RETAIL} ${selected.specialPricesOptions.RETAIL[selected.specialPrices?.RETAIL && selected.specialPrices?.RETAIL]}`, value: selected.specialPrices?.RETAIL}}
+                                  label: `${item}: ${value}`,
+                                  value: item,
+                                }))
+                              }
+                              placeholder={"Select RETAIL Price"}
+
+                              defaultValue={ selected?.specialPrices?.RETAIL &&  {label: selected?.specialPrices?.RETAIL && `${selected.specialPrices?.RETAIL} ${selected.specialPricesOptions.RETAIL[selected.specialPrices?.RETAIL]}`, value: selected.specialPrices?.RETAIL}}
                               onChange={(selectedOption) =>
                                 handlePriceSelect(selected.itemId, selected.variantId, 'RETAIL', selectedOption.value)
                               }

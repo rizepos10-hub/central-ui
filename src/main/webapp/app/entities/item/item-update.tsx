@@ -67,14 +67,14 @@ export const ItemUpdate = () => {
   const addons = useAppSelector(state => state.addon.entities);
   const initSelectedAddons = itemEntity.addons?.map(addon => ({ value: addon.id, label: addon.name }));
   const [selectedAddons, setSelectedAddons] = useState(initSelectedAddons);
-  const addonsOptions = addons.map(addon => ({ value: addon.id, label: addon.name }));
+  const addonsOptions = addons?.map(addon => ({ value: addon.id, label: addon.name }));
 
   const entityTerms = itemEntity.terms?.map(term => ({ value: term.id, label: term.name }));
 
 
-  const termsOptions = useAppSelector(state => state.term.entities).map(term => ({ value: term.id, label: term.name }));
+  const termsOptions = useAppSelector(state => state.term.entities)?.map(term => ({ value: term.id, label: term.name }));
 
-  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities).map(term => ({ value: term.id, label: term.name }));
+  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities)?.map(term => ({ value: term.id, label: term.name }));
 
   const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
 
@@ -270,8 +270,8 @@ export const ItemUpdate = () => {
       ...itemEntity,
       ...values,
        accountingGroups: accountingGroupsToSave,
-      addons: selectedAddons.map((addon) => ({id: addon.value})),
-      terms: selectedTerms.map((term) => ({ id: term.value })),
+      addons: selectedAddons?.map((addon) => ({id: addon.value})),
+      terms: selectedTerms?.map((term) => ({ id: term.value })),
       attachments: selectedAttachments,
       variants: variants,
       name,
@@ -495,7 +495,7 @@ export const ItemUpdate = () => {
                   <div style={{width: '55%'}}>
 
                     <ValidatedField label={translate('tempApp.item.status')} id="item-status" name="status" data-cy="status" type="select">
-                      {itemStatusValues.map(itemStatus => (
+                      {itemStatusValues?.map(itemStatus => (
                         <option value={itemStatus} key={itemStatus}>
                           {translate('tempApp.ItemStatus.' + itemStatus)}
                         </option>
@@ -527,7 +527,7 @@ export const ItemUpdate = () => {
                       onChange={handleImageChange}
                       accept="image/*"
                     />
-                    {selectedAttachments.map((attachment, index) => (
+                    {selectedAttachments?.map((attachment, index) => (
                       <div key={index} style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
                         <img
                           src={attachment?.url}

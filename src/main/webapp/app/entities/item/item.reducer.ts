@@ -33,7 +33,7 @@ export const searchEntities = createAsyncThunk(
 );
 
 export const getItemsForRecipe = createAsyncThunk(
-  'item/fetch_entity_list',
+  'item/fetch_items_for_recipe_list',
   async ({ itemId, editingVariant }: { itemId?: string; editingVariant?: string }) => {
     const requestUrl = `/api/items/for-recipe?${itemId ?`itemId=${itemId}` : ''}${editingVariant ? `&variantId=${editingVariant}` : ''}`;
     const response = await axios.get<IItem[]>(requestUrl);
@@ -68,7 +68,7 @@ export const getEntities = createAsyncThunk('item/fetch_entity_list', async ({ p
   return response
 });
 
-export const getItemsSummary = createAsyncThunk('item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+export const getItemsSummary = createAsyncThunk('item/fetch_item_summary_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${summaryUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   const response  = await axios.get<IItem[]>(requestUrl);
   console.log(response, 'responsin')
