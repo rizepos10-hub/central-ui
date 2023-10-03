@@ -21,19 +21,16 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {createEntity, duplicateMenu, getEntity, reset, sendEvent, updateEntity} from "app/entities/menu/menu.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {getEntities as getTerms} from "app/entities/term/term.reducer";
-import {getItemsSummary} from "app/entities/item/item.reducer";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getSortState, TextFormat, translate, Translate, ValidatedField, ValidatedForm} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {APP_DATE_FORMAT} from "app/config/constants";
 import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime} from "app/shared/util/date-utils";
 import ItemSelectionModal from "app/entities/menu/item-selection-modal";
-import {it} from "date-fns/locale";
 import {FaBars} from "react-icons/fa";
 import Select from "react-select";
 
-function LargeCard() {
+function MenuUpdate() {
 
 
   const dispatch = useAppDispatch();
@@ -56,7 +53,7 @@ function LargeCard() {
   const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
   const initialBranches = {label : menuEntity?.branch?.name , value: menuEntity?.branch?.id}
   const [selectedBranches, setSelectedBranches] = useState<any>();
-
+//
   const [data, setData] :any= useState({
     name: '',
     branch: '',
@@ -176,8 +173,8 @@ console.log(editScreenColor, 'editScreenColor' )
 
   const handleToggleSelect = (item) => {
     setSelectedItems((prevSelectedItems) => {
-      console.log("Before:", prevSelectedItems); // Log initial state
-      console.log("Toggling item:", item); // Log item being toggled
+      console.log("Before:", prevSelectedItems);
+      console.log("Toggling item:", item);
 
       const isSelected = prevSelectedItems.some(
         (selected) => selected.id === item.id
@@ -185,18 +182,18 @@ console.log(editScreenColor, 'editScreenColor' )
 
       if (isSelected) {
         console.log("Item is selected, removing...");
-        handleRemoveSelectedItem(item.id); // Handle removal in your main data structure
+        handleRemoveSelectedItem(item.id);
         const updatedItems = prevSelectedItems.filter(
           (selected) => selected.id !== item.id
         );
-        console.log("After removal:", updatedItems); // Log state after removal
+        console.log("After removal:", updatedItems);
         return updatedItems;
       }
 
       console.log("Item is not selected, adding...");
       handleAddSelectedItem(item);
       const updatedItems = [...prevSelectedItems, item];
-      console.log("After adding:", updatedItems); // Log state after adding
+      console.log("After adding:", updatedItems);
       return updatedItems;
     });
   };
@@ -869,6 +866,9 @@ console.log(editScreenColor, 'editScreenColor' )
         </div>
         <CardBody>
           <p>
+            <Translate contentKey="tempApp.menu.branch">Branch</Translate>: {menuEntity.branch?.name ? menuEntity.branch?.name : ''}
+          </p>
+          <p>
             <Translate contentKey="tempApp.menu.createdAt">Created At</Translate>:{' '}
             {menuEntity.createdDate ? <TextFormat value={menuEntity.createdDate} type="date" format={APP_DATE_FORMAT} /> : null}
           </p>
@@ -877,7 +877,7 @@ console.log(editScreenColor, 'editScreenColor' )
             {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
           </p>
           <p>
-            <Translate contentKey="tempApp.menu.menuUrl">Menu URl</Translate>: {menuEntity.menuUrl ? menuEntity.menuUrl : ''}
+            <Translate contentKey="tempApp.menu.menuUrl">Menu URl</Translate>
           </p>
           <p>
             <Translate contentKey="tempApp.menu.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
@@ -1147,4 +1147,4 @@ console.log(editScreenColor, 'editScreenColor' )
   );
 }
 
-export default LargeCard;
+export default MenuUpdate;

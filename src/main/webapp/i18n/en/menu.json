@@ -24,7 +24,8 @@
       "createdAt": "Created At",
       "updatedAt": "Updated At",
       "category": "Category",
-      "branches": "Branches",
+      "branch": "Branch",
+
       "items": "Items"
     }
   }

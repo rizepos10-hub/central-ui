@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { getSortState } from 'react-jhipster';
 import { ITEMS_PER_PAGE_Summary } from 'app/shared/util/pagination.constants';
-import { getItemsSummary, searchEntities } from 'app/entities/item/item.reducer';
+import { getItemsSummary, searchEntities,reset } from 'app/entities/item/item.reducer';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -48,6 +48,9 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           sort: `${paginationState.sort},${paginationState.order}`,
         })
       )
+    }
+    return () => {
+      dispatch(reset())
     }
   }, [paginationState, search]);
 
