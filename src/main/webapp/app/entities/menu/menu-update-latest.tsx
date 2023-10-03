@@ -333,7 +333,7 @@ console.log(editScreenColor, 'editScreenColor' )
       const updatedMenuScreens = [...updatedData.menuScreens];
       let updatedSubScreenStack;
 
-      if (subScreenStack.length === 0) {
+      if (subScreenStack.length === 1) {
         updatedMenuScreens[selectedMainScreen] = {
           ...updatedMenuScreens[selectedMainScreen],
           subScreens: (
@@ -395,7 +395,7 @@ console.log(editScreenColor, 'editScreenColor' )
 
       let updatedSubScreenStack;
 
-      if (subScreenStack.length === 0) {
+      if (subScreenStack.length === 1) {
         console.log("Correct");
 
         updatedMenuScreens[selectedMainScreen] = {
@@ -440,13 +440,13 @@ console.log(editScreenColor, 'editScreenColor' )
 
 
   const findAndAddSubScreen = (subScreens, targetSubScreen, newSubScreen) => {
-    return subScreens.map((subScreen) => {
+    return subScreens?.map((subScreen) => {
       if (subScreen.name === targetSubScreen.name) {
         return {
           ...subScreen,
           subScreens: [...(subScreen.subScreens || []), newSubScreen],
         };
-      } else if (subScreen.subScreens) {
+      } else if (subScreen?.subScreens) {
         const updatedNestedSubScreens = findAndAddSubScreen(
           subScreen.subScreens,
           targetSubScreen,
@@ -475,7 +475,7 @@ console.log(editScreenColor, 'editScreenColor' )
     let updatedSubScreenStack;
 
 
-    if (subScreenStack.length === 0) {
+    if (subScreenStack.length === 1) {
       console.log("imhere1")
       updatedMenuScreens[selectedMainScreen] = {
         ...updatedMenuScreens[selectedMainScreen],
@@ -546,7 +546,7 @@ console.log(editScreenColor, 'editScreenColor' )
     setData((prevData) => {
       const updatedMenuScreens = prevData.menuScreens.map((mainScreen, i) => {
         if (i === mainScreenIndex) {
-          if (subScreenStack.length === 0) {
+          if (subScreenStack.length === 1) {
             const updatedSubScreens = mainScreen.subScreens.filter(
               (subScreen, j) => j !== subScreenIndex
             );
@@ -671,7 +671,7 @@ console.log(editScreenColor, 'editScreenColor' )
       return null;
     }
 
-    if (subScreenStack.length === 0) {
+    if (subScreenStack.length === 1) {
       return renderSubScreens(mainScreen.subScreens, selectedMainScreen);
     }
     console.log(subScreenStack, 'subScreenStacksubScreenStack')
