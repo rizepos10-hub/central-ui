@@ -29,6 +29,7 @@ import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTi
 import ItemSelectionModal from "app/entities/menu/item-selection-modal";
 import {FaBars} from "react-icons/fa";
 import Select from "react-select";
+import MenuPreview from "app/entities/menu/menu-preview";
 
 function MenuUpdate() {
 
@@ -66,6 +67,8 @@ function MenuUpdate() {
     isSubScreenModalOpen: false,
     isItemModalOpen: false,
     isEditModalOpen: false,
+    isPreviewModalOpen: false,
+
   });
 
   const [newMainScreenName, setNewMainScreenName] = useState('');
@@ -207,6 +210,14 @@ console.log(editScreenColor, 'editScreenColor' )
     setIsModalOpen({
       ...isModalOpen,
       isSubScreenModalOpen: !isModalOpen.isSubScreenModalOpen,
+    });
+  };
+
+
+  const togglePreviewModal = () => {
+    setIsModalOpen({
+      ...isModalOpen,
+      isPreviewModalOpen: !isModalOpen.isPreviewModalOpen,
     });
   };
 
@@ -684,22 +695,17 @@ console.log(editScreenColor, 'editScreenColor' )
     const updatedBreadcrumb = [...breadcrumb, subscreen.name];
     setBreadcrumb(updatedBreadcrumb);
   };
-
-
-
-
-
-  const navigateBack = () => {
-
-    const updatedStack = [...subScreenStack];
-    updatedStack.pop();
-    setSubScreenStack(updatedStack);
-
-    const updatedBreadcrumb = [...breadcrumb];
-    updatedBreadcrumb.pop();
-    setBreadcrumb(updatedBreadcrumb);
-
+  const navigateToBreadcrumbItem = (index) => {
+    if (index >= 0 && index < breadcrumb.length) {
+      const newSubScreenStack = [...subScreenStack]
+      newSubScreenStack.slice(0, index );
+      setSubScreenStack(newSubScreenStack);
+      const newBreadcrumb = breadcrumb.slice(0, index + 1);
+      setBreadcrumb(newBreadcrumb);
+    }
   };
+
+
 
 
 
@@ -744,13 +750,6 @@ console.log(editScreenColor, 'editScreenColor' )
   }, [menuEntity]);
 
 
-  useEffect(() => {
-    if (selectedMainScreen !== null) {
-      const mainScreenName = data.menuScreens[selectedMainScreen]?.name;
-      const updatedBreadcrumb = [mainScreenName];
-      setBreadcrumb(updatedBreadcrumb);
-    }
-  }, [selectedMainScreen]);
 
   const handleDuplicateAction = () => {
     const isConfirmed = window.confirm('Are you sure you want to duplicate this menu?');
@@ -898,7 +897,11 @@ console.log(editScreenColor, 'editScreenColor' )
               {data.menuScreens?.map((mainScreen, index) => (
                 <div key={index} className="mb-3">
                   <Card
-                    onClick={() =>  setSelectedMainScreen(index)}
+                    onClick={() => {
+                      setSelectedMainScreen(index)
+                      setSubScreenStack([mainScreen]);
+                      setBreadcrumb([mainScreen.name]);
+                    }}
 
                     className="d-flex p-3 cursor-pointer"
 
@@ -923,16 +926,24 @@ console.log(editScreenColor, 'editScreenColor' )
             </ListGroup>
           </Col>
           <Col md="8" className="border-left">
-
             <div className="d-flex justify-content-between">
-              <h2>{breadcrumb?.join(' / ') || 'Sub Screens'}</h2>
 
+                  <h2>
+                {breadcrumb?.length > 0 &&
+                  breadcrumb.map((breadcrumbTitle, index) => (
+                    <span
+                      key={index}
+                      className="cursor-pointer"
+                      onClick={() => navigateToBreadcrumbItem(index)}
+                    >
+          {breadcrumbTitle}
+                      {index < breadcrumb.length - 1 && ' / '}
+        </span>
+                  ))}
+
+              </h2>
               <div>
-                {subScreenStack?.length > 0 && (
-                  <button onClick={navigateBack} className="btn btn-primary">
-                    Back
-                  </button>
-                )}
+
 
                 <Button color="primary" id="addButton" onClick={() => setPopoverOpen(!popoverOpen)} className="ml-2">
                   Add Button
@@ -954,7 +965,10 @@ console.log(editScreenColor, 'editScreenColor' )
                     </p>
                   </PopoverBody>
                 </Popover>
-                <Button color="primary" onClick={handleSaveClick} className="ml-2">
+                <Button onClick={togglePreviewModal} className="mx-2 btn btn-info">
+                  Preview
+                </Button>
+                <Button color="primary" onClick={handleSaveClick} className="">
                   Save
                 </Button>
               </div>
@@ -965,6 +979,21 @@ console.log(editScreenColor, 'editScreenColor' )
 
         </Row>
       </Card>
+
+
+
+
+        <Modal isOpen={isModalOpen.isPreviewModalOpen} className="modal-xl"
+
+               toggle={() => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: !isModalOpen.isPreviewModalOpen })}>
+          <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: !isModalOpen.isPreviewModalOpen })}>
+            Preview Modal
+          </ModalHeader>
+          <ModalBody  style={{ minWidth: '100%', minHeight: '60vh' }}>
+            <MenuPreview data={data} />
+          </ModalBody>
+        </Modal>
+
 
       <Modal isOpen={isModalOpen.isMainScreenModalOpen}
              toggle={() => setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: !isModalOpen.isMainScreenModalOpen })}>
