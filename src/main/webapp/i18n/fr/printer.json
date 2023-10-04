@@ -1,0 +1,30 @@
+{
+  "tempApp": {
+    "addon": {
+      "home": {
+        "title": "Printers",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Printer",
+        "createOrEditLabel": "Créer ou éditer un Printer",
+        "search": "Recherche pour Printer",
+        "notFound": "Aucun Printer trouvé"
+      },
+      "created": "Un nouveau Printer a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Printer avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Printer avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Printer {{ id }} ?"
+      },
+      "detail": {
+        "title": "Printer"
+      },
+      "id": "ID",
+      "name": "Name",
+      "brand": "Brand",
+      "model": "Model",
+      "printSpeed": "Print Speed",
+      "branch": "Branch",
+      "colorPrinter": "Color Printer"
+    }
+  }
+}
