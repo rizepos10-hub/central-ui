@@ -139,6 +139,11 @@ const AppMenu = () => {
                                 to: '/reporting-shifts'
                               },
                               {
+                                label: 'Printers',
+                                icon: 'pi pi-plus-circle',
+                                to: '/printer'
+                              },
+                              {
                                 label: 'Currencies',
                                 icon: 'pi pi-plus-circle',
                                 to: '/currencies'
