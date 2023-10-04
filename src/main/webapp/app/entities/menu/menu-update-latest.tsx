@@ -697,13 +697,14 @@ console.log(editScreenColor, 'editScreenColor' )
   };
   const navigateToBreadcrumbItem = (index) => {
     if (index >= 0 && index < breadcrumb.length) {
-      const newSubScreenStack = [...subScreenStack]
-      newSubScreenStack.slice(0, index );
+
+      const newSubScreenStack = subScreenStack.slice(0, index + 1)
       setSubScreenStack(newSubScreenStack);
       const newBreadcrumb = breadcrumb.slice(0, index + 1);
       setBreadcrumb(newBreadcrumb);
     }
   };
+
 
 
 
@@ -730,7 +731,7 @@ console.log(editScreenColor, 'editScreenColor' )
     return () => {
       reset()
     }
-  }, []);
+  }, [updateSuccess]);
 
   useEffect(() => {
     if (menuEntity && menuEntity.id) {
@@ -865,7 +866,7 @@ console.log(editScreenColor, 'editScreenColor' )
         </div>
         <CardBody>
           <p>
-            <Translate contentKey="tempApp.menu.branch">Branch</Translate>: {menuEntity.branch?.name ? menuEntity.branch?.name : ''}
+            <Translate contentKey="tempApp.menu.branch">Branch</Translate>: {menuEntity.branch? menuEntity.branch?.name : ''}
           </p>
           <p>
             <Translate contentKey="tempApp.menu.createdAt">Created At</Translate>:{' '}
@@ -876,7 +877,7 @@ console.log(editScreenColor, 'editScreenColor' )
             {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
           </p>
           <p>
-            <Translate contentKey="tempApp.menu.menuUrl">Menu URl</Translate>
+            <Translate contentKey="tempApp.menu.menuUrl">Menu URl</Translate>:  {menuEntity.menuUrl? menuEntity.menuUrl : ''}
           </p>
           <p>
             <Translate contentKey="tempApp.menu.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
