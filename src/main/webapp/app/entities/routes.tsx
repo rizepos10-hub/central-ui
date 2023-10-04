@@ -22,6 +22,8 @@ import Home from 'app/shared/layout/home/home';
 import BranchPosUserRoutes from './branch-pos-user';
 import BackOfficeUserRoutes from './back-office-user';
 import BusinessDetailRoutes from 'app/entities/business-details';
+import Printer from './printer';
+
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -42,6 +44,7 @@ export default () => {
         <Route path="item/*" element={<Item />} />
         <Route path="taxonomy/*" element={<Taxonomy />} />
         <Route path="addon/*" element={<Addon />} />
+        <Route path="printer/*" element={<Printer />} />
         <Route path="term/*" element={<Term />} />
         <Route path="order/*" element={<Order />} />
 
