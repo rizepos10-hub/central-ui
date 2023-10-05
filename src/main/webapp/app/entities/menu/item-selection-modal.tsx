@@ -26,6 +26,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   );
 
   const [searchTerm, setSearchTerm] = useState('');
+  console.log("itemList", itemList)
 
   const startSearching = () => {
     dispatch(
@@ -39,8 +40,11 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   };
   useEffect(() => {
     if (search) {
+      console.log("search", search)
       startSearching();
     } else {
+      console.log("search1", search)
+
       dispatch(
         getItemsSummary({
           page: paginationState.activePage - 1,
@@ -86,6 +90,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           </tr>
           </thead>
           <tbody>
+          {/* .filter((item) => !isItemSelected(item.id)) */}
           {itemList.map((item) => (
             <tr key={item.id}>
               <td>{item.id}</td>
