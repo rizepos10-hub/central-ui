@@ -179,14 +179,14 @@ console.log(editScreenColor, 'editScreenColor' )
       console.log("Before:", prevSelectedItems);
       console.log("Toggling item:", item);
 
-      const isSelected = prevSelectedItems.some(
+      const isSelected = prevSelectedItems?.some(
         (selected) => selected.id === item.id
       );
 
       if (isSelected) {
         console.log("Item is selected, removing...");
         handleRemoveSelectedItem(item.id);
-        const updatedItems = prevSelectedItems.filter(
+        const updatedItems = prevSelectedItems?.filter(
           (selected) => selected.id !== item.id
         );
         console.log("After removal:", updatedItems);
@@ -231,6 +231,12 @@ console.log(editScreenColor, 'editScreenColor' )
   ];
 
   const handleModalSubmit = () => {
+
+    if (newMainScreenName.trim() === '') {
+      alert('Main screen name is required.');
+      return;
+    }
+
     const newMainScreen = {
       name: newMainScreenName,
       backgroundColor: selectedColorTheme,
@@ -702,7 +708,7 @@ console.log(editScreenColor, 'editScreenColor' )
 
     console.log(subScreenItems, 'subScreenItems')
 
-    setSelectedItems(subScreenItems)
+    setSelectedItems(subScreenItems || [])
   };
   const navigateToBreadcrumbItem = (index) => {
     if (index >= 0 && index < breadcrumb.length) {
@@ -740,7 +746,7 @@ console.log(editScreenColor, 'editScreenColor' )
     return () => {
       reset()
     }
-  }, [updateSuccess]);
+  }, [updateSuccess,id]);
 
   useEffect(() => {
     if (menuEntity && menuEntity.id) {
@@ -842,7 +848,7 @@ console.log(editScreenColor, 'editScreenColor' )
       ...restValues,
       name: data.name,
       branch: { id: selectedBranches.value },
-      category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
+      category: selectedCategory ? terms?.find((it) => it.name === selectedCategory) : null,
       menuScreens: data.menuScreens,
     };
 
@@ -916,7 +922,7 @@ console.log(editScreenColor, 'editScreenColor' )
                   <div  onClick={() => {
                     const mainScreenItems = mainScreen?.subScreens?.filter((item) => item.componentType === "ITEM")
                       .map((item) =>({ id :item.component.item.id , name: item.component.item.name, desc: item.component.item.desc}))
-                    setSelectedItems(mainScreenItems)
+                    setSelectedItems(mainScreenItems || [])
                     setSelectedMainScreen(index)
                     setSubScreenStack([mainScreen]);
                     setBreadcrumb(() => [mainScreen.name]);
@@ -1026,6 +1032,7 @@ console.log(editScreenColor, 'editScreenColor' )
             <Input
               type="text"
               id="mainScreenName"
+              required
               value={newMainScreenName}
               onChange={(e) => setNewMainScreenName(e.target.value)}
             />

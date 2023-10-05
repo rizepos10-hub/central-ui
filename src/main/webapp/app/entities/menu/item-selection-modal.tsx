@@ -69,7 +69,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
     toggle();
   };
 
-  const isItemSelected = (id) => selectedItems.find((selected) => selected.id === id );
+  const isItemSelected = (id) => selectedItems?.find((selected) => selected.id === id );
 
 
   console.log(selectedItems, 'selected items')
