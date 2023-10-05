@@ -21,7 +21,7 @@ import {
   DropdownMenu,
   DropdownItem,
 } from 'reactstrap';
-import { translate, Translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {isNumber, translate, Translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { useForm } from 'react-hook-form';
 import { IDiscount } from 'app/shared/model/discount.model';
@@ -1048,9 +1048,13 @@ const ItemVariantModal = (props: IVariantProps) => {
                                 name={`quantity_${itemId}_${variant?.id}`}
                                 placeholder={`Enter quantity for ${variant.name}`}
                                 value={variantQuantity}
-                                onChange={(e) =>
-                                  handleQuantityChange(itemId, variant?.id, e.target.value)
-                                }
+                                onChange={(e) => {
+                                  const inputValue = e.target.value;
+                                  if (/^[1-9]\d*$/.test(inputValue) || inputValue === "") {
+                                    handleQuantityChange(itemId, variant?.id, inputValue);
+                                  }
+                                }}
+
                               />
                             </td>
                             <td>
