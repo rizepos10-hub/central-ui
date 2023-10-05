@@ -23,7 +23,6 @@
       "name": "Name",
       "desc": "Desc",
       "accountingGroups": "Accounting Group",
-
       "orderCount": "Order Count",
       "avgRating": "Avg Rating",
       "ratingCount": "Rating Count",
@@ -38,7 +37,8 @@
         "name": "Variant name",
         "price": "Variant price",
         "discount": "Variant discount"
-      }
+      },
+      "import-addon": "Import Addons From Item"
     }
   }
 }
