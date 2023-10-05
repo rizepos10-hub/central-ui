@@ -81,7 +81,7 @@ function MenuUpdate() {
   const [selectedScreenType, setSelectedScreenType] = useState(null);
   const [editScreenName, setEditScreenName] = useState('');
   const [editScreenColor, setEditScreenColor] = useState('');
-  const [breadcrumb, setBreadcrumb] = useState([]);
+  const [breadcrumb, setBreadcrumb] = useState(['']);
 
 
   const [subScreenStack, setSubScreenStack] = useState([]);
@@ -690,10 +690,19 @@ console.log(editScreenColor, 'editScreenColor' )
 
   const handleNavigateToSubScreen = (subscreen) => {
 
+    console.log(subscreen, "subscreenoo")
+
     setSubScreenStack((prev) => [...prev, subscreen]);
 
     const updatedBreadcrumb = [...breadcrumb, subscreen.name];
     setBreadcrumb(updatedBreadcrumb);
+
+    const subScreenItems = subscreen.subScreens.filter((item) => item.componentType === "ITEM")
+      .map((item) =>({ id :item.component.item.id , name: item.component.item.name, desc: item.component.item.desc}))
+
+    console.log(subScreenItems, 'subScreenItems')
+
+    setSelectedItems(subScreenItems)
   };
   const navigateToBreadcrumbItem = (index) => {
     if (index >= 0 && index < breadcrumb.length) {
@@ -774,10 +783,15 @@ console.log(editScreenColor, 'editScreenColor' )
   };
   console.log(data, 'hello')
 
-  const handleRemoveMainScreen = (mainScreenIndex) => {
+  const handleRemoveMainScreen = (mainScreenIndex, mainScreenName) => {
     const updatedMenuScreens = [...data.menuScreens];
     updatedMenuScreens.splice(mainScreenIndex, 1);
+    console.log(mainScreenName, 'kamel')
+    console.log( breadcrumb[0], 'kamel1')
 
+    if(mainScreenName === breadcrumb[0]){
+      setBreadcrumb([])
+    }
     setData({
       ...data,
       menuScreens: updatedMenuScreens,
@@ -840,6 +854,7 @@ console.log(editScreenColor, 'editScreenColor' )
 
     setIsModalOpen({...isModalOpen, isEditModalOpen: false});
   };
+  console.log(breadcrumb, 'breadcrumb')
 
   console.log(menuEntity, 'menuEntity')
   console.log(data, 'dataa')
@@ -897,17 +912,16 @@ console.log(editScreenColor, 'editScreenColor' )
             <ListGroup className="mt-3">
               {data.menuScreens?.map((mainScreen, index) => (
                 <div key={index} className="mb-3">
-                  <Card
-                    onClick={() => {
-                      setSelectedMainScreen(index)
-                      setSubScreenStack([mainScreen]);
-                      setBreadcrumb([mainScreen.name]);
-                    }}
+                  <Card className="d-flex p-3 cursor-pointer">
+                  <div  onClick={() => {
+                    const mainScreenItems = mainScreen?.subScreens?.filter((item) => item.componentType === "ITEM")
+                      .map((item) =>({ id :item.component.item.id , name: item.component.item.name, desc: item.component.item.desc}))
+                    setSelectedItems(mainScreenItems)
+                    setSelectedMainScreen(index)
+                    setSubScreenStack([mainScreen]);
+                    setBreadcrumb(() => [mainScreen.name]);
 
-                    className="d-flex p-3 cursor-pointer"
-
-                  >
-
+                  }}>
                     <div className="d-flex justify-content-end">
                       <FaBars onClick={() => openEditModal(mainScreen, index, 'main')} />
                     </div>
@@ -917,11 +931,16 @@ console.log(editScreenColor, 'editScreenColor' )
                         style={{ backgroundColor: mainScreen.backgroundColor, width: '55px', height: '30px' }}
                       />
                       <div>{`Buttons - ${mainScreen.subScreens?.length ?? 0}`}</div>
-                      <Button color="danger" size="sm" onClick={() => handleRemoveMainScreen(index)}>
+                    </div>
+
+                    </div>
+                    <div className="d-flex justify-content-end">
+                      <Button color="danger" size="sm" onClick={() => handleRemoveMainScreen(index, mainScreen.name)}>
                         Remove
                       </Button>
                     </div>
                   </Card>
+
                 </div>
               ))}
             </ListGroup>
@@ -1060,12 +1079,12 @@ console.log(editScreenColor, 'editScreenColor' )
         </ModalBody>
       </Modal>
 
-      <ItemSelectionModal
+      {isModalOpen.isItemModalOpen && <ItemSelectionModal
         isOpen={isModalOpen.isItemModalOpen}
-        toggle={() => setIsModalOpen({ ...isModalOpen, isItemModalOpen: !isModalOpen.isItemModalOpen })}
+        toggle={() => setIsModalOpen({...isModalOpen, isItemModalOpen: !isModalOpen.isItemModalOpen})}
         selectedItems={selectedItems}
         handleToggleSelect={handleToggleSelect}
-      />
+      />}
 
 
 
