@@ -22,7 +22,7 @@ import Home from 'app/shared/layout/home/home';
 import BranchPosUserRoutes from './branch-pos-user';
 import BackOfficeUserRoutes from './back-office-user';
 import BusinessDetailRoutes from 'app/entities/business-details';
-import Printer from './printer';
+import Printer from './printing/printer';
 
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */

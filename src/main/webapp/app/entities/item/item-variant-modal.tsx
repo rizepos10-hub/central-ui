@@ -276,6 +276,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
         return {
           item: { id: ingredient.item.id },
+          variantId: ingredient.variantId,
           variant: {id: ingredient.variantId},
           amount: ingredient.amount,
           addons: filteredAddons.map((addon) => ({
