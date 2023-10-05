@@ -1,48 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import {
-  Button,
-  Row,
-  Col,
-  FormText,
-  FormGroup,
-  Input,
-  Alert,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ListGroup,
-  ListGroupItem,
-  Card,
-  CardBody,
-  ModalFooter,
-} from 'reactstrap';
-import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Button, Row, Col } from 'reactstrap';
+import { getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IMenu } from 'app/shared/model/menu.model';
 import { getEntities as getMenus } from 'app/entities/menu/menu.reducer';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getItemCategories as getTerms } from 'app/entities/term/term.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 
-import { IItem } from 'app/shared/model/item.model';
 import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
-import {getEntity, updateEntity, createEntity, reset, getEntities as getItems} from './item.reducer';
+import { getEntity, updateEntity, createEntity, reset, getEntities as getItems, importAddons } from './item.reducer';
 import Select from 'react-select';
 import ItemVariantModal from 'app/entities/item/item-variant-modal';
-import { at } from 'lodash';
-import { uploadImage } from 'app/entities/attachment/attachment.reducer';
+import attachment, { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { Button as PrimeButton } from 'primereact/button';
-import {it} from "date-fns/locale";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+import AddonImportModal from 'app/entities/item/addon-import-modal';
+import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
+import axios from 'axios';
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -65,19 +47,23 @@ export const ItemUpdate = () => {
   const updateSuccess = useAppSelector(state => state.item.updateSuccess);
   const itemStatusValues = Object.keys(ItemStatus);
   const addons = useAppSelector(state => state.addon.entities);
+  const items = useAppSelector(state => state.item.entities);
+
   const initSelectedAddons = itemEntity.addons?.map(addon => ({ value: addon.id, label: addon.name }));
   const [selectedAddons, setSelectedAddons] = useState(initSelectedAddons);
   const addonsOptions = addons?.map(addon => ({ value: addon.id, label: addon.name }));
+  const itemOptions = items?.map(item => ({ value: item.id, label: item.name }));
 
   const entityTerms = itemEntity.terms?.map(term => ({ value: term.id, label: term.name }));
 
-
   const termsOptions = useAppSelector(state => state.term.entities)?.map(term => ({ value: term.id, label: term.name }));
 
-  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities)?.map(term => ({ value: term.id, label: term.name }));
+  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities)?.map(term => ({
+    value: term.id,
+    label: term.name,
+  }));
 
-  const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
-
+  const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([]);
 
   const [selectedTerms, setSelectedTerms] = useState(entityTerms);
   const [isModalOpen, setModalOpen] = useState(false);
@@ -101,6 +87,8 @@ export const ItemUpdate = () => {
 
   const [editingVariantId, setEditingVariantId] = useState(null);
 
+  const [openedAddonModal, setOpenedAddonModal] = useState(false);
+
   const handleEditExistingVariant = editedVariant => {
     const updatedVariants = variants?.map(variant => (variant?.id === editedVariant?.id ? editedVariant : variant));
     setVariants(updatedVariants);
@@ -108,13 +96,19 @@ export const ItemUpdate = () => {
     setOpenedModal(false);
   };
   const archiveVariant = variantId => {
-    const archivedVariants = variants?.map(variant => (variant.id === variantId ? { ...variant, archived: true } : variant));
+    const archivedVariants = variants?.map(variant =>
+      variant.id === variantId
+        ? {
+            ...variant,
+            archived: true,
+          }
+        : variant
+    );
     setVariants(archivedVariants);
   };
 
   const handleArchiveVariant = variantId => {
-
-    console.log(variantId, 'loli')
+    console.log(variantId, 'loli');
     if (toast.isActive(toastId.current)) {
       return;
     }
@@ -172,14 +166,22 @@ export const ItemUpdate = () => {
     }
     dispatch(getMenus({}));
     dispatch(getAddons({}));
-    dispatch(getTerms({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+    dispatch(
+      getItems({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
+    dispatch(
+      getTerms({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
     dispatch(getDiscounts({}));
     dispatch(getAccountingGroups({}));
-
 
     // console.log(modalVariantImages, 'variantfromchild');
 
@@ -199,15 +201,15 @@ export const ItemUpdate = () => {
       setSelectedTerms(itemEntity.terms?.map(term => ({ id: term.id, label: term.name, value: term.id })));
     }
     if (itemEntity?.accountingGroups) {
-      setSelectedAccountingGroups(itemEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
-      setAccountingGroupsToSave(itemEntity.accountingGroups?.map(group => ({  id : group.id })));
+      setSelectedAccountingGroups(itemEntity.accountingGroups?.map(group => ({ label: group.name, value: group.id })));
+      setAccountingGroupsToSave(itemEntity.accountingGroups?.map(group => ({ id: group.id })));
     }
     if (itemEntity?.attachments) {
       setSelectedAttachments(itemEntity.attachments?.map(attachment => ({ id: attachment.id, url: attachment?.url })));
     }
     console.log(itemEntity, 'termos');
     if (itemEntity?.addons) {
-      setSelectedAddons(itemEntity?.addons?.map(addon => ({ id: addon.id, label: addon.name, value: addon.id  })));
+      setSelectedAddons(itemEntity?.addons?.map(addon => ({ id: addon.id, label: addon.name, value: addon.id })));
     }
 
     if (uploadImageStatus === 'success' && saveButtonRef.current) {
@@ -223,15 +225,13 @@ export const ItemUpdate = () => {
     }
   }, [updateSuccess, itemEntity?.variants]);
 
-  const handleTermChange = (selectedOptions) => {
+  const handleTermChange = selectedOptions => {
     setSelectedTerms(selectedOptions);
   };
   const handleAccountingGroupsChange = selectedAccounting => {
     setSelectedAccountingGroups(selectedAccounting);
 
-    setAccountingGroupsToSave([{id: selectedAccounting.value}])
-
-
+    setAccountingGroupsToSave([{ id: selectedAccounting.value }]);
   };
 
   const handleAddonChange = selectedAddon => {
@@ -244,7 +244,7 @@ export const ItemUpdate = () => {
 
   console.log(editingVariantId, 'editingVariantId');
 
-  const handleSaveVariant = (name, price, discount, addons, variantImage, branchVariantDetails,ingredients,specialPricesValues ) => {
+  const handleSaveVariant = (name, price, discount, addons, variantImage, branchVariantDetails, ingredients, specialPricesValues) => {
     console.log(variants, 'variants new');
 
     const newValues = {
@@ -255,23 +255,20 @@ export const ItemUpdate = () => {
       branchVariantDetails: branchVariantDetails,
       ingredients: ingredients,
       addons: addons,
-      specialPrices: specialPricesValues
-
+      specialPrices: specialPricesValues,
     };
     setVariants(prevVariants => [...prevVariants, newValues]);
   };
   const saveEntity = values => {
-
-
     console.log(values, 'values');
     console.log(variants, 'variants');
 
     const entity = {
       ...itemEntity,
       ...values,
-       accountingGroups: accountingGroupsToSave,
-      addons: selectedAddons?.map((addon) => ({id: addon.value})),
-      terms: selectedTerms?.map((term) => ({ id: term.value })),
+      accountingGroups: accountingGroupsToSave,
+      addons: selectedAddons?.map(addon => ({ id: addon.value })),
+      terms: selectedTerms?.map(term => ({ id: term.value })),
       attachments: selectedAttachments,
       variants: variants,
       name,
@@ -288,9 +285,26 @@ export const ItemUpdate = () => {
     setOpenedModal(false);
   };
   const openVariantModal = () => {
-
     setOpenedModal(true);
+  };
 
+  const openImportAddonModal = () => {
+    console.log('opened ' + openedAddonModal);
+    setOpenedAddonModal(true);
+  };
+
+  const handleImportAddonModalSave = (itemId: string) => {
+    // make request call
+    const payload = {
+      entity: itemEntity,
+      fromItem: itemId,
+    };
+
+    dispatch(importAddons(payload));
+    console.log('sending request with id ' + itemId);
+  };
+  const handleImportAddonModalClose = () => {
+    setOpenedAddonModal(false);
   };
 
   console.log(itemEntity, 'itemEntity');
@@ -389,17 +403,28 @@ export const ItemUpdate = () => {
 
   return (
     <div>
-      {openedModal && <ItemVariantModal
-        showModal={openedModal}
-        handleClose={handleCloseModal}
-        handleSave={handleSaveVariant}
-        onVariantImageUpload={handleVariantImageUpload}
-        editingVariantId={editingVariantId}
-        itemId={id}
-        variants={variants}
-        handleEditExistingVariant={handleEditExistingVariant}
-        addonsOptions={addonsOptions}
-      />}
+      {openedModal && (
+        <ItemVariantModal
+          showModal={openedModal}
+          handleClose={handleCloseModal}
+          handleSave={handleSaveVariant}
+          onVariantImageUpload={handleVariantImageUpload}
+          editingVariantId={editingVariantId}
+          itemId={id}
+          variants={variants}
+          handleEditExistingVariant={handleEditExistingVariant}
+          addonsOptions={addonsOptions}
+        />
+      )}
+
+      {openedAddonModal && (
+        <AddonImportModal
+          showModal={openedAddonModal}
+          handleSave={handleImportAddonModalSave}
+          handleClose={handleImportAddonModalClose}
+          itemOptions={itemOptions}
+        />
+      )}
 
       <Row className="justify-content-center">
         <Col md="8">
@@ -414,9 +439,6 @@ export const ItemUpdate = () => {
             <p>Loading...</p>
           ) : (
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-
-
-
               {!isNew ? (
                 <ValidatedField
                   name="id"
@@ -427,11 +449,8 @@ export const ItemUpdate = () => {
                   validate={{ required: true }}
                 />
               ) : null}
-
               <div className="d-flex justify-content-between mb-1 gap-3">
-
-                <div style={{width: '33%'}}>
-
+                <div style={{ width: '33%' }}>
                   <ValidatedField
                     label={translate('tempApp.item.name')}
                     id="item-name"
@@ -439,26 +458,22 @@ export const ItemUpdate = () => {
                     data-cy="name"
                     type="text"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={e => setName(e.target.value)}
                     validate={{
                       required: { value: true, message: translate('entity.validation.required') },
                     }}
                   />
-
                 </div>
-                <div style={{width: '33%'}}>
+                <div style={{ width: '33%' }}>
                   <Translate contentKey="tempApp.item.terms">Category</Translate>
                   <Select isMulti={true} value={selectedTerms} onChange={handleTermChange} options={termsOptions} />
                 </div>
-                <div style={{width: '34%'}}>
+                <div style={{ width: '34%' }}>
                   <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
-                  <Select  value={selectedAccountingGroups}  onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
+                  <Select value={selectedAccountingGroups} onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
                 </div>
-
               </div>
               <Col md={8}>
-
-
                 {/* <ValidatedField */}
                 {/*   label={translate('tempApp.item.orderCount')} */}
                 {/*   id="item-orderCount" */}
@@ -492,8 +507,7 @@ export const ItemUpdate = () => {
                 {/*   }} */}
                 {/* /> */}
                 <div className="d-flex justify-content-between mb-1">
-                  <div style={{width: '55%'}}>
-
+                  <div style={{ width: '55%' }}>
                     <ValidatedField label={translate('tempApp.item.status')} id="item-status" name="status" data-cy="status" type="select">
                       {itemStatusValues?.map(itemStatus => (
                         <option value={itemStatus} key={itemStatus}>
@@ -502,8 +516,7 @@ export const ItemUpdate = () => {
                       ))}
                     </ValidatedField>
                   </div>
-                  <div style={{width: '35%'}}>
-
+                  <div style={{ width: '35%' }}>
                     <ValidatedField
                       label={translate('tempApp.item.desc')}
                       id="item-desc"
@@ -511,8 +524,7 @@ export const ItemUpdate = () => {
                       data-cy="desc"
                       type="text"
                       value={desc}
-                      onChange={(e) => setDesc(e.target.value)}
-
+                      onChange={e => setDesc(e.target.value)}
                     />
                   </div>
                 </div>
@@ -550,10 +562,9 @@ export const ItemUpdate = () => {
                           }}
                           onClick={() => removeAttachment(attachment.id)}
                         >
-                          <FontAwesomeIcon icon={faTrashAlt}  />
+                          <FontAwesomeIcon icon={faTrashAlt} />
                         </div>
                       </div>
-
                     ))}
                     {selectedImage && (
                       <img
@@ -568,79 +579,83 @@ export const ItemUpdate = () => {
                     )}
 
                     {selectedImage && uploadImageStatus === 'success' && (
-                      <div className={`alert alert-${uploadImageStatus === 'success' ? 'success' : 'danger'}`}
-                           role="alert">
+                      <div className={`alert alert-${uploadImageStatus === 'success' ? 'success' : 'danger'}`} role="alert">
                         {uploadImageStatus === 'success' && 'Uploaded successfully!'}
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="mb-3">
-                  <Translate contentKey="tempApp.item.addons"></Translate>
-                  <Select isMulti={true} value={selectedAddons}  onChange={handleAddonChange} options={addonsOptions} />
-                </div>
-
+              </Col>
+              <Col>
+                <Row>
+                  <div className="col md-6">
+                    <Translate contentKey="tempApp.item.addons"></Translate>
+                    <Select isMulti={true} value={selectedAddons} onChange={handleAddonChange} options={addonsOptions} />
+                  </div>
+                  <div className={'col md-2'} style={{ display: 'flex', alignItems: 'center' }}>
+                    <Button onClick={openImportAddonModal}> Import</Button>
+                  </div>
+                </Row>
               </Col>
               {variants && (
                 <div className="mb-3">
                   <Translate contentKey="tempApp.item.variants">Variants</Translate>
                   <table className="table table-striped">
                     <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Price</th>
-                      <th>Image</th>
-                      <th>Discounts</th>
-
-                    </tr>
+                      <tr>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Image</th>
+                        <th>Discounts</th>
+                      </tr>
                     </thead>
                     <tbody>
-                    {variants.filter((variant) => variant.archived !== true)?.map((variant) => (
-                      <tr key={variant.id && variant.id}>
-                        <td className="align-middle">{variant.name}</td>
-                        <td className="align-middle">{variant.price}</td>
-                        <td className="align-middle">
-                          {variant.attachments?.map((attachment) => (
-                            <img
-                              key={attachment?.id}
-                              alt={attachment?.name}
-                              src={attachment?.url}
-                              className="img-fluid m-lg-1"
-                              style={{
+                      {variants
+                        .filter(variant => variant.archived !== true)
+                        ?.map(variant => (
+                          <tr key={variant.id && variant.id}>
+                            <td className="align-middle">{variant.name}</td>
+                            <td className="align-middle">{variant.price}</td>
+                            <td className="align-middle">
+                              {variant.attachments?.map(attachment => (
+                                <img
+                                  key={attachment?.id}
+                                  alt={attachment?.name}
+                                  src={attachment?.url}
+                                  className="img-fluid m-lg-1"
+                                  style={{
+                                    maxWidth: '40px',
+                                    maxHeight: '45px',
+                                  }}
+                                />
+                              ))}
+                            </td>
+                            <td className="align-middle">
+                              <ul>
+                                {variant.discounts?.map(discount => (
+                                  <li key={discount?.id}>{`${
+                                    discount?.type === 'PERCENTAGE' ? `${discount?.value}%` : `${discount?.value} ${discount?.type}`
+                                  }`}</li>
+                                ))}
+                              </ul>
+                            </td>
 
-                                maxWidth: '40px',
-                                maxHeight: '45px',
-                              }}
-                            />
-                          ))}
-                        </td>
-                        <td className="align-middle">
-                          <ul>
-                            {variant.discounts?.map((discount) => (
-                              <li key={discount?.id}>{`${discount?.type === 'PERCENTAGE' ? `${discount?.value}%` : `${discount?.value} ${discount?.type}`}`}</li>
-                            ))}
-                          </ul>
-
-                        </td>
-
-                        <td>
-                          <Button  type={"button"}  onClick={() => openEditVariantModal(variant)} color="secondary" >
-                            <FontAwesomeIcon icon="pencil-alt" />
-                          </Button>
-                        </td>
-                        <td>
-                          <Button type={"button"} color="danger" onClick={() => handleArchiveVariant(variant.id)}  >
-                            <FontAwesomeIcon icon="trash"  />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                            <td>
+                              <Button type={'button'} onClick={() => openEditVariantModal(variant)} color="secondary">
+                                <FontAwesomeIcon icon="pencil-alt" />
+                              </Button>
+                            </td>
+                            <td>
+                              <Button type={'button'} color="danger" onClick={() => handleArchiveVariant(variant.id)}>
+                                <FontAwesomeIcon icon="trash" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>
               )}
-
-
               <div className="mt-4 mb-4">
                 <Button onClick={openVariantModal}> Add Variant</Button>
                 {/* <ValidatedField id="item-menu" name="menu" data-cy="menu" label={translate('tempApp.item.menu')} type="select"> */}
@@ -655,7 +670,7 @@ export const ItemUpdate = () => {
                 {/* </ValidatedField> */}
               </div>
               <br />
-              <Button id="cancel-save" data-cy="entityCreateCancelButton"  onClick={() => navigate(-1)} replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
@@ -663,7 +678,14 @@ export const ItemUpdate = () => {
                 </span>
               </Button>
               &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating} innerRef={saveButtonRef}>
+              <Button
+                color="primary"
+                id="save-entity"
+                data-cy="entityCreateSaveButton"
+                type="submit"
+                disabled={updating}
+                innerRef={saveButtonRef}
+              >
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
