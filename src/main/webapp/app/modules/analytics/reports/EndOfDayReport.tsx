@@ -41,7 +41,7 @@ const EndOFDayReport = () => {
     try {
       setLoading(true)
       const formattedFromDate = `${fromDate}T00:00:00.000Z`;
-      const formattedToDate = `${toDate}T00:00:00.000Z`;
+      const formattedToDate = `${toDate}T23:59:59.999Z`;
 
       const formData = new FormData();
       formData.append('fromDate', formattedFromDate);

@@ -286,7 +286,6 @@ console.log(orderList.length, 'len')
               {/* <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} /> */}
               <Column
                 field="id"
-                style={{ width: '10%' }}
                 header="Order ID"
                 sortable
                 filter
@@ -323,7 +322,6 @@ console.log(orderList.length, 'len')
                 field="createdDate"
                 filter
                 sortable
-                style={{width: '20%'}}
 
                 header="Order Date"
                 body={(rowData) => (
@@ -342,7 +340,7 @@ console.log(orderList.length, 'len')
               />
 
 
-              <Column field="discount" sortable  style={{ width: '13%' }}
+              <Column field="discount" sortable
                 header="Order Discount" body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
                 <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
               />
@@ -364,17 +362,16 @@ console.log(orderList.length, 'len')
                           placeholder="Select a source"
                         />
                       }
-                      header="Order Source"  style={{ width: '13%' }} />
+                      header="Order Source"  />
 
 
-              <Column field="tables" sortable style={{ width: '10%' }} filter  header="Order Tables" />
+              <Column field="tables" sortable  filter  header="Order Tables" />
               <Column
                 field="customer.email"
                 filter
                 filterField="customer.email"
                 sortable
                 header="Customer Email "
-                style={{ width: '15%' }}
               />
 
               <Column
@@ -382,9 +379,7 @@ console.log(orderList.length, 'len')
                 filter
                 sortable
                 filterField="customer.phone"
-
                 header="Customer Phone"
-                style={{ width: '15%' }}
               />
 
               <Column field="status" sortable filter header="Order Status"

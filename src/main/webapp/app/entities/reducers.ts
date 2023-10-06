@@ -13,7 +13,9 @@ import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
 import tax from 'app/entities/settings/taxes/tax.reducer';
 import accountingGroups from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 import voidReasons from 'app/entities/settings/void-reasons/void-reasons.reducer';
-import printer from 'app/entities/printing/printer/printer.reducer';
+import printer from 'app/entities/settings/printing/printer/printer.reducer';
+import printingProfiles from 'app/entities/settings/printing/printing-profiles/printing-profile.reducer';
+import productionCenter from 'app/entities/location/production-center/production-center.reducer';
 
 
 import taxProfiles from 'app/entities/settings/tax-profiles/tax-profile.reducer';
@@ -38,7 +40,9 @@ const entitiesReducers = {
   accountingGroups,
   businessDetail,
   voidReasons,
-  printer
+  printer,
+  printingProfiles,
+  productionCenter
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };
 

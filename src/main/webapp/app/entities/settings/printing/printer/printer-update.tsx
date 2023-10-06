@@ -126,7 +126,7 @@ export const PrinterUpdate = () => {
                   validate={{ required: true }}
                 />
               ) : null}
-              <ValidatedField
+            <ValidatedField
                 label={translate('tempApp.printer.name')}
                 id="printer-name"
                 name="name"
@@ -136,10 +136,13 @@ export const PrinterUpdate = () => {
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
+            <ValidatedField label={translate('tempApp.printer.ipAddress')} id="printer-ipAddress" name="ipAddress" data-cy="ipAddress" type="text"/>
 
-              <ValidatedField label={translate('tempApp.printer.brand')} id="printer-brand" name="brand" data-cy="brand" type="text"/>
-              <ValidatedField label={translate('tempApp.printer.model')} id="printer-model" name="model" data-cy="model" type="text"/>
-              <ValidatedField
+            <ValidatedField label={translate('tempApp.printer.brand')} id="printer-brand" name="brand" data-cy="brand" type="text"/>
+            <ValidatedField label={translate('tempApp.printer.model')} id="printer-model" name="model" data-cy="model" type="text"/>
+            <ValidatedField label={translate('tempApp.printer.colorPrinter')} id="printer-colorPrinter" name="colorPrinter" data-cy="colorPrinter" type="checkbox"/>
+
+            <ValidatedField
                 label={translate('tempApp.printer.printSpeed')}
                 id="printer-printSpeed"
                 name="printSpeed"

@@ -144,6 +144,16 @@ const AppMenu = () => {
                                 to: '/printer'
                               },
                               {
+                                label: 'Printing Profiles',
+                                icon: 'pi pi-plus-circle',
+                                to: '/printing-profiles'
+                              },
+                              {
+                                label: 'Production Centers',
+                                icon: 'pi pi-plus-circle',
+                                to: '/production-center'
+                              },
+                              {
                                 label: 'Currencies',
                                 icon: 'pi pi-plus-circle',
                                 to: '/currencies'

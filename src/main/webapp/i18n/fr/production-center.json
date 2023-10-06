@@ -1,0 +1,29 @@
+{
+  "tempApp": {
+    "productionCenter": {
+      "home": {
+        "title": "Production Centers",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Production Center",
+        "createOrEditLabel": "Créer ou éditer un Production Center",
+        "search": "Recherche pour Production Center",
+        "notFound": "Aucun Production Center trouvé"
+      },
+      "created": "Un nouveau Production Center a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Production Center avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Production Center avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Production Center {{ id }} ?"
+      },
+      "detail": {
+        "title": "Production Center"
+      },
+      "id": "ID",
+      "name": "Name",
+      "orderMethod": "Order Method",
+      "printingProfile": "Printing Profile",
+      "virtual": "Is Virtual"
+    }
+  }
+}
+

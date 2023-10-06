@@ -11,6 +11,8 @@ import { getEntities as getMenus } from 'app/entities/menu/menu.reducer';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getItemCategories as getTerms } from 'app/entities/term/term.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
+import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
+
 import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 
 import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
@@ -63,12 +65,18 @@ export const ItemUpdate = () => {
     label: term.name,
   }));
 
+  const productionCenterOptions = useAppSelector(state => state.productionCenter.entities).map(pCenter => ({
+      label: pCenter.name,
+      value: pCenter.id,
+      id: pCenter.id
+  }))
+
+
   const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([]);
 
   const [selectedTerms, setSelectedTerms] = useState(entityTerms);
-  const [isModalOpen, setModalOpen] = useState(false);
 
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [selectedProductionCenter, setSelectedProductionCenter] = useState(null);
   const [openedModal, setOpenedModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
@@ -180,6 +188,7 @@ export const ItemUpdate = () => {
         sort: `${paginationState.sort},${paginationState.order}`,
       })
     );
+    dispatch(getProductionCenters({}))
     dispatch(getDiscounts({}));
     dispatch(getAccountingGroups({}));
 
@@ -204,6 +213,9 @@ export const ItemUpdate = () => {
       setSelectedAccountingGroups(itemEntity.accountingGroups?.map(group => ({ label: group.name, value: group.id })));
       setAccountingGroupsToSave(itemEntity.accountingGroups?.map(group => ({ id: group.id })));
     }
+    if (itemEntity?.productionCenter) {
+      setSelectedProductionCenter( ({ label: itemEntity.productionCenter?.name, value: itemEntity.productionCenter?.id, id: itemEntity.productionCenter?.id }));
+    }
     if (itemEntity?.attachments) {
       setSelectedAttachments(itemEntity.attachments?.map(attachment => ({ id: attachment.id, url: attachment?.url })));
     }
@@ -223,7 +235,7 @@ export const ItemUpdate = () => {
     if (updateSuccess && newTermId) {
       navigate(`/item/${newTermId}/edit?page=1&sort=id,asc`);
     }
-  }, [updateSuccess, itemEntity?.variants]);
+  }, [updateSuccess, itemEntity]);
 
   const handleTermChange = selectedOptions => {
     setSelectedTerms(selectedOptions);
@@ -234,6 +246,10 @@ export const ItemUpdate = () => {
     setAccountingGroupsToSave([{ id: selectedAccounting.value }]);
   };
 
+  const handleProductionCenterChange = (selectedProductionCenter) => {
+
+    setSelectedProductionCenter(selectedProductionCenter);
+  };
   const handleAddonChange = selectedAddon => {
     setSelectedAddons(selectedAddon);
   };
@@ -267,6 +283,7 @@ export const ItemUpdate = () => {
       ...itemEntity,
       ...values,
       accountingGroups: accountingGroupsToSave,
+      productionCenter: selectedProductionCenter,
       addons: selectedAddons?.map(addon => ({ id: addon.value })),
       terms: selectedTerms?.map(term => ({ id: term.value })),
       attachments: selectedAttachments,
@@ -464,13 +481,17 @@ export const ItemUpdate = () => {
                     }}
                   />
                 </div>
-                <div style={{ width: '33%' }}>
+                <div style={{ width: '22%' }}>
                   <Translate contentKey="tempApp.item.terms">Category</Translate>
                   <Select isMulti={true} value={selectedTerms} onChange={handleTermChange} options={termsOptions} />
                 </div>
-                <div style={{ width: '34%' }}>
+                <div style={{ width: '22%' }}>
                   <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
                   <Select value={selectedAccountingGroups} onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
+                </div>
+                <div style={{ width: '21%' }}>
+                  <Translate contentKey="tempApp.item.productionCenter">Production Center</Translate>
+                  <Select value={selectedProductionCenter} onChange={handleProductionCenterChange} options={productionCenterOptions} />
                 </div>
               </div>
               <Col md={8}>

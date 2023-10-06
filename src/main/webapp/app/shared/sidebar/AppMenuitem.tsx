@@ -96,6 +96,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
         }
     };
 
+
     const badge = item?.badge ? (
         <span className={classNames('layout-menu-badge p-tag p-tag-rounded ml-2 uppercase', { [`${item?.badge}`]: true, 'p-tag-success': item?.badge === 'new', 'p-tag-info': item?.badge === 'updated' })}>{item?.badge}</span>
     ) : null;
@@ -103,6 +104,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
         item?.items && item?.visible !== false ? (
             <ul ref={submenuRef}>
                 {item?.items.map((child, i) => {
+                  console.log(child, 'childs')
                     return <AppMenuitem item={child} index={i} className={child.badgeClass} parentKey={key} key={child.label} />;
                 })}
             </ul>
