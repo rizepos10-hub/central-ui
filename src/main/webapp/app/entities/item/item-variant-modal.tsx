@@ -273,7 +273,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       const formattedIngredients = ingredients.map((ingredient) => {
         // Filter out addons with an amount of 0
         const filteredAddons = ingredient.addons.filter((addon) => addon.amount > 0);
-
+      // in the returned object the key VariantId is sent for the post request, and the key variant  is sent for put request
         return {
           item: { id: ingredient.item.id },
           variantId: ingredient.variantId,

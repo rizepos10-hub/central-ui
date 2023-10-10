@@ -23,6 +23,7 @@
       "name": "Name",
       "desc": "Desc",
       "accountingGroups": "Accounting Group",
+      "productionCenter": "Production Center",
       "orderCount": "Order Count",
       "avgRating": "Avg Rating",
       "ratingCount": "Rating Count",

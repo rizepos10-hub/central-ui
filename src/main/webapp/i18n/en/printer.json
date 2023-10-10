@@ -24,7 +24,8 @@
       "model": "Model",
       "printSpeed": "Print Speed",
       "branch": "Branch",
-      "colorPrinter": "Color Printer"
+      "colorPrinter": "Color Printer",
+      "ipAddress": "Ip Address"
     }
   }
 }
