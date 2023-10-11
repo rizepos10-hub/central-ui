@@ -75,10 +75,10 @@ export const AccountingGroupsUpdate = () => {
   }, [accountingGroupsEntity]);
 
   return (
-    <div className="bg-light">
+    <div>
       <h2>{isNew ? `Add New Accounting Groups` : `Edit Accounting Groups ${accountingGroupsEntity.name}` }</h2>
       <Row>
-        <Col md="6">
+        <Col md="8"  className="d-flex flex-column p-3  bg-white">
       <FormGroup>
           <div className="d-flex flex-column mb-3">
             <label htmlFor="name">Name</label>

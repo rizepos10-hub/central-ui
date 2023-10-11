@@ -67,7 +67,7 @@ export const VoidReasonsUpdate = () => {
     <div className="bg-light">
       <h2> {isNew ? `Add New Void Reason` : `Edit Void Reason ${voidReasonsEntity.code}` } </h2>
       <Row>
-        <Col md="6">
+        <Col md="8" className="d-flex flex-column p-3 bg-white">
       <FormGroup>
           <div className="d-flex flex-column mb-3">
             <label htmlFor="code">Code</label>

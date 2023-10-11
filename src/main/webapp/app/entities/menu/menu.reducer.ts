@@ -36,7 +36,7 @@ export const getEntities = createAsyncThunk('menu/fetch_entity_list', async ({ p
 export const sendEvent = createAsyncThunk(
   'menu/send_event',
   async (id: string | number) => {
-    const requestUrl = `api/event?menuId=${id}`;
+    const requestUrl = `api/event/menu?menuId=${id}`;
     return axios.post<IMenu>(requestUrl);
   },
   { serializeError: serializeAxiosError }

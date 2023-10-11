@@ -74,15 +74,15 @@ export const DiscountUpdate = () => {
 
   return (
     <div>
-      <Row className="justify-content-center">
+      <Row>
         <Col md="8">
           <h2 id="tempApp.discount.home.createOrEditLabel" data-cy="DiscountCreateUpdateHeading">
             <Translate contentKey="tempApp.discount.home.createOrEditLabel">Create or edit a Discount</Translate>
           </h2>
         </Col>
       </Row>
-      <Row className="justify-content-center">
-        <Col md="8">
+      <Row>
+        <Col md="8"  className="d-flex flex-column p-3  bg-white">
           {loading ? (
             <p>Loading...</p>
           ) : (

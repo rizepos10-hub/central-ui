@@ -25,7 +25,7 @@
       "updatedAt": "Updated At",
       "category": "Category",
       "branch": "Branch",
-
+      "triggered": "Menu update event sent for menu with identifier {{ param }}",
       "items": "Items"
     }
   }

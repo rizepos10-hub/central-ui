@@ -95,7 +95,7 @@ const NewMenuPopup = () => {
     const entity = {
       ...menuEntity,
       ...restValues,
-      category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
+      // category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
       branch: { id: selectedBranches.value }
 
     };
@@ -177,7 +177,6 @@ const NewMenuPopup = () => {
             data-cy="category"
             label={translate("tempApp.menu.category")}
             type="select"
-            required
             value={selectedCategory}
             onChange={handleCategoryChange}
           >

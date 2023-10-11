@@ -85,6 +85,8 @@ export const ItemUpdate = () => {
 
   const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
 
+
+
   const [selectedAttachments, setSelectedAttachments] = useState([]);
 
   const [variants, setVariants] = useState([]);
@@ -94,6 +96,9 @@ export const ItemUpdate = () => {
   const [modalVariantImages, setModalVariantImages] = useState([]);
 
   const [editingVariantId, setEditingVariantId] = useState(null);
+
+  const [editingVariantIndex, setEditingVariantIndex] = useState(null);
+
 
   const [openedAddonModal, setOpenedAddonModal] = useState(false);
 
@@ -154,6 +159,9 @@ export const ItemUpdate = () => {
 
   console.log(variants, 'variants');
   const openEditVariantModal = variant => {
+    const variantIndex = variants.findIndex(v => v.id === variant.id);
+
+    setEditingVariantIndex(variantIndex);
     setEditingVariantId(variant.id);
     setOpenedModal(true);
   };
@@ -299,6 +307,7 @@ export const ItemUpdate = () => {
   };
   const handleCloseModal = () => {
     setEditingVariantId(null);
+    setEditingVariantIndex(null)
     setOpenedModal(false);
   };
   const openVariantModal = () => {
@@ -396,7 +405,7 @@ export const ItemUpdate = () => {
         updatedAt: response?.payload?.updatedAt,
         url: imageUrl,
       };
-      setSelectedAttachments(prevAttachments => [...prevAttachments, imageInfo]);
+      setSelectedAttachments(prevAttachments => [ imageInfo]);
       setUploadImageStatus('success');
       console.log(imageInfo, 'helloi');
 
@@ -425,6 +434,7 @@ export const ItemUpdate = () => {
           showModal={openedModal}
           handleClose={handleCloseModal}
           handleSave={handleSaveVariant}
+          editingVariantIndex={editingVariantIndex}
           onVariantImageUpload={handleVariantImageUpload}
           editingVariantId={editingVariantId}
           itemId={id}
@@ -443,15 +453,15 @@ export const ItemUpdate = () => {
         />
       )}
 
-      <Row className="justify-content-center">
+      <Row >
         <Col md="8">
           <h2 id="tempApp.item.home.createOrEditLabel" data-cy="ItemCreateUpdateHeading">
             <Translate contentKey="tempApp.item.home.createOrEditLabel">Create or edit a Item</Translate>
           </h2>
         </Col>
       </Row>
-      <Row className="justify-content-center">
-        <Col md="8">
+      <Row >
+        <Col md="8" className="d-flex flex-column p-3  bg-white">
           {loading ? (
             <p>Loading...</p>
           ) : (

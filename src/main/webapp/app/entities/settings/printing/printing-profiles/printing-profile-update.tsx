@@ -155,11 +155,11 @@ console.log(updateSuccess, 'updateSuccess')
 
   return (
 
-    <Row className="justify-content-center">
+    <Row>
+      <h2>{isNew ? `Add New Printing Profile` : `Edit Printing Profile ${printingProfileEntity.name}` }</h2>
 
 
-        <Col md="8">
-          <h2>{isNew ? `Add New Printing Profile` : `Edit Printing Profile ${printingProfileEntity.name}` }</h2>
+        <Col md="8"  className="d-flex flex-column p-3  bg-white">
 
           <FormGroup>
             <div className="d-flex flex-column mb-3">

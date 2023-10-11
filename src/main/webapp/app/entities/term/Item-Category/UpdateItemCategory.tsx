@@ -147,7 +147,7 @@ export const UpdateItemCategory = () => {
         updatedAt: response?.payload?.updatedAt,
         url: imageUrl,
       };
-      setSelectedAttachments((prevAttachments) => [...prevAttachments, imageInfo]);
+      setSelectedAttachments((prevAttachments) => [ imageInfo]);
       setUploadImageStatus('success');
       console.log(imageInfo, 'helloi')
 
@@ -195,15 +195,15 @@ export const UpdateItemCategory = () => {
   console.log(terms, 'terms')
   return (
     <div>
-      <Row className="justify-content-center">
+      <Row >
         <Col md="8">
           <h2  data-cy="TermCreateUpdateHeading">
             {isNew ? "Create an Item Category" : "Edit Item Category"}
           </h2>
         </Col>
       </Row>
-      <Row className="justify-content-center">
-        <Col md="8">
+      <Row >
+        <Col md="8" className="d-flex flex-column p-3  bg-white">
           {loading ? (
             <p>Loading...</p>
           ) : (

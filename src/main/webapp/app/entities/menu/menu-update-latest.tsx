@@ -866,7 +866,7 @@ console.log(editScreenColor, 'editScreenColor' )
   console.log(data, 'dataa')
 
   return (
-    <Container className="mt-5" >
+    <div className="mt-5" >
       <Card>
         <div className="d-flex justify-content-between align-items-center p-3">
           <h1>{menuEntity.name}</h1>
@@ -953,6 +953,7 @@ console.log(editScreenColor, 'editScreenColor' )
           </Col>
           <Col md="8" className="border-left">
             <div className="d-flex justify-content-between">
+              <Col md="8">
 
                   <h2>
                 {breadcrumb?.length > 0 &&
@@ -968,6 +969,10 @@ console.log(editScreenColor, 'editScreenColor' )
                   ))}
 
               </h2>
+
+              </Col>
+              <Col>
+
               <div>
 
 
@@ -998,8 +1003,12 @@ console.log(editScreenColor, 'editScreenColor' )
                   Save
                 </Button>
               </div>
+              </Col>
+
             </div>
+
             <ListGroup className="mt-3">{renderCurrentSubScreen()}</ListGroup>
+
           </Col>
 
 
@@ -1199,7 +1208,7 @@ console.log(editScreenColor, 'editScreenColor' )
 
       </Modal>)}
 
-    </Container>
+    </div>
   );
 }
 
