@@ -104,15 +104,15 @@ export const ProductionCenterUpdate = () => {
 
   return (
     <div>
-      <Row className="justify-content-center">
+      <Row>
         <Col md="8">
           <h2 id="tempApp.productionCenter.home.createOrEditLabel" data-cy="PrinterCreateUpdateHeading">
             <Translate contentKey="tempApp.productionCenter.home.createOrEditLabel">Create or edit a Printer</Translate>
           </h2>
         </Col>
       </Row>
-      <Row className="justify-content-center">
-        <Col md="8">
+      <Row>
+        <Col md="8"  className="d-flex flex-column p-3  bg-white">
           {loading ? (
             <p>Loading...</p>
           ) : (

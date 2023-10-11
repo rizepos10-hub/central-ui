@@ -7,7 +7,7 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntities, getEntities } from './tax.reducer';
-
+import {Button as ReactStrapButton } from "reactstrap";
 // import { ITax } from 'app/shared/model/tax.model';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
@@ -114,10 +114,10 @@ export const Tax = () => {
   };
   const editColumnTemplate = (rowData) => {
     return (
-      <Button raised onClick={() => handleEdit(rowData.id)} disabled={loading}>
+      <ReactStrapButton raised onClick={() => handleEdit(rowData.id)} disabled={loading}>
 
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Button>
+      </ReactStrapButton>
     );
   };
 

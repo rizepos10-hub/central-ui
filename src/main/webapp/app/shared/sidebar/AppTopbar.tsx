@@ -31,17 +31,17 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
             <div className="topbar-end">
                 <ul className="topbar-menu">
                     <li className="topbar-search">
-                        <span className="p-input-icon-left">
-                            <i className="pi pi-search"></i>
-                            <InputText type="text" placeholder="Search" className="w-12rem sm:w-full" />
-                        </span>
+                        {/* <span className="p-input-icon-left"> */}
+                        {/*     <i className="pi pi-search"></i> */}
+                        {/*     <InputText type="text" placeholder="Search" className="w-12rem sm:w-full" /> */}
+                        {/* </span> */}
                     </li>
                     <li className="ml-3">
                         {/* <Button type="button" icon="pi pi-cog" text rounded className="p-button-text p-button-secondary flex-shrink-0" onClick={onConfigButtonClick}></Button> */}
                     </li>
                     <li className="topbar-profile">
                         <button type="button" className="p-link" onClick={showProfileSidebar}>
-                            <img src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?cs=srgb&dl=pexels-pixabay-220453.jpg&fm=jpg" alt="Profile" />
+                            <img src="content/images/default-user.png" alt="Profile" />
                         </button>
                     </li>
                 </ul>

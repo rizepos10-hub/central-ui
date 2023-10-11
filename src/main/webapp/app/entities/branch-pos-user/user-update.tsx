@@ -268,16 +268,15 @@ export const UserUpdate = () => {
 
 
   return (
-    <div className="container" >
-      <div className="p-grid">
-        <div className="p-col-12">
+    <div>
+        <div className="col-8">
           <h2>
             {isNew ? "Create New User" : `Edit User`}
           </h2>
         </div>
-      </div>
-      <div className="p-grid">
-        <div className="p-col-12">
+        <div className="col-8">
+          <div className="p-grid d-flex flex-column p-3  bg-white">
+
           <form onSubmit={handleSubmit}>
 
             <div className="p-field d-flex flex-column mb-3">

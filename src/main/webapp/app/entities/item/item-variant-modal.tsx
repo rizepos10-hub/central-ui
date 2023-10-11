@@ -45,11 +45,18 @@ interface IVariantProps {
   handleEditExistingVariant: any;
   addonsOptions: any;
   itemId: string;
+  editingVariantIndex: number;
 }
 
 const ItemVariantModal = (props: IVariantProps) => {
   const dispatch = useAppDispatch();
-  const editingVariant = props.editingVariantId ? props.variants.find(variant => variant.id === props.editingVariantId) : null;
+
+  const editingVariant = props.editingVariantIndex !== null && props.editingVariantIndex >= 0
+    ? props.variants[props.editingVariantIndex]
+    : null;
+
+  console.log(editingVariant,'hello editingVariant')
+  // const editingVariant = props.editingVariantId ? props.variants.find(variant => variant.id === props.editingVariantId) : null;
 
   const defaultAttachments = editingVariant?.attachments;
 
@@ -260,6 +267,12 @@ const ItemVariantModal = (props: IVariantProps) => {
         value: item.value,
       })) || [];
 
+      const selectedAddonsObjects = selectedVariantAddons?.map(item => ({
+        id: item.id,
+        label: item.label,
+        value: item.value,
+      })) || [];
+
       // Prepare attachments to send
       let attachmentsToSend = [];
       if (selectedImage) {
@@ -280,11 +293,14 @@ const ItemVariantModal = (props: IVariantProps) => {
           variant: {id: ingredient.variantId},
           amount: ingredient.amount,
           addons: filteredAddons.map((addon) => ({
-            addon: { id: addon.addon.id },
+            addon: { id: addon.addon.id , label: addon.addon.name, value: addon.addon.id},
             amount: addon.amount,
           })),
         };
       });
+
+      console.log(selectedAddonsObjects, 'selectedAddonsObjects')
+      console.log(selectedDiscountObjects, 'selectedDiscountObjects')
 
       console.log(formattedIngredients, 'formattedIngredients')
 
@@ -305,7 +321,7 @@ const ItemVariantModal = (props: IVariantProps) => {
         price: parseFloat(price),
         discounts: selectedDiscountObjects,
         attachments: attachmentsToSend,
-        addons: selectedVariantAddons,
+        addons: selectedAddonsObjects,
         branchVariantDetails: formattedBranchPrices,
         ingredients: formattedIngredients,
         specialPrices: specialPricesValues
@@ -326,7 +342,7 @@ const ItemVariantModal = (props: IVariantProps) => {
         props.handleEditExistingVariant(updatedVariant);
       } else {
 
-       props.handleSave(name, parseFloat(price), selectedDiscountObjects, selectedVariantAddons,
+       props.handleSave(name, parseFloat(price), selectedDiscountObjects, selectedAddonsObjects,
          attachmentsToSend, formattedBranchPrices, formattedIngredients, specialPricesValues);
         resetForm();
         setSelectedDiscounts([]);
@@ -340,11 +356,16 @@ const ItemVariantModal = (props: IVariantProps) => {
   };
 
 
-  const handleAddonChange = (selectedAddon) => {
-    setSelectedVariantAddons((prevAddons) => [
-      ...prevAddons,
-      ...selectedAddon.map((addon) => ({ id: addon.value })),
-    ]);
+  const handleAddonChange = (selectedAddons) => {
+
+    const selectedValues = selectedAddons.map(addon => ({
+      id: addon.id,
+      label: addon.label,
+      value: addon.value,
+    }));
+
+    setSelectedVariantAddons(selectedValues);
+
   };
 
   const resetForm = () => {
@@ -354,6 +375,7 @@ const ItemVariantModal = (props: IVariantProps) => {
     setSelectedImage(null);
     setBranchPrices({});
     setAttachments([]);
+    setSelectedVariantAddons([])
   };
 
 
@@ -443,7 +465,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       setName(editingVariant.name || '');
       setPrice(editingVariant.price || '');
       if(editingVariant?.addons){
-        setSelectedVariantAddons(editingVariant?.addons.map((addon) => ({label: addon.name, value: addon.id})))
+        setSelectedVariantAddons(editingVariant?.addons.map((addon) => ({id: addon.id, label: addon.label, value: addon.value, name: addon.name})))
 
       }
 
@@ -631,8 +653,11 @@ const ItemVariantModal = (props: IVariantProps) => {
     })) || [];
 
   const defaultAddons = editingVariant?.addons?.map(addon => ({
-      label: addon.name,
-      value: addon.id,
+      label: addon.label,
+      value: addon.value,
+      id: addon.id
+
+
     })) || [];
 
   const formattedDiscountOptions = discounts?.map(discount => ({

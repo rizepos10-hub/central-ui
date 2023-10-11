@@ -17,6 +17,8 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const dispatch = useAppDispatch();
   const totalItems = useAppSelector((state) => state.item.totalItems);
   const itemList = useAppSelector((state) => state.item.entities);
+  const loading = useAppSelector((state) => state.item.loading);
+
   const [search, setSearch] = useState('');
 
   const { isOpen, toggle, selectedItems, handleToggleSelect } = props;
@@ -27,6 +29,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   console.log("itemList", itemList)
+  console.log("item loading", loading)
 
   const startSearching = () => {
     dispatch(
@@ -39,30 +42,34 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
     )
   };
   useEffect(() => {
-    if (search) {
-      console.log("search", search)
+    if (search.length > 2) {
+      console.log("search im here", search);
       startSearching();
     } else {
-      console.log("search1", search)
-
+      console.log("search1 im here", search);
       dispatch(
         getItemsSummary({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
         })
-      )
+      );
     }
+
     return () => {
-      dispatch(reset())
-    }
+      dispatch(reset());
+    };
   }, [paginationState, search]);
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSearchTerm = e.target.value;
     setSearchTerm(newSearchTerm);
 
-    setSearch(newSearchTerm);
+    if(newSearchTerm.length > 2){
+      setSearch(newSearchTerm);
+
+    }
+
   };
 
   const handleSave = () => {

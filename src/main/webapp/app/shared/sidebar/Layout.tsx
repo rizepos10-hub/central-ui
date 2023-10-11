@@ -179,12 +179,13 @@ export const Layout =  (props: ChildContainerProps) => {
     <React.Fragment>
 
       <div className={classNames('layout-container', containerClass)}>
-        <div ref={sidebarRef} className="layout-sidebar" >
+        {isAuthenticated &&   <div ref={sidebarRef} className="layout-sidebar" >
           {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
-          {isAuthenticated && <AppSidebar/>}
-        </div>
-        <div className="layout-content-wrapper">
-          <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" />
+          <AppSidebar />
+        </div> }
+        <div className={isAuthenticated ? 'layout-content-wrapper' : ''}>
+
+        <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" />
           <ErrorBoundary>
             {/* <Header */}
             {/*   isAuthenticated={isAuthenticated} */}
@@ -206,7 +207,7 @@ export const Layout =  (props: ChildContainerProps) => {
         {/* {isAuthenticated && <AppConfig />} */}
         <div className="layout-mask"></div>
       </div>
-      <Footer />
+      {isAuthenticated &&  <Footer /> }
 
     </React.Fragment>
   );
