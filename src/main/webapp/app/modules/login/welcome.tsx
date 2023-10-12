@@ -1,12 +1,32 @@
 import React from "react";
 import "./welcome.css";
 import {Col, Row} from "reactstrap";
+import {useLocation} from "react-router-dom";
 
-export default function Welcome() {
+export default function Welcome()
+{
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+
+  const showWelcome = queryParams.has("welcome");
+
+  console.log(showWelcome,' lol')
+
   return (
     <div className="welcome-container">
         <div className="welcome-content">
-          <h1>Welcome!</h1>
+          {showWelcome &&
+          <div>
+            <span className="color-cycle">W</span>
+            <span className="color-cycle">e</span>
+            <span className="color-cycle">l</span>
+            <span className="color-cycle">c</span>
+            <span className="color-cycle">o</span>
+            <span className="color-cycle">m</span>
+            <span className="color-cycle">e</span>
+            <span className="color-cycle">!</span>
+          </div>   }
+          <h2 className={`${showWelcome ? "welcome-instructions" : "instructions"}`}>Instructions</h2>
         </div>
 
           <div className="steps-column">

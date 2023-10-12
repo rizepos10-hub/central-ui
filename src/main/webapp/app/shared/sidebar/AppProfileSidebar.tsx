@@ -30,6 +30,7 @@ const AppProfileSidebar = () => {
           <Button
             label="Yes"
             onClick={() => {
+              onProfileSidebarHide()
               toast.dismiss(toastId);
               navigate('/logout');
             }}

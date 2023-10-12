@@ -174,6 +174,7 @@ export const Layout =  (props: ChildContainerProps) => {
 
 
 
+console.log(isAdmin, 'hello admin')
 
   return (
     <React.Fragment>
@@ -198,7 +199,7 @@ export const Layout =  (props: ChildContainerProps) => {
 
             {isAuthenticated && <AppTopbar ref={topbarRef}/>}
 
-            {isAuthenticated && <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>}
+            {isAuthenticated && isOpenAPIEnabled && <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>}
 
                 <div className="layout-content">{props.children}</div>
             </ErrorBoundary>

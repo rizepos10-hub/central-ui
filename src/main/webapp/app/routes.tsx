@@ -17,6 +17,8 @@ import PageNotFound from 'app/shared/error/page-not-found';
 import { AUTHORITIES } from 'app/config/constants';
 import { sendActivity } from 'app/config/websocket-middleware';
 import Welcome from "app/modules/login/welcome";
+import BusinessDetailRoutes from "app/entities/business-details";
+import {useAppSelector} from "app/config/store";
 
 const loading = <div>loading ...</div>;
 
@@ -35,13 +37,34 @@ const AppRoutes = () => {
   React.useEffect(() => {
     sendActivity(location.pathname);
   }, [location]);
+  const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
+
   return (
     <div className="view-routes">
       <ErrorBoundaryRoutes>
-        <Route path="welcome" element={<Welcome />} />
+
+        <Route
+          path="instructions"
+          element={
+            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER]}>
+              <Welcome />
+
+            </PrivateRoute>
+          }
+        />
+        <Route
+          index
+          element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          }
+        />
 
         <Route path="login" element={<Login />} />
         <Route path="logout" element={<Logout />} />
+
+
         <Route path="account">
           <Route
             path="*"
@@ -85,6 +108,14 @@ const AppRoutes = () => {
         />
 
 
+        <Route
+          path="details/*"
+          element={
+            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER, AUTHORITIES.BUSINESS_SETTING]}>
+              {<BusinessDetailRoutes />}
+            </PrivateRoute>
+          }
+        />
         {/* <Route */}
         {/*   path="settings/*" */}
         {/*   element={ */}
