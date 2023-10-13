@@ -12,6 +12,7 @@ const initialState: EntityState<IOrder> = {
   entity: defaultValue,
   updating: false,
   updateSuccess: false,
+  orderSources: []
 };
 
 const apiUrl = 'api/orders';
@@ -35,7 +36,7 @@ export const getEntities = createAsyncThunk('order/fetch_entity_list', async ({ 
 export const getOrderSources = createAsyncThunk('order/fetch_orderSource_list', async () => {
   const requestUrl = `/api/applications`;
   const response = await axios.get<IOrder[]>(requestUrl);
-  return response.data
+  return response
 });
 
 export const getOrderStatuses = createAsyncThunk('order/fetch_orderStatus_list', async () => {
@@ -152,6 +153,15 @@ export const OrderSlice = createEntitySlice({
           loading: false,
           entities: data,
           totalOrders: parseInt(headers['x-total-count'], 10),
+        };
+      })
+      .addMatcher(isFulfilled(getOrderSources), (state, action) => {
+        const { data, headers } = action.payload;
+
+        return {
+          ...state,
+          loading: false,
+          orderSources: data,
         };
       })
       .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
