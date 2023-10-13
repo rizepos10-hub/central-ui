@@ -33,7 +33,36 @@ export const BusinessDetailUpdate = () => {
 
   const [branchDetails, setBranchDetails] = useState([]);
 
+  const [editingBranch, setEditingBranch] = useState(null);
+
   console.log(branchDetails, 'kfwpk')
+
+
+
+  const handleBranchNameChange = (branchIndex, newName) => {
+    const newData = JSON.parse(JSON.stringify(branchDetails));
+    newData[branchIndex].name = newName;
+    setBranchDetails(newData);
+  };
+
+  const handleAddressFieldChange = (branchIndex, field, value) => {
+    const newData = JSON.parse(JSON.stringify(branchDetails));
+    const branch = newData[branchIndex];
+
+    if (!branch.address) {
+      branch.address = {
+        street: "",
+        city: "",
+        state: "",
+        postalCode: ""
+      };
+    }
+    branch.address[field] = value;
+    setBranchDetails(newData);
+  };
+
+
+
 
 
   const handleClose = () => {
@@ -294,7 +323,91 @@ export const BusinessDetailUpdate = () => {
                 <div>
                   {branchDetails?.map((branch, branchIndex) => (
                     <div className="d-flex flex-column gap-1 mb-3" key={branch.branchId}>
-                      <h2>{(branch.name)}</h2>
+                      <div className="d-flex justify-content-between">
+                      {editingBranch === branchIndex ? (
+                        <div className="d-flex flex-column">
+                          <label className="font-bold">Branch Name</label>
+                          <InputText
+                            type="text"
+                            value={branch.name}
+                            onChange={(e) => handleBranchNameChange(branchIndex, e.target.value)}
+                          />
+                          <label className="font-bold my-2">Branch Address</label>
+
+                          <div className='d-flex flex-column'>
+                            <label className="font-bold">Street</label>
+
+                            <InputText
+                              type="text"
+                              placeholder="Enter Street"
+                              value={branch.address?.street}
+                              onChange={(e) => handleAddressFieldChange(branchIndex, 'street', e.target.value)}
+                            />
+                            <label className="font-bold">City</label>
+
+                            <InputText
+                              type="text"
+                              placeholder="Enter City"
+                              value={branch.address?.city}
+                              onChange={(e) => handleAddressFieldChange(branchIndex, 'city', e.target.value)}
+                            />
+                            <label className="font-bold">State</label>
+                            <InputText
+                              type="text"
+                              placeholder="Enter State"
+                              value={branch.address?.state}
+                              onChange={(e) => handleAddressFieldChange(branchIndex, 'state', e.target.value)}
+                            />
+                            <label className="font-bold">Postal Code</label>
+                            <InputText
+                              type="text"
+                              placeholder="Enter Postal Code"
+                              value={branch.address?.postalCode}
+                              onChange={(e) => handleAddressFieldChange(branchIndex, 'postalCode', e.target.value)}
+                            />
+                          </div>
+                          <div className="ml-auto mt-2">
+                          <Button
+                            type="button"
+                            className="btn btn-primary btn-sm ml-2"
+                            onClick={() => setEditingBranch(null)}
+                          >
+                            Save
+                          </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div>
+                            <h2>{branch.name}</h2>
+                            <div className="d-flex flex-column">
+                              <h4>Branch Address</h4>
+                              <p><strong>Street:</strong> {branch.address?.street}</p>
+                              <p><strong>City:</strong> {branch.address?.city}</p>
+                              <p><strong>State:</strong> {branch.address?.state}</p>
+                              <p><strong>Postal Code:</strong> {branch.address?.postalCode}</p>
+                            </div>
+                          </div>
+
+                          <Button
+                            type="button"
+                            className="h-3rem"
+                            onClick={() => setEditingBranch(branchIndex)}
+                          >
+                            <FontAwesomeIcon icon="pencil" />
+                          </Button>
+                            {editingBranch === branchIndex && (
+                              <button
+                                type="button"
+                                className="btn btn-link"
+                                onClick={() => setEditingBranch(null)}
+                              >
+                                <FontAwesomeIcon icon="pencil" />
+                              </button>
+                            )}
+                        </>
+                      )}
+                    </div>
                       <ListGroup>
                         {branch.days.map((day, dayIndex) => (
                           <ListGroupItem key={day.day}>
