@@ -80,6 +80,7 @@ export interface EntityState<T> {
   availableRoles?: [];
   assignedRoles?: [];
   allRoles?: [];
+  orderSources?: any;
 }
 
 /**

@@ -1,15 +1,47 @@
 import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import SalesSection from "app/modules/analytics/reports/SalesSections";
 import axios from "axios";
 import {format, addDays, addMonths} from 'date-fns';
+import {useAppDispatch, useAppSelector} from "app/config/store";
+import {Dropdown} from "primereact/dropdown";
+import {SourceType} from "app/shared/model/enumerations/source-type.model";
 const SalesSummaryReport = () => {
 
+  const  dispatch = useAppDispatch()
 
   const [salesData, setSalesData]:any = useState([]);
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [toDate, setToDate] = useState(format((new Date()), "yyyy-MM-dd"));
+
+  const [selectedBranch, setSelectedBranch] = useState(null);
+
+
+  const [selectedSource, setSelectedSource] = useState(null);
+
+
+  console.log(Object.values(SourceType), 'ssss')
+
+  const branchList = useAppSelector(state => state.branch.entities)
+
+
+  const sourceTypeOptions = [
+    { label: "Both", value: null },
+    ...Object.values(SourceType).map((source) => ({
+      label: source,
+      value: source
+    }))
+  ];
+
+  const filteredBranchOptions = [
+    { label: "All", value: null },
+  ...branchList
+    .map((branch) => ({
+      label: branch.name,
+      value: branch.id,
+    }))];
 
 
 
@@ -21,7 +53,7 @@ const SalesSummaryReport = () => {
     setToDate(event.target.value);
   };
 
-  const fetchLastWeekData = async () => {
+  const fetchLastWeekData =  () => {
     const today = new Date();
     const lastWeekStartDate = format(addDays(today, -7), "yyyy-MM-dd");
     const lastWeekEndDate = format(today, "yyyy-MM-dd");
@@ -29,7 +61,7 @@ const SalesSummaryReport = () => {
     setToDate(lastWeekEndDate);
   };
 
-  const fetchLastTwoWeeksData = async () => {
+  const fetchLastTwoWeeksData =  () => {
     const today = new Date();
     const lastTwoWeeksStartDate = format(addDays(today, -14), "yyyy-MM-dd");
     const lastTwoWeeksEndDate = format(today, "yyyy-MM-dd");
@@ -37,7 +69,7 @@ const SalesSummaryReport = () => {
     setToDate(lastTwoWeeksEndDate);
   };
 
-  const fetchLastMonthData = async () => {
+  const fetchLastMonthData =  () => {
     const today = new Date();
     const lastMonthStartDate = format(addMonths(today, -1), "yyyy-MM-dd");
     const lastMonthEndDate = format(today, "yyyy-MM-dd");
@@ -45,7 +77,7 @@ const SalesSummaryReport = () => {
     setToDate(lastMonthEndDate);
   };
 
-  const fetchLastThreeMonthsData = async () => {
+  const fetchLastThreeMonthsData =  () => {
     const today = new Date();
     const lastThreeMonthsStartDate = format(addMonths(today, -3), "yyyy-MM-dd");
     const lastThreeMonthsEndDate = format(today, "yyyy-MM-dd");
@@ -72,8 +104,19 @@ const SalesSummaryReport = () => {
       const formattedToDate = `${toDate}T00:00:00.000Z`;
 
       const formData = new FormData();
+
       formData.append('fromDate', formattedFromDate);
       formData.append('toDate', formattedToDate);
+      {
+        selectedBranch &&
+        formData.append('branch', selectedBranch)
+      }
+
+      {
+        selectedSource &&
+        formData.append('source', selectedSource)
+      }
+
 
       const { data } = await axios.post(`/api/report/sales-summary`, formData, {
         headers: {
@@ -91,13 +134,14 @@ const SalesSummaryReport = () => {
 
   useEffect(() => {
     fetchTodayData();
+    dispatch(getBranches({}))
   }, []);
 
   useEffect(() => {
     if (fromDate && toDate) {
       handleSubmit();
     }
-  }, [fromDate, toDate]);
+  }, [fromDate, toDate,selectedSource,selectedBranch]);
 
   const fetchTodayData = async () => {
     await handleSubmit();
@@ -137,6 +181,8 @@ const SalesSummaryReport = () => {
 
   console.log(salesData,'salesDta')
 
+
+
   return (
 
     <div className="container mt-5">
@@ -158,6 +204,23 @@ const SalesSummaryReport = () => {
             </div>
             <div className="text-center">
               <button type="submit" className="btn btn-primary" >Get Report</button>
+            </div>
+            <div className="d-flex  justify-content-start gap-5 ">
+              <Dropdown
+                style={{minWidth: '7rem'}}
+                value={selectedSource}
+                options={sourceTypeOptions}
+                onChange={(e) => setSelectedSource(e.value)}
+                placeholder="Select a source"
+              />
+              <Dropdown
+                style={{minWidth: '7rem'}}
+
+                value={selectedBranch}
+                options={filteredBranchOptions}
+                onChange={(e) => setSelectedBranch(e.value)}
+                placeholder="Select a branch"
+              />
             </div>
             <div className="d-flex justify-content-end gap-3">
               <button

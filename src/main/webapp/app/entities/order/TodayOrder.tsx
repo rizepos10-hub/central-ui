@@ -47,7 +47,6 @@ export const Order = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState(null);
 
-  const [orderSources, setOrderSources]:any = useState([]);
 
   const [orderStatuses, setOrderStatuses]:any = useState([]);
 
@@ -78,9 +77,11 @@ export const Order = () => {
   const totalOrders = useAppSelector(state => state.order.totalOrders);
 
   const loading = useAppSelector(state => state.order.loading);
+  const orderSources = useAppSelector(state => state.order.orderSources);
+
   const branchList = useAppSelector(state => state.branch.entities);
 
-  console.log(orderList)
+
 
   const getBranchName = (branchId) => {
     console.log(branchId, 'branchID')
@@ -166,9 +167,6 @@ export const Order = () => {
     dispatch(getBranches({}))
 
     dispatch(getOrderSources())
-      .then((response) => {
-        setOrderSources(response.payload);
-      })
 
     dispatch(getOrderStatuses())
       .then((response :any) => {

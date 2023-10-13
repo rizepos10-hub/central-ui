@@ -44,7 +44,6 @@ export const Order = () => {
 
   const [dates, setDates] = useState<string | Date | Date[] | null>(null);
 
-  const [orderSources, setOrderSources]:any = useState([]);
 
   const [orderStatuses, setOrderStatuses]:any = useState([]);
 
@@ -78,6 +77,9 @@ export const Order = () => {
 
   const loading = useAppSelector(state => state.order.loading);
   const branchList = useAppSelector(state => state.branch.entities);
+
+  const orderSources = useAppSelector(state => state.order.orderSources);
+
 
   console.log(orderList, 'orderList')
 
@@ -217,9 +219,7 @@ export const Order = () => {
 
     dispatch(getBranches({}))
     dispatch(getOrderSources())
-      .then((response) => {
-        setOrderSources(response.payload);
-      })
+
     dispatch(getOrderStatuses())
       .then((response :any) => {
         setOrderStatuses(response.payload?.map((status) => ({label: status, value: status})));
