@@ -17,7 +17,7 @@ import PageNotFound from 'app/shared/error/page-not-found';
 import { AUTHORITIES } from 'app/config/constants';
 import { sendActivity } from 'app/config/websocket-middleware';
 import Welcome from "app/modules/login/welcome";
-import BusinessDetailRoutes from "app/entities/business-details";
+import BusinessDetailRoutes from "app/entities/settings/business-details";
 import {useAppSelector} from "app/config/store";
 
 const loading = <div>loading ...</div>;

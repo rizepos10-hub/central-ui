@@ -67,7 +67,10 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
     if(newSearchTerm.length > 2){
       setSearch(newSearchTerm);
+    }
 
+    if(newSearchTerm.length === 0){
+      setSearch('');
     }
 
   };

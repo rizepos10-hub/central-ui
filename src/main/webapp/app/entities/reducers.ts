@@ -19,7 +19,7 @@ import productionCenter from 'app/entities/location/production-center/production
 
 
 import taxProfiles from 'app/entities/settings/tax-profiles/tax-profile.reducer';
-import businessDetail from 'app/entities/business-details/business-detail.reducer';
+import businessDetail from 'app/entities/settings/business-details/business-detail.reducer';
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
 const entitiesReducers = {

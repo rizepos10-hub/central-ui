@@ -21,11 +21,12 @@ import VoidReasons from './settings/void-reasons';
 import Home from 'app/shared/layout/home/home';
 import BranchPosUserRoutes from './branch-pos-user';
 import BackOfficeUserRoutes from './back-office-user';
-import BusinessDetailRoutes from 'app/entities/business-details';
+import BusinessDetailRoutes from 'src/main/webapp/app/entities/settings/business-details';
 import Printer from 'app/entities/settings/printing/printer';
 import PrintingProfiles from 'app/entities/settings/printing/printing-profiles';
 
 import ProductionCenter from 'app/entities/location/production-center';
+import PageNotFound from "app/shared/error/page-not-found";
 
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
@@ -35,8 +36,10 @@ export default () => {
     <div>
       <ErrorBoundaryRoutes>
         {/* prettier-ignore */}
+        <Route path="*" element={<PageNotFound />} />
+
         <Route path="menu/*" element={<Menu />} />
-        <Route path="branch/*" element={<Branch />} />
+        {/* <Route path="branch/*" element={<Branch />} /> */}
         <Route path="back-office-user/*" element={<BackOfficeUserRoutes />} />
         <Route path="branch-pos-user/*" element={<BranchPosUserRoutes />} />
 

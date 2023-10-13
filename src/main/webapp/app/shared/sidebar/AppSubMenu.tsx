@@ -12,59 +12,6 @@ const AppSubMenu = (props) => {
     const tooltipRef = useRef<Tooltip | null>(null);
 
 
-  const isAdminRole = useAppSelector(state => hasAnyAuthority(state.authentication.account.authorities, [AUTHORITIES.ADMIN]));
-  const isBusinessSettingsRole = useAppSelector(state => hasAnyAuthority(state.authentication.account.authorities, [AUTHORITIES.BUSINESS_SETTING]));
-
-  const adminSideBarMenu = props.model;
-  const businessSettingsSideBarMenu = props.model.map(item => {
-    if (item.label === "Control Panel") {
-      const settingsItem = {
-        label: 'Control Panel',
-        icon: 'pi pi-home',
-        items: [
-          {
-            label: "Dashboard",
-            icon: "pi pi-home",
-            to: "/"
-          },
-          {
-            label: "Settings",
-            icon: "pi pi-book",
-            items: [
-              {
-                label: "Business settings",
-                icon: "pi pi-th-large",
-                to: "/details",
-              }
-            ]
-          },
-        ]
-      };
-      return settingsItem;
-    }
-  });
-
-  let menuToRender = [];
-
-  switch (true) {
-    case isAdminRole:
-      menuToRender = adminSideBarMenu;
-      break;
-    case isBusinessSettingsRole:
-      menuToRender = businessSettingsSideBarMenu;
-      break;
-    default:
-      menuToRender = adminSideBarMenu
-  }
-
-
-
-
-
-
-
-
-
   useEffect(() => {
         if (tooltipRef.current) {
             tooltipRef.current.hide();
@@ -106,7 +53,7 @@ const AppSubMenu = (props) => {
     return (
       <MenuProvider>
         {<ul className="layout-menu">
-          {menuToRender.map((item, i) => {
+          {props?.model?.map((item, i) => {
             return !item?.seperator ? (
               <AppMenuitem item={item} root={true} index={i} key={item?.label}/>
             ) : (
