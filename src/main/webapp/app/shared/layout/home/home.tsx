@@ -22,7 +22,7 @@ import {
 } from "app/modules/analytics/api";
 import {format, subWeeks} from "date-fns";
 
-export default function ECommerce() {
+export default function Home() {
 
   const [products, setProducts] = useState<any>([]);
   const [chartOptions, setChartOptions] = useState<ChartOptionsState>({});

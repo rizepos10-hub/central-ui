@@ -22,6 +22,7 @@ import {Column} from "primereact/column";
 import {fromPairs} from "lodash";
 import {Dropdown} from "primereact/dropdown";
 import { startOfDay, endOfDay } from 'date-fns';
+import {InputText} from "primereact/inputtext";
 
 interface LazyTableState {
   first: number;
@@ -211,7 +212,6 @@ export const Order = () => {
           >
             <Column
               field="id"
-              style={{ width: '10%' }}
               header="Order ID"
               filter
               sortable
@@ -220,6 +220,21 @@ export const Order = () => {
                   {rowData.sequenceNumber}
                 </Link>
               )}
+              filterElement={
+                <InputText
+                  style={{width: '5rem'}}
+                  onChange={(e) =>
+                    setLazyState((prevState) => ({
+                      ...prevState,
+                      filters: {
+                        ...prevState.filters,
+                        id: { value: e.target.value, matchMode: 'equals' },
+                      },
+                    }))
+                  }
+                  placeholder="Enter id"
+                />
+              }
             />
             <Column
               field="branchId"
@@ -248,14 +263,12 @@ export const Order = () => {
               body={(rowData) => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
               field="createdDate"
               header="Order Date"
-              style={{ width: '10%' }}
               sortable
 
             />
 
             <Column field="discount" sortable  header="Order Discount" body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
               <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
-                    style={{ width: '13%' }}
 
             />
 
@@ -276,16 +289,46 @@ export const Order = () => {
                         placeholder="Select a source"
                       />
                     }
-                    header="Order Source"  style={{ width: '13%' }} />
+                    header="Order Source"   />
 
-            <Column field="tables" sortable style={{ width: '13%' }} filter header="Order Tables" />
+            <Column field="tables" sortable  filter header="Order Tables"
+                    filterElement={
+                      <InputText
+                        style={{width: '6rem'}}
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              tables: { value: e.target.value, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder="Enter table"
+                      />
+                    }
+            />
             <Column
               field="customer.email"
               filter
               filterField="customer.email"
               sortable
               header="Customer Email "
-              style={{ width: '15%' }}
+              filterElement={
+                <InputText
+                  style={{width: '11rem'}}
+                  onChange={(e) =>
+                    setLazyState((prevState) => ({
+                      ...prevState,
+                      filters: {
+                        ...prevState.filters,
+                        "customer.email": { value: e.target.value, matchMode: 'equals' },
+                      },
+                    }))
+                  }
+                  placeholder="Enter customer email"
+                />
+              }
             />
 
             <Column
@@ -293,9 +336,23 @@ export const Order = () => {
               filter
               sortable
               filterField="customer.phone"
-
               header="Customer Phone"
-              style={{ width: '15%' }}
+              filterElement={
+                <InputText
+                  style={{width: '11rem'}}
+                  onChange={(e) =>
+                    setLazyState((prevState) => ({
+                      ...prevState,
+                      filters: {
+                        ...prevState.filters,
+                        "customer.phone": { value: e.target.value, matchMode: 'equals' },
+                      },
+                    }))
+                  }
+                  placeholder="Enter customer phone"
+                />
+              }
+
             />
             <Column field="status" sortable filter header="Order Status"
                     filterElement={

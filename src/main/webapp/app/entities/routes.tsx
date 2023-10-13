@@ -35,7 +35,6 @@ export default () => {
     <div>
       <ErrorBoundaryRoutes>
         {/* prettier-ignore */}
-        <Route index element={<Home />} />
         <Route path="menu/*" element={<Menu />} />
         <Route path="branch/*" element={<Branch />} />
         <Route path="back-office-user/*" element={<BackOfficeUserRoutes />} />
@@ -63,7 +62,6 @@ export default () => {
 
         <Route path="void-reasons/*" element={<VoidReasons />} />
 
-        <Route path="details/*" element={<BusinessDetailRoutes />} />
 
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>

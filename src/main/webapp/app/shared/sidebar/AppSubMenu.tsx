@@ -3,13 +3,69 @@ import React, { useContext, useEffect, useRef } from 'react';
 import AppMenuitem from './AppMenuitem';
 import {LayoutContext, LayoutProvider} from './context/layoutcontext';
 import { MenuProvider } from './context/menucontext';
+import {useAppSelector} from "app/config/store";
+import {hasAnyAuthority} from "app/shared/auth/private-route";
+import {AUTHORITIES} from "app/config/constants";
 
 const AppSubMenu = (props) => {
     const { layoutState, setBreadcrumbs } = useContext(LayoutContext);
     const tooltipRef = useRef<Tooltip | null>(null);
 
 
-    useEffect(() => {
+  const isAdminRole = useAppSelector(state => hasAnyAuthority(state.authentication.account.authorities, [AUTHORITIES.ADMIN]));
+  const isBusinessSettingsRole = useAppSelector(state => hasAnyAuthority(state.authentication.account.authorities, [AUTHORITIES.BUSINESS_SETTING]));
+
+  const adminSideBarMenu = props.model;
+  const businessSettingsSideBarMenu = props.model.map(item => {
+    if (item.label === "Control Panel") {
+      const settingsItem = {
+        label: 'Control Panel',
+        icon: 'pi pi-home',
+        items: [
+          {
+            label: "Dashboard",
+            icon: "pi pi-home",
+            to: "/"
+          },
+          {
+            label: "Settings",
+            icon: "pi pi-book",
+            items: [
+              {
+                label: "Business settings",
+                icon: "pi pi-th-large",
+                to: "/details",
+              }
+            ]
+          },
+        ]
+      };
+      return settingsItem;
+    }
+  });
+
+  let menuToRender = [];
+
+  switch (true) {
+    case isAdminRole:
+      menuToRender = adminSideBarMenu;
+      break;
+    case isBusinessSettingsRole:
+      menuToRender = businessSettingsSideBarMenu;
+      break;
+    default:
+      menuToRender = adminSideBarMenu
+  }
+
+
+
+
+
+
+
+
+
+  useEffect(() => {
         if (tooltipRef.current) {
             tooltipRef.current.hide();
             (tooltipRef.current as any).updateTargetEvents();
@@ -49,11 +105,15 @@ const AppSubMenu = (props) => {
 
     return (
       <MenuProvider>
-        <ul className="layout-menu">
-          {props.model.map((item, i) => {
-            return !item.seperator ? <AppMenuitem item={item} root={true} index={i} key={item.label} /> : <li className="menu-separator"></li>;
+        {<ul className="layout-menu">
+          {menuToRender.map((item, i) => {
+            return !item?.seperator ? (
+              <AppMenuitem item={item} root={true} index={i} key={item?.label}/>
+            ) : (
+              <li className="menu-separator"></li>
+            );
           })}
-        </ul>
+        </ul>}
         <Tooltip ref={tooltipRef} target="li:not(.active-menuitem)>.tooltip-target" />
       </MenuProvider>
     );

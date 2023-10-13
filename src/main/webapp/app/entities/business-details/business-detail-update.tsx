@@ -1,30 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 import {Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert} from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {  Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getBranches } from '../branch/branch.reducer';
 
-import { getEntity, updateEntity, createEntity, getEntities, reset } from './business-detail.reducer';
+import { updateEntity, createEntity, getEntities, reset } from './business-detail.reducer';
 import { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { DayOfWeek } from 'app/shared/model/enumerations/day-of-week.model';
-import {InputNumber} from "primereact/inputnumber";
 import {InputText} from "primereact/inputtext";
-import {Calendar} from "primereact/calendar";
-import {Checkbox} from "primereact/checkbox";
 import {Button as PrimeButton} from "primereact/button"
 import {IBusinessDetail} from "app/shared/model/business-detail.model";
-const dayOfWeekValues = Object.keys(DayOfWeek);
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
 
-  const { id } = useParams<'id'>();
 
   const businessDetailEntities = useAppSelector(state => state.businessDetail.entities);
   const businessDetailEntity = businessDetailEntities[0]
@@ -38,16 +31,11 @@ export const BusinessDetailUpdate = () => {
 
   const [selectedAttachments, setSelectedAttachments]:any = useState(null)
 
-  const branchList = useAppSelector(state => state.branch.entities);
   const [branchDetails, setBranchDetails] = useState([]);
 
-  const getBranchName = (branchId) => {
-    console.log(branchId, 'branchID')
-    const branch = branchList.find(branch => branch.id === branchId);
-    console.log(branch, 'branch')
+  console.log(branchDetails, 'kfwpk')
 
-    return branch ? branch.name : 'Unknown Branch';
-  };
+
   const handleClose = () => {
     navigate('/details' + location.search);
   };
@@ -59,7 +47,6 @@ export const BusinessDetailUpdate = () => {
       dispatch(getEntities({}))
     }
     dispatch(getEntities({}))
-    dispatch(getBranches({}));
 
   }, []);
 
@@ -307,7 +294,7 @@ export const BusinessDetailUpdate = () => {
                 <div>
                   {branchDetails?.map((branch, branchIndex) => (
                     <div className="d-flex flex-column gap-1 mb-3" key={branch.branchId}>
-                      <h2>{getBranchName(branch.branchId)}</h2>
+                      <h2>{(branch.name)}</h2>
                       <ListGroup>
                         {branch.days.map((day, dayIndex) => (
                           <ListGroupItem key={day.day}>

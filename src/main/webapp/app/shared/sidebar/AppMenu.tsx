@@ -4,7 +4,7 @@ import React from "react";
 const AppMenu = () => {
     const model: any = [
                       {
-                        label: 'Dashboards',
+                        label: 'Control Panel',
                         icon: 'pi pi-home',
                         items: [
                           {

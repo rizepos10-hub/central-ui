@@ -21,6 +21,7 @@ import {DataTable, DataTableFilterMeta} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {fromPairs} from "lodash";
 import {Dropdown} from "primereact/dropdown";
+import {InputText} from "primereact/inputtext";
 
 interface LazyTableState {
   first?: number;
@@ -294,6 +295,21 @@ console.log(orderList.length, 'len')
                     {rowData.sequenceNumber}
                   </Link>
                 )}
+                filterElement={
+                  <InputText
+                    style={{width: '5rem'}}
+                    onChange={(e) =>
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        filters: {
+                          ...prevState.filters,
+                          id: { value: e.target.value, matchMode: 'equals' },
+                        },
+                      }))
+                    }
+                    placeholder="Enter id"
+                  />
+                }
               />
               <Column
                 field="branchId"
@@ -332,9 +348,11 @@ console.log(orderList.length, 'len')
                 )}
                 filterElement={
                   <Calendar
+                    style={{width: '12rem'}}
                     value={dates}
                     onChange={(e: CalendarChangeEvent) => setDates(e.value)}
                     selectionMode="range"
+                    placeholder={"Enter date range"}
                   />
                 }
               />
@@ -365,13 +383,43 @@ console.log(orderList.length, 'len')
                       header="Order Source"  />
 
 
-              <Column field="tables" sortable  filter  header="Order Tables" />
+              <Column field="tables" sortable  filter  header="Order Tables"  filterElement={
+                <InputText
+                  style={{width: '6rem'}}
+                  onChange={(e) =>
+                    setLazyState((prevState) => ({
+                      ...prevState,
+                      filters: {
+                        ...prevState.filters,
+                        tables: { value: e.target.value, matchMode: 'equals' },
+                      },
+                    }))
+                  }
+                  placeholder="Enter table"
+                />
+              }
+              />
               <Column
                 field="customer.email"
                 filter
                 filterField="customer.email"
                 sortable
                 header="Customer Email "
+                filterElement={
+                  <InputText
+                    style={{width: '11rem'}}
+                    onChange={(e) =>
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        filters: {
+                          ...prevState.filters,
+                          "customer.email": { value: e.target.value, matchMode: 'equals' },
+                        },
+                      }))
+                    }
+                    placeholder="Enter customer email"
+                  />
+                }
               />
 
               <Column
@@ -380,6 +428,21 @@ console.log(orderList.length, 'len')
                 sortable
                 filterField="customer.phone"
                 header="Customer Phone"
+                filterElement={
+                  <InputText
+                    style={{width: '11rem'}}
+                    onChange={(e) =>
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        filters: {
+                          ...prevState.filters,
+                          "customer.phone": { value: e.target.value, matchMode: 'equals' },
+                        },
+                      }))
+                    }
+                    placeholder="Enter customer phone"
+                  />
+                }
               />
 
               <Column field="status" sortable filter header="Order Status"
@@ -411,3 +474,4 @@ console.log(orderList.length, 'len')
 
 
 export default Order;
+
