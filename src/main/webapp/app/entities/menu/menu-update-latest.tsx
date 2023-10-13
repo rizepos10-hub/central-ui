@@ -125,7 +125,7 @@ console.log(editScreenColor, 'editScreenColor' )
 
 
 
-          if (selectedScreenType === 'main') {
+          if (selectedScreenType === 'main' && i === selectedScreenIndex) {
             console.log("im here3")
 
             return {
