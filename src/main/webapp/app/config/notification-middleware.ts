@@ -34,7 +34,9 @@ export default () => next => action => {
 
   if (isRejectedAction(action) && error && error.isAxiosError) {
     const isLoginPage = location.pathname.endsWith('login');
-    if (error.response && !isLoginPage) {
+    const isLogoutPage = location.pathname.endsWith('logout');
+
+    if (error.response && !isLoginPage && !isLogoutPage) {
       const response = error.response;
       const data = response.data;
       if (
@@ -84,6 +86,8 @@ export default () => next => action => {
           case 404:
             addErrorAlert('Not found', 'error.url.not.found');
             break;
+          case 401:
+            break;
 
           default:
             if (typeof data === 'string' && data !== '') {
@@ -97,7 +101,6 @@ export default () => next => action => {
       /* eslint-disable no-console */
       console.log('Authentication Error: Trying to access url api/account with GET.');
     } else if (isLoginPage) {
-      console.log(error.message, 'acctionsss');
       toast.warning('Wrong username or password');
     } else {
       toast.error(error.message || 'Unknown error!');
