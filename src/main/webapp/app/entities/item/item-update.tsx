@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col } from 'reactstrap';
+import {Button, Row, Col, Table} from 'reactstrap';
 import { getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -9,6 +9,8 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntities as getMenus } from 'app/entities/menu/menu.reducer';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
+import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
+
 import { getItemCategories as getTerms } from 'app/entities/term/term.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
@@ -27,6 +29,7 @@ import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import AddonImportModal from 'app/entities/item/addon-import-modal';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
 import axios from 'axios';
+import {Checkbox} from "primereact/checkbox";
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -49,11 +52,18 @@ export const ItemUpdate = () => {
   const updateSuccess = useAppSelector(state => state.item.updateSuccess);
   const itemStatusValues = Object.keys(ItemStatus);
   const addons = useAppSelector(state => state.addon.entities);
+  const addonGroups = useAppSelector(state => state.addonGroups.entities);
+
   const items = useAppSelector(state => state.item.entities);
 
-  const initSelectedAddons = itemEntity.addons?.map(addon => ({ value: addon.id, label: addon.name }));
-  const [selectedAddons, setSelectedAddons] = useState(initSelectedAddons);
-  const addonsOptions = addons?.map(addon => ({ value: addon.id, label: addon.name }));
+  const [selectedAddons, setSelectedAddons] = useState([]);
+
+  const [selectedAddonGroups, setSelectedAddonGroups] = useState([]);
+
+  const addonsOptions = addons?.map(addon => ({ value: addon.id, label: addon.name, id: addon.id }));
+
+  const addonGroupsOptions = addonGroups?.map(addon => ({ value: addon.id, label: addon.name, id: addon.id}));
+
   const itemOptions = items?.map(item => ({ value: item.id, label: item.name }));
 
   const entityTerms = itemEntity.terms?.map(term => ({ value: term.id, label: term.name }));
@@ -182,6 +192,8 @@ export const ItemUpdate = () => {
     }
     dispatch(getMenus({}));
     dispatch(getAddons({}));
+    dispatch(getAddonGroups({}));
+
     dispatch(
       getItems({
         page: paginationState.activePage - 1,
@@ -231,7 +243,9 @@ export const ItemUpdate = () => {
     if (itemEntity?.addons) {
       setSelectedAddons(itemEntity?.addons?.map(addon => ({ id: addon.id, label: addon.name, value: addon.id })));
     }
-
+    if (itemEntity?.addonGroups) {
+      setSelectedAddonGroups(itemEntity?.addonGroups?.map(addonGroup => ({ id: addonGroup.id, label: addonGroup.name, value: addonGroup.id })));
+    }
     if (uploadImageStatus === 'success' && saveButtonRef.current) {
       saveButtonRef.current.focus();
     }
@@ -261,6 +275,21 @@ export const ItemUpdate = () => {
   const handleAddonChange = selectedAddon => {
     setSelectedAddons(selectedAddon);
   };
+
+  const handleAddonGroupChange = selectedAddonGroup => {
+    setSelectedAddonGroups(selectedAddonGroup);
+  };
+
+  function handleCheckboxChange(index) {
+    const updatedSelectedAddonGroups = [...selectedAddonGroups];
+
+    updatedSelectedAddonGroups[index] = {
+      ...updatedSelectedAddonGroups[index],
+      required: updatedSelectedAddonGroups[index].required ? !updatedSelectedAddonGroups[index].required : true
+    };
+
+    setSelectedAddonGroups(updatedSelectedAddonGroups);
+  }
 
   const removeAttachment = attachmentId => {
     setSelectedAttachments(prevAttachments => prevAttachments.filter(attachment => attachment.id !== attachmentId));
@@ -292,7 +321,8 @@ export const ItemUpdate = () => {
       ...values,
       accountingGroups: accountingGroupsToSave,
       productionCenter: selectedProductionCenter,
-      addons: selectedAddons?.map(addon => ({ id: addon.value })),
+      addons: selectedAddons,
+      addonGroups: selectedAddonGroups,
       terms: selectedTerms?.map(term => ({ id: term.value })),
       attachments: selectedAttachments,
       variants: variants,
@@ -620,17 +650,52 @@ export const ItemUpdate = () => {
               <Col>
                 <Row>
                   <div className="col md-6">
-                    <Translate contentKey="tempApp.item.addons"></Translate>
+                    <Translate contentKey="tempApp.item.addons">Addons</Translate>
                     <Select isMulti={true} value={selectedAddons} onChange={handleAddonChange} options={addonsOptions} />
                   </div>
-                  <div className={'col md-2'} style={{ display: 'flex', alignItems: 'center' }}>
-                    <Button onClick={openImportAddonModal}> Import</Button>
+                  <div className={'col md-2 mt-4 ml-3'} style={{ display: 'flex', alignItems: 'center' }}>
+                    <Button onClick={openImportAddonModal}> Import Addons</Button>
                   </div>
                 </Row>
               </Col>
+              <Col>
+                <Row>
+
+
+                  <div className="mt-2">
+                    <h5>Addon Groups</h5>
+
+                    <div className="col-md-6">
+                      <Select isMulti={true} value={selectedAddonGroups} onChange={handleAddonGroupChange} options={addonGroupsOptions} />
+                    </div>
+                    <Table>
+                      <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Required</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      {selectedAddonGroups.map((group, index) => (
+                        <tr key={index}>
+                          <td>{group.label}</td>
+                          <td>
+                            <Checkbox
+                              checked={group.required}
+                              onChange={(e) => handleCheckboxChange(index)}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                      </tbody>
+                    </Table>
+                  </div>
+                </Row>
+              </Col>
+
               {variants && (
                 <div className="mb-3">
-                  <Translate contentKey="tempApp.item.variants">Variants</Translate>
+                 <h5> <Translate contentKey="tempApp.item.variants">Variants</Translate></h5>
                   <table className="table table-striped">
                     <thead>
                       <tr>

@@ -11,6 +11,8 @@ import Customer from './customer';
 import Item from './item';
 import Taxonomy from './taxonomy';
 import Addon from './addon';
+import AddonGroups from './addon-groups';
+
 import Term from './term';
 import Order from './order';
 import Tax from './settings/taxes';
@@ -49,6 +51,8 @@ export default () => {
         <Route path="item/*" element={<Item />} />
         <Route path="taxonomy/*" element={<Taxonomy />} />
         <Route path="addon/*" element={<Addon />} />
+        <Route path="addon-groups/*" element={<AddonGroups />} />
+
         <Route path="term/*" element={<Term />} />
         <Route path="order/*" element={<Order />} />
 

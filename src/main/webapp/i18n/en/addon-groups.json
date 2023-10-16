@@ -1,0 +1,26 @@
+{
+  "tempApp": {
+    "addon-groups": {
+      "home": {
+        "title": "Addon Groups",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Addon Group",
+        "createOrEditLabel": "Create or edit a Addon Group",
+        "search": "Search for Addon Group",
+        "notFound": "No Addon Groups found"
+      },
+      "created": "A new Addon Group is created with identifier {{ param }}",
+      "updated": "A Addon Group is updated with identifier {{ param }}",
+      "deleted": "A Addon Group is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Addon Group {{ id }}?"
+      },
+      "detail": {
+        "title": "Addon Group"
+      },
+      "id": "ID",
+      "name": "Name",
+      "addons": "Addons"
+    }
+  }
+}
