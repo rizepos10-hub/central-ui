@@ -123,7 +123,7 @@ export const AddonGroups = () => {
     );
   };
   const handleCreate = () => {
-    navigate('/addon/new')
+    navigate('/addon-groups/new')
   }
   console.log(addonGroupsList, 'addonGroupsList')
   const header = (

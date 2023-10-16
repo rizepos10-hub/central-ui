@@ -50,6 +50,10 @@ export const AddonUpdate = () => {
     if (updateSuccess) {
       handleClose();
     }
+    return () => {
+      setSelectedAddons([])
+      reset()
+    }
   }, [updateSuccess,addonGroupsEntity]);
 
   const saveEntity = values => {
@@ -84,7 +88,7 @@ export const AddonUpdate = () => {
       <Row>
         <Col md="8">
           <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-            <Translate contentKey="tempApp.addon.home.createOrEditLabel">Create or edit a Addon</Translate>
+            {isNew? "Create New Addon Group" : "Edit Addon Group"}
           </h2>
         </Col>
       </Row>
@@ -121,7 +125,7 @@ export const AddonUpdate = () => {
 
               </div>
 
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/addon" replace color="info">
+              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/addon-groups" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
