@@ -5,7 +5,9 @@ import attachment from 'app/entities/attachment/attachment.reducer';
 import customer from 'app/entities/customer/customer.reducer';
 import item from 'app/entities/item/item.reducer';
 import taxonomy from 'app/entities/taxonomy/taxonomy.reducer';
-import addon from 'app/entities/addon/addon.reducer';
+import addon from 'app/entities/addon/addon.reducer'
+import addonGroups from 'app/entities/addon-groups/addon-groups.reducer';
+
 import term from 'app/entities/term/term.reducer';
 import order from 'app/entities/order/order.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
@@ -31,6 +33,7 @@ const entitiesReducers = {
   item,
   taxonomy,
   addon,
+  addonGroups,
   term,
   order,
   user,
