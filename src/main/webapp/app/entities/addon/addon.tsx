@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
+import { Button } from 'primereact/button';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -11,6 +11,10 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IAddon } from 'app/shared/model/addon.model';
 import { searchEntities, getEntities } from './addon.reducer';
+import {DataTable} from "primereact/datatable";
+import {Column} from "primereact/column";
+import {Chip} from "primereact/chip";
+import {FilterMatchMode} from "primereact/api";
 
 export const Addon = () => {
   const dispatch = useAppDispatch();
@@ -26,6 +30,9 @@ export const Addon = () => {
   const addonList = useAppSelector(state => state.addon.entities);
   const loading = useAppSelector(state => state.addon.loading);
   const totalItems = useAppSelector(state => state.addon.totalItems);
+  const [filters, setFilters] = useState({
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  });
 
   const getAllEntities = () => {
     if (search) {
@@ -48,34 +55,9 @@ export const Addon = () => {
     }
   };
 
-  const startSearching = e => {
-    if (search) {
-      setPaginationState({
-        ...paginationState,
-        activePage: 1,
-      });
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
-    e.preventDefault();
-  };
 
-  const clear = () => {
-    setSearch('');
-    setPaginationState({
-      ...paginationState,
-      activePage: 1,
-    });
-    dispatch(getEntities({}));
-  };
 
-  const handleSearch = event => setSearch(event.target.value);
+
 
   const sortEntities = () => {
     getAllEntities();
@@ -104,158 +86,105 @@ export const Addon = () => {
     }
   }, [location.search]);
 
-  const sort = p => () => {
-    setPaginationState({
-      ...paginationState,
-      order: paginationState.order === ASC ? DESC : ASC,
-      sort: p,
-    });
-  };
 
-  const handlePagination = currentPage =>
-    setPaginationState({
-      ...paginationState,
-      activePage: currentPage,
-    });
 
   const handleSyncList = () => {
     sortEntities();
   };
 
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  };
+
+
+  const priceBodyTemplate = (item) => {
+    const price = item.price
+    return formatCurrency(price);
+  };
+
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/addon/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.name}
+      </Link>
+    );
+  };
+  const editColumnTemplate = (rowData) => {
+    const editUrl = `/addon/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+      </Link>
+    );
+  };
+
+  const deleteColumnTemplate = (rowData) => {
+    const deleteUrl = `/addon/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={deleteUrl}>
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+      </Link>
+    );
+  };
+  const handleCreate = () => {
+    navigate('/addon/new')
+  }
+  console.log(addonList, 'addonlist')
+  const header = (
+    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
+      <span className="text-xl text-900 font-bold">Addons</span>
+      <div className="ms-auto">
+        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+          &nbsp;
+          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
+        </Button>
+        <Button label="Create new Addon" raised onClick={handleCreate} disabled={loading}>
+          &nbsp;
+        </Button>
+      </div>
+    </div>
+  );
+  const renderDiscounts = rowData => {
+    const discounts = rowData.discounts || [];
+    return discounts.map((discount, index) => (
+      <Chip
+        key={index}
+        label={discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}
+        className="p-mr-2 p-mb-2"
+      />
+    ));
+  };
+
+
+
   return (
     <div>
-      <h2 id="addon-heading" data-cy="AddonHeading">
-        <Translate contentKey="tempApp.addon.home.title">Addons</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="tempApp.addon.home.refreshListLabel">Refresh List</Translate>
-          </Button>
-          <Link to="/addon/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="tempApp.addon.home.createLabel">Create new Addon</Translate>
-          </Link>
-        </div>
+      <h2 >
+        Addons View
+
       </h2>
-      <Row>
-        <Col sm="12">
-          <Form onSubmit={startSearching}>
-            <FormGroup>
-              <InputGroup>
-                <Input
-                  type="text"
-                  name="search"
-                  defaultValue={search}
-                  onChange={handleSearch}
-                  placeholder={translate('tempApp.addon.home.search')}
-                />
-                <Button className="input-group-addon">
-                  <FontAwesomeIcon icon="search" />
-                </Button>
-                <Button type="reset" className="input-group-addon" onClick={clear}>
-                  <FontAwesomeIcon icon="trash" />
-                </Button>
-              </InputGroup>
-            </FormGroup>
-          </Form>
-        </Col>
-      </Row>
-      <div className="table-responsive">
-        {addonList && addonList.length > 0 ? (
-          <Table responsive>
-            <thead>
-              <tr>
-                <th className="hand" onClick={sort('name')}>
-                  <Translate contentKey="tempApp.addon.name">Name</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('desc')}>
-                  <Translate contentKey="tempApp.addon.desc">Desc</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('price')}>
-                  <Translate contentKey="tempApp.addon.price">Price</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.addon.item">Item</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {addonList.map((addon, i) => (
-                <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                <Button tag={Link} to={`/addon/${addon.id}`} color="link" size="sm">
-                    {addon.name}
-                </Button>
-                  </td>
-                  <td>{addon.desc}</td>
-                  <td>{addon.price}</td>
-                  <td>{addon.item ? <Link to={`/item/${addon.item.id}`}>{addon.item.id}</Link> : ''}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button tag={Link} to={`/addon/${addon.id}`} color="info" size="sm" data-cy="entityDetailsButton">
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        tag={Link}
-                        to={`/addon/${addon.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
-                      >
-                        <FontAwesomeIcon icon="pencil-alt" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.edit">Edit</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        tag={Link}
-                        to={`/addon/${addon.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="danger"
-                        size="sm"
-                        data-cy="entityDeleteButton"
-                      >
-                        <FontAwesomeIcon icon="trash" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.delete">Delete</Translate>
-                        </span>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        ) : (
-          !loading && (
-            <div className="alert alert-warning">
-              <Translate contentKey="tempApp.addon.home.notFound">No Addons found</Translate>
-            </div>
-          )
-        )}
+
+      <div >
+        <DataTable value={addonList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
+          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+          <Column field="price" header="Price" sortable body={priceBodyTemplate} />
+          <Column
+            field="discounts"
+            header="Discounts"
+            body={renderDiscounts}
+            sortable
+          />
+
+          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+
+          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+
+
+        </DataTable>
       </div>
-      {totalItems ? (
-        <div className={addonList && addonList.length > 0 ? '' : 'd-none'}>
-          <div className="justify-content-center d-flex">
-            <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
-          </div>
-          <div className="justify-content-center d-flex">
-            <JhiPagination
-              activePage={paginationState.activePage}
-              onSelect={handlePagination}
-              maxButtons={5}
-              itemsPerPage={paginationState.itemsPerPage}
-              totalItems={totalItems}
-            />
-          </div>
-        </div>
-      ) : (
-        ''
-      )}
     </div>
   );
 };
