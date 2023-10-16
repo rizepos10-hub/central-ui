@@ -10,13 +10,13 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IAddon } from 'app/shared/model/addon.model';
-import { searchEntities, getEntities } from './addon.reducer';
+import { searchEntities, getEntities } from './addon-groups.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
 
-export const Addon = () => {
+export const AddonGroups = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -27,9 +27,9 @@ export const Addon = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const addonList = useAppSelector(state => state.addon.entities);
-  const loading = useAppSelector(state => state.addon.loading);
-  const totalItems = useAppSelector(state => state.addon.totalItems);
+  const addonGroupsList = useAppSelector(state => state.addonGroups.entities);
+  const loading = useAppSelector(state => state.addonGroups.loading);
+  const totalItems = useAppSelector(state => state.addonGroups.totalItems);
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
@@ -92,18 +92,13 @@ export const Addon = () => {
     sortEntities();
   };
 
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-  };
 
 
-  const priceBodyTemplate = (item) => {
-    const price = item.price
-    return formatCurrency(price);
-  };
+
+
 
   const nameColumnTemplate = rowData => {
-    const editUrl = `/addon/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/addon-groups/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -111,7 +106,7 @@ export const Addon = () => {
     );
   };
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/addon/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/addon-groups/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
@@ -120,7 +115,7 @@ export const Addon = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/addon/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/addon-groups/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -130,51 +125,34 @@ export const Addon = () => {
   const handleCreate = () => {
     navigate('/addon/new')
   }
-  console.log(addonList, 'addonlist')
+  console.log(addonGroupsList, 'addonGroupsList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Addons</span>
+      <span className="text-xl text-900 font-bold">Addon Groups</span>
       <div className="ms-auto">
         <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Addon" raised onClick={handleCreate} disabled={loading}>
+        <Button label="Create New Addon Group" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
     </div>
   );
-  const renderDiscounts = rowData => {
-    const discounts = rowData.discounts || [];
-    return discounts.map((discount, index) => (
-      <Chip
-        key={index}
-        label={discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}
-        className="p-mr-2 p-mb-2"
-      />
-    ));
-  };
 
 
 
   return (
     <div>
       <h2 >
-        Addons View
-
+        Addon Groups View
       </h2>
-
       <div >
-        <DataTable value={addonList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
+        <DataTable value={addonGroupsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
-          <Column field="price" header="Price" sortable body={priceBodyTemplate} />
-          <Column
-            field="discounts"
-            header="Discounts"
-            body={renderDiscounts}
-            sortable
-          />
+
+          <Column field="addons" header="Addons"  body={(rowData) => rowData.addons.map(addon => addon.name).join(" | ")}   sortable  />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
@@ -189,4 +167,4 @@ export const Addon = () => {
   );
 };
 
-export default Addon;
+export default AddonGroups;
