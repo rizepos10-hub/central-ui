@@ -113,7 +113,7 @@ export const AddonUpdate = () => {
       <Row>
         <Col md="8">
           <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-            <Translate contentKey="tempApp.addon.home.createOrEditLabel">Create or edit a Addon</Translate>
+            {isNew ? "Create New Addon" : `Edit Addon`}
           </h2>
         </Col>
       </Row>
