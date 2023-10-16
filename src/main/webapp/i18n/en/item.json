@@ -31,6 +31,8 @@
       "status": "Status",
       "attachments": "Attachments",
       "addons": "Addons",
+      "addonGroups": "Addon Groups",
+
       "terms": "Categories",
       "menu": "Menu",
       "variants": "Variants",
