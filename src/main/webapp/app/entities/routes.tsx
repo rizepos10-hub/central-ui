@@ -7,7 +7,6 @@ import Menu from './menu/index';
 import Discount from './discount';
 import Customer from './customer';
 import Item from './item';
-import Taxonomy from './taxonomy';
 import Addon from './addon';
 import AddonGroups from './addon-groups';
 
@@ -45,7 +44,6 @@ export default () => {
         <Route path="discount/*" element={<Discount />} />
         <Route path="customer/*" element={<Customer />} />
         <Route path="item/*" element={<Item />} />
-        <Route path="taxonomy/*" element={<Taxonomy />} />
         <Route path="addon/*" element={<Addon />} />
         <Route path="addon-groups/*" element={<AddonGroups />} />
 

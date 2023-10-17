@@ -274,6 +274,7 @@ export const UserUpdate = () => {
               <InputText
                 id="password"
                 name="password"
+                type="password"
                 value={user.password || ''}
                 onChange={handleInputChange}
                 required
