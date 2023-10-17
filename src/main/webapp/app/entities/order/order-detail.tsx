@@ -8,11 +8,9 @@ import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity } from './order.reducer';
-import CustomerDetail from 'app/entities/customer/customer-detail';
 import OrderCustomerDetail from 'app/entities/order/order-customer-details';
-import { OrderBills } from 'app/entities/order/order-bills';
 import { OrderedItems } from 'app/entities/order/ordered-items';
-import {TestBill} from "app/entities/order/TestBill";
+import {OrderBill} from "app/entities/order/order-bill";
 
 export const OrderDetail = () => {
   const dispatch = useAppDispatch();
@@ -111,7 +109,7 @@ export const OrderDetail = () => {
         <Col md="12" className="mt-lg-5">
 
 
-          {orderEntity.bills && <TestBill orderedItems={orderEntity?.items} list={orderEntity?.bills}></TestBill> }
+          {orderEntity.bills && <OrderBill orderedItems={orderEntity?.items} list={orderEntity?.bills}></OrderBill> }
         </Col>
         </div>
       </Col>

@@ -1,204 +1,475 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
-import {getSortState, JhiItemCount, JhiPagination, TextFormat, Translate, translate} from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import './order.css'
-import 'primereact/resources/primereact.css';
-import 'primeflex/primeflex.css';
-import 'primereact/resources/themes/lara-light-indigo/theme.css';
 
 
+
+import {Calendar, CalendarChangeEvent} from 'primereact/calendar';
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IOrder } from 'app/shared/model/order.model';
-import { searchEntities, getEntities } from './order.reducer';
+import {searchEntities, getEntities, filterOrders, getOrderSources, getOrderStatuses} from './order.reducer';
 import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.constants";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 
 import { searchEntities as searchBranches, getEntities as getBranches } from '../branch/branch.reducer';
-import {format} from "date-fns";
-import {DataTable} from "primereact/datatable";
+import {endOfDay, format, formatISO, startOfDay} from "date-fns";
+import {DataTable, DataTableFilterMeta} from "primereact/datatable";
 import {Column} from "primereact/column";
+import {fromPairs} from "lodash";
+import {Dropdown} from "primereact/dropdown";
+import {InputText} from "primereact/inputtext";
+
+interface LazyTableState {
+  first?: number;
+  rows: number;
+  page: number;
+  sortField?: string;
+  sortOrder?: any;
+  filters: any;
+}
+
+
 
 export const Order = () => {
   const dispatch = useAppDispatch();
 
-  const location = useLocation();
-  const navigate = useNavigate();
 
-  const [search, setSearch] = useState('');
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
   const [selectAll, setSelectAll] = useState(false);
-  const [fromDate, setFromDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [toDate, setToDate] = useState(format((new Date()), "yyyy-MM-dd"));
-  const [selectedOrder, setSelectedOrders] = useState(null);
+  const [selectedOrders, setSelectedOrders] = useState(null);
+
+
+  const [dates, setDates] = useState<string | Date | Date[] | null>(null);
+
+
+  const [orderStatuses, setOrderStatuses]:any = useState([]);
+
+
+
+  const [lazyState, setLazyState] = useState<LazyTableState>({
+    first: 0,
+    rows: 10,
+    page: 0,
+    sortField: 'createdDate',
+    sortOrder: "asc",
+    filters: {
+      createdDate: {
+        from: dates ? dates[0]?.toISOString() : '',
+        to: dates ? dates[1]?.toISOString() : ''
+      },
+      id:{value: '', matchMode: 'contains'},
+      byClient: { value: '', matchMode: 'contains' },
+      status: { value: '', matchMode: 'contains' },
+        "customer.email": { value: '', matchMode: 'contains' },
+        "customer.phone": { value: '', matchMode: 'contains' },
+      branchId: { value: '', matchMode: 'equals' },
+      tables: {value: '', matchMode: 'contains'}
+    }
+  });
+
+  console.log(dates, 'dates')
 
   const orderList = useAppSelector(state => state.order.entities);
-  const branchList = useAppSelector(state => state.branch.entities);
+  const totalOrders = useAppSelector(state => state.order.totalOrders);
 
   const loading = useAppSelector(state => state.order.loading);
-  const totalOrders = useAppSelector(state => state.order.totalOrders)
+  const branchList = useAppSelector(state => state.branch.entities);
+
+  const orderSources = useAppSelector(state => state.order.orderSources);
+
 
   console.log(orderList, 'orderList')
 
   const getBranchName = (branchId) => {
+    console.log(branchId, 'branchID')
     const branch = branchList.find(branch => branch.id === branchId);
+    console.log(branch, 'branch')
+
     return branch ? branch.name : 'Unknown Branch';
   };
 
-  const handleFromDateChange = (event) => {
-    setFromDate(event.target.value);
-  };
+  const filteredBranchOptions = branchList
+    .map((branch) => ({
+      label: branch.name,
+      value: branch.id,
+    }));
 
-  const handleToDateChange = (event) => {
-    setToDate(event.target.value);
-  };
+  const statusOptions = [
+    { label: 'DRAFT', value: 'DRAFT' },
+    { label: 'PROCESSING', value: 'PROCESSING' },
+    { label: 'Delivered', value: 'DELIVERED' },
+    { label: 'Done', value: 'DONE' }
+  ];
+  // const handleFromDateChange = event => {
+  //   setLazyState(prevState => ({
+  //     ...prevState,
+  //     filters: {
+  //       ...prevState.filters,
+  //       fromDate: `${event.target.value}T00:00:00.000Z`,
+  //     },
+  //   }));
+  // };
+  //
+  // const handleToDateChange = event => {
+  //   setLazyState(prevState => ({
+  //     ...prevState,
+  //     filters: {
+  //       ...prevState.filters,
+  //       toDate: `${event.target.value}T00:00:00.000Z`,
+  //     },
+  //   }));
+  // };
 
-  const getAllEntities = () => {
-    if (search) {
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    } else {
-      dispatch(
-        getEntities(({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        }))
-      );
-    }
-  };
-
-
-
-
-  const sortEntities = () => {
-    getAllEntities();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
-  };
-
-  useEffect(() => {
-    sortEntities();
-   dispatch(getBranches({}))
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = params.get('page');
-    const sort = params.get(SORT);
-    if (page && sort) {
-      const sortSplit = sort.split(',');
-      setPaginationState({
-        ...paginationState,
-        activePage: +page,
-        sort: sortSplit[0],
-        order: sortSplit[1],
-      });
-    }
-  }, [location.search]);
-
-
-
-
-
-  const handleSyncList = () => {
-    sortEntities();
-  };
 
   const onSelectionChange = (event) => {
     const value = event.value;
-    setSelectedOrders(value)
-    setSelectAll(value.length === orderList);
+
+    setSelectedOrders(value);
+    setSelectAll(value.length === orderList.length);
+  };
+
+  // const onSelectAllChange = (event) => {
+  //   const selectAll = event.checked;
+  //
+  //   if (selectAll) {
+  //     CustomerService.getCustomers().then((data) => {
+  //       setSelectAll(true);
+  //       setSelectedCustomers(data.customers);
+  //     });
+  //   } else {
+  //     setSelectAll(false);
+  //     setSelectedCustomers([]);
+  //   }
+  // };
+    const onFilter = (event) => {
+      console.log(event, 'event');
+
+      const newDates = event.filters.createdDate || null;
+      setDates(newDates);
+
+      event['first'] = 0;
+      setLazyState(event);
+    };
+
+
+
+
+
+  const onSort = (event) => {
+    console.log(event, 'event');
+    const sortField = event.sortField;
+    const sortOrder = event.sortOrder;
+    setLazyState((prev) => ({
+      ...prev,
+      sortField: sortField,
+      sortOrder: sortOrder,
+    }));
+  };
+  const onPage = (event) => {
+    setLazyState(event);
   };
 
 
+
+  useEffect(() => {
+    if (
+      lazyState.first ||
+      lazyState.sortOrder ||
+      lazyState.sortField ||
+      lazyState.filters.createdDate?.from ||
+      lazyState.filters.createdDate?.to ||
+      lazyState.filters.byClient?.value ||
+      lazyState.filters.status?.value ||
+      lazyState.filters.customer?.phone?.value ||
+      lazyState.filters.customer?.email?.value ||
+      lazyState.filters.branchId?.value ||
+      lazyState.filters.id?.value ||
+      lazyState.filters.tables?.value ||
+      lazyState.filters.orderSource?.value ||
+      lazyState.filters.status?.value ||
+      dates
+    ) {
+      const queryParams = {
+        orderSource: lazyState.filters.orderSource?.value || '',
+        orderStatus: lazyState.filters.status?.value || '',
+        first: lazyState.first,
+        sequenceId:lazyState.filters.id?.value || '',
+        page: lazyState.page ,
+        customerPhone:lazyState.filters['customer.phone']?.value || '',
+        customerEmail: lazyState.filters['customer.email']?.value || '',
+        branch: lazyState.filters.branchId?.value || '',
+        tables: lazyState.filters.tables?.value || '',
+        size: lazyState.rows ,
+        fromDate: dates && dates[0] ?  startOfDay(new Date(dates[0])).toISOString() : '',
+        toDate: dates && dates[1] ? endOfDay(new Date(dates[1])).toISOString() : '',
+        sort: `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}`
+
+
+      };
+      console.log(lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '', 'hellolog')
+      console.log(lazyState.filters.customer?.phone, 'hellologs')
+
+      dispatch(filterOrders(queryParams));
+    } else {
+      dispatch(getEntities({}));
+    }
+
+    dispatch(getBranches({}))
+    dispatch(getOrderSources())
+
+    dispatch(getOrderStatuses())
+      .then((response :any) => {
+        setOrderStatuses(response.payload?.map((status) => ({label: status, value: status})));
+      })
+  }, [lazyState,dates]);
+
+
+
+  // useEffect(() => {
+  //   dispatch(filterOrders({ lazyState }));
+  //   dispatch(getBranches({}))
+  //
+  // }, [lazyState]);
+
+console.log(orderList.length, 'len')
   return (
     <div>
-      <h2 id="order-heading" data-cy="OrderHeading">
-        <Translate contentKey="tempApp.order.home.title">Orders</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="tempApp.order.home.refreshListLabel">Refresh List</Translate>
-          </Button>
-        </div>
-      </h2>
       <Row>
         <Col sm="12">
-          <form onSubmit={() => {}}>
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <label htmlFor="fromDate" className="form-label">From Date:</label>
-                <input type="date" id="fromDate" className="form-control" value={fromDate} onChange={handleFromDateChange} />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="toDate" className="form-label">To Date:</label>
-                <input type="date" id="toDate" className="form-control" value={toDate} onChange={handleToDateChange} />
-              </div>
-            </div>
-            <div className="text-center">
-              <button type="submit" className="btn btn-primary">{loading? "Loading..." : "Get Orders"}</button>
-            </div>
-          </form>
+
+          {/* <form onSubmit={event => { event.preventDefault(); }}> */}
+          {/*   <div className="row mb-3"> */}
+          {/*     <div className="col-md-6"> */}
+          {/*       <label htmlFor="fromDate" className="form-label">From Date:</label> */}
+          {/*       <input type="date" id="fromDate" className="form-control" value={lazyState.filters.fromDate} onChange={handleFromDateChange} /> */}
+          {/*     </div> */}
+          {/*     <div className="col-md-6"> */}
+          {/*       <label htmlFor="toDate" className="form-label">To Date:</label> */}
+          {/*       <input type="date" id="toDate" className="form-control" value={lazyState.filters.toDate} onChange={handleToDateChange} /> */}
+          {/*     </div> */}
+          {/*   </div> */}
+          {/*   <div className="text-center"> */}
+          {/*     <button type="submit" className="btn btn-primary">{loading ? 'Loading...' : 'Get Orders'}</button> */}
+          {/*   </div> */}
+          {/* </form> */}
         </Col>
       </Row>
-      <div >
-        {orderList && orderList.length > 0 ? (
-          <div className="cardox">
+      <div>
 
-
-            <DataTable value={orderList} lazy filterDisplay="row" dataKey="id" tableStyle={{ minWidth: '75rem' }} paginator rows={10}
-                       totalRecords={300}  selectAll={selectAll} selection={selectedOrder} onSelectionChange={onSelectionChange}
+          <div className="p-3 mb-2" style={{ background: 'var(--surface-card)', borderRadius: '10px'}}>
+            <DataTable
+              value={orderList}
+              lazy
+              filterDisplay="row"
+              dataKey="id"
+              paginator
+              first={lazyState.first}
+              rows={10}
+              totalRecords={totalOrders}
+              emptyMessage="No Orders Found"
+              onPage={onPage}
+              onSort={onSort}
+              sortOrder={lazyState.sortOrder}
+              sortField={lazyState.sortField}
+              filters={lazyState.filters}
+              onFilter={onFilter}
+              removableSort
+              loading={loading}
+              tableStyle={{ minWidth: '75rem' , alignContent: 'center'}}
+              selection={selectedOrders}
+              onSelectionChange={onSelectionChange}
+              // selectAll={selectAll}
+              // onSelectAllChange={onSelectAllChange}
             >
-              <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
+              {/* <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} /> */}
               <Column
                 field="id"
                 header="Order ID"
+                sortable
+                filter
                 body={(rowData): any => (
                   <Link to={`/order/${rowData.id}`}>
-                    {rowData.id}
+                    {rowData.sequenceNumber}
                   </Link>
                 )}
+                filterElement={
+                  <InputText
+                    style={{width: '5rem'}}
+                    onChange={(e) =>
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        filters: {
+                          ...prevState.filters,
+                          id: { value: e.target.value, matchMode: 'equals' },
+                        },
+                      }))
+                    }
+                    placeholder="Enter id"
+                  />
+                }
               />
-              <Column field="branchId" sortable filter header="Order Branch" body={rowData => getBranchName(rowData.branchId)}/>
-              <Column field="createdDate" filter header="Order Date" body={rowData => rowData.createdDate?
-                <TextFormat type="date" value={rowData.createdDate} format={APP_DATE_FORMAT} /> : null} />
-              <Column field="byClient" sortable filter header="Order Source" />
-              <Column field="discount" sortable filter header="Order Discount" body={rowData => rowData.discount? <p className="text-success ">&#10004;</p>:
-                <p className="text-danger   ">&#10006;</p> } filterMatchMode="custom"
+              <Column
+                field="branchId"
+                sortable
+                filter
+                header="Order Branch"
+                body={(data) => getBranchName(data.branchId)}
+                filterElement={
+                  <Dropdown
+                    value={lazyState.filters.branchId?.value || ''}
+                    options={filteredBranchOptions}
+                    onChange={(e) =>
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        filters: {
+                          ...prevState.filters,
+                          branchId: { value: e.value, matchMode: 'equals' },
+                        },
+                      }))
+                    }
+                    placeholder="Select a branch"
+                  />
+                }
+              />
+              <Column
+                field="createdDate"
+                filter
+                sortable
+
+                header="Order Date"
+                body={(rowData) => (
+                  <span>
+      {rowData.createdDate &&
+        `${new Date(rowData.createdDate).toLocaleString()} `}
+    </span>
+                )}
+                filterElement={
+                  <Calendar
+                    style={{width: '12rem'}}
+                    value={dates}
+                    onChange={(e: CalendarChangeEvent) => setDates(e.value)}
+                    selectionMode="range"
+                    placeholder={"Enter date range"}
+                  />
+                }
               />
 
-              <Column field="byClient" filter header="Order Source" />
-              <Column field="tables" filter header="Order Tables" />
-              <Column field="status" filter header="Order Status" />
-              createdAt
+
+              <Column field="discount" sortable
+                header="Order Discount" body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
+                <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
+              />
+
+              <Column field="orderSource" body={(rowData) => rowData.sourceApp.type} sortable filter
+                      filterElement={
+                        <Dropdown
+                          value={lazyState.filters.orderSource?.value || ''}
+                          options={orderSources?.map((source) => ({label: source, value: source}))}
+                          onChange={(e) =>
+                            setLazyState((prevState) => ({
+                              ...prevState,
+                              filters: {
+                                ...prevState.filters,
+                                orderSource: { value: e.value, matchMode: 'equals' },
+                              },
+                            }))
+                          }
+                          placeholder="Select a source"
+                        />
+                      }
+                      header="Order Source"  />
+
+
+              <Column field="tables" sortable  filter  header="Order Tables"  filterElement={
+                <InputText
+                  style={{width: '6rem'}}
+                  onChange={(e) =>
+                    setLazyState((prevState) => ({
+                      ...prevState,
+                      filters: {
+                        ...prevState.filters,
+                        tables: { value: e.target.value, matchMode: 'equals' },
+                      },
+                    }))
+                  }
+                  placeholder="Enter table"
+                />
+              }
+              />
+              <Column
+                field="customer.email"
+                filter
+                filterField="customer.email"
+                sortable
+                header="Customer Email "
+                filterElement={
+                  <InputText
+                    style={{width: '11rem'}}
+                    onChange={(e) =>
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        filters: {
+                          ...prevState.filters,
+                          "customer.email": { value: e.target.value, matchMode: 'equals' },
+                        },
+                      }))
+                    }
+                    placeholder="Enter customer email"
+                  />
+                }
+              />
+
+              <Column
+                field="customer.phone"
+                filter
+                sortable
+                filterField="customer.phone"
+                header="Customer Phone"
+                filterElement={
+                  <InputText
+                    style={{width: '11rem'}}
+                    onChange={(e) =>
+                      setLazyState((prevState) => ({
+                        ...prevState,
+                        filters: {
+                          ...prevState.filters,
+                          "customer.phone": { value: e.target.value, matchMode: 'equals' },
+                        },
+                      }))
+                    }
+                    placeholder="Enter customer phone"
+                  />
+                }
+              />
+
+              <Column field="status" sortable filter header="Order Status"
+                      filterElement={
+                        <Dropdown
+                          value={lazyState.filters.status?.value || ''}
+                          options={orderStatuses}
+                          onChange={(e) =>
+                            setLazyState((prevState) => ({
+                              ...prevState,
+                              filters: {
+                                ...prevState.filters,
+                                status: { value: e.value, matchMode: 'equals' },
+                              },
+                            }))
+                          }
+                          placeholder="Select a status"
+                        />
+                      }
+              />
             </DataTable>
-
           </div>
-        ) : (
-          !loading && (
-            <div className="alert alert-warning">
-              <Translate contentKey="tempApp.order.home.notFound">No Orders found</Translate>
-            </div>
-          )
-        )}
-      </div>
 
+      </div>
     </div>
   );
 };
 
+
+
 export default Order;
+

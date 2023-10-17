@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
-import {getSortState, JhiItemCount, JhiPagination, TextFormat, Translate, translate} from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import './order.css'
 
 
 import { Calendar } from 'primereact/calendar';
@@ -12,8 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IOrder } from 'app/shared/model/order.model';
 import {searchEntities, getEntities, filterOrders, getOrderSources, getOrderStatuses} from './order.reducer';
-import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.constants";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+
 
 import { searchEntities as searchBranches, getEntities as getBranches } from '../branch/branch.reducer';
 import {format, formatISO} from "date-fns";
@@ -185,8 +180,8 @@ export const Order = () => {
 
       <div>
 
-        <div className="cardox">
-          <DataTable
+        <div className="p-3 mb-2" style={{ background: 'var(--surface-card)', borderRadius: '10px'}}>
+        <DataTable
             value={orderList}
             lazy
             filterDisplay="row"

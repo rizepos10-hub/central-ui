@@ -6,16 +6,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { searchEntities, getEntities } from './tax-profile.reducer';
-
+import { searchEntities, getEntities } from './tax.reducer';
+import {Button as ReactStrapButton } from "reactstrap";
 // import { ITax } from 'app/shared/model/tax.model';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
 import {InputText} from "primereact/inputtext";
-import AddTaxModal from "app/entities/settings/taxes/AddTaxtModal";
-import taxProfiles from "app/entities/settings/tax-profiles/tax-profile.reducer";
+import AddTaxModal from "app/entities/settings/taxes/add-tax-modal";
 
 export const Tax = () => {
   const dispatch = useAppDispatch();
@@ -27,12 +26,12 @@ export const Tax = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const taxProfileList = useAppSelector(state => state.taxProfiles.entities);
-  const loading = useAppSelector(state => state.taxProfiles.loading);
-  const totalItems = useAppSelector(state => state.taxProfiles.totalItems);
+  const taxList = useAppSelector(state => state.tax.entities);
+  const loading = useAppSelector(state => state.tax.loading);
+  const totalItems = useAppSelector(state => state.tax.totalItems);
 
 
-  console.log(taxProfileList, 'lol')
+  console.log(taxList, 'lol')
 
 
 
@@ -42,7 +41,9 @@ export const Tax = () => {
 
 
   const handleCreate = () => {
-  navigate('/tax-profiles/new')
+    setSelectedTaxId(null)
+
+    setModalVisible(true);
   };
 
   console.log("Selected Tax ID:", selectedTaxId);
@@ -60,7 +61,7 @@ export const Tax = () => {
 
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     description: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     value: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 
@@ -68,7 +69,7 @@ export const Tax = () => {
 
 
 
-  // console.log(taxProfileList,'taxProfileList')
+  // console.log(taxList,'taxList')
 
 
 
@@ -102,21 +103,21 @@ export const Tax = () => {
     if (filterValue === '') {
       setFilters({
         ...filters,
-        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
       });
     } else {
       setFilters({
         ...filters,
-        name: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
+        code: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
       });
     }
   };
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/tax-profiles/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
-      <Link to={editUrl}>
+      <ReactStrapButton raised onClick={() => handleEdit(rowData.id)} disabled={loading}>
+
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
+      </ReactStrapButton>
     );
   };
 
@@ -136,7 +137,7 @@ export const Tax = () => {
   };
 
 
-  // console.log(taxProfileList, 'taxProfileList')
+  // console.log(taxList, 'taxList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Taxes</span>
@@ -159,17 +160,15 @@ export const Tax = () => {
       </h2>
 
       <div >
-        <DataTable value={taxProfileList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
+        <DataTable value={taxList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
           <Column
-            field="name" header="Name" filter
-            filterElement={ <InputText  placeholder="Search by Name" onChange={handleNameFilterChange}/> }
-            filterField="name"  sortable
+            field="code" header="Code" filter
+            filterElement={ <InputText  placeholder="Search by Code" onChange={handleNameFilterChange}/> }
+            filterField="code"  sortable
           />
+          <Column field="value" header="Value" filter filterPlaceholder="Search by value"  sortable   />
 
-
-          <Column field="description" body={(rowData) => rowData?.taxRate?.description} header="Description"   sortable   />
-
-          <Column field="value" header="Value" body={(rowData) => `${rowData?.taxRate?.code}(${rowData?.taxRate?.value})`} filter filterPlaceholder="Search by value"  sortable   />
+          <Column field="description" header="Description"   sortable   />
 
 
           {/* <Column header="Tax Inclusive" body={activeColumnTemplate} style={{width: '10%'}}   /> */}

@@ -5,7 +5,7 @@ import { Rating } from "primereact/rating";
 import { Tag } from "primereact/tag";
 import {useLocation} from "react-router-dom";
 
-export default function VariantViewTest({variants, itemName}) {
+export default function VariantView({variants, itemName}) {
 
   const [layout, setLayout] = useState<"grid" | "list">("grid");
 

@@ -1,7 +1,6 @@
 import React, {useCallback, useContext, useEffect, useRef} from "react";
 
 import "./sidebar.scss";
-import SidebarMenu from "app/shared/sidebar/SidebarMenu";
 import AppSidebar from "app/shared/sidebar/AppSidebar";
 import '../styles/layout/layout.scss';
 import '../styles/demo/Demos.scss';

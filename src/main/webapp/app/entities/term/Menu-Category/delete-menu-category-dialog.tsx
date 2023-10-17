@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from '../term.reducer';
 
-export const DeleteMenusDialog = () => {
+export const DeleteMenuCategoryDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -65,4 +65,4 @@ export const DeleteMenusDialog = () => {
   );
 };
 
-export default DeleteMenusDialog;
+export default DeleteMenuCategoryDialog;

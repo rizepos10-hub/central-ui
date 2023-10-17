@@ -3,7 +3,6 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import PrintingProfileDetail from './printing-profile-detail';
 import PrintingProfileUpdate from './printing-profile-update';
 import PrintingProfileDeleteDialog from './printing-profile-delete-dialog';
 import PrintingProfile from "app/entities/settings/printing/printing-profiles/printing-profile";

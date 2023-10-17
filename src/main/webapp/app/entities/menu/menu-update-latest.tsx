@@ -29,7 +29,7 @@ import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTi
 import ItemSelectionModal from "app/entities/menu/item-selection-modal";
 import {FaBars} from "react-icons/fa";
 import Select from "react-select";
-import MenuPreview from "app/entities/menu/menu-preview";
+import MenuPosPreview from "app/entities/menu/menu-pos-preview";
 
 function MenuUpdate() {
 
@@ -1025,7 +1025,7 @@ console.log(editScreenColor, 'editScreenColor' )
             Preview Modal
           </ModalHeader>
           <ModalBody  style={{ minWidth: '100%', minHeight: '60vh' }}>
-            <MenuPreview data={data} />
+            <MenuPosPreview data={data} />
           </ModalBody>
         </Modal>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
+import { Button } from 'primereact/button';
+
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -11,6 +12,8 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IBranch } from 'app/shared/model/branch.model';
 import { searchEntities, getEntities } from './branch.reducer';
+import {DataTable} from "primereact/datatable";
+import {Column} from "primereact/column";
 
 export const Branch = () => {
   const dispatch = useAppDispatch();
@@ -28,16 +31,7 @@ export const Branch = () => {
   const totalItems = useAppSelector(state => state.branch.totalItems);
 
   const getAllEntities = () => {
-    if (search) {
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    } else {
+
       dispatch(
         getEntities({
           page: paginationState.activePage - 1,
@@ -45,37 +39,10 @@ export const Branch = () => {
           sort: `${paginationState.sort},${paginationState.order}`,
         })
       );
-    }
   };
 
-  const startSearching = e => {
-    if (search) {
-      setPaginationState({
-        ...paginationState,
-        activePage: 1,
-      });
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
-    e.preventDefault();
-  };
 
-  const clear = () => {
-    setSearch('');
-    setPaginationState({
-      ...paginationState,
-      activePage: 1,
-    });
-    dispatch(getEntities({}));
-  };
 
-  const handleSearch = event => setSearch(event.target.value);
 
   const sortEntities = () => {
     getAllEntities();
@@ -104,153 +71,79 @@ export const Branch = () => {
     }
   }, [location.search]);
 
-  const sort = p => () => {
-    setPaginationState({
-      ...paginationState,
-      order: paginationState.order === ASC ? DESC : ASC,
-      sort: p,
-    });
-  };
 
-  const handlePagination = currentPage =>
-    setPaginationState({
-      ...paginationState,
-      activePage: currentPage,
-    });
+
 
   const handleSyncList = () => {
     sortEntities();
   };
 
+
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/branch/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl} >
+        {rowData.name}
+      </Link>
+    );
+  };
+
+  const editColumnTemplate = (rowData) => {
+    const editUrl = `/branch/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+      </Link>
+    );
+  };
+
+  const deleteColumnTemplate = (rowData) => {
+    const deleteUrl = `/branch/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={deleteUrl}>
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+      </Link>
+    );
+  };
+  const handleCreate = () => {
+    navigate('/branch/new')
+  }
+  const header = (
+    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
+      <span className="text-xl text-900 font-bold">Branches</span>
+      <div className="ms-auto">
+        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+          &nbsp;
+          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
+        </Button>
+        <Button label="Create new Branch" raised onClick={handleCreate} disabled={loading}>
+          &nbsp;
+        </Button>
+      </div>
+    </div>
+  );
   return (
     <div>
-      <h2 id="branch-heading" data-cy="BranchHeading">
-        <Translate contentKey="tempApp.branch.home.title">Branches</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="tempApp.branch.home.refreshListLabel">Refresh List</Translate>
-          </Button>
-          <Link to="/branch/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="tempApp.branch.home.createLabel">Create new Branch</Translate>
-          </Link>
-        </div>
+      <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
+       Branches View
+
       </h2>
-      <Row>
-        <Col sm="12">
-          <Form onSubmit={startSearching}>
-            <FormGroup>
-              <InputGroup>
-                <Input
-                  type="text"
-                  name="search"
-                  defaultValue={search}
-                  onChange={handleSearch}
-                  placeholder={translate('tempApp.branch.home.search')}
-                />
-                <Button className="input-group-addon">
-                  <FontAwesomeIcon icon="search" />
-                </Button>
-                <Button type="reset" className="input-group-addon" onClick={clear}>
-                  <FontAwesomeIcon icon="trash" />
-                </Button>
-              </InputGroup>
-            </FormGroup>
-          </Form>
-        </Col>
-      </Row>
+
       <div className="table-responsive">
-        {branchList && branchList.length > 0 ? (
-          <Table responsive>
-            <thead>
-              <tr>
+        <DataTable value={branchList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={5}>
+          <Column field="name" header="Name" sortable body={nameColumnTemplate} />
+          <Column field="numberOfEmployees" sortable header="Employees"  />
 
-                <th className="hand" onClick={sort('name')}>
-                  <Translate contentKey="tempApp.branch.name">Name</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
 
-                <th className="hand" onClick={sort('numberOfEmployees')}>
-                  <Translate contentKey="tempApp.branch.numberOfEmployees">Number Of Employees</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
+          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {branchList.map((branch, i) => (
-                <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                    <Button tag={Link} to={`/branch/${branch.id}`} color="link" size="sm">
-                    {branch.name}
-                    </Button>
-                  </td>
-                  <td>{branch.numberOfEmployees}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button tag={Link} to={`/branch/${branch.id}`} color="info" size="sm" data-cy="entityDetailsButton">
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        tag={Link}
-                        to={`/branch/${branch.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
-                      >
-                        <FontAwesomeIcon icon="pencil-alt" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.edit">Edit</Translate>
-                        </span>
-                      </Button>
-                      {/* <Button */}
-                      {/*   tag={Link} */}
-                      {/*   to={`/branch/${branch.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`} */}
-                      {/*   color="danger" */}
-                      {/*   size="sm" */}
-                      {/*   data-cy="entityDeleteButton" */}
-                      {/* > */}
-                      {/*   <FontAwesomeIcon icon="trash" />{' '} */}
-                      {/*   <span className="d-none d-md-inline"> */}
-                      {/*     <Translate contentKey="entity.action.delete">Delete</Translate> */}
-                      {/*   </span> */}
-                      {/* </Button> */}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        ) : (
-          !loading && (
-            <div className="alert alert-warning">
-              <Translate contentKey="tempApp.branch.home.notFound">No Branches found</Translate>
-            </div>
-          )
-        )}
+          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+
+
+        </DataTable>
       </div>
-      {totalItems ? (
-        <div className={branchList && branchList.length > 0 ? '' : 'd-none'}>
-          <div className="justify-content-center d-flex">
-            <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
-          </div>
-          <div className="justify-content-center d-flex">
-            <JhiPagination
-              activePage={paginationState.activePage}
-              onSelect={handlePagination}
-              maxButtons={5}
-              itemsPerPage={paginationState.itemsPerPage}
-              totalItems={totalItems}
-            />
-          </div>
-        </div>
-      ) : (
-        ''
-      )}
     </div>
   );
 };
