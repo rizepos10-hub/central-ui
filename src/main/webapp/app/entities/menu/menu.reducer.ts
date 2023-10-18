@@ -65,7 +65,6 @@ export const updateEntity = createAsyncThunk(
   'menu/update_entity',
   async (entity: IMenu, thunkAPI) => {
     const result = await axios.put<IMenu>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
