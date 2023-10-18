@@ -158,7 +158,7 @@ export const Printer = () => {
 
       <div >
         <DataTable value={printerList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" filter  filterPlaceholder={"Search by name"}  sortable  />
+          <Column field="name" header="Name" body={nameColumnTemplate} filter  filterPlaceholder={"Search by name"}  sortable  />
           <Column field="model" header="Model" sortable  />
           <Column field="brand" header="Brand" sortable  />
           <Column field="branch" header="Branch" body={(rowData) => rowData.branch.name} sortable  />

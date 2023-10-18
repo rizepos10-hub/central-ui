@@ -3,12 +3,9 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import TaxProfileDetail from './tax-profile-detail';
-import TaxProfileUpdate from './tax-profile-update';
 import TaxProfileDeleteDialog from './tax-profile-delete-dialog';
-import TaxProfile from "app/entities/settings/tax-profiles/Tax-Profile";
+import TaxProfile from "app/entities/settings/tax-profiles/tax-profile";
 import TaxProfileEdit from "app/entities/settings/tax-profiles/tax-profile-update";
-import AddonUpdate from "app/entities/addon/addon-update";
 
 
 const TaxRoutes = () => (

@@ -82,11 +82,7 @@ export const VoidReasonsUpdate = () => {
       </FormGroup>
         </Col>
 
-        <div className="d-flex justify-content-start align-items-center  mt-7">
-          <Button color="primary" onClick={handleSubmit}>
-            Save
-          </Button>
-          &nbsp;
+        <div className="d-flex justify-content-start align-items-center ga-3 mt-5">
           <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/void-reasons" replace color="info">
             <FontAwesomeIcon icon="arrow-left" />
             &nbsp;
@@ -94,8 +90,12 @@ export const VoidReasonsUpdate = () => {
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </span>
           </Button>
-        </div>
+          &nbsp;
 
+          <Button color="primary" onClick={handleSubmit}>
+            Save
+          </Button>
+        </div>
       </Row>
     </div>
   );

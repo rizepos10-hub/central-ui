@@ -1,16 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IItem } from 'app/shared/model/item.model';
-import { searchEntities, getEntities } from './item.reducer';
+import {searchEntities, getEntities, importData} from './item.reducer';
+import {DataTable} from "primereact/datatable";
+import { Column } from 'primereact/column';
+import {Tag} from "primereact/tag";
+import {Rating} from "primereact/rating";
+import {Button} from "primereact/button";
+import VariantView from "app/entities/item/variant-view";
+import {Modal} from "reactstrap";
+import {FilterMatchMode} from "primereact/api";
+import {Dropdown} from "primereact/dropdown";
+
+import {getItemCategories as getTerms, getItemCategories} from '../term/term.reducer';
+
 
 export const Item = () => {
   const dispatch = useAppDispatch();
@@ -23,9 +34,28 @@ export const Item = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
+  const [itemNameProp,setItemNameProp] = useState([])
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [selectedVariants, setSelectedVariants] = useState([]);
+
   const itemList = useAppSelector(state => state.item.entities);
   const loading = useAppSelector(state => state.item.loading);
+  const errorMessage = useAppSelector(state => state.item.errorMessage);
+
   const totalItems = useAppSelector(state => state.item.totalItems);
+
+  const termList = useAppSelector(state => state.term.entities)
+
+
+  const [filters, setFilters] = useState({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    status: { value: null, matchMode: FilterMatchMode.EQUALS },
+    categoryForSorting: { value: null, matchMode: FilterMatchMode.EQUALS },
+  });
+
+
+console.log(errorMessage, 'errorMessage')
 
   const getAllEntities = () => {
     if (search) {
@@ -88,6 +118,11 @@ export const Item = () => {
 
   useEffect(() => {
     sortEntities();
+    dispatch(getItemCategories({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
 
   useEffect(() => {
@@ -123,159 +158,212 @@ export const Item = () => {
     sortEntities();
   };
 
+  async function handleImportData (selectedFile) {
+   const response = await dispatch(importData(selectedFile)).then((response) => {
+     console.log(response, 'ba33')
+     const errMsg = response.payload.response.data.message
+     alert(`Error importing data: ${errMsg} `)
+   })
+    console.log(response, 'resopp')
+  };
+
+  const getSeverity = (item) => {
+    switch (item.status) {
+      case 'ENABLED':
+        return 'success';
+
+      case 'VISIBLE':
+        return 'warning';
+
+      case 'DISABLED':
+        return 'danger';
+
+      default:
+        return null;
+    }
+  };
+
+  const categoryNames = itemList && new  Set(itemList?.map((item) => item.terms[0]?.name));
+  const categoryFilterOptions = Array.from(categoryNames)?.map((categoryName) => ({
+    label: categoryName,
+    value: categoryName,
+  }));
+
+  const categoryFilter = (
+    <Dropdown
+      value={filters.categoryForSorting?.value}
+      options={termList?.map((term) => term.name)}
+      onChange={(e) => {
+        const updatedFilters = {
+          ...filters,
+          categoryForSorting: { value: e.value, matchMode: FilterMatchMode.EQUALS },
+        };
+        setFilters(updatedFilters);
+      }}
+      placeholder="Select a category"
+    />
+  );
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  };
+
+
+  const priceBodyTemplate = (item) => {
+    const price = item.variants[0].price
+    return formatCurrency(price);
+  };
+
+  const ratingBodyTemplate = (item) => {
+    return <Rating value={item.avgRating} readOnly cancel={false} />;
+  };
+
+  const statusBodyTemplate = (item) => {
+    return <Tag value={item.status} severity={getSeverity(item)}></Tag>;
+  };
+
+  const handleCreate = () => {
+    navigate('/item/new')
+  }
+
+
+  const handleImportButtonClick = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.xlsx';
+    fileInput.onchange = (e) => {
+      const inputElement = e.target as HTMLInputElement;
+      const selectedFile = inputElement.files?.[0] || null;
+      handleImportData(selectedFile);
+    };
+    fileInput.click();
+  };
+
+  const header = (
+    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
+      <span className="text-xl text-900 font-bold">Items</span>
+      <div className="ms-auto">
+        <Button label="Import Data" severity="help" raised className="me-5" color="help"  onClick={handleImportButtonClick} disabled={loading} />
+
+        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+          &nbsp;
+          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
+        </Button>
+        <Button label="Add new Item" raised onClick={handleCreate} disabled={loading}>
+          &nbsp;
+        </Button>
+      </div>
+    </div>
+  );
+
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/item/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.name}
+      </Link>
+    );
+  };
+
+
+  const editColumnTemplate = (rowData) => {
+    const editUrl = `/item/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+      </Link>
+    );
+  };
+
+  const deleteColumnTemplate = (rowData) => {
+    const deleteUrl = `/item/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={deleteUrl}>
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+      </Link>
+    );
+  };
+
+  const toggleModal = () => {
+    setModalIsOpen(!modalIsOpen);
+  };
+
+  const variantColumnTemplate = (rowData) => {
+    return (
+      <div>
+        <Button  onClick={() => {
+          setSelectedVariants(rowData.variants);
+          setItemNameProp(rowData.name)
+          toggleModal();
+        }}>
+          Show Variants
+        </Button>
+      </div>
+    );
+  };
   console.log(itemList, 'itemList')
+
+  const processedItemList = itemList?.map(item => ({
+    ...item,
+    categoryForSorting: item.terms[0]?.name || '',
+  }));
+
+
   return (
     <div>
       <h2 id="item-heading" data-cy="ItemHeading">
-        <Translate contentKey="tempApp.item.home.title">Items</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="tempApp.item.home.refreshListLabel">Refresh List</Translate>
-          </Button>
-          <Link to="/item/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="tempApp.item.home.createLabel">Create new Item</Translate>
-          </Link>
-        </div>
+        <Translate contentKey="tempApp.item.home.title">Items View</Translate>
+
       </h2>
-      <Row>
-        <Col sm="12">
-          <Form onSubmit={startSearching}>
-            <FormGroup>
-              <InputGroup>
-                <Input
-                  type="text"
-                  name="search"
-                  defaultValue={search}
-                  onChange={handleSearch}
-                  placeholder={translate('tempApp.item.home.search')}
-                />
-                <Button className="input-group-addon">
-                  <FontAwesomeIcon icon="search" />
-                </Button>
-                <Button type="reset" className="input-group-addon" onClick={clear}>
-                  <FontAwesomeIcon icon="trash" />
-                </Button>
-              </InputGroup>
-            </FormGroup>
-          </Form>
-        </Col>
-      </Row>
-      <div className="table-responsive">
-        {itemList && itemList.length > 0 ? (
-          <Table responsive>
-            <thead>
-              <tr>
-                <th className="hand" onClick={sort('name')}>
-                  <Translate contentKey="tempApp.item.name">Name</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('desc')}>
-                  <Translate contentKey="tempApp.item.desc">Desc</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('orderCount')}>
-                  <Translate contentKey="tempApp.item.orderCount">Order Count</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('avgRating')}>
-                  <Translate contentKey="tempApp.item.avgRating">Avg Rating</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('ratingCount')}>
-                  <Translate contentKey="tempApp.item.ratingCount">Rating Count</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('stock')}>
-                  <Translate contentKey="tempApp.item.stock">Stock</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('status')}>
-                  <Translate contentKey="tempApp.item.status">Status</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                {/* <th> */}
-                {/*   <Translate contentKey="tempApp.item.menu">Menu</Translate> <FontAwesomeIcon icon="sort" /> */}
-                {/* </th> */}
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {itemList.map((item, i) => (
-                <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                    <Button tag={Link} to={`/item/${item.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`} color="link" size="sm">
-                    {item.name}
-                    </Button>
-                  </td>
-                  <td>{item.desc}</td>
-                  <td>{item.orderCount}</td>
-                  <td>{item.avgRating}</td>
-                  <td>{item.ratingCount}</td>
-                  <td>{item.stock}</td>
-                  <td>
-                    <Translate contentKey={`tempApp.ItemStatus.${item.status}`} />
-                  </td>
-                  <td>{item.menu ? <Link to={`/menu/${item.menu.id}`}>{item.menu.id}</Link> : ''}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      {/* <Button tag={Link} to={`/item/${item.id}`} color="info" size="sm" data-cy="entityDetailsButton"> */}
-                      {/*   <FontAwesomeIcon icon="eye" />{' '} */}
-                      {/*   <span className="d-none d-md-inline"> */}
-                      {/*     <Translate contentKey="entity.action.view">View</Translate> */}
-                      {/*   </span> */}
-                      {/* </Button> */}
-                      <Button
-                        tag={Link}
-                        to={`/item/${item.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
-                      >
-                        <FontAwesomeIcon icon="pencil-alt" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.edit">Edit</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        tag={Link}
-                        to={`/item/${item.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="danger"
-                        size="sm"
-                        data-cy="entityDeleteButton"
-                      >
-                        <FontAwesomeIcon icon="trash" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.delete">Delete</Translate>
-                        </span>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        ) : (
-          !loading && (
-            <div className="alert alert-warning">
-              <Translate contentKey="tempApp.item.home.notFound">No Items found</Translate>
-            </div>
-          )
-        )}
+
+      <div >
+        <DataTable value={processedItemList} header={header} paginator rows={10}
+                   removableSort
+                   loading={loading}
+                   totalRecords={totalItems}
+                   globalFilterFields={['name',  ]}
+                   filters={filters} filterDisplay="row"
+                   tableStyle={{ minWidth: '60rem' }}>
+
+          <Column field="name"  sortable header="Name" filter filterPlaceholder="Search by name" body={nameColumnTemplate} />
+          <Column header="Image"  body={(rowData) =>
+          <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
+          {/* <Column field="desc" header="Description" /> */}
+          <Column header="Variant"  body={variantColumnTemplate} />
+          {/* <Column field="price" header="Price" body={priceBodyTemplate} /> */}
+          <Column
+            header="Category"
+            field="categoryForSorting"
+            sortable
+            filter
+            filterElement={categoryFilter}
+          />
+          <Column field="avgRating" header="Reviews" body={ratingBodyTemplate} />
+          <Column field="orderCount" header="Order Count" />
+          <Column field="stock" sortable header="In Stock" />
+          <Column header="Status"  sortable body={statusBodyTemplate}></Column>
+          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '5%', alignItems: 'center', alignSelf: 'center'}}
+                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+
+          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '5%',  }}
+                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+        </DataTable>
+        <Modal
+          isOpen={modalIsOpen}
+          toggle={toggleModal}
+          contentClassName="custom-modal-content"
+          size="lg"
+        >
+          <div className="modal-header">
+            <h5 className="modal-title">Variant Details</h5>
+              <i onClick={toggleModal} className="pi pi-times cursor-pointer  " style={{ fontSize: '1.5rem' }}></i>
+          </div>
+          <div className="modal-body">
+            <VariantView variants={selectedVariants} itemName={itemNameProp} />
+          </div>
+        </Modal>
+
       </div>
-      {totalItems ? (
-        <div className={itemList && itemList.length > 0 ? '' : 'd-none'}>
-          <div className="justify-content-center d-flex">
-            <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
-          </div>
-          <div className="justify-content-center d-flex">
-            <JhiPagination
-              activePage={paginationState.activePage}
-              onSelect={handlePagination}
-              maxButtons={5}
-              itemsPerPage={paginationState.itemsPerPage}
-              totalItems={totalItems}
-            />
-          </div>
-        </div>
-      ) : (
-        ''
-      )}
+
     </div>
   );
 };

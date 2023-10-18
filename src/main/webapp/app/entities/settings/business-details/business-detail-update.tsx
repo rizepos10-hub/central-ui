@@ -76,8 +76,11 @@ export const BusinessDetailUpdate = () => {
       dispatch(getEntities({}))
     }
     dispatch(getEntities({}))
+    if (updateSuccess) {
+      handleClose();
+    }
 
-  }, []);
+  }, [updateSuccess]);
 
   useEffect(() => {
     if (businessDetailEntity?.logo) {
@@ -88,19 +91,12 @@ export const BusinessDetailUpdate = () => {
       setBranchDetails(businessDetailEntity.branchDetails);
     }
 
-    if (updateSuccess) {
-      handleClose();
-    }
 
-  }, [updateSuccess, businessDetailEntity?.logo, businessDetailEntity?.address,businessDetailEntity?.branchDetails]);
 
-  console.log(businessDetailEntity, 'lol4')
+  }, [businessDetailEntity?.logo, businessDetailEntity?.address,businessDetailEntity?.branchDetails]);
 
-  const removeAttachment = (attachmentId) => {
-    setSelectedAttachments((prevAttachments) =>
-      prevAttachments.filter((attachment) => attachment.id !== attachmentId)
-    );
-  };
+
+
   const saveEntity = values => {
 
     console.log(values, 'save')
@@ -161,7 +157,10 @@ export const BusinessDetailUpdate = () => {
 
 
 
-  console.log(branchDetails, 'lol');
+  console.log(branchDetails, 'lol')
+
+  console.log(selectedAttachments, 'selectedAttachments');
+
 
 
   const handleInputChange = (branchIndex, dayIndex, hourIndex, field, value) => {
@@ -265,7 +264,7 @@ export const BusinessDetailUpdate = () => {
                           padding: '2px',
                           cursor: 'pointer',
                         }}
-                        onClick={() => removeAttachment(selectedAttachments?.id)}
+                        onClick={() => setSelectedAttachments(() => null)}
                       >     <FontAwesomeIcon icon={faTrashAlt}  />
                       </div>
                       }

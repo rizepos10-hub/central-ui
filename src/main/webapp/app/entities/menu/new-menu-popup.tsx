@@ -11,6 +11,7 @@ import {getEntities as getTerms, getMenuCategories} from "app/entities/term/term
 import {getEntities as getItems} from "app/entities/item/item.reducer";
 import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime} from "app/shared/util/date-utils";
 import {result} from "lodash";
+import {MenuTypeModel} from "app/shared/model/enumerations/menu-type.model";
 
 
 const NewMenuPopup = () => {
@@ -23,8 +24,10 @@ const NewMenuPopup = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
+  const params = new URLSearchParams(location.search);
+  const menuType = params.get("type");
+
   const terms = useAppSelector(state => state.term.entities)
-  const itemList = useAppSelector(state => state.item.entities);
   const menuEntity = useAppSelector(state => state.menu.entity);
   const loading = useAppSelector(state => state.menu.loading);
   const updating = useAppSelector(state => state.menu.updating);
@@ -35,13 +38,18 @@ const NewMenuPopup = () => {
 
 
 
+  const menuTypeOptions = Object.values(MenuTypeModel).map(type => ( { label: type, value: type }))
+  const initialType = {label : menuEntity?.type , value: menuEntity?.type}
+
+
+
   const [selectedCategory, setSelectedCategory] = useState();
-  const [menuItems, setMenuItems] = useState([]);
 
 
 
   const [selectedBranches, setSelectedBranches] = useState<{ value: string; label: string } | undefined>();
 
+  const [selectedType, setSelectedType] = useState<{ value: string; label: string } | undefined>();
 
 
 
@@ -74,15 +82,20 @@ const NewMenuPopup = () => {
   }, []);
 
 
+
   useEffect(() => {
 
     const {id: newMenuId} = newMenu
+    const {type : newMenuType} = newMenu
     if (updateSuccess && newMenuId) {
-      navigate(`/menu/${newMenuId}/edit?page=1&sort=id,asc`)
+      navigate(`/menu/${newMenuId}/${newMenuType}/edit?page=1&sort=id,asc`)
     }
   }, [newMenu]);
 
   console.log(terms, 'termos')
+
+  console.log(newMenu, 'newMenu')
+
 
   const saveEntity = (values) => {
     values.createdDate = convertDateTimeToServer(values.createdDate);
@@ -96,7 +109,8 @@ const NewMenuPopup = () => {
       ...menuEntity,
       ...restValues,
       // category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
-      branch: { id: selectedBranches.value }
+      branch: { id: selectedBranches.value },
+      type: selectedType
 
     };
 
@@ -132,6 +146,10 @@ const NewMenuPopup = () => {
   const handleBranchChange = (selectedBranches) => {
     console.log(selectedBranches, 'lol branch')
     setSelectedBranches(selectedBranches);
+  }
+
+  const handleTypeChange = (selectedType) => {
+    setSelectedType(selectedType?.value);
   }
 
 
@@ -170,6 +188,11 @@ const NewMenuPopup = () => {
             Branches
             <Select defaultValue={initialBranches}
                     onChange={handleBranchChange} options={branchList} />
+          </div>
+          <div className="mb-3">
+            Type
+            <Select defaultValue={initialType}
+                    onChange={handleTypeChange} options={menuTypeOptions} />
           </div>
           <ValidatedField
             id="menu-category"

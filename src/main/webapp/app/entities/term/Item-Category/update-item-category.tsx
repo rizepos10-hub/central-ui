@@ -4,16 +4,10 @@ import { Button, Row, Col, FormText } from 'reactstrap';
 import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { ITaxonomy } from 'app/shared/model/taxonomy.model';
 import { getEntities as getTaxonomies } from 'app/entities/taxonomy/taxonomy.reducer';
 import {getEntities as getTerms, getItemCategories} from 'app/entities/term/term.reducer';
-import { IItem } from 'app/shared/model/item.model';
-import { getEntities as getItems } from 'app/entities/item/item.reducer';
-import { ITerm } from 'app/shared/model/term.model';
 import { getEntity, updateEntity, createEntity, reset } from '../term.reducer';
 import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 
@@ -36,7 +30,6 @@ export const UpdateItemCategory = () => {
 
   const taxonomies = useAppSelector(state => state.taxonomy.entities);
   const terms = useAppSelector(state => state.term.entities).map((term) => ({label: term.name, value: term.id}))
-  const items = useAppSelector(state => state.item.entities);
   const termEntity = useAppSelector(state => state.term.entity);
   const loading = useAppSelector(state => state.term.loading);
   const updating = useAppSelector(state => state.term.updating);
@@ -317,61 +310,7 @@ export const UpdateItemCategory = () => {
               </div>
 
 
-              {/* {isNew ? ( */}
-              {/*   <ValidatedField */}
-              {/*     id="term-term" */}
-              {/*     name="term" */}
-              {/*     data-cy="term" */}
-              {/*     label={translate('tempApp.term.parents')} */}
-              {/*     type="select" */}
-              {/*   > */}
-              {/*     <option value="">{''}</option> */}
-              {/*     {terms && */}
-              {/*       terms */}
-              {/*         .filter(term => term.taxonomy && term.taxonomy.name === 'Item Category') */}
-              {/*         .map(otherEntity => ( */}
-              {/*           <option value={otherEntity.id} key={otherEntity.id}> */}
-              {/*             {otherEntity.name} */}
-              {/*           </option> */}
-              {/*         ))} */}
-              {/*   </ValidatedField> */}
-              {/* ) : ( */}
-              {/*   <ValidatedField */}
-              {/*     id="term-term" */}
-              {/*     name="term" */}
-              {/*     data-cy="term" */}
-              {/*     label={translate('tempApp.term.parents')} */}
-              {/*     type="select" */}
-              {/*   > */}
-              {/*     <option value={termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}> */}
-              {/*       {termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''} */}
-              {/*     </option> */}
 
-
-              {/*     {terms && */}
-              {/*       terms */}
-              {/*         .filter(term => term.taxonomy && term.taxonomy?.name === 'Item Category') */}
-              {/*         .map(otherEntity => ( */}
-              {/*           <option value={otherEntity.id} key={otherEntity.id}> */}
-              {/*             {otherEntity?.name} */}
-              {/*           </option> */}
-              {/*         ))} */}
-              {/*     { termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name && */}
-              {/*       <option value="">{''}</option> */}
-              {/*     } */}
-              {/*   </ValidatedField> */}
-              {/* )} */}
-
-              {/* <ValidatedField id="term-item" name="item" data-cy="item" label={translate('tempApp.term.item')} type="select"> */}
-              {/*   <option value="" key="0" /> */}
-              {/*   {items */}
-              {/*     ? items.map(otherEntity => ( */}
-              {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
-              {/*           {otherEntity.name} */}
-              {/*         </option> */}
-              {/*       )) */}
-              {/*     : null} */}
-              {/* </ValidatedField> */}
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/term/items" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

@@ -4,6 +4,7 @@ import { Button, Row, Col, FormText } from 'reactstrap';
 import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+
 import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -77,7 +78,7 @@ export const DiscountUpdate = () => {
       <Row>
         <Col md="8">
           <h2 id="tempApp.discount.home.createOrEditLabel" data-cy="DiscountCreateUpdateHeading">
-            <Translate contentKey="tempApp.discount.home.createOrEditLabel">Create or edit a Discount</Translate>
+            {isNew? "Create New Discount" : "Edit Discount"}
           </h2>
         </Col>
       </Row>
