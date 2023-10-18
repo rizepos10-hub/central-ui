@@ -5,9 +5,9 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './term.reducer';
+import { getEntity, deleteEntity } from '../term.reducer';
 
-export const TermDeleteDialog = () => {
+export const DeleteMenuCategoryDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -25,7 +25,7 @@ export const TermDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.term.updateSuccess);
 
   const handleClose = () => {
-    navigate('/term/items' + location.search);
+    navigate('/term/menus' + location.search);
   };
 
   useEffect(() => {
@@ -65,4 +65,4 @@ export const TermDeleteDialog = () => {
   );
 };
 
-export default TermDeleteDialog;
+export default DeleteMenuCategoryDialog;

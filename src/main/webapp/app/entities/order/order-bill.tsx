@@ -15,7 +15,7 @@ interface OrderBills {
   list:any;
   orderedItems: any
 }
-export const TestBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
+export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
 
   const billList = list;
 

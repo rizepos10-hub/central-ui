@@ -5,7 +5,7 @@ import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
 
 
-const MenuPreview = ({data}) => {
+const MenuPosPreview = ({data}) => {
   const [subScreensList, setSubScreensList] = useState([]);
   useEffect(() => {
   }, []);
@@ -67,4 +67,4 @@ const MenuPreview = ({data}) => {
     </Container>
   );
 };
-export default MenuPreview;
+export default MenuPosPreview;

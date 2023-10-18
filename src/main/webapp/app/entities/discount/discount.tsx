@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {Button as PrimeButton} from "primereact/button"
 
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
@@ -116,15 +117,19 @@ export const Discount = () => {
 
   console.log(discountList, 'lisdis')
 
-  const handlePagination = currentPage =>
-    setPaginationState({
-      ...paginationState,
-      activePage: currentPage,
-    });
 
   const handleSyncList = () => {
     sortEntities();
   };
+
+  const valueColumnTemplate = rowData => {
+    const editUrl = `/discount/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.value}
+      </Link>
+    );
+  }
 
 
   const editColumnTemplate = (rowData) => {
@@ -151,27 +156,27 @@ export const Discount = () => {
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Discounts</span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <PrimeButton label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label="Create new Branch" raised onClick={handleCreate} disabled={loading}>
+        </PrimeButton>
+        <PrimeButton label="Create new Discount" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
-        </Button>
+        </PrimeButton>
       </div>
     </div>
   );
   return (
     <div>
       <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
-        Branches View
+        Discounts View
 
       </h2>
 
       <div className="table-responsive">
         <DataTable value={discountList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={5}>
 
-          <Column field="value" header="Value" sortable  />
+          <Column field="value" header="Value" body={valueColumnTemplate} sortable  />
           <Column field="type" sortable header="Type" body={(rowData) => rowData.type === "PERCENTAGE" ? "%" : rowData.type} />
 
 

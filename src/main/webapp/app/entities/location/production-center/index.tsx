@@ -4,7 +4,6 @@ import { Route } from 'react-router-dom';
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
 import ProductionCenter from './production-center';
-import ProductionCenterDetail from './production-center-detail';
 import ProductionCenterUpdate from './production-center-update';
 import ProductionCenterDeleteDialog from './production-center-delete-dialog';
 
@@ -13,7 +12,6 @@ const ProductionCenterRoutes = () => (
     <Route index element={<ProductionCenter />} />
     <Route path="new" element={<ProductionCenterUpdate />} />
     <Route path=":id">
-      <Route index element={<ProductionCenterDetail />} />
       <Route path="edit" element={<ProductionCenterUpdate />} />
       <Route path="delete" element={<ProductionCenterDeleteDialog />} />
     </Route>

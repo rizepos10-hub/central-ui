@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntities as getMenus } from 'app/entities/menu/menu.reducer';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
 
@@ -190,7 +189,6 @@ export const ItemUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getMenus({}));
     dispatch(getAddons({}));
     dispatch(getAddonGroups({}));
 

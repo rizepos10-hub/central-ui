@@ -5,9 +5,9 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './taxonomy.reducer';
+import { getEntity, deleteEntity } from '../term.reducer';
 
-export const TaxonomyDeleteDialog = () => {
+export const DeleteItemCategoryDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -21,11 +21,11 @@ export const TaxonomyDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const taxonomyEntity = useAppSelector(state => state.taxonomy.entity);
-  const updateSuccess = useAppSelector(state => state.taxonomy.updateSuccess);
+  const termEntity = useAppSelector(state => state.term.entity);
+  const updateSuccess = useAppSelector(state => state.term.updateSuccess);
 
   const handleClose = () => {
-    navigate('/taxonomy' + location.search);
+    navigate('/term/items' + location.search);
   };
 
   useEffect(() => {
@@ -36,17 +36,17 @@ export const TaxonomyDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(taxonomyEntity.id));
+    dispatch(deleteEntity(termEntity.id));
   };
 
   return (
     <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="taxonomyDeleteDialogHeading">
+      <ModalHeader toggle={handleClose} data-cy="termDeleteDialogHeading">
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="tempApp.taxonomy.delete.question">
-        <Translate contentKey="tempApp.taxonomy.delete.question" interpolate={{ id: taxonomyEntity.id }}>
-          Are you sure you want to delete this Taxonomy?
+      <ModalBody id="tempApp.term.delete.question">
+        <Translate contentKey="tempApp.term.delete.question" interpolate={{ id: termEntity.id }}>
+          Are you sure you want to delete this Term?
         </Translate>
       </ModalBody>
       <ModalFooter>
@@ -55,7 +55,7 @@ export const TaxonomyDeleteDialog = () => {
           &nbsp;
           <Translate contentKey="entity.action.cancel">Cancel</Translate>
         </Button>
-        <Button id="jhi-confirm-delete-taxonomy" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+        <Button id="jhi-confirm-delete-term" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
           <FontAwesomeIcon icon="trash" />
           &nbsp;
           <Translate contentKey="entity.action.delete">Delete</Translate>
@@ -65,4 +65,4 @@ export const TaxonomyDeleteDialog = () => {
   );
 };
 
-export default TaxonomyDeleteDialog;
+export default DeleteItemCategoryDialog;

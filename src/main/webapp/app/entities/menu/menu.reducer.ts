@@ -27,8 +27,8 @@ export const searchEntities = createAsyncThunk('menu/search_entity', async ({ qu
   return axios.get<IMenu[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('menu/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+export const getEntities = createAsyncThunk('menu/fetch_entity_list', async ({ page, size, sort,type }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&type=${type}&size=${size}&sort=${sort}` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IMenu[]>(requestUrl);
 });
 
@@ -56,8 +56,6 @@ export const createEntity = createAsyncThunk(
   'menu/create_entity',
   async (entity: IMenu, thunkAPI) => {
     const result = await axios.post<IMenu>(apiUrl, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
-    console.log(result, 'result in create')
     return result;
   },
   { serializeError: serializeAxiosError }

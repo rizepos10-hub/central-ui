@@ -4,21 +4,20 @@ import { Route } from 'react-router-dom';
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
 import Menu from './menu';
-import MenuDetail from './menu-detail';
 import MenuDeleteDialog from './menu-delete-dialog';
 import NewMenuPopup from "app/entities/menu/new-menu-popup";
-import TestMenu from "app/entities/menu/TestMenu";
-import MenuUpdateTest from "app/entities/menu/menu-update-previous-version";
-import MenuUpdate from "app/entities/menu/menu-update-latest";
+import PosMenuUpdate from "app/entities/menu/pos-menu-update";
+import OnlineOrderingMenuUpdate from "app/entities/menu/online-ordering-menu-update"
 
 const MenuRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<TestMenu />} />
+    <Route index element={<Menu />} />
     <Route path="new" element={<NewMenuPopup />} />
 
     <Route path=":id">
-      <Route index element={<MenuUpdate />} />
-      <Route path="edit" element={<MenuUpdate />} />
+      <Route index element={<PosMenuUpdate />} />
+      <Route path="pos/edit" element={<PosMenuUpdate />} />
+      <Route path="online_ordering/edit" element={<OnlineOrderingMenuUpdate />} />
       <Route path="delete" element={<MenuDeleteDialog />} />
     </Route>
   </ErrorBoundaryRoutes>

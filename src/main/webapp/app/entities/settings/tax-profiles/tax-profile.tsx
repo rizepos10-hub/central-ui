@@ -14,7 +14,7 @@ import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
 import {InputText} from "primereact/inputtext";
-import AddTaxModal from "app/entities/settings/taxes/AddTaxtModal";
+import AddTaxModal from "app/entities/settings/taxes/add-tax-modal";
 import taxProfiles from "app/entities/settings/tax-profiles/tax-profile.reducer";
 
 export const Tax = () => {
@@ -89,7 +89,7 @@ export const Tax = () => {
 
 
   const nameColumnTemplate = (rowData) => {
-    const editUrl = `/tax/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/tax-profiles/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -120,15 +120,6 @@ export const Tax = () => {
     );
   };
 
-  // const deleteColumnTemplate = (rowData) => {
-  //   const deleteUrl = `/tax/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-  //   return (
-  //     <Link to={deleteUrl}>
-  //       <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-  //     </Link>
-  //   );
-  // };
-
 
   const activeColumnTemplate = rowData => {
     return rowData.taxInclusive ?<p className="text-success ml-2  ">&#10004;</p>:
@@ -139,13 +130,13 @@ export const Tax = () => {
   // console.log(taxProfileList, 'taxProfileList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Taxes</span>
+      <span className="text-xl text-900 font-bold">Tax Profiles</span>
       <div className="ms-auto">
         <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={getTaxes} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Tax" raised onClick={handleCreate} disabled={loading}>
+        <Button label="Create New Tax Profile" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -154,7 +145,7 @@ export const Tax = () => {
   return (
     <div>
       <h2 >
-        Taxes View
+        Tax Profiles View
 
       </h2>
 
@@ -162,6 +153,7 @@ export const Tax = () => {
         <DataTable value={taxProfileList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
           <Column
             field="name" header="Name" filter
+            body={nameColumnTemplate}
             filterElement={ <InputText  placeholder="Search by Name" onChange={handleNameFilterChange}/> }
             filterField="name"  sortable
           />

@@ -72,9 +72,14 @@ const AppMenu = () => {
                                 to: '/term/menus'
                               },
                               {
-                                label: 'List',
+                                label: 'Pos List',
                                 icon: 'pi pi-list',
-                                to: '/menu'
+                                to: '/menu?type=POS'
+                              },
+                              {
+                                label: 'Online List',
+                                icon: 'pi pi-list',
+                                to: '/menu?type=ONLINE_ORDERING'
                               },
 
                             ]

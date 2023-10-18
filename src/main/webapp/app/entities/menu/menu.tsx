@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
+import { Button } from 'primereact/button';
 import { Translate, translate, TextFormat, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -11,6 +11,11 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IMenu } from 'app/shared/model/menu.model';
 import { searchEntities, getEntities } from './menu.reducer';
+import { DataTable } from 'primereact/datatable';
+import {Column} from "primereact/column";
+import {format} from "date-fns";
+import {FilterMatchMode} from "primereact/api";
+import {Dropdown} from "primereact/dropdown";
 
 export const Menu = () => {
   const dispatch = useAppDispatch();
@@ -26,8 +31,19 @@ export const Menu = () => {
   const menuList = useAppSelector(state => state.menu.entities);
   const loading = useAppSelector(state => state.menu.loading);
   const totalItems = useAppSelector(state => state.menu.totalItems);
+  const [filters, setFilters] = useState({
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    'category.name': { value: null, matchMode: FilterMatchMode.EQUALS },
+  });
+
+  const params = new URLSearchParams(location.search);
+  const menuType = params.get("type");
+
+
+
 
   const getAllEntities = () => {
+
     if (search) {
       dispatch(
         searchEntities({
@@ -43,51 +59,25 @@ export const Menu = () => {
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
+          type: menuType
         })
       );
     }
   };
 
-  const startSearching = e => {
-    if (search) {
-      setPaginationState({
-        ...paginationState,
-        activePage: 1,
-      });
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
-    e.preventDefault();
-  };
-
-  const clear = () => {
-    setSearch('');
-    setPaginationState({
-      ...paginationState,
-      activePage: 1,
-    });
-    dispatch(getEntities({}));
-  };
-
-  const handleSearch = event => setSearch(event.target.value);
+  const handleCreate = () => {
+    navigate(`/menu/new?type=${menuType}`)
+  }
 
   const sortEntities = () => {
     getAllEntities();
     const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
+
   };
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, search,menuType]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -104,161 +94,118 @@ export const Menu = () => {
     }
   }, [location.search]);
 
-  const sort = p => () => {
-    setPaginationState({
-      ...paginationState,
-      order: paginationState.order === ASC ? DESC : ASC,
-      sort: p,
-    });
-  };
-
-  const handlePagination = currentPage =>
-    setPaginationState({
-      ...paginationState,
-      activePage: currentPage,
-    });
+console.log(menuList, 'menu list')
 
   const handleSyncList = () => {
     sortEntities();
   };
 
+  const categoryNames = new Set(menuList.map((menu) =>console.log(menu, 'lollll')));
+  const categoryFilterOptions = Array.from(categoryNames).map((categoryName) => ({
+    label: categoryName,
+    value: categoryName,
+  }));
+  console.log(categoryNames, 'categoryNames')
+
+  console.log(categoryFilterOptions, 'categoryFilterOptions')
+  const categoryFilter = (
+    <Dropdown
+      value={filters['category.name']?.value}
+      options={categoryFilterOptions}
+      onChange={(e) => {
+        const updatedFilters = {
+          ...filters,
+          'category.name': { value: e.value, matchMode: FilterMatchMode.EQUALS },
+        };
+        setFilters(updatedFilters);
+      }}
+      placeholder="Select a category"
+    />
+
+  );
+  const editColumnTemplate = (rowData) => {
+    const editUrl = `/menu/${rowData.id}/${menuType}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver', marginLeft: '0.5rem'}} />
+      </Link>
+    );
+  };
+
+  const deleteColumnTemplate = (rowData) => {
+    const deleteUrl = `/menu/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={deleteUrl}>
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red' ,  marginLeft: '-0.6rem'}} />
+      </Link>
+    );
+  };
+
+  const header = (
+    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
+      <span className="text-xl text-900 font-bold">{menuType} Menus</span>
+      <div className="ms-auto">
+        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+          &nbsp;
+          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
+        </Button>
+        <Button label="Create new Menu" raised onClick={handleCreate} disabled={loading}>
+          &nbsp;
+        </Button>
+      </div>
+    </div>
+  );
+
+  console.log(menuList, 'menuList')
+
   return (
     <div>
       <h2 id="menu-heading" data-cy="MenuHeading">
-        <Translate contentKey="tempApp.menu.home.title">Menus</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="tempApp.menu.home.refreshListLabel">Refresh List</Translate>
-          </Button>
-          <Link to="/menu/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="tempApp.menu.home.createLabel">Create new Menu</Translate>
-          </Link>
-        </div>
-      </h2>
-      <Row>
-        <Col sm="12">
-          <Form onSubmit={startSearching}>
-            <FormGroup>
-              <InputGroup>
-                <Input
-                  type="text"
-                  name="search"
-                  defaultValue={search}
-                  onChange={handleSearch}
-                  placeholder={translate('tempApp.menu.home.search')}
-                />
-                <Button className="input-group-addon">
-                  <FontAwesomeIcon icon="search" />
-                </Button>
-                <Button type="reset" className="input-group-addon" onClick={clear}>
-                  <FontAwesomeIcon icon="trash" />
-                </Button>
-              </InputGroup>
-            </FormGroup>
-          </Form>
-        </Col>
-      </Row>
-      <div className="table-responsive">
-        {menuList && menuList.length > 0 ? (
-          <Table responsive>
-            <thead>
-              <tr>
+        {menuType === "ONLINE_ORDERING" ? "Online Ordering" : menuType === "POS" && "Pos"} Menus View
 
-                <th className="hand" onClick={sort('name')}>
-                  <Translate contentKey="tempApp.menu.name">Name</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('createdAt')}>
-                  <Translate contentKey="tempApp.menu.createdAt">Created At</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th className="hand" onClick={sort('updatedAt')}>
-                  <Translate contentKey="tempApp.menu.updatedAt">Updated At</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="tempApp.menu.category">Category</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {menuList.map((menu, i) => (
-                <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                    <Button tag={Link}
-                            to={`/menu/${menu.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                            color="link" size="sm">
-                    {menu.name}
-                    </Button>
-                    </td>
-                  <td>{menu.createdAt ? <TextFormat type="date" value={menu.createdAt} format={APP_DATE_FORMAT} /> : null}</td>
-                  <td>{menu.updatedAt ? <TextFormat type="date" value={menu.updatedAt} format={APP_DATE_FORMAT} /> : null}</td>
-                  <td>{menu.category ? <Link to={`/term/${menu.category.id}`}>{menu.category.name}</Link> : ''}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      {/* <Button tag={Link} to={`/menu/${menu.id}`} color="info" size="sm" data-cy="entityDetailsButton"> */}
-                      {/*   <FontAwesomeIcon icon="eye" />{' '} */}
-                      {/*   <span className="d-none d-md-inline"> */}
-                      {/*     <Translate contentKey="entity.action.view">View</Translate> */}
-                      {/*   </span> */}
-                      {/* </Button> */}
-                      <Button
-                        tag={Link}
-                        to={`/menu/${menu.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
-                      >
-                        <FontAwesomeIcon icon="pencil-alt" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.edit">Edit</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        tag={Link}
-                        to={`/menu/${menu.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="danger"
-                        size="sm"
-                        data-cy="entityDeleteButton"
-                      >
-                        <FontAwesomeIcon icon="trash" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.delete">Delete</Translate>
-                        </span>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        ) : (
-          !loading && (
-            <div className="alert alert-warning">
-              <Translate contentKey="tempApp.menu.home.notFound">No Menus found</Translate>
-            </div>
-          )
-        )}
-      </div>
-      {totalItems ? (
-        <div className={menuList && menuList.length > 0 ? '' : 'd-none'}>
-          <div className="justify-content-center d-flex">
-            <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
-          </div>
-          <div className="justify-content-center d-flex">
-            <JhiPagination
-              activePage={paginationState.activePage}
-              onSelect={handlePagination}
-              maxButtons={5}
-              itemsPerPage={paginationState.itemsPerPage}
-              totalItems={totalItems}
-            />
-          </div>
-        </div>
-      ) : (
-        ''
-      )}
+      </h2>
+
+        <DataTable value={menuList} header={header} editMode="row"
+                   loading={loading} filters={filters} filterDisplay="row"
+                   paginator totalRecords={totalItems} rows={5}>
+
+          <Column
+            header="Name"
+            field="name"
+            sortable
+            filterPlaceholder={"Search by name"}  filter
+            body={(rowData) => (
+              <Link to={`/menu/${rowData.id}/${menuType}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>{rowData.name}</Link>)}
+            style={{ width: '20%' }}
+          />
+          <Column
+            field="createdDate"
+            header="Created At"
+            sortable
+            body={(rowData) => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
+          />
+          <Column
+            field="lastModifiedDate"
+            header="Updated At"
+            sortable
+            body={(rowData) => format(new Date(rowData.lastModifiedDate), 'yyyy-MM-dd HH:mm:ss')}
+          />
+          <Column
+            field="category.name"
+            header="Category"
+            sortable
+            filter
+            filterElement={categoryFilter}
+            filterField={"category.name"}
+            sortField={"category.name"}
+            body={(rowData) => (rowData.category ? <span>{rowData.category.name}</span> : null)}
+          ></Column>
+          <Column header="Edit" body={editColumnTemplate} headerStyle={{ width: '5%' }} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+          <Column header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '5%' }} bodyStyle={{ textAlign: 'center', overflow: 'visible' }} />
+
+
+        </DataTable>
+
     </div>
   );
 };
