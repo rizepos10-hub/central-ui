@@ -242,7 +242,17 @@ export const ItemUpdate = () => {
       setSelectedAddons(itemEntity?.addons?.map(addon => ({ id: addon.id, label: addon.name, value: addon.id })));
     }
     if (itemEntity?.addonGroups) {
-      setSelectedAddonGroups(itemEntity?.addonGroups?.map(addonGroup => ({ id: addonGroup.id, label: addonGroup.name, value: addonGroup.id })));
+      setSelectedAddonGroups(itemEntity?.addonGroups?.map(adngrp => (
+        {
+          required: adngrp.required,
+          addonGroup:
+            {
+              id: adngrp.addonGroup.id,
+              label: adngrp.addonGroup.name,
+              value: adngrp.addonGroup.id
+            }
+        })));
+
     }
     if (uploadImageStatus === 'success' && saveButtonRef.current) {
       saveButtonRef.current.focus();
@@ -274,20 +284,30 @@ export const ItemUpdate = () => {
     setSelectedAddons(selectedAddon);
   };
 
-  const handleAddonGroupChange = selectedAddonGroup => {
-    setSelectedAddonGroups(selectedAddonGroup);
+  const handleAddonGroupChange = (selectedOptions) => {
+    const updatedSelectedAddonGroups = selectedOptions.map(option => ({
+      required: false,
+      addonGroup: {
+        label: option.label,
+        value: option.value,
+        id: option.value
+      }
+    }));
+    setSelectedAddonGroups(updatedSelectedAddonGroups);
   };
 
+
   function handleCheckboxChange(index) {
-    const updatedSelectedAddonGroups = [...selectedAddonGroups];
-
-    updatedSelectedAddonGroups[index] = {
-      ...updatedSelectedAddonGroups[index],
-      required: updatedSelectedAddonGroups[index].required ? !updatedSelectedAddonGroups[index].required : true
-    };
-
-    setSelectedAddonGroups(updatedSelectedAddonGroups);
+    setSelectedAddonGroups(prevSelectedAddonGroups => {
+      const updatedSelectedAddonGroups = [...prevSelectedAddonGroups];
+      updatedSelectedAddonGroups[index] = {
+        ...updatedSelectedAddonGroups[index],
+        required: !updatedSelectedAddonGroups[index].required
+      };
+      return updatedSelectedAddonGroups;
+    });
   }
+
 
   const removeAttachment = attachmentId => {
     setSelectedAttachments(prevAttachments => prevAttachments.filter(attachment => attachment.id !== attachmentId));
@@ -521,7 +541,7 @@ export const ItemUpdate = () => {
                 </div>
                 <div style={{ width: '22%' }}>
                   <Translate contentKey="tempApp.item.terms">Category</Translate>
-                  <Select isMulti={true} value={selectedTerms} onChange={handleTermChange} options={termsOptions} />
+                  <Select  isMulti={true} value={selectedTerms} onChange={handleTermChange} options={termsOptions} />
                 </div>
                 <div style={{ width: '22%' }}>
                   <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
@@ -568,8 +588,8 @@ export const ItemUpdate = () => {
                 <div className="d-flex justify-content-between mb-1">
                   <div style={{ width: '55%' }}>
                     <ValidatedField label={translate('tempApp.item.status')} id="item-status" name="status" data-cy="status" type="select">
-                      {itemStatusValues?.map(itemStatus => (
-                        <option value={itemStatus} key={itemStatus}>
+                      {itemStatusValues?.map((itemStatus, i) => (
+                        <option value={itemStatus} key={i}>
                           {translate('tempApp.ItemStatus.' + itemStatus)}
                         </option>
                       ))}
@@ -664,7 +684,11 @@ export const ItemUpdate = () => {
                     <h5>Addon Groups</h5>
 
                     <div className="col-md-6">
-                      <Select isMulti={true} value={selectedAddonGroups} onChange={handleAddonGroupChange} options={addonGroupsOptions} />
+                      <Select isMulti={true} value={selectedAddonGroups.map(group => ({
+                        value: group.addonGroup?.value,
+                        label: group.addonGroup?.label
+                      }))}
+                      onChange={handleAddonGroupChange} options={addonGroupsOptions} />
                     </div>
                     <Table>
                       <thead>
@@ -676,10 +700,10 @@ export const ItemUpdate = () => {
                       <tbody>
                       {selectedAddonGroups.map((group, index) => (
                         <tr key={index}>
-                          <td>{group.label}</td>
+                          <td>{group.addonGroup?.label}</td>
                           <td>
                             <Checkbox
-                              checked={group.required}
+                              checked={group?.required}
                               onChange={(e) => handleCheckboxChange(index)}
                             />
                           </td>
@@ -706,14 +730,14 @@ export const ItemUpdate = () => {
                     <tbody>
                       {variants
                         .filter(variant => variant.archived !== true)
-                        ?.map(variant => (
-                          <tr key={variant.id && variant.id}>
+                        ?.map((variant, index) => (
+                          <tr key={index}>
                             <td className="align-middle">{variant.name}</td>
                             <td className="align-middle">{variant.price}</td>
                             <td className="align-middle">
-                              {variant.attachments?.map(attachment => (
+                              {variant.attachments?.map((attachment,i) => (
                                 <img
-                                  key={attachment?.id}
+                                  key={i}
                                   alt={attachment?.name}
                                   src={attachment?.url}
                                   className="img-fluid m-lg-1"
@@ -726,8 +750,8 @@ export const ItemUpdate = () => {
                             </td>
                             <td className="align-middle">
                               <ul>
-                                {variant.discounts?.map(discount => (
-                                  <li key={discount?.id}>{`${
+                                {variant.discounts?.map((discount,i) => (
+                                  <li key={i}>{`${
                                     discount?.type === 'PERCENTAGE' ? `${discount?.value}%` : `${discount?.value} ${discount?.type}`
                                   }`}</li>
                                 ))}
