@@ -81,7 +81,14 @@ export const PrintingProfiles = () => {
 
 
 
-
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/printing-profiles/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.name}
+      </Link>
+    );
+  }
 
 
   const handleNameFilterChange = (e) => {
@@ -134,7 +141,7 @@ export const PrintingProfiles = () => {
       <div >
         <DataTable value={printingProfilesList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
           <Column
-            field="name" header="Name" filter
+            field="name" header="Name" filter body={nameColumnTemplate}
             filterElement={ <InputText  placeholder="Search by Name" onChange={handleNameFilterChange}/> }
             filterField="name"  sortable
           />

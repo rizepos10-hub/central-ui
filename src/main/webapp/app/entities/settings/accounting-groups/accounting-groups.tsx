@@ -109,23 +109,9 @@ export const AccountingGroups = () => {
       </Link>
     );
   };
-  // const deleteColumnTemplate = (rowData) => {
-  //   const deleteUrl = `/accounting-groups/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-  //   return (
-  //     <Link to={deleteUrl}>
-  //       <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-  //     </Link>
-  //   );
-  // };
 
 
-  const activeColumnTemplate = rowData => {
-    return rowData.accountingGroupsInclusive ?<p className="text-success ml-2  ">&#10004;</p>:
-      <p className="text-danger ml-2 ">&#10006;</p>
-  };
 
-
-  // console.log(accounting-groupsList, 'accounting-groupsList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Accounting Groups</span>
@@ -134,7 +120,7 @@ export const AccountingGroups = () => {
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Accounting Group" raised onClick={handleCreate} disabled={loading}>
+        <Button label="Create New Accounting Group" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -151,6 +137,7 @@ export const AccountingGroups = () => {
         <DataTable value={accountingGroupsList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
           <Column
             field="name" header="Name" filter
+            body={nameColumnTemplate}
             filterElement={ <InputText  placeholder="Search by Name" onChange={handleNameFilterChange}/> }
             filterField="name"  sortable
           />

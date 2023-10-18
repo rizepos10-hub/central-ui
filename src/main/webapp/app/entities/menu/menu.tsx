@@ -36,7 +36,14 @@ export const Menu = () => {
     'category.name': { value: null, matchMode: FilterMatchMode.EQUALS },
   });
 
+  const params = new URLSearchParams(location.search);
+  const menuType = params.get("type");
+
+
+
+
   const getAllEntities = () => {
+
     if (search) {
       dispatch(
         searchEntities({
@@ -52,26 +59,25 @@ export const Menu = () => {
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
+          type: menuType
         })
       );
     }
   };
 
   const handleCreate = () => {
-    navigate("/menu/new")
+    navigate(`/menu/new?type=${menuType}`)
   }
 
   const sortEntities = () => {
     getAllEntities();
     const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
+
   };
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, search,menuType]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -118,7 +124,7 @@ console.log(menuList, 'menu list')
 
   );
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/menu/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/menu/${rowData.id}/${menuType}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver', marginLeft: '0.5rem'}} />
@@ -137,7 +143,7 @@ console.log(menuList, 'menu list')
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Menus</span>
+      <span className="text-xl text-900 font-bold">{menuType} Menus</span>
       <div className="ms-auto">
         <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
@@ -150,10 +156,12 @@ console.log(menuList, 'menu list')
     </div>
   );
 
+  console.log(menuList, 'menuList')
+
   return (
     <div>
       <h2 id="menu-heading" data-cy="MenuHeading">
-       Menus View
+        {menuType === "ONLINE_ORDERING" ? "Online Ordering" : menuType === "POS" && "Pos"} Menus View
 
       </h2>
 
@@ -167,7 +175,7 @@ console.log(menuList, 'menu list')
             sortable
             filterPlaceholder={"Search by name"}  filter
             body={(rowData) => (
-              <Link to={`/menu/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>{rowData.name}</Link>)}
+              <Link to={`/menu/${rowData.id}/${menuType}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>{rowData.name}</Link>)}
             style={{ width: '20%' }}
           />
           <Column

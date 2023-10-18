@@ -89,11 +89,10 @@ export const Tax = () => {
 
 
 
-  const nameColumnTemplate = (rowData) => {
-    const editUrl = `/tax/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+  const codeColumnTemplate = (rowData) => {
     return (
-      <Link to={editUrl}>
-        {rowData.name}
+      <Link to={'#'} onClick={() => handleEdit(rowData.id)} >
+        {rowData.code}
       </Link>
     );
   };
@@ -163,6 +162,7 @@ export const Tax = () => {
         <DataTable value={taxList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
           <Column
             field="code" header="Code" filter
+            body={codeColumnTemplate}
             filterElement={ <InputText  placeholder="Search by Code" onChange={handleNameFilterChange}/> }
             filterField="code"  sortable
           />

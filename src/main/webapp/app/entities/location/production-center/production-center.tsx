@@ -87,6 +87,14 @@ export const ProductionCenter = () => {
   };
 
 
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/production-center/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.name}
+      </Link>
+    );
+  }
 
   const editColumnTemplate = (rowData) => {
     const editUrl = `/production-center/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
@@ -117,7 +125,7 @@ export const ProductionCenter = () => {
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Production Center" raised onClick={handleCreate} disabled={loading}>
+        <Button label="Create New Production Center" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -135,7 +143,7 @@ export const ProductionCenter = () => {
 
       <div >
         <DataTable value={productionCenterList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" filter  filterPlaceholder={"Search by name"}  sortable  />
+          <Column field="name" header="Name" filter  filterPlaceholder={"Search by name"} body={nameColumnTemplate}  sortable  />
           <Column field="orderMethod" header="Order Method" sortable  />
           <Column field="printingProfile" header="Printing Profile" body={(rowData) => rowData.printingProfile?.name} sortable  />
 
