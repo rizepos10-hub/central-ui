@@ -28,7 +28,7 @@ export const searchEntities = createAsyncThunk('menu/search_entity', async ({ qu
 });
 
 export const getEntities = createAsyncThunk('menu/fetch_entity_list', async ({ page, size, sort,type }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&type=${type}&size=${size}&sort=${sort}` : '?'}cacheBuster=${new Date().getTime()}`;
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&type=${type}&size=${size}&sort=${sort}` : `?type=${type}`}cacheBuster=${new Date().getTime()}`;
   return axios.get<IMenu[]>(requestUrl);
 });
 
@@ -111,7 +111,6 @@ export const deleteEntity = createAsyncThunk(
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
     const result = await axios.delete<IMenu>(requestUrl);
-    thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
