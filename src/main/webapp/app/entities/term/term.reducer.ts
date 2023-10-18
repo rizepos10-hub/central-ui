@@ -37,6 +37,8 @@ export const getMenuCategories = createAsyncThunk('term/fetch_entity_list', asyn
 });
 
 export const getItemCategories = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
+
+console.log('lolll')
   const requestUrl = `api/terms/search?taxonomy=Item%20Category&${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
   const  response = await axios.get<ITerm[]>(requestUrl)
   return response
@@ -65,7 +67,7 @@ export const updateEntity = createAsyncThunk(
   'term/update_entity',
   async (entity: ITerm, thunkAPI) => {
     const result = await axios.put<ITerm>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -75,7 +77,7 @@ export const partialUpdateEntity = createAsyncThunk(
   'term/partial_update_entity',
   async (entity: ITerm, thunkAPI) => {
     const result = await axios.patch<ITerm>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }

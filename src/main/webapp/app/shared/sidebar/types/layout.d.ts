@@ -178,6 +178,7 @@ export interface AppMenuItem extends MenuModel {
     visible?: boolean;
     disabled?: boolean;
     replaceUrl?: boolean;
+    role?: string[];
     command?: ({ originalEvent, item }: CommandProps) => void;
 }
 

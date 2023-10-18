@@ -11,7 +11,7 @@ import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IOrder } from 'app/shared/model/order.model';
-import {searchEntities, getEntities, filterOrders} from './order.reducer';
+import {searchEntities, getEntities, filterOrders, getOrderSources, getOrderStatuses} from './order.reducer';
 import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.constants";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 
@@ -22,6 +22,7 @@ import {Column} from "primereact/column";
 import {fromPairs} from "lodash";
 import {Dropdown} from "primereact/dropdown";
 import { startOfDay, endOfDay } from 'date-fns';
+import {InputText} from "primereact/inputtext";
 
 interface LazyTableState {
   first: number;
@@ -46,6 +47,9 @@ export const Order = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState(null);
 
+
+  const [orderStatuses, setOrderStatuses]:any = useState([]);
+
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
     rows: 10,
@@ -61,7 +65,8 @@ export const Order = () => {
       id:{value: '', matchMode: 'contains'},
       byClient: { value: '', matchMode: 'contains' },
       status: { value: '', matchMode: 'contains' },
-      customer: { value: '', matchMode: 'equals' },
+      "customer.email": { value: '', matchMode: 'contains' },
+      "customer.phone": { value: '', matchMode: 'contains' },
       branchId: { value: '', matchMode: 'equals' },
       tables: {value: '', matchMode: 'contains'}
     }});
@@ -72,9 +77,11 @@ export const Order = () => {
   const totalOrders = useAppSelector(state => state.order.totalOrders);
 
   const loading = useAppSelector(state => state.order.loading);
+  const orderSources = useAppSelector(state => state.order.orderSources);
+
   const branchList = useAppSelector(state => state.branch.entities);
 
-  console.log(orderList)
+
 
   const getBranchName = (branchId) => {
     console.log(branchId, 'branchID')
@@ -83,6 +90,13 @@ export const Order = () => {
 
     return branch ? branch.name : 'Unknown Branch';
   };
+
+  const statusOptions = [
+    { label: 'DRAFT', value: 'DRAFT' },
+    { label: 'Kitchen', value: 'KITCHEN' },
+    { label: 'Delivered', value: 'DELIVERED' },
+    { label: 'Done', value: 'DONE' }
+  ];
 
   const filteredBranchOptions = branchList
     .map((branch) => ({
@@ -132,11 +146,13 @@ export const Order = () => {
   useEffect(() => {
 
     const queryParams = {
-      orderSource: lazyState.filters.byClient?.value || '',
+      orderSource: lazyState.filters.orderSource?.value || '',
+      orderStatus: lazyState.filters.status?.value || '',
       first: lazyState.first,
       sequenceId:lazyState.filters.id?.value || '',
       page: lazyState.page ,
-      customerPhone: lazyState.filters.customer?.value || '',
+      customerPhone:lazyState.filters['customer.phone']?.value || '',
+      customerEmail: lazyState.filters['customer.email']?.value || '',
       branch: lazyState.filters.branchId?.value || '',
       tables: lazyState.filters.tables?.value || '',
       size: lazyState.rows ,
@@ -149,7 +165,13 @@ export const Order = () => {
       dispatch(filterOrders(queryParams));
 
     dispatch(getBranches({}))
-    console.log(lazyState, 'lol')
+
+    dispatch(getOrderSources())
+
+    dispatch(getOrderStatuses())
+      .then((response :any) => {
+        setOrderStatuses(response.payload?.map((status) => ({label: status, value: status})));
+      })
   }, [lazyState]);
 
 
@@ -180,6 +202,7 @@ export const Order = () => {
             filters={lazyState.filters}
             onFilter={onFilter}
             loading={loading}
+            removableSort
             emptyMessage="No Orders Found"
             tableStyle={{ minWidth: '75rem' , alignContent: 'center'}}
             selection={selectedOrders}
@@ -187,7 +210,6 @@ export const Order = () => {
           >
             <Column
               field="id"
-              style={{ width: '10%' }}
               header="Order ID"
               filter
               sortable
@@ -196,6 +218,21 @@ export const Order = () => {
                   {rowData.sequenceNumber}
                 </Link>
               )}
+              filterElement={
+                <InputText
+                  style={{width: '5rem'}}
+                  onChange={(e) =>
+                    setLazyState((prevState) => ({
+                      ...prevState,
+                      filters: {
+                        ...prevState.filters,
+                        id: { value: e.target.value, matchMode: 'equals' },
+                      },
+                    }))
+                  }
+                  placeholder="Enter id"
+                />
+              }
             />
             <Column
               field="branchId"
@@ -224,28 +261,115 @@ export const Order = () => {
               body={(rowData) => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
               field="createdDate"
               header="Order Date"
-              style={{ width: '10%' }}
               sortable
 
             />
 
             <Column field="discount" sortable  header="Order Discount" body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
               <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
-                    style={{ width: '13%' }}
 
             />
 
-            <Column field="byClient" sortable filter header="Order Source" />
-            <Column field="tables" sortable style={{ width: '13%' }} filter header="Order Tables" />
+            <Column field="orderSource" body={(rowData) => rowData.sourceApp.type} sortable filter
+                    filterElement={
+                      <Dropdown
+                        value={lazyState.filters.orderSource?.value || ''}
+                        options={orderSources?.map((source) => ({label: source, value: source}))}
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              orderSource: { value: e.value, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder="Select a source"
+                      />
+                    }
+                    header="Order Source"   />
+
+            <Column field="tables" sortable  filter header="Order Tables"
+                    filterElement={
+                      <InputText
+                        style={{width: '6rem'}}
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              tables: { value: e.target.value, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder="Enter table"
+                      />
+                    }
+            />
             <Column
-              field="customer"
+              field="customer.email"
+              filter
+              filterField="customer.email"
+              sortable
+              header="Customer Email "
+              filterElement={
+                <InputText
+                  style={{width: '11rem'}}
+                  onChange={(e) =>
+                    setLazyState((prevState) => ({
+                      ...prevState,
+                      filters: {
+                        ...prevState.filters,
+                        "customer.email": { value: e.target.value, matchMode: 'equals' },
+                      },
+                    }))
+                  }
+                  placeholder="Enter customer email"
+                />
+              }
+            />
+
+            <Column
+              field="customer.phone"
               filter
               sortable
-              header="Order Customer"
-              body={(rowData) => rowData.customer ? rowData.customer.phone : ''}
-            />
+              filterField="customer.phone"
+              header="Customer Phone"
+              filterElement={
+                <InputText
+                  style={{width: '11rem'}}
+                  onChange={(e) =>
+                    setLazyState((prevState) => ({
+                      ...prevState,
+                      filters: {
+                        ...prevState.filters,
+                        "customer.phone": { value: e.target.value, matchMode: 'equals' },
+                      },
+                    }))
+                  }
+                  placeholder="Enter customer phone"
+                />
+              }
 
-            <Column field="status" sortable filter header="Order Status" />
+            />
+            <Column field="status" sortable filter header="Order Status"
+                    filterElement={
+                      <Dropdown
+                        value={lazyState.filters.status?.value || ''}
+                        options={orderStatuses}
+                        onChange={(e) =>
+                          setLazyState((prevState) => ({
+                            ...prevState,
+                            filters: {
+                              ...prevState.filters,
+                              status: { value: e.value, matchMode: 'equals' },
+                            },
+                          }))
+                        }
+                        placeholder="Select a status"
+                      />
+                    }
+            />
           </DataTable>
         </div>
 

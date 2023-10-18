@@ -30,6 +30,7 @@ const AppProfileSidebar = () => {
           <Button
             label="Yes"
             onClick={() => {
+              onProfileSidebarHide()
               toast.dismiss(toastId);
               navigate('/logout');
             }}
@@ -66,7 +67,7 @@ const AppProfileSidebar = () => {
                     {/* <li> */}
                     {/*     <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150"> */}
                     {/*         <span> */}
-                    {/*             <i className="pi pi-user text-xl text-primary"></i> */}
+                    {/*             <i className="pi pi-back-office-user text-xl text-primary"></i> */}
                     {/*         </span> */}
                     {/*         <div className="ml-3"> */}
                     {/*             <span className="mb-2 font-semibold">Profile</span> */}

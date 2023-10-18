@@ -10,11 +10,12 @@ export interface IOrder extends IOrderAudit {
   walkin?: boolean | null;
   status?: OrderStatus | null;
   branchId?: string | null;
-  sourceApp?: string | null;
+  orderSources?: string | null;
   tables?: string | null;
   customer?: ICustomer;
   items?: IOrderedItem[];
   bills?: IBill[];
+
 }
 
 export const defaultValue: Readonly<IOrder> = {

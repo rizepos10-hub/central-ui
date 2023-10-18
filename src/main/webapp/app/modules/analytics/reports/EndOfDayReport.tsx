@@ -3,9 +3,15 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import SalesSection from "app/modules/analytics/reports/SalesSections";
 import axios from "axios";
 import { format, addDays } from 'date-fns';
+import {Dropdown} from "primereact/dropdown";
+import {useAppDispatch, useAppSelector} from "app/config/store";
+import {SourceType} from "app/shared/model/enumerations/source-type.model";
+
+import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 const EndOFDayReport = () => {
 
 
+  const dispatch = useAppDispatch()
 
   const [salesData, setSalesData]:any[] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -16,6 +22,28 @@ const EndOFDayReport = () => {
   const [fromDate, setFromDate] = useState(format(defaultFromDate, "yyyy-MM-dd"));
   const [toDate, setToDate] = useState(format(defaultToDate, "yyyy-MM-dd"));
 
+  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [selectedSource, setSelectedSource] = useState(null);
+
+
+  const branchList = useAppSelector(state => state.branch.entities)
+
+
+  const sourceTypeOptions = [
+    { label: "Both", value: null },
+    ...Object.values(SourceType).map((source) => ({
+      label: source,
+      value: source
+    }))
+  ];
+
+  const filteredBranchOptions = [
+    { label: "All", value: null },
+    ...branchList
+      .map((branch) => ({
+        label: branch.name,
+        value: branch.id,
+      }))];
 
 
   const handleFromDateChange = (event) => {
@@ -41,11 +69,23 @@ const EndOFDayReport = () => {
     try {
       setLoading(true)
       const formattedFromDate = `${fromDate}T00:00:00.000Z`;
-      const formattedToDate = `${toDate}T00:00:00.000Z`;
+      const formattedToDate = `${toDate}T23:59:59.999Z`;
 
       const formData = new FormData();
+
       formData.append('fromDate', formattedFromDate);
       formData.append('toDate', formattedToDate);
+
+      {
+        selectedBranch &&
+        formData.append('branch', selectedBranch)
+      }
+
+      {
+        selectedSource &&
+        formData.append('source', selectedSource)
+      }
+
 
       const { data } = await axios.post(`/api/report/sales-summary`, formData, {
         headers: {
@@ -65,9 +105,10 @@ const EndOFDayReport = () => {
     const fetchTodayData = async () => {
       await handleSubmit();
     };
+    dispatch(getBranches({}))
 
     fetchTodayData();
-  }, []);
+  }, [selectedBranch,selectedSource]);
 
 
   if (!salesData) {
@@ -138,6 +179,23 @@ const EndOFDayReport = () => {
             </div>
           </div>
 
+      </div>
+      <div className="d-flex  justify-content-start gap-5 ">
+        <Dropdown
+          style={{minWidth: '7rem'}}
+          value={selectedSource}
+          options={sourceTypeOptions}
+          onChange={(e) => setSelectedSource(e.value)}
+          placeholder="Select a source"
+        />
+        <Dropdown
+          style={{minWidth: '7rem'}}
+
+          value={selectedBranch}
+          options={filteredBranchOptions}
+          onChange={(e) => setSelectedBranch(e.value)}
+          placeholder="Select a branch"
+        />
       </div>
       <SalesSection title="Total Sales" data={salesData.totalSales} isTotalSales={true}/>
 

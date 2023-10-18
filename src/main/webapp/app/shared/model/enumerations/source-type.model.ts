@@ -1,0 +1,4 @@
+export enum SourceType {
+  ONLINE_ORDERING = "ONLINE_ORDERING",
+  BRANCH_POS = "BRANCH_POS",
+}

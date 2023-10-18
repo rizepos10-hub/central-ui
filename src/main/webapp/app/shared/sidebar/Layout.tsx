@@ -174,17 +174,19 @@ export const Layout =  (props: ChildContainerProps) => {
 
 
 
+console.log(isAdmin, 'hello admin')
 
   return (
     <React.Fragment>
 
       <div className={classNames('layout-container', containerClass)}>
-        <div ref={sidebarRef} className="layout-sidebar" >
+        {isAuthenticated &&   <div ref={sidebarRef} className="layout-sidebar" >
           {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
-          {isAuthenticated && <AppSidebar/>}
-        </div>
-        <div className="layout-content-wrapper">
-          <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" />
+          <AppSidebar />
+        </div> }
+        <div className={isAuthenticated ? 'layout-content-wrapper' : ''}>
+
+        <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" />
           <ErrorBoundary>
             {/* <Header */}
             {/*   isAuthenticated={isAuthenticated} */}
@@ -197,7 +199,7 @@ export const Layout =  (props: ChildContainerProps) => {
 
             {isAuthenticated && <AppTopbar ref={topbarRef}/>}
 
-            {isAuthenticated && <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>}
+            {isAuthenticated && isOpenAPIEnabled && <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>}
 
                 <div className="layout-content">{props.children}</div>
             </ErrorBoundary>
@@ -206,7 +208,7 @@ export const Layout =  (props: ChildContainerProps) => {
         {/* {isAuthenticated && <AppConfig />} */}
         <div className="layout-mask"></div>
       </div>
-      <Footer />
+      {isAuthenticated &&  <Footer /> }
 
     </React.Fragment>
   );

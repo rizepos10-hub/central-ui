@@ -38,16 +38,7 @@ export const MenuCategories = () => {
   console.log(termList, 'menuCategories')
 
   const getAllEntities = () => {
-    if (search) {
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    } else {
+
       dispatch(
         getMenuCategories({
           page: paginationState.activePage - 1,
@@ -55,7 +46,6 @@ export const MenuCategories = () => {
           sort: `${paginationState.sort},${paginationState.order}`,
         })
       );
-    }
   };
 
 

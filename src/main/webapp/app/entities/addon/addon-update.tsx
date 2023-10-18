@@ -110,15 +110,15 @@ export const AddonUpdate = () => {
 
   return (
     <div>
-      <Row className="justify-content-center">
+      <Row>
         <Col md="8">
           <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-            <Translate contentKey="tempApp.addon.home.createOrEditLabel">Create or edit a Addon</Translate>
+            {isNew ? "Create New Addon" : `Edit Addon`}
           </h2>
         </Col>
       </Row>
-      <Row className="justify-content-center">
-        <Col md="8">
+      <Row>
+        <Col md="8"  className="d-flex flex-column p-3  bg-white">
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -156,7 +156,7 @@ export const AddonUpdate = () => {
                 }}
               />
               <div className="mb-3">
-                <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
+                <Translate contentKey="tempApp.addon.discount">Discount</Translate>
                 <Select isMulti={true}
                         defaultValue={defaultDiscountsOptions}
                         options={discountsOptions}

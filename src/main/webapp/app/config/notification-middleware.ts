@@ -15,19 +15,13 @@ export default () => next => action => {
    * The notification middleware serves to add success and error notifications
    */
   if (isFulfilledAction(action) && payload && payload.headers) {
-    console.log("enter here")
     const headers = payload?.headers;
     let alert: string | null = null;
     let alertParams: string | null = null;
-    console.log('headers12', Object.entries<string>(headers))
     headers &&
       Object.entries<string>(headers).forEach(([k, v]) => {
-        console.log(k, 'im k')
         if (k.toLowerCase().endsWith('app-alert')) {
-          console.log(v, 'vivo')
           alert = v.replace('centralApp', 'tempApp');
-          console.log(k, 'kamel' , alert , 'vebuck')
-
         } else if (k.toLowerCase().endsWith('app-params')) {
           alertParams = decodeURIComponent(v.replace(/\+/g, ' '));
         }
@@ -39,7 +33,10 @@ export default () => next => action => {
   }
 
   if (isRejectedAction(action) && error && error.isAxiosError) {
-    if (error.response) {
+    const isLoginPage = location.pathname.endsWith('login');
+    const isLogoutPage = location.pathname.endsWith('logout');
+
+    if (error.response && !isLoginPage && !isLogoutPage) {
       const response = error.response;
       const data = response.data;
       if (
@@ -89,6 +86,8 @@ export default () => next => action => {
           case 404:
             addErrorAlert('Not found', 'error.url.not.found');
             break;
+          case 401:
+            break;
 
           default:
             if (typeof data === 'string' && data !== '') {
@@ -101,6 +100,8 @@ export default () => next => action => {
     } else if (error.config && error.config.url === 'api/account' && error.config.method === 'get') {
       /* eslint-disable no-console */
       console.log('Authentication Error: Trying to access url api/account with GET.');
+    } else if (isLoginPage) {
+      toast.warning('Wrong username or password');
     } else {
       toast.error(error.message || 'Unknown error!');
     }

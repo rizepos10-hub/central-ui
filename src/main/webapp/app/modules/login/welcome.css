@@ -1,0 +1,123 @@
+.welcome-container {
+  background-image: url('./welcome.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center center;
+  min-height: 80vh;
+  overflow: hidden;
+}
+
+
+
+.welcome-content {
+  padding: 20px;
+  border-radius: 10px;
+  justify-content: space-between;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.welcome-content div {
+  font-family: "Apple Color Emoji";
+  font-style: italic;
+  font-size: 12em;
+  margin-bottom: 10px;
+}
+
+.instructions {
+  font-family: "Apple Color Emoji";
+  font-style: italic;
+  font-size: 12em;
+  color: white;
+  margin-bottom: 10px;
+}
+
+.welcome-instructions{
+
+  font-family: "cursive";
+  font-style: italic;
+  font-size: 7em;
+  color: white;
+  margin-bottom: 10px;
+}
+
+
+.step {
+
+  padding: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.step h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.step p {
+  font-size: 16px;
+  color: #666;
+}
+
+.step a {
+  color: #007bff;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.step a:hover {
+  color: #0056b3;
+}
+
+.steps-column {
+  display: flex;
+  flex-direction:column;
+  gap: 4em;
+  flex: 1;
+  padding: 20px;
+}
+
+
+.color-cycle {
+  display: inline-block;
+  animation: colorMove 1s infinite linear;
+}
+
+
+@keyframes colorMove {
+  0%, 100% {
+    background: linear-gradient(to right, #FFE380, #FFA500, #B38B00, #FFF1BF, #fff1bf, #FFFFFF);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  20% {
+    background: linear-gradient(to right, #FFA500, #B38B00, #FFF1BF, #fff1bf, #FFFFFF, #FFE380);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  40% {
+    background: linear-gradient(to right, #B38B00, #FFF1BF, #fff1bf, #FFFFFF, #FFE380, #FFA500);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  60% {
+    background: linear-gradient(to right, #FFF1BF, #fff1bf, #FFFFFF, #FFE380, #FFA500, #B38B00);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  80% {
+    background: linear-gradient(to right, #fff1bf, #FFFFFF, #FFE380, #FFA500, #B38B00, #FFF1BF);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+}

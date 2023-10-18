@@ -6,6 +6,7 @@ import { MenuContext } from './context/menucontext';
 import type { AppMenuItemProps } from './types/types';
 import { useSubmenuOverlayPosition } from './hooks/useSubmenuOverlayPosition';
 import {Link, useLocation} from 'react-router-dom';
+import {useAppSelector} from "app/config/store";
 
 
 const AppMenuitem = (props: AppMenuItemProps) => {
@@ -17,6 +18,8 @@ const AppMenuitem = (props: AppMenuItemProps) => {
     const item = props.item;
     const key = props.parentKey ? props.parentKey + '-' + props.index : String(props.index);
     const isActiveRoute = item!.to && location.pathname === item!.to;
+    const account = useAppSelector(state => state.authentication.account);
+    const userRole = account.authorities
     const active = activeMenu === key || !!(activeMenu && activeMenu.startsWith(key + '-'));
 
     useSubmenuOverlayPosition({
@@ -96,18 +99,29 @@ const AppMenuitem = (props: AppMenuItemProps) => {
         }
     };
 
+
     const badge = item?.badge ? (
         <span className={classNames('layout-menu-badge p-tag p-tag-rounded ml-2 uppercase', { [`${item?.badge}`]: true, 'p-tag-success': item?.badge === 'new', 'p-tag-info': item?.badge === 'updated' })}>{item?.badge}</span>
     ) : null;
-    const subMenu =
-        item?.items && item?.visible !== false ? (
-            <ul ref={submenuRef}>
-                {item?.items.map((child, i) => {
-                    return <AppMenuitem item={child} index={i} className={child.badgeClass} parentKey={key} key={child.label} />;
-                })}
-            </ul>
-        ) : null;
+  const subMenu =
+    item?.items && item?.visible !== false ? (
+      <ul ref={submenuRef}>
+        {item?.items.map((child, i) => {
+          if (child.role && child.role.length > 0) {
+            const hasAccess = child.role.some(role => userRole.includes(role));
+            if (!hasAccess) {
+              return null
+            }
+          }
+          console.log(userRole, 'userRole');
+          console.log(child, 'childs');
 
+          return (
+            <AppMenuitem item={child} index={i} className={child.badgeClass} parentKey={key} key={child.label} />
+          );
+        })}
+      </ul>
+    ) : null;
     return (
         <li ref={menuitemRef} className={classNames({ 'layout-root-menuitem': props.root, 'active-menuitem': active })}>
             {props.root && item?.visible !== false && <div className="layout-menuitem-root-text">{item?.label}</div>}

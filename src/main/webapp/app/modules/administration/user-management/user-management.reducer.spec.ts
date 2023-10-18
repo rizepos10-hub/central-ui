@@ -117,8 +117,8 @@ describe('User management reducer tests', () => {
       });
     });
 
-    it('should update state according to a successful fetch user request', () => {
-      const payload = { data: 'some handsome user' };
+    it('should update state according to a successful fetch back-office-user request', () => {
+      const payload = { data: 'some handsome back-office-user' };
       const toTest = userManagement(undefined, { type: getUser.fulfilled.type, payload });
 
       expect(toTest).toMatchObject({
@@ -138,16 +138,16 @@ describe('User management reducer tests', () => {
     });
 
     it('should set state to successful update', () => {
-      testMultipleTypes([createUser.fulfilled.type, updateUser.fulfilled.type], { data: 'some handsome user' }, types => {
+      testMultipleTypes([createUser.fulfilled.type, updateUser.fulfilled.type], { data: 'some handsome back-office-user' }, types => {
         expect(types).toMatchObject({
           updating: false,
           updateSuccess: true,
-          user: 'some handsome user',
+          user: 'some handsome back-office-user',
         });
       });
     });
 
-    it('should set state to successful update with an empty user', () => {
+    it('should set state to successful update with an empty back-office-user', () => {
       const toTest = userManagement(undefined, { type: deleteUser.fulfilled.type });
 
       expect(toTest).toMatchObject({

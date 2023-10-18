@@ -94,12 +94,14 @@ console.log(menuList, 'menu list')
     sortEntities();
   };
 
-  const categoryNames = new Set(menuList.map((menu) => menu.category.name));
+  const categoryNames = new Set(menuList.map((menu) =>console.log(menu, 'lollll')));
   const categoryFilterOptions = Array.from(categoryNames).map((categoryName) => ({
     label: categoryName,
     value: categoryName,
   }));
+  console.log(categoryNames, 'categoryNames')
 
+  console.log(categoryFilterOptions, 'categoryFilterOptions')
   const categoryFilter = (
     <Dropdown
       value={filters['category.name']?.value}

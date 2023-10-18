@@ -12,7 +12,7 @@ import reducer, {
   getEntity,
   updateEntity,
   partialUpdateEntity,
-  reset,
+  reset, getItemsForRecipe,
 } from './item.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
 import { IItem, defaultValue } from 'app/shared/model/item.model';
@@ -61,7 +61,7 @@ describe('Entities reducer tests', () => {
 
   describe('Requests', () => {
     it('should set state to loading', () => {
-      testMultipleTypes([getEntities.pending.type, searchEntities.pending.type, getEntity.pending.type], {}, state => {
+      testMultipleTypes([getEntities.pending.type,getItemsForRecipe.pending.type, searchEntities.pending.type, getEntity.pending.type], {}, state => {
         expect(state).toMatchObject({
           errorMessage: null,
           updateSuccess: false,
@@ -102,6 +102,7 @@ describe('Entities reducer tests', () => {
           updateEntity.rejected.type,
           partialUpdateEntity.rejected.type,
           deleteEntity.rejected.type,
+          getItemsForRecipe.rejected.type
         ],
         'some message',
         state => {
@@ -133,6 +134,21 @@ describe('Entities reducer tests', () => {
         entities: payload.data,
       });
     });
+    describe('Successes', () => {
+      it('should fetch all recipe items', () => {
+        const payload = { data: [{ 1: 'fake1' }, { 2: 'fake2' }], headers: { 'x-total-count': 123 } };
+        expect(
+          reducer(undefined, {
+            type: getItemsForRecipe.fulfilled.type,
+            payload,
+          })
+        ).toEqual({
+          ...initialState,
+          loading: false,
+          totalItems: payload.headers['x-total-count'],
+          entities: payload.data,
+        });
+      });
     it('should search all entities', () => {
       const payload = { data: [{ 1: 'fake1' }, { 2: 'fake2' }], headers: { 'x-total-count': 123 } };
       expect(

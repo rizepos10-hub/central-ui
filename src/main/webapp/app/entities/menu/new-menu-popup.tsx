@@ -31,15 +31,16 @@ const NewMenuPopup = () => {
   const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
   const newMenu = useAppSelector(state => state.menu.entity)
   const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
-  const initialBranches = menuEntity.branch?.map(branch => ({ value: branch.id, label: branch.name }));
+  const initialBranches = {label : menuEntity?.branch?.name , value: menuEntity?.branch?.id}
+
 
 
   const [selectedCategory, setSelectedCategory] = useState();
   const [menuItems, setMenuItems] = useState([]);
 
 
-  const [selectedBranches, setSelectedBranches] = useState([])
 
+  const [selectedBranches, setSelectedBranches] = useState<{ value: string; label: string } | undefined>();
 
 
 
@@ -84,8 +85,8 @@ const NewMenuPopup = () => {
   console.log(terms, 'termos')
 
   const saveEntity = (values) => {
-    values.createdAt = convertDateTimeToServer(values.createdAt);
-    values.updatedAt = convertDateTimeToServer(values.updatedAt);
+    values.createdDate = convertDateTimeToServer(values.createdDate);
+    values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate);
 
     const { category, ...restValues } = values;
 
@@ -94,8 +95,9 @@ const NewMenuPopup = () => {
     const entity = {
       ...menuEntity,
       ...restValues,
-      category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
-      branch: selectedBranches
+      // category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
+      branch: { id: selectedBranches.value }
+
     };
 
     console.log(entity, 'entitysent')
@@ -115,23 +117,22 @@ const NewMenuPopup = () => {
 
   const defaultValues = () =>
     isNew ? {
-        createdAt: displayDefaultDateTime(),
-        updatedAt: displayDefaultDateTime(),
+        createdDate: displayDefaultDateTime(),
+        lastModifiedDate: displayDefaultDateTime(),
       }
       : {
         ...menuEntity,
-        createdAt: convertDateTimeFromServer(menuEntity.createdAt),
-        updatedAt: convertDateTimeFromServer(menuEntity.updatedAt),
+        createdDate: convertDateTimeFromServer(menuEntity.createdDate),
+        lastModifiedDate: convertDateTimeFromServer(menuEntity.lastModifiedDate),
         category: selectedCategory
       };
 
 
 
   const handleBranchChange = (selectedBranches) => {
-    console.log(selectedBranches, 'lol')
-    setSelectedBranches(selectedBranches.map((branch) => ({id: branch.value})));
+    console.log(selectedBranches, 'lol branch')
+    setSelectedBranches(selectedBranches);
   }
-
 
 
 
@@ -157,9 +158,17 @@ const NewMenuPopup = () => {
               maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
             }}
           />
+          <ValidatedField
+            label={translate('tempApp.menu.menuUrl')}
+            id="menu-menuUrl"
+            name="menuUrl"
+            data-cy="menuUrl"
+            type="text"
+
+          />
           <div className="mb-3">
             Branches
-            <Select isMulti={true} defaultValue={initialBranches}
+            <Select defaultValue={initialBranches}
                     onChange={handleBranchChange} options={branchList} />
           </div>
           <ValidatedField
@@ -168,7 +177,6 @@ const NewMenuPopup = () => {
             data-cy="category"
             label={translate("tempApp.menu.category")}
             type="select"
-            required
             value={selectedCategory}
             onChange={handleCategoryChange}
           >

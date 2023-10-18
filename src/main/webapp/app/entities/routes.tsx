@@ -11,10 +11,25 @@ import Customer from './customer';
 import Item from './item';
 import Taxonomy from './taxonomy';
 import Addon from './addon';
+import AddonGroups from './addon-groups';
+
 import Term from './term';
 import Order from './order';
-import Home from "app/shared/layout/home/home";
-import User from "./user";
+import Tax from './settings/taxes';
+import TaxesProfile from './settings/tax-profiles';
+import AccountingGroups from './settings/accounting-groups';
+import VoidReasons from './settings/void-reasons';
+
+import Home from 'app/shared/layout/home/home';
+import BranchPosUserRoutes from './branch-pos-user';
+import BackOfficeUserRoutes from './back-office-user';
+import BusinessDetailRoutes from 'src/main/webapp/app/entities/settings/business-details';
+import Printer from 'app/entities/settings/printing/printer';
+import PrintingProfiles from 'app/entities/settings/printing/printing-profiles';
+
+import ProductionCenter from 'app/entities/location/production-center';
+import PageNotFound from "app/shared/error/page-not-found";
+
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -23,18 +38,36 @@ export default () => {
     <div>
       <ErrorBoundaryRoutes>
         {/* prettier-ignore */}
-        <Route index element={<Home />} />
+        <Route path="*" element={<PageNotFound />} />
+
         <Route path="menu/*" element={<Menu />} />
-        <Route path="branch/*" element={<Branch />} />
-        <Route path="user/*" element={<User />} />
+        {/* <Route path="branch/*" element={<Branch />} /> */}
+        <Route path="back-office-user/*" element={<BackOfficeUserRoutes />} />
+        <Route path="branch-pos-user/*" element={<BranchPosUserRoutes />} />
+
         <Route path="discount/*" element={<Discount />} />
         <Route path="attachment/*" element={<Attachment />} />
         <Route path="customer/*" element={<Customer />} />
         <Route path="item/*" element={<Item />} />
         <Route path="taxonomy/*" element={<Taxonomy />} />
         <Route path="addon/*" element={<Addon />} />
+        <Route path="addon-groups/*" element={<AddonGroups />} />
+
         <Route path="term/*" element={<Term />} />
         <Route path="order/*" element={<Order />} />
+
+        <Route path="tax/*" element={<Tax />} />
+        <Route path="tax-profiles/*" element={<TaxesProfile />} />
+        <Route path="accounting-groups/*" element={<AccountingGroups />} />
+
+        <Route path="printer/*" element={<Printer />} />
+        <Route path="printing-profiles/*" element={<PrintingProfiles />} />
+
+
+        <Route path="production-center/*" element={<ProductionCenter />} />
+
+
+        <Route path="void-reasons/*" element={<VoidReasons />} />
 
 
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}

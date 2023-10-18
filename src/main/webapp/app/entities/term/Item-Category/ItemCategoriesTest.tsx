@@ -170,6 +170,8 @@ export const ItemCategories = () => {
                    totalRecords={totalItems} rows={5}>
           <Column field="name" header="Name" filterPlaceholder={"Search by name"} filter sortable body={nameColumnTemplate} style={{ width: '20%' }} />
 
+          <Column field="accountingGroups" header="Accounting Groups" body={(rowData)=> rowData.accountingGroups.map((group)=> group.name)} filterPlaceholder={"Search by name"} sortable  style={{ width: '20%' }} />
+
           <Column header="Image"  body={(rowData) =>
             <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
 

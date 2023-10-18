@@ -3,13 +3,16 @@ import React, { useContext, useEffect, useRef } from 'react';
 import AppMenuitem from './AppMenuitem';
 import {LayoutContext, LayoutProvider} from './context/layoutcontext';
 import { MenuProvider } from './context/menucontext';
+import {useAppSelector} from "app/config/store";
+import {hasAnyAuthority} from "app/shared/auth/private-route";
+import {AUTHORITIES} from "app/config/constants";
 
 const AppSubMenu = (props) => {
     const { layoutState, setBreadcrumbs } = useContext(LayoutContext);
     const tooltipRef = useRef<Tooltip | null>(null);
 
 
-    useEffect(() => {
+  useEffect(() => {
         if (tooltipRef.current) {
             tooltipRef.current.hide();
             (tooltipRef.current as any).updateTargetEvents();
@@ -20,6 +23,8 @@ const AppSubMenu = (props) => {
 
     useEffect(() => {
         generateBreadcrumbs(props.model);
+      console.log(props.model, 'props.model')
+
     }, []);
 
     const generateBreadcrumbs = (model: any) => {
@@ -47,11 +52,15 @@ const AppSubMenu = (props) => {
 
     return (
       <MenuProvider>
-        <ul className="layout-menu">
-          {props.model.map((item, i) => {
-            return !item.seperator ? <AppMenuitem item={item} root={true} index={i} key={item.label} /> : <li className="menu-separator"></li>;
+        {<ul className="layout-menu">
+          {props?.model?.map((item, i) => {
+            return !item?.seperator ? (
+              <AppMenuitem item={item} root={true} index={i} key={item?.label}/>
+            ) : (
+              <li className="menu-separator"></li>
+            );
           })}
-        </ul>
+        </ul>}
         <Tooltip ref={tooltipRef} target="li:not(.active-menuitem)>.tooltip-target" />
       </MenuProvider>
     );

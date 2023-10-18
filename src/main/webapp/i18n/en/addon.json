@@ -21,6 +21,7 @@
       "id": "ID",
       "name": "Name",
       "desc": "Desc",
+      "discount": "Addon Discount",
       "price": "Price",
       "discounts": "Discounts",
       "item": "Item"

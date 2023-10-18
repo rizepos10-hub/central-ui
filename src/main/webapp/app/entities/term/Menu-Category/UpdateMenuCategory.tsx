@@ -110,7 +110,7 @@ export const UpdateMenuCategory = () => {
         updatedAt: response?.payload?.updatedAt,
         url: imageUrl,
       };
-      setSelectedAttachments((prevAttachments) => [...prevAttachments, imageInfo]);
+      setSelectedAttachments((prevAttachments) => [ imageInfo]);
       setUploadImageStatus('success');
       console.log(imageInfo, 'helloi')
 
@@ -134,7 +134,7 @@ console.log(termEntity)
       ...termEntity,
       ...values,
       taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
-      parents: [terms.find(it => it.id.toString() === values.term.toString())],
+      parents: values.parents ? [{ id: values.parents }] : [],
       attachments: selectedAttachments,
 
       // item: items.find(it => it.id.toString() === values.item.toString()),
@@ -160,7 +160,6 @@ console.log(termEntity)
     isNew
       ? {
         taxonomy: taxonomies.find(otherEntity => otherEntity?.name === 'Menu Category')?.id,
-        term: '',
       }
       : {
         ...termEntity,
@@ -170,15 +169,15 @@ console.log(termEntity)
   console.log(termEntity?.parents, 'ddd')
   return (
     <div>
-      <Row className="justify-content-center">
+      <Row>
         <Col md="8">
           <h2  data-cy="TermCreateUpdateHeading">
             {isNew ? "Create a Menu Category" : "Edit Menu Category"}
           </h2>
         </Col>
       </Row>
-      <Row className="justify-content-center">
-        <Col md="8">
+      <Row>
+        <Col md="8"  className="d-flex flex-column p-3  bg-white">
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -286,28 +285,25 @@ console.log(termEntity)
 
               {isNew ? (
                 <ValidatedField
-                  id="term-term"
-                  name="term"
-                  data-cy="term"
+                  id="term-parents"
+                  name="parents"
+                  data-cy="parents"
                   label={translate('tempApp.term.parents')}
                   type="select"
                 >
-                  {/* Add an empty option */}
                   <option value="">{''}</option>
                   {terms &&
                     terms
-                      .filter(term => term.taxonomy && term.taxonomy?.name === 'Menu Category')
+                      .filter(term => term.taxonomy && term.taxonomy.name === 'Menu Category')
                       .map(otherEntity => (
                         <option value={otherEntity.id} key={otherEntity.id}>
-                          {otherEntity?.name}
+                          {otherEntity.name}
                         </option>
                       ))}
                 </ValidatedField>
               ) : (
                 <ValidatedField
-                  id="term-term"
-                  name="term"
-                  data-cy="term"
+                  name="parents"
                   label={translate('tempApp.term.parents')}
                   type="select"
                 >
@@ -315,7 +311,6 @@ console.log(termEntity)
                     {termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}
                   </option>
 
-
                   {terms &&
                     terms
                       .filter(term => term.taxonomy && term.taxonomy?.name === 'Menu Category')
@@ -324,9 +319,9 @@ console.log(termEntity)
                           {otherEntity?.name}
                         </option>
                       ))}
-                  { termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name &&
+                  {termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name && (
                     <option value="">{''}</option>
-                  }
+                  )}
                 </ValidatedField>
               )}
 

@@ -40,7 +40,7 @@ export const DiscountUpdate = () => {
       dispatch(getEntity(id));
     }
 
-    dispatch(getAddons({}));
+
   }, []);
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export const DiscountUpdate = () => {
     const entity = {
       ...discountEntity,
       ...values,
-      addon: addons.find(it => it.id.toString() === values.addon.toString()),
+      // addon: addons.find(it => it.id.toString() === values.addon.toString()),
     };
 
     if (isNew) {
@@ -74,15 +74,15 @@ export const DiscountUpdate = () => {
 
   return (
     <div>
-      <Row className="justify-content-center">
+      <Row>
         <Col md="8">
           <h2 id="tempApp.discount.home.createOrEditLabel" data-cy="DiscountCreateUpdateHeading">
             <Translate contentKey="tempApp.discount.home.createOrEditLabel">Create or edit a Discount</Translate>
           </h2>
         </Col>
       </Row>
-      <Row className="justify-content-center">
-        <Col md="8">
+      <Row>
+        <Col md="8"  className="d-flex flex-column p-3  bg-white">
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -115,16 +115,16 @@ export const DiscountUpdate = () => {
                   </option>
                 ))}
               </ValidatedField>
-              <ValidatedField id="discount-addon" name="addon" data-cy="addon" label={translate('tempApp.discount.addon')} type="select">
-                <option value="" key="0" />
-                {addons
-                  ? addons.map(otherEntity => (
-                      <option value={otherEntity.id} key={otherEntity.id}>
-                        {otherEntity.id}
-                      </option>
-                    ))
-                  : null}
-              </ValidatedField>
+              {/* <ValidatedField id="discount-addon" name="addon" data-cy="addon" label={translate('tempApp.discount.addon')} type="select"> */}
+              {/*   <option value="" key="0" /> */}
+              {/*   {addons */}
+              {/*     ? addons.map(otherEntity => ( */}
+              {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
+              {/*           {otherEntity.id} */}
+              {/*         </option> */}
+              {/*       )) */}
+              {/*     : null} */}
+              {/* </ValidatedField> */}
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/discount" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

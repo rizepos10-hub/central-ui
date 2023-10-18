@@ -20,10 +20,12 @@
       },
       "id": "ID",
       "name": "Name",
+      "menuUrl": "Menu Url",
       "createdAt": "Created At",
       "updatedAt": "Updated At",
       "category": "Category",
-      "branches": "Branches",
+      "branch": "Branch",
+      "triggered": "Menu update event sent for menu with identifier {{ param }}",
       "items": "Items"
     }
   }

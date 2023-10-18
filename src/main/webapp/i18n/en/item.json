@@ -9,6 +9,7 @@
         "search": "Search for Item",
         "notFound": "No Items found"
       },
+      "imported": "File imported successfully!",
       "created": "A new Item is created with identifier {{ param }}",
       "updated": "An Item is updated with identifier {{ param }}",
       "deleted": "An Item is deleted with identifier {{ param }}",
@@ -21,6 +22,8 @@
       "id": "ID",
       "name": "Name",
       "desc": "Desc",
+      "accountingGroups": "Accounting Group",
+      "productionCenter": "Production Center",
       "orderCount": "Order Count",
       "avgRating": "Avg Rating",
       "ratingCount": "Rating Count",
@@ -28,6 +31,8 @@
       "status": "Status",
       "attachments": "Attachments",
       "addons": "Addons",
+      "addonGroups": "Addon Groups",
+
       "terms": "Categories",
       "menu": "Menu",
       "variants": "Variants",
@@ -35,7 +40,8 @@
         "name": "Variant name",
         "price": "Variant price",
         "discount": "Variant discount"
-      }
+      },
+      "import-addon": "Import Addons From Item"
     }
   }
 }

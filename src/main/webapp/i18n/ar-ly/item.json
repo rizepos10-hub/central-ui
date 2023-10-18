@@ -35,7 +35,8 @@
         "name": "Variant name",
         "price": "Variant price",
         "discount": "Variant discount"
-      }
+      },
+      "import-addon": "Import Addons From Item"
     }
   }
 }

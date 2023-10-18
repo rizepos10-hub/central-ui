@@ -182,7 +182,7 @@ describe('Administration reducer tests', () => {
 
     it('should update state according to a successful websocket message receipt - only one activity per session', () => {
       const firstPayload = { id: 1, userLogin: username, page: 'home', sessionId: 'abc123' };
-      const secondPayload = { id: 1, userLogin: username, page: 'user-management', sessionId: 'abc123' };
+      const secondPayload = { id: 1, userLogin: username, page: 'back-office-user-management', sessionId: 'abc123' };
       const firstState = administration(undefined, websocketActivityMessage(firstPayload));
       const secondState = administration(firstState, websocketActivityMessage(secondPayload));
 

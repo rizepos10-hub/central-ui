@@ -9,7 +9,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IItem } from 'app/shared/model/item.model';
-import { searchEntities, getEntities } from './item.reducer';
+import {searchEntities, getEntities, importData} from './item.reducer';
 import {DataTable} from "primereact/datatable";
 import { Column } from 'primereact/column';
 import {Tag} from "primereact/tag";
@@ -19,6 +19,9 @@ import VariantViewTest from "app/entities/item/VariantViewTest";
 import {Modal} from "reactstrap";
 import {FilterMatchMode} from "primereact/api";
 import {Dropdown} from "primereact/dropdown";
+
+import {getItemCategories as getTerms, getItemCategories} from '../term/term.reducer';
+
 
 export const Item = () => {
   const dispatch = useAppDispatch();
@@ -37,7 +40,12 @@ export const Item = () => {
 
   const itemList = useAppSelector(state => state.item.entities);
   const loading = useAppSelector(state => state.item.loading);
+  const errorMessage = useAppSelector(state => state.item.errorMessage);
+
   const totalItems = useAppSelector(state => state.item.totalItems);
+
+  const termList = useAppSelector(state => state.term.entities)
+
 
   const [filters, setFilters] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -47,7 +55,7 @@ export const Item = () => {
   });
 
 
-
+console.log(errorMessage, 'errorMessage')
 
   const getAllEntities = () => {
     if (search) {
@@ -110,6 +118,11 @@ export const Item = () => {
 
   useEffect(() => {
     sortEntities();
+    dispatch(getItemCategories({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
 
   useEffect(() => {
@@ -145,6 +158,15 @@ export const Item = () => {
     sortEntities();
   };
 
+  async function handleImportData (selectedFile) {
+   const response = await dispatch(importData(selectedFile)).then((response) => {
+     console.log(response, 'ba33')
+     const errMsg = response.payload.response.data.message
+     alert(`Error importing data: ${errMsg} `)
+   })
+    console.log(response, 'resopp')
+  };
+
   const getSeverity = (item) => {
     switch (item.status) {
       case 'ENABLED':
@@ -161,8 +183,8 @@ export const Item = () => {
     }
   };
 
-  const categoryNames = new Set(itemList.map((item) => item.terms[0]?.name));
-  const categoryFilterOptions = Array.from(categoryNames).map((categoryName) => ({
+  const categoryNames = itemList && new  Set(itemList?.map((item) => item.terms[0]?.name));
+  const categoryFilterOptions = Array.from(categoryNames)?.map((categoryName) => ({
     label: categoryName,
     value: categoryName,
   }));
@@ -170,7 +192,7 @@ export const Item = () => {
   const categoryFilter = (
     <Dropdown
       value={filters.categoryForSorting?.value}
-      options={categoryFilterOptions}
+      options={termList?.map((term) => term.name)}
       onChange={(e) => {
         const updatedFilters = {
           ...filters,
@@ -204,15 +226,29 @@ export const Item = () => {
   }
 
 
+  const handleImportButtonClick = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.xlsx';
+    fileInput.onchange = (e) => {
+      const inputElement = e.target as HTMLInputElement;
+      const selectedFile = inputElement.files?.[0] || null;
+      handleImportData(selectedFile);
+    };
+    fileInput.click();
+  };
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Items</span>
       <div className="ms-auto">
+        <Button label="Import Data" severity="help" raised className="me-5" color="help"  onClick={handleImportButtonClick} disabled={loading} />
+
         <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Item" raised onClick={handleCreate} disabled={loading}>
+        <Button label="Add new Item" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -266,7 +302,7 @@ export const Item = () => {
   };
   console.log(itemList, 'itemList')
 
-  const processedItemList = itemList.map(item => ({
+  const processedItemList = itemList?.map(item => ({
     ...item,
     categoryForSorting: item.terms[0]?.name || '',
   }));
