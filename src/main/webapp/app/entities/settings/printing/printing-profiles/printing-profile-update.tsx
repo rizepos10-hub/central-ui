@@ -137,7 +137,7 @@ console.log(updateSuccess, 'updateSuccess')
 
   const togglePrinterSelection = (printerId) => {
     setPrintingProfileState((prev) => {
-      const updatedPrinters = [...prev?.printers];
+      const updatedPrinters = [...(prev?.printers || [])];
       const printerIndex = updatedPrinters?.findIndex((printer) => printer.id === printerId);
 
       if (printerIndex !== -1) {
