@@ -5,7 +5,7 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './addon-groups.reducer';
+import {deleteEntity, getEntity, updateEntity} from './addon-groups.reducer';
 
 export const AddonDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -14,6 +14,7 @@ export const AddonDeleteDialog = () => {
   const navigate = useNavigate();
   const { id } = useParams<'id'>();
 
+
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
@@ -21,11 +22,12 @@ export const AddonDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const addonEntity = useAppSelector(state => state.addon.entity);
-  const updateSuccess = useAppSelector(state => state.addon.updateSuccess);
+  const addonGroupEntity = useAppSelector(state => state.addonGroups.entity);
+
+  const updateSuccess = useAppSelector(state => state.addonGroups.updateSuccess);
 
   const handleClose = () => {
-    navigate('/addon' + location.search);
+    navigate('/addon-groups' + location.search);
   };
 
   useEffect(() => {
@@ -36,7 +38,8 @@ export const AddonDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(addonEntity.id));
+
+    dispatch(deleteEntity(id));
   };
 
   return (
@@ -45,7 +48,7 @@ export const AddonDeleteDialog = () => {
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.addon.delete.question">
-        <Translate contentKey="tempApp.addon.delete.question" interpolate={{ id: addonEntity.id }}>
+        <Translate contentKey="tempApp.addon.delete.question" interpolate={{ id: addonGroupEntity.id }}>
           Are you sure you want to delete this Addon?
         </Translate>
       </ModalBody>

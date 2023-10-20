@@ -241,7 +241,7 @@ export const ItemUpdate = () => {
     if (itemEntity?.addons) {
       setSelectedAddons(itemEntity?.addons?.map(addon => ({ id: addon.id, label: addon.name, value: addon.id })));
     }
-    if (itemEntity?.addonGroups) {
+    if (itemEntity?.addonGroups?.length > 0) {
       setSelectedAddonGroups(itemEntity?.addonGroups?.map(adngrp => (
         {
           required: adngrp.required,
@@ -285,16 +285,23 @@ export const ItemUpdate = () => {
   };
 
   const handleAddonGroupChange = (selectedOptions) => {
-    const updatedSelectedAddonGroups = selectedOptions.map(option => ({
-      required: false,
-      addonGroup: {
-        label: option.label,
-        value: option.value,
-        id: option.value
-      }
-    }));
+    const existingAddonGroupsMap = new Map(selectedAddonGroups.map(option => [option.addonGroup.id, option]));
+
+    const updatedSelectedAddonGroups = selectedOptions.map(option => {
+      const existingOption = existingAddonGroupsMap.get(option.value);
+      return {
+        required: existingOption ? existingOption.required : option.required,
+        addonGroup: {
+          label: option.label,
+          value: option.value,
+          id: option.value
+        }
+      };
+    });
+
     setSelectedAddonGroups(updatedSelectedAddonGroups);
   };
+
 
 
   function handleCheckboxChange(index) {

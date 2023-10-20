@@ -465,7 +465,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       setName(editingVariant.name || '');
       setPrice(editingVariant.price || '');
       if(editingVariant?.addons){
-        setSelectedVariantAddons(editingVariant?.addons.map((addon) => ({id: addon.id, label: addon.label, value: addon.value, name: addon.name})))
+        setSelectedVariantAddons(editingVariant?.addons.map((addon) => ({id: addon.id, label: addon.name, value: addon.id, name: addon.name})))
 
       }
 
@@ -653,8 +653,8 @@ const ItemVariantModal = (props: IVariantProps) => {
     })) || [];
 
   const defaultAddons = editingVariant?.addons?.map(addon => ({
-      label: addon.label,
-      value: addon.value,
+      label: addon.name,
+      value: addon.id,
       id: addon.id
 
 
