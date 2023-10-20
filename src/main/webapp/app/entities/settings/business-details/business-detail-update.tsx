@@ -29,24 +29,35 @@ export const BusinessDetailUpdate = () => {
   const isNew = businessDetailEntity === undefined;
 
 
+  const [businessDetailsState, setBusinessDetailsState] = useState({
+    businessName: '',
+    slogan: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      postalCode: '',
+    },
+    branchDetails: []
+  });
+
+
   const [selectedAttachments, setSelectedAttachments]:any = useState(null)
 
-  const [branchDetails, setBranchDetails] = useState([]);
 
   const [editingBranch, setEditingBranch] = useState(null);
 
-  console.log(branchDetails, 'kfwpk')
 
 
 
   const handleBranchNameChange = (branchIndex, newName) => {
-    const newData = JSON.parse(JSON.stringify(branchDetails));
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].name = newName;
-    setBranchDetails(newData);
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
 
   const handleAddressFieldChange = (branchIndex, field, value) => {
-    const newData = JSON.parse(JSON.stringify(branchDetails));
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     const branch = newData[branchIndex];
 
     if (!branch.address) {
@@ -58,7 +69,7 @@ export const BusinessDetailUpdate = () => {
       };
     }
     branch.address[field] = value;
-    setBranchDetails(newData);
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
 
 
@@ -87,13 +98,16 @@ export const BusinessDetailUpdate = () => {
       setSelectedAttachments(businessDetailEntity?.logo);
 
     }
-    if (businessDetailEntity?.branchDetails) {
-      setBranchDetails(businessDetailEntity.branchDetails);
-    }
 
 
 
-  }, [businessDetailEntity?.logo, businessDetailEntity?.address,businessDetailEntity?.branchDetails]);
+    setBusinessDetailsState(businessDetailEntity)
+    console.log("logged")
+
+
+
+
+  }, [businessDetailEntity]);
 
 
 
@@ -104,7 +118,7 @@ export const BusinessDetailUpdate = () => {
       ...businessDetailEntity,
       ...values,
       logo:  selectedAttachments  ,
-      branchDetails: branchDetails,
+      branchDetails: businessDetailsState?.branchDetails,
     };
 
     if (isNew) {
@@ -146,40 +160,56 @@ export const BusinessDetailUpdate = () => {
     }
   };
 
-  const defaultValues = () =>
-    isNew
-      ? {}
-      : {
+
+  const defaultValues = isNew ? {}  : {
           ...businessDetailEntity,
-        };
+       };
 
 
 
 
 
-  console.log(branchDetails, 'lol')
 
   console.log(selectedAttachments, 'selectedAttachments');
 
 
 
   const handleInputChange = (branchIndex, dayIndex, hourIndex, field, value) => {
-    const newData = JSON.parse(JSON.stringify(branchDetails));
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].days[dayIndex].openingHours[hourIndex][field] = value;
-    setBranchDetails(newData);
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
 
 
   const handleAddOpeningHour = (branchIndex, dayIndex) => {
-    const newData = JSON.parse(JSON.stringify(branchDetails));
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].days[dayIndex].openingHours.push({ from: '', to: '' });
-    setBranchDetails(newData);
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
 
   const handleRemoveOpeningHour = (branchIndex, dayIndex, hourIndex) => {
-    const newData = JSON.parse(JSON.stringify(branchDetails));
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].days[dayIndex].openingHours.splice(hourIndex, 1);
-    setBranchDetails(newData);
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
+  };
+
+  const handleFieldChange = (e) => {
+    const { name, value, type, files } = e.target;
+    if (name.includes('.')) {
+      const [fieldName, subFieldName] = name.split('.');
+      setBusinessDetailsState({
+        ...businessDetailsState,
+        [fieldName]: {
+          ...businessDetailsState[fieldName],
+          [subFieldName]: value,
+        },
+      });
+    } else {
+      setBusinessDetailsState({
+        ...businessDetailsState,
+        [name]: value,
+      });
+    }
   };
 
 
@@ -201,7 +231,7 @@ export const BusinessDetailUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
+            <ValidatedForm defaultValues={businessDetailsState} onSubmit={saveEntity}>
               {!isNew ? (
                 <ValidatedField
                   name="id"
@@ -214,14 +244,15 @@ export const BusinessDetailUpdate = () => {
               ) : null}
               <ValidatedField
                 label={'Name'}
-                id="details-name"
                 name="businessName"
+
                 data-cy="value"
                 type="text"
                 validate={{
                   required: { value: true, message: translate('entity.validation.required') },
                   maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 30 }) },
                 }}
+                onChange={handleFieldChange}
               />
               <ValidatedField
                 label={'Slogan'}
@@ -232,18 +263,20 @@ export const BusinessDetailUpdate = () => {
                 validate={{
                   maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
                 }}
+                onChange={handleFieldChange}
+
               />
-              <div className="mb-3">
-                <ValidatedField
-                  label={'Item Image'}
-                  id="item-image"
-                  name="image"
-                  data-cy="image"
-                  type="file"
-                  onChange={handleImageChange}
-                  accept="image/*"
-                />
-                <div className="mb-3">
+              <ValidatedField
+                label={'Logo'}
+                id="item-image"
+                name="image"
+                data-cy="image"
+                type="file"
+                onChange={handleImageChange}
+                accept="image/*"
+              />
+                <div style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
+                  <div className="mb-3">
                     <div style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
                       <img
                         src={selectedAttachments?.url}
@@ -286,6 +319,8 @@ export const BusinessDetailUpdate = () => {
                 validate={{
                   maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
                 }}
+                onChange={handleFieldChange}
+
               />
               <ValidatedField
                 label={'City'}
@@ -296,6 +331,8 @@ export const BusinessDetailUpdate = () => {
                 validate={{
                   maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
                 }}
+                onChange={handleFieldChange}
+
               />
               <ValidatedField
                 label={'State'}
@@ -306,6 +343,8 @@ export const BusinessDetailUpdate = () => {
                 validate={{
                   maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
                 }}
+                onChange={handleFieldChange}
+
               />
               <ValidatedField
                 label={'PostalCode'}
@@ -316,11 +355,13 @@ export const BusinessDetailUpdate = () => {
                 validate={{
                   maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
                 }}
+                onChange={handleFieldChange}
+
               />
               {!isNew && <><h4>Opening Hours By Branch</h4><Alert color="warning">Please ensure that opening hours are
                 provided in the following format: HH:mm:ss</Alert>
                 <div>
-                  {branchDetails?.map((branch, branchIndex) => (
+                  {businessDetailsState?.branchDetails?.map((branch, branchIndex) => (
                     <div className="d-flex flex-column gap-1 mb-3" key={branch.branchId}>
                       <div className="d-flex justify-content-between">
                       {editingBranch === branchIndex ? (
