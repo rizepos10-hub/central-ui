@@ -91,6 +91,8 @@ export const ItemUpdate = () => {
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
+  const [itemStatus, setItemStatus] = useState('');
+
 
   const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
 
@@ -344,6 +346,7 @@ export const ItemUpdate = () => {
     const entity = {
       ...itemEntity,
       ...values,
+      status: itemStatus,
       accountingGroups: accountingGroupsToSave,
       productionCenter: selectedProductionCenter,
       addons: selectedAddons,
@@ -477,9 +480,8 @@ export const ItemUpdate = () => {
     isNew
       ? {}
       : {
-          status: 'ENABLED',
+
           ...itemEntity,
-          menu: itemEntity?.menu?.id,
         };
 
   return (
@@ -594,7 +596,11 @@ export const ItemUpdate = () => {
                 {/* /> */}
                 <div className="d-flex justify-content-between mb-1">
                   <div style={{ width: '55%' }}>
-                    <ValidatedField label={translate('tempApp.item.status')} id="item-status" name="status" data-cy="status" type="select">
+                    <ValidatedField label={translate('tempApp.item.status')}
+                                    value={itemStatus} id="item-status" name="status"
+                                    data-cy="status" type="select"
+                                    onChange={(e) => setItemStatus(e.target.value)}
+                    >
                       {itemStatusValues?.map((itemStatus, i) => (
                         <option value={itemStatus} key={i}>
                           {translate('tempApp.ItemStatus.' + itemStatus)}
