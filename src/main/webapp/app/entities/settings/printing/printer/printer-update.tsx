@@ -31,7 +31,7 @@ export const PrinterUpdate = () => {
   const loading = useAppSelector(state => state.printer.loading);
   const updating = useAppSelector(state => state.printer.updating);
   const updateSuccess = useAppSelector(state => state.printer.updateSuccess);
-  const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
+  const branchList = useAppSelector(state => state.branch.entities)
   const initialBranches = {label : printerEntity?.branch?.name , value: printerEntity?.branch?.id}
 
 
@@ -62,7 +62,7 @@ export const PrinterUpdate = () => {
   useEffect(() => {
 
     if(printerEntity.branch){
-      setSelectedBranch(printerEntity.branch)
+      setSelectedBranch(printerEntity.branch.id)
     }
 
     if (updateSuccess) {
@@ -80,7 +80,7 @@ export const PrinterUpdate = () => {
     const entity = {
       ...printerEntity,
       ...values,
-      branch:  {id : selectedBranch.value ? selectedBranch.value : selectedBranch.id},
+      branch: selectedBranch && { id: selectedBranch},
     };
 
     console.log(entity, 'entity sent')
@@ -92,12 +92,14 @@ export const PrinterUpdate = () => {
     }
   };
 
+  console.log(selectedBranch, 'selectedBranch,')
+
   const defaultValues = () =>
     isNew
       ? {}
       : {
           ...printerEntity,
-        branch: printerEntity.branch,
+      branch : selectedBranch
         };
 
 
@@ -149,16 +151,24 @@ export const PrinterUpdate = () => {
                 data-cy="printSpeed"
                 type="text"
                 validate={{
-                  required: { value: true, message: translate('entity.validation.printSpeed') },
-                  validate: v => isNumber(v) || translate('entity.validation.printSpeed'),
+                  validate: v => isNumber(v) || "Numbers Only",
                 }}
               />
-              <div className="mb-3">
-                Branches
-                <Select defaultValue={initialBranches}
-                        onChange={handleBranchChange} options={branchList} />
-              </div>
+              <ValidatedField label={translate('tempApp.printer.branch')}
+                              value={selectedBranch} id="printer-branch" name="branch"
+                              data-cy="branch" type="select"
+                              onChange={(e:any) => setSelectedBranch(e.target.value)}
+                              validate={{
+                                required: { value: true, message: translate('entity.validation.required') },
+                              }}
+              >
 
+                {branchList?.map((branch, i) => (
+                  <option value={branch.id} key={i}>
+                    {branch.name}
+                  </option>
+                ))}
+              </ValidatedField>
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/printer" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
