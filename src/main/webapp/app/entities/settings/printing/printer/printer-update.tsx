@@ -162,7 +162,9 @@ export const PrinterUpdate = () => {
                                 required: { value: true, message: translate('entity.validation.required') },
                               }}
               >
-
+                {isNew && <option value={''}>
+                  {''}
+                </option>}
                 {branchList?.map((branch, i) => (
                   <option value={branch.id} key={i}>
                     {branch.name}
