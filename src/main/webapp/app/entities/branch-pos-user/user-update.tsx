@@ -42,7 +42,6 @@ export const UserUpdate = () => {
 
   const [selectedAuthorities, setSelectedAuthorities] :any = useState()
 
-  const [password, setPassword] = useState('')
 
   console.log(branchList, 'branchList')
   const getBranchName = (branchId) => {
@@ -79,7 +78,7 @@ export const UserUpdate = () => {
     activated: false,
     authorities: [],
     pinCode: '',
-
+    password: ''
   });
 
 
@@ -120,12 +119,13 @@ export const UserUpdate = () => {
   };
 
   const handlePasswordChange = (event) => {
-    setPassword(event.target.value)
+    const newPass = event.target.value
 
-    console.log(password, 'passwod')
+    console.log(newPass, 'passwod')
+
     setUser((prev) => ({
       ...prev,
-      password
+      password: newPass
     }))
   }
 
@@ -195,6 +195,8 @@ export const UserUpdate = () => {
         activated: false,
         authorities: [],
         pinCode: '',
+        password: ''
+
 
 
       });
@@ -221,9 +223,10 @@ export const UserUpdate = () => {
         activated: false,
         authorities: [],
         pinCode: '',
+        password: ''
+
       });
       setSelectedBranches([])
-      setPassword('')
       setSelectedAuthorities('')
     }
 
@@ -360,7 +363,7 @@ export const UserUpdate = () => {
                 id="password"
                 name="password"
                 type="password"
-                value={password}
+                value={user.password}
                 onChange={handlePasswordChange}
                 required
                 placeholder="Enter password"
