@@ -42,7 +42,6 @@ export const UserUpdate = () => {
 
   const [selectedAuthorities, setSelectedAuthorities] :any = useState()
 
-  const [password, setPassword] = useState('')
 
   console.log(branchList, 'branchList')
   const getBranchName = (branchId) => {
@@ -79,7 +78,7 @@ export const UserUpdate = () => {
     activated: false,
     authorities: [],
     pinCode: '',
-
+    password: ''
   });
 
 
@@ -120,12 +119,13 @@ export const UserUpdate = () => {
   };
 
   const handlePasswordChange = (event) => {
-    setPassword(event.target.value)
+    const newPass = event.target.value
 
-    console.log(password, 'passwod')
+    console.log(newPass, 'passwod')
+
     setUser((prev) => ({
       ...prev,
-      password
+      password: newPass
     }))
   }
 
@@ -195,6 +195,8 @@ export const UserUpdate = () => {
         activated: false,
         authorities: [],
         pinCode: '',
+        password: ''
+
 
 
       });
@@ -221,9 +223,10 @@ export const UserUpdate = () => {
         activated: false,
         authorities: [],
         pinCode: '',
+        password: ''
+
       });
       setSelectedBranches([])
-      setPassword('')
       setSelectedAuthorities('')
     }
 
@@ -352,7 +355,7 @@ export const UserUpdate = () => {
 
               />
             </div>
-            {isNew && <div className="p-field d-flex flex-column mb-3">
+             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="password">
                 <Translate contentKey="tempApp.user.password">Password</Translate>
               </label>
@@ -360,13 +363,13 @@ export const UserUpdate = () => {
                 id="password"
                 name="password"
                 type="password"
-                value={password}
+                value={user.password}
                 onChange={handlePasswordChange}
-                required
+                required={isNew ? true : false}
                 placeholder="Enter password"
 
               />
-            </div>}
+            </div>
 
             <div className="mb-3">
               Authorities
