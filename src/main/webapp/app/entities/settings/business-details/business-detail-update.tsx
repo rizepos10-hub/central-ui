@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {  useNavigate } from 'react-router-dom';
-import {Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert} from 'reactstrap';
+import {Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert, Card} from 'reactstrap';
 import {  Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -466,9 +466,9 @@ export const BusinessDetailUpdate = () => {
                         </>
                       )}
                     </div>
-                      <ListGroup>
+                      <ListGroup className="d-flex gap-6">
                         {branch.days.map((day, dayIndex) => (
-                          <ListGroupItem key={day.day} className="d-flex flex-column">
+                          <Card key={day.day} className="d-flex flex-column">
                             <div className="d-flex flex-row align-items-center justify-content-between">
 
                                 <strong className="text-xl">{day.day}</strong>
@@ -536,7 +536,15 @@ export const BusinessDetailUpdate = () => {
                             {day.shifts.map((shift, hourIndex) => (
                               <div key={hourIndex} className="d-flex flex-row align-items-center mb-3">
 
-                                <label className="mr-2">From:</label>
+                                <label className="mr-2">Shift Name:</label>
+                                <InputText
+                                  type="text"
+                                  placeholder="Enter shift name"
+
+                                  value={shift.shiftName}
+                                  onChange={(e) => handleShiftInputChange(branchIndex, dayIndex, hourIndex, 'shiftName', e.target.value)}/>
+
+                                <label className="mx-2">From:</label>
                                 <InputText
                                   type="text"
                                   placeholder="HH:mm:ss"
@@ -564,7 +572,14 @@ export const BusinessDetailUpdate = () => {
                               </div>
 
                             ))}
-                          </ListGroupItem>
+                            <div className="d-flex justify-content-end">
+                            <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                              <FontAwesomeIcon icon="save" />
+                              &nbsp;
+                              <Translate contentKey="entity.action.save">Save</Translate>
+                            </Button>
+                            </div>
+                          </Card>
                         ))}
                       </ListGroup>
                     </div>
