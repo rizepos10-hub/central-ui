@@ -70,8 +70,14 @@ console.log(updateSuccess, 'updateSuccess')
   console.log(printersList, 'printersList')
   console.log(printingProfileEntity, 'Profile printersList')
 
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
 
+    e.preventDefault()
+    const checkBranch = Object.values(printingProfileState.branch).some(val => val !== undefined)
+    if(!checkBranch){
+      alert("Please select a branch")
+      return
+    }
     console.log(printingProfileState.printers, 'sl')
     const formData = {
       id: id ? id : null,
@@ -137,7 +143,7 @@ console.log(updateSuccess, 'updateSuccess')
 
   const togglePrinterSelection = (printerId) => {
     setPrintingProfileState((prev) => {
-      const updatedPrinters = [...prev?.printers];
+      const updatedPrinters = [...(prev?.printers || [])];
       const printerIndex = updatedPrinters?.findIndex((printer) => printer.id === printerId);
 
       if (printerIndex !== -1) {
@@ -161,12 +167,16 @@ console.log(updateSuccess, 'updateSuccess')
 
         <Col md="8"  className="d-flex flex-column p-3  bg-white">
 
-          <FormGroup>
+          <form onSubmit={handleSubmit}>
+          <FormGroup >
             <div className="d-flex flex-column mb-3">
               <label htmlFor="name">Name</label>
-              <InputText id="name" value={printingProfileState.name} onChange={(e) => {
-                setPrintingProfileState(prev => ({...prev, name: e.target.value }))
-              }} />
+              <InputText id="name"
+                         value={printingProfileState.name}
+                         onChange={(e) =>
+                         {setPrintingProfileState(prev => ({...prev, name: e.target.value }))}}
+                         required
+              />
             </div>
 
             <div className="d-flex flex-column mb-3 gap-3 justify-content-between">
@@ -210,29 +220,33 @@ console.log(updateSuccess, 'updateSuccess')
                       onChange={(e) => {
                         console.log(e, 'loggg')
                         setPrintingProfileState(prev => ({...prev, branch: {label:e.label, value: e.value, id: e.value}}))
-                      }}  />
+                      }}
+              />
+
+            </div>
+
+            <div className="d-flex justify-content-start align-items-center  mt-7">
+
+              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/printing-profiles" replace color="info">
+                <FontAwesomeIcon icon="arrow-left" />
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
+              </Button>
+              &nbsp;
+              <Button  type="submit" color="primary">
+                Save
+              </Button>
+              &nbsp;
 
             </div>
 
 
           </FormGroup>
+          </form>
         </Col>
-        <div className="d-flex justify-content-start align-items-center  mt-7">
 
-          <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/printing-profiles" replace color="info">
-            <FontAwesomeIcon icon="arrow-left" />
-            &nbsp;
-            <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-          </Button>
-          &nbsp;
-          <Button color="primary" onClick={handleSubmit}>
-            Save
-          </Button>
-          &nbsp;
-
-        </div>
     </Row>
   );
 };

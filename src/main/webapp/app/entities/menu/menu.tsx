@@ -30,6 +30,8 @@ export const Menu = () => {
 
   const menuList = useAppSelector(state => state.menu.entities);
   const loading = useAppSelector(state => state.menu.loading);
+  const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
+
   const totalItems = useAppSelector(state => state.menu.totalItems);
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -77,7 +79,7 @@ export const Menu = () => {
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search,menuType]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, search,menuType,updateSuccess]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -133,7 +135,7 @@ console.log(menuList, 'menu list')
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/menu/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/menu/${rowData.id}/delete?type=${menuType}&page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red' ,  marginLeft: '-0.6rem'}} />

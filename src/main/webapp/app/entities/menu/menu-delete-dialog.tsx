@@ -24,8 +24,11 @@ export const MenuDeleteDialog = () => {
   const menuEntity = useAppSelector(state => state.menu.entity);
   const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
 
+  const params = new URLSearchParams(location.search);
+  const menuType = params.get("type");
+
   const handleClose = () => {
-    navigate('/menu' + location.search);
+    navigate(`/menu?type=${menuType}`);
   };
 
   useEffect(() => {

@@ -1,0 +1,31 @@
+{
+  "tempApp": {
+    "printing-profile": {
+      "home": {
+        "title": "Printing Profiles",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Printing Profile",
+        "createOrEditLabel": "Create or edit a Printing Profile",
+        "search": "Search for Printing Profile",
+        "notFound": "No Printing Profiles found"
+      },
+      "created": "A new Printing Profile is created with identifier {{ param }}",
+      "updated": "A Printing Profile is updated with identifier {{ param }}",
+      "deleted": "A Printing Profile is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Printing Profile {{ id }}?"
+      },
+      "detail": {
+        "title": "Printing Profile"
+      },
+      "id": "ID",
+      "name": "Name",
+      "brand": "Brand",
+      "model": "Model",
+      "printSpeed": "Print Speed",
+      "branch": "Branch",
+      "colorPrinting Profile": "Color Printing Profile",
+      "ipAddress": "Ip Address"
+    }
+  }
+}

@@ -109,7 +109,7 @@ export const AddonUpdate = () => {
                 />
               ) : null}
               <ValidatedField
-                label={translate('tempApp.addon-groups.name')}
+                label={translate('tempApp.addon-group.name')}
                 id="addon-groups-name"
                 name="name"
                 data-cy="name"
@@ -120,7 +120,7 @@ export const AddonUpdate = () => {
               />
 
               <div className="mb-3">
-                <Translate contentKey="tempApp.addon-groups.addons">Addons</Translate>
+                <Translate contentKey="tempApp.addon-group.addons">Addons</Translate>
                 <Select isMulti={true} value={selectedAddons} onChange={handleAddonChange} options={addonsOptions} />
 
               </div>
