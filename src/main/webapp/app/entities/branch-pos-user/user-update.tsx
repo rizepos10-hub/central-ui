@@ -355,7 +355,7 @@ export const UserUpdate = () => {
 
               />
             </div>
-            {isNew && <div className="p-field d-flex flex-column mb-3">
+             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="password">
                 <Translate contentKey="tempApp.user.password">Password</Translate>
               </label>
@@ -365,11 +365,11 @@ export const UserUpdate = () => {
                 type="password"
                 value={user.password}
                 onChange={handlePasswordChange}
-                required
+                required={isNew ? true : false}
                 placeholder="Enter password"
 
               />
-            </div>}
+            </div>
 
             <div className="mb-3">
               Authorities
