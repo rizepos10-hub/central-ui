@@ -1,6 +1,6 @@
 {
   "tempApp": {
-    "addon-groups": {
+    "addon-group": {
       "home": {
         "title": "Addon Groups",
         "refreshListLabel": "Refresh list",

@@ -91,7 +91,7 @@ export const ItemUpdate = () => {
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
-  const [itemStatus, setItemStatus] = useState('');
+  const [itemStatus, setItemStatus] = useState('ENABLED');
 
 
   const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
@@ -259,7 +259,9 @@ export const ItemUpdate = () => {
     if (uploadImageStatus === 'success' && saveButtonRef.current) {
       saveButtonRef.current.focus();
     }
-
+    if (itemEntity.status) {
+      setItemStatus(itemEntity.status);
+    }
     if (itemEntity.name) {
       setName(itemEntity.name);
     }
