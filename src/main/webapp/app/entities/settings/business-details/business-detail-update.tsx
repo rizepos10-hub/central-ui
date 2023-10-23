@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {  useNavigate } from 'react-router-dom';
-import {Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert} from 'reactstrap';
+import {Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert, Card} from 'reactstrap';
 import {  Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -174,7 +174,7 @@ export const BusinessDetailUpdate = () => {
 
 
 
-  const handleInputChange = (branchIndex, dayIndex, hourIndex, field, value) => {
+  const handleOpeningHourInputChange = (branchIndex, dayIndex, hourIndex, field, value) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].days[dayIndex].openingHours[hourIndex][field] = value;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
@@ -190,6 +190,24 @@ export const BusinessDetailUpdate = () => {
   const handleRemoveOpeningHour = (branchIndex, dayIndex, hourIndex) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].days[dayIndex].openingHours.splice(hourIndex, 1);
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
+  };
+
+
+  const handleShiftInputChange = (branchIndex, dayIndex, hourIndex, field, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].days[dayIndex].shifts[hourIndex][field] = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
+  };
+  const handleAddShiftsHour = (branchIndex, dayIndex) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].days[dayIndex].shifts.push({ from: '', to: '' });
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
+  };
+
+  const handleRemoveShiftsHour = (branchIndex, dayIndex, hourIndex) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].days[dayIndex].shifts.splice(hourIndex, 1);
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
 
@@ -448,31 +466,39 @@ export const BusinessDetailUpdate = () => {
                         </>
                       )}
                     </div>
-                      <ListGroup>
+                      <ListGroup className="d-flex gap-6">
                         {branch.days.map((day, dayIndex) => (
-                          <ListGroupItem key={day.day}>
+                          <Card key={day.day} className="d-flex flex-column">
                             <div className="d-flex flex-row align-items-center justify-content-between">
 
-                            <strong>{day.day}</strong>
-                              <strong>Opens {day.day} &nbsp; {day.opensToday ? 	<span>&#10003;</span> : <span>&#10007;</span>}</strong>
+                                <strong className="text-xl">{day.day}</strong>
 
+                               <strong className="text-xl">Opens {day.day} &nbsp; {day.opensToday ? 	<span>&#10003;</span> : <span>&#10007;</span>}</strong>
 
-                              <strong> Status: {day.status}</strong>
+                              <strong className="text-xl"> Status: {day.status}</strong>
                             </div>
                             <br/>
-                            <strong className="mb-3">Opening Hours:</strong>
+
+                            <div className="d-flex justify-content-end mt-3">
+                              <PrimeButton type="button" className="my-3" onClick={() => handleAddOpeningHour(branchIndex, dayIndex)}>
+                                Add Opening Hour
+                              </PrimeButton>
+                            </div>
+
+                           <h5><strong className="mb-3">Opening Hours:</strong> </h5>
+
 
                             {day.openingHours.map((openingHour, hourIndex) => (
-                              <div key={hourIndex} className="d-flex flex-row align-items-center">
+                              <div key={hourIndex} className="d-flex flex-row align-items-center mb-3">
 
-                                  <label className="mr-2">From:</label>
+                                <label className="mr-2">From:</label>
                                   <InputText
                                     type="text"
                                     placeholder="HH:mm:ss"
                                     pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
 
                                     value={openingHour.from}
-                                    onChange={(e) => handleInputChange(branchIndex, dayIndex, hourIndex, 'from', e.target.value)}/>
+                                    onChange={(e) => handleOpeningHourInputChange(branchIndex, dayIndex, hourIndex, 'from', e.target.value)}/>
 
                                   <label className="ml-2 mr-2">To:</label>
                                   <InputText
@@ -480,7 +506,7 @@ export const BusinessDetailUpdate = () => {
                                     placeholder="HH:mm:ss"
                                     pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
                                     value={openingHour.to}
-                                    onChange={(e) => handleInputChange(branchIndex, dayIndex, hourIndex, 'to', e.target.value)}/>
+                                    onChange={(e) => handleOpeningHourInputChange(branchIndex, dayIndex, hourIndex, 'to', e.target.value)}/>
 
                                 <button
                                   type="button"
@@ -494,11 +520,66 @@ export const BusinessDetailUpdate = () => {
 
                             ))}
 
-                            <PrimeButton type="button" className="my-3"
-                                         onClick={() => handleAddOpeningHour(branchIndex, dayIndex)}>Add Opening
-                              Hour</PrimeButton>
 
-                          </ListGroupItem>
+
+                            <tr style={{ border: '1px solid rgba(0, 0, 0, 0.5)', color: 'black' }} className="border border-black my-3"/>
+                            <br/>
+                            <div className="d-flex justify-content-end">
+                              <PrimeButton type="button" className="my-3" onClick={() => handleAddShiftsHour(branchIndex, dayIndex)}>
+                                Add Shifts
+                              </PrimeButton>
+                            </div>
+                            <h5><strong className="mb-3">Shifts:</strong></h5>
+
+
+
+                            {day.shifts.map((shift, hourIndex) => (
+                              <div key={hourIndex} className="d-flex flex-row align-items-center mb-3">
+
+                                <label className="mr-2">Shift Name:</label>
+                                <InputText
+                                  type="text"
+                                  placeholder="Enter shift name"
+
+                                  value={shift.shiftName}
+                                  onChange={(e) => handleShiftInputChange(branchIndex, dayIndex, hourIndex, 'shiftName', e.target.value)}/>
+
+                                <label className="mx-2">From:</label>
+                                <InputText
+                                  type="text"
+                                  placeholder="HH:mm:ss"
+                                  pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
+
+                                  value={shift.from}
+                                  onChange={(e) => handleShiftInputChange(branchIndex, dayIndex, hourIndex, 'from', e.target.value)}/>
+
+                                <label className="ml-2 mr-2">To:</label>
+                                <InputText
+                                  type="text"
+                                  placeholder="HH:mm:ss"
+                                  pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
+                                  value={shift.to}
+                                  onChange={(e) => handleShiftInputChange(branchIndex, dayIndex, hourIndex, 'to', e.target.value)}/>
+
+                                <button
+                                  type="button"
+                                  className="btn btn-danger btn-sm ml-2"
+                                  onClick={() => handleRemoveShiftsHour(branchIndex, dayIndex, hourIndex)}
+                                >
+                                  X
+                                </button>
+
+                              </div>
+
+                            ))}
+                            <div className="d-flex justify-content-end">
+                            <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                              <FontAwesomeIcon icon="save" />
+                              &nbsp;
+                              <Translate contentKey="entity.action.save">Save</Translate>
+                            </Button>
+                            </div>
+                          </Card>
                         ))}
                       </ListGroup>
                     </div>
