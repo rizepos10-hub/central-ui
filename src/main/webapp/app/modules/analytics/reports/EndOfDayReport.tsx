@@ -141,7 +141,6 @@ const EndOFDayReport = () => {
 
     <div className="container mt-5">
       <div className="text-center">
-        <h2>Pos Business 10</h2>
         <h4>End OF Day Report</h4>
         <p>Location: Random Location</p>
 
