@@ -269,6 +269,7 @@ console.log(termEntity)
               </div>
 
               <div className="my-4 p-1">
+                <label>Parents</label>
                 <Select options={termOptions} value={selectedParent} onChange={handleParentChange} />
               </div>
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/term/menus" replace color="info">
