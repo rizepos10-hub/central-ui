@@ -201,8 +201,16 @@ export const OnlineOrderingMenuUpdate = () => {
       dispatch(getEntity(id));
       dispatch(getEntity(id));
     }
-    dispatch(getBranches({}))
-    dispatch(getTerms({}));
+    dispatch(getBranches({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
+    dispatch(getTerms({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
     dispatch(getItems({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,

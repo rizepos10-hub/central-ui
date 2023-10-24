@@ -21,7 +21,7 @@ import {
   DropdownMenu,
   DropdownItem,
 } from 'reactstrap';
-import {isNumber, translate, Translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import {getSortState, isNumber, translate, Translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { useForm } from 'react-hook-form';
 import { IDiscount } from 'app/shared/model/discount.model';
@@ -33,6 +33,8 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { getEntities as getBranches } from '../branch/branch.reducer';
 import { getItemsForRecipe, getEntities } from './item.reducer';
 import { InputText } from 'primereact/inputtext';
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 interface IVariantProps {
   showModal: boolean;
@@ -82,6 +84,9 @@ const ItemVariantModal = (props: IVariantProps) => {
   const itemId = props.itemId;
   const variantId = props.editingVariantId;
 
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
   const [name, setName] = useState(editingVariant?.name || '');
   const [price, setPrice] = useState(editingVariant?.price || '');
@@ -524,7 +529,11 @@ const ItemVariantModal = (props: IVariantProps) => {
   useEffect(() => {
     dispatch(getItemsForRecipe({ itemId: itemId ?? null, editingVariant: editingVariant?.id ?? null }));
 
-    dispatch(getBranches({}));
+    dispatch(getBranches({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, [props.editingVariantId,editingVariant,isNew]);
 
 
