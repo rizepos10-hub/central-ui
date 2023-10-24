@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
 import { Button, Row, Col, FormText } from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { mapIdList } from 'app/shared/util/entity-utils';
+import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ITaxonomy } from 'app/shared/model/taxonomy.model';
@@ -14,6 +14,7 @@ import { getEntity, updateEntity, createEntity, reset } from '../term.reducer';
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 import Select from "react-select";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 export const UpdateMenuCategory = () => {
   const dispatch = useAppDispatch();
@@ -34,6 +35,11 @@ export const UpdateMenuCategory = () => {
   const updating = useAppSelector(state => state.term.updating);
   const updateSuccess = useAppSelector(state => state.term.updateSuccess);
   const newTerm = useAppSelector(state => state.term.entity)
+
+
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
@@ -61,8 +67,16 @@ export const UpdateMenuCategory = () => {
       dispatch(getEntity(id));
     }
 
-    dispatch(getTaxonomies({}));
-    dispatch(getMenuCategories({}))
+    dispatch(getTaxonomies({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+    dispatch(getMenuCategories({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
 
     return () => {
       dispatch(reset());

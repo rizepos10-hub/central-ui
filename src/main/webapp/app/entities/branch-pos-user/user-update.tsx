@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 
 import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import { mapIdList } from 'app/shared/util/entity-utils';
+import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
@@ -22,6 +22,7 @@ import {Checkbox} from "primereact/checkbox";
 import {Button} from "primereact/button";
 import Select from "react-select";
 import {Alert} from "reactstrap";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
@@ -37,6 +38,9 @@ export const UserUpdate = () => {
   const updateSuccess = useAppSelector(state => state.PosBranchUser.updateSuccess);
 
   const branchList = useAppSelector(state => state.branch.entities)
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
   const [selectedBranches, setSelectedBranches] :any = useState([]);
 
@@ -180,7 +184,11 @@ export const UserUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getBranches({}))
+    dispatch(getBranches({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
 
     console.log(user)
     return () => {

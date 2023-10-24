@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormText } from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import { mapIdList } from 'app/shared/util/entity-utils';
+import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IItem } from 'app/shared/model/item.model';
@@ -15,6 +15,7 @@ import { getEntity, updateEntity, createEntity, reset } from './addon.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import Select from "react-select";
 import value from "*.json";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 
 export const AddonUpdate = () => {
@@ -32,6 +33,9 @@ export const AddonUpdate = () => {
   const updateSuccess = useAppSelector(state => state.addon.updateSuccess);
   const discounts = useAppSelector(state => state.discount.entities);
 
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
 
   const  handleDiscountsChange = selectedOptions => {
@@ -54,9 +58,17 @@ export const AddonUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getDiscounts({}));
+    dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
-    dispatch(getItems({}));
+    dispatch(getItems({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, []);
 
   useEffect(() => {

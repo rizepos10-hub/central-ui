@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
 import { Button, Row, Col, FormText } from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -14,6 +14,8 @@ import { getEntities as getAccountingGroups } from 'app/entities/settings/accoun
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 import Select from "react-select";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 export const UpdateItemCategory = () => {
   const dispatch = useAppDispatch();
@@ -41,6 +43,10 @@ export const UpdateItemCategory = () => {
 
   const [selectedAttachments, setSelectedAttachments] = useState([])
 
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
+
   const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities).map(term => ({ value: term.id, label: term.name }));
 
   const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
@@ -67,9 +73,21 @@ export const UpdateItemCategory = () => {
       dispatch(getEntity(id));
     }
 
-    dispatch(getTaxonomies({}));
-    dispatch(getItemCategories({}));
-    dispatch(getAccountingGroups({}));
+    dispatch(getTaxonomies({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+    dispatch(getItemCategories({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+    dispatch(getAccountingGroups({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
     return () => {
       dispatch(reset());

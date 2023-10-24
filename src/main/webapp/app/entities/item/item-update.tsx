@@ -191,8 +191,16 @@ export const ItemUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getAddons({}));
-    dispatch(getAddonGroups({}));
+    dispatch(getAddons({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+    dispatch(getAddonGroups({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
     dispatch(
       getItems({
@@ -208,9 +216,21 @@ export const ItemUpdate = () => {
         sort: `${paginationState.sort},${paginationState.order}`,
       })
     );
-    dispatch(getProductionCenters({}))
-    dispatch(getDiscounts({}));
-    dispatch(getAccountingGroups({}));
+    dispatch(getProductionCenters({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
+    dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+    dispatch(getAccountingGroups({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
     // console.log(modalVariantImages, 'variantfromchild');
 
