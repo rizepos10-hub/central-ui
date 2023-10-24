@@ -465,7 +465,12 @@ const ItemVariantModal = (props: IVariantProps) => {
       setName(editingVariant.name || '');
       setPrice(editingVariant.price || '');
       if(editingVariant?.addons){
-        setSelectedVariantAddons(editingVariant?.addons.map((addon) => ({id: addon.id, label: addon.name, value: addon.id, name: addon.name})))
+        console.log(editingVariant?.addons, 'editingVariant?.addons)')
+        setSelectedVariantAddons(editingVariant?.addons.map((addon) => ({
+          id: addon.id,
+          label: addon.name ? addon.name : addon.value,
+          value: addon.id
+        })))
 
       }
 

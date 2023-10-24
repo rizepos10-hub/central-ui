@@ -8,6 +8,8 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {SourceType} from "app/shared/model/enumerations/source-type.model";
 
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
+import {Alert, Spinner} from "reactstrap";
+import UnclosedOrders from "app/modules/analytics/reports/unclosed-orders";
 const EndOFDayReport = () => {
 
 
@@ -16,26 +18,22 @@ const EndOFDayReport = () => {
   const [salesData, setSalesData]:any[] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const defaultFromDate = addDays(new Date(), -1);
-  const defaultToDate = addDays(new Date(), 0);
 
-  const [fromDate, setFromDate] = useState(format(defaultFromDate, "yyyy-MM-dd"));
-  const [toDate, setToDate] = useState(format(defaultToDate, "yyyy-MM-dd"));
 
   const [selectedBranch, setSelectedBranch] = useState(null);
-  const [selectedSource, setSelectedSource] = useState(null);
+  // const [selectedSource, setSelectedSource] = useState(null);
 
 
   const branchList = useAppSelector(state => state.branch.entities)
 
 
-  const sourceTypeOptions = [
-    { label: "Both", value: null },
-    ...Object.values(SourceType).map((source) => ({
-      label: source,
-      value: source
-    }))
-  ];
+  // const sourceTypeOptions = [
+  //   { label: "Both", value: null },
+  //   ...Object.values(SourceType).map((source) => ({
+  //     label: source,
+  //     value: source
+  //   }))
+  // ];
 
   const filteredBranchOptions = [
     { label: "All", value: null },
@@ -46,52 +44,16 @@ const EndOFDayReport = () => {
       }))];
 
 
-  const handleFromDateChange = (event) => {
-    setFromDate(event.target.value);
-  };
 
-  const handleToDateChange = (event) => {
-    setToDate(event.target.value);
-  };
 
 
   const handleSubmit = async (event?) => {
     if (event) {
       event.preventDefault();
     }
-
-    const fromDateObj = new Date(fromDate);
-    const toDateObj = new Date(toDate);
-    if (fromDateObj > toDateObj) {
-      alert("From date cannot be later than To date.");
-      return;
-    }
     try {
       setLoading(true)
-      const formattedFromDate = `${fromDate}T00:00:00.000Z`;
-      const formattedToDate = `${toDate}T23:59:59.999Z`;
-
-      const formData = new FormData();
-
-      formData.append('fromDate', formattedFromDate);
-      formData.append('toDate', formattedToDate);
-
-      {
-        selectedBranch &&
-        formData.append('branch', selectedBranch)
-      }
-
-      {
-        selectedSource &&
-        formData.append('source', selectedSource)
-      }
-
-
-      const { data } = await axios.post(`/api/report/sales-summary`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const { data } = await axios.get(`/api/report/end-of-day?branch=${selectedBranch}`);
       setSalesData(data);
       setLoading(false)
     } catch (error) {
@@ -108,13 +70,33 @@ const EndOFDayReport = () => {
     dispatch(getBranches({}))
 
     fetchTodayData();
-  }, [selectedBranch,selectedSource]);
+  }, [selectedBranch]);
 
 
   if (!salesData) {
     return <div>No data available.</div>;
   }
 
+  if(!selectedBranch){
+    return  (
+      <div >
+        <div>
+          <Alert variant={"warning"}>Please Select A Branch</Alert>
+
+        </div>
+        <div className="d-flex justify-content-start align-items-start"  >
+        <Dropdown
+          style={{minWidth: '20rem'}}
+          value={selectedBranch}
+          options={filteredBranchOptions}
+          onChange={(e) => setSelectedBranch(e.value)}
+          placeholder="Select a branch"
+        />
+        </div>
+
+      </div>
+  )
+  }
 
 
 
@@ -142,6 +124,10 @@ const EndOFDayReport = () => {
     return values?.reduce((total, value) => total + value, 0);
   };
 
+  if(loading){
+    return  <Spinner />
+  }
+
 
   console.log(salesData,'salesDta')
 
@@ -150,44 +136,12 @@ const EndOFDayReport = () => {
     <div className="container mt-5">
       <div className="text-center">
         <h2>Pos Business 10</h2>
-        <h4>Sales Summary Report</h4>
+        <h4>End OF Day Report</h4>
         <p>Location: Random Location</p>
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label htmlFor="fromDate" className="form-label fw-bold">From Date</label>
-              <input
-                type="date"
-                id="fromDate"
-                className="form-control"
-                value={fromDate}
-                onChange={handleFromDateChange}
-                max={fromDate}
-                min={fromDate}
-              />
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="fromDate" className="form-label fw-bold">To Date</label>
-              <input
-                type="date"
-                id="toDate"
-                className="form-control"
-                value={toDate}
-                onChange={handleToDateChange}
-                min={toDate}
-                max={toDate}
-              />
-            </div>
-          </div>
 
       </div>
       <div className="d-flex  justify-content-start gap-5 ">
-        <Dropdown
-          style={{minWidth: '7rem'}}
-          value={selectedSource}
-          options={sourceTypeOptions}
-          onChange={(e) => setSelectedSource(e.value)}
-          placeholder="Select a source"
-        />
+
         <Dropdown
           style={{minWidth: '7rem'}}
 
@@ -196,6 +150,9 @@ const EndOFDayReport = () => {
           onChange={(e) => setSelectedBranch(e.value)}
           placeholder="Select a branch"
         />
+      </div>
+      <div>
+        <UnclosedOrders openedOrders={salesData.openedOrders} />
       </div>
       <SalesSection title="Total Sales" data={salesData.totalSales} isTotalSales={true}/>
 
