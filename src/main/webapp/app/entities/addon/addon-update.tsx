@@ -98,10 +98,13 @@ export const AddonUpdate = () => {
 
   const defaultValues = () =>
     isNew
-      ? {}
+      ? {
+        price: 0
+      }
       : {
           ...addonEntity,
         discounts: addonEntity.discounts,
+
         };
 
   const defaultDiscountsOptions = addonEntity?.discounts?.map(discount => ({
