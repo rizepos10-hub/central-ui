@@ -22,7 +22,7 @@ const AddonImportModal = (props: IAddonImportProps) => {
   const [selectedItemToImport, setSelectedItemToImport] = useState({ value: '' });
   const itemImportId = '';
 
-  const handleSaveImportAddons = async () => {
+  const handleSaveImportAddons =  () => {
     props.handleSave(selectedItemToImport.value);
 
     props.handleClose();
