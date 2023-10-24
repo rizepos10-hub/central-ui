@@ -83,11 +83,11 @@ export const getItemsSummary = createAsyncThunk('item/fetch_item_summary_list', 
 //   },
 //   { serializeError: serializeAxiosError }
 // );
-export const importAddons = createAsyncThunk<IItem, { entity: IItem; fromItem: string }, { rejectValue: any }>(
+export const importAddons = createAsyncThunk<IItem, {  fromItem: string }, { rejectValue: any }>(
   'item/import_addons',
-  async ({ entity, fromItem }, thunkAPI) => {
+  async ({  fromItem }, thunkAPI) => {
     try {
-      const response = await axios.put<IItem>(`${apiUrl}/${entity.id}/copy-addons?fromItem=${fromItem}`);
+      const response = await axios.get<IItem>(`${apiUrl}/${fromItem}`);
       thunkAPI.dispatch(getEntities({}));
 
       return response.data;
@@ -173,9 +173,6 @@ export const ItemSlice = createEntitySlice({
           entities: data,
           totalItems: parseInt(headers['x-total-count'], 10),
         };
-      })
-      .addMatcher(isFulfilled(importAddons), (state, action) => {
-        state.updateSuccess = true;
       })
       .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
         state.updating = false;

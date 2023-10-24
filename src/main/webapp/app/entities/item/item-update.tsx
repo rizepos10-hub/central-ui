@@ -400,20 +400,69 @@ export const ItemUpdate = () => {
   };
 
   const handleImportAddonModalSave = (itemId: string) => {
-    // make request call
     const payload = {
-      entity: itemEntity,
       fromItem: itemId,
     };
 
-    dispatch(importAddons(payload));
+    dispatch(importAddons(payload)).then((data) => {
+      console.log(data.payload.addons, 'dddda');
+
+      // For addons
+      const prevAddonsMap = new Map(selectedAddons.map((addon) => [addon.id, addon]));
+
+      if (data.payload.addons) {
+        for (const addon of data.payload.addons) {
+          prevAddonsMap.set(addon.id, {
+            id: addon.id,
+            label: addon.name,
+            value: addon.id
+          });
+        }
+      }
+
+      const mergedAddonsArray = Array.from(prevAddonsMap.values());
+
+      setSelectedAddons(mergedAddonsArray);
+
+      // For addonGroups
+      console.log(data.payload.addonGroups, 'kamel12')
+
+      const prevAddonGroupsMap = new Map(selectedAddonGroups.map((group) => [group.addonGroup.id, group]));
+
+      console.log(selectedAddonGroups , 'selectedAddonGroups21')
+
+      if (data.payload.addonGroups && data.payload.addonGroups.length > 0) {
+        for (const group of data.payload.addonGroups) {
+          prevAddonGroupsMap.set(group.addonGroup.id, {
+            required: group.required,
+            addonGroup: {
+              label: group.addonGroup.name,
+              value: group.addonGroup.id,
+              id: group.addonGroup.id
+            }
+          });
+        }
+
+        const mergedAddonGroupsArray = Array.from(prevAddonGroupsMap.values());
+
+        setSelectedAddonGroups(mergedAddonGroupsArray);
+      } else {
+        console.log('No addonGroups in the imported item');
+      }
+    });
+
     console.log('sending request with id ' + itemId);
   };
+
+
+
   const handleImportAddonModalClose = () => {
     setOpenedAddonModal(false);
   };
 
-  console.log(itemEntity, 'itemEntity');
+  console.log(itemEntity, 'itemEntity')
+  console.log(selectedAddons, 'selectedAddons');
+
 
   // const handleImageSubmit = async () => {
   //   setUploadImageStatus('uploading');
