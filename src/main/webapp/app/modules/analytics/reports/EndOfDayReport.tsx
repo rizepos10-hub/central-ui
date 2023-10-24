@@ -81,7 +81,6 @@ const EndOFDayReport = () => {
     return  (
         <div >
           <div className="text-center my-3">
-            <h2>Pos Business 10</h2>
             <h4>End OF Day Report</h4>
             <p>Location: Random Location</p>
 
