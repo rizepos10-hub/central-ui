@@ -36,7 +36,6 @@ export const OpenedOrders = ({openedOrders}) => {
   const from = startOfDay(today);
   const to = endOfDay(today);
 
-  const [selectAll, setSelectAll] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState(null);
 
 
@@ -84,11 +83,6 @@ export const OpenedOrders = ({openedOrders}) => {
 
 
 
-  const filteredBranchOptions = branchList
-    .map((branch) => ({
-      label: branch.name,
-      value: branch.id,
-    }));
 
 
 
@@ -197,22 +191,6 @@ export const OpenedOrders = ({openedOrders}) => {
               filter
               header="Order Branch"
               body={(data) => getBranchName(data.branchId)}
-              filterElement={
-                <Dropdown
-                  value={lazyState.filters.branchId?.value || ''}
-                  options={filteredBranchOptions}
-                  onChange={(e) =>
-                    setLazyState((prevState) => ({
-                      ...prevState,
-                      filters: {
-                        ...prevState.filters,
-                        branchId: { value: e.value, matchMode: 'equals' },
-                      },
-                    }))
-                  }
-                  placeholder="Select a branch"
-                />
-              }
             />
             <Column
               body={(rowData) => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
