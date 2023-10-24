@@ -30,6 +30,7 @@ import ItemSelectionModal from "app/entities/menu/item-selection-modal";
 import {FaBars} from "react-icons/fa";
 import Select from "react-select";
 import MenuPosPreview from "app/entities/menu/menu-pos-preview";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 
 function MenuUpdate() {
 
@@ -48,6 +49,9 @@ function MenuUpdate() {
   const updating = useAppSelector(state => state.menu.updating);
   const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
   const errorMessage = useAppSelector(state => state.menu.errorMessage);
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
 // For Menu Edit Modal
   const [selectedCategory, setSelectedCategory] = useState();
@@ -738,8 +742,16 @@ console.log(editScreenColor, 'editScreenColor' )
     } else {
       dispatch(getEntity(id))
     }
-    dispatch(getBranches({}))
-    dispatch(getTerms({}));
+    dispatch(getBranches({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
+    dispatch(getTerms({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
 
 

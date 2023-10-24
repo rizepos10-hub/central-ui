@@ -6,7 +6,9 @@ import { getEntities as getTaxProfiles } from '../tax-profiles/tax-profile.reduc
 import { InputText } from "primereact/inputtext";
 import {Col, FormGroup, Row,Button} from 'reactstrap';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {Translate} from "react-jhipster"; // Import FormGroup from reactstrap
+import {getSortState, Translate} from "react-jhipster";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants"; // Import FormGroup from reactstrap
 
 export const VoidReasonsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -15,6 +17,10 @@ export const VoidReasonsUpdate = () => {
 
 
   const voidReasonsEntity = useAppSelector(state => state.voidReasons.entity);
+
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
   const [code, setCode] = useState('');
   const [reason, setReason] = useState('');
@@ -51,7 +57,11 @@ export const VoidReasonsUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getTaxProfiles({}));
+    dispatch(getTaxProfiles({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, []);
 
   useEffect(() => {

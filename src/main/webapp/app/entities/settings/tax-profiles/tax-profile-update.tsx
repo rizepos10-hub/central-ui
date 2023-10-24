@@ -15,7 +15,7 @@ import {
   DropdownToggle,
   Dropdown, DropdownMenu, Popover, PopoverBody, ListGroupItem, ListGroup
 } from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getItems } from 'app/entities/item/item.reducer';
@@ -26,6 +26,8 @@ import Select from "react-select";
 import {  getEntities as getTaxRates } from '../taxes/tax.reducer';
 import { Calendar } from 'primereact/calendar';
 import {InputText} from "primereact/inputtext";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 export const TaxProfileUpdate = () => {
   const dispatch = useAppDispatch();
@@ -42,8 +44,12 @@ export const TaxProfileUpdate = () => {
   const taxRates = useAppSelector(state => state.tax.entities);
 
 
+
 console.log(taxEntity, 'loli')
 
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [taxRate, setTaxRate] :any= useState('');
@@ -133,7 +139,11 @@ if(isNew){
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getTaxRates({}))
+    dispatch(getTaxRates({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
   }, []);
 
 

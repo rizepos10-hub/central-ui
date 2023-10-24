@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormText } from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getEntity, updateEntity, createEntity, reset } from './addon-groups.reducer';
 import Select from "react-select";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 
 export const AddonUpdate = () => {
@@ -23,6 +25,9 @@ export const AddonUpdate = () => {
   const updating = useAppSelector(state => state.addonGroups.updating);
   const updateSuccess = useAppSelector(state => state.addonGroups.updateSuccess);
 
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
   const [selectedAddons, setSelectedAddons] = useState([]);
 
@@ -39,7 +44,11 @@ export const AddonUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getAddons({}));
+    dispatch(getAddons({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
   }, []);
 

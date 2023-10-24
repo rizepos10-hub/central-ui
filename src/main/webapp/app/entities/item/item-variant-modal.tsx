@@ -21,7 +21,7 @@ import {
   DropdownMenu,
   DropdownItem,
 } from 'reactstrap';
-import {isNumber, translate, Translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import {getSortState, isNumber, translate, Translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { useForm } from 'react-hook-form';
 import { IDiscount } from 'app/shared/model/discount.model';
@@ -33,6 +33,8 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { getEntities as getBranches } from '../branch/branch.reducer';
 import { getItemsForRecipe, getEntities } from './item.reducer';
 import { InputText } from 'primereact/inputtext';
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 interface IVariantProps {
   showModal: boolean;
@@ -82,6 +84,9 @@ const ItemVariantModal = (props: IVariantProps) => {
   const itemId = props.itemId;
   const variantId = props.editingVariantId;
 
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
   const [name, setName] = useState(editingVariant?.name || '');
   const [price, setPrice] = useState(editingVariant?.price || '');
@@ -271,6 +276,8 @@ const ItemVariantModal = (props: IVariantProps) => {
         id: item.id,
         label: item.label,
         value: item.value,
+        name: item.label
+
       })) || [];
 
       // Prepare attachments to send
@@ -286,11 +293,11 @@ const ItemVariantModal = (props: IVariantProps) => {
       const formattedIngredients = ingredients.map((ingredient) => {
         // Filter out addons with an amount of 0
         const filteredAddons = ingredient.addons.filter((addon) => addon.amount > 0);
-      // in the returned object the key VariantId is sent for the post request, and the key variant  is sent for put request
+      console.log(ingredient, 'ingredient1212' )
         return {
-          item: { id: ingredient.item.id },
+          item: { id: ingredient.item.id, name: ingredient.item.name },
           variantId: ingredient.variantId,
-          variant: {id: ingredient.variantId},
+          variant: {id: ingredient.variantId, name: ingredient.variant.name},
           amount: ingredient.amount,
           addons: filteredAddons.map((addon) => ({
             addon: { id: addon.addon.id , label: addon.addon.name, value: addon.addon.id},
@@ -362,6 +369,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       id: addon.id,
       label: addon.label,
       value: addon.value,
+      name: addon.label
     }));
 
     setSelectedVariantAddons(selectedValues);
@@ -409,6 +417,7 @@ const ItemVariantModal = (props: IVariantProps) => {
               id: selectedItem.id,
             },
             variantId: variant.id,
+            variant: {id: variant.id, name: variant.name},
             amount: variantQuantity,
             addons: [],
           };
@@ -465,7 +474,12 @@ const ItemVariantModal = (props: IVariantProps) => {
       setName(editingVariant.name || '');
       setPrice(editingVariant.price || '');
       if(editingVariant?.addons){
-        setSelectedVariantAddons(editingVariant?.addons.map((addon) => ({id: addon.id, label: addon.name, value: addon.id, name: addon.name})))
+        console.log(editingVariant?.addons, 'editingVariant?.addons)')
+        setSelectedVariantAddons(editingVariant?.addons.map((addon) => ({
+          id: addon.id,
+          label: addon.name ? addon.name : addon.value,
+          value: addon.id
+        })))
 
       }
 
@@ -515,7 +529,11 @@ const ItemVariantModal = (props: IVariantProps) => {
   useEffect(() => {
     dispatch(getItemsForRecipe({ itemId: itemId ?? null, editingVariant: editingVariant?.id ?? null }));
 
-    dispatch(getBranches({}));
+    dispatch(getBranches({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, [props.editingVariantId,editingVariant,isNew]);
 
 
@@ -527,6 +545,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
     const initialItemNameMap = {};
 
+    console.log(editingVariant?.ingredients, 'editingVariant?.ingredients')
     if (editingVariant && recipeDetails) {
       editingVariant?.ingredients?.forEach((itemData) => {
         const { item, variant, amount, addons } = itemData;
@@ -569,12 +588,17 @@ const ItemVariantModal = (props: IVariantProps) => {
           },
         };
 
+        // here is the ingredient i'am adding
         const ingredient = {
           item: {
             id: id,
-            name: item?.name, // Store the item name in the ingredient
+            name: item?.name,
           },
           variantId: variant.id,
+          variant: {
+            id: variant.id,
+            name: variant.name
+          },
           amount: amount,
           addons: addons.map((addon) => ({
             addon: {
@@ -585,6 +609,7 @@ const ItemVariantModal = (props: IVariantProps) => {
         };
 
         initialIngredients.push(ingredient);
+        console.log(id,"im here232", item.name)
 
         // Populate the itemNameMap
         if (id && item?.name) {
@@ -660,6 +685,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
     })) || [];
 
+  console.log(editingVariant?.addons, 'editingVariant?.addons')
   const formattedDiscountOptions = discounts?.map(discount => ({
     label: `${discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}`,
     id: discount.id,
@@ -1050,6 +1076,8 @@ const ItemVariantModal = (props: IVariantProps) => {
                         const item = itemList.find((item) => item?.id === itemId);
                         const itemName = itemNameMap[itemId];
                         console.log(selectedVariants, 'lolili')
+                        console.log(itemNameMap, 'itemNameMap')
+
 
                         const recipeDetail = recipeDetails[itemId] || {};
                         const variantQuantity = recipeDetail.variantQuantities?.[variant?.id] || "";

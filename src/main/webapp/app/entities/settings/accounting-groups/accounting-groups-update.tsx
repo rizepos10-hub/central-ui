@@ -7,7 +7,9 @@ import Select from "react-select";
 import { InputText } from "primereact/inputtext";
 import {Col, FormGroup, Row,Button} from 'reactstrap';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {Translate} from "react-jhipster"; // Import FormGroup from reactstrap
+import {getSortState, Translate} from "react-jhipster";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants"; // Import FormGroup from reactstrap
 
 export const AccountingGroupsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -22,6 +24,10 @@ export const AccountingGroupsUpdate = () => {
   const [name, setName] = useState('');
   const [accountingId, setAccountingId] = useState('');
   const [selectedProfile, setSelectedProfile] = useState(null);
+
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
   const taxProfilesList = useAppSelector(state => state.taxProfiles.entities).map((profile) => ({label: profile.name, value: profile.id}))
 
@@ -62,7 +68,11 @@ export const AccountingGroupsUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getTaxProfiles({}));
+    dispatch(getTaxProfiles({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, []);
 
   useEffect(() => {
@@ -107,10 +117,7 @@ export const AccountingGroupsUpdate = () => {
       </FormGroup>
         </Col>
         <div className="d-flex justify-content-start align-items-center  mt-7">
-          <Button color="primary" onClick={handleSubmit}>
-            Save
-          </Button>
-          &nbsp;
+
 
           <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/accounting-groups" replace color="info">
             <FontAwesomeIcon icon="arrow-left" />
@@ -118,6 +125,11 @@ export const AccountingGroupsUpdate = () => {
             <span className="d-none d-md-inline">
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </span>
+          </Button>
+          &nbsp;
+
+          <Button color="primary" onClick={handleSubmit}>
+            Save
           </Button>
 
         </div>

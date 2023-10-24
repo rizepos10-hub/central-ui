@@ -102,8 +102,9 @@ console.log(menuList, 'menu list')
     sortEntities();
   };
 
-  const categoryNames = new Set(menuList.map((menu) =>console.log(menu, 'lollll')));
-  const categoryFilterOptions = Array.from(categoryNames).map((categoryName) => ({
+  const categoryNames = new Set(menuList.filter(cat => cat.category?.name !== undefined || null).map((menu) => menu.category?.name));
+  const categoryFilterOptions = Array.from(categoryNames)
+    .map((categoryName) => ({
     label: categoryName,
     value: categoryName,
   }));

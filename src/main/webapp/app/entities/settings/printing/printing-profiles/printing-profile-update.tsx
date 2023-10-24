@@ -25,8 +25,10 @@ import { getEntities as getPrinters } from 'app/entities/settings/printing/print
 import Select from "react-select";
 import { Calendar } from 'primereact/calendar';
 import {InputText} from "primereact/inputtext";
-import {Translate} from "react-jhipster";
+import {getSortState, Translate} from "react-jhipster";
 import {Checkbox} from "primereact/checkbox";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 export const PrintingProfileUpdate = () => {
   const dispatch = useAppDispatch();
@@ -37,10 +39,15 @@ export const PrintingProfileUpdate = () => {
   const printersList = useAppSelector(state => state.printer.entities)
   const branchList = useAppSelector(state => state.branch.entities).map((branch) => ({label: branch.name, value: branch.id}));
 
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
+
   const printingProfileEntity = useAppSelector(state => state.printingProfiles.entity);
   const loading = useAppSelector(state => state.printingProfiles.loading);
   const updating = useAppSelector(state => state.printingProfiles.updating);
   const updateSuccess = useAppSelector(state => state.printingProfiles.updateSuccess)
+
 
 
 
@@ -109,8 +116,16 @@ console.log(updateSuccess, 'updateSuccess')
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getPrinters({}))
-    dispatch(getBranches({}))
+    dispatch(getPrinters({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
+    dispatch(getBranches({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
   }, []);
 
 

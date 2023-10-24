@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormText } from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import { mapIdList } from 'app/shared/util/entity-utils';
+import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IItem } from 'app/shared/model/item.model';
@@ -16,6 +16,7 @@ import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import Select from "react-select";
 import value from "*.json";
 import {IBranch} from "app/shared/model/branch.model";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 
 
 export const PrinterUpdate = () => {
@@ -33,6 +34,10 @@ export const PrinterUpdate = () => {
   const updateSuccess = useAppSelector(state => state.printer.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities)
   const initialBranches = {label : printerEntity?.branch?.name , value: printerEntity?.branch?.id}
+
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
 
   const [selectedBranch, setSelectedBranch] = useState<{ value: string; label: string; id: string; } | undefined>();
@@ -54,9 +59,17 @@ export const PrinterUpdate = () => {
       dispatch(getEntity(id));
 
     }
-    dispatch(getBranches({}));
+    dispatch(getBranches({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
-    dispatch(getItems({}));
+    dispatch(getItems({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, []);
 
   useEffect(() => {
