@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import {useLocation, useNavigate, useParams} from 'react-router-dom';
 import {Button, Row, Col, Table} from 'reactstrap';
 import { getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -29,6 +29,7 @@ import AddonImportModal from 'app/entities/item/addon-import-modal';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
 import axios from 'axios';
 import {Checkbox} from "primereact/checkbox";
+import * as url from "url";
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -37,6 +38,10 @@ export const ItemUpdate = () => {
 
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
+
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
 
   const saveButtonRef = useRef(null);
   const toastId = useRef(null);
@@ -124,7 +129,7 @@ export const ItemUpdate = () => {
       variant.id === variantId
         ? {
             ...variant,
-            archived: true,
+            isArchived: true,
           }
         : variant
     );
@@ -285,6 +290,9 @@ export const ItemUpdate = () => {
     if (itemEntity.name) {
       setName(itemEntity.name);
     }
+    if (itemEntity.desc) {
+      setDesc(itemEntity.desc);
+    }
     const { id: newTermId } = newItem;
     if (updateSuccess && newTermId) {
       navigate(`/item/${newTermId}/edit?page=1&sort=id,asc`);
@@ -377,6 +385,7 @@ export const ItemUpdate = () => {
       attachments: selectedAttachments,
       variants: variants,
       name,
+      desc
     };
     if (isNew) {
       dispatch(createEntity(entity));
@@ -455,7 +464,14 @@ export const ItemUpdate = () => {
   };
 
 
-
+const handleBackClick = () => {
+  const isFromMenu = queryParams.has("fromMenu");
+  if(isFromMenu){
+    navigate( -1)
+  }else{
+    navigate("/item")
+  }
+}
   const handleImportAddonModalClose = () => {
     setOpenedAddonModal(false);
   };
@@ -813,7 +829,7 @@ export const ItemUpdate = () => {
                     </thead>
                     <tbody>
                       {variants
-                        .filter(variant => variant.archived !== true)
+                        .filter(variant => variant.isArchived !== true)
                         ?.map((variant, index) => (
                           <tr key={index}>
                             <td className="align-middle">{variant.name}</td>
@@ -860,19 +876,9 @@ export const ItemUpdate = () => {
               )}
               <div className="mt-4 mb-4">
                 <Button onClick={openVariantModal}> Add Variant</Button>
-                {/* <ValidatedField id="item-menu" name="menu" data-cy="menu" label={translate('tempApp.item.menu')} type="select"> */}
-                {/*   <option value="" key="0" /> */}
-                {/*   {menus */}
-                {/*     ? menus.map(otherEntity => ( */}
-                {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
-                {/*           {otherEntity.id + ' ' + otherEntity.name} */}
-                {/*         </option> */}
-                {/*       )) */}
-                {/*     : null} */}
-                {/* </ValidatedField> */}
               </div>
               <br />
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" replace color="info" onClick={handleBackClick} >
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
