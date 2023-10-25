@@ -21,6 +21,7 @@ import {
   fetchTopItems
 } from "app/modules/analytics/api";
 import {format, subWeeks} from "date-fns";
+import {Spinner} from "reactstrap";
 
 export default function Home() {
 
@@ -36,9 +37,14 @@ export default function Home() {
   const [fromDate, setFromDate] = useState(format(subWeeks(new Date(), 1), 'yyyy-MM-dd'));
   const [toDate, setToDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [topFields, setTopFields]:any = useState({})
+  const [loading, setLoading] = useState({
+    chartsData: false,
+    topFieldsData: false,
+    topItemsData: false,
+    recentSalesData: false,
+  });
 
 
-  const [recentLoading, setRecentLoading] = useState(false)
 
 
 
@@ -183,25 +189,37 @@ export default function Home() {
     const fetchData = async () => {
       try {
 
+        setLoading({
+          chartsData: true,
+          topFieldsData: true,
+          topItemsData: true,
+          recentSalesData: true,
+        });
+
+
         const topCategoriesData = await fetchTopCategories();
         setTopCategories(topCategoriesData);
-        console.log(topCategoriesData, 'topCategoriesData')
+
+
+
+        const ordersData = await fetchOrdersByYear(selectedYear);
+        setYearlyOrders(ordersData);
+        setLoading({ ...loading, chartsData: false });
+
 
         const topFieldsData = await fetchTopFields(fromDate, toDate);
         setTopFields(topFieldsData);
-        console.log(topFieldsData, 'topFieldsData')
+        setLoading({ ...loading, topFieldsData: false });
 
 
         const topItemsData = await fetchTopItems(5);
         setBestSellers(topItemsData);
+        setLoading({ ...loading, topItemsData: false });
 
 
-
-        setRecentLoading(true);
         const recentSalesData = await fetchRecentSales();
         setRecentSales(recentSalesData);
-        setRecentLoading(false);
-
+        setLoading({ ...loading, recentSalesData: false });
 
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -211,21 +229,22 @@ export default function Home() {
     fetchData();
   }, []);
 
-  useEffect(() => {
 
-    const fetchData = async () => {
-      console.log('clicked1', selectedYear)
-      try {
-
-        const ordersData = await fetchOrdersByYear(selectedYear);
-        setYearlyOrders(ordersData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  },[selectedYear])
+  // useEffect(() => {
+  //
+  //   const fetchData = async () => {
+  //     console.log('clicked1', selectedYear)
+  //     try {
+  //
+  //       const ordersData = await fetchOrdersByYear(selectedYear);
+  //       setYearlyOrders(ordersData);
+  //     } catch (error) {
+  //       console.error('Error fetching data:', error);
+  //     }
+  //   };
+  //
+  //   fetchData();
+  // },[selectedYear])
 
 
   useEffect(() => {
@@ -339,7 +358,7 @@ export default function Home() {
       pieData
     });
     initFilters();
-  }, [layoutConfig, yearlyOrders, topCategories]);
+  }, [layoutConfig,topCategories,yearlyOrders]);
 
 
 
@@ -350,19 +369,28 @@ export default function Home() {
 
   };
 
+
   return (
     <div className="grid">
       <div className="col-12 md:col-6 xl:col-3">
         <div className="card h-full">
           <span className="font-semibold text-lg">Sales</span>
           <div className="flex justify-content-between align-items-start mt-3">
-            <div className="w-6">
-              <span className="text-4xl font-bold text-900">{topFields.sales}</span>
-              <div className="text-green-500">
-                <span className="font-medium">+12%</span>
-                <i className="pi pi-arrow-up text-xs ml-2"></i>
-              </div>
-            </div>
+            {
+              loading.topFieldsData ? (
+                <Spinner />
+                )
+                :
+                (
+                  <div className="w-6">
+                    <span className="text-4xl font-bold text-900">{topFields.sales}</span>
+                    <div className="text-green-500">
+                      <span className="font-medium">+12%</span>
+                      <i className="pi pi-arrow-up text-xs ml-2"></i>
+                    </div>
+                  </div>
+                )
+              }
             <div className="w-6">
               <svg width="100%" viewBox="0 0 258 96" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -379,6 +407,12 @@ export default function Home() {
         <div className="card h-full">
           <span className="font-semibold text-lg">Revenue</span>
           <div className="flex justify-content-between align-items-start mt-3">
+            {
+              loading.topFieldsData ? (
+                  <Spinner />
+                )
+                :
+                (
             <div className="w-6">
               <span className="text-4xl font-bold text-900">{topFields?.revenue?.toFixed(2)}</span>
               <div className="text-green-500">
@@ -386,6 +420,8 @@ export default function Home() {
                 <i className="pi pi-arrow-up text-xs ml-2"></i>
               </div>
             </div>
+                )
+            }
             <div className="w-6">
               <svg width="100%" viewBox="0 0 115 41" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -401,6 +437,12 @@ export default function Home() {
         <div className="card h-full">
           <span className="font-semibold text-lg">Visitors</span>
           <div className="flex justify-content-between align-items-start mt-3">
+            {
+              loading.topFieldsData ? (
+                  <Spinner />
+                )
+                :
+                (
             <div className="w-6">
               <span className="text-4xl font-bold text-900">{topFields?.visitors}</span>
               <div className="text-pink-500">
@@ -408,6 +450,8 @@ export default function Home() {
                 <i className="pi pi-arrow-down text-xs ml-2"></i>
               </div>
             </div>
+                )
+            }
             <div className="w-6">
               <svg width="100%" viewBox="0 0 115 41" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -423,6 +467,12 @@ export default function Home() {
         <div className="card h-full">
           <span className="font-semibold text-lg">Stock</span>
           <div className="flex justify-content-between align-items-start mt-3">
+            {
+              loading.topFieldsData ? (
+                  <Spinner />
+                )
+                :
+                (
             <div className="w-6">
               <span className="text-4xl font-bold text-900">{topFields?.stock}</span>
               <div className="text-green-500">
@@ -430,6 +480,8 @@ export default function Home() {
                 <i className="pi pi-arrow-up text-xs ml-2"></i>
               </div>
             </div>
+                )
+            }
             <div className="w-6">
               <svg width="100%" viewBox="0 0 103 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -442,22 +494,31 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="col-12 xl:col-9">
+    <div className="col-12 xl:col-9">
         <div className="card h-auto">
           <div className="flex align-items-start justify-content-between mb-6">
             <span className="text-900 text-xl font-semibold">Revenue Overview</span>
-            <Dropdown  options={years.map(year => ({ label: year.toString(), value: year }))}
-                       defaultValue={selectedYear} value={selectedYear} className="w-10rem" optionLabel="label" onChange={onYearChange} />
+            <Dropdown options={years.map(year => ({label: year.toString(), value: year}))}
+                      defaultValue={selectedYear} value={selectedYear} className="w-10rem" optionLabel="label"
+                      onChange={onYearChange}/>
           </div>
-          <Chart type="line" data={chartData.barData} options={chartOptions.barOptions}  height={'350px'} />
+          {loading.chartsData ? (
+            <Spinner />
+          ) :  <Chart type="line" data={chartData.barData} options={chartOptions.barOptions} height={'350px'}/>
+          }
         </div>
       </div>
-      <div className="col-12 xl:col-3">
-        <div className="card h-auto">
-          <div className="text-900 text-xl font-semibold mb-6">Sales by Category</div>
-          <Chart height="368px" type="pie" data={chartData.pieData} options={chartOptions.pieOptions}></Chart>
+
+        <div className="col-12 xl:col-3">
+          <div className="card h-auto">
+            <div className="text-900 text-xl font-semibold mb-6">Sales by Category</div>
+            {loading.chartsData ? (
+            <Spinner />
+            ) : (
+            <Chart height="368px" type="pie" data={chartData.pieData} options={chartOptions.pieOptions}></Chart>
+             )}
+          </div>
         </div>
-      </div>
 
       <div className="col-12 lg:col-8">
         <div className="card">
@@ -477,7 +538,7 @@ export default function Home() {
                      className="datatable-responsive"
                      globalFilter={globalFilterValue}
                      emptyMessage="No products found."
-                     loading={recentLoading}
+                     loading={loading.recentSalesData}
                      responsiveLayout="scroll">
             <Column  field="itemName" header="Name" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
             <Column field="category[0].name" header="Category" sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
@@ -490,11 +551,17 @@ export default function Home() {
       <div className="col-12 lg:col-4" >
         <div className="card h-full">
           <div className="text-900 text-xl font-semibold mb-3">Top Products</div>
-          <ul className="list-none p-0 m-0">
+          { loading.topItemsData ? (
+            <ul className="list-none p-0 m-0">
+            <Spinner />
+            </ul>
+          )
+            : (
+              <ul className="list-none p-0 m-0">
             {bestSellers?.map((product, i) => {
               return (
-                <li  key={i} className="flex align-items-center justify-content-between p-3">
-                  <div className="inline-flex align-items-center" >
+                <li key={i} className="flex align-items-center justify-content-between p-3">
+                  <div className="inline-flex align-items-center">
                     <img
                       src={
                         product?.variantAttachments && product?.variantAttachments.length > 0
@@ -506,19 +573,23 @@ export default function Home() {
                       alt={product.name}
                       width="75"
                       className="shadow-2 flex-shrink-0"
-                      style={{ objectFit: 'contain', maxHeight: '75px' }}
+                      style={{objectFit: 'contain', maxHeight: '75px'}}
                     />
 
                     <div className="flex flex-column ml-3">
-                      <span className="font-medium text-lg mb-1 font-bold">{product.itemName} <span className="text-sm">({product.variantName})</span></span>
-                      <Rating value={product.rating} readOnly cancel={false} onIconProps={{ style: { fontSize: '12px' } }} offIconProps={{ style: { fontSize: '12px' } }}></Rating>
+                      <span className="font-medium text-lg mb-1 font-bold">{product.itemName} <span
+                        className="text-sm">({product.variantName})</span></span>
+                      <Rating value={product.rating} readOnly cancel={false} onIconProps={{style: {fontSize: '12px'}}}
+                              offIconProps={{style: {fontSize: '12px'}}}></Rating>
                     </div>
                   </div>
-                  <span className="ml-auto font-semibold text-xl p-text-secondary">${(product.currentPrice).toFixed(2)}</span>
+                  <span
+                    className="ml-auto font-semibold text-xl p-text-secondary">${(product.currentPrice).toFixed(2)}</span>
                 </li>
               );
             })}
           </ul>
+            )}
         </div>
       </div>
     </div>

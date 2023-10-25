@@ -73,7 +73,6 @@ export const OnlineOrderingMenuUpdate = () => {
 
 
   console.log('initalBranches', initialBranches)
-//?.map(branch => ({ value: branch.id, label: branch.name }));
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -82,12 +81,10 @@ export const OnlineOrderingMenuUpdate = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [displayedTerms, setDisplayedTerms] = useState([]);
   const [activeTerm, setActiveTerm] = useState(null);
-  const [showEdit, setShowEdit] = useState(false)
   const [activeTab, setActiveTab] = useState(displayedTerms.length > 0 ? displayedTerms[0] : null);
   const [refresh, setRefresh] = useState(false)
   const [selectedBranches, setSelectedBranches] = useState<any>();
 
-  const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [filteredValue, setFilteredValue] = useState<any>();
   const [layout, setLayout] = useState<'grid' | 'list' | (string & Record<string, unknown>)>('grid');
   const [sortKey, setSortKey] = useState(null);
@@ -457,7 +454,7 @@ export const OnlineOrderingMenuUpdate = () => {
           </div>
           <Link
 
-            to={`/item/${data.id}/edit`}
+            to={`/item/${data.id}/edit?fromMenu`}
           >
             <div className="flex flex-column align-items-center text-center mb-3">
               <img  src={data?.attachments && data?.attachments[0]?.url} alt={data.name} className="w-9 shadow-2 my-3 mx-0" />
