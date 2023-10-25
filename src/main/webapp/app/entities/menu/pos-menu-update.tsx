@@ -1119,11 +1119,11 @@ console.log(editScreenColor, 'editScreenColor' )
 
       <Modal isOpen={isModalOpen.isEditModalOpen} toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: false })}>
         <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: false })}>
-          Edit Sub-Screen
+          Edit
         </ModalHeader>
         <ModalBody>
           <FormGroup>
-            <Label for="subScreenName">Sub-screen name</Label>
+            <Label for="subScreenName">Name</Label>
             <Input
               type="text"
               id="subScreenName"
