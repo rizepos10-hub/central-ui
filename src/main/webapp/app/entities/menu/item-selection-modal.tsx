@@ -4,7 +4,8 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { getSortState } from 'react-jhipster';
 import { ITEMS_PER_PAGE_Summary } from 'app/shared/util/pagination.constants';
-import { getItemsSummary, searchEntities,reset } from 'app/entities/item/item.reducer';
+import { getEntities, searchEntities,reset } from 'app/entities/item/item.reducer';
+import Select from "react-select";
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -19,6 +20,10 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const itemList = useAppSelector((state) => state.item.entities);
   const loading = useAppSelector((state) => state.item.loading);
 
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 10;
+
   const [search, setSearch] = useState('');
 
   const { isOpen, toggle, selectedItems, handleToggleSelect } = props;
@@ -27,10 +32,46 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE_Summary, 'id'), location.search)
   );
 
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState('');
   console.log("itemList", itemList)
   console.log("item loading", loading)
 
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const getTotalItemsInCategory = () => {
+    if (!selectedCategory) {
+      return totalItems;
+    }
+
+    return itemList.filter((item) => item.terms[0]?.id === selectedCategory.value).length;
+  };
+
+  const getFilteredItems = () => {
+    if (!selectedCategory) {
+      return itemList;
+    }
+    const filteredItems = itemList.filter((item) => {
+      return item.terms[0]?.id === selectedCategory.value;
+    });
+
+    return filteredItems;
+  };
+
+  const getCurrentPageItems = () => {
+    const filteredItems = getFilteredItems();
+
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+
+    return filteredItems.slice(startIndex, endIndex);
+  };
+
+  const totalItemsInCategory = getTotalItemsInCategory();
   const startSearching = () => {
     dispatch(
       searchEntities({
@@ -47,13 +88,11 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
       startSearching();
     } else {
       console.log("search1 im here", search);
-      dispatch(
-        getItemsSummary({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
+      dispatch(getEntities({
+        page: 0,
+        size: 400,
+        sort: 'asc',
+      }));
     }
 
     return () => {
@@ -81,15 +120,43 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   const isItemSelected = (id) => selectedItems?.find((selected) => selected.id === id );
 
+  const categoryIds = itemList.map((item) => item.terms[0]?.id)
+
+  const uniqueCategoryIds = new Set(categoryIds);
+
+  const uniqueCategoryIdsArray = Array.from(uniqueCategoryIds);
+
+  const categoriesOption = uniqueCategoryIdsArray.map((categoryId) => {
+    const category = itemList.find((item) => item.terms[0]?.id === categoryId);
+
+    return {
+      label: category?.terms[0]?.name || "Unknown Category",
+      value: category?.terms[0]?.id,
+    };
+  });
+
 
   console.log(selectedItems, 'selected items')
   return (
-    <Modal size="lg" isOpen={isOpen} toggle={toggle}>
+    <Modal size="lg" isOpen={isOpen} toggle={toggle} backdrop="static">
       <ModalHeader toggle={toggle}>Add Existing Items</ModalHeader>
       <ModalBody>
+
         <FormGroup>
           <Label for="searchItem">Search Item</Label>
           <Input type="text" id="searchItem" value={searchTerm} onChange={handleSearchInputChange} />
+        </FormGroup>
+        <FormGroup>
+          <Label for="searchCategory">Filter By Category</Label>
+          <div>
+          <Select
+            id="searchCategory"
+            value={selectedCategory}
+            onChange={(selectedOption) => setSelectedCategory(selectedOption)}
+            options={categoriesOption}
+            isClearable={true}
+          />
+          </div>
         </FormGroup>
         <table className="table">
           <thead>
@@ -100,8 +167,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           </tr>
           </thead>
           <tbody>
-          {/* .filter((item) => !isItemSelected(item.id)) */}
-          {itemList.map((item) => (
+          {getCurrentPageItems().map((item) => (
             <tr key={item.id}>
               <td>{item.id}</td>
               <td>{item.name}</td>
@@ -119,27 +185,17 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
         </table>
         <div className="d-flex justify-content-center mt-3">
           <Button
-            onClick={() =>
-              setPaginationState({
-                ...paginationState,
-                activePage: paginationState.activePage - 1,
-              })
-            }
-            disabled={paginationState.activePage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
             color="primary"
             className="mr-2"
           >
             Previous
           </Button>
-          <span>Page {paginationState.activePage}</span>
+          <span>Page {currentPage}</span>
           <Button
-            onClick={() =>
-              setPaginationState({
-                ...paginationState,
-                activePage: paginationState.activePage + 1,
-              })
-            }
-            disabled={totalItems <= paginationState.itemsPerPage * paginationState.activePage}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage * ITEMS_PER_PAGE >= totalItemsInCategory}
             color="primary"
             className="ml-2"
           >
