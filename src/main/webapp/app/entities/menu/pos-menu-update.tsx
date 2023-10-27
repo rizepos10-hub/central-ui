@@ -35,15 +35,15 @@ import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-uti
 function MenuUpdate() {
 
 
-  let dispatch = useAppDispatch();
-  let navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
-  let { id } = useParams<'id'>();
-  let isNew = id === undefined;
+  const { id } = useParams<'id'>();
+  const isNew = id === undefined;
 
 
-  let terms = useAppSelector(state => state.term.entities)
-  let menuEntity = useAppSelector(state => state.menu.entity);
+  const terms = useAppSelector(state => state.term.entities)
+  const menuEntity = useAppSelector(state => state.menu.entity);
   const loading = useAppSelector(state => state.menu.loading);
   const updating = useAppSelector(state => state.menu.updating);
   const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
