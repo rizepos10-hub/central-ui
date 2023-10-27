@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {Modal, ModalHeader, ModalBody, Input, Label, FormGroup, Button, ModalFooter} from 'reactstrap';
+import {Modal, ModalHeader, ModalBody, Input, Label, FormGroup, Button, ModalFooter, Spinner} from 'reactstrap';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { getSortState } from 'react-jhipster';
@@ -167,6 +167,10 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           </tr>
           </thead>
           <tbody>
+          {loading && <div className="d-flex my-5">
+            <Spinner />
+          </div>
+          }
           {getCurrentPageItems().map((item) => (
             <tr key={item.id}>
               <td>{item.id}</td>
