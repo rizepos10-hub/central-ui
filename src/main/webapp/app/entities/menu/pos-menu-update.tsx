@@ -201,8 +201,12 @@ function MenuUpdate() {
       if (areObjectsEqual(subScreen, targetSubScreen)) {
         console.log(index, 'kamelindex')
         console.log(selectedScreenIndex, 'kamelselectedScreenIndex')
+        console.log(subScreen, 'subScreen12332')
+        console.log(targetSubScreen[selectedScreenIndex], 'subScreen123324')
+
         if (subScreen.subScreens) {
-          subScreen.subScreens.forEach((nestedSubScreen) => {
+          subScreen.subScreens.filter(sub => sub !== targetSubScreen.subScreens[selectedScreenIndex]).forEach((nestedSubScreen) => {
+            console.log(nestedSubScreen, 'nestedSubScreen123')
               if (nestedSubScreen.name === editScreenName) {
                 nameExists = true
                 alert('A sub-screen with the same name already exists.');
@@ -839,6 +843,7 @@ function MenuUpdate() {
   };
 
   const renderCurrentSubScreen = () => {
+
     if (!data.menuScreens || data.menuScreens.length === 0 || selectedMainScreen === null) {
       return null;
     }
@@ -868,7 +873,6 @@ function MenuUpdate() {
       </div>
     );
   };
-
 
 
 
