@@ -205,7 +205,7 @@ function MenuUpdate() {
         console.log(targetSubScreen[selectedScreenIndex], 'subScreen123324')
 
         if (subScreen.subScreens) {
-          subScreen.subScreens.filter(sub => sub !== targetSubScreen.subScreens[selectedScreenIndex]).forEach((nestedSubScreen) => {
+          subScreen.subScreens.filter(sub => sub !== subScreen.subScreens[selectedScreenIndex]).forEach((nestedSubScreen) => {
             console.log(nestedSubScreen, 'nestedSubScreen123')
               if (nestedSubScreen.name === editScreenName) {
                 nameExists = true
