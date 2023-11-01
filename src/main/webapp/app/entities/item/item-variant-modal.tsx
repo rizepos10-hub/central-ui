@@ -72,7 +72,6 @@ const ItemVariantModal = (props: IVariantProps) => {
   console.log(itemList, 'itemlo');
 
   const [branchPrices, setBranchPrices] = useState({});
-  const [selectedItemVariants, setSelectedItemVariants] = useState([]);
   const [selectedItemWithVariants, setSelectedItemWithVariants] = useState(null);
 
   const [itemNameMap, setItemNameMap] = useState({});

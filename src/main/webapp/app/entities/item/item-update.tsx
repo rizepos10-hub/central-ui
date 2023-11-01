@@ -119,25 +119,21 @@ export const ItemUpdate = () => {
   const [openedAddonModal, setOpenedAddonModal] = useState(false);
 
   const handleEditExistingVariant = editedVariant => {
-    const updatedVariants = variants?.map(variant => (variant?.id === editedVariant?.id ? editedVariant : variant));
+    const updatedVariants = [...variants];
+
+    updatedVariants[editingVariantIndex] = editedVariant;
+
     setVariants(updatedVariants);
     setEditingVariantId(null);
     setOpenedModal(false);
   };
-  const archiveVariant = variantId => {
-    const archivedVariants = variants?.map(variant =>
-      variant.id === variantId
-        ? {
-            ...variant,
-            isArchived: true,
-          }
-        : variant
-    );
-    setVariants(archivedVariants);
+  const archiveVariant = (index) => {
+    const filteredVariants = variants?.filter((_, i) => i !== index);
+    setVariants(filteredVariants);
   };
 
-  const handleArchiveVariant = variantId => {
-    console.log(variantId, 'loli');
+  const handleArchiveVariant = (index) => {
+    console.log(index, 'loli');
     if (toast.isActive(toastId.current)) {
       return;
     }
@@ -149,7 +145,7 @@ export const ItemUpdate = () => {
             label="Yes"
             onClick={() => {
               toast.dismiss(toastId.current);
-              archiveVariant(variantId);
+              archiveVariant(index);
             }}
             className="p-button-sm"
           />
@@ -174,10 +170,11 @@ export const ItemUpdate = () => {
   };
 
   console.log(variants, 'variants');
-  const openEditVariantModal = variant => {
-    const variantIndex = variants.findIndex(v => v.id === variant.id);
+  const openEditVariantModal = (variant, index) => {
+    console.log(variant, 'variants121');
 
-    setEditingVariantIndex(variantIndex);
+
+    setEditingVariantIndex(index);
     setEditingVariantId(variant.id);
     setOpenedModal(true);
   };
@@ -859,12 +856,12 @@ const handleBackClick = () => {
                             </td>
 
                             <td>
-                              <Button type={'button'} onClick={() => openEditVariantModal(variant)} color="secondary">
+                              <Button type={'button'} onClick={() => openEditVariantModal(variant,index)} color="secondary">
                                 <FontAwesomeIcon icon="pencil-alt" />
                               </Button>
                             </td>
                             <td>
-                              <Button type={'button'} color="danger" onClick={() => handleArchiveVariant(variant.id)}>
+                              <Button type={'button'} color="danger" onClick={() => handleArchiveVariant( index)}>
                                 <FontAwesomeIcon icon="trash" />
                               </Button>
                             </td>
