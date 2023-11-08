@@ -1,0 +1,29 @@
+{
+  "tempApp": {
+    "itemDefinitions": {
+      "home": {
+        "title": "Item Definitions",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Item Definition",
+        "createOrEditLabel": "Create or edit a Item Definition",
+        "search": "Search for Item Definition",
+        "notFound": "No Item Definitions found"
+      },
+      "created": "A new Item Definition is created with identifier {{ param }}",
+      "updated": "A Item Definition is updated with identifier {{ param }}",
+      "deleted": "A Item Definition is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Item Definition {{ id }}?"
+      },
+      "detail": {
+        "title": "Item Definition"
+      },
+      "id": "ID",
+      "name": "Name",
+      "desc": "Description",
+      "optionalOptions": "Optional Options",
+      "requiredOptions": "Required Options"
+
+    }
+  }
+}

@@ -42,6 +42,11 @@ const AppMenu = () => {
                                 to: '/term/items'
                               },
                               {
+                                label: 'Pizza Definition',
+                                icon: 'pi pi-folder-open',
+                                to: '/pizza-group'
+                              },
+                              {
                                 label: 'Items',
                                 icon: ' pi pi-th-large',
                                 to: '/item'
