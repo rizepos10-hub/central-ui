@@ -97,6 +97,17 @@ export const createDefinitionGroup = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const createDefinitionGroupOption = createAsyncThunk(
+  'item-definitions/create_definition_group_option',
+  async ({ option, id, groupId } :any, thunkAPI) => {
+    const result = await axios.post<IItemDefinition>(`${apiUrl}/${id}/group/${groupId}/option`, option);
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+
+
 // slice
 
 export const PizzaGroupSlice = createEntitySlice({

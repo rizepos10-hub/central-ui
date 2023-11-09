@@ -21,12 +21,12 @@ interface Modifier {
 }
 
 interface NewOptionalOptionModalProps {
-  showModal: boolean;
+  showOptionInputs: boolean;
   onClose: () => void;
   onSave: (newOption: OptionalOption) => void;
 }
 
-const NewOptionalOptionModal: React.FC<NewOptionalOptionModalProps> = ({ showModal, onClose, onSave }) => {
+const NewOptionalOptionInputs: React.FC<NewOptionalOptionModalProps> = ({ showOptionInputs, onClose, onSave }) => {
   const [newOption, setNewOption] = useState<OptionalOption>({
     id: '',
     name: '',
@@ -72,7 +72,7 @@ const NewOptionalOptionModal: React.FC<NewOptionalOptionModalProps> = ({ showMod
   };
 
   return (
-    <Modal isOpen={showModal} toggle={onClose}>
+    <Modal isOpen={showOptionInputs} toggle={onClose}>
       <ModalHeader toggle={onClose}>Add New Optional Option</ModalHeader>
       <ModalBody>
         <div className="d-flex flex-column">
@@ -161,4 +161,4 @@ const NewOptionalOptionModal: React.FC<NewOptionalOptionModalProps> = ({ showMod
   );
 };
 
-export default NewOptionalOptionModal;
+export default NewOptionalOptionInputs;
