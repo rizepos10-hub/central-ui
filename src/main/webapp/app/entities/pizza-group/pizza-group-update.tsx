@@ -11,7 +11,7 @@ import { TabMenu } from "primereact/tabmenu";
 import {TabPanel, TabView} from "primereact/tabview";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {
-  createDefinitionGroup, createDefinitionGroupOption,
+  createDefinitionGroup, createDefinitionGroupOption, editDefinitionGroupOption,
   getEntityByType
 } from "app/entities/item-definitions/item-definitions.reducer";
 import {
@@ -26,10 +26,12 @@ const PizzaGroupUpdate = () => {
 
   const disptach = useAppDispatch()
 
+
   const itemDefinitions = useAppSelector(state => state.itemDefinitions.entities)
   const pizzaDefinition = itemDefinitions.find(item => item.definitionType === "PIZZA")
   const pizzaDefinitionLoading = useAppSelector(state => state.itemDefinitions.loading)
 
+  const updateSuccess = useAppSelector(state => state.itemDefinitions.updateSuccess)
 
 
   console.log(pizzaDefinition, 'pizzaDefinition')
@@ -44,11 +46,9 @@ const PizzaGroupUpdate = () => {
     optionalOptions: [],
   });
   const [isAddingGroup, setIsAddingGroup] = useState(false);
-  const [showOptionInputs, setShowOptionInputs] = useState({
-    requiredOption: false,
-    optionalOption: false,
-  });
 
+
+  const group = groups[selectedGroupIndex]
   const handleNewGroupChange = (fieldName, value) => {
     setNewGroup({ ...newGroup, [fieldName]: value });
   };
@@ -109,13 +109,16 @@ const PizzaGroupUpdate = () => {
       modifiers: [],
       dependsOn: [],
     }
-    const group = groups[selectedGroupIndex]
 
+    setGroups((prevGroups) => {
+      const updatedGroups = [...prevGroups];
+      const updatedGroup = { ...updatedGroups[selectedGroupIndex] };
+      updatedGroup.options = [...updatedGroup.options, newOption];
+      updatedGroups[selectedGroupIndex] = updatedGroup;
+      return updatedGroups;
+    });
     disptach(createDefinitionGroupOption({ option: newOption, id: pizzaDefinition.id, groupId: group.id }))
-    setShowOptionInputs((prev) => ({
-      ...prev,
-      requiredOption: !prev.requiredOption,
-    }));
+
   };
 
   const handleAddNewOptionalOption = () => {
@@ -128,19 +131,44 @@ const PizzaGroupUpdate = () => {
       modifiers: [],
       dependsOn: [],
     }
-    const group = groups[selectedGroupIndex]
+
+
 
     disptach(createDefinitionGroupOption({ option: newOption, id: pizzaDefinition.id, groupId: group.id }))
-    setShowOptionInputs((prev) => ({
-      ...prev,
-      optionalOption: true,
-    }));
+
   };
 
-  const handleSaveNewOption = (newOption) => {
-
-    console.log('New option data:', newOption);
+  const handleOptionDelete = (deletedOptionId) => {
+    setGroups((prevGroups) => {
+      return prevGroups.map((group, index) => {
+        if (index === selectedGroupIndex) {
+          return {
+            ...group,
+            options: group.options.filter((option) => option.id !== deletedOptionId),
+          };
+        }
+        return group;
+      });
+    });
   };
+
+  const handleSaveUpdatedOption = (updatedOption) => {
+    setGroups((prevGroups) => {
+      const updatedGroups = prevGroups.map((group, index) => {
+        if (index === selectedGroupIndex) {
+          return {
+            ...group,
+            options: group.options.map((opt) =>
+              opt.id === updatedOption.id ? updatedOption : opt
+            ),
+          };
+        }
+        return group;
+      });
+      return updatedGroups;
+    });
+  };
+
 
   if(pizzaDefinitionLoading){
     return <Spinner />
@@ -239,13 +267,14 @@ const PizzaGroupUpdate = () => {
               {selectedGroupIndex !== null && (
                 <div className="d-flex flex-column gap-3">
                   {groups[selectedGroupIndex]?.options?.map((option, index) => (
-                    <React.Fragment key={index}>
+                    <React.Fragment key={option.id}>
                       <NewRequiredOptionInputs
-                        showOptionInputs={showOptionInputs.requiredOption}
-                        onClose={() => setShowOptionInputs((prev) => ({ ...prev, requiredOption: false }))}
-                        onSave={handleSaveNewOption}
-                        name={option.name}
-                        description={option.description}
+                        option={option}
+                        pizzaDefinition={pizzaDefinition}
+                        groupId={group.id}
+                        groups={groups}
+                        onOptionDelete={handleOptionDelete}
+                        onOptionSave={handleSaveUpdatedOption}
                       />
                       {index < groups[selectedGroupIndex]?.options?.length - 1 && (
                         <hr className="my-5 border border-dark" />
@@ -267,34 +296,34 @@ const PizzaGroupUpdate = () => {
           </Row>
 
 
-          <Row>
-            <Col xs="12" style={{minHeight: '20rem'}}>
+          {/* <Row> */}
+          {/*   <Col xs="12" style={{minHeight: '20rem'}}> */}
 
-            <h2>Optional Options</h2>
+          {/*   <h2>Optional Options</h2> */}
 
-              {isAddingGroup && (
-                <InputText
-                  type="text"
-                  className="mb-1"
-                  placeholder="Enter Group Description"
-                  value={newGroup.additionalDesc}
-                  onChange={(e) => handleNewGroupChange('additionalDesc', e.target.value)}
-                />
-              )}
-              <h4 contentEditable={true}>{groups[selectedGroupIndex]?.additionalDesc}</h4>
+          {/*     {isAddingGroup && ( */}
+          {/*       <InputText */}
+          {/*         type="text" */}
+          {/*         className="mb-1" */}
+          {/*         placeholder="Enter Group Description" */}
+          {/*         value={newGroup.additionalDesc} */}
+          {/*         onChange={(e) => handleNewGroupChange('additionalDesc', e.target.value)} */}
+          {/*       /> */}
+          {/*     )} */}
+          {/*     <h4 contentEditable={true}>{groups[selectedGroupIndex]?.additionalDesc}</h4> */}
 
 
-              {selectedGroupIndex !== null &&
+          {/*     {selectedGroupIndex !== null && */}
 
-                groups[selectedGroupIndex]?.options?.map((option) => (
-                  <div key={option.id}>
-                    <h4>{option.desc}</h4>
-                    {option.name}
-                  </div>
-                ))}
+          {/*       groups[selectedGroupIndex]?.options?.map((option) => ( */}
+          {/*         <div key={option.id}> */}
+          {/*           <h4>{option.desc}</h4> */}
+          {/*           {option.name} */}
+          {/*         </div> */}
+          {/*       ))} */}
 
-            </Col>
-          </Row>
+          {/*   </Col> */}
+          {/* </Row> */}
 
         </CardBody>
       </Card>
@@ -302,11 +331,11 @@ const PizzaGroupUpdate = () => {
 
 
 
-      <NewOptionalOptionInputs
-        showOptionInputs={showOptionInputs.optionalOption}
-        onClose={() =>  setShowOptionInputs((prev) => ({...prev, optionalOption: false}))}
-        onSave={handleSaveNewOption}
-      />
+      {/* <NewOptionalOptionInputs */}
+      {/*   showOptionInputs={showOptionInputs.optionalOption} */}
+      {/*   onClose={() =>  setShowOptionInputs((prev) => ({...prev, optionalOption: false}))} */}
+      {/*   onSave={handleSaveNewOption} */}
+      {/* /> */}
     </Container>
   );
 };

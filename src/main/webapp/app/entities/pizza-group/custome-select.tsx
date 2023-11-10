@@ -1,22 +1,29 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 
-const CustomSelect = ({selectedOption, setSelectedOption,OptionProps}) => {
-  const [options, setOptions] = useState([OptionProps]);
+const CustomSelect = ({modifiers,onAddModifier,selectedModifierOption,setSelectedModifierOption}) => {
+
+  const modifiersOptions = modifiers.map(mdf => ({label: mdf.label, value: mdf.id}))
+  const [options, setOptions] = useState(modifiersOptions || []);
   const [newOption, setNewOption] = useState('');
   const [isAddingNewOption, setIsAddingNewOption] = useState(false);
 
 
+
+
+
   const generateDropdownOptions = () => {
-    return [...options, '+'].map(opt => ({ label: opt, value: opt }));
+
+    return [...options, {label : '+', value: '+'}]
   };
+  console.log(modifiers, 'modifiers')
 
   const handleSelectChange = (e) => {
     const selectedOption = e.target.value;
 
-    setSelectedOption(selectedOption);
+    setSelectedModifierOption(selectedOption);
 
     if (selectedOption === '+') {
       setIsAddingNewOption(true);
@@ -35,8 +42,10 @@ const CustomSelect = ({selectedOption, setSelectedOption,OptionProps}) => {
       return
     }
     setOptions([...options, newOption]);
+    onAddModifier(newOption)
     setNewOption('');
-    setSelectedOption(newOption)
+    console.log(newOption, 'newOption')
+    setSelectedModifierOption(newOption)
     setIsAddingNewOption(false);
   };
 
@@ -44,7 +53,8 @@ const CustomSelect = ({selectedOption, setSelectedOption,OptionProps}) => {
     <div>
       <Dropdown
         style={{minWidth: "15rem"}}
-        value={selectedOption}
+        placeholder="Select a Modifier"
+        value={selectedModifierOption}
         options={generateDropdownOptions()}
         onChange={handleSelectChange}
       />

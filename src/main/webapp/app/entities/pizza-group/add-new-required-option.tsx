@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {Button, Modal, ModalBody, ModalFooter, ModalHeader, Input, Label, Col, Row, Table} from 'reactstrap';
 import {InputText} from "primereact/inputtext";
 import {InputNumber} from "primereact/inputnumber";
@@ -6,8 +6,14 @@ import {Checkbox} from "primereact/checkbox";
 import './required-option.css';
 import CustomCreatableSelect from "app/entities/pizza-group/custome-select";
 import Select from "react-select";
+import {useAppDispatch, useAppSelector} from "app/config/store";
+import {
+  deleteDefinitionGroupOption,
+  editDefinitionGroupOption
+} from "app/entities/item-definitions/item-definitions.reducer";
 
 interface NewRequiredOption {
+  id: string | null;
   affectOtherOption: boolean;
   name: string;
   desc: string;
@@ -15,6 +21,7 @@ interface NewRequiredOption {
   modifiers: Modifier[];
   definitionType: string;
   dependsOn: [];
+  required: boolean;
 }
 
 interface Modifier {
@@ -23,62 +30,93 @@ interface Modifier {
 }
 
 interface NewRequiredOptionModalProps {
-  showOptionInputs?: boolean;
-  onClose: () => void;
-  onSave: (newOption: NewRequiredOption) => void;
-  name?: string | null;
-  description?: string | null;
-  options?: any[] | null;
-
+  pizzaDefinition?: any
+  groupId?:string
+  option
+  onOptionDelete
+  onOptionSave
+  groups
 }
 
-const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ showOptionInputs, onClose, onSave,name,description,options }) => {
-  const [newOption, setNewOption] = useState<NewRequiredOption>({
-    affectOtherOption: false,
-    name: '',
-    desc: '',
-    order: null,
-    definitionType: "Base",
-    modifiers: [],
-    dependsOn: [],
+const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupId, pizzaDefinition,option,onOptionDelete,onOptionSave,groups }) => {
 
-  });
+  const dispatch = useAppDispatch()
+  const updateSuccess = useAppSelector(state => state.itemDefinitions.updateSuccess)
+  const [newOption, setNewOption] = useState<NewRequiredOption>();
 
   const [newModifier, setNewModifier] = useState<Modifier>({
     label: '',
     price: 0,
   });
-  const [selectedOption, setSelectedOption] = useState('Option 1');
   const [showPricesModal, setShowPricesModal] = useState(false);
+  const [dirtyState,setDirtyState] = useState(false)
+
+  const [selectedModifierOption, setSelectedModifierOption]  = useState('');
+  const [isUpdating,setIsUpdating] = useState(false)
+  const allOptionsExceptCurrent = groups
+    .flatMap(group => group.options.filter(option => option.id !== newOption?.id));
+
+ const dependsOnOptions = allOptionsExceptCurrent.map(opt => ({label: opt.name, value: opt.id}))
+
+
+console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
+
+  useEffect(() => {
+
+    if (JSON.stringify(option) !== JSON.stringify(newOption)) {
+      setDirtyState(true);
+    } else {
+      setDirtyState(false);
+    }
+
+
+  }, [option, newOption,isUpdating,updateSuccess]);
+
+
+  useEffect(() => {
+
+
+    if ( option) {
+      setNewOption(option);
+    }
 
 
 
-  const handleSave = () => {
-    onSave(newOption);
-    onClose();
-    setNewOption({
-      affectOtherOption: false,
-      name: '',
-      desc: '',
-      order: null,
-      definitionType: "Base",
-      modifiers: [],
-      dependsOn: [],
 
+  }, [isUpdating,updateSuccess,option]);
+
+    console.log(newOption, 'optionoption')
+  console.log(option, 'optionoption111')
+
+
+  const handleSave = async () => {
+      setIsUpdating(true);
+
+      await dispatch(editDefinitionGroupOption({ option: newOption, id: pizzaDefinition.id, groupId }));
+      setIsUpdating(false);
+      onOptionSave(newOption)
+
+  };
+
+
+  const handleModifierPriceChange = (modifierIndex, newPrice) => {
+    setNewOption((prevOption) => {
+      const updatedModifiers = [...prevOption.modifiers || []];
+      updatedModifiers[modifierIndex] = { ...updatedModifiers[modifierIndex], price: newPrice };
+      return { ...prevOption, modifiers: updatedModifiers };
     });
   };
 
-  const handleAddModifier = () => {
+  const handleAddModifier = (newModifier) => {
     setNewOption((prevOption) => ({
       ...prevOption,
-      modifiers: [...prevOption.modifiers, newModifier],
+      modifiers: [...prevOption.modifiers, { label: newModifier, price: 0 }],
     }));
-    setNewModifier({
-      label: '',
-      price: 0,
-    });
-    setShowPricesModal(false);
+  };
 
+  const handleDependsOnChange = (selectedOptions) => {
+    const selectedOptionIds = selectedOptions.map((opt) => opt.value);
+    setNewOption({ ...newOption, dependsOn: selectedOptionIds });
   };
 
 
@@ -90,6 +128,14 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ showOp
     setShowPricesModal(false);
   };
 
+  const handleDelete = async () => {
+    setIsUpdating(true);
+    await dispatch(deleteDefinitionGroupOption({ id: pizzaDefinition.id, groupId, optionId: newOption?.id }));
+    setIsUpdating(false);
+    onOptionDelete(newOption?.id);
+
+  };
+
   return (
     <>
       <Col md="12">
@@ -97,13 +143,20 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ showOp
         <Row>
           <Col md={"3"}>
         <div contentEditable  suppressContentEditableWarning={true} className="option-name"
-             onBlur={(e) => setNewOption({ ...newOption, name: e.currentTarget.innerText })}>
-          default option name
+             onInput={(e) => setNewOption({ ...newOption, name: e.currentTarget.innerText })}>
+          {option.name}
         </div>
-            <span contentEditable className="subtitle">default option desc</span>
+            <span contentEditable className="subtitle" onInput={(e) => setNewOption({ ...newOption, desc: e.currentTarget.innerText })}>
+              {option.desc}
+            </span>
           </Col>
           <Col md="6" className="d-flex flex-row gap-5">
-         <CustomCreatableSelect selectedOption={selectedOption} setSelectedOption={setSelectedOption} OptionProps={options} />
+         <CustomCreatableSelect
+           selectedModifierOption={selectedModifierOption}
+           setSelectedModifierOption={setSelectedModifierOption}
+           onAddModifier={handleAddModifier}
+           modifiers={option?.modifiers}
+         />
             <div>
               <Button severity="help" onClick={handleOpenPricesModal}>
                 Set Prices
@@ -132,41 +185,67 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ showOp
               </tr>
               </thead>
               <tbody>
-              {newOption.modifiers.map((modifier, index) => (
+              {newOption?.modifiers.map((modifier, index) => (
                 <tr key={index}>
                   <td>{modifier.label}</td>
-                  <td>{modifier.price}</td>
+                  <td>
+                    <InputNumber
+                      value={modifier.price}
+                      onChange={(e) => handleModifierPriceChange(index, e.value)}
+                    />
+                  </td>
                 </tr>
               ))}
               </tbody>
             </Table>
+
           </ModalBody>
           <ModalFooter>
-            <Button color="secondary" onClick={handleClosePricesModal}>
-              Close
-            </Button>
-            <Button color="primary" onClick={handleAddModifier}>
-              Add Modifier
+
+            <Button color="primary" onClick={handleClosePricesModal}>
+              Update Modifier
             </Button>
           </ModalFooter>
         </Modal>
-          <Col md={"3"} className="d-flex flex-row mt-3">
-        <Label for="type">Affect Other Option:</Label>
-        <Checkbox
-          id="affectOtherOption"
-          checked={newOption.affectOtherOption}
-          onChange={(e) => setNewOption({...newOption, affectOtherOption: e.target.checked})}/>
+          <Col md={"3"}>
+            <div  className="d-flex flex-row mt-3 gap-1">
+              <Label for="affectOtherOption">Affect Other Option:</Label>
+              <Checkbox
+                checked={newOption?.affectOtherOption}
+                onChange={(e) => setNewOption({...newOption, affectOtherOption: e.target.checked})}/>
+            </div>
+            <div  className="d-flex flex-row mt-3 gap-1">
+              <Label for="requiredOption">Required:</Label>
+              <Checkbox
+                checked={newOption?.required}
+                onChange={(e) => setNewOption({...newOption, required: e.target.checked})}/>
+            </div>
+
           </Col>
+
             <Col md={"5"} className=" mt-3" >
-                <Select options={[]} />
+              <Label for="dependsOn">Depends On:</Label>
+
+                <Select
+                  id="dependsOn"
+                  isMulti
+                  onChange={handleDependsOnChange}
+                  options={dependsOnOptions}
+                />
             </Col>
       </div>
 
       </Col>
-      <div className="d-flex justify-content-start">
-    <Button color="primary" onClick={handleSave}>
-      Save
-    </Button>
+      <div className="d-flex justify-content-start gap-3" key={option.id}>
+        <Button color="danger" disabled={isUpdating} onClick={handleDelete}>
+          Delete
+        </Button>
+        {dirtyState &&   (
+          <Button color="primary" disabled={isUpdating} onClick={handleSave}>
+            Save
+          </Button>
+        )}
+
       </div>
     </>
   );
@@ -175,38 +254,3 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ showOp
 export default NewRequiredOptionInputs;
 
 
-
-{/* <div className="select-container"> */}
-{/*   <div */}
-{/*     className="select-option" */}
-{/*     tabIndex={0} */}
-{/*     onClick={() => setOptionsOpen((prev) => !prev)} */}
-{/*   > */}
-{/*     default select */}
-
-{/*   </div> */}
-{/*   <div className="options-container" style={{ display: isOptionsOpen ? 'block' : 'none' }}> */}
-{/*     <div> */}
-{/*       <div */}
-{/*         className="option" */}
-{/*         tabIndex={0} */}
-{/*         style={{ backgroundColor: selectedOption === 'BBQ Sauce' ? '#fac140' : '#fff' }} */}
-{/*         onClick={() => { */}
-{/*           setSelectedOption('BBQ Sauce'); */}
-{/*         }} */}
-{/*       > */}
-{/*         default option select 1 */}
-{/*       </div> */}
-{/*       <div */}
-{/*         tabIndex={0} */}
-{/*         className="option" */}
-{/*         style={{ backgroundColor: selectedOption === 'Pizza Sauce' ? '#fac140' : '#fff' }} */}
-{/*         onClick={() => { */}
-{/*           setSelectedOption('Pizza Sauce'); */}
-{/*         }} */}
-{/*       > */}
-{/*         default option select 2 */}
-{/*       </div> */}
-{/*     </div> */}
-{/*   </div> */}
-{/* </div> */}

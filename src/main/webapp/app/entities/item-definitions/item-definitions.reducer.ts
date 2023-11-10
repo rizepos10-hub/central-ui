@@ -101,11 +101,31 @@ export const createDefinitionGroupOption = createAsyncThunk(
   'item-definitions/create_definition_group_option',
   async ({ option, id, groupId } :any, thunkAPI) => {
     const result = await axios.post<IItemDefinition>(`${apiUrl}/${id}/group/${groupId}/option`, option);
+    // thunkAPI.dispatch(getEntities({}));
+
     return result;
   },
   { serializeError: serializeAxiosError }
 );
 
+export const editDefinitionGroupOption = createAsyncThunk(
+  'item-definitions/edit_definition_group_option',
+  async ({ option, id, groupId } :any, thunkAPI) => {
+    const result = await axios.put<IItemDefinition>(`${apiUrl}/${id}/group/${groupId}/option`, option);
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const deleteDefinitionGroupOption = createAsyncThunk(
+  'item-definitions/delete_definition_group_option',
+  async ({ optionId, id, groupId } :any, thunkAPI) => {
+    const result = await axios.delete<IItemDefinition>(`${apiUrl}/${id}/group/${groupId}/option/${optionId}`);
+    // thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
 
 
 // slice
@@ -134,7 +154,7 @@ export const PizzaGroupSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity,createDefinitionGroupOption,createDefinitionGroup,editDefinitionGroupOption), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -145,7 +165,7 @@ export const PizzaGroupSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity,createDefinitionGroupOption,createDefinitionGroup,editDefinitionGroupOption), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
