@@ -11,12 +11,17 @@ import { TabMenu } from "primereact/tabmenu";
 import {TabPanel, TabView} from "primereact/tabview";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {
-  createDefinitionGroup, createDefinitionGroupOption, editDefinitionGroupOption,
+  createDefinitionGroup,
+  createDefinitionGroupOption,
+  deleteDefinitionGroup,
+  editDefinitionGroup,
+  editDefinitionGroupOption,
   getEntityByType
 } from "app/entities/item-definitions/item-definitions.reducer";
 import {
+  addNewRequiredOption,
   checkAndFetchPizzaDefinition,
-  createDefinitions
+  createDefinitions, deleteGroup, emptyGroupValues
 } from "app/entities/pizza-group/utils";
 import NewRequiredOptionInputs from "app/entities/pizza-group/add-new-required-option";
 import NewOptionalOptionInputs from "app/entities/pizza-group/add-new-optional-option";
@@ -24,7 +29,9 @@ import NewOptionalOptionInputs from "app/entities/pizza-group/add-new-optional-o
 const PizzaGroupUpdate = () => {
 
 
-  const disptach = useAppDispatch()
+  const dispatch = useAppDispatch()
+
+
 
 
   const itemDefinitions = useAppSelector(state => state.itemDefinitions.entities)
@@ -38,52 +45,102 @@ const PizzaGroupUpdate = () => {
   const [groups, setGroups] = useState([]);
   const [selectedGroupIndex, setSelectedGroupIndex] = useState(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [newGroup, setNewGroup] = useState({
-    name: '',
-    desc: '',
-    additionalDesc: '',
-    requiredOptions: [],
-    optionalOptions: [],
-  });
+  const [newGroup, setNewGroup] = useState(emptyGroupValues);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
-
-
-  const group = groups[selectedGroupIndex]
-  const handleNewGroupChange = (fieldName, value) => {
-    setNewGroup({ ...newGroup, [fieldName]: value });
-  };
-
-  const addNewGroup = () => {
-    if (newGroup.name.trim() !== '') {
-      setGroups([...groups, newGroup]);
-      setSelectedGroupIndex(groups.length);
-      setNewGroup({
-        name: '',
-        desc: '',
-        additionalDesc: '',
-        requiredOptions: [],
-        optionalOptions: [],
-      });
-      setIsAddingGroup(false);
-    }
-    disptach(createDefinitionGroup({ group: newGroup, id: pizzaDefinition.id }));
-  };
-
-
+  const [isDirty, setIsDirty] = useState(false);
 
 
   useEffect(() => {
-    checkAndFetchPizzaDefinition(disptach)
+    checkAndFetchPizzaDefinition(dispatch)
 
   }, []);
+
+
 
   useEffect(() => {
     if (pizzaDefinition?.groups?.length > 0) {
       console.log("helloworld");
       setGroups(pizzaDefinition?.groups);
-      setSelectedGroupIndex(0)
+      // setSelectedGroupIndex(0)
     }
   }, [pizzaDefinition]);
+
+
+
+  const group = groups[selectedGroupIndex]
+
+  const handleTabChange = (e) => {
+    if (isDirty && e.index !== selectedGroupIndex) {
+      if (window.confirm('Discard changes?')) {
+        setNewGroup(emptyGroupValues);
+        checkAndFetchPizzaDefinition(dispatch)
+        setIsDirty(false);
+        setSelectedGroupIndex(e.index);
+      }
+    }else{
+      setSelectedGroupIndex(e.index);
+    }
+  };
+
+
+  const handleAddNewGroupInputs = (e) => {
+    if (isDirty && e.index !== selectedGroupIndex) {
+      if (window.confirm('Discard changes?')) {
+        setNewGroup(emptyGroupValues);
+        checkAndFetchPizzaDefinition(dispatch)
+        setIsDirty(false);
+        setSelectedGroupIndex(null);
+        setIsAddingGroup((prev) => !prev);
+      }
+    }else{
+      setSelectedGroupIndex(null);
+      setIsAddingGroup((prev) => !prev);
+
+    }
+  };
+  const handleNewGroupChange = (fieldName, value) => {
+    setNewGroup({ ...newGroup, [fieldName]: value });
+  };
+
+  const addNewGroup = () => {
+    if (newGroup.name.trim() === '') {
+     alert("Please Enter group name")
+     return
+    }
+    setSelectedGroupIndex(groups.length);
+    setNewGroup(emptyGroupValues);
+    setIsAddingGroup(false);
+    dispatch(createDefinitionGroup({ group: newGroup, id: pizzaDefinition.id })).then((res: any) => setGroups(res.payload.data.groups));
+  };
+
+
+
+  const handleSaveGroup = () => {
+    const updatedGroup = { ...groups[selectedGroupIndex] };
+
+    if (newGroup.name !== undefined && newGroup.name.trim() !== '') {
+      updatedGroup.name = newGroup.name;
+    }
+    if (newGroup.desc !== undefined && newGroup.desc.trim() !== '') {
+      updatedGroup.desc = newGroup.desc;
+    }
+    dispatch(editDefinitionGroup({ group: updatedGroup, id: pizzaDefinition.id }));
+
+    setIsDirty(false);
+  };
+
+
+
+  const handleDeleteGroup = () => {
+    const updatedGroups = deleteGroup(groups, selectedGroupIndex);
+
+    setSelectedGroupIndex(updatedGroups.length > 0 ? 0 : null);
+
+    setGroups(updatedGroups);
+
+    dispatch(deleteDefinitionGroup({groupId: group.id, id: pizzaDefinition.id}));
+  };
+
 
 
   const handleButtonAdd = (optionType) => {
@@ -99,25 +156,10 @@ const PizzaGroupUpdate = () => {
     }
   };
 
-  const handleAddNewRequiredOption = () => {
-    const newOption = {
-      affectOtherOption: false,
-      name: 'default name',
-      desc: 'default description',
-      order: null,
-      definitionType: "BASE",
-      modifiers: [],
-      dependsOn: [],
-    }
+  const handleAddNewRequiredOption = async () => {
+      const updatedGroups = await addNewRequiredOption( selectedGroupIndex, dispatch, pizzaDefinition, group);
+      setGroups(updatedGroups);
 
-    setGroups((prevGroups) => {
-      const updatedGroups = [...prevGroups];
-      const updatedGroup = { ...updatedGroups[selectedGroupIndex] };
-      updatedGroup.options = [...updatedGroup.options, newOption];
-      updatedGroups[selectedGroupIndex] = updatedGroup;
-      return updatedGroups;
-    });
-    disptach(createDefinitionGroupOption({ option: newOption, id: pizzaDefinition.id, groupId: group.id }))
 
   };
 
@@ -134,7 +176,8 @@ const PizzaGroupUpdate = () => {
 
 
 
-    disptach(createDefinitionGroupOption({ option: newOption, id: pizzaDefinition.id, groupId: group.id }))
+
+    dispatch(createDefinitionGroupOption({ option: newOption, id: pizzaDefinition.id, groupId: group.id }))
 
   };
 
@@ -170,6 +213,11 @@ const PizzaGroupUpdate = () => {
   };
 
 
+
+
+
+
+
   if(pizzaDefinitionLoading){
     return <Spinner />
   }
@@ -182,34 +230,48 @@ const PizzaGroupUpdate = () => {
       <Card>
         <CardBody>
           <Row>
-            {groups.length > 0 &&
+            {groups.length > 0 && (
               <Col md="8">
-                {/* <TabMenu  model={groups.map(grp => ({label : grp.name}))} activeIndex={selectedGroupIndex} onTabChange={(e) => setSelectedGroupIndex(e.index)} /> */}
-                <TabView activeIndex={selectedGroupIndex} scrollable onTabChange={(e) => setSelectedGroupIndex(e.index)}>
-                  {groups.map((tab,index) => {
-                    return (
-                        <TabPanel header={tab.name} />
-                    );
-                  })}
+                <TabView  activeIndex={selectedGroupIndex} scrollable onTabChange={(e) => handleTabChange(e)}>
+                  {groups.map((tab, index) => (
+                    <TabPanel key={index}
+                              header={<div style={{ outlineColor: '#eee189', userSelect: 'text' }} contentEditable
+                                           onInput={(e) => {
+                                             setNewGroup({...newGroup, name: e.currentTarget.innerText})
+                                             setIsDirty(true)}}>
+                              {tab.name}
+                            </div>} />
+                  ))}
                 </TabView>
-
               </Col>
-            }
+            )}
+
             <Col md='4' >
 
-            <button
-              className="btn btn-primary ml-2 mb-1"
-              onClick={() => {
-                setIsAddingGroup((prev) => !prev);
-                setSelectedGroupIndex(null);
-              }}
-            >
-              +
-            </button>
-              <Button color="primary" id="addButton" onClick={() => setPopoverOpen(!popoverOpen)} className="ml-2">
-                Add Button
-              </Button>
-              <Popover isOpen={popoverOpen} target="addButton" toggle={() => setPopoverOpen(!popoverOpen)}>
+
+                  <button
+                    className="btn btn-primary ml-2 mb-1"
+                    onClick={handleAddNewGroupInputs}
+                  >
+                    +
+                  </button>
+                  <Button color="primary" id="addOption" onClick={() => setPopoverOpen(!popoverOpen)} className="ml-2">
+                    Add Option
+                  </Button>
+
+
+              {isDirty && <Button color="success" className="mx-2" onClick={handleSaveGroup}>
+                Save
+              </Button>}
+
+              {selectedGroupIndex !== null && <Button
+                color="danger"
+                className="ml-2"
+                onClick={handleDeleteGroup}
+              >
+                Delete Group
+              </Button>}
+              <Popover isOpen={popoverOpen} target="addOption" toggle={() => setPopoverOpen(!popoverOpen)}>
                 <PopoverHeader>Add Button</PopoverHeader>
                 <PopoverBody>
                   <p onClick={() => {
@@ -252,7 +314,7 @@ const PizzaGroupUpdate = () => {
 
             </div>
             <Col xs="12" style={{ minHeight: '20rem' }}>
-              <h2>Required Options</h2>
+              <h2>Options</h2>
 
               {isAddingGroup && (
                 <InputText
@@ -263,25 +325,32 @@ const PizzaGroupUpdate = () => {
                   onChange={(e) => handleNewGroupChange('desc', e.target.value)}
                 />
               )}
-              <h4 >{groups[selectedGroupIndex]?.desc}</h4>
               {selectedGroupIndex !== null && (
-                <div className="d-flex flex-column gap-3">
-                  {groups[selectedGroupIndex]?.options?.map((option, index) => (
-                    <React.Fragment key={option.id}>
-                      <NewRequiredOptionInputs
-                        option={option}
-                        pizzaDefinition={pizzaDefinition}
-                        groupId={group.id}
-                        groups={groups}
-                        onOptionDelete={handleOptionDelete}
-                        onOptionSave={handleSaveUpdatedOption}
-                      />
-                      {index < groups[selectedGroupIndex]?.options?.length - 1 && (
-                        <hr className="my-5 border border-dark" />
-                      )}
-                    </React.Fragment>
-                  ))}
-                </div>
+                <><h4 contentEditable
+                      style={{outlineColor: '#eee189',  userSelect: 'text'}}
+                      onInput={(e) => {
+                        setNewGroup({...newGroup, desc: e.currentTarget.innerText});
+                        setIsDirty(true);
+                      }}>
+                  {groups[selectedGroupIndex]?.desc || 'default group description'}
+                </h4>
+                  <div className="d-flex flex-column gap-3">
+                    {groups[selectedGroupIndex]?.options?.map((option, index) => (
+                      <React.Fragment key={option.id}>
+                        <NewRequiredOptionInputs
+                          option={option}
+                          pizzaDefinition={pizzaDefinition}
+                          groupId={group.id}
+                          groups={groups}
+                          onOptionDelete={handleOptionDelete}
+                          onOptionSave={handleSaveUpdatedOption}/>
+                        {index < groups[selectedGroupIndex]?.options?.length - 1 && (
+                          <hr className="my-5 border border-dark"/>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </>
               )}
               {/* {showOptionInputs.requiredOption && selectedGroupIndex !== null && <Row> */}
               {/*   <NewRequiredOptionInputs */}

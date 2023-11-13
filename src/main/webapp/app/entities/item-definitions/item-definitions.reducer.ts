@@ -97,6 +97,23 @@ export const createDefinitionGroup = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const editDefinitionGroup = createAsyncThunk(
+  'item-definitions/edit_definition_group',
+  async ({ group, id } :any, thunkAPI) => {
+    const result = await axios.put<IItemDefinition>(`${apiUrl}/${id}/group/`, group);
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+export const deleteDefinitionGroup = createAsyncThunk(
+  'item-definitions/delete_definition_group',
+  async ({ groupId, id } :any, thunkAPI) => {
+    const result = await axios.delete<IItemDefinition>(`${apiUrl}/${id}/group/${groupId}`);
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const createDefinitionGroupOption = createAsyncThunk(
   'item-definitions/create_definition_group_option',
   async ({ option, id, groupId } :any, thunkAPI) => {

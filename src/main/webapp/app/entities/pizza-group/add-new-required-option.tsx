@@ -11,6 +11,7 @@ import {
   deleteDefinitionGroupOption,
   editDefinitionGroupOption
 } from "app/entities/item-definitions/item-definitions.reducer";
+import {combineModifiers} from "app/entities/pizza-group/utils";
 
 interface NewRequiredOption {
   id: string | null;
@@ -54,9 +55,9 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
   const [selectedModifierOption, setSelectedModifierOption]  = useState('');
   const [isUpdating,setIsUpdating] = useState(false)
   const allOptionsExceptCurrent = groups
-    .flatMap(group => group.options.filter(option => option.id !== newOption?.id));
+    .flatMap(group => group.options?.filter(option => option.id !== newOption?.id));
 
- const dependsOnOptions = allOptionsExceptCurrent.map(opt => ({label: opt.name, value: opt.id}))
+ const dependsOnOptions = allOptionsExceptCurrent.map(opt => ({label: opt?.name, value: opt?.id}))
 
 
 console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
@@ -70,7 +71,7 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
     }
 
 
-  }, [option, newOption,isUpdating,updateSuccess]);
+  }, [option, newOption,isUpdating]);
 
 
   useEffect(() => {
@@ -83,7 +84,8 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
 
 
 
-  }, [isUpdating,updateSuccess,option]);
+
+  }, [isUpdating,option]);
 
     console.log(newOption, 'optionoption')
   console.log(option, 'optionoption111')
@@ -91,21 +93,49 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
 
   const handleSave = async () => {
       setIsUpdating(true);
-
-      await dispatch(editDefinitionGroupOption({ option: newOption, id: pizzaDefinition.id, groupId }));
+      const optionToUpdate = {...newOption, id: option.id}
+       console.log(optionToUpdate, 'optionToUpdate')
+      await dispatch(editDefinitionGroupOption({ option: optionToUpdate, id: pizzaDefinition.id, groupId }));
       setIsUpdating(false);
-      onOptionSave(newOption)
+
+      onOptionSave(optionToUpdate)
 
   };
+
+
+
+  const getDependsOnValues = () => {
+    return newOption?.dependsOn?.map((dependsOnId) => {
+      const option = allOptionsExceptCurrent.find((opt) => opt.id === dependsOnId);
+      return { label:option.name, value: option.id}
+    });
+  };
+
+
+
+
+
+
 
 
   const handleModifierPriceChange = (modifierIndex, newPrice) => {
     setNewOption((prevOption) => {
-      const updatedModifiers = [...prevOption.modifiers || []];
-      updatedModifiers[modifierIndex] = { ...updatedModifiers[modifierIndex], price: newPrice };
+      const updatedModifiers = prevOption?.modifiers.map((modifier, index) => {
+        if (index === modifierIndex) {
+          return { ...modifier, price: newPrice };
+        }
+        return modifier;
+      });
       return { ...prevOption, modifiers: updatedModifiers };
     });
   };
+
+
+  const getModifiersForTable = () => {
+    const newModifiers = combineModifiers(newOption, allOptionsExceptCurrent);
+    return newModifiers;
+  };
+
 
   const handleAddModifier = (newModifier) => {
     setNewOption((prevOption) => ({
@@ -123,6 +153,7 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
   const handleOpenPricesModal = () => {
     setShowPricesModal(true);
   };
+
 
   const handleClosePricesModal = () => {
     setShowPricesModal(false);
@@ -144,7 +175,7 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
           <Col md={"3"}>
         <div contentEditable  suppressContentEditableWarning={true} className="option-name"
              onInput={(e) => setNewOption({ ...newOption, name: e.currentTarget.innerText })}>
-          {option.name}
+          {option?.name}
         </div>
             <span contentEditable className="subtitle" onInput={(e) => setNewOption({ ...newOption, desc: e.currentTarget.innerText })}>
               {option.desc}
@@ -185,7 +216,7 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
               </tr>
               </thead>
               <tbody>
-              {newOption?.modifiers.map((modifier, index) => (
+              {getModifiersForTable()?.map((modifier, index) => (
                 <tr key={index}>
                   <td>{modifier.label}</td>
                   <td>
@@ -198,16 +229,16 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
               ))}
               </tbody>
             </Table>
-
           </ModalBody>
           <ModalFooter>
-
             <Button color="primary" onClick={handleClosePricesModal}>
               Update Modifier
             </Button>
           </ModalFooter>
         </Modal>
-          <Col md={"3"}>
+
+
+        <Col md={"3"}>
             <div  className="d-flex flex-row mt-3 gap-1">
               <Label for="affectOtherOption">Affect Other Option:</Label>
               <Checkbox
@@ -231,6 +262,7 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
                   isMulti
                   onChange={handleDependsOnChange}
                   options={dependsOnOptions}
+                  value={getDependsOnValues()}
                 />
             </Col>
       </div>
