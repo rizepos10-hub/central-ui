@@ -12,6 +12,9 @@ import {
   editDefinitionGroupOption
 } from "app/entities/item-definitions/item-definitions.reducer";
 import {combineModifiers} from "app/entities/pizza-group/utils";
+import _default from "chart.js/dist/plugins/plugin.tooltip";
+import numbers = _default.defaults.animations.numbers;
+import {TabPanel, TabView } from 'primereact/tabview';
 
 interface NewRequiredOption {
   id: string | null;
@@ -27,7 +30,15 @@ interface NewRequiredOption {
 
 interface Modifier {
   label: string;
-  price: number;
+  defaultPrice: number;
+  modifiedPrices: any[];
+}
+
+
+
+interface  Combination{
+  price: number
+  modifierIds: string[]
 }
 
 interface NewRequiredOptionModalProps {
@@ -45,10 +56,12 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
   const updateSuccess = useAppSelector(state => state.itemDefinitions.updateSuccess)
   const [newOption, setNewOption] = useState<NewRequiredOption>();
 
-  const [newModifier, setNewModifier] = useState<Modifier>({
-    label: '',
-    price: 0,
+  const [newModifier, setNewModifier] = useState<any>({
+     label: '',
+      defaultPrice: 0,
+     modifiedPrices: [],
   });
+
   const [showPricesModal, setShowPricesModal] = useState(false);
   const [dirtyState,setDirtyState] = useState(false)
 
@@ -60,7 +73,19 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
  const dependsOnOptions = allOptionsExceptCurrent.map(opt => ({label: opt?.name, value: opt?.id}))
 
 
-console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
+
+
+
+  const updateCombinedModifiers = () => {
+    const newModifiers = combineModifiers(option, allOptionsExceptCurrent);
+    setNewOption((prevOption) => ({
+      ...prevOption,
+      modifiers: newModifiers,
+    }));
+    console.log(newModifiers, 'newModifiersnewModifiers')
+  };
+
+
 
   useEffect(() => {
 
@@ -74,12 +99,16 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
   }, [option, newOption,isUpdating]);
 
 
+  console.log(option.modifiers, 'modifi')
   useEffect(() => {
 
 
     if ( option) {
       setNewOption(option);
+      updateCombinedModifiers();
     }
+
+
 
 
 
@@ -89,6 +118,9 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
 
     console.log(newOption, 'optionoption')
   console.log(option, 'optionoption111')
+
+
+
 
 
   const handleSave = async () => {
@@ -107,7 +139,7 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
   const getDependsOnValues = () => {
     return newOption?.dependsOn?.map((dependsOnId) => {
       const option = allOptionsExceptCurrent.find((opt) => opt.id === dependsOnId);
-      return { label:option.name, value: option.id}
+      return { label:option?.name, value: option?.id}
     });
   };
 
@@ -117,30 +149,73 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
 
 
 
-
-  const handleModifierPriceChange = (modifierIndex, newPrice) => {
+  const handleDefaultPriceChange = (modifierIndex: number, newDefaultPrice: number) => {
     setNewOption((prevOption) => {
+      if (!prevOption) return null;
+
       const updatedModifiers = prevOption?.modifiers.map((modifier, index) => {
         if (index === modifierIndex) {
-          return { ...modifier, price: newPrice };
+          return {
+            ...modifier,
+            defaultPrice: newDefaultPrice,
+          };
         }
         return modifier;
       });
-      return { ...prevOption, modifiers: updatedModifiers };
+
+      return {
+        ...prevOption,
+        modifiers: updatedModifiers,
+      };
     });
   };
 
 
-  const getModifiersForTable = () => {
-    const newModifiers = combineModifiers(newOption, allOptionsExceptCurrent);
-    return newModifiers;
+  const handleCombinationPriceChange = (modifierIndex: number, combinationIndex: number, newPrice: number) => {
+    setNewOption((prevOption) => {
+      if (!prevOption) return null;
+
+      const updatedModifiers = (prevOption?.modifiers || []).map((modifier, index) => {
+        if (index === modifierIndex) {
+          const updatedCombinationPrices = (modifier.modifiedPrices || []).map(
+            (combination, comboIndex) => {
+              if (comboIndex === combinationIndex) {
+                return {
+                  ...combination,
+                  price: newPrice,
+                };
+              }
+              return combination;
+            }
+          );
+
+          return {
+            ...modifier,
+            modifiedPrices: updatedCombinationPrices,
+          };
+        }
+        return modifier;
+      });
+
+      return {
+        ...prevOption,
+        modifiers: updatedModifiers,
+      };
+    });
   };
 
 
-  const handleAddModifier = (newModifier) => {
+  const handleAddModifier = (newModifierLabel) => {
     setNewOption((prevOption) => ({
       ...prevOption,
-      modifiers: [...prevOption.modifiers, { label: newModifier, price: 0 }],
+      modifiers: [
+        ...prevOption.modifiers,
+        {
+          label: newModifierLabel,
+            defaultPrice: 0,
+          modifiedPrices: [],
+        },
+      ],
     }));
   };
 
@@ -166,6 +241,8 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
     onOptionDelete(newOption?.id);
 
   };
+
+
 
   return (
     <>
@@ -200,35 +277,44 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
         <Modal isOpen={showPricesModal} toggle={handleClosePricesModal}>
           <ModalHeader toggle={handleClosePricesModal}>Set Prices</ModalHeader>
           <ModalBody>
-            <div>
-              <Label for="defaultPrice">Default Price:</Label>
-              <InputNumber
-                id="defaultPrice"
-                value={newModifier.price}
-                onChange={(e) => setNewModifier({ ...newModifier, price: e.value })}
-              />
-            </div>
-            <Table>
-              <thead>
-              <tr>
-                <th>Modifier Label</th>
-                <th>Price</th>
-              </tr>
-              </thead>
-              <tbody>
-              {getModifiersForTable()?.map((modifier, index) => (
-                <tr key={index}>
-                  <td>{modifier.label}</td>
-                  <td>
-                    <InputNumber
-                      value={modifier.price}
-                      onChange={(e) => handleModifierPriceChange(index, e.value)}
-                    />
-                  </td>
-                </tr>
-              ))}
-              </tbody>
-            </Table>
+            <TabView>
+              {newOption?.modifiers?.map((modifier, index) => {
+                console.log(modifier, 'modifiermodifier');
+                return (
+                  <TabPanel key={index} header={modifier.label}>
+                    <div>
+                      <Label for={`defaultPrice${index}`}>Default Price:</Label>
+                      <InputNumber
+                        id={`defaultPrice${index}`}
+                        value={modifier?.defaultPrice}
+                        onChange={(e) => handleDefaultPriceChange(index, e.value)}
+                      />
+                    </div>
+                    <Table>
+                      <thead>
+                      <tr>
+                        <th>Label</th>
+                        <th>Price</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      {modifier?.modifiedPrices?.map((combinedItem: any, combinedIndex) => (
+                        <tr key={combinedIndex}>
+                          <td>{combinedItem.label}</td>
+                          <td>
+                            <InputNumber
+                              value={combinedItem.price}
+                              onChange={(e) => handleCombinationPriceChange(index, combinedIndex, e.value)}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                      </tbody>
+                    </Table>
+                  </TabPanel>
+                );
+              })}
+            </TabView>
           </ModalBody>
           <ModalFooter>
             <Button color="primary" onClick={handleClosePricesModal}>
@@ -236,6 +322,8 @@ console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
             </Button>
           </ModalFooter>
         </Modal>
+
+
 
 
         <Col md={"3"}>
