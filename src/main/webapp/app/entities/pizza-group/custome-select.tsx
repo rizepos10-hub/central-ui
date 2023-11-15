@@ -1,24 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import { Dropdown } from "primereact/dropdown";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
+import React, { useEffect, useState } from 'react';
+import { Dropdown } from 'primereact/dropdown';
+import { InputText } from 'primereact/inputtext';
+import { Button } from 'primereact/button';
 
-const CustomSelect = ({modifiers,onAddModifier,selectedModifierOption,setSelectedModifierOption}) => {
-
-  const modifiersOptions = modifiers.map(mdf => ({label: mdf.label, value: mdf.id}))
-  const [options, setOptions] = useState(modifiersOptions || []);
-  const [newOption, setNewOption] = useState('');
-  const [isAddingNewOption, setIsAddingNewOption] = useState(false);
-
-
-
-
-
+const CustomSelect = ({ optionModifiers, onAddModifier, onDeleteModifier, onEditModifier, selectedModifierOption, setSelectedModifierOption }) => {
+  const modifiersOptions = optionModifiers.map((mdf) => ({ label: mdf.label, value: mdf.id }));
+  const [modifiers, setModifiers] = useState(modifiersOptions || []);
+  const [newModifier, setNewModifier] = useState('');
+  const [isAddingNewModifier, setIsAddingNewModifier] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const generateDropdownOptions = () => {
-
-    return [...options, {label : '+', value: '+'}]
+    return [...modifiers, { label: '+', value: '+' }];
   };
-  console.log(modifiers, 'modifiers')
 
   const handleSelectChange = (e) => {
     const selectedOption = e.target.value;
@@ -26,43 +19,88 @@ const CustomSelect = ({modifiers,onAddModifier,selectedModifierOption,setSelecte
     setSelectedModifierOption(selectedOption);
 
     if (selectedOption === '+') {
-      setIsAddingNewOption(true);
+      setIsAddingNewModifier(true);
     } else {
-      setIsAddingNewOption(false);
+      setIsAddingNewModifier(false);
     }
   };
 
-  const handleNewOptionChange = (e) => {
-    setNewOption(e.target.value);
+  const handleModifierLabelChange = (e) => {
+    setNewModifier(e.target.value);
   };
 
-  const handleAddOption = () => {
-    if(newOption.trim() === ""){
-      alert("Please enter your new option")
-      return
+  const handleAddModifiers = () => {
+    if (newModifier.trim() === '') {
+      alert('Please enter your new modifiers');
+      return;
     }
-    setOptions([...options, newOption]);
-    onAddModifier(newOption)
-    setNewOption('');
-    console.log(newOption, 'newOption')
-    setSelectedModifierOption(newOption)
-    setIsAddingNewOption(false);
+    setModifiers([...modifiers, { label: newModifier, value: newModifier }]);
+    onAddModifier({ label: newModifier, value: newModifier });
+    setNewModifier('');
+    setSelectedModifierOption(newModifier);
+    setIsAddingNewModifier(false);
   };
+
+  const handleDeleteModifier = () => {
+    const updatedModifiers = modifiers.filter((modifier) => modifier.value !== selectedModifierOption);
+    setModifiers(updatedModifiers);
+    setIsEditing(false)
+    onDeleteModifier(selectedModifierOption);
+    setSelectedModifierOption('');
+  };
+
+  const handleEditModifier = () => {
+    setIsEditing(true);
+  };
+  const handleSaveEdit = () => {
+    const updatedModifiers = modifiers.map((modifier) => modifier.value === selectedModifierOption ? {...modifier, label: newModifier} : modifier)
+    setModifiers(updatedModifiers)
+    setIsEditing(false);
+    onEditModifier({ oldModifierId: selectedModifierOption, newLabel: newModifier });
+    setSelectedModifierOption(newModifier);
+    setNewModifier('');
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    setIsAddingNewModifier(false)
+  }
 
   return (
     <div>
+
       <Dropdown
-        style={{minWidth: "15rem"}}
+        style={{ minWidth: '15rem' }}
         placeholder="Select a Modifier"
         value={selectedModifierOption}
         options={generateDropdownOptions()}
         onChange={handleSelectChange}
       />
-
-      {isAddingNewOption && (
+      { (isEditing || isAddingNewModifier) ? (
+        <Button onClick={handleCancel} label="Cancel" severity="help" raised />
+      ):
+      (
+        <Button severity="danger" raised  onClick={handleDeleteModifier} disabled={!selectedModifierOption}>
+          Delete
+        </Button>
+      )}
+      {isAddingNewModifier ? (
         <div>
-          <InputText value={newOption} onChange={handleNewOptionChange} />
-          <Button onClick={handleAddOption}>Add</Button>
+          <InputText value={newModifier} onChange={handleModifierLabelChange} />
+          <Button onClick={handleAddModifiers}>Add</Button>
+        </div>
+      ) :
+        isEditing ? (
+            <div>
+              <InputText value={newModifier} onChange={handleModifierLabelChange} />
+              <Button severity="secondary" onClick={handleSaveEdit}>Save</Button>
+            </div>
+          ) : (
+        <div className="d-flex justify-content-between">
+
+          <Button  severity="secondary" onClick={handleEditModifier} disabled={!selectedModifierOption}>
+            Edit
+          </Button>
         </div>
       )}
     </div>

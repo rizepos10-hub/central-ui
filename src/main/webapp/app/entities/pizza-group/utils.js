@@ -26,12 +26,12 @@ export const checkAndFetchPizzaDefinition = (dispatch) => {
 
 
 
-export const addNewRequiredOption = async ( selectedGroupIndex, dispatch, pizzaDefinition, group) => {
+export const addNewRequiredOption = async ( selectedGroupIndex, dispatch, pizzaDefinition, group, order) => {
   const newOption = {
     affectOtherOption: false,
     name: 'default name',
     desc: 'default description',
-    order: null,
+    order,
     definitionType: "BASE",
     modifiers: [],
     dependsOn: [],
@@ -68,66 +68,66 @@ export const emptyGroupValues = () => ({
 
 
 // Combine modifiers for the options that have depends on modifiers
-export const combineModifiers = (currentOption, allOptionsExceptCurrent) => {
-  const combinedModifiers = [];
+// export const combineModifiers = (currentOption, allOptionsExceptCurrent) => {
+//   const combinedModifiers = [];
+//
+//   if (currentOption && currentOption.modifiers) {
+//     currentOption.modifiers.forEach((currentModifier) => {
+//       const combinedModifier = {
+//         ...currentModifier,
+//         modifiedPrices: [...currentModifier?.modifiedPrices || []],
+//       };
+//
+//       if (currentOption.dependsOn && currentOption.dependsOn.length > 0) {
+//         currentOption.dependsOn.forEach((dependencyId) => {
+//           const dependencyOption = allOptionsExceptCurrent.find((opt) => opt.id === dependencyId);
+//
+//           if (dependencyOption && dependencyOption.modifiers) {
+//             dependencyOption.modifiers.forEach((dependentModifier) => {
+//               const combinationLabel = `${currentModifier.label} ${dependentModifier.label}`;
+//               const optionsSelected = {
+//                 [dependencyOption.id]: [dependentModifier.id],
+//               };
+//               const existingCombinedModifierItem = combinedModifier.modifiedPrices.find(
+//                 (existingModifierItem) => deepEqual(existingModifierItem.optionsSelected, optionsSelected)
+//               );
+//
+//               if (!existingCombinedModifierItem) {
+//                 const dependentCombinedModifier = {
+//                   optionsSelected,
+//                   price: 0,
+//                   label: combinationLabel,
+//                 };
+//                 combinedModifier.modifiedPrices.push(dependentCombinedModifier);
+//               } else {
+//                 const updatedModifierItem = {
+//                   ...existingCombinedModifierItem,
+//                   label: combinationLabel,
+//                 };
+//                 combinedModifier.modifiedPrices = combinedModifier.modifiedPrices.map((modifierItem) =>
+//                   deepEqual(modifierItem.optionsSelected,existingCombinedModifierItem.optionsSelected) ? updatedModifierItem : modifierItem
+//                 );
+//               }
+//             });
+//           }
+//         });
+//       }
+//
+//       combinedModifiers.push(combinedModifier);
+//
+//     });
+//   }
 
-  if (currentOption && currentOption.modifiers) {
-    currentOption.modifiers.forEach((currentModifier) => {
-      const combinedModifier = {
-        ...currentModifier,
-        modifiedPrices: [...currentModifier?.modifiedPrices || []],
-      };
-
-      if (currentOption.dependsOn && currentOption.dependsOn.length > 0) {
-        currentOption.dependsOn.forEach((dependencyId) => {
-          const dependencyOption = allOptionsExceptCurrent.find((opt) => opt.id === dependencyId);
-
-          if (dependencyOption && dependencyOption.modifiers) {
-            dependencyOption.modifiers.forEach((dependentModifier) => {
-              const combinationLabel = `${currentModifier.label} ${dependentModifier.label}`;
-              const optionsSelected = {
-                [dependencyOption.id]: [dependentModifier.id],
-              };
-              const existingCombinedModifierItem = combinedModifier.modifiedPrices.find(
-                (existingModifierItem) => deepEqual(existingModifierItem.optionsSelected, optionsSelected)
-              );
-
-              if (!existingCombinedModifierItem) {
-                const dependentCombinedModifier = {
-                  optionsSelected,
-                  price: 0,
-                  label: combinationLabel,
-                };
-                combinedModifier.modifiedPrices.push(dependentCombinedModifier);
-              } else {
-                const updatedModifierItem = {
-                  ...existingCombinedModifierItem,
-                  label: combinationLabel,
-                };
-                combinedModifier.modifiedPrices = combinedModifier.modifiedPrices.map((modifierItem) =>
-                  deepEqual(modifierItem.optionsSelected,existingCombinedModifierItem.optionsSelected) ? updatedModifierItem : modifierItem
-                );
-              }
-            });
-          }
-        });
-      }
-
-      combinedModifiers.push(combinedModifier);
-
-    });
-  }
-
-
-
-  return combinedModifiers;
-};
-
-
+//
+//
+//   return combinedModifiers;
+// };
 
 
 
-const deepEqual = (obj1, obj2) => {
+
+
+export const areObjectsEqual = (obj1, obj2) => {
   const keys1 = Object.keys(obj1);
   const keys2 = Object.keys(obj2);
 
@@ -140,7 +140,7 @@ const deepEqual = (obj1, obj2) => {
     const val2 = obj2[key];
 
     if (typeof val1 === 'object' && typeof val2 === 'object') {
-      if (!deepEqual(val1, val2)) {
+      if (!areObjectsEqual(val1, val2)) {
         return false;
       }
     } else if (val1 !== val2) {
@@ -149,4 +149,20 @@ const deepEqual = (obj1, obj2) => {
   }
 
   return true;
+};
+
+
+
+export const generateDependencyOptions = (dependsOn, allOptionsExceptCurrent) => {
+  const allDependencyOptions = [];
+
+  dependsOn.forEach((depOption) => {
+    const dependencyOptions = allOptionsExceptCurrent
+      .filter((opt) => depOption === opt.id)
+      .map((opt) => ({...opt, label: opt.name, value: opt.id }));
+
+    allDependencyOptions.push(...dependencyOptions);
+  });
+
+  return allDependencyOptions;
 };

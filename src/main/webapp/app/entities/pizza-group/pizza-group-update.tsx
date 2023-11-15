@@ -8,6 +8,8 @@ import {
 } from 'reactstrap';
 import { InputText } from "primereact/inputtext";
 import { TabMenu } from "primereact/tabmenu";
+import {Button as PrimeButton} from 'primereact/button'
+
 import {TabPanel, TabView} from "primereact/tabview";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {
@@ -132,15 +134,18 @@ const PizzaGroupUpdate = () => {
 
 
   const handleDeleteGroup = () => {
-    const updatedGroups = deleteGroup(groups, selectedGroupIndex);
+    const confirmDelete = window.confirm("Are you sure you want to delete this group?");
 
-    setSelectedGroupIndex(updatedGroups.length > 0 ? 0 : null);
+    if (confirmDelete) {
+      const updatedGroups = deleteGroup(groups, selectedGroupIndex);
 
-    setGroups(updatedGroups);
+      setSelectedGroupIndex(updatedGroups.length > 0 ? 0 : null);
 
-    dispatch(deleteDefinitionGroup({groupId: group.id, id: pizzaDefinition.id}));
+      setGroups(updatedGroups);
+
+      dispatch(deleteDefinitionGroup({ groupId: group.id, id: pizzaDefinition.id }));
+    }
   };
-
 
 
   const handleButtonAdd = (optionType) => {
@@ -157,11 +162,12 @@ const PizzaGroupUpdate = () => {
   };
 
   const handleAddNewRequiredOption = async () => {
-      const updatedGroups = await addNewRequiredOption( selectedGroupIndex, dispatch, pizzaDefinition, group);
+      const order = groups[selectedGroupIndex]?.options?.length + 1
+      const updatedGroups = await addNewRequiredOption( selectedGroupIndex, dispatch, pizzaDefinition, group, order);
       setGroups(updatedGroups);
-
-
   };
+
+  console.log(groups, 'groupsgroups')
 
   const handleAddNewOptionalOption = () => {
     const newOption = {
@@ -288,22 +294,7 @@ const PizzaGroupUpdate = () => {
                   </p>
                 </PopoverBody>
               </Popover>
-              {isAddingGroup && (
-                <>
-                  <InputText
-                  type="text"
-                  className="mb-1"
-                  placeholder="Enter Group Name"
-                  value={newGroup.name}
-                  onChange={(e) => handleNewGroupChange('name', e.target.value)}/>
-                  <button
-                    className="btn btn-primary ml-2 mb-1"
-                    onClick={addNewGroup}
-                  >
-                    Add Group
-                  </button>
-                </>
-              )}
+
             </Col>
             <Row>
             </Row>
@@ -314,9 +305,23 @@ const PizzaGroupUpdate = () => {
 
             </div>
             <Col xs="12" style={{ minHeight: '20rem' }}>
-              <h2>Options</h2>
+
 
               {isAddingGroup && (
+
+                  <>
+                    <InputText
+                      type="text"
+                      className="mb-1"
+                      placeholder="Enter Group Name"
+                      value={newGroup.name}
+                      onChange={(e) => handleNewGroupChange('name', e.target.value)}/>
+                    <PrimeButton
+                      className="btn btn-primary ml-2 mb-1"
+                      onClick={addNewGroup}
+                    >
+                      Add Group
+                    </PrimeButton>
                 <InputText
                   type="text"
                   className="mb-1"
@@ -324,9 +329,12 @@ const PizzaGroupUpdate = () => {
                   value={newGroup.desc}
                   onChange={(e) => handleNewGroupChange('desc', e.target.value)}
                 />
+                    </>
               )}
               {selectedGroupIndex !== null && (
-                <><h4 contentEditable
+                <>
+                  <h2>Options</h2>
+                  <h4 contentEditable
                       style={{outlineColor: '#eee189',  userSelect: 'text'}}
                       onInput={(e) => {
                         setNewGroup({...newGroup, desc: e.currentTarget.innerText});
