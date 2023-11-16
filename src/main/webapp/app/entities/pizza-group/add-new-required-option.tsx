@@ -17,6 +17,8 @@ import numbers = _default.defaults.animations.numbers;
 import {TabPanel, TabView } from 'primereact/tabview';
 import {cloneDeep} from "lodash";
 import {Button as PrimeButton} from 'primereact/button'
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faTrash} from "@fortawesome/free-solid-svg-icons/faTrash";
 
 interface NewRequiredOption {
   id: string | null;
@@ -59,7 +61,6 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
   const [newOption, setNewOption] = useState<NewRequiredOption>();
 
 
-
   const [showPricesModal, setShowPricesModal] = useState(false);
   const [dirtyState,setDirtyState] = useState(false)
 
@@ -73,13 +74,9 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
   const [addedModifiedItem, setAddedModifiedItem] = useState<any>(null)
   const [showModifiersOptions, setShowModifiersOptions] = useState(false)
 
-  const [selectedOptions, setSelectedOptions] = useState([]);
   const [selectedModifiersForModifiedPrices, setSelectedModifiersForModifiedPrices] = useState([]);
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
 
-  const handleOptionsSelectChange = (selectedOptionsFromSelect) => {
-    setSelectedOptions(selectedOptionsFromSelect);
-
-  };
 
   const handleModifiersSelectChange = (optionId, selectedModifiersFromSelect) => {
     setSelectedModifiersForModifiedPrices((prev) => {
@@ -89,7 +86,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
         newModifiersState[optionId] = [];
       }
 
-      newModifiersState[optionId] = selectedModifiersFromSelect.map((selectedModifier) =>  ({id:selectedModifier.value, label: selectedModifier.label}));
+      newModifiersState[optionId] = Array(selectedModifiersFromSelect).map((selectedModifier) =>  ({id:selectedModifier.value, label: selectedModifier.label}));
 
       const modifierLabels = Object.values(newModifiersState).flatMap((labelsArray) => labelsArray.map((labelObject) => labelObject.label));
 
@@ -122,34 +119,55 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
 
   const updateNewOptionModifiers = () => {
 
+
+
+    const dependsOnOptionsIncluded = newOption.dependsOn.every((dependsOnOptionId) =>
+      // eslint-disable-next-line no-prototype-builtins
+      addedModifiedItem.optionsSelected?.hasOwnProperty(dependsOnOptionId)
+    );
+
+    if (!dependsOnOptionsIncluded) {
+      alert("Not all dependsOn options are included in the new combination!");
+      return;
+    }
+
     setNewOption((prevOption) => {
       const updatedOption = { ...prevOption };
 
-      updatedOption.modifiers = updatedOption.modifiers.map((modifier) => {
-        const updatedModifier = { ...modifier };
-
-        updatedModifier.modifiedPrices = [...modifier.modifiedPrices];
-
-        const isItemExists = updatedModifier.modifiedPrices.some((item) => {
-
-          return areObjectsEqual(item?.optionsSelected,addedModifiedItem?.optionsSelected);
-        });
-
-        if (!isItemExists) {
-          updatedModifier.modifiedPrices.push(addedModifiedItem);
-          setShowModifiersOptions(prev => !prev)
+      const updatedModifiers = updatedOption.modifiers.map((modifier, index) => {
+        if (index === activeTabIndex) {
+          return {
+            ...modifier,
+            modifiedPrices: [...modifier.modifiedPrices],
+          };
         } else {
-          alert("Item already exists!");
+          return modifier;
         }
-        return updatedModifier;
       });
-      setAddedModifiedItem(null)
+
+      const exists = updatedModifiers[activeTabIndex].modifiedPrices.some((item) =>
+        areObjectsEqual(item?.optionsSelected, addedModifiedItem?.optionsSelected)
+      );
+      console.log(updatedModifiers, 'updatedModifiers')
+      console.log(addedModifiedItem, 'updatedModifiers')
 
 
+
+      if (!exists) {
+        updatedModifiers[activeTabIndex].modifiedPrices.push(addedModifiedItem);
+        setAddedModifiedItem(null);
+        setSelectedModifiersForModifiedPrices(null)
+        setShowModifiersOptions((prev) => !prev);
+      }else {
+        alert("Item already exists!")
+      }
+      updatedOption.modifiers = updatedModifiers;
       return updatedOption;
     });
-
   };
+
+
+
 
 
 
@@ -272,14 +290,37 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     });
   };
 
+  const handleDeleteCombination = (modifierIndex, combinedIndex) => {
 
-  const handleAddModifier = (newModifierLabel) => {
+    const isConfirmed = window.confirm("Are you sure you want to delete this combination?");
+    if(isConfirmed){
+      setNewOption((prevOption) => {
+        const updatedOption = { ...prevOption };
+        const updatedModifiers = [...updatedOption.modifiers];
+
+        const updatedModifier = { ...updatedModifiers[modifierIndex] };
+        const updatedModifiedPrices = [...updatedModifier.modifiedPrices];
+
+        updatedModifiedPrices.splice(combinedIndex, 1);
+
+        updatedModifier.modifiedPrices = updatedModifiedPrices;
+
+        updatedModifiers[modifierIndex] = updatedModifier;
+
+        updatedOption.modifiers = updatedModifiers;
+
+        return updatedOption;
+      });
+    }
+  };
+
+  const handleAddModifier = (newModifier) => {
     setNewOption((prevOption) => ({
       ...prevOption,
       modifiers: [
         ...prevOption.modifiers,
         {
-          label: newModifierLabel,
+          label: newModifier.label,
             defaultPrice: 0,
           modifiedPrices: [],
         },
@@ -387,18 +428,15 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
             {newOption?.dependsOn?.length > 0 &&
               <div className="d-flex justify-content-end">
                 <Button color={`${!showModifiersOptions ? 'primary' : 'danger'}`} onClick={handleShowModifiersOptions}>
-                  {showModifiersOptions? 'X' : 'Add Modifiers'}
+                  {showModifiersOptions? 'X' : 'Add Modified Prices'}
                   </Button>
               </div>
             }
             {showModifiersOptions &&
               <div className="d-flex flex-column gap-3 mt-3">
-                <Select options={generateDependencyOptions(newOption?.dependsOn, allOptionsExceptCurrent)}
-                        onChange={(selectedOptions) => handleOptionsSelectChange(selectedOptions)}
-                        isMulti={true}
-                        value={selectedOptions}/>
+
                 <div className="d-flex flex-column justify-content-start gap-3 mb-4 ">
-                  {selectedOptions.map((selectedOption, index) => (
+                  {generateDependencyOptions(newOption?.dependsOn, allOptionsExceptCurrent).map((selectedOption, index) => (
                     <div key={index}>
                       Modifier(s) {index + 1}
                       {selectedOption.modifiers && (
@@ -406,10 +444,9 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
                           key={`modifiers-${index}`}
                           options={selectedOption.modifiers.map((modifier) => ({...modifier, value: modifier.id}))}
                           onChange={(selectedModifiers) => handleModifiersSelectChange(selectedOption.id, selectedModifiers)}
-                          isMulti={true}
-                          value={selectedOption.modifiers?.filter((modifier) =>
-                            selectedModifiersForModifiedPrices[selectedOption.id]?.some((selectedModifier) => modifier.id === selectedModifier.id)
-                          ).map(mdf => ({...mdf, value: mdf.id})) || []}
+                          // value={selectedOption.modifiers?.filter((modifier) =>
+                          //   selectedModifiersForModifiedPrices[selectedOption.id]?.some((selectedModifier) => modifier.id === selectedModifier.id)
+                          // ).map(mdf => ({...mdf, value: mdf.id})) || []}
                         />
                       )}
                     </div>
@@ -420,7 +457,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
               <PrimeButton className="my-3" onClick={updateNewOptionModifiers}>
                 Add New Dependent Modifier
               </PrimeButton>}
-            <TabView >
+            <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)} >
 
               { newOption?.modifiers?.map((modifier, index) => {
                 console.log(modifier, 'modifiermodifier');
@@ -439,17 +476,24 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
                       <tr>
                         <th>Label</th>
                         <th>Price</th>
+                        <th>Action</th>
                       </tr>
                       </thead>
                       <tbody>
                       {modifier?.modifiedPrices?.map((combinedItem: any, combinedIndex) => (
                         <tr key={combinedIndex}>
-                          <td>{modifier.label} ({combinedItem.label})</td>
+                          <td>{combinedItem.label}</td>
                           <td>
                             <InputNumber
                               value={combinedItem.price}
                               onChange={(e) => handleCombinationPriceChange(index, combinedIndex, e.value)}
                             />
+                          </td>
+                          <td>
+                            <Button color="danger" onClick={() => handleDeleteCombination(index, combinedIndex)}>
+                              <FontAwesomeIcon onClick={() => handleDeleteCombination(index, combinedIndex)}  border={false} icon={faTrash} />
+                            </Button>
+
                           </td>
                         </tr>
                       ))}
