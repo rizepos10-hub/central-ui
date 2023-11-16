@@ -22,6 +22,9 @@ import productionCenter from 'app/entities/location/production-center/production
 
 import taxProfiles from 'app/entities/settings/tax-profiles/tax-profile.reducer';
 import businessDetail from 'app/entities/settings/business-details/business-detail.reducer';
+import pizzaGroup from 'app/entities/pizza-group/pizza-group.reducer';
+import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
+
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
 const entitiesReducers = {
@@ -45,7 +48,10 @@ const entitiesReducers = {
   voidReasons,
   printer,
   printingProfiles,
-  productionCenter
+  productionCenter,
+  pizzaGroup,
+  itemDefinitions
+
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };
 

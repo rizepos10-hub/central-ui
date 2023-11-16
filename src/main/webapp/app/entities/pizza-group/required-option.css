@@ -1,0 +1,86 @@
+
+.option-name {
+  font-size: 1em;
+  color: #323232;
+  box-sizing: border-box;
+  font-family: proxima-nova;
+  font-weight: 600;
+  margin-top: 0;
+  line-height: 1;
+  display: table-cell;
+  width: 40%;
+  padding-bottom: 0;
+  padding-right: 16px;
+  text-align: left;
+  vertical-align: middle;
+  outline-color: #eee189;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 4px;
+  font-style: italic;
+  font-weight: 400;
+  color: #9c9c9c;
+  outline-color: #eee189;
+
+
+}
+
+.select-container {
+  font-size: 1rem;
+  position: relative;
+  z-index: 5;
+  line-height: 1;
+  text-align: left;
+}
+
+.options-container {
+  position: absolute;
+  top: 39px;
+  width: 100%;
+  max-height: 184px;
+  overflow: auto;
+  margin-top: -1px;
+  border: 1px solid #e0e0e0;
+  border-top-width: 0;
+  border-radius: 0 0 2px 2px;
+  display: none;
+  transition: ui;
+}
+
+.options-container.visible {
+  display: block;
+}
+
+.option {
+  min-height: 40px;
+  padding: 12px;
+  color: #323232;
+  font-weight: 400;
+  border-top: 1px solid #e0e0e0;
+  cursor: pointer;
+  user-select: none;
+  transition: ui;
+}
+
+.option:hover {
+  background-color: #fac140;
+}
+
+.select-option {
+  position: relative;
+  z-index: 11;
+  padding: 12px;
+  padding-right: 32px;
+  height: 40px;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+  color: #616161;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  user-select: none;
+  transition: ui;
+}
