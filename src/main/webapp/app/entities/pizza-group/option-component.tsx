@@ -52,10 +52,11 @@ interface NewRequiredOptionModalProps {
   option
   onOptionDelete
   onOptionSave
-  groups
+  groups,
+  optionRef
 }
 
-const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupId, pizzaDefinition,option,onOptionDelete,onOptionSave,groups }) => {
+const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupId, pizzaDefinition,option,onOptionDelete,onOptionSave,groups,optionRef }) => {
 
   const dispatch = useAppDispatch()
   const [newOption, setNewOption] = useState<NewRequiredOption>();
@@ -64,7 +65,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
   const [showPricesModal, setShowPricesModal] = useState(false);
   const [dirtyState,setDirtyState] = useState(false)
 
-  const [selectedModifierOption, setSelectedModifierOption]  = useState('');
+  const [selectedModifierFromOption, setSelectedModifierFromOption]  = useState('');
   const [isUpdating,setIsUpdating] = useState(false)
   const allOptionsExceptCurrent = groups
     .flatMap(group => group.options?.filter(option => option.id !== newOption?.id)).filter(opt => opt.affectOtherOption === true);
@@ -76,7 +77,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
 
   const [selectedModifiersForModifiedPrices, setSelectedModifiersForModifiedPrices] = useState([]);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
-
+  const [discard, setDiscard] = useState(false)
 
   const handleModifiersSelectChange = (optionId, selectedModifiersFromSelect) => {
     setSelectedModifiersForModifiedPrices((prev) => {
@@ -192,6 +193,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
 
     if ( option) {
       setNewOption(option);
+      setDiscard(false)
     }
 
 
@@ -200,13 +202,17 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
 
 
 
-  }, [isUpdating,option]);
+  }, [isUpdating,option,discard]);
 
     console.log(newOption, 'optionoption')
   console.log(allOptionsExceptCurrent, 'allOptionsExceptCurrent')
 
 
 
+  const handleDiscard = () => {
+      setDiscard(true)
+    setSelectedModifierFromOption(null)
+  };
 
 
   const handleSave = async () => {
@@ -314,13 +320,13 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     }
   };
 
-  const handleAddModifier = (newModifier) => {
+  const handleAddModifier = (newModifierLabel) => {
     setNewOption((prevOption) => ({
       ...prevOption,
       modifiers: [
         ...prevOption.modifiers,
         {
-          label: newModifier.label,
+          label: newModifierLabel,
             defaultPrice: 0,
           modifiedPrices: [],
         },
@@ -328,9 +334,9 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     }));
   };
 
-  const handleDeleteModifier = (modifierLabelId) => {
+  const handleDeleteModifier = (modifierToDelete) => {
     setNewOption((prevOption) => {
-      const updatedModifiers = prevOption.modifiers.filter((modifier) => modifier.id !== modifierLabelId);
+      const updatedModifiers = prevOption.modifiers.filter((modifier) => modifier.id !== modifierToDelete.id);
 
       return {
         ...prevOption,
@@ -391,7 +397,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
  ;
 
   return (
-    <>
+    <div ref={optionRef}>
       <Col md="12">
       <div className="d-flex flex-column gap-2">
         <Row>
@@ -406,12 +412,13 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
           </Col>
           <Col md="6" className="d-flex flex-row gap-5">
          <CustomCreatableSelect
-           selectedModifierOption={selectedModifierOption}
-           setSelectedModifierOption={setSelectedModifierOption}
+           selectedModifierFromOption={selectedModifierFromOption}
+           setSelectedModifierFromOption={setSelectedModifierFromOption}
            onAddModifier={handleAddModifier}
-           optionModifiers={option?.modifiers}
+           optionModifiers={newOption?.modifiers}
            onDeleteModifier={handleDeleteModifier}
            onEditModifier={handleEditModifier}
+           discard={discard}
          />
             <div>
               <PrimeButton  onClick={handleOpenPricesModal}>
@@ -549,14 +556,19 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
         <Button color="danger" disabled={isUpdating} onClick={handleDelete}>
           Delete
         </Button>
+
         {dirtyState &&   (
-          <Button color="primary" disabled={isUpdating} onClick={handleSave}>
+          <>
+            <Button color="secondary" disabled={isUpdating} onClick={handleDiscard}>
+            Discard
+          </Button><Button color="primary" disabled={isUpdating} onClick={handleSave}>
             Save
           </Button>
+          </>
         )}
 
       </div>
-    </>
+    </div>
   );
 };
 
