@@ -1,24 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { Dropdown } from 'primereact/dropdown';
-import { InputText } from 'primereact/inputtext';
-import { Button } from 'primereact/button';
-
-const CustomSelect = ({ optionModifiers, onAddModifier, onDeleteModifier, onEditModifier, selectedModifierOption, setSelectedModifierOption }) => {
-  const modifiersOptions = optionModifiers.map((mdf) => ({ label: mdf.label, value: mdf.id }));
-  const [modifiers, setModifiers] = useState(modifiersOptions || []);
-  const [newModifier, setNewModifier] = useState('');
+import "./required-option.css"
+import {Button} from "primereact/button";
+import {InputText} from "primereact/inputtext";
+import {faTrash} from "@fortawesome/free-solid-svg-icons/faTrash";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faPencilAlt} from "@fortawesome/free-solid-svg-icons/faPencilAlt";
+const CustomSelect = ({
+                        optionModifiers,
+                        onAddModifier,
+                        onDeleteModifier,
+                        onEditModifier,
+                        selectedModifierFromOption,
+                        setSelectedModifierFromOption,
+  discard
+                      }) => {
+  const modifiersOptions = optionModifiers?.map((mdf) => ({ ...mdf, label: mdf.label, value: mdf.id, name: mdf.label }));
+  const [modifiers, setModifiers] = useState(  []);
+  const [newModifierLabel, setNewModifierLabel] = useState('');
+  const [showModifiers, setShowModifiers] = useState(false)
   const [isAddingNewModifier, setIsAddingNewModifier] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const generateDropdownOptions = () => {
-    return [...modifiers, { label: '+', value: '+' }];
-  };
 
-  const handleSelectChange = (e) => {
-    const selectedOption = e.target.value;
 
-    setSelectedModifierOption(selectedOption);
 
-    if (selectedOption === '+') {
+
+
+  useEffect(() => {
+    console.log("hereeee")
+    setModifiers(() => ([
+      ...modifiersOptions || [], {label: '+', value: '+'}
+    ]))
+  },[discard,optionModifiers])
+
+  const handleSelectChange = (selectedOption) => {
+    setSelectedModifierFromOption(selectedOption);
+console.log(selectedOption, 'selectedOption')
+    if (selectedOption.value === '+') {
       setIsAddingNewModifier(true);
     } else {
       setIsAddingNewModifier(false);
@@ -26,83 +43,97 @@ const CustomSelect = ({ optionModifiers, onAddModifier, onDeleteModifier, onEdit
   };
 
   const handleModifierLabelChange = (e) => {
-    setNewModifier(e.target.value);
+    const newLabel = e.target.value
+    setNewModifierLabel(newLabel)
+
   };
 
   const handleAddModifiers = () => {
-    if (newModifier.trim() === '') {
+    if (newModifierLabel.trim() === '') {
       alert('Please enter your new modifiers');
       return;
     }
-    setModifiers([...modifiers, { label: newModifier, value: newModifier }]);
-    onAddModifier({ label: newModifier, value: newModifier });
-    setNewModifier('');
-    setSelectedModifierOption(newModifier);
+
+    setModifiers([...modifiers, { label: newModifierLabel, value: newModifierLabel }]);
+    onAddModifier(newModifierLabel);
+    setNewModifierLabel('');
+    setSelectedModifierFromOption({label: newModifierLabel});
     setIsAddingNewModifier(false);
   };
 
-  const handleDeleteModifier = () => {
-    const updatedModifiers = modifiers.filter((modifier) => modifier.value !== selectedModifierOption);
+  const handleDeleteModifier = (deletedModifier) => {
+    const updatedModifiers = modifiers.filter((modifier) => modifier.value !== deletedModifier.value);
     setModifiers(updatedModifiers);
-    setIsEditing(false)
-    onDeleteModifier(selectedModifierOption);
-    setSelectedModifierOption('');
+    setIsEditing(false);
+    onDeleteModifier(deletedModifier);
+    setSelectedModifierFromOption('');
   };
 
   const handleEditModifier = () => {
-    setIsEditing(true);
-  };
-  const handleSaveEdit = () => {
-    const updatedModifiers = modifiers.map((modifier) => modifier.value === selectedModifierOption ? {...modifier, label: newModifier} : modifier)
-    setModifiers(updatedModifiers)
-    setIsEditing(false);
-    onEditModifier({ oldModifierId: selectedModifierOption, newLabel: newModifier });
-    setSelectedModifierOption(newModifier);
-    setNewModifier('');
+    setNewModifierLabel(selectedModifierFromOption.label)
+    setIsEditing(prev => !prev);
   };
 
-  const handleCancel = () => {
-    setIsEditing(false)
-    setIsAddingNewModifier(false)
-  }
+  const handleSaveEdit = () => {
+    const updatedModifiers = modifiers.map((modifier) =>
+      modifier.value === selectedModifierFromOption.value ? { ...modifier, label: newModifierLabel } : modifier
+    );
+    setModifiers(updatedModifiers);
+    setIsEditing(false);
+    onEditModifier({ oldModifierId: selectedModifierFromOption.value, newLabel: newModifierLabel });
+    setSelectedModifierFromOption((prev) => ({...prev, label:newModifierLabel}));
+    setNewModifierLabel('');
+  };
+
+
 
   return (
-    <div>
 
-      <Dropdown
-        style={{ minWidth: '15rem' }}
-        placeholder="Select a Modifier"
-        value={selectedModifierOption}
-        options={generateDropdownOptions()}
-        onChange={handleSelectChange}
-      />
-      { (isEditing || isAddingNewModifier) ? (
-        <Button onClick={handleCancel} label="Cancel" severity="help" raised />
-      ):
-      (
-        <Button severity="danger" raised  onClick={handleDeleteModifier} disabled={!selectedModifierOption}>
-          Delete
-        </Button>
-      )}
-      {isAddingNewModifier ? (
-        <div>
-          <InputText value={newModifier} onChange={handleModifierLabelChange} />
-          <Button onClick={handleAddModifiers}>Add</Button>
+    <div style={{ minWidth: '20rem', display: 'flex', flexDirection: `${isAddingNewModifier? 'column' : 'row'}` }}  >
+
+      {!isEditing && <div className="select-container"  onClick={() => setShowModifiers(prev => !prev)}>
+        <div tabIndex={0} className="select-option">
+          {selectedModifierFromOption?.label || "Select Modifier..."}
         </div>
-      ) :
-        isEditing ? (
-            <div>
-              <InputText value={newModifier} onChange={handleModifierLabelChange} />
-              <Button severity="secondary" onClick={handleSaveEdit}>Save</Button>
+        <div className="options-container" style={{display: showModifiers ? 'block' : 'none'}}  onBlur={() => setShowModifiers(false)}>
+          {modifiers?.map((modifier) => (
+            <div key={modifier.value} onClick={() => handleSelectChange(modifier)} tabIndex={0} className="option">
+              {modifier.label}
+              {modifier.label !== '+' &&
+                <Button style={{padding: 'revert'}} severity="danger" onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteModifier(modifier)
+                }}>
+                  X
+                </Button>}
             </div>
-          ) : (
-        <div className="d-flex justify-content-between">
+          ))}
+        </div>
+      </div>}
 
-          <Button  severity="secondary" onClick={handleEditModifier} disabled={!selectedModifierOption}>
-            Edit
-          </Button>
+      {isEditing && (
+        <div className="p-inputgroup">
+          <InputText value={newModifierLabel} onChange={handleModifierLabelChange} />
+          <Button onClick={handleSaveEdit}>Confirm</Button>
         </div>
       )}
+      {selectedModifierFromOption && selectedModifierFromOption.label !== '+' &&
+        <div className="mx-2">
+          <Button severity={"secondary"} style={{marginTop: `${!isEditing ? '5px': ''}`}} onClick={handleEditModifier}>
+            {isEditing ? "Cancel" : <FontAwesomeIcon  icon={faPencilAlt}/>}
+          </Button>
+        </div>}
+
+      {isAddingNewModifier && (
+        <div className="w-full my-3">
+          <div className="d-flex gap-2">
+            <InputText value={newModifierLabel} onChange={handleModifierLabelChange} />
+            <Button onClick={handleAddModifiers}>Add Modifier</Button>
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 };

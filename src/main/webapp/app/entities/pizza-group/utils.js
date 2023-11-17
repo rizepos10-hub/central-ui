@@ -26,7 +26,7 @@ export const checkAndFetchPizzaDefinition = (dispatch) => {
 
 
 
-export const addNewRequiredOption = async ( selectedGroupIndex, dispatch, pizzaDefinition, group, order) => {
+export const addNewOption = async ( selectedGroupIndex, dispatch, pizzaDefinition, group, order) => {
   const newOption = {
     affectOtherOption: false,
     name: 'default name',

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Container,
   Row,
@@ -21,11 +21,11 @@ import {
   getEntityByType
 } from "app/entities/item-definitions/item-definitions.reducer";
 import {
-  addNewRequiredOption,
+  addNewOption,
   checkAndFetchPizzaDefinition,
   createDefinitions, deleteGroup, emptyGroupValues
 } from "app/entities/pizza-group/utils";
-import NewRequiredOptionInputs from "app/entities/pizza-group/add-new-required-option";
+import OptionComponent from "app/entities/pizza-group/option-component";
 import NewOptionalOptionInputs from "app/entities/pizza-group/add-new-optional-option";
 
 const PizzaGroupUpdate = () => {
@@ -35,18 +35,18 @@ const PizzaGroupUpdate = () => {
 
 
 
-
+  const newOptionRef = useRef(null);
   const itemDefinitions = useAppSelector(state => state.itemDefinitions.entities)
   const pizzaDefinition = itemDefinitions.find(item => item.definitionType === "PIZZA")
   const pizzaDefinitionLoading = useAppSelector(state => state.itemDefinitions.loading)
 
   const updateSuccess = useAppSelector(state => state.itemDefinitions.updateSuccess)
+  const isUpdating = useAppSelector(state => state.itemDefinitions.updating)
 
 
   console.log(pizzaDefinition, 'pizzaDefinition')
   const [groups, setGroups] = useState([]);
   const [selectedGroupIndex, setSelectedGroupIndex] = useState(null);
-  const [popoverOpen, setPopoverOpen] = useState(false);
   const [newGroup, setNewGroup] = useState(emptyGroupValues);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -63,7 +63,7 @@ const PizzaGroupUpdate = () => {
     if (pizzaDefinition?.groups?.length > 0) {
       console.log("helloworld");
       setGroups(pizzaDefinition?.groups);
-      // setSelectedGroupIndex(0)
+      setSelectedGroupIndex(0)
     }
   }, [pizzaDefinition]);
 
@@ -148,44 +148,31 @@ const PizzaGroupUpdate = () => {
   };
 
 
-  const handleButtonAdd = (optionType) => {
+  const handleButtonAdd = () => {
     if (selectedGroupIndex === null){
       alert("please select a group first")
       return
     }
-    if (optionType === 'required-option') {
-      handleAddNewRequiredOption();
-    }
-    else if (optionType === 'optional-option') {
-      handleAddNewOptionalOption();
-    }
+    handleAddNewOption();
+
   };
 
-  const handleAddNewRequiredOption = async () => {
+  const handleAddNewOption = async () => {
       const order = groups[selectedGroupIndex]?.options?.length + 1
-      const updatedGroups = await addNewRequiredOption( selectedGroupIndex, dispatch, pizzaDefinition, group, order);
+      const updatedGroups = await addNewOption( selectedGroupIndex, dispatch, pizzaDefinition, group, order);
       setGroups(updatedGroups);
+
+      setTimeout(() => {
+      if (newOptionRef.current) {
+        newOptionRef.current.scrollIntoView({  behavior: "smooth", block: "start", inline: "nearest"});
+      }
+    }, 100);
+
   };
 
   console.log(groups, 'groupsgroups')
 
-  const handleAddNewOptionalOption = () => {
-    const newOption = {
-      affectOtherOption: false,
-      name: 'default name',
-      desc: 'default description',
-      order: null,
-      definitionType: "TOPPING",
-      modifiers: [],
-      dependsOn: [],
-    }
 
-
-
-
-    dispatch(createDefinitionGroupOption({ option: newOption, id: pizzaDefinition.id, groupId: group.id }))
-
-  };
 
   const handleOptionDelete = (deletedOptionId) => {
     setGroups((prevGroups) => {
@@ -238,7 +225,10 @@ const PizzaGroupUpdate = () => {
           <Row>
             {groups.length > 0 && (
               <Col md="8">
-                <TabView  activeIndex={selectedGroupIndex} scrollable onTabChange={(e) => handleTabChange(e)}>
+                <TabView  activeIndex={selectedGroupIndex} scrollable onTabChange={(e) => {
+                  handleTabChange(e)
+                  isAddingGroup && setIsAddingGroup(false)
+                }}>
                   {groups.map((tab, index) => (
                     <TabPanel key={index}
                               header={<div style={{ outlineColor: '#eee189', userSelect: 'text' }} contentEditable
@@ -251,25 +241,17 @@ const PizzaGroupUpdate = () => {
                 </TabView>
               </Col>
             )}
-
             <Col md='4' >
-
-
                   <button
                     className="btn btn-primary ml-2 mb-1"
                     onClick={handleAddNewGroupInputs}
                   >
                     +
                   </button>
-                  <Button color="primary" id="addOption" onClick={() => setPopoverOpen(!popoverOpen)} className="ml-2">
-                    Add Option
-                  </Button>
-
 
               {isDirty && <Button color="success" className="mx-2" onClick={handleSaveGroup}>
                 Save
               </Button>}
-
               {selectedGroupIndex !== null && <Button
                 color="danger"
                 className="ml-2"
@@ -277,23 +259,7 @@ const PizzaGroupUpdate = () => {
               >
                 Delete Group
               </Button>}
-              <Popover isOpen={popoverOpen} target="addOption" toggle={() => setPopoverOpen(!popoverOpen)}>
-                <PopoverHeader>Add Button</PopoverHeader>
-                <PopoverBody>
-                  <p onClick={() => {
-                    handleButtonAdd('required-option')
-                    setPopoverOpen(false)
-                  }} className="p-2" style={{ cursor: 'pointer' }}>
-                    Required Option
-                  </p>
-                  <p onClick={() => {
-                    handleButtonAdd('optional-option')
-                    setPopoverOpen(false)
-                  }} className="p-2" style={{ cursor: 'pointer' }}>
-                    Optional Option
-                  </p>
-                </PopoverBody>
-              </Popover>
+
 
             </Col>
             <Row>
@@ -309,19 +275,15 @@ const PizzaGroupUpdate = () => {
 
               {isAddingGroup && (
 
-                  <>
+                  <div className="d-flex flex-column w-3">
                     <InputText
                       type="text"
                       className="mb-1"
                       placeholder="Enter Group Name"
                       value={newGroup.name}
                       onChange={(e) => handleNewGroupChange('name', e.target.value)}/>
-                    <PrimeButton
-                      className="btn btn-primary ml-2 mb-1"
-                      onClick={addNewGroup}
-                    >
-                      Add Group
-                    </PrimeButton>
+                    <div className="d-flex">
+
                 <InputText
                   type="text"
                   className="mb-1"
@@ -329,11 +291,26 @@ const PizzaGroupUpdate = () => {
                   value={newGroup.desc}
                   onChange={(e) => handleNewGroupChange('desc', e.target.value)}
                 />
-                    </>
+                    <PrimeButton
+                      className="btn btn-primary ml-2 mb-1"
+                      onClick={addNewGroup}
+                    >
+                      Add Group
+                    </PrimeButton>
+                    </div>
+                    </div>
               )}
               {selectedGroupIndex !== null && (
                 <>
-                  <h2>Options</h2>
+                  <div className="d-flex gap-3">
+                    <h2>Options</h2>
+                    <div>
+                      <Button color="primary" id="addOption" disabled={isUpdating} onClick={handleButtonAdd} className="ml-2">
+                        Add Option
+                      </Button>
+                    </div>
+
+                  </div>
                   <h4 contentEditable
                       style={{outlineColor: '#eee189',  userSelect: 'text'}}
                       onInput={(e) => {
@@ -345,7 +322,8 @@ const PizzaGroupUpdate = () => {
                   <div className="d-flex flex-column gap-3">
                     {groups[selectedGroupIndex]?.options?.map((option, index) => (
                       <React.Fragment key={option.id}>
-                        <NewRequiredOptionInputs
+                        <OptionComponent
+                          optionRef={index === groups[selectedGroupIndex]?.options?.length - 1 ? newOptionRef : null}
                           option={option}
                           pizzaDefinition={pizzaDefinition}
                           groupId={group.id}
