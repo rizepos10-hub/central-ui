@@ -181,3 +181,24 @@ export const generateDependencyOptions = (dependsOn, allOptionsExceptCurrent) =>
 
   return allDependencyOptions;
 };
+
+
+export const getModifierNames = (optionsSelected,allOptionsExceptCurrent) => {
+  const modifierNamesMap = {};
+
+  Object.keys(optionsSelected).forEach((optionId) => {
+    const modifierIds = optionsSelected[optionId];
+    const option = allOptionsExceptCurrent.find((opt) => opt.id === optionId);
+
+    if (option) {
+      modifierIds.forEach((modifierId) => {
+        const modifier = option.modifiers.find((mod) => mod.id === modifierId);
+        if (modifier) {
+          modifierNamesMap[modifierId] = modifier.label;
+        }
+      });
+    }
+  });
+
+  return modifierNamesMap;
+};
