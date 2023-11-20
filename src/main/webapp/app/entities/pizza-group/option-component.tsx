@@ -1,21 +1,17 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Modal, ModalBody, ModalFooter, ModalHeader, Input, Label, Col, Row, Table} from 'reactstrap';
-import {InputText} from "primereact/inputtext";
+import {Button, Modal, ModalBody, ModalFooter, ModalHeader, Label, Col, Row, Table} from 'reactstrap';
 import {InputNumber} from "primereact/inputnumber";
 import {Checkbox} from "primereact/checkbox";
 import './required-option.css';
 import CustomCreatableSelect from "app/entities/pizza-group/custome-select";
 import Select from "react-select";
-import {useAppDispatch, useAppSelector} from "app/config/store";
+import {useAppDispatch} from "app/config/store";
 import {
   deleteDefinitionGroupOption,
   editDefinitionGroupOption
 } from "app/entities/item-definitions/item-definitions.reducer";
 import {areObjectsEqual, generateDependencyOptions} from "app/entities/pizza-group/utils";
-import _default from "chart.js/dist/plugins/plugin.tooltip";
-import numbers = _default.defaults.animations.numbers;
 import {TabPanel, TabView } from 'primereact/tabview';
-import {cloneDeep} from "lodash";
 import {Button as PrimeButton} from 'primereact/button'
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTrash} from "@fortawesome/free-solid-svg-icons/faTrash";
@@ -37,6 +33,7 @@ interface Modifier {
   label: string;
   defaultPrice: number;
   modifiedPrices: any[];
+  definitionType: string
 }
 
 
@@ -72,12 +69,15 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
 
  const dependsOnOptions = allOptionsExceptCurrent.map(opt => ({label: opt?.name, value: opt?.id}))
 
+  const toppingAreaModifiers = newOption?.modifiers.filter(mdf => mdf.definitionType === 'TOPPING_AREA')
+
   const [addedModifiedItem, setAddedModifiedItem] = useState<any>(null)
   const [showModifiersOptions, setShowModifiersOptions] = useState(false)
 
   const [selectedModifiersForModifiedPrices, setSelectedModifiersForModifiedPrices] = useState([]);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [discard, setDiscard] = useState(false)
+
 
   const handleModifiersSelectChange = (optionId, selectedModifiersFromSelect) => {
     setSelectedModifiersForModifiedPrices((prev) => {
@@ -135,7 +135,8 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     setNewOption((prevOption) => {
       const updatedOption = { ...prevOption };
 
-      const updatedModifiers = updatedOption.modifiers.map((modifier, index) => {
+
+      const updatedModifiers = updatedOption.modifiers.filter(mdf => mdf.definitionType !== 'TOPPING_AREA')?.map((modifier, index) => {
         if (index === activeTabIndex) {
           return {
             ...modifier,
@@ -245,7 +246,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     setNewOption((prevOption) => {
       if (!prevOption) return null;
 
-      const updatedModifiers = prevOption?.modifiers.map((modifier, index) => {
+      const updatedModifiers = prevOption?.modifiers?.filter(mdf => mdf.definitionType !== 'TOPPING_AREA')?.map((modifier, index) => {
         if (index === modifierIndex) {
           return {
             ...modifier,
@@ -267,7 +268,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     setNewOption((prevOption) => {
       if (!prevOption) return null;
 
-      const updatedModifiers = (prevOption?.modifiers || []).map((modifier, index) => {
+      const updatedModifiers = (prevOption?.modifiers?.filter(mdf => mdf.definitionType !== 'TOPPING_AREA') || []).map((modifier, index) => {
         if (index === modifierIndex) {
           const updatedCombinationPrices = (modifier.modifiedPrices || []).map(
             (combination, comboIndex) => {
@@ -329,6 +330,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
           label: newModifierLabel,
             defaultPrice: 0,
           modifiedPrices: [],
+          definitionType: 'BASE'
         },
       ],
     }));
@@ -402,16 +404,31 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
       <div className="d-flex flex-column gap-2">
         <Row>
           <Col md={"3"}>
-        <div contentEditable  suppressContentEditableWarning={true} className="option-name"
+        <div contentEditable   suppressContentEditableWarning={true} className="option-name cursor-pointer"
              onInput={(e) => setNewOption({ ...newOption, name: e.currentTarget.innerText })}>
           {option?.name}
         </div>
-            <span contentEditable className="subtitle" onInput={(e) => setNewOption({ ...newOption, desc: e.currentTarget.innerText })}>
+            <span contentEditable className="subtitle cursor-pointer" onInput={(e) => setNewOption({ ...newOption, desc: e.currentTarget.innerText })}>
               {option.desc}
             </span>
           </Col>
-          <Col md="6" className="d-flex flex-row gap-5">
-         <CustomCreatableSelect
+          <Col md="8" className="d-flex flex-row gap-5">
+            <div>
+
+            {toppingAreaModifiers?.length > 0 && (
+              <><label>Topping Area Modifiers:</label>
+                <ul>
+                  {toppingAreaModifiers.map((mdf, index) => (
+                    <li key={index}>{mdf.label}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+      </div>
+
+          <div className="d-flex flex-column ml-8">
+            Modifiers
+            <CustomCreatableSelect
            selectedModifierFromOption={selectedModifierFromOption}
            setSelectedModifierFromOption={setSelectedModifierFromOption}
            onAddModifier={handleAddModifier}
@@ -420,8 +437,9 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
            onEditModifier={handleEditModifier}
            discard={discard}
          />
+          </div>
             <div>
-              <PrimeButton  onClick={handleOpenPricesModal}>
+              <PrimeButton className="mt-4" onClick={handleOpenPricesModal}>
                 Set Prices
               </PrimeButton>
             </div>
@@ -466,7 +484,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
               </PrimeButton>}
             <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)} >
 
-              { newOption?.modifiers?.map((modifier, index) => {
+              { newOption?.modifiers?.filter(mdf => mdf.definitionType !== 'TOPPING_AREA')?.map((modifier, index) => {
                 console.log(modifier, 'modifiermodifier');
                 return (
                   <TabPanel key={index} header={modifier.label}>

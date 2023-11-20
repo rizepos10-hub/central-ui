@@ -22,6 +22,7 @@
       "id": "ID",
       "name": "Name",
       "desc": "Desc",
+      "type": "Type",
       "accountingGroups": "Accounting Group",
       "productionCenter": "Production Center",
       "orderCount": "Order Count",
