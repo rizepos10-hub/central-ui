@@ -529,7 +529,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
                                 value={combinedItem.price}
                                 onChange={(e) => handleCombinationPriceChange(index, combinedIndex, e.value)}
                                 mode="decimal"
-                                minFractionDigits={1}
+                                maxFractionDigits={4}
                               />
                             </td>
                             <td>
