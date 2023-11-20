@@ -10,7 +10,7 @@ import {
   deleteDefinitionGroupOption,
   editDefinitionGroupOption
 } from "app/entities/item-definitions/item-definitions.reducer";
-import {areObjectsEqual, generateDependencyOptions} from "app/entities/pizza-group/utils";
+import {areObjectsEqual, generateDependencyOptions, getModifierNames} from "app/entities/pizza-group/utils";
 import {TabPanel, TabView } from 'primereact/tabview';
 import {Button as PrimeButton} from 'primereact/button'
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -271,33 +271,24 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     setNewOption((prevOption) => {
       if (!prevOption) return null;
 
-      const toppingAreaModifiersList = prevOption?.modifiers.filter(mdf => mdf.definitionType === "TOPPING_AREA")
-      const updatedModifiers = (prevOption?.modifiers?.filter(mdf => mdf.definitionType !== 'TOPPING_AREA') || []).map((modifier, index) => {
-        if (index === modifierIndex) {
-          const updatedCombinationPrices = (modifier.modifiedPrices || []).map(
-            (combination, comboIndex) => {
-              if (comboIndex === combinationIndex) {
-                return {
-                  ...combination,
-                  price: newPrice,
-                };
-              }
-              return combination;
-            }
-          );
+      const { modifiers } = prevOption;
 
-          return {
-            ...modifier,
-            modifiedPrices: updatedCombinationPrices,
-          };
+      const updatedModifiers = modifiers.map((modifier, index) => {
+        if (index === modifierIndex && modifier.definitionType !== 'TOPPING_AREA') {
+          const { modifiedPrices } = modifier;
+          const updatedCombinationPrices = modifiedPrices.map((combination, comboIndex) => {
+            if (comboIndex === combinationIndex) {
+              return { ...combination, price: newPrice };
+            }
+            return combination;
+          });
+
+          return { ...modifier, modifiedPrices: updatedCombinationPrices };
         }
         return modifier;
       });
 
-      return {
-        ...prevOption,
-        modifiers: [...updatedModifiers, ...toppingAreaModifiersList],
-      };
+      return { ...prevOption, modifiers: updatedModifiers };
     });
   };
 
@@ -376,7 +367,12 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
 
 
   const handleOpenPricesModal = () => {
+    if(newOption?.modifiers?.filter(mdf => mdf.definitionType !== 'TOPPING_AREA')?.length <= 0){
+      alert("Please add modifiers first")
+      return
+    }
     setShowPricesModal(true);
+
   };
 
 
@@ -400,7 +396,6 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     setShowModifiersOptions((prev) => !prev)
   }
 
- ;
 
   return (
     <div ref={optionRef}>
@@ -443,9 +438,9 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
          />
           </div>
             <div>
-              <PrimeButton className="mt-4" onClick={handleOpenPricesModal}>
+              {<PrimeButton className="mt-4" onClick={handleOpenPricesModal}>
                 Set Prices
-              </PrimeButton>
+              </PrimeButton>}
             </div>
           </Col>
         </Row>
@@ -509,23 +504,28 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
                       </tr>
                       </thead>
                       <tbody>
-                      {modifier?.modifiedPrices?.map((combinedItem: any, combinedIndex) => (
-                        <tr key={combinedIndex}>
-                          <td>{combinedItem.label}</td>
-                          <td>
-                            <InputNumber
-                              value={combinedItem.price}
-                              onChange={(e) => handleCombinationPriceChange(index, combinedIndex, e.value)}
-                            />
-                          </td>
-                          <td>
-                            <Button color="danger" onClick={() => handleDeleteCombination(index, combinedIndex)}>
-                              <FontAwesomeIcon onClick={() => handleDeleteCombination(index, combinedIndex)}  border={false} icon={faTrash} />
-                            </Button>
+                      {modifier?.modifiedPrices?.map((combinedItem: any, combinedIndex) => {
+                        const modifiedLabel = getModifierNames(combinedItem.optionsSelected, allOptionsExceptCurrent)
+                        return (
+                          <tr key={combinedIndex}>
+                            <td>
+                              {Object.values(modifiedLabel).join(', ')}
+                            </td>
+                            <td>
+                              <InputNumber
+                                value={combinedItem.price}
+                                onChange={(e) => handleCombinationPriceChange(index, combinedIndex, e.value)}
+                              />
+                            </td>
+                            <td>
+                              <Button color="danger" onClick={() => handleDeleteCombination(index, combinedIndex)}>
+                                <FontAwesomeIcon onClick={() => handleDeleteCombination(index, combinedIndex)}
+                                                 border={false} icon={faTrash}/>
+                              </Button>
 
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                          </tr>)
+                      })}
                       </tbody>
                     </Table>}
                   </TabPanel>
