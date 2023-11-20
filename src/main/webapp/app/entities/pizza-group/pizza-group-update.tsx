@@ -50,6 +50,8 @@ const PizzaGroupUpdate = () => {
   const [newGroup, setNewGroup] = useState(emptyGroupValues);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
 
 
   useEffect(() => {
@@ -148,19 +150,20 @@ const PizzaGroupUpdate = () => {
   };
 
 
-  const handleButtonAdd = () => {
+  const handleButtonAdd = (type) => {
     if (selectedGroupIndex === null){
       alert("please select a group first")
       return
     }
-    handleAddNewOption();
+    handleAddNewOption(type);
 
   };
 
-  const handleAddNewOption = async () => {
+  const handleAddNewOption = async (type) => {
       const order = groups[selectedGroupIndex]?.options?.length + 1
-      const updatedGroups = await addNewOption( selectedGroupIndex, dispatch, pizzaDefinition, group, order);
+      const updatedGroups = await addNewOption( selectedGroupIndex, dispatch, pizzaDefinition, group, order, type);
       setGroups(updatedGroups);
+
 
       setTimeout(() => {
       if (newOptionRef.current) {
@@ -218,7 +221,7 @@ const PizzaGroupUpdate = () => {
 
 
   return (
-    <Container>
+    <Row>
       <h1>Pizza Definitions</h1>
       <Card>
         <CardBody>
@@ -302,28 +305,69 @@ const PizzaGroupUpdate = () => {
               )}
               {selectedGroupIndex !== null && (
                 <>
-                  <div className="d-flex gap-3">
-                    <h2>Options</h2>
+                  <div className="d-flex gap-3 mb-4">
+                    <h2 contentEditable
+                        className="cursor-pointer"
+                        style={{outlineColor: '#eee189',  userSelect: 'text'}}
+                        onInput={(e) => {
+                          setNewGroup({...newGroup, desc: e.currentTarget.innerText});
+                          setIsDirty(true);
+                        }}>
+                      {groups[selectedGroupIndex]?.desc || 'default group description'}
+                    </h2>
                     <div>
-                      <Button color="primary" id="addOption" disabled={isUpdating} onClick={handleButtonAdd} className="ml-2">
+                      <Button color="primary" id="addOption" disabled={isUpdating} onClick={() => setPopoverOpen(prev => !prev)} className="ml-2">
                         Add Option
                       </Button>
+                      <Popover isOpen={popoverOpen} target="addOption" toggle={() => setPopoverOpen(!popoverOpen)}>
+                        <PopoverHeader>Add Button</PopoverHeader>
+                        <PopoverBody>
+                          <p onClick={() => {
+                            handleButtonAdd('BASE')
+                            setPopoverOpen(false)
+                          }} className="p-2" style={{ cursor: 'pointer' }}>
+                            Base Option
+                          </p>
+                          <p onClick={() => {
+                            handleButtonAdd('TOPPING')
+                            setPopoverOpen(false)
+                          }} className="p-2" style={{ cursor: 'pointer' }}>
+                            Topping Option
+                          </p>
+                        </PopoverBody>
+                      </Popover>
                     </div>
 
                   </div>
-                  <h4 contentEditable
-                      style={{outlineColor: '#eee189',  userSelect: 'text'}}
-                      onInput={(e) => {
-                        setNewGroup({...newGroup, desc: e.currentTarget.innerText});
-                        setIsDirty(true);
-                      }}>
-                  {groups[selectedGroupIndex]?.desc || 'default group description'}
-                </h4>
+
                   <div className="d-flex flex-column gap-3">
-                    {groups[selectedGroupIndex]?.options?.map((option, index) => (
+                    <h3>Base Options</h3>
+                    {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'BASE').map((option, index) => (
                       <React.Fragment key={option.id}>
                         <OptionComponent
-                          optionRef={index === groups[selectedGroupIndex]?.options?.length - 1 ? newOptionRef : null}
+                          optionRef={index === groups[selectedGroupIndex]?.options.filter(opt => opt.definitionType === 'BASE')?.length - 1 ? newOptionRef : null}
+                          option={option}
+                          pizzaDefinition={pizzaDefinition}
+                          groupId={group.id}
+                          groups={groups}
+                          onOptionDelete={handleOptionDelete}
+                          onOptionSave={handleSaveUpdatedOption}/>
+                        {index < groups[selectedGroupIndex]?.options?.length - 2 && (
+                          <hr className="my-5 border border-dark"/>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+
+
+                  <hr className="my-9" style={{ height: '2px', border: '1px solid #f00' }} />
+
+                  <div className="d-flex flex-column gap-3 mt-5">
+                    <h3>Topping Options</h3>
+                    {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'TOPPING').map((option, index) => (
+                      <React.Fragment key={option.id}>
+                        <OptionComponent
+                          optionRef={index === groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'TOPPING').length - 1 ? newOptionRef : null}
                           option={option}
                           pizzaDefinition={pizzaDefinition}
                           groupId={group.id}
@@ -391,7 +435,7 @@ const PizzaGroupUpdate = () => {
       {/*   onClose={() =>  setShowOptionInputs((prev) => ({...prev, optionalOption: false}))} */}
       {/*   onSave={handleSaveNewOption} */}
       {/* /> */}
-    </Container>
+    </Row>
   );
 };
 

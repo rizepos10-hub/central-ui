@@ -26,18 +26,91 @@ export const checkAndFetchPizzaDefinition = (dispatch) => {
 
 
 
-export const addNewOption = async ( selectedGroupIndex, dispatch, pizzaDefinition, group, order) => {
-  const newOption = {
+
+export const addNewOption = async ( selectedGroupIndex, dispatch, pizzaDefinition, group, order, type) => {
+
+  const newToppingOption = {
+    name: "default name",
+    desc: 'default description',
+    definitionType: type,
+    affectOtherOption: false,
+    required: false,
+    icon: null,
+    builderImage: null,
+    order,
+    dependsOn: [
+    ],
+    modifiers: [
+      {
+        defaultPrice: 0.0,
+        modifiedPrices: [
+        ],
+        definitionType: "TOPPING_AREA",
+        defaultSelected: false,
+        visibleOn: null,
+        label: "LEFT"
+      },
+      {
+        defaultPrice: 0.0,
+        modifiedPrices: [
+        ],
+        definitionType: "TOPPING_AREA",
+        defaultSelected: false,
+        visibleOn: null,
+        label: "RIGHT"
+      },
+      {
+        defaultPrice: 0.0,
+        modifiedPrices: [
+        ],
+        definitionType: "TOPPING_AREA",
+        defaultSelected: false,
+        visibleOn: null,
+        label: "FULL"
+      },
+      {
+        defaultPrice: 0.0,
+        modifiedPrices: [
+        ],
+        definitionType: "TOPPING_SIZE",
+        defaultSelected: false,
+        visibleOn: null,
+        label: "0.5x"
+      },
+      {
+        defaultPrice: 0.0,
+        modifiedPrices: [
+        ],
+        definitionType: "TOPPING_SIZE",
+        defaultSelected: false,
+        visibleOn: null,
+        label: "1x"
+      },
+      {
+        defaultPrice: 0.0,
+        modifiedPrices: [
+        ],
+        definitionType: "TOPPING_SIZE",
+        defaultSelected: false,
+        visibleOn: null,
+        label: "2x"
+      }
+    ]
+  }
+  const newBaseOption = {
     affectOtherOption: false,
     name: 'default name',
     desc: 'default description',
     order,
-    definitionType: "BASE",
+    icon: null,
+    builderImage: null,
+    definitionType: type,
     modifiers: [],
     dependsOn: [],
   };
 
-  const res  = await dispatch(createDefinitionGroupOption({ option: newOption, id: pizzaDefinition.id, groupId: group.id }))
+
+  const res  = await dispatch(createDefinitionGroupOption({ option: type === "BASE" ? newBaseOption : newToppingOption, id: pizzaDefinition.id, groupId: group.id }))
 
   const updatedGroups = res?.payload?.data?.groups;
 
@@ -65,64 +138,6 @@ export const emptyGroupValues = () => ({
   requiredOptions: [],
   optionalOptions: [],
 });
-
-
-// Combine modifiers for the options that have depends on modifiers
-// export const combineModifiers = (currentOption, allOptionsExceptCurrent) => {
-//   const combinedModifiers = [];
-//
-//   if (currentOption && currentOption.modifiers) {
-//     currentOption.modifiers.forEach((currentModifier) => {
-//       const combinedModifier = {
-//         ...currentModifier,
-//         modifiedPrices: [...currentModifier?.modifiedPrices || []],
-//       };
-//
-//       if (currentOption.dependsOn && currentOption.dependsOn.length > 0) {
-//         currentOption.dependsOn.forEach((dependencyId) => {
-//           const dependencyOption = allOptionsExceptCurrent.find((opt) => opt.id === dependencyId);
-//
-//           if (dependencyOption && dependencyOption.modifiers) {
-//             dependencyOption.modifiers.forEach((dependentModifier) => {
-//               const combinationLabel = `${currentModifier.label} ${dependentModifier.label}`;
-//               const optionsSelected = {
-//                 [dependencyOption.id]: [dependentModifier.id],
-//               };
-//               const existingCombinedModifierItem = combinedModifier.modifiedPrices.find(
-//                 (existingModifierItem) => deepEqual(existingModifierItem.optionsSelected, optionsSelected)
-//               );
-//
-//               if (!existingCombinedModifierItem) {
-//                 const dependentCombinedModifier = {
-//                   optionsSelected,
-//                   price: 0,
-//                   label: combinationLabel,
-//                 };
-//                 combinedModifier.modifiedPrices.push(dependentCombinedModifier);
-//               } else {
-//                 const updatedModifierItem = {
-//                   ...existingCombinedModifierItem,
-//                   label: combinationLabel,
-//                 };
-//                 combinedModifier.modifiedPrices = combinedModifier.modifiedPrices.map((modifierItem) =>
-//                   deepEqual(modifierItem.optionsSelected,existingCombinedModifierItem.optionsSelected) ? updatedModifierItem : modifierItem
-//                 );
-//               }
-//             });
-//           }
-//         });
-//       }
-//
-//       combinedModifiers.push(combinedModifier);
-//
-//     });
-//   }
-
-//
-//
-//   return combinedModifiers;
-// };
-
 
 
 

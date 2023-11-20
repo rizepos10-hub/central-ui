@@ -14,7 +14,7 @@ const CustomSelect = ({
                         setSelectedModifierFromOption,
   discard
                       }) => {
-  const modifiersOptions = optionModifiers?.map((mdf) => ({ ...mdf, label: mdf.label, value: mdf.id, name: mdf.label }));
+  const modifiersOptions = optionModifiers?.filter(mdf => mdf.definitionType !== 'TOPPING_AREA')?.map((mdf) => ({ ...mdf, label: mdf.label, value: mdf.id, name: mdf.label }));
   const [modifiers, setModifiers] = useState(  []);
   const [newModifierLabel, setNewModifierLabel] = useState('');
   const [showModifiers, setShowModifiers] = useState(false)
@@ -90,7 +90,6 @@ console.log(selectedOption, 'selectedOption')
   return (
 
     <div style={{ minWidth: '20rem', display: 'flex', flexDirection: `${isAddingNewModifier? 'column' : 'row'}` }}  >
-
       {!isEditing && <div className="select-container"  onClick={() => setShowModifiers(prev => !prev)}>
         <div tabIndex={0} className="select-option">
           {selectedModifierFromOption?.label || "Select Modifier..."}
