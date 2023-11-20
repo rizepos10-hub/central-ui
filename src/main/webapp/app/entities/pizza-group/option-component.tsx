@@ -136,6 +136,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
       const updatedOption = { ...prevOption };
 
 
+      const toppingAreaModifiersList = updatedOption?.modifiers.filter(mdf => mdf.definitionType === "TOPPING_AREA")
       const updatedModifiers = updatedOption.modifiers.filter(mdf => mdf.definitionType !== 'TOPPING_AREA')?.map((modifier, index) => {
         if (index === activeTabIndex) {
           return {
@@ -163,7 +164,8 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
       }else {
         alert("Item already exists!")
       }
-      updatedOption.modifiers = updatedModifiers;
+      updatedOption.modifiers = [...updatedModifiers, ...toppingAreaModifiersList];
+      console.log(updatedOption.modifiers, 'updatedOption.modifiers')
       return updatedOption;
     });
   };
@@ -246,6 +248,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     setNewOption((prevOption) => {
       if (!prevOption) return null;
 
+      const toppingAreaModifiersList = prevOption?.modifiers.filter(mdf => mdf.definitionType === "TOPPING_AREA")
       const updatedModifiers = prevOption?.modifiers?.filter(mdf => mdf.definitionType !== 'TOPPING_AREA')?.map((modifier, index) => {
         if (index === modifierIndex) {
           return {
@@ -258,7 +261,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
 
       return {
         ...prevOption,
-        modifiers: updatedModifiers,
+        modifiers: [...updatedModifiers, ...toppingAreaModifiersList],
       };
     });
   };
@@ -268,6 +271,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     setNewOption((prevOption) => {
       if (!prevOption) return null;
 
+      const toppingAreaModifiersList = prevOption?.modifiers.filter(mdf => mdf.definitionType === "TOPPING_AREA")
       const updatedModifiers = (prevOption?.modifiers?.filter(mdf => mdf.definitionType !== 'TOPPING_AREA') || []).map((modifier, index) => {
         if (index === modifierIndex) {
           const updatedCombinationPrices = (modifier.modifiedPrices || []).map(
@@ -292,7 +296,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
 
       return {
         ...prevOption,
-        modifiers: updatedModifiers,
+        modifiers: [...updatedModifiers, ...toppingAreaModifiersList],
       };
     });
   };
