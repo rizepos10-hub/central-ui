@@ -271,24 +271,33 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     setNewOption((prevOption) => {
       if (!prevOption) return null;
 
-      const { modifiers } = prevOption;
-
-      const updatedModifiers = modifiers.map((modifier, index) => {
-        if (index === modifierIndex && modifier.definitionType !== 'TOPPING_AREA') {
-          const { modifiedPrices } = modifier;
-          const updatedCombinationPrices = modifiedPrices.map((combination, comboIndex) => {
-            if (comboIndex === combinationIndex) {
-              return { ...combination, price: newPrice };
+      const toppingAreaModifiersList = prevOption?.modifiers.filter(mdf => mdf.definitionType === "TOPPING_AREA")
+      const updatedModifiers = (prevOption?.modifiers?.filter(mdf => mdf.definitionType !== 'TOPPING_AREA') || []).map((modifier, index) => {
+        if (index === modifierIndex) {
+          const updatedCombinationPrices = (modifier.modifiedPrices || []).map(
+            (combination, comboIndex) => {
+              if (comboIndex === combinationIndex) {
+                return {
+                  ...combination,
+                  price: newPrice,
+                };
+              }
+              return combination;
             }
-            return combination;
-          });
+          );
 
-          return { ...modifier, modifiedPrices: updatedCombinationPrices };
+          return {
+            ...modifier,
+            modifiedPrices: updatedCombinationPrices,
+          };
         }
         return modifier;
       });
 
-      return { ...prevOption, modifiers: updatedModifiers };
+      return {
+        ...prevOption,
+        modifiers: [...updatedModifiers, ...toppingAreaModifiersList],
+      };
     });
   };
 
