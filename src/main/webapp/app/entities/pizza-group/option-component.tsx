@@ -499,10 +499,14 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
                     <div>
                       <Label for={`defaultPrice${index}`}>Default Price:</Label>
                       <InputNumber
+
                         id={`defaultPrice${index}`}
                         value={modifier?.defaultPrice}
                         onChange={(e) => handleDefaultPriceChange(index, e.value)}
+                        mode="decimal"
+                        maxFractionDigits={4}
                       />
+
                     </div>
                     {modifier?.modifiedPrices?.length > 0 && <Table>
                       <thead>
@@ -524,6 +528,8 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
                               <InputNumber
                                 value={combinedItem.price}
                                 onChange={(e) => handleCombinationPriceChange(index, combinedIndex, e.value)}
+                                mode="decimal"
+                                minFractionDigits={1}
                               />
                             </td>
                             <td>

@@ -352,7 +352,7 @@ const PizzaGroupUpdate = () => {
                           groups={groups}
                           onOptionDelete={handleOptionDelete}
                           onOptionSave={handleSaveUpdatedOption}/>
-                        {index < groups[selectedGroupIndex]?.options?.length - 2 && (
+                        {index < groups[selectedGroupIndex]?.options?.length - 1 && (
                           <hr className="my-5 border border-dark"/>
                         )}
                       </React.Fragment>
