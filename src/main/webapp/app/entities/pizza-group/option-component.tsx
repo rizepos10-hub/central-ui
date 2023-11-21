@@ -15,8 +15,11 @@ import {TabPanel, TabView } from 'primereact/tabview';
 import {Button as PrimeButton} from 'primereact/button'
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTrash} from "@fortawesome/free-solid-svg-icons/faTrash";
+import {AttachmentType} from "app/shared/model/enumerations/attachment-type.model";
+import {IAttachment} from "app/shared/model/attachment.model";
+import Attachment from "app/entities/pizza-group/attachment";
 
-interface NewRequiredOption {
+interface newOption {
   id: string | null;
   affectOtherOption: boolean;
   name: string;
@@ -26,6 +29,8 @@ interface NewRequiredOption {
   definitionType: string;
   dependsOn: [];
   required: boolean;
+  icon: IAttachment | null;
+  builderImage: IAttachment | null;
 }
 
 interface Modifier {
@@ -56,11 +61,13 @@ interface NewRequiredOptionModalProps {
 const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupId, pizzaDefinition,option,onOptionDelete,onOptionSave,groups,optionRef }) => {
 
   const dispatch = useAppDispatch()
-  const [newOption, setNewOption] = useState<NewRequiredOption>();
+  const [newOption, setNewOption] = useState<newOption>();
 
 
   const [showPricesModal, setShowPricesModal] = useState(false);
   const [dirtyState,setDirtyState] = useState(false)
+
+  const [selectedAttachments, setSelectedAttachments] = useState([]);
 
   const [selectedModifierFromOption, setSelectedModifierFromOption]  = useState('');
   const [isUpdating,setIsUpdating] = useState(false)
@@ -405,6 +412,21 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
     setShowModifiersOptions((prev) => !prev)
   }
 
+  const removeImage = (field) => {
+    setNewOption(prev => ({
+      ...prev,
+      [field]: null
+    }))
+  }
+
+
+  const addImage = (imageInfo,field) => {
+    setNewOption(prev => ({
+      ...prev,
+      [field]: imageInfo
+    }))
+  }
+
 
   return (
     <div ref={optionRef}>
@@ -529,7 +551,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
                                 value={combinedItem.price}
                                 onChange={(e) => handleCombinationPriceChange(index, combinedIndex, e.value)}
                                 mode="decimal"
-                                minFractionDigits={1}
+                                maxFractionDigits={4}
                               />
                             </td>
                             <td>
@@ -557,8 +579,8 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
 
 
 
-
         <Col md={"3"}>
+
             <div  className="d-flex flex-row mt-3 gap-1">
               <Label for="affectOtherOption">Affect Other Option:</Label>
               <Checkbox
@@ -572,9 +594,20 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
                 onChange={(e) => setNewOption({...newOption, required: e.target.checked})}/>
             </div>
 
+          <div  className="d-flex flex-row mt-3 gap-1">
+            <Attachment
+              image={newOption?.builderImage}
+              onRemoveImage={removeImage}
+              onAddImage={addImage}
+              type={"Builder"}
+            />
+          </div>
+
+
+
           </Col>
 
-            <Col md={"5"} className=" mt-3" >
+            <Col md={"5"} className=" mt-4" >
               <Label for="dependsOn">Depends On:</Label>
 
                 <Select
@@ -585,6 +618,14 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
                   value={getDependsOnValues()}
                   placeholder='Select the options the current option depends on'
                 />
+              <div  className="d-flex flex-row mt-3 gap-1">
+                <Attachment
+                  image={newOption?.icon}
+                  onRemoveImage={removeImage}
+                  onAddImage={addImage}
+                  type={"Icon"}
+                />
+              </div>
             </Col>
       </div>
 

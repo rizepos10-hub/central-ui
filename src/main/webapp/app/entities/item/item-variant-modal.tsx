@@ -35,6 +35,7 @@ import { getItemsForRecipe, getEntities } from './item.reducer';
 import { InputText } from 'primereact/inputtext';
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import Pizza from "app/entities/item/pizza-display/pizza";
 
 interface IVariantProps {
   showModal: boolean;
@@ -1160,7 +1161,9 @@ const ItemVariantModal = (props: IVariantProps) => {
                 </Table>
               </FormGroup>
 
-
+            </Row>
+            <Row>
+              <Pizza />
             </Row>
 
             <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">

@@ -26,7 +26,6 @@ import {
   createDefinitions, deleteGroup, emptyGroupValues
 } from "app/entities/pizza-group/utils";
 import OptionComponent from "app/entities/pizza-group/option-component";
-import NewOptionalOptionInputs from "app/entities/pizza-group/add-new-optional-option";
 
 const PizzaGroupUpdate = () => {
 
@@ -252,7 +251,7 @@ const PizzaGroupUpdate = () => {
                     +
                   </button>
 
-              {isDirty && <Button color="success" className="mx-2" onClick={handleSaveGroup}>
+              {isDirty && <Button  color="primary" className="mx-2" onClick={handleSaveGroup}>
                 Save
               </Button>}
               {selectedGroupIndex !== null && <Button
