@@ -12,28 +12,36 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {
   checkAndFetchPizzaDefinition,
 } from "app/entities/pizza-group/utils";
-import {Dropdown} from "primereact/dropdown";
 import CustomSelectForPizza from "app/entities/item/pizza-display/custom-select-for-modfiers";
+import ToppingOptions from "app/entities/item/pizza-display/topping-options";
+import {Button} from "primereact/button";
 
-const Pizza = () => {
-
+const Pizza = ({selectedModifiersFromOptions, setSelectedModifiersFromOptions}) => {
 
   const dispatch = useAppDispatch()
-
-
-
   const itemDefinitions = useAppSelector(state => state.itemDefinitions.entities)
   const pizzaDefinition = itemDefinitions.find(item => item.definitionType === "PIZZA")
   const pizzaDefinitionLoading = useAppSelector(state => state.itemDefinitions.loading)
 
-  const updateSuccess = useAppSelector(state => state.itemDefinitions.updateSuccess)
-  const isUpdating = useAppSelector(state => state.itemDefinitions.updating)
-
-  const [selectedModifiersFromOptions, setSelectedModifiersFromOptions]  = useState([]);
 
   console.log(pizzaDefinition, 'pizzaDefinition12')
   const [groups, setGroups] = useState([]);
   const [selectedGroupIndex, setSelectedGroupIndex] = useState(null);
+
+  const allOptions = groups.flatMap(group => group.options)
+
+  const optionsMap = allOptions.reduce((map, option) => {
+    map[option.id] = option;
+    return map;
+  }, {});
+
+
+  const optionIds = Object.keys(selectedModifiersFromOptions);
+
+  const retrievedOptionsBuilderUrl = optionIds.map(optionId => optionsMap[optionId].builderImage?.url);
+
+
+
 
 
 
@@ -54,54 +62,72 @@ const Pizza = () => {
   }, [pizzaDefinition]);
 
 
+  console.log(selectedModifiersFromOptions, 'selectedModifiersFromOptions')
+  console.log(allOptions, 'allOptionsallOptions')
 
-  const group = groups[selectedGroupIndex]
 
   const handleTabChange = (e) => {
       setSelectedGroupIndex(e.index);
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  console.log(groups, 'groupsgroups')
-
-
-
-
   if(pizzaDefinitionLoading){
     return <Spinner />
   }
 
-
-
   return (
     <Row>
-      <h1>Pizza Definitions</h1>
-      <Card>
-        <CardBody>
+      <Col md={4}>
+        <div className="d-flex justify-content-center text-4xl" style={{color: '#ffc107'}}>
+          Create A Pizza
+        </div>
+        <div>
+          <div className="position-relative w-full d-block"
+            style={{height: '50vh', maxWidth: '100vw',margin: '1rem auto'}}>
+            <div>
+              {
+                retrievedOptionsBuilderUrl?.map((optionObj, index) => (
+                  <div key={index}
+                       className="position-absolute"
+                       style={{top: 0, left: 0, width: '100%', height: '100%', overflow: 'hidden', zIndex: 2}}>
+
+                    <img
+                         src={optionObj}
+                         alt=""
+                         className="position-absolute"
+                         style={{opacity: 1, height: 'auto',top: 0, left: 0, width: '100%'  }}
+                    />
+
+                    <img
+                      src={optionObj}
+                      alt=""
+                      className="position-absolute"
+                      style={{opacity: 1, height: 'auto',top: 0, left: 0, width: '100%'  }}
+                    />
+
+                  </div>
+
+                ))}
+            </div>
+            <img
+              src="https://assets.gabrielpizza.com/static/img/builder/pizza.png"
+              alt=""
+              className="w-full h-auto"
+            />
+
+          </div>
+        </div>
+      </Col>
+
+      <Col md={8}>
+
 
           <Row>
             {groups.length > 0 && (
-              <Col md="8">
+              <Col md="12">
                 <TabView  activeIndex={selectedGroupIndex} scrollable onTabChange={handleTabChange}>
                   {groups.map((tab, index) => (
                     <TabPanel key={index}
-                              header={<div style={{ outlineColor: '#eee189', userSelect: 'text' }}>
+                              header={<div >
                                 {tab.name}
                               </div>} />
                   ))}
@@ -119,13 +145,12 @@ const Pizza = () => {
               {selectedGroupIndex !== null && (
                 <>
                   <div className="d-flex gap-3 mb-4">
-                    <h4>
-                      {groups[selectedGroupIndex]?.desc || 'default group description'}
-                    </h4>
+                    <h6>
+                      {groups[selectedGroupIndex]?.desc}
+                    </h6>
                   </div>
                   <div className="d-flex flex-column gap-3">
-                    <h3>Base Options</h3>
-                    {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'BASE').map((option) => {
+                    {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'BASE').map((option, index) => {
                       return (
                         <Row key={option.id}>
                           <Col md={"6"}>
@@ -142,35 +167,49 @@ const Pizza = () => {
                                 key={option.id}
                                 selectedModifiersFromOptions={selectedModifiersFromOptions}
                                 setSelectedModifiersFromOptions={setSelectedModifiersFromOptions}
-                                options={option.modifiers}
-                                optionId={option.id}
+                                selectOptions={option.modifiers}
+                                option={option}
+                                check={false}
                               />
                             )}
+
                           </Col>
+                          {index < groups[selectedGroupIndex]?.options?.length - 1 && (
+                            <hr className="my-5 border border-dark"/>
+                          )}
                         </Row>
                       );
                     })}
                   </div>
-                  <hr className="my-9" style={{ height: '2px', border: '1px solid #f00' }} />
-                  <div className="d-flex flex-column gap-3 mt-5">
-                    <h4>Topping Options</h4>
+                  <div className="d-flex gap-3 mb-4">
+                    <h6>
+                      {groups[selectedGroupIndex]?.additionalDesc }
+                    </h6>
+                  </div>
+                  <div className="d-flex flex-wrap  my-5">
                     {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'TOPPING').map((option, index) => (
-                      <React.Fragment key={option.id}>
-                        <Dropdown
-
+                      <div key={option.id} className="col-md-6 mb-8">
+                        <ToppingOptions
+                          key={option.id}
+                          option={option}
+                          selectedModifiersFromOptions={selectedModifiersFromOptions}
+                          setSelectedModifiersFromOptions={setSelectedModifiersFromOptions}
+                          allOptions={allOptions}
                         />
-                        {index < groups[selectedGroupIndex]?.options?.length - 1 && (
-                          <hr className="my-5 border border-dark"/>
-                        )}
-                      </React.Fragment>
+                      </div>
                     ))}
                   </div>
+
                 </>
               )}
             </Col>
           </Row>
-        </CardBody>
-      </Card>
+          {groups[selectedGroupIndex + 1] &&
+            <div className="d-flex justify-content-center">
+            <Button type="button" label={`Add Some ${groups[selectedGroupIndex + 1]?.name}`}
+                    onClick={() => setSelectedGroupIndex(prev => prev + 1)}/>
+          </div>}
+      </Col>
     </Row>
   );
 };

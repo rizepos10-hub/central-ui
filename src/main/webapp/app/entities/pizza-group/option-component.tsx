@@ -72,9 +72,9 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
   const [selectedModifierFromOption, setSelectedModifierFromOption]  = useState('');
   const [isUpdating,setIsUpdating] = useState(false)
   const allOptionsExceptCurrent = groups
-    .flatMap(group => group.options?.filter(option => option.id !== newOption?.id)).filter(opt => opt.affectOtherOption === true);
+    .flatMap(group => group.options?.filter(option => option.id !== newOption?.id)).filter(opt => opt?.affectOtherOption === true);
 
- const dependsOnOptions = allOptionsExceptCurrent.map(opt => ({label: opt?.name, value: opt?.id}))
+   const dependsOnOptions = allOptionsExceptCurrent.map(opt => ({label: opt?.name, value: opt?.id}))
 
   const toppingAreaModifiers = newOption?.modifiers.filter(mdf => mdf.definitionType === 'TOPPING_AREA')
 

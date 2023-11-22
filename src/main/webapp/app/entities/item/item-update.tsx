@@ -360,7 +360,7 @@ export const ItemUpdate = () => {
 
   console.log(editingVariantId, 'editingVariantId');
 
-  const handleSaveVariant = (name, price, discount, addons, variantImage, branchVariantDetails, ingredients, specialPricesValues) => {
+  const handleSaveVariant = (name, price, discount, addons, variantImage, branchVariantDetails, ingredients, specialPricesValues, selectedModifiersFromOptions) => {
     console.log(variants, 'variants new');
 
     const newValues = {
@@ -372,6 +372,7 @@ export const ItemUpdate = () => {
       ingredients: ingredients,
       addons: addons,
       specialPrices: specialPricesValues,
+      options: selectedModifiersFromOptions
     };
     setVariants(prevVariants => [...prevVariants, newValues]);
   };
