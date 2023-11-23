@@ -1,16 +1,68 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import "./welcome.css";
-import {Col, Row} from "reactstrap";
+import { Card } from 'primereact/card';
 import {useLocation} from "react-router-dom";
+import {getBranchesCredentials} from "app/entities/settings/business-details/business-detail.reducer";
+import {useAppDispatch} from "app/config/store";
+import {Dropdown} from "primereact/dropdown";
+import {DataTable} from "primereact/datatable";
+import {Column} from "primereact/column";
+import {CardBody, CardText, CardTitle} from "reactstrap";
+
+
+
 
 export default function Welcome()
 {
+  const dispatch = useAppDispatch()
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
 
   const showWelcome = queryParams.has("welcome");
 
-  console.log(showWelcome,' lol')
+  const findBranch = (branchId) => {
+   const foundBranch = branchesCredentials?.branches?.find(branch => branch.id === branchId) || {}
+
+    return foundBranch.client ? foundBranch.client : {}
+  }
+
+  const [branchesCredentials,setBranchesCredentials] = useState<any>({});
+  const [selectedBranch, setSelectedBRanch] = useState()
+
+  console.log(branchesCredentials, 'branchesCredentials')
+
+  const branchToShow = findBranch(selectedBranch)
+
+
+
+  const data = [
+    {title: 'Apple', url: 'content/images/apple.jpeg', link: 'https://www.apple.com/store'},
+    {title: 'Android', url: 'content/images/android.png', link: 'https://play.google.com/'},
+    {title: 'Windows', url: 'content/images/windows.png', link: 'https://www.apple.com/store'}
+  ]
+
+  useEffect(() => {
+    dispatch(getBranchesCredentials({})).then((res:any) => setBranchesCredentials(res?.payload?.data))
+  },[])
+
+  const CardComponent = ({ imageUrl, link }) => {
+    const header = <img alt="Card Image" src={imageUrl} style={{ height: '10rem' }} />;
+
+    return (
+      <div className="flex justify-content-center">
+        <a href={link} target="_blank" rel="noopener noreferrer" className="card-link">
+          <Card header={header} className="md:w-20rem" />
+        </a>
+      </div>
+    );
+  };
+
+
+
+
+
+
+
 
   return (
     <div className="welcome-container">
@@ -34,17 +86,102 @@ export default function Welcome()
         <div className="step">
           <h2>Step 1</h2>
           <p>
-            In Step 1, you'll embark on a journey towards effortless management of your business. Our Cloud POS system provides you with the power to streamline your transactions, track inventory, and serve your customers with ease. Click below to explore the possibilities:
+            As initial step you need to run the POS  server so the pos clients can connect to the cloud.
+            Please download the setup from the link and run it on  your local server.
           </p>
-          <a href="#">Download Here</a>
+          <a href="#" target={"_blank"} >POS SERVER</a>
 
+          <h4>Credentials</h4>
+          <div className=" d-flex gap-5">
+            <div>
+              Select Branch
+              <Dropdown
+                options={branchesCredentials?.branches?.map(branch => ({value: branch.id, label: branch.name}))}
+                placeholder="Select a branch.."
+                value={selectedBranch}
+                onChange={(e) => setSelectedBRanch(e.value)}
+              />
+            </div>
+
+
+            {branchToShow &&
+              <div className="card">
+              <div className="card-header">
+                <h5>Branch Information</h5>
+              </div>
+              <div className="card-body">
+                <div className="mb-3">
+                  <strong className="mr-3">ID:</strong>
+                  {branchToShow.id}
+                </div>
+                <div className="mb-3">
+                  <strong className="mr-3">Client ID:</strong>
+                  {branchToShow.clientId}
+                </div>
+                <div className="mb-3">
+                  <strong className="mr-3">Name:</strong>
+                  {branchToShow.name}
+                </div>
+                <div className="mb-3">
+                  <strong className="mr-3">Service Secret:</strong>
+                  {branchToShow.serviceSecret}
+                </div>
+                <div className="mb-3">
+                  <strong className="mr-3">Service URL:</strong>
+                  {branchToShow.serviceUrl || 'N/A'}
+                </div>
+                <div className="mb-3">
+                  <strong className="mr-3">Details:</strong>
+                  {branchToShow.details || 'N/A'}
+                </div>
+              </div>
+            </div>
+            }
+
+            {branchesCredentials.brokerConfig &&
+              <div className="card" style={{marginBottom: '2rem'}}>
+              <div className="card-header">
+                <h5>Business Information</h5>
+              </div>
+              <div className="card-body">
+                <div className="mb-3">
+                  <strong className="mr-3">Username:</strong>
+                  {branchesCredentials?.brokerConfig?.users[0]?.username}
+                </div>
+                <div className="mb-3">
+                  <strong className="mr-3">Password:</strong>
+                  {branchesCredentials?.brokerConfig?.users[0]?.password}
+
+                </div>
+                <div className="mb-3">
+                  <strong className="mr-3">Host Name:</strong>
+                  {branchesCredentials?.brokerConfig?.vHostName}
+                </div>
+                <div className="mb-3">
+                  <strong className="mr-3">Service Secret:</strong>
+                  {branchesCredentials?.brokerConfig.topics[0]}
+
+                </div>
+              </div>
+            </div>
+            }
+          </div>
         </div>
+
         <div className="step">
           <h2>Step 2</h2>
           <p>
-            Step 2 takes you to new heights in efficiency. With our cloud-based solution, you can access valuable features such as real-time sales analytics and customer relationship management. Elevate your business operations by clicking the link below:
+            You can download the POS terminal and connect it to your server.
           </p>
-          <a href="#">Learn More</a>
+          <div className="d-flex justify-content-around">
+            {data.map(item => (
+              <CardComponent
+                key={item.title}
+                imageUrl={item.url}
+                link={item.link}
+              />
+            ))}
+          </div>
 
         </div>
       </div>
