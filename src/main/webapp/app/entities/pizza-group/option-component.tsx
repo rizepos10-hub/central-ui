@@ -497,7 +497,7 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
                       {selectedOption.modifiers && (
                         <Select
                           key={`modifiers-${index}`}
-                          options={selectedOption.modifiers.map((modifier) => ({...modifier, value: modifier.id}))}
+                          options={selectedOption.modifiers.filter(mdf => mdf.definitionType !== "TOPPING_AREA").map((modifier) => ({...modifier, value: modifier.id}))}
                           onChange={(selectedModifiers) => handleModifiersSelectChange(selectedOption.id, selectedModifiers)}
                           // value={selectedOption.modifiers?.filter((modifier) =>
                           //   selectedModifiersForModifiedPrices[selectedOption.id]?.some((selectedModifier) => modifier.id === selectedModifier.id)
