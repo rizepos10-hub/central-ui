@@ -62,6 +62,7 @@
   user-select: none;
   transition: ui;
   display: flex;
+  background-color: #ffffff;
   justify-content: space-between;
 }
 

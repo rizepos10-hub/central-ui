@@ -41,7 +41,7 @@ interface IVariantProps {
   showModal: boolean;
   handleClose?: () => void;
   handleSave: (name: string, price: number, discount: any, attachments: any, branchPrices: any, ingredients: any ,
-               selectedVariantAddons: any, specialPrices : any  ) => void;
+               selectedVariantAddons: any, specialPrices : any, selectedModifiersFromOptions: {}  ) => void;
   onVariantImageUpload: any;
   editingVariantId: any;
   variants: any;
@@ -96,7 +96,9 @@ const ItemVariantModal = (props: IVariantProps) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [activeTerm, setActiveTerm] = useState(null);
-  const [selectedItemsForRecipe, setSelectedItemsForRecipe] = useState([]);
+
+  const [selectedModifiersFromOptions, setSelectedModifiersFromOptions]  = useState({});
+
 
   const [variantItems, setVariantItems] = useState([]);
 
@@ -204,23 +206,9 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   console.log(recipeDetails, 'recipeDetails');
 
-  // const handleAddonChange = (itemId, selectedAddons) => {
-  //   setRecipeDetails((prevDetails) => ({
-  //     ...prevDetails,
-  //     [itemId]: {
-  //       ...prevDetails[itemId],
-  //       selectedAddons: selectedAddons,
-  //     },
-  //   }));
-  // };
 
-  const handleRecipeAddItem = () => {
-    if (selectedItems.length > 0) {
-      setSelectedItemsForRecipe(prevItems => [...prevItems, ...selectedItems]);
-    }
-    setModalOpen(false);
-    setSelectedItems([]);
-  };
+
+
   const allItemsPresent = () => {
     return false;
     // return editingVariant.every((item) => variantItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null));
@@ -250,7 +238,8 @@ const ItemVariantModal = (props: IVariantProps) => {
       }
     }
 
-    props.handleSave(name, parseFloat(price), selectedDiscountObjects,selectedVariantAddons, variantImage, branchPrices, ingredients, specialPrices  );
+    props.handleSave(
+      name, parseFloat(price), selectedDiscountObjects,selectedVariantAddons, variantImage, branchPrices, ingredients, specialPrices,selectedModifiersFromOptions);
   };
 
   const {
@@ -331,7 +320,8 @@ const ItemVariantModal = (props: IVariantProps) => {
         addons: selectedAddonsObjects,
         branchVariantDetails: formattedBranchPrices,
         ingredients: formattedIngredients,
-        specialPrices: specialPricesValues
+        specialPrices: specialPricesValues,
+        options: selectedModifiersFromOptions
       };
 
       console.log(formattedBranchPrices, 'formattedBranchPrices')
@@ -350,7 +340,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       } else {
 
        props.handleSave(name, parseFloat(price), selectedDiscountObjects, selectedAddonsObjects,
-         attachmentsToSend, formattedBranchPrices, formattedIngredients, specialPricesValues);
+         attachmentsToSend, formattedBranchPrices, formattedIngredients, specialPricesValues, selectedModifiersFromOptions);
         resetForm();
         setSelectedDiscounts([]);
       }
@@ -456,7 +446,6 @@ const ItemVariantModal = (props: IVariantProps) => {
 
       setIngredients([...ingredients]);
 
-      setSelectedItemsForRecipe((prevItems) => [...prevItems, ...selectedItems]);
       setSelectedItems([]);
       setModalOpen(false);
     }
@@ -481,6 +470,10 @@ const ItemVariantModal = (props: IVariantProps) => {
           value: addon.id
         })))
 
+      }
+
+      if(editingVariant.options){
+        setSelectedModifiersFromOptions(editingVariant.options)
       }
 
       if (editingVariant.specialPrices) {
@@ -1163,7 +1156,15 @@ const ItemVariantModal = (props: IVariantProps) => {
 
             </Row>
             <Row>
-              <Pizza />
+
+              {/* Listing for pizza */}
+              <Pizza
+                selectedModifiersFromOptions={selectedModifiersFromOptions}
+                setSelectedModifiersFromOptions={setSelectedModifiersFromOptions}
+              />
+
+
+
             </Row>
 
             <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">

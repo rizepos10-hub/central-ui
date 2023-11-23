@@ -127,6 +127,9 @@ const PizzaGroupUpdate = () => {
     if (newGroup.desc !== undefined && newGroup.desc.trim() !== '') {
       updatedGroup.desc = newGroup.desc;
     }
+    if (newGroup.additionalDesc !== undefined && newGroup.additionalDesc.trim() !== '') {
+      updatedGroup.additionalDesc = newGroup.additionalDesc;
+    }
     dispatch(editDefinitionGroup({ group: updatedGroup, id: pizzaDefinition.id }));
 
     setIsDirty(false);
@@ -284,14 +287,23 @@ const PizzaGroupUpdate = () => {
                       placeholder="Enter Group Name"
                       value={newGroup.name}
                       onChange={(e) => handleNewGroupChange('name', e.target.value)}/>
+
+                    <InputText
+                      type="text"
+                      className="mb-1"
+                      placeholder="Enter Group Description"
+                      value={newGroup.desc}
+                      onChange={(e) => handleNewGroupChange('desc', e.target.value)}
+                    />
+
                     <div className="d-flex">
 
                 <InputText
                   type="text"
                   className="mb-1"
-                  placeholder="Enter Group Description"
-                  value={newGroup.desc}
-                  onChange={(e) => handleNewGroupChange('desc', e.target.value)}
+                  placeholder="Enter Second Desc"
+                  value={newGroup.additionalDesc}
+                  onChange={(e) => handleNewGroupChange('additionalDesc', e.target.value)}
                 />
                     <PrimeButton
                       className="btn btn-primary ml-2 mb-1"
@@ -340,6 +352,7 @@ const PizzaGroupUpdate = () => {
                   </div>
 
                   <div className="d-flex flex-column gap-3">
+
                     <h3>Base Options</h3>
                     {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'BASE').map((option, index) => (
                       <React.Fragment key={option.id}>
@@ -362,6 +375,15 @@ const PizzaGroupUpdate = () => {
                   <hr className="my-9" style={{ height: '2px', border: '1px solid #f00' }} />
 
                   <div className="d-flex flex-column gap-3 mt-5">
+                    <h2 contentEditable
+                        className="cursor-pointer"
+                        style={{outlineColor: '#eee189',  userSelect: 'text'}}
+                        onInput={(e) => {
+                          setNewGroup({...newGroup, additionalDesc: e.currentTarget.innerText});
+                          setIsDirty(true);
+                        }}>
+                      {groups[selectedGroupIndex]?.additionalDesc || ' Second group description'}
+                    </h2>
                     <h3>Topping Options</h3>
                     {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'TOPPING').map((option, index) => (
                       <React.Fragment key={option.id}>
