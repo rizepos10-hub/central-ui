@@ -167,7 +167,7 @@ function ToppingOptions ({option,selectedModifiersFromOptions,setSelectedModifie
       )}
       <div onClick={toggleSecondSection} className="border" style={{display:"table",cursor:"pointer", width:"100%" }} >
         <div style={{width:"45px", height:"45px",display: "table-cell", border: "px solid #000", padding: "5px"}}>
-          <img style={{width:"40px", height:"40px"}} alt="builder img" src={option?.builderImage?.url}/>
+          <img style={{width:"40px", height:"40px"}} alt="builder img" src={option?.icon?.url}/>
         </div>
         <div style={{display: "table-cell", border: "px solid #000", padding: "5px"}}>
           {option?.name}
