@@ -7,7 +7,8 @@ const CustomSelectForPizza = ({
                                 option,
                                 selectOptions,
                                 optionMinWidth = null,
-                                check = true
+                                check = true,
+                                missingRequiredOptionIds
                       }) => {
   const [showModifiers, setShowModifiers] = useState(false)
 
@@ -51,6 +52,12 @@ const CustomSelectForPizza = ({
   return (
 
     <div style={{ minWidth: `${optionMinWidth ? optionMinWidth : '20 rem'}`, display: 'flex'}}  >
+      <div className="d-flex flex-column">
+      {missingRequiredOptionIds.includes(option.id) && (
+        <div className="alert alert-danger text-sm " role="alert">
+         Please select this required option.
+        </div>
+      )}
       { <div className="select-container"  onClick={() => setShowModifiers(prev => !prev)}>
         <div tabIndex={0} className="select-option">
           {selectedOption ? selectedOption.label : 'Select Modifier...'}
@@ -65,7 +72,7 @@ const CustomSelectForPizza = ({
         </div>
       </div>}
 
-
+      </div>
     </div>
   );
 };

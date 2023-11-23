@@ -27,7 +27,7 @@ const Pizza = ({selectedModifiersFromOptions, setSelectedModifiersFromOptions}) 
   console.log(pizzaDefinition, 'pizzaDefinition12')
   const [groups, setGroups] = useState([]);
   const [selectedGroupIndex, setSelectedGroupIndex] = useState(null);
-
+  const [missingRequiredOptionIds, setMissingRequiredOptionIds] = useState([]);
   const allOptions = groups.flatMap(group => group.options)
 
   const optionsMap = allOptions.reduce((map, option) => {
@@ -38,7 +38,8 @@ const Pizza = ({selectedModifiersFromOptions, setSelectedModifiersFromOptions}) 
 
   const optionIds = Object.keys(selectedModifiersFromOptions);
 
-  const retrievedOptionsBuilderUrl = optionIds.map(optionId => optionsMap[optionId].builderImage?.url);
+  const retrievedOptionsBuilderUrl = optionIds.map(optionId => optionsMap[optionId]?.builderImage?.url);
+
 
 
 
@@ -67,7 +68,19 @@ const Pizza = ({selectedModifiersFromOptions, setSelectedModifiersFromOptions}) 
 
 
   const handleTabChange = (e) => {
-      setSelectedGroupIndex(e.index);
+    const requiredOptions = groups[selectedGroupIndex]?.options?.filter(opt => opt.required);
+
+    const missingOptions = requiredOptions.filter(opt => selectedModifiersFromOptions[opt.id] === undefined);
+
+    console.log(e.index, 'missingOptions')
+
+    if (missingOptions.length === 0) {
+
+      setSelectedGroupIndex( (prev) => e.index >= 0 ? e.index : prev + 1);
+      setMissingRequiredOptionIds([]);
+    } else {
+      setMissingRequiredOptionIds(missingOptions.map(opt => opt.id));
+    }
   };
 
   if(pizzaDefinitionLoading){
@@ -170,6 +183,7 @@ const Pizza = ({selectedModifiersFromOptions, setSelectedModifiersFromOptions}) 
                                 selectOptions={option.modifiers}
                                 option={option}
                                 check={false}
+                                missingRequiredOptionIds={missingRequiredOptionIds}
                               />
                             )}
 
@@ -194,7 +208,7 @@ const Pizza = ({selectedModifiersFromOptions, setSelectedModifiersFromOptions}) 
                           option={option}
                           selectedModifiersFromOptions={selectedModifiersFromOptions}
                           setSelectedModifiersFromOptions={setSelectedModifiersFromOptions}
-                          allOptions={allOptions}
+                          missingRequiredOptionIds={missingRequiredOptionIds}
                         />
                       </div>
                     ))}
@@ -207,7 +221,7 @@ const Pizza = ({selectedModifiersFromOptions, setSelectedModifiersFromOptions}) 
           {groups[selectedGroupIndex + 1] &&
             <div className="d-flex justify-content-center">
             <Button type="button" label={`Add Some ${groups[selectedGroupIndex + 1]?.name}`}
-                    onClick={() => setSelectedGroupIndex(prev => prev + 1)}/>
+                    onClick={handleTabChange}/>
           </div>}
       </Col>
     </Row>

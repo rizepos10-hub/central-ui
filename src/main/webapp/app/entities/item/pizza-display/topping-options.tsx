@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import CustomSelectForPizza from "app/entities/item/pizza-display/custom-select-for-modfiers";
 
-function ToppingOptions ({option,selectedModifiersFromOptions,setSelectedModifiersFromOptions, allOptions}) {
+function ToppingOptions ({option,selectedModifiersFromOptions,setSelectedModifiersFromOptions, missingRequiredOptionIds}) {
 
 
   console.log(option, 'modifiersmodifiers')
@@ -153,8 +153,18 @@ function ToppingOptions ({option,selectedModifiersFromOptions,setSelectedModifie
     }));
   }
 
+  console.log(missingRequiredOptionIds.includes(option.id), 'missingRequiredOptionIds includes')
+  console.log(missingRequiredOptionIds, 'missingRequiredOptionIds ids')
+  console.log(option, 'missingRequiredOptionIds option')
+
+
   return (
     <div className="container">
+      {missingRequiredOptionIds.includes(option.id) && (
+        <div className="alert alert-danger" role="alert">
+          Please select all required options for {option.id}.
+        </div>
+      )}
       <div onClick={toggleSecondSection} className="border" style={{display:"table",cursor:"pointer", width:"100%" }} >
         <div style={{width:"45px", height:"45px",display: "table-cell", border: "px solid #000", padding: "5px"}}>
           <img style={{width:"40px", height:"40px"}} alt="builder img" src={option?.builderImage?.url}/>
@@ -183,6 +193,7 @@ function ToppingOptions ({option,selectedModifiersFromOptions,setSelectedModifie
               option={option}
               optionMinWidth={'14rem'}
               check={true}
+              missingRequiredOptionIds={[]}
             />
           </div>
           {/*pizza icons*/}
