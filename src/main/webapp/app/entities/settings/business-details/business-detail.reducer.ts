@@ -19,6 +19,12 @@ const apiUrl = 'api/details';
 
 // Actions
 
+
+export const getBranchesCredentials = createAsyncThunk('details/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+  const requestUrl = `/api/config`;
+  return axios.get<IBusinessDetail[]>(requestUrl);
+});
+
 export const getEntities = createAsyncThunk('details/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IBusinessDetail[]>(requestUrl);
