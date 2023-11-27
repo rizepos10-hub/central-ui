@@ -27,7 +27,8 @@ export default function Welcome()
   }
 
   const [branchesCredentials,setBranchesCredentials] = useState<any>({});
-  const [selectedBranch, setSelectedBRanch] = useState()
+
+  const [selectedBranch, setSelectedBranch] = useState();
 
   console.log(branchesCredentials, 'branchesCredentials')
 
@@ -42,8 +43,16 @@ export default function Welcome()
   ]
 
   useEffect(() => {
-    dispatch(getBranchesCredentials({})).then((res:any) => setBranchesCredentials(res?.payload?.data))
-  },[])
+
+    dispatch(getBranchesCredentials({}))
+      .then((res: any) => {
+        const receivedData = res?.payload?.data;
+        setBranchesCredentials(receivedData);
+        const defaultSelectedBranch = receivedData?.branches?.[0]?.id || null;
+        setSelectedBranch(defaultSelectedBranch);
+      })
+
+  }, []);
 
   const CardComponent = ({ imageUrl, link }) => {
     const header = <img alt="Card Image" src={imageUrl} style={{ height: '10rem' }} />;
@@ -89,17 +98,16 @@ export default function Welcome()
             As initial step you need to run the POS  server so the pos clients can connect to the cloud.
             Please download the setup from the link and run it on  your local server.
           </p>
-          <a href="#" target={"_blank"} >POS SERVER</a>
+          <a rel="noreferrer" href="http://164.92.188.249/html/pos/installer.zip" target={"_blank"} >POS SERVER</a>
 
           <h4>Credentials</h4>
           <div className=" d-flex gap-5">
             <div>
-              Select Branch
               <Dropdown
                 options={branchesCredentials?.branches?.map(branch => ({value: branch.id, label: branch.name}))}
                 placeholder="Select a branch.."
                 value={selectedBranch}
-                onChange={(e) => setSelectedBRanch(e.value)}
+                onChange={(e) => setSelectedBranch(e.value)}
               />
             </div>
 
@@ -110,17 +118,14 @@ export default function Welcome()
                 <h5>Branch Information</h5>
               </div>
               <div className="card-body">
+
                 <div className="mb-3">
-                  <strong className="mr-3">ID:</strong>
-                  {branchToShow.id}
+                  <strong className="mr-3">Name:</strong>
+                  {branchToShow.name}
                 </div>
                 <div className="mb-3">
                   <strong className="mr-3">Client ID:</strong>
                   {branchToShow.clientId}
-                </div>
-                <div className="mb-3">
-                  <strong className="mr-3">Name:</strong>
-                  {branchToShow.name}
                 </div>
                 <div className="mb-3">
                   <strong className="mr-3">Service Secret:</strong>
@@ -137,7 +142,7 @@ export default function Welcome()
               </div>
             </div>
             }
-
+            
             {branchesCredentials.brokerConfig &&
               <div className="card" style={{marginBottom: '2rem'}}>
               <div className="card-header">

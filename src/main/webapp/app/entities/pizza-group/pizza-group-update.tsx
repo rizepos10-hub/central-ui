@@ -354,21 +354,25 @@ const PizzaGroupUpdate = () => {
                   <div className="d-flex flex-column gap-3">
 
                     <h3>Base Options</h3>
-                    {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'BASE').map((option, index) => (
-                      <React.Fragment key={option.id}>
-                        <OptionComponent
-                          optionRef={index === groups[selectedGroupIndex]?.options.filter(opt => opt.definitionType === 'BASE')?.length - 1 ? newOptionRef : null}
-                          option={option}
-                          pizzaDefinition={pizzaDefinition}
-                          groupId={group.id}
-                          groups={groups}
-                          onOptionDelete={handleOptionDelete}
-                          onOptionSave={handleSaveUpdatedOption}/>
-                        {index < groups[selectedGroupIndex]?.options?.length - 1 && (
-                          <hr className="my-5 border border-dark"/>
-                        )}
-                      </React.Fragment>
-                    ))}
+                    {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'BASE').length > 0 ? (
+                      groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'BASE').map((option, index) => (
+                        <React.Fragment key={option.id}>
+                          <OptionComponent
+                            optionRef={index === groups[selectedGroupIndex]?.options.filter(opt => opt.definitionType === 'BASE')?.length - 1 ? newOptionRef : null}
+                            option={option}
+                            pizzaDefinition={pizzaDefinition}
+                            groupId={group.id}
+                            groups={groups}
+                            onOptionDelete={handleOptionDelete}
+                            onOptionSave={handleSaveUpdatedOption}/>
+                          {index < groups[selectedGroupIndex]?.options?.length - 1 && (
+                            <hr className="my-5 border border-dark"/>
+                          )}
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      <p>No base options available.</p>
+                    )}
                   </div>
 
 
@@ -385,21 +389,25 @@ const PizzaGroupUpdate = () => {
                       {groups[selectedGroupIndex]?.additionalDesc || ' Second group description'}
                     </h2>
                     <h3>Topping Options</h3>
-                    {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'TOPPING').map((option, index) => (
-                      <React.Fragment key={option.id}>
-                        <OptionComponent
-                          optionRef={index === groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'TOPPING').length - 1 ? newOptionRef : null}
-                          option={option}
-                          pizzaDefinition={pizzaDefinition}
-                          groupId={group.id}
-                          groups={groups}
-                          onOptionDelete={handleOptionDelete}
-                          onOptionSave={handleSaveUpdatedOption}/>
-                        {index < groups[selectedGroupIndex]?.options?.length - 1 && (
-                          <hr className="my-5 border border-dark"/>
-                        )}
-                      </React.Fragment>
-                    ))}
+                    {groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'TOPPING').length > 0 ? (
+                      groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'TOPPING').map((option, index) => (
+                        <React.Fragment key={option.id}>
+                          <OptionComponent
+                            optionRef={index === groups[selectedGroupIndex]?.options?.filter(opt => opt.definitionType === 'TOPPING').length - 1 ? newOptionRef : null}
+                            option={option}
+                            pizzaDefinition={pizzaDefinition}
+                            groupId={group.id}
+                            groups={groups}
+                            onOptionDelete={handleOptionDelete}
+                            onOptionSave={handleSaveUpdatedOption}/>
+                          {index < groups[selectedGroupIndex]?.options?.length - 1 && (
+                            <hr className="my-5 border border-dark"/>
+                          )}
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      <p>No topping options available.</p>
+                    )}
                   </div>
                 </>
               )}
