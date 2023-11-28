@@ -15,6 +15,7 @@ import {
 import CustomSelectForPizza from "app/entities/item/pizza-display/custom-select-for-modfiers";
 import ToppingOptions from "app/entities/item/pizza-display/topping-options";
 import {Button} from "primereact/button";
+import {getEntityByType} from "app/entities/item-definitions/item-definitions.reducer";
 
 const Pizza = ({selectedModifiersFromOptions, setSelectedModifiersFromOptions}) => {
 
@@ -38,11 +39,25 @@ const Pizza = ({selectedModifiersFromOptions, setSelectedModifiersFromOptions}) 
 
   const optionIds = Object.keys(selectedModifiersFromOptions);
 
+
   const retrievedOptionsBuilderUrl = optionIds.map(optionId => optionsMap[optionId]?.builderImage?.url);
 
 
 
 
+  // the code below is to fetch data
+
+  // selectedModifiersFromOptions={selectedModifiersFromOptions}
+  // setSelectedModifiersFromOptions={setSelectedModifiersFromOptions}
+
+  // export const checkAndFetchPizzaDefinition = (dispatch) => {
+  //   return dispatch(getEntityByType({ type: 'PIZZA' }))
+  //     .then((response) => {
+  //       const pizzaItem = response?.payload?.data?.find(item => item.definitionType === "PIZZA");
+  //       if (!pizzaItem) {
+  //         createDefinitions(dispatch);
+  //       }})
+  // };
 
 
 

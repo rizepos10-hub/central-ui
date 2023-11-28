@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useState} from 'react';
 
 const CustomSelectForPizza = ({
 
@@ -12,25 +12,12 @@ const CustomSelectForPizza = ({
                       }) => {
   const [showModifiers, setShowModifiers] = useState(false)
 
-
   const initialSelectModifiers = selectedModifiersFromOptions[option.id]?.map(mdfId => findModifierById(option, mdfId));
-
 
   const initialSelect = check ? initialSelectModifiers?.find(modifier => modifier?.definitionType === "TOPPING_SIZE")
   : initialSelectModifiers?.find(modifier => modifier?.definitionType !== "TOPPING_SIZE") ;
 
-
-
-
   const [selectedOption, setSelectedOption] = useState(initialSelect);
-
-
-
-
-
-
-  console.log(initialSelectModifiers, 'initialSelectModifiers')
-
 
 
   function findModifierById(option, modifier) {
