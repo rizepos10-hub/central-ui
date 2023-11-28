@@ -14,7 +14,7 @@ import {
   FormGroup,
   Popover,
   PopoverHeader,
-  PopoverBody, CardBody, ModalFooter,
+  PopoverBody, CardBody, ModalFooter, Spinner,
 } from 'reactstrap';
 import {useNavigate, useParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "app/config/store";
@@ -40,7 +40,6 @@ function MenuUpdate() {
 
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
-
 
 
   const terms = useAppSelector(state => state.term.entities)
@@ -114,63 +113,134 @@ function MenuUpdate() {
 
 
 
+  // Updated editSubScreens function
   const handleEditScreen = () => {
     if (!editScreenName.trim()) {
       alert('Please enter a screen name.');
       return;
     }
-console.log(editScreenColor, 'editScreenColor' )
+
+
     setData((prevData) => {
-      const updatedMenuScreens = prevData.menuScreens.map((mainScreen, i) => {
-        console.log("im here1")
-        console.log("im here1",mainScreen)
-        console.log("im here1", i)
-        console.log("im here1", selectedScreenIndex)
+      const updatedData = { ...prevData };
+      const updatedMenuScreens = [...updatedData.menuScreens];
 
-
-
-          if (selectedScreenType === 'main' && i === selectedScreenIndex) {
-            console.log("im here3")
-
-            return {
-              ...mainScreen,
+      updatedData.menuScreens = updatedMenuScreens.map((mainScreen, i) => {
+        if (selectedScreenType === 'main' && i === selectedScreenIndex) {
+          return {
+            ...mainScreen,
+            name: editScreenName,
+            backgroundColor: editScreenColor,
+          };
+        } else if (selectedScreenType === 'sub') {
+          if (subScreenStack.length === 1) {
+            const topSubScreens = [...mainScreen.subScreens];
+            topSubScreens[selectedScreenIndex] = {
+              ...topSubScreens[selectedScreenIndex],
               name: editScreenName,
               backgroundColor: editScreenColor,
             };
-          } else if (selectedScreenType === 'sub') {
-            console.log("im here")
-            const updatedSubScreens = mainScreen.subScreens.map((subScreen, j) => {
-              console.log("im here", j)
-              console.log("im here selectedScreenIndex", selectedScreenIndex)
 
-              if (j === selectedScreenIndex) {
-                console.log("im here", j)
-                console.log("im here selectedScreenIndex", selectedScreenIndex)
+            return {
+              ...mainScreen,
+              subScreens: topSubScreens,
+            };
+          } else {
+            const topSubScreen = subScreenStack[subScreenStack.length - 1];
 
-                return {
-                  ...subScreen,
-                  name: editScreenName,
-                  backgroundColor: editScreenColor,
-                };
-              }
-              return subScreen;
-            });
+            const updatedSubScreens = editSubScreens(mainScreen.subScreens, topSubScreen, selectedScreenIndex, editScreenName, editScreenColor);
+
+            const updatedSubScreenStack = subScreenStack.map((subScreen) =>
+              subScreen === topSubScreen
+                ? {
+                  ...topSubScreen,
+                  subScreens: topSubScreen.subScreens.map((sub, index) =>
+                    index === selectedScreenIndex
+                      ? {
+                        ...sub,
+                        name: editScreenName,
+                        backgroundColor: editScreenColor,
+                      }
+                      : sub
+                  ),
+                }
+                : subScreen
+            );
+
+            console.log('Updated subScreenStack:', updatedSubScreenStack);
+            setSubScreenStack(updatedSubScreenStack)
+
+
             return {
               ...mainScreen,
               subScreens: updatedSubScreens,
             };
           }
+        }
         return mainScreen;
       });
 
-      return {
-        ...prevData,
-        menuScreens: updatedMenuScreens,
-      };
+      return updatedData;
     });
+
+
 
     setIsModalOpen({ ...isModalOpen, isEditModalOpen: false });
   };
+
+  console.log(data, 'data after edit')
+  console.log(subScreenStack, 'subscreentStack alone')
+
+
+  const editSubScreens = (subScreens, targetSubScreen, selectedScreenIndex, editScreenName, editScreenColor) => {
+    let nameExists = false;
+    return subScreens.map((subScreen, index) => {
+      console.log(subScreen, 'kamelsubScreen')
+      console.log(targetSubScreen, 'kameltargetSubScreen')
+
+      if (areObjectsEqual(subScreen, targetSubScreen)) {
+        console.log(index, 'kamelindex')
+        console.log(selectedScreenIndex, 'kamelselectedScreenIndex')
+        console.log(subScreen, 'subScreen12332')
+        console.log(targetSubScreen[selectedScreenIndex], 'subScreen123324')
+
+        if (subScreen.subScreens) {
+          subScreen.subScreens.filter(sub => sub !== subScreen.subScreens[selectedScreenIndex]).forEach((nestedSubScreen) => {
+            console.log(nestedSubScreen, 'nestedSubScreen123')
+              if (nestedSubScreen.name === editScreenName) {
+                nameExists = true
+                alert('A sub-screen with the same name already exists.');
+                return;
+              }
+          });
+        }
+
+          return {
+            ...subScreen,
+            subScreens: subScreen.subScreens.map((nestedSubScreen, nestedIndex) => {
+              console.log(nestedSubScreen, 'nestedSubScreen')
+              if (nestedIndex === selectedScreenIndex && !nameExists) {
+                return {
+                  ...nestedSubScreen,
+                  name: editScreenName,
+                  backgroundColor: editScreenColor,
+                };
+              }
+              return nestedSubScreen;
+            }),
+          };
+        }
+       else if (subScreen.subScreens) {
+        const updatedNestedSubScreens = editSubScreens(subScreen.subScreens, targetSubScreen, selectedScreenIndex, editScreenName, editScreenColor);
+        return {
+          ...subScreen,
+          subScreens: updatedNestedSubScreens,
+        };
+      }
+      return subScreen;
+    });
+  };
+
 
 
 
@@ -241,6 +311,15 @@ console.log(editScreenColor, 'editScreenColor' )
       return;
     }
 
+    const updatedData = { ...data };
+    const updatedMenuScreens = [...updatedData.menuScreens];
+    const hasMainScreenDuplicate = updatedMenuScreens.some((subScreen) => subScreen.name === newMainScreenName);
+
+    if (hasMainScreenDuplicate) {
+      alert('Main Screen with the same name already exists.');
+      return
+    }
+
     const newMainScreen = {
       name: newMainScreenName,
       backgroundColor: selectedColorTheme,
@@ -280,7 +359,7 @@ console.log(editScreenColor, 'editScreenColor' )
   const findAndRemoveItem = (subScreens, targetSubScreen, itemId) => {
     console.log("im here1")
     return subScreens.map((subScreen) => {
-      if (subScreen.name === targetSubScreen.name) {
+      if (areObjectsEqual(subScreen,targetSubScreen)) {
         console.log("im here11", subScreen.name, targetSubScreen.name)
         console.log("im here11", subScreen.name, targetSubScreen.name)
 
@@ -312,7 +391,8 @@ console.log(editScreenColor, 'editScreenColor' )
 
   const findAndAddItem = (subScreens, targetSubScreen, newItem) => {
     return subScreens.map((subScreen) => {
-      if (subScreen.name === targetSubScreen.name) {
+
+      if (areObjectsEqual(subScreen, targetSubScreen)) {
 
         return {
           ...subScreen,
@@ -448,10 +528,51 @@ console.log(editScreenColor, 'editScreenColor' )
     }
   };
 
+  function areObjectsEqual(obj1, obj2) {
+    if (obj1 === obj2) {
+      return true;
+    }
+
+    if (typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+      return false;
+    }
+
+    if (obj1 === null || obj2 === null) {
+      return false;
+    }
+
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+
+    if (keys1.length !== keys2.length) {
+      return false;
+    }
+
+    for (const key of keys1) {
+      if (!areObjectsEqual(obj1[key], obj2[key])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+  console.log(subScreenStack, 'kamelnew')
 
   const findAndAddSubScreen = (subScreens, targetSubScreen, newSubScreen) => {
+
+
+    console.log(targetSubScreen, 'kameltarget')
+    console.log(newSubScreen, 'kamelnew')
+    console.log(subScreens, 'kamelnsubs')
+
     return subScreens?.map((subScreen) => {
-      if (subScreen.name === targetSubScreen.name) {
+      console.log(subScreen, 'kamel12')
+      console.log(targetSubScreen, 'kamel12')
+
+      if (areObjectsEqual(subScreen, targetSubScreen)) {
+
+        console.log(subScreen, 'kamel12')
+
         return {
           ...subScreen,
           subScreens: [...(subScreen.subScreens || []), newSubScreen],
@@ -485,7 +606,18 @@ console.log(editScreenColor, 'editScreenColor' )
     let updatedSubScreenStack;
 
 
-    if (subScreenStack.length === 1) {
+
+    if (subScreenStack.length === 1){
+    const topSubScreens = updatedMenuScreens[selectedMainScreen]?.subScreens;
+
+    console.log(topSubScreens, 'kameltopSubScreens')
+
+    const hasDuplicateOnFirstLevel = topSubScreens?.some((subScreen) => subScreen.name === newSubScreenName);
+
+    if (hasDuplicateOnFirstLevel) {
+      alert('Sub-screen with the same name already exists on this level.');
+    }
+    else {
       console.log("imhere1")
       updatedMenuScreens[selectedMainScreen] = {
         ...updatedMenuScreens[selectedMainScreen],
@@ -499,37 +631,44 @@ console.log(editScreenColor, 'editScreenColor' )
             subScreens: [],
           },
         ],
-      };
-
-    } else {
+      }
+    }
+  } else {
       const topSubScreen = subScreenStack[subScreenStack.length - 1];
 
-      updatedMenuScreens[selectedMainScreen] = {
-        ...updatedMenuScreens[selectedMainScreen],
-        subScreens: findAndAddSubScreen(
-          updatedMenuScreens[selectedMainScreen].subScreens,
-          topSubScreen,
-          {
-            name: newSubScreenName,
-            backgroundColor: newSubScreenColor,
-            componentType: 'SUB_SCREENS',
-            managerOnlyAccess: false,
-            subScreens: [],
-          }
-        ),
-      };
-      updatedSubScreenStack = subScreenStack.map((subScreen) =>
-        subScreen === topSubScreen
-          ? { ...topSubScreen, subScreens: [...(topSubScreen.subScreens || []), {
+      const hasDuplicate = topSubScreen.subScreens.some((subScreen) => subScreen.name === newSubScreenName);
+      if (hasDuplicate) {
+        alert('Sub-screen with the same name already exists on this level.');
+      }
+      else{
+        updatedMenuScreens[selectedMainScreen] = {
+          ...updatedMenuScreens[selectedMainScreen],
+          subScreens: findAndAddSubScreen(
+            updatedMenuScreens[selectedMainScreen].subScreens,
+            topSubScreen,
+            {
               name: newSubScreenName,
               backgroundColor: newSubScreenColor,
               componentType: 'SUB_SCREENS',
               managerOnlyAccess: false,
               subScreens: [],
-            }] }
-          : subScreen
-      );
-    }
+            }
+          ),
+        };
+        updatedSubScreenStack = subScreenStack.map((subScreen) =>
+          subScreen === topSubScreen && subScreen
+            ? { ...topSubScreen, subScreens: [...(topSubScreen.subScreens || []), {
+                name: newSubScreenName,
+                backgroundColor: newSubScreenColor,
+                componentType: 'SUB_SCREENS',
+                managerOnlyAccess: false,
+                subScreens: [],
+              }] }
+            : subScreen
+        );
+      }
+      }
+
 
     updatedData.menuScreens = updatedMenuScreens;
 
@@ -549,6 +688,35 @@ console.log(editScreenColor, 'editScreenColor' )
 
 
 
+  const findAndRemoveCard = (subScreens, targetSubScreen, subScreenIndex) => {
+    return subScreens.map((subScreen) => {
+      if (areObjectsEqual(subScreen, targetSubScreen)) {
+        const cardToRemove = subScreen.subScreens[subScreenIndex]
+        if(cardToRemove.componentType === "ITEM"){
+          const itemID = cardToRemove?.component?.item?.id
+          const newItemsToDisplay = selectedItems.filter(itm => itm.id !== itemID)
+          setSelectedItems(newItemsToDisplay)
+        }
+        return {
+          ...subScreen,
+          subScreens: subScreen.subScreens.filter((_, index) => index !== subScreenIndex),
+        };
+      } else if (subScreen.subScreens) {
+        const updatedNestedSubScreens = findAndRemoveCard(
+          subScreen.subScreens,
+          targetSubScreen,
+          subScreenIndex
+        );
+        if (updatedNestedSubScreens !== subScreen.subScreens) {
+          return {
+            ...subScreen,
+            subScreens: updatedNestedSubScreens,
+          };
+        }
+      }
+      return subScreen;
+    });
+  };
 
 
 
@@ -557,6 +725,13 @@ console.log(editScreenColor, 'editScreenColor' )
       const updatedMenuScreens = prevData.menuScreens.map((mainScreen, i) => {
         if (i === mainScreenIndex) {
           if (subScreenStack.length === 1) {
+            const cardToRemove = mainScreen.subScreens[subScreenIndex]
+            if(cardToRemove.componentType === "ITEM"){
+              const itemID = cardToRemove?.component?.item?.id
+              const newItemsToDisplay = selectedItems.filter(itm => itm.id !== itemID)
+              setSelectedItems(newItemsToDisplay)
+            }
+
             const updatedSubScreens = mainScreen.subScreens.filter(
               (subScreen, j) => j !== subScreenIndex
             );
@@ -565,40 +740,27 @@ console.log(editScreenColor, 'editScreenColor' )
               subScreens: updatedSubScreens,
             };
           } else {
-            const isMainScreenInStack = subScreenStack.includes(mainScreen);
-
-            if (isMainScreenInStack) {
-              const updatedSubScreens = mainScreen.subScreens.map(
-                (subScreen, j) => {
-                  if (j === subScreenIndex) {
-                    return {
-                      ...subScreen,
-                      subScreens: subScreen.subScreens.filter(
-                        (item, k) => k !== subScreenIndex
-                      ),
-                    };
-                  }
-                  return subScreen;
+            const updatedSubScreenStack = subScreenStack.map((subScreen) =>
+              subScreen === subScreenStack[subScreenStack.length - 1]
+                ? {
+                  ...subScreen,
+                  subScreens: subScreen.subScreens.filter(
+                    (item, k) => k !== subScreenIndex
+                  ),
                 }
-              );
-              return {
-                ...mainScreen,
-                subScreens: updatedSubScreens,
-              };
-            } else {
-              const updatedSubScreenStack = subScreenStack.map((subScreen) =>
-                subScreen === subScreenStack[subScreenStack.length - 1]
-                  ? {
-                    ...subScreen,
-                    subScreens: subScreen.subScreens.filter(
-                      (item, k) => k !== subScreenIndex
-                    ),
-                  }
-                  : subScreen
-              );
-
-              setSubScreenStack(updatedSubScreenStack);
-            }
+                : subScreen
+            );
+            setSubScreenStack(updatedSubScreenStack);
+            const topSubScreen = subScreenStack[subScreenStack.length - 1];
+            const updatedSubScreens = findAndRemoveCard(
+              mainScreen.subScreens,
+              topSubScreen,
+              subScreenIndex
+            );
+            return {
+              ...mainScreen,
+              subScreens: updatedSubScreens,
+            };
           }
         }
         return mainScreen;
@@ -610,6 +772,7 @@ console.log(editScreenColor, 'editScreenColor' )
       };
     });
   };
+
 
 
 
@@ -670,7 +833,17 @@ console.log(editScreenColor, 'editScreenColor' )
 
 
 
+  const findSubScreenByName = (subScreens, name) => {
+    for (const subScreen of subScreens) {
+      if (subScreen.name === name) {
+        return subScreen;
+      }
+    }
+    return null;
+  };
+
   const renderCurrentSubScreen = () => {
+
     if (!data.menuScreens || data.menuScreens.length === 0 || selectedMainScreen === null) {
       return null;
     }
@@ -681,19 +854,27 @@ console.log(editScreenColor, 'editScreenColor' )
       return null;
     }
 
-    if (subScreenStack.length === 1) {
-      return renderSubScreens(mainScreen.subScreens, selectedMainScreen);
+    let currentSubScreens = mainScreen.subScreens;
+
+    for (let i = 1; i < subScreenStack.length; i++) {
+      const nextScreenName = subScreenStack[i].name;
+      const nextScreen = findSubScreenByName(currentSubScreens, nextScreenName);
+
+      if (!nextScreen || !nextScreen.subScreens) {
+        break;
+      }
+
+      currentSubScreens = nextScreen.subScreens;
     }
-    console.log(subScreenStack, 'subScreenStacksubScreenStack')
 
     return (
-      <div>
-        <div className="ml-3">
-          {renderSubScreens(subScreenStack[subScreenStack.length - 1].subScreens, selectedMainScreen)}
-        </div>
+      <div className="ml-3">
+        {renderSubScreens(currentSubScreens, selectedMainScreen)}
       </div>
     );
   };
+
+
 
   console.log(breadcrumb, 'breadcr')
 
@@ -725,17 +906,6 @@ console.log(editScreenColor, 'editScreenColor' )
   };
 
 
-
-
-
-
-
-
-
-
-
-  console.log('subScreenStack:', subScreenStack);
-
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
@@ -757,12 +927,14 @@ console.log(editScreenColor, 'editScreenColor' )
 
     return () => {
       reset()
+      setBreadcrumb([])
+      setSubScreenStack([])
     }
-  }, [updateSuccess,id]);
+  }, [id,updateSuccess]);
 
   useEffect(() => {
     if (menuEntity && menuEntity.id) {
-      const newData = {
+      let newData = {
         name: menuEntity.name,
         branch: menuEntity.branch,
         menuScreens: menuEntity.menuScreens ,
@@ -775,7 +947,7 @@ console.log(editScreenColor, 'editScreenColor' )
       }
       setData(newData);
     }
-  }, [menuEntity]);
+  }, [menuEntity,updateSuccess]);
 
 
 
@@ -872,7 +1044,14 @@ console.log(editScreenColor, 'editScreenColor' )
 
     setIsModalOpen({...isModalOpen, isEditModalOpen: false});
   };
+
+      if(loading){
+        return <div>
+          <Spinner />
+        </div>
+      }
   console.log(breadcrumb, 'breadcrumb')
+  console.log(selectedItems, 'selectedItems')
 
   console.log(menuEntity, 'menuEntity')
   console.log(data, 'dataa')
@@ -1011,7 +1190,7 @@ console.log(editScreenColor, 'editScreenColor' )
                 <Button onClick={togglePreviewModal} className="mx-2 btn btn-info">
                   Preview
                 </Button>
-                <Button color="primary" onClick={handleSaveClick} className="">
+                <Button color="primary" disabled={updating} onClick={handleSaveClick} className="">
                   Save
                 </Button>
               </div>

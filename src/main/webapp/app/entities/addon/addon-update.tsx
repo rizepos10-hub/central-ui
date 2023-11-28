@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormText } from 'reactstrap';
+import {Button, Row, Col, FormText, Spinner} from 'reactstrap';
 import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -40,13 +40,9 @@ export const AddonUpdate = () => {
 
   const  handleDiscountsChange = selectedOptions => {
     console.log(selectedOptions, 'news')
-    const selectedValues = selectedOptions.map((option) => ({
-      id: option.id,
-      type: option.type,
-      value: option.value
-    }));
 
-    setSelectedDiscounts(selectedValues);
+
+    setSelectedDiscounts(selectedOptions);
   };
   const handleClose = () => {
     navigate('/addon' + location.search);
@@ -69,16 +65,27 @@ export const AddonUpdate = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
+    return () => {
+      reset()
+      setSelectedDiscounts([])
+    }
   }, []);
 
   useEffect(() => {
     if(addonEntity.discounts){
-
+      console.log(addonEntity.discounts, 'addonEntity.discounts')
+      const defaultDiscounts = addonEntity?.discounts?.map(discount => ({
+        label: `${discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}`,
+        id: discount.id,
+        type: discount.type,
+        value: discount.value
+      })) || [];
+      setSelectedDiscounts(defaultDiscounts)
     }
     if (updateSuccess) {
       handleClose();
     }
-  }, [updateSuccess]);
+  }, [updateSuccess,addonEntity]);
 
   const saveEntity = values => {
     console.log(values, 'values')
@@ -103,7 +110,7 @@ export const AddonUpdate = () => {
       }
       : {
           ...addonEntity,
-        discounts: addonEntity.discounts,
+        // discounts: addonEntity.discounts,
 
         };
 
@@ -122,6 +129,10 @@ export const AddonUpdate = () => {
     value: discount.value
   }));
 
+  if(loading){
+    return <Spinner />
+  }
+
 
   return (
     <div>
@@ -134,9 +145,7 @@ export const AddonUpdate = () => {
       </Row>
       <Row>
         <Col md="8"  className="d-flex flex-column p-3  bg-white">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
+
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
               {!isNew ? (
                 <ValidatedField
@@ -173,7 +182,7 @@ export const AddonUpdate = () => {
               <div className="mb-3">
                 <Translate contentKey="tempApp.addon.discount">Discount</Translate>
                 <Select isMulti={true}
-                        defaultValue={defaultDiscountsOptions}
+                        value={selectedDiscounts}
                         options={discountsOptions}
                         onChange={handleDiscountsChange} />
               </div>
@@ -192,7 +201,6 @@ export const AddonUpdate = () => {
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
             </ValidatedForm>
-          )}
         </Col>
       </Row>
     </div>

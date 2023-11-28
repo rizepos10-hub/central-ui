@@ -26,6 +26,13 @@
   font-size: 12em;
   margin-bottom: 10px;
 }
+.card-link {
+  transition: transform 0.3s ease;
+}
+
+.card-link:hover {
+  transform: scale(1.05);
+}
 
 .instructions {
   font-family: "Apple Color Emoji";
@@ -121,3 +128,6 @@
     color: transparent;
   }
 }
+
+
+

@@ -30,6 +30,8 @@ import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
 import axios from 'axios';
 import {Checkbox} from "primereact/checkbox";
 import * as url from "url";
+import _default from "chart.js/dist/plugins/plugin.tooltip";
+import type = _default.defaults.animations.numbers.type;
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -64,6 +66,9 @@ export const ItemUpdate = () => {
 
   const [selectedAddonGroups, setSelectedAddonGroups] = useState([]);
 
+  const itemTypeOptions = [{label: 'ITEM', value: 'ITEM'}, {label: "PIZZA", value: "PIZZA"}]
+  const [selectedType, setSelectedType]:any = useState(itemTypeOptions[0])
+
   const addonsOptions = addons?.map(addon => ({ value: addon.id, label: addon.name, id: addon.id }));
 
   const addonGroupsOptions = addonGroups?.map(addon => ({ value: addon.id, label: addon.name, id: addon.id}));
@@ -73,6 +78,7 @@ export const ItemUpdate = () => {
   const entityTerms = itemEntity.terms?.map(term => ({ value: term.id, label: term.name }));
 
   const termsOptions = useAppSelector(state => state.term.entities)?.map(term => ({ value: term.id, label: term.name }));
+
 
   const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities)?.map(term => ({
     value: term.id,
@@ -119,25 +125,21 @@ export const ItemUpdate = () => {
   const [openedAddonModal, setOpenedAddonModal] = useState(false);
 
   const handleEditExistingVariant = editedVariant => {
-    const updatedVariants = variants?.map(variant => (variant?.id === editedVariant?.id ? editedVariant : variant));
+    const updatedVariants = [...variants];
+
+    updatedVariants[editingVariantIndex] = editedVariant;
+
     setVariants(updatedVariants);
     setEditingVariantId(null);
     setOpenedModal(false);
   };
-  const archiveVariant = variantId => {
-    const archivedVariants = variants?.map(variant =>
-      variant.id === variantId
-        ? {
-            ...variant,
-            isArchived: true,
-          }
-        : variant
-    );
-    setVariants(archivedVariants);
+  const archiveVariant = (index) => {
+    const filteredVariants = variants?.filter((_, i) => i !== index);
+    setVariants(filteredVariants);
   };
 
-  const handleArchiveVariant = variantId => {
-    console.log(variantId, 'loli');
+  const handleArchiveVariant = (index) => {
+    console.log(index, 'loli');
     if (toast.isActive(toastId.current)) {
       return;
     }
@@ -149,7 +151,7 @@ export const ItemUpdate = () => {
             label="Yes"
             onClick={() => {
               toast.dismiss(toastId.current);
-              archiveVariant(variantId);
+              archiveVariant(index);
             }}
             className="p-button-sm"
           />
@@ -174,10 +176,11 @@ export const ItemUpdate = () => {
   };
 
   console.log(variants, 'variants');
-  const openEditVariantModal = variant => {
-    const variantIndex = variants.findIndex(v => v.id === variant.id);
+  const openEditVariantModal = (variant, index) => {
+    console.log(variant, 'variants121');
 
-    setEditingVariantIndex(variantIndex);
+
+    setEditingVariantIndex(index);
     setEditingVariantId(variant.id);
     setOpenedModal(true);
   };
@@ -260,6 +263,9 @@ export const ItemUpdate = () => {
     }
     if (itemEntity?.productionCenter) {
       setSelectedProductionCenter( ({ label: itemEntity.productionCenter?.name, value: itemEntity.productionCenter?.id, id: itemEntity.productionCenter?.id }));
+    }
+    if (itemEntity?.type){
+      setSelectedType({label: itemEntity.type, value: itemEntity.type})
     }
     if (itemEntity?.attachments) {
       setSelectedAttachments(itemEntity.attachments?.map(attachment => ({ id: attachment.id, url: attachment?.url })));
@@ -354,7 +360,7 @@ export const ItemUpdate = () => {
 
   console.log(editingVariantId, 'editingVariantId');
 
-  const handleSaveVariant = (name, price, discount, addons, variantImage, branchVariantDetails, ingredients, specialPricesValues) => {
+  const handleSaveVariant = (name, price, discount, addons, variantImage, branchVariantDetails, ingredients, specialPricesValues, selectedModifiersFromOptions) => {
     console.log(variants, 'variants new');
 
     const newValues = {
@@ -366,6 +372,7 @@ export const ItemUpdate = () => {
       ingredients: ingredients,
       addons: addons,
       specialPrices: specialPricesValues,
+      options: selectedModifiersFromOptions
     };
     setVariants(prevVariants => [...prevVariants, newValues]);
   };
@@ -376,6 +383,7 @@ export const ItemUpdate = () => {
     const entity = {
       ...itemEntity,
       ...values,
+      type: selectedType.value,
       status: itemStatus,
       accountingGroups: accountingGroupsToSave,
       productionCenter: selectedProductionCenter,
@@ -386,6 +394,7 @@ export const ItemUpdate = () => {
       variants: variants,
       name,
       desc
+
     };
     if (isNew) {
       dispatch(createEntity(entity));
@@ -576,6 +585,7 @@ const handleBackClick = () => {
       {openedModal && (
         <ItemVariantModal
           showModal={openedModal}
+          itemType={selectedType?.value}
           handleClose={handleCloseModal}
           handleSave={handleSaveVariant}
           editingVariantIndex={editingVariantIndex}
@@ -648,7 +658,7 @@ const handleBackClick = () => {
                   <Select value={selectedProductionCenter} onChange={handleProductionCenterChange} options={productionCenterOptions} />
                 </div>
               </div>
-              <Col md={8}>
+              <Col md={12}>
                 {/* <ValidatedField */}
                 {/*   label={translate('tempApp.item.orderCount')} */}
                 {/*   id="item-orderCount" */}
@@ -681,8 +691,8 @@ const handleBackClick = () => {
                 {/*     validate: v => isNumber(v) || translate('entity.validation.number'), */}
                 {/*   }} */}
                 {/* /> */}
-                <div className="d-flex justify-content-between mb-1">
-                  <div style={{ width: '55%' }}>
+                <div className="d-flex  mb-1 gap-4">
+                  <div style={{ width: '34' }}>
                     <ValidatedField label={translate('tempApp.item.status')}
                                     value={itemStatus} id="item-status" name="status"
                                     data-cy="status" type="select"
@@ -695,6 +705,7 @@ const handleBackClick = () => {
                       ))}
                     </ValidatedField>
                   </div>
+
                   <div style={{ width: '35%' }}>
                     <ValidatedField
                       label={translate('tempApp.item.desc')}
@@ -705,6 +716,10 @@ const handleBackClick = () => {
                       value={desc}
                       onChange={e => setDesc(e.target.value)}
                     />
+                  </div>
+                  <div style={{ width: '20%' }}>
+                    <Translate contentKey="tempApp.item.type">Type</Translate>
+                    <Select  value={selectedType} onChange={(type) => setSelectedType(type)} options={itemTypeOptions.map((type):any => type)} />
                   </div>
                 </div>
                 <div className="d-flex justify-content-between mb-1">
@@ -859,12 +874,12 @@ const handleBackClick = () => {
                             </td>
 
                             <td>
-                              <Button type={'button'} onClick={() => openEditVariantModal(variant)} color="secondary">
+                              <Button type={'button'} onClick={() => openEditVariantModal(variant,index)} color="secondary">
                                 <FontAwesomeIcon icon="pencil-alt" />
                               </Button>
                             </td>
                             <td>
-                              <Button type={'button'} color="danger" onClick={() => handleArchiveVariant(variant.id)}>
+                              <Button type={'button'} color="danger" onClick={() => handleArchiveVariant( index)}>
                                 <FontAwesomeIcon icon="trash" />
                               </Button>
                             </td>

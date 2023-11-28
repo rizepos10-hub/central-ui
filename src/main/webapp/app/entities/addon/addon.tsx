@@ -148,11 +148,14 @@ export const Addon = () => {
   const renderDiscounts = rowData => {
     const discounts = rowData.discounts || [];
     return discounts.map((discount, index) => (
+      <>
       <Chip
         key={index}
         label={discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}
         className="p-mr-2 p-mb-2"
       />
+      </>
+
     ));
   };
 

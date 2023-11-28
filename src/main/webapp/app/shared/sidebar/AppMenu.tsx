@@ -42,6 +42,11 @@ const AppMenu = () => {
                                 to: '/term/items'
                               },
                               {
+                                label: 'Pizza Definition',
+                                icon: 'pi pi-folder-open',
+                                to: '/pizza-group'
+                              },
+                              {
                                 label: 'Items',
                                 icon: ' pi pi-th-large',
                                 to: '/item'
@@ -120,6 +125,11 @@ const AppMenu = () => {
                                 to: '/analytics/endofday'
                               },
                               {
+                                label: 'Sales Report',
+                                icon: 'pi pi-star',
+                                to: '/analytics/sales'
+                              },
+                              {
                                 label: 'Report',
                                 icon: 'pi pi-file-pdf',
                                 to: '/analytics/reports'
@@ -133,10 +143,21 @@ const AppMenu = () => {
                             to: '/customer'
                           },
                           {
+                            label: 'Stock',
+                            role: ['ROLE_ADMIN'],
+                            icon: ' pi pi-th-large',
+                            to: '/stock'
+                          },
+                          {
                             label: 'Inventory',
                             role: ['ROLE_ADMIN'],
                             icon: 'pi pi-box',
                             to: '/inventory'
+                          },
+                          {
+                            label: 'Instructions',
+                            icon: ' pi pi-th-large',
+                            to: '/instructions'
                           },
                           {
                             label: 'Settings',
@@ -233,22 +254,12 @@ const AppMenu = () => {
                                 icon: 'pi pi-percentage',
                                 to: '/web-extensions'
                               },
-                              {
-                                label: 'Stock',
-                                role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-th-large',
-                                to: '/stock'
-                              },
+
                               {
                                 label: 'Voids ',
                                 role: ['ROLE_ADMIN'],
                                 icon: 'pi pi-folder-open',
                                 to: '/void-reasons'
-                              },
-                              {
-                                label: 'Instructions',
-                                icon: ' pi pi-th-large',
-                                to: '/instructions'
                               },
                               {
                                 label: 'Reporting automations',

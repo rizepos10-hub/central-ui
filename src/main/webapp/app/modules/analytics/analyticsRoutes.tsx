@@ -7,6 +7,7 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import TopItems from "app/modules/analytics/TopItems";
 import SalesSummaryReport from "app/modules/analytics/reports/Reports";
 import EndOFDayReport from "app/modules/analytics/reports/EndOfDayReport";
+import {SalesReport} from "app/modules/analytics/reports/sales-report";
 
 
 
@@ -17,6 +18,8 @@ export default () => {
         <Route path="topItems" element={<TopItems />} />
         <Route path="endofday" element={<EndOFDayReport />} />
         <Route path="reports" element={<SalesSummaryReport />} />
+        <Route path="sales" element={<SalesReport />} />
+
 
 
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}

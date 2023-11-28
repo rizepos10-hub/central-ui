@@ -9,6 +9,8 @@ import Customer from './customer';
 import Item from './item';
 import Addon from './addon';
 import AddonGroups from './addon-groups';
+import PizzaGroup from './pizza-group';
+
 
 import Term from './term';
 import Order from './order';
@@ -62,6 +64,10 @@ export default () => {
 
 
         <Route path="void-reasons/*" element={<VoidReasons />} />
+
+
+        <Route path="pizza-group/*" element={<PizzaGroup />} />
+
 
 
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}

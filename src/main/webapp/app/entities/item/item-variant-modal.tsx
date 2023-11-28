@@ -35,23 +35,27 @@ import { getItemsForRecipe, getEntities } from './item.reducer';
 import { InputText } from 'primereact/inputtext';
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import Pizza from "app/entities/item/pizza-display/pizza";
 
 interface IVariantProps {
   showModal: boolean;
   handleClose?: () => void;
   handleSave: (name: string, price: number, discount: any, attachments: any, branchPrices: any, ingredients: any ,
-               selectedVariantAddons: any, specialPrices : any  ) => void;
+               selectedVariantAddons: any, specialPrices : any, selectedModifiersFromOptions: {}  ) => void;
   onVariantImageUpload: any;
   editingVariantId: any;
   variants: any;
   handleEditExistingVariant: any;
   addonsOptions: any;
   itemId: string;
+  itemType: string;
   editingVariantIndex: number;
 }
 
 const ItemVariantModal = (props: IVariantProps) => {
   const dispatch = useAppDispatch();
+
+  const isPizza = props.itemType === "PIZZA"
 
   const editingVariant = props.editingVariantIndex !== null && props.editingVariantIndex >= 0
     ? props.variants[props.editingVariantIndex]
@@ -72,7 +76,6 @@ const ItemVariantModal = (props: IVariantProps) => {
   console.log(itemList, 'itemlo');
 
   const [branchPrices, setBranchPrices] = useState({});
-  const [selectedItemVariants, setSelectedItemVariants] = useState([]);
   const [selectedItemWithVariants, setSelectedItemWithVariants] = useState(null);
 
   const [itemNameMap, setItemNameMap] = useState({});
@@ -96,7 +99,9 @@ const ItemVariantModal = (props: IVariantProps) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [activeTerm, setActiveTerm] = useState(null);
-  const [selectedItemsForRecipe, setSelectedItemsForRecipe] = useState([]);
+
+  const [selectedModifiersFromOptions, setSelectedModifiersFromOptions]  = useState({});
+
 
   const [variantItems, setVariantItems] = useState([]);
 
@@ -204,23 +209,9 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   console.log(recipeDetails, 'recipeDetails');
 
-  // const handleAddonChange = (itemId, selectedAddons) => {
-  //   setRecipeDetails((prevDetails) => ({
-  //     ...prevDetails,
-  //     [itemId]: {
-  //       ...prevDetails[itemId],
-  //       selectedAddons: selectedAddons,
-  //     },
-  //   }));
-  // };
 
-  const handleRecipeAddItem = () => {
-    if (selectedItems.length > 0) {
-      setSelectedItemsForRecipe(prevItems => [...prevItems, ...selectedItems]);
-    }
-    setModalOpen(false);
-    setSelectedItems([]);
-  };
+
+
   const allItemsPresent = () => {
     return false;
     // return editingVariant.every((item) => variantItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null));
@@ -250,7 +241,8 @@ const ItemVariantModal = (props: IVariantProps) => {
       }
     }
 
-    props.handleSave(name, parseFloat(price), selectedDiscountObjects,selectedVariantAddons, variantImage, branchPrices, ingredients, specialPrices  );
+    props.handleSave(
+      name, parseFloat(price), selectedDiscountObjects,selectedVariantAddons, variantImage, branchPrices, ingredients, specialPrices,selectedModifiersFromOptions);
   };
 
   const {
@@ -331,7 +323,8 @@ const ItemVariantModal = (props: IVariantProps) => {
         addons: selectedAddonsObjects,
         branchVariantDetails: formattedBranchPrices,
         ingredients: formattedIngredients,
-        specialPrices: specialPricesValues
+        specialPrices: specialPricesValues,
+        options: selectedModifiersFromOptions
       };
 
       console.log(formattedBranchPrices, 'formattedBranchPrices')
@@ -350,7 +343,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       } else {
 
        props.handleSave(name, parseFloat(price), selectedDiscountObjects, selectedAddonsObjects,
-         attachmentsToSend, formattedBranchPrices, formattedIngredients, specialPricesValues);
+         attachmentsToSend, formattedBranchPrices, formattedIngredients, specialPricesValues, selectedModifiersFromOptions);
         resetForm();
         setSelectedDiscounts([]);
       }
@@ -456,7 +449,6 @@ const ItemVariantModal = (props: IVariantProps) => {
 
       setIngredients([...ingredients]);
 
-      setSelectedItemsForRecipe((prevItems) => [...prevItems, ...selectedItems]);
       setSelectedItems([]);
       setModalOpen(false);
     }
@@ -481,6 +473,10 @@ const ItemVariantModal = (props: IVariantProps) => {
           value: addon.id
         })))
 
+      }
+
+      if(editingVariant.options){
+        setSelectedModifiersFromOptions(editingVariant.options)
       }
 
       if (editingVariant.specialPrices) {
@@ -982,43 +978,43 @@ const ItemVariantModal = (props: IVariantProps) => {
                 </div>
 
                 <h4>Special Prices</h4>
-                <Row>
-                <Col>
-                  <h5 className="font-semibold">Wholesale Prices</h5>
-                  {Object.keys(wholesalePrices).map((priceKey, index) => (
-                    <>
-                      <label className="font-semibold">{priceKey}</label>
-                      <ValidatedField
-                      key={index}
-                      type="number"
-                      placeholder={`Enter price ${index + 1}`}
-                      name={`wholesale_price_${index + 1}`}
-                      value={parseFloat(wholesalePrices[priceKey])}
-                      onChange={(e) => handleWholesalePriceChange(priceKey, e.target.value)}
+                {!isPizza ? <Row>
+                  <Col>
+                    <h5 className="font-semibold">Wholesale Prices</h5>
+                    {Object.keys(wholesalePrices).map((priceKey, index) => (
+                      <>
+                        <label className="font-semibold">{priceKey}</label>
+                        <ValidatedField
+                          key={index}
+                          type="number"
+                          placeholder={`Enter price ${index + 1}`}
+                          name={`wholesale_price_${index + 1}`}
+                          value={parseFloat(wholesalePrices[priceKey])}
+                          onChange={(e) => handleWholesalePriceChange(priceKey, e.target.value)}
 
-                    />
-                    </>
-                  ))}
-                </Col>
-                <Col>
-                  <h5 className="font-semibold">Retail Prices</h5>
-                  {Object.keys(retailPrices).map((priceKey, index) => (
-                    <>
-                      <label className="font-semibold">{priceKey}</label><ValidatedField
-                      key={priceKey}
-                      type="number"
-                      placeholder={`Enter price ${index + 1}`}
-                      name={`retail_price_${index + 1}`}
-                      value={parseFloat(retailPrices[priceKey])}
-                      onChange={(e) => handleRetailPriceChange(priceKey, e.target.value)}
-                      validate={{
-                        required: { value: true, message: translate('entity.validation.required') },
-                      }}
-                    />
-                    </>
-                  ))}
-</Col>
-                </Row>
+                        />
+                      </>
+                    ))}
+                  </Col>
+                  <Col>
+                    <h5 className="font-semibold">Retail Prices</h5>
+                    {Object.keys(retailPrices).map((priceKey, index) => (
+                      <>
+                        <label className="font-semibold">{priceKey}</label><ValidatedField
+                        key={priceKey}
+                        type="number"
+                        placeholder={`Enter price ${index + 1}`}
+                        name={`retail_price_${index + 1}`}
+                        value={parseFloat(retailPrices[priceKey])}
+                        onChange={(e) => handleRetailPriceChange(priceKey, e.target.value)}
+                        validate={{
+                          required: {value: true, message: translate('entity.validation.required')},
+                        }}
+                      />
+                      </>
+                    ))}
+                  </Col>
+                </Row> : null}
                 <Table>
                   <thead>
                     <tr>
@@ -1048,7 +1044,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                   </tbody>
                 </Table>
               </FormGroup>
-              <FormGroup>
+              {!isPizza ? <FormGroup>
                 <h3>Combo</h3>
                 <div className="d-flex justify-content-end mr-4">
                   <Button color="primary" onClick={toggleModal} disabled={allItemsPresent()}>
@@ -1147,11 +1143,12 @@ const ItemVariantModal = (props: IVariantProps) => {
                               </div>
                             </td>
 
-                                <td>
-                                  <Button type={"button"} color="danger"  onClick={() => handleDeleteItem(itemId, variant.id)}  >
-                                    <FontAwesomeIcon icon="trash"  />
-                                  </Button>
-                                </td>
+                            <td>
+                              <Button type={"button"} color="danger"
+                                      onClick={() => handleDeleteItem(itemId, variant.id)}>
+                                <FontAwesomeIcon icon="trash"/>
+                              </Button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -1159,7 +1156,16 @@ const ItemVariantModal = (props: IVariantProps) => {
                   ))}
                   </tbody>
                 </Table>
-              </FormGroup>
+              </FormGroup> : null}
+            </Row>
+            <Row>
+
+              {/* Listing for pizza */}
+              { isPizza ? <Pizza
+                selectedModifiersFromOptions={selectedModifiersFromOptions}
+                setSelectedModifiersFromOptions={setSelectedModifiersFromOptions}
+              /> : null}
+
 
 
             </Row>

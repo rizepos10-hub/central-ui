@@ -17,6 +17,12 @@ export const OrderDetail = () => {
 
   const { id } = useParams<'id'>();
   const orderEntity = useAppSelector(state => state.order.entity);
+  const filteredOrderEntity = {
+    ...orderEntity,
+    items: orderEntity.items && Array.isArray(orderEntity.items)
+      ? orderEntity.items.filter(item => item.archived !== true)
+      : [],
+  };
 
   console.log(orderEntity, 'orderEntity')
 
@@ -24,8 +30,8 @@ export const OrderDetail = () => {
     dispatch(getEntity(id));
   }, []);
 
-  const subtotal = orderEntity.items?.reduce((acc, item) => acc + item.price, 0);
-  const totalDiscounts = orderEntity.items?.reduce((acc, item) => {
+  const subtotal = filteredOrderEntity.items?.reduce((acc, item) => acc + item.price, 0);
+  const totalDiscounts = filteredOrderEntity.items?.reduce((acc, item) => {
     if (item.discount?.type === 'PERCENTAGE') {
       return acc + (item.price * item.discount.value) / 100;
     } else if (item.discount?.type === 'FLAT') {
@@ -37,7 +43,7 @@ export const OrderDetail = () => {
 
   const totalItemsPrice = subtotal - totalDiscounts;
 
-  const totalPaymentAmount = orderEntity?.bills?.reduce((total, bill) => {
+  const totalPaymentAmount = filteredOrderEntity?.bills?.reduce((total, bill) => {
     const billPaymentTotal = bill.paymentTransactions.filter((payment) => payment.returnType !== "refund").reduce(
       (acc, transaction) => {
         const transactionAmount = transaction.amount ? transaction.amount : 0;
@@ -65,7 +71,7 @@ export const OrderDetail = () => {
   return (
     <Row>
       <h2 className="mb-3">
-        Order <span className="text-primary">#{orderEntity.sequenceNumber}</span>
+        Order <span className="text-primary">#{filteredOrderEntity.sequenceNumber}</span>
       </h2>
       <Col md="12" className="d-flex flex-wrap ">
         <Card>
@@ -74,18 +80,18 @@ export const OrderDetail = () => {
 
                 <Col md="9">
 
-                    <div>{orderEntity?.items ? <OrderedItems list={orderEntity.items} totalPayments={totalPaymentAmount} /> : ''}</div>
+                    <div>{orderEntity?.items ? <OrderedItems list={filteredOrderEntity.items} totalPayments={totalPaymentAmount} /> : ''}</div>
                 </Col>
 
                 <Col md="3" className="mt-3">
-                    {orderEntity.customer ? (
+                    {filteredOrderEntity.customer ? (
                       <Card className="border p-3 mt-lg-3 " style={{ height: '28.5rem'}} >
 
                       <OrderCustomerDetail
-                        email={orderEntity.customer.email}
-                        firstName={orderEntity.customer.firstName}
-                        lastName={orderEntity.customer.lastName}
-                        phone={orderEntity.customer.phone}
+                        email={filteredOrderEntity.customer.email}
+                        firstName={filteredOrderEntity.customer.firstName}
+                        lastName={filteredOrderEntity.customer.lastName}
+                        phone={filteredOrderEntity.customer.phone}
                       />
                       </Card>
 
@@ -109,7 +115,7 @@ export const OrderDetail = () => {
         <Col md="12" className="mt-lg-5">
 
 
-          {orderEntity.bills && <OrderBill orderedItems={orderEntity?.items} list={orderEntity?.bills}></OrderBill> }
+          {filteredOrderEntity.bills && <OrderBill orderedItems={filteredOrderEntity?.items} list={filteredOrderEntity?.bills}></OrderBill> }
         </Col>
         </div>
       </Col>
