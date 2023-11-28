@@ -48,11 +48,14 @@ interface IVariantProps {
   handleEditExistingVariant: any;
   addonsOptions: any;
   itemId: string;
+  itemType: string;
   editingVariantIndex: number;
 }
 
 const ItemVariantModal = (props: IVariantProps) => {
   const dispatch = useAppDispatch();
+
+  const isPizza = props.itemType === "PIZZA"
 
   const editingVariant = props.editingVariantIndex !== null && props.editingVariantIndex >= 0
     ? props.variants[props.editingVariantIndex]
@@ -975,43 +978,43 @@ const ItemVariantModal = (props: IVariantProps) => {
                 </div>
 
                 <h4>Special Prices</h4>
-                <Row>
-                <Col>
-                  <h5 className="font-semibold">Wholesale Prices</h5>
-                  {Object.keys(wholesalePrices).map((priceKey, index) => (
-                    <>
-                      <label className="font-semibold">{priceKey}</label>
-                      <ValidatedField
-                      key={index}
-                      type="number"
-                      placeholder={`Enter price ${index + 1}`}
-                      name={`wholesale_price_${index + 1}`}
-                      value={parseFloat(wholesalePrices[priceKey])}
-                      onChange={(e) => handleWholesalePriceChange(priceKey, e.target.value)}
+                {!isPizza ? <Row>
+                  <Col>
+                    <h5 className="font-semibold">Wholesale Prices</h5>
+                    {Object.keys(wholesalePrices).map((priceKey, index) => (
+                      <>
+                        <label className="font-semibold">{priceKey}</label>
+                        <ValidatedField
+                          key={index}
+                          type="number"
+                          placeholder={`Enter price ${index + 1}`}
+                          name={`wholesale_price_${index + 1}`}
+                          value={parseFloat(wholesalePrices[priceKey])}
+                          onChange={(e) => handleWholesalePriceChange(priceKey, e.target.value)}
 
-                    />
-                    </>
-                  ))}
-                </Col>
-                <Col>
-                  <h5 className="font-semibold">Retail Prices</h5>
-                  {Object.keys(retailPrices).map((priceKey, index) => (
-                    <>
-                      <label className="font-semibold">{priceKey}</label><ValidatedField
-                      key={priceKey}
-                      type="number"
-                      placeholder={`Enter price ${index + 1}`}
-                      name={`retail_price_${index + 1}`}
-                      value={parseFloat(retailPrices[priceKey])}
-                      onChange={(e) => handleRetailPriceChange(priceKey, e.target.value)}
-                      validate={{
-                        required: { value: true, message: translate('entity.validation.required') },
-                      }}
-                    />
-                    </>
-                  ))}
-</Col>
-                </Row>
+                        />
+                      </>
+                    ))}
+                  </Col>
+                  <Col>
+                    <h5 className="font-semibold">Retail Prices</h5>
+                    {Object.keys(retailPrices).map((priceKey, index) => (
+                      <>
+                        <label className="font-semibold">{priceKey}</label><ValidatedField
+                        key={priceKey}
+                        type="number"
+                        placeholder={`Enter price ${index + 1}`}
+                        name={`retail_price_${index + 1}`}
+                        value={parseFloat(retailPrices[priceKey])}
+                        onChange={(e) => handleRetailPriceChange(priceKey, e.target.value)}
+                        validate={{
+                          required: {value: true, message: translate('entity.validation.required')},
+                        }}
+                      />
+                      </>
+                    ))}
+                  </Col>
+                </Row> : null}
                 <Table>
                   <thead>
                     <tr>
@@ -1041,7 +1044,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                   </tbody>
                 </Table>
               </FormGroup>
-              <FormGroup>
+              {!isPizza ? <FormGroup>
                 <h3>Combo</h3>
                 <div className="d-flex justify-content-end mr-4">
                   <Button color="primary" onClick={toggleModal} disabled={allItemsPresent()}>
@@ -1140,11 +1143,12 @@ const ItemVariantModal = (props: IVariantProps) => {
                               </div>
                             </td>
 
-                                <td>
-                                  <Button type={"button"} color="danger"  onClick={() => handleDeleteItem(itemId, variant.id)}  >
-                                    <FontAwesomeIcon icon="trash"  />
-                                  </Button>
-                                </td>
+                            <td>
+                              <Button type={"button"} color="danger"
+                                      onClick={() => handleDeleteItem(itemId, variant.id)}>
+                                <FontAwesomeIcon icon="trash"/>
+                              </Button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -1152,16 +1156,15 @@ const ItemVariantModal = (props: IVariantProps) => {
                   ))}
                   </tbody>
                 </Table>
-              </FormGroup>
-
+              </FormGroup> : null}
             </Row>
             <Row>
 
               {/* Listing for pizza */}
-              <Pizza
+              { isPizza ? <Pizza
                 selectedModifiersFromOptions={selectedModifiersFromOptions}
                 setSelectedModifiersFromOptions={setSelectedModifiersFromOptions}
-              />
+              /> : null}
 
 
 

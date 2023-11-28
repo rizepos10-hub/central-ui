@@ -585,6 +585,7 @@ const handleBackClick = () => {
       {openedModal && (
         <ItemVariantModal
           showModal={openedModal}
+          itemType={selectedType?.value}
           handleClose={handleCloseModal}
           handleSave={handleSaveVariant}
           editingVariantIndex={editingVariantIndex}
