@@ -17,7 +17,9 @@ const AppMenuitem = (props: AppMenuItemProps) => {
     const menuitemRef = useRef<HTMLLIElement>(null);
     const item = props.item;
     const key = props.parentKey ? props.parentKey + '-' + props.index : String(props.index);
-    const isActiveRoute = item!.to && location.pathname === item!.to;
+      const isActiveRoute = item!.to && location.pathname === item!.to || (location.pathname + location.search) === item!.to;
+    console.log(item!.to, 'item!.to')
+    console.log( location.pathname, 'item!.to1')
     const account = useAppSelector(state => state.authentication.account);
     const userRole = account.authorities
     const active = activeMenu === key || !!(activeMenu && activeMenu.startsWith(key + '-'));
@@ -35,6 +37,22 @@ const AppMenuitem = (props: AppMenuItemProps) => {
             setLayoutState((prevLayoutState) => ({ ...prevLayoutState, resetMenu: false }));
         }
     }, [layoutState]);
+
+  useEffect(() => {
+    const onRouteChange = () => {
+      const isRouteActive = item!.to && (location.pathname + location.search) === item!.to;
+
+      if (isRouteActive) {
+        setActiveMenu(key);
+      }
+    };
+
+    onRouteChange();
+
+    return () => {
+      setActiveMenu("")
+    };
+  }, []);
 
   useEffect(() => {
     const onRouteChange = (newLocation) => {
