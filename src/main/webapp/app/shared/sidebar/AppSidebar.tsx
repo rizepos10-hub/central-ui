@@ -16,7 +16,7 @@ const AppSidebar = () => {
             <div className="sidebar-header">
                 <Link to="/" className="app-logo">
                   <svg width="124" height="22" viewBox="0 0 124 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="app-logo-normal">
-                    <text x="0" y="15" fontSize="16" fontWeight="bold" fill="var(--logo-color)">CLOUD POS</text>
+                    <text x="0" y="15" fontSize="16" fontWeight="bold" fill="var(--logo-color)">RIZE POS</text>
                   </svg>
 
                   <svg width="21" height="22" viewBox="0 0 21 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="app-logo-small">
