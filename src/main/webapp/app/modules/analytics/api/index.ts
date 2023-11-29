@@ -1,5 +1,45 @@
 import axios from 'axios';
 
+
+
+// api/report/sales
+
+export const fetchSalesReport = async ({ dateRange, measure, type }) => {
+  try {
+    const { from, to, dateSlot } = dateRange;
+
+    const adjustedFromDate = from
+      ? new Date(from).toISOString()
+      : new Date(from).toISOString().split('T')[0];
+
+    const adjustedToDate = to
+      ? new Date(to).toISOString()
+      : new Date(to).toISOString().split('T')[0];
+
+    const requestData = {
+      dateRange: {
+        from: adjustedFromDate,
+        to: adjustedToDate,
+        dateSlot,
+      },
+      measure,
+      type,
+    };
+
+    const response = await axios.post('api/report/sales', requestData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    throw error;
+  }
+};
+
+
 export const fetchTopItems = async (limit?: null | number) => {
   const limitsize = limit?`?limit=${limit}` : ''
   try {
@@ -10,6 +50,7 @@ export const fetchTopItems = async (limit?: null | number) => {
     throw error;
   }
 };
+
 
 
 export const fetchTopCustomers = async () => {
@@ -93,5 +134,19 @@ console.log(response, 'resss')
     throw error;
   }
 };
+
+
+export const fetchEndOfDaysData = async (page: number, size: number, sort: string, year: string, branchId: string | null = null ) => {
+  const branchIdParam = branchId ? `branchId=${branchId}` : null
+  try {
+    const response = await axios.get(`/api/end-of-day?page=${page}&size=${size}&sort=${sort}&year=${year}&${branchIdParam}`);
+    console.log(response, 'response')
+    return response;
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    throw error;
+  }
+};
+
 
 
