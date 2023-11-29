@@ -2,49 +2,19 @@ import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import SalesSection from "app/modules/analytics/reports/SalesSections";
 import axios from "axios";
-import { format, addDays } from 'date-fns';
-import {Dropdown} from "primereact/dropdown";
 import {useAppDispatch, useAppSelector} from "app/config/store";
-import {SourceType} from "app/shared/model/enumerations/source-type.model";
 
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {Alert, Spinner} from "reactstrap";
 import UnclosedOrders from "app/modules/analytics/reports/unclosed-orders";
+import {useParams} from "react-router-dom";
 const EndOFDayReport = () => {
 
 
   const dispatch = useAppDispatch()
+  const {id} = useParams()
 
   const [salesData, setSalesData]:any[] = useState([]);
   const [loading, setLoading] = useState(false);
-
-
-
-  const [selectedBranch, setSelectedBranch] = useState(null);
-  // const [selectedSource, setSelectedSource] = useState(null);
-
-
-  const branchList = useAppSelector(state => state.branch.entities)
-
-
-  // const sourceTypeOptions = [
-  //   { label: "Both", value: null },
-  //   ...Object.values(SourceType).map((source) => ({
-  //     label: source,
-  //     value: source
-  //   }))
-  // ];
-
-  const filteredBranchOptions = [
-    { label: "All", value: null },
-    ...branchList
-      .map((branch) => ({
-        label: branch.name,
-        value: branch.id,
-      }))];
-
-
-
 
 
   const handleSubmit = async (event?) => {
@@ -53,8 +23,11 @@ const EndOFDayReport = () => {
     }
     try {
       setLoading(true)
-      const { data } = await axios.get(`/api/report/end-of-day?branch=${selectedBranch}`);
-      setSalesData(data);
+      const { data } = await axios.get(`/api/end-of-day/${id}`);
+      console.log(data, 'kamak')
+      const reportData = JSON.parse(data.report)
+
+      setSalesData(reportData);
       setLoading(false)
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -67,41 +40,40 @@ const EndOFDayReport = () => {
     const fetchTodayData = async () => {
       await handleSubmit();
     };
-    dispatch(getBranches({}))
 
     fetchTodayData();
-  }, [selectedBranch]);
+  }, [id]);
 
 
   if (!salesData) {
     return <div>No data available.</div>;
   }
 
-  if(!selectedBranch){
-    return  (
-        <div >
-          <div className="text-center my-3">
-            <h4>End OF Day Report</h4>
-            <p>Location: Random Location</p>
-
-          </div>
-        <div>
-          <Alert variant={"warning"}>Please Select A Branch</Alert>
-
-        </div>
-        <div className="d-flex justify-content-start align-items-start"  >
-        <Dropdown
-          style={{minWidth: '20rem'}}
-          value={selectedBranch}
-          options={filteredBranchOptions}
-          onChange={(e) => setSelectedBranch(e.value)}
-          placeholder="Select a branch"
-        />
-        </div>
-
-      </div>
-  )
-  }
+  // if(!selectedBranch){
+  //   return  (
+  //       <div >
+  //         <div className="text-center my-3">
+  //           <h4>End OF Day Report</h4>
+  //           <p>Location: Random Location</p>
+  //
+  //         </div>
+  //       <div>
+  //         <Alert variant={"warning"}>Please Select A Branch</Alert>
+  //
+  //       </div>
+  //       <div className="d-flex justify-content-start align-items-start"  >
+  //       <Dropdown
+  //         style={{minWidth: '20rem'}}
+  //         value={selectedBranch}
+  //         options={filteredBranchOptions}
+  //         onChange={(e) => setSelectedBranch(e.value)}
+  //         placeholder="Select a branch"
+  //       />
+  //       </div>
+  //
+  //     </div>
+  // )
+  // }
 
 
 
@@ -142,20 +114,9 @@ const EndOFDayReport = () => {
       <div className="text-center">
         <h4>End OF Day Report</h4>
         <p>Location: Random Location</p>
-
       </div>
-      <div className="d-flex  justify-content-start gap-5 ">
 
-        <Dropdown
-          style={{minWidth: '7rem'}}
-
-          value={selectedBranch}
-          options={filteredBranchOptions}
-          onChange={(e) => setSelectedBranch(e.value)}
-          placeholder="Select a branch"
-        />
-      </div>
-      <div>
+      <div >
         <UnclosedOrders openedOrders={salesData.openedOrders} />
       </div>
       <SalesSection title="Total Sales" data={salesData.totalSales} isTotalSales={true}/>

@@ -1,9 +1,13 @@
 export enum SalesReportsTypes {
-  Product = "PRODUCT"
+  Product = "PRODUCT",
+  Category = "CATEGORY"
 }
 
 export enum SalesReportsMeasures {
-  Revenue = "REVENUE"
+  Revenue = "REVENUE",
+  Sale_Count = "SALE_COUNT",
+  Returns = "RETURNS",
+  Tax = "TAX"
 }
 
 export enum SalesReportsPeriods {

@@ -141,8 +141,11 @@ export const OpenedOrders = ({openedOrders}) => {
 
   return (
     <div>
+
       <div>
         <div className="p-3 my-5" style={{ background: 'var(--surface-card)', borderRadius: '10px'}}>
+          <h4>Unclosed Orders</h4>
+
           <DataTable
             value={openedOrders}
             filterDisplay="row"
