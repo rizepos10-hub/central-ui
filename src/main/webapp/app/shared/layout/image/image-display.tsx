@@ -5,10 +5,10 @@ const ImageDisplay = ({ imageType, imageUrl = null, style={} }) => {
   let selectedImageUrl = "" ;
 
   if(imageUrl){
-    //if there is an imageUrl then get the image
+    // if there is an imageUrl then get the image
     selectedImageUrl = imageUrl;
   }else{
-    //if there is no imageUrl then set the default image based on the type
+    // if there is no imageUrl then set the default image based on the type
     if(imageType === "user"){
       selectedImageUrl = "/content/images/default-user.png"
     }
