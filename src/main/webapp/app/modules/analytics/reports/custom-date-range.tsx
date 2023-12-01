@@ -44,15 +44,14 @@ type dateRange = {
     to: format(currentDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
     dateSlot: {
       period: 'YEAR',
-      slots: null,
+      slots: 1,
     },
   })
-  const [slotNumber, setSlotNumber] = useState<number | null>(null);
+  const [slotNumber, setSlotNumber] = useState<number | null>(4);
 
   const [selectedPeriodOption, setSelectedPeriodOption] = useState("period-to-date")
   const periodOptions = Object.entries(SalesReportsPeriods).map(([key,val]) => ({label: key, value: val}));
   const op = useRef(null);
-
 
 
 
@@ -70,6 +69,12 @@ type dateRange = {
     { label: "Specify Period", icon: "pi pi-fw pi-calendar" },
     { label: "Specify Date", icon: "pi pi-fw pi-calendar" },
   ];
+
+    const handleSlotChange = (e) => {
+      setSlotNumber(e.value);
+      calculateDates("last-n-period", e.value);
+
+    };
 
   const handlePeriodChange = (e) => {
     console.log(e, 'hellowlr')
@@ -95,13 +100,13 @@ type dateRange = {
       });
     }
 
-    const calculateDates = (selectedOption: string) => {
+    const calculateDates = (selectedOption: string, n = slotNumber) => {
       setSelectedPeriodOption(selectedOption);
 
 
       setDateRange((prevDateRange) => {
         const currentDate = new Date();
-        const n = prevDateRange?.dateSlot?.slots || 0;
+
         let fromDate = '';
         let toDate = '';
 
@@ -165,15 +170,16 @@ type dateRange = {
 
           case 'last-n-period':
 
+            console.log(n, 'hellon')
 
             switch (prevDateRange?.dateSlot?.period) {
               case 'YEAR':
-                fromDate = format(subYears(startOfYear(currentDate), n), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
-                toDate = format(currentDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+                fromDate = format(subYears(startOfYear(currentDate), n - 1), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+                toDate = format(endOfYear(currentDate), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
                 break;
               case 'QUARTER':
-                fromDate = format(subMonths(startOfMonth(currentDate), n * 3 - 1), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
-                toDate = format(currentDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+                fromDate = format(subMonths(startOfMonth(currentDate), n * 3 - 1 ), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+                toDate = format((currentDate), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
                 break;
               case 'MONTH':
                 fromDate = format(subMonths(startOfMonth(currentDate), n - 1), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
@@ -206,7 +212,7 @@ type dateRange = {
           to: toDate,
           dateSlot: {
             period: prevDateRange?.dateSlot?.period || '',
-            slots: slotNumber,
+            slots: selectedOption === "last-n-period" ? n : 1,
           },
         };
       });
@@ -266,7 +272,7 @@ type dateRange = {
                     onChange={() => calculateDates("last-n-period")}
                     checked={selectedPeriodOption === "last-n-period"}
                   />
-                  <label htmlFor={"last-n-period"} className="ml-2">Last <InputNumber inputMode={"numeric"} size={1} onChange={(e) => setSlotNumber(e.value)}   /> {toTitleCase(dateRange?.dateSlot?.period)}(s)</label>
+                  <label htmlFor={"last-n-period"} className="ml-2">Last <InputNumber inputMode={"numeric"} size={1} value={slotNumber} onChange={handleSlotChange}   /> {toTitleCase(dateRange?.dateSlot?.period)}(s)</label>
                 </div>
               </div>
             </> : null}
@@ -292,7 +298,7 @@ type dateRange = {
                 </div>
                 <div className="d-flex flex-column m-3 relative">
                   <label>To: {dateRange.to.toString().substring(0, 10)}</label>
-                  <Calendar inline={true} value={dateRange.to}
+                  <Calendar inline={true} value={primeDateValue.to}
                     onChange={(e: any) => {
                     const formattedDate = format(e.value, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
                     setDateRange((prev: any) => ({ ...prev, to: formattedDate }));
@@ -301,8 +307,10 @@ type dateRange = {
                 </div>
               </div>
             </> : null}
-          <div className="flex justify-content-end"/>
-          <Button onClick={handleApplyDateRange} >Apply</Button>
+          <div className="flex">
+          <Calendar value={dates} selectionMode={"range"}   disabled={true}   readOnlyInput />
+          <Button onClick={handleApplyDateRange} className={"ml-auto"}  >Apply</Button>
+          </div>
         </div>
       </OverlayPanel>
 

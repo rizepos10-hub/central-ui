@@ -8,18 +8,12 @@ export const fetchSalesReport = async ({ dateRange, measure, type }) => {
   try {
     const { from, to, dateSlot } = dateRange;
 
-    const adjustedFromDate = from
-      ? new Date(from).toISOString()
-      : new Date(from).toISOString().split('T')[0];
 
-    const adjustedToDate = to
-      ? new Date(to).toISOString()
-      : new Date(to).toISOString().split('T')[0];
 
     const requestData = {
       dateRange: {
-        from: adjustedFromDate,
-        to: adjustedToDate,
+        from,
+        to,
         dateSlot,
       },
       measure,
