@@ -40,7 +40,7 @@ export const TaxProfileUpdate = () => {
   const taxEntity = useAppSelector(state => state.taxProfiles.entity);
   const loading = useAppSelector(state => state.taxProfiles.loading);
   const updating = useAppSelector(state => state.taxProfiles.updating);
-  const updateSuccess = useAppSelector(state => state.taxProfiles.update)
+  const updateSuccess = useAppSelector(state => state.taxProfiles.updateSuccess)
   const taxRates = useAppSelector(state => state.tax.entities);
 
 
@@ -53,15 +53,10 @@ console.log(taxEntity, 'loli')
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [taxRate, setTaxRate] :any= useState('');
-  const [accountProfile, setAccountProfile] = useState('');
-  const [applyToRefunds, setApplyToRefunds] = useState(false);
-  const [applyNextMatchingRule, setApplyNextMatchingRule] = useState(false);
+
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [selectedConditions, setSelectedConditions] = useState([]);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [itemUnitPriceMin, setItemUnitPriceMin] = useState('');
- const  [itemUnitPriceMax, setItemUnitPriceMax] = useState('')
+
 
 
 
@@ -74,7 +69,7 @@ console.log(taxEntity, 'loli')
 
 
   const handleClose = () => {
-    navigate('/tax' + location.search);
+    navigate('/tax-profiles');
   };
 
   const togglePopover = () => {
@@ -391,27 +386,3 @@ if(isNew){
 export default TaxProfileUpdate;
 
 
-{/* <div style={{ display: 'flex',  alignItems: 'center', justifyContent: 'space-between' }}> */}
-{/*   <FormGroup check style={{ flex: '1' }}> */}
-{/*     <Label check> */}
-{/*       <Input */}
-{/*         type="checkbox" */}
-{/*         name="applyToRefunds" */}
-{/*         checked={applyToRefunds} */}
-{/*         onChange={() => setApplyToRefunds(!applyToRefunds)} */}
-{/*       />{' '} */}
-{/*       Apply to Refunds */}
-{/*     </Label> */}
-{/*   </FormGroup> */}
-{/*   <FormGroup check style={{ flex: '1', marginTop: '1.5rem' }}> */}
-{/*     <Label check> */}
-{/*       <Input */}
-{/*         type="checkbox" */}
-{/*         name="applyNextMatchingRule" */}
-{/*         checked={applyNextMatchingRule} */}
-{/*         onChange={() => setApplyNextMatchingRule(!applyNextMatchingRule)} */}
-{/*       />{' '} */}
-{/*       Apply Next Matching Rule */}
-{/*     </Label> */}
-{/*   </FormGroup> */}
-{/* </div> */}

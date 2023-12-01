@@ -1,6 +1,10 @@
 export enum SalesReportsTypes {
   Product = "PRODUCT",
-  Category = "CATEGORY"
+  Category = "CATEGORY",
+  Branch = "BRANCH",
+  User = "USER",
+  Customer = "CUSTOMER"
+
 }
 
 export enum SalesReportsMeasures {
