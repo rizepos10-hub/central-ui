@@ -74,7 +74,7 @@ type formRequest = {
   type: string;
 }
 
-const SalesReport = () => {
+export const SalesReport = () => {
 
   const reportTypesOptions = Object.entries(SalesReportsTypes).map(([key,val]) => ({label: key, value: val}));
   console.log(reportTypesOptions, 'reportTypesOptions')
@@ -341,5 +341,3 @@ const SalesReport = () => {
     </>
   )
 }
-
-export default SalesReport

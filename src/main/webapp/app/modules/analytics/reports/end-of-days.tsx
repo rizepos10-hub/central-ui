@@ -11,7 +11,7 @@ import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 
 
 
-const EndOfDays = () => {
+export const EndOfDays = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const branchList = useAppSelector(state => state.branch.entities)
@@ -116,4 +116,3 @@ const EndOfDays = () => {
     </Row>
   )
 }
-export default EndOfDays
