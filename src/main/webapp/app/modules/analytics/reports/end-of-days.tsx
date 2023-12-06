@@ -23,7 +23,7 @@ export const EndOfDays = () => {
   const [endOfDaysData, setEndOFDaysData] = useState([])
   const [lazyState, setLazyState] = useState({
     first: 0,
-    page: 1,
+    page: 0,
     rows: 10,
     sortField: null,
     sortOrder: null,
