@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {lazy, Suspense} from 'react';
 import { Route, useLocation } from 'react-router-dom';
 import Loadable from 'react-loadable';
 
@@ -9,16 +9,17 @@ import PasswordResetInit from 'app/modules/account/password-reset/init/password-
 import PasswordResetFinish from 'app/modules/account/password-reset/finish/password-reset-finish';
 import Logout from 'app/modules/login/logout';
 import Home from 'app/shared/layout/home/home';
-import EntitiesRoutes from 'app/entities/routes';
-import AnalyticsRoutes from "app/modules/analytics/analyticsRoutes";
+// import EntitiesRoutes from 'app/entities/routes';
+// import AnalyticsRoutes from "app/modules/analytics/analyticsRoutes";
+// import BusinessDetailRoutes from "app/entities/settings/business-details";
 import PrivateRoute from 'app/shared/auth/private-route';
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import PageNotFound from 'app/shared/error/page-not-found';
 import { AUTHORITIES } from 'app/config/constants';
 import { sendActivity } from 'app/config/websocket-middleware';
 import Welcome from "app/modules/login/welcome";
-import BusinessDetailRoutes from "app/entities/settings/business-details";
 import {useAppSelector} from "app/config/store";
+import {Spinner} from "reactstrap";
 
 const loading = <div>loading ...</div>;
 
@@ -37,10 +38,19 @@ const AppRoutes = () => {
   React.useEffect(() => {
     sendActivity(location.pathname);
   }, [location]);
+
+
+  const EntitiesRoutes = lazy(() => import('app/entities/routes'))
+  const AnalyticsRoutes = lazy(() => import('app/modules/analytics/analyticsRoutes'))
+  const BusinessDetailRoutes = lazy(() => import('app/entities/settings/business-details'))
+
+
   const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
 
   return (
     <div className="view-routes">
+      <Suspense fallback={<Spinner />}>
+
       <ErrorBoundaryRoutes>
 
         <Route
@@ -128,6 +138,8 @@ const AppRoutes = () => {
 
         <Route path="*" element={<PageNotFound />} />
       </ErrorBoundaryRoutes>
+      </Suspense>
+
     </div>
   );
 };
