@@ -129,7 +129,7 @@ type dateRange = {
                 fromDate = format(startOfDay(currentDate), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
                 break;
               case 'HOUR':
-                fromDate = format(currentDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+                fromDate = format(subHours(currentDate,  1), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
                 break;
               default:
                 break;
