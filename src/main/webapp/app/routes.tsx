@@ -40,10 +40,10 @@ const AppRoutes = () => {
   }, [location]);
 
 
-  const EntitiesRoutes = lazy(() => import('app/entities/routes'))
-  const AnalyticsRoutes = lazy(() => import('app/modules/analytics/analyticsRoutes'))
-  const BusinessDetailRoutes = lazy(() => import('app/entities/settings/business-details'))
-  const Home = lazy(() => import('app/shared/layout/home/home'))
+  const EntitiesRoutes = lazy(() => import('app/entities/routes' /* webpackChunkName: "EntitiesRoutes" */))
+  const AnalyticsRoutes = lazy(() => import('app/modules/analytics/analyticsRoutes' /* webpackChunkName: "AnalyticsRoutes" */))
+  const BusinessDetailRoutes = lazy(() => import('app/entities/settings/business-details' /* webpackChunkName: "BusinessDetailRoutes" */))
+  const Home = lazy(() => import('app/shared/layout/home/home' /* webpackChunkName: "Home" */))
 
 
 
