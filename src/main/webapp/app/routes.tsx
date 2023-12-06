@@ -8,7 +8,7 @@ import Activate from 'app/modules/account/activate/activate';
 import PasswordResetInit from 'app/modules/account/password-reset/init/password-reset-init';
 import PasswordResetFinish from 'app/modules/account/password-reset/finish/password-reset-finish';
 import Logout from 'app/modules/login/logout';
-import Home from 'app/shared/layout/home/home';
+// import Home from 'app/shared/layout/home/home';
 // import EntitiesRoutes from 'app/entities/routes';
 // import AnalyticsRoutes from "app/modules/analytics/analyticsRoutes";
 // import BusinessDetailRoutes from "app/entities/settings/business-details";
@@ -40,9 +40,11 @@ const AppRoutes = () => {
   }, [location]);
 
 
-  const EntitiesRoutes = lazy(() => import('app/entities/routes'))
-  const AnalyticsRoutes = lazy(() => import('app/modules/analytics/analyticsRoutes'))
-  const BusinessDetailRoutes = lazy(() => import('app/entities/settings/business-details'))
+  const EntitiesRoutes = lazy(() => import('app/entities/routes' /* webpackChunkName: "EntitiesRoutes" */))
+  const AnalyticsRoutes = lazy(() => import('app/modules/analytics/analyticsRoutes' /* webpackChunkName: "AnalyticsRoutes" */))
+  const BusinessDetailRoutes = lazy(() => import('app/entities/settings/business-details' /* webpackChunkName: "BusinessDetailRoutes" */))
+  const Home = lazy(() => import('app/shared/layout/home/home' /* webpackChunkName: "Home" */))
+
 
 
   const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
