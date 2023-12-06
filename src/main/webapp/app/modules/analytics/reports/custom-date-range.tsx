@@ -144,7 +144,7 @@ type dateRange = {
                 toDate = format(subYears(endOfYear(currentDate), 1), "yyyy-MM-dd'T'23:59:59.999xxx");
                 break;
               case 'QUARTER':
-                fromDate = format(subMonths(startOfMonth(currentDate), 4), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+                fromDate = format(subMonths(startOfMonth(currentDate), 3), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
                 toDate = format(subMonths(endOfMonth(currentDate), 1), "yyyy-MM-dd'T'23:59:59.999xxx");
                 break;
               case 'MONTH':
@@ -160,8 +160,8 @@ type dateRange = {
                 toDate = format(subDays(endOfDay(currentDate), 1), "yyyy-MM-dd'T'23:59:59.999xxx");
                 break;
               case 'HOUR':
-                fromDate = format(subHours(currentDate, 1), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
-                toDate = format(subHours(currentDate, 1), "yyyy-MM-dd'T'59:59.999xxx");
+                fromDate = format(subHours(currentDate,  2), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+                toDate = format(subHours(currentDate,1), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
                 break;
               default:
                 break;
