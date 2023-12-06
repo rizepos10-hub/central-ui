@@ -124,7 +124,6 @@ export const SalesReport = () => {
 
 
 
-
   const handleTypeChange = (e) => {
     const type = e.value;
     setSelectedType(type)
@@ -183,16 +182,21 @@ export const SalesReport = () => {
 
 
 
+
   const footerGroup = (
     <ColumnGroup>
       <PrimeRow >
-        <Column className="bg-silver text-left " colSpan={10}  footer={"Total By Date Range"} />
+        <Column className="bg-silver text-left " colSpan={totalsRowForFooter?.length + 1}  footer={"Total By Date Range"} />
+        <Column  className="bg-white"  colSpan={10} />
+
       </PrimeRow>
       <PrimeRow>
         <Column  footer="Totals" className="bg-white text-left"   />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column  className="bg-white" colSpan={index === totalsRowForFooter.length - 1 ? 10 : 1} key={index} footer={totalsRecord.value?.toFixed(2)} />
+          <Column  className="bg-white"  key={index} footer={totalsRecord.value?.toFixed(2)} />
         ))}
+        <Column  className="bg-white"  colSpan={10} />
+
       </PrimeRow>
 
       {/*  Display the selected measure always in the second row */}
@@ -200,54 +204,60 @@ export const SalesReport = () => {
         <PrimeRow>
         <Column footer={capitalizeFirstLetter(selectedMeasure.toLowerCase())} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord: any, index) => (
-          <Column className="bg-white"  colSpan={index === totalsRowForFooter.length - 1 ? 10 : 1} key={index} footer={totalsRecord[measure]?.toFixed(2)}/>
+          <Column className="bg-white"   key={index} footer={totalsRecord[measure]?.toFixed(2)}/>
         ))}
-
+          <Column  className="bg-white"  colSpan={10} />
       </PrimeRow> : null}
 
        {selectedMeasure !== "REVENUE" ?
          <PrimeRow>
          <Column footer={"Revenue"} className="bg-white text-left" />
          {totalsRowForFooter.map((totalsRecord: any, index) => (
-           <Column className="bg-white" colSpan={index === totalsRowForFooter.length - 1 ? 10: 1}  key={index} footer={totalsRecord.revenue?.toFixed(2)}/>
+           <Column className="bg-white"   key={index} footer={totalsRecord.revenue?.toFixed(2)}/>
          ))}
+           <Column  className="bg-white"  colSpan={10} />
        </PrimeRow> : null }
 
        <PrimeRow>
          <Column footer={"Cost Of Goods"} className="bg-white text-left" />
          {totalsRowForFooter.map((totalsRecord: any, index) => (
-           <Column className="bg-white" colSpan={index === totalsRowForFooter.length - 1 ? 10: 1} key={index} footer={totalsRecord.costOfGoods?.toFixed(2)}/>
+           <Column className="bg-white"  key={index} footer={totalsRecord.costOfGoods?.toFixed(2)}/>
          ))}
+         <Column  className="bg-white"  colSpan={10} />
        </PrimeRow>
 
      {selectedMeasure !== "RETURNS" ?
       <PrimeRow>
         <Column footer={"Returned"} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column  className="bg-white" colSpan={index === totalsRowForFooter.length - 1 ? 10: 1} key={index} footer={totalsRecord.returns?.toFixed(2)} />
+          <Column  className="bg-white"  key={index} footer={totalsRecord.returns?.toFixed(2)} />
         ))}
+        <Column  className="bg-white"  colSpan={10} />
       </PrimeRow> : null }
 
       <PrimeRow>
         <Column footer={"Margin"} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column className="bg-white" colSpan={index === totalsRowForFooter.length - 1 ? 10: 1} key={index} footer={totalsRecord.margin?.toFixed(2)} />
+          <Column className="bg-white"  key={index} footer={totalsRecord.margin?.toFixed(2)} />
         ))}
+        <Column  className="bg-white"  colSpan={10} />
       </PrimeRow>
 
       <PrimeRow>
         <Column footer={"Gross Profit"} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column className="bg-white" colSpan={index === totalsRowForFooter.length - 1 ? 10: 1} key={index} footer={totalsRecord.grossProfit?.toFixed(2)} />
+          <Column className="bg-white"  key={index} footer={totalsRecord.grossProfit?.toFixed(2)} />
         ))}
+        <Column  className="bg-white"  colSpan={10} />
       </PrimeRow>
 
        {selectedMeasure !== "TAX" ?
          <PrimeRow>
          <Column footer={"Tax"} className="bg-white text-left" />
          {totalsRowForFooter.map((totalsRecord: any, index) => (
-           <Column className="bg-white"colSpan={index === totalsRowForFooter.length - 1 ? 10: 1}  key={index} footer={totalsRecord.tax?.toFixed(2)}/>
+           <Column className="bg-white"  key={index} footer={totalsRecord.tax?.toFixed(2)}/>
          ))}
+           <Column  className="bg-white"  colSpan={10} />
        </PrimeRow> : null}
     </ColumnGroup>
    );
