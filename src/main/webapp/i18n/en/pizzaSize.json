@@ -1,0 +1,24 @@
+{
+  "tempApp": {
+    "pizzaSize": {
+      "home": {
+        "title": "Pizza Sizes",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Pizza Size",
+        "createOrEditLabel": "Create or edit a Pizza Size",
+        "notFound": "No Pizza Sizes found"
+      },
+      "created": "A new Pizza Size is created with identifier {{ param }}",
+      "updated": "A Pizza Size is updated with identifier {{ param }}",
+      "deleted": "A Pizza Size is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Pizza Size {{ id }}?"
+      },
+      "detail": {
+        "title": "Pizza Size"
+      },
+      "id": "ID",
+      "name": "Name"
+    }
+  }
+}

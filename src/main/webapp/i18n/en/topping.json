@@ -1,0 +1,25 @@
+{
+  "tempApp": {
+    "topping": {
+      "home": {
+        "title": "Toppings",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Topping",
+        "createOrEditLabel": "Create or edit a Topping",
+        "notFound": "No Toppings found"
+      },
+      "created": "A new Topping is created with identifier {{ param }}",
+      "updated": "A Topping is updated with identifier {{ param }}",
+      "deleted": "A Topping is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Topping {{ id }}?"
+      },
+      "detail": {
+        "title": "Topping"
+      },
+      "id": "ID",
+      "name": "Name",
+      "predefinedPizza": "Predefined Pizza"
+    }
+  }
+}

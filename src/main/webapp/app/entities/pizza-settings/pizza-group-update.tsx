@@ -24,8 +24,8 @@ import {
   addNewOption,
   checkAndFetchPizzaDefinition,
   createDefinitions, deleteGroup, emptyGroupValues
-} from "app/entities/pizza-group/utils";
-import OptionComponent from "app/entities/pizza-group/option-component";
+} from "app/entities/pizza-settings/utils";
+import OptionComponent from "app/entities/pizza-settings/option-component";
 
 const PizzaGroupUpdate = () => {
 

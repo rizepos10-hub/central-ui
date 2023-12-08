@@ -33,19 +33,45 @@ const AppMenu = () => {
                           {
                             label: 'Catalogue',
                             role: ['ROLE_ADMIN'],
-
                             icon: 'pi pi-book',
                             items: [
+                              {
+                                label: 'Pizza Settings',
+                                icon: 'pi pi-folder-open',
+                                items: [
+                                  {
+                                    label: 'Sizes',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-size'
+                                  },
+                                  {
+                                    label: 'Crust Settings',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-crust'
+                                  },
+                                  {
+                                    label: 'Toppings',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-topping'
+                                  },
+                                  {
+                                    label: 'Predefined Pizza',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/predefined-pizza'
+                                  },
+                                  {
+                                    label: 'Make Your Own',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/own-pizza'
+                                  },
+                                ]
+                              },
                               {
                                 label: 'Category',
                                 icon: 'pi pi-folder-open',
                                 to: '/term/items'
                               },
-                              {
-                                label: 'Pizza Definition',
-                                icon: 'pi pi-folder-open',
-                                to: '/pizza-group'
-                              },
+
                               {
                                 label: 'Items',
                                 icon: ' pi pi-th-large',
