@@ -1,0 +1,68 @@
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
+import { Translate } from 'react-jhipster';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { getEntity, deleteEntity } from './pizza-crust-type.reducer';
+
+export const PizzaCrustTypeDialog = () => {
+  const dispatch = useAppDispatch();
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { id } = useParams<'id'>();
+
+  const [loadModal, setLoadModal] = useState(false);
+
+  useEffect(() => {
+    dispatch(getEntity(id));
+    setLoadModal(true);
+  }, []);
+
+  const pizzaCrustTypeEntity = useAppSelector(state => state.pizzaCrustType.entity);
+  const updateSuccess = useAppSelector(state => state.pizzaCrustType.updateSuccess);
+
+  const handleClose = () => {
+    navigate('/pizza-crust' + location.search);
+  };
+
+  useEffect(() => {
+    if (updateSuccess && loadModal) {
+      handleClose();
+      setLoadModal(false);
+    }
+  }, [updateSuccess]);
+
+  const confirmDelete = () => {
+    dispatch(deleteEntity(pizzaCrustTypeEntity.id));
+  };
+
+  return (
+    <Modal isOpen toggle={handleClose}>
+      <ModalHeader toggle={handleClose} data-cy="crustTypeDeleteDialogHeading">
+        <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
+      </ModalHeader>
+      <ModalBody id="tempApp.crustType.delete.question">
+        <Translate contentKey="tempApp.crustType.delete.question" interpolate={{ id: pizzaCrustTypeEntity.id }}>
+          Are you sure you want to delete this Addon?
+        </Translate>
+      </ModalBody>
+      <ModalFooter>
+        <Button color="secondary" onClick={handleClose}>
+          <FontAwesomeIcon icon="ban" />
+          &nbsp;
+          <Translate contentKey="entity.action.cancel">Cancel</Translate>
+        </Button>
+        <Button id="jhi-confirm-delete-crustType" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+          <FontAwesomeIcon icon="trash" />
+          &nbsp;
+          <Translate contentKey="entity.action.delete">Delete</Translate>
+        </Button>
+      </ModalFooter>
+    </Modal>
+  );
+};
+
+export default PizzaCrustTypeDialog;

@@ -3,21 +3,21 @@ import {Button, Modal, ModalBody, ModalFooter, ModalHeader, Label, Col, Row, Tab
 import {InputNumber} from "primereact/inputnumber";
 import {Checkbox} from "primereact/checkbox";
 import './required-option.css';
-import CustomCreatableSelect from "app/entities/pizza-group/custome-select";
+import CustomCreatableSelect from "app/entities/pizza-settings/custome-select";
 import Select from "react-select";
 import {useAppDispatch} from "app/config/store";
 import {
   deleteDefinitionGroupOption,
   editDefinitionGroupOption
 } from "app/entities/item-definitions/item-definitions.reducer";
-import {areObjectsEqual, generateDependencyOptions, getModifierNames} from "app/entities/pizza-group/utils";
+import {areObjectsEqual, generateDependencyOptions, getModifierNames} from "app/entities/pizza-settings/utils";
 import {TabPanel, TabView } from 'primereact/tabview';
 import {Button as PrimeButton} from 'primereact/button'
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTrash} from "@fortawesome/free-solid-svg-icons/faTrash";
 import {AttachmentType} from "app/shared/model/enumerations/attachment-type.model";
 import {IAttachment} from "app/shared/model/attachment.model";
-import Attachment from "app/entities/pizza-group/attachment";
+import Attachment from "app/entities/pizza-settings/attachment";
 
 interface newOption {
   id: string | null;
