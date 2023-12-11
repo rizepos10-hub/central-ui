@@ -55,6 +55,11 @@ const AppMenu = () => {
                                     to: '/pizza-topping'
                                   },
                                   {
+                                    label: 'Topping Groups',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-topping/groups'
+                                  },
+                                  {
                                     label: 'Predefined Pizza',
                                     icon: 'pi pi-folder-open',
                                     to: '/predefined-pizza'

@@ -33,7 +33,7 @@ const AppSubMenu = (props) => {
         const getBreadcrumb = (item: any, labels: string[] = []) => {
             const { label, to, items } = item;
 
-            console.log(item, 'labelo')
+            // console.log(item, 'labelo')
 
             label && labels.push(label);
             items &&
@@ -46,7 +46,7 @@ const AppSubMenu = (props) => {
         model.forEach((item) => {
             getBreadcrumb(item);
         });
-        console.log(breadcrumbs, 'breadcum')
+        // console.log(breadcrumbs, 'breadcum')
         setBreadcrumbs(breadcrumbs);
     };
 

@@ -117,7 +117,7 @@ export const PredefinedPizza = () => {
         <DataTable value={predefinedPizzaList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
 
-          <Column field="toppings" header="Toppings" filter body={(rowData)=> rowData.toppings.map(topping => topping.name).join(" | ")}   sortable  />
+          <Column field="toppings" header="Toppings" filter body={(rowData)=> rowData?.toppings?.map(topping => topping?.name).join(" | ")}   sortable  />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />

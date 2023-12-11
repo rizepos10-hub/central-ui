@@ -17,9 +17,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
     const menuitemRef = useRef<HTMLLIElement>(null);
     const item = props.item;
     const key = props.parentKey ? props.parentKey + '-' + props.index : String(props.index);
-      const isActiveRoute = item!.to && location.pathname === item!.to || (location.pathname + location.search) === item!.to;
-    console.log(item!.to, 'item!.to')
-    console.log( location.pathname, 'item!.to1')
+    const isActiveRoute = item!.to && location.pathname === item!.to || (location.pathname + location.search) === item!.to;
     const account = useAppSelector(state => state.authentication.account);
     const userRole = account.authorities
     const active = activeMenu === key || !!(activeMenu && activeMenu.startsWith(key + '-'));
@@ -131,8 +129,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
               return null
             }
           }
-          console.log(userRole, 'userRole');
-          console.log(child, 'childs');
+          // console.log(userRole, 'userRole');
 
           return (
             <AppMenuitem item={child} index={i} className={child.badgeClass} parentKey={key} key={child.label} />
