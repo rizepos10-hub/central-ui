@@ -148,8 +148,6 @@ console.log(termEntity)
 
     console.log(values, 'lol')
 
-
-
     const entity = {
       ...termEntity,
       ...values,
@@ -158,9 +156,7 @@ console.log(termEntity)
       attachments: selectedAttachments,
 
     };
-
     console.log(entity, 'entity')
-
 
     if (isNew) {
       dispatch(createEntity(entity));

@@ -4,8 +4,9 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { ITopping, defaultValue } from 'app/shared/model/topping.model';
+import {ITerm} from "app/shared/model/term.model";
 
-const initialState: EntityState<ITopping> = {
+const initialState  = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -13,6 +14,7 @@ const initialState: EntityState<ITopping> = {
   updating: false,
   totalItems: 0,
   updateSuccess: false,
+  toppingGroups: []
 };
 
 const apiUrl = 'api/pizza/toppings';
@@ -23,6 +25,24 @@ export const getEntities = createAsyncThunk('topping/fetch_entity_list', async (
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<ITopping[]>(requestUrl);
 });
+
+export const getToppingGroups = createAsyncThunk('term/fetch_topping_groups', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
+  const requestUrl = `api/terms/search?taxonomy=Topping%20Groups&${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
+  const  response = await axios.get<ITerm[]>(requestUrl)
+  console.log(response, 'ress')
+  return response
+});
+export const createToppingGroup = createAsyncThunk(
+  'term/create_entity',
+  async (entity: ITerm, thunkAPI) => {
+    const result = await axios.post<ITerm>("/api/terms", cleanEntity(entity));
+    thunkAPI.dispatch(getToppingGroups({page: 1, size: 300, sort: 'id,asc'}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+
 
 export const getEntity = createAsyncThunk(
   'topping/fetch_entity',
@@ -106,12 +126,23 @@ export const ToppingSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
+      .addMatcher(isFulfilled(createToppingGroup), (state, action) => {
+        state.updating = false;
+        state.loading = false;
+      })
+      .addMatcher(isFulfilled(getToppingGroups), (state:any, action) => {
+        const { data, headers } = action.payload;
+        return {
+          ...state,
+          toppingGroups: data,
+        };
+      })
       .addMatcher(isPending(getEntities, getEntity), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity,createToppingGroup), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
