@@ -271,7 +271,23 @@ const AppMenu = () => {
                                 label: 'Floor plans',
                                 role: ['ROLE_ADMIN'],
                                 icon: 'pi pi-plus-circle',
-                                to: '/floor-plans'
+                                items: [
+                                  {
+                                    label: 'List',
+                                    icon: 'pi pi-star',
+                                    to: '/floor-plan'
+                                  },
+                                  {
+                                    label: 'Tables',
+                                    icon: 'pi pi-moon',
+                                    to: '/floor-plan/table'
+                                  },
+                                  {
+                                    label: 'Settings',
+                                    icon: 'pi pi-moon',
+                                    to: '/floor-plan/settings'
+                                  },
+                                ]
                               },
                               {
                                 label: 'Transfer Operations',
