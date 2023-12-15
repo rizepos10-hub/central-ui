@@ -136,14 +136,15 @@ export const AddonUpdate = () => {
 
   return (
     <div>
+
       <Row>
-        <Col md="8">
-          <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-            {isNew ? "Create New Addon" : `Edit Addon`}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
+        <Row>
+          <Col md="8">
+            <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
+              {isNew ? "Create New Addon" : `Edit Addon`}
+            </h2>
+          </Col>
+        </Row>
         <Col md="8"  className="d-flex flex-column p-3  bg-white">
 
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>

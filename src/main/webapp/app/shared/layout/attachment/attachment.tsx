@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { uploadImage } from "app/entities/attachment/attachment.reducer";
 import { useAppDispatch } from "app/config/store";
 
-const Attachment = ({ image, onRemoveImage, onAddImage, type }) => {
+const Attachment = ({ image, onRemoveImage, onAddImage, type = null }) => {
   const dispatch = useAppDispatch();
 
 
@@ -45,8 +45,8 @@ const Attachment = ({ image, onRemoveImage, onAddImage, type }) => {
   return (
     <div className="mb-3">
       <ValidatedField
-        label={`${type} Image`}
-        id="builder-image"
+        label={ type ? `${type} Image` : null}
+        id="image"
         name="image"
         data-cy="image"
         type="file"
