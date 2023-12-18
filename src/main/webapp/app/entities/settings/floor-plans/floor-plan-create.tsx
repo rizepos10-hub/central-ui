@@ -44,6 +44,36 @@ const CreateFloorPlan = () => {
   const newFloorPlanEntity = useAppSelector(state => state.floorPlan.entity);
   const updateSuccess = useAppSelector(state => state.floorPlan.updateSuccess);
 
+
+
+  const removeImage = () => {
+    setNewFloorPlan(prev => ({
+      ...prev,
+      sections: [
+        {
+          ...prev?.sections?.[0],
+          backgroundImage: null,
+        },
+        ...(prev.sections || []).slice(1),
+      ],
+    }));
+  };
+
+
+  const addImage = (imageInfo) => {
+    setNewFloorPlan(prev => ({
+      ...prev,
+      sections: [
+        {
+          ...prev?.sections?.[0],
+          backgroundImage: imageInfo,
+        },
+        ...(prev.sections || []).slice(1),
+      ],
+    }));
+  };
+
+
   const handleChange = (e) => {
     const {name, value} = e.target
     setNewFloorPlan((prevState) => ({
@@ -210,7 +240,16 @@ const CreateFloorPlan = () => {
                     />
                 </div>
               </div>
-
+              <div className={"d-flex flex-column"}>
+                <label  className={"mt-2"}>
+                  <Translate contentKey={"tempApp.table.image"}>Image</Translate>
+                </label>
+                <Attachment
+                  image={newFloorPlan?.sections?.[0]?.backgroundImage}
+                  onRemoveImage={removeImage}
+                  onAddImage={addImage}
+                />
+              </div>
               <div className={"d-flex gap-8"}>
                 <label className={"mt-2"}>
                   Visible
