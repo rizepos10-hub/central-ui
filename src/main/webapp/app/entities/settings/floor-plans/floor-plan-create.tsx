@@ -35,7 +35,7 @@ const CreateFloorPlan = () => {
   const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [newFloorPlan, setNewFloorPlan] = useState<IFloorPlan>({
-    active: false
+    active: false,
   })
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -177,7 +177,8 @@ const CreateFloorPlan = () => {
                       sections: [
                           {
                           ...prev.sections?.[0],
-                          name: e.target.value
+                          name: e.target.value,
+                          order: 1,
                           },
                         ...(prev.sections || []).slice(1),
                       ],
