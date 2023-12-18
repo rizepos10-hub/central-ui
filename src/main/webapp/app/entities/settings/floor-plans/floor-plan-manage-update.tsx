@@ -107,6 +107,7 @@ const FloorPlanManageUpdate = () => {
       alert("Please enter section name")
     }
     closeSectionModal()
+
     const updatedSections = [...floorPlan.sections, newSection]
     setFloorPlan((prev) => ({
       ...prev,
@@ -114,9 +115,66 @@ const FloorPlanManageUpdate = () => {
     }))
     setNewSection({})
   }
+  const handleSectionWidthChange = (e) => {
+    const newWidth = e.value;
+
+    setFloorPlan((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section, index) => {
+        if (index === selectedSectionIndex) {
+          return {
+            ...section,
+            dimensions: {
+              ...section.dimensions,
+              width: newWidth,
+            },
+          };
+        }
+        return section;
+      }),
+    }));
+  };
+
+  const handleSectionHeightChange = (e) => {
+    const newHeight = e.value;
+
+    setFloorPlan((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section, index) => {
+        if (index === selectedSectionIndex) {
+          return {
+            ...section,
+            dimensions: {
+              ...section.dimensions,
+              height: newHeight,
+            },
+          };
+        }
+        return section;
+      }),
+    }));
+  };
+
+  const handleSectionVisibleChange = (e) => {
+    const isVisible = e.checked;
+
+    setFloorPlan((prev) => ({
+      ...prev,
+      sections: [
+        {
+          ...prev?.sections?.[selectedSectionIndex],
+          visible: isVisible,
+        },
+        ...(prev?.sections || []).slice(1),
+      ],
+    }));
+  };
+
 
   const handleRemoveSection = (e, section, index) => {
     e.stopPropagation();
+    console.log(section, 'section')
+
     const confirmRemove = window.confirm("Are you sure you want to remove this section?");
     if(confirmRemove){
       setFloorPlan((prev) => {
@@ -246,7 +304,8 @@ const FloorPlanManageUpdate = () => {
   const selectedSection = floorPlan?.sections?.[selectedSectionIndex];
   const boardDimensions = selectedSection?.dimensions ?? null;
   const sectionBackground = selectedSection?.backgroundImage?.url ?? null;
-  console.log('sectionBackground:', sectionBackground);
+
+
 
   useEffect(() => {
     Promise.all([
@@ -260,22 +319,34 @@ const FloorPlanManageUpdate = () => {
       ),
     ])
       .then(([entityAction]:any) => {
-        setFloorPlan(entityAction.payload.data);
+        console.log(entityAction.payload.data, 'entityAction.payload.data')
+        const floorPlanData = entityAction?.payload?.data;
+        const sectionsArray = floorPlanData?.sections ?? [];
+        const sortedSections = [...sectionsArray].sort((a, b) => a.order - b.order);
+        const floorPlanSortedSection = {...floorPlanData, sections: sortedSections};
+        console.log(floorPlanSortedSection, 'floorPlanSortedSection')
+        setFloorPlan(floorPlanSortedSection);
       })
 
   }, [id,updateSuccess]);
 
+
+
+
   const saveEntity = () => {
     const savedEntity = {
-      ...floorPlan
+      ...floorPlan,
+      sections: floorPlan?.sections.map((section, index) => ({
+        ...section,
+        order: index + 1
+      }))
     }
 
     console.log(savedEntity, 'savedEntity')
     dispatch(updateEntity(savedEntity))
   }
 
-
-
+console.log(floorPlan, 'floorPlanfloorPlan')
   return (
     <Card
     style={{overflow: "scroll"}}
@@ -370,21 +441,7 @@ const FloorPlanManageUpdate = () => {
               name="dimension-width"
               required={true}
               value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.width || null}
-              onChange={(e) =>
-                setFloorPlan((prev) => ({
-                  ...prev,
-                  sections: [
-                    {
-                      ...prev.sections?.[selectedSectionIndex],
-                      dimensions: {
-                        ...prev.sections?.[0]?.dimensions,
-                        width: e.value,
-                      },
-                    },
-                    ...(prev.sections || []).slice(1),
-                  ],
-                }))
-              }
+              onChange={handleSectionWidthChange}
             />
             <span className="p-inputgroup-addon">px</span>
           </div>
@@ -398,21 +455,8 @@ const FloorPlanManageUpdate = () => {
               maxFractionDigits={2}
               required={true}
               value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.height || null}
-              onChange={(e) =>
-                setFloorPlan((prev) => ({
-                  ...prev,
-                  sections: [
-                    {
-                      ...prev.sections?.[selectedSectionIndex],
-                      dimensions: {
-                        ...prev.sections[selectedSectionIndex]?.dimensions,
-                        height: e.value,
-                      },
-                    },
-                    ...(prev.sections || []).slice(1),
-                  ],
-                }))
-              }
+              onChange={handleSectionHeightChange}
+
             />
             <span className="p-inputgroup-addon">px</span>
           </div>
@@ -426,15 +470,9 @@ const FloorPlanManageUpdate = () => {
             <Checkbox
               key={selectedSectionIndex}
               checked={floorPlan?.sections?.[selectedSectionIndex]?.visible || false}
-              onChange={(e) => setFloorPlan((prev) => ({
-                ...prev,
-                sections: [
-                  {
-                    ...prev?.sections?.[selectedSectionIndex],
-                    visible: e.checked,
-                  }, ...(prev?.sections || []).slice(1),
-                ],
-              }))}/>
+              onChange={handleSectionVisibleChange}
+
+            />
           </div>
         </div>
         <div className={"mb-1"}>
@@ -449,11 +487,9 @@ const FloorPlanManageUpdate = () => {
           width: `${boardDimensions?.width}px`,
           height: `${boardDimensions?.height}px`,
           border: '1px solid #000',
-          backgroundImage: `url(${sectionBackground})`,
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'cover',
         }}
       >
+
         {floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.map((tableDetail: any, index) => {
           return (
             <div
@@ -503,6 +539,12 @@ const FloorPlanManageUpdate = () => {
             </div>
           )
         })}
+          <img
+            src={sectionBackground}
+            alt={selectedSection?.name}
+            width={`${boardDimensions?.width}px`}
+            height={`${boardDimensions?.height}px`}
+          />
       </div>
       ) : null}
       <Modal
@@ -529,7 +571,6 @@ const FloorPlanManageUpdate = () => {
                     setNewSection((prev) => ({
                       ...prev,
                       name: e.target.value,
-                      order: floorPlan?.sections.length + 1
                     }))}
                 />
               </div>
