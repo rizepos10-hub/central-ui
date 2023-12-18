@@ -6,6 +6,7 @@ import FloorPlan from "app/entities/settings/floor-plans/floor-plan";
 import CreateFloorPlan from "app/entities/settings/floor-plans/floor-plan-create";
 import FloorPlanManageUpdate from "app/entities/settings/floor-plans/floor-plan-manage-update";
 import FloorPlanEditUpdate from "app/entities/settings/floor-plans/floor-plan-edit-update";
+import FloorPlanDeleteDialog from "app/entities/settings/floor-plans/floor-plan-delete-dialog";
 
 
 
@@ -16,7 +17,7 @@ const FloorPlanRoutes = () => (
     <Route path=":id">
       <Route path="manage" element={<FloorPlanManageUpdate />} />
       <Route path="edit" element={<FloorPlanEditUpdate />} />
-    {/*   <Route path="delete" element={<FloorPlanTableDeleteDialog />} /> */}
+      <Route path="delete" element={<FloorPlanDeleteDialog />} />
     </Route>
   </ErrorBoundaryRoutes>
 );

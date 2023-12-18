@@ -33,7 +33,7 @@ const items: MenuItem[] = [
 const CreateFloorPlan = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [activeIndex, setActiveIndex] = useState<number>(2);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
   const [newFloorPlan, setNewFloorPlan] = useState<IFloorPlan>({
     active: false
   })
@@ -63,7 +63,7 @@ const CreateFloorPlan = () => {
     const { id: newFloorPanId } = newFloorPlanEntity;
     console.log(updateSuccess, newFloorPanId, "hello world")
     if (updateSuccess && newFloorPanId) {
-      navigate(`/floor-plan/${newFloorPanId}/edit?page=1&sort=id,asc`);
+      navigate(`/floor-plan/${newFloorPanId}/manage?page=1&sort=id,asc`);
     }
   },[activeIndex,updateSuccess])
 

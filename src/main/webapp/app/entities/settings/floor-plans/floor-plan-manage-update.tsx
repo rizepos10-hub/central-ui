@@ -31,7 +31,7 @@ const FloorPlanManageUpdate = () => {
   const dispatch = useAppDispatch();
   const floorPlanEntity = useAppSelector(state => state.floorPlan.entity);
   const {branch: floorPlanBranch} = floorPlanEntity;
-
+  console.log(floorPlanEntity, 'floorPlanEntity')
 
   const updateSuccess = useAppSelector(state => state.floorPlan.updateSuccess);
   const floorPlanTablesList: IFloorPlanTable[] = useAppSelector(state => state.floorPlanTable.entities)
@@ -43,7 +43,7 @@ const FloorPlanManageUpdate = () => {
   const [tableModalIsOpen, setTableModalIsOpen] = useState(false);
   const [sectionModalIsOpen, setSectionModalIsOpen] = useState(false);
   const [newSection, setNewSection] = useState<IFloorPlanSection>()
-  const [selectedTable, setSelectedTable] = useState({
+  const [selectedTableDetail, setSelectedTableDetail] = useState({
     table: null,
     numberOfSeats: null,
     position: {
@@ -55,7 +55,7 @@ const FloorPlanManageUpdate = () => {
   const [floorPlan, setFloorPlan] = useState<IFloorPlan>();
 
     const excludedTableIds = floorPlan?.sections?.flatMap(section =>
-      section?.tableDetails?.map(tableDetail => tableDetail.table.id)
+      section?.tableDetails?.map(tableDetail => tableDetail?.table?.id)
     );
     const filteredTablesList: IFloorPlanTable[] = floorPlanTablesList?.filter(
       table => !excludedTableIds?.includes(table.id)
@@ -114,17 +114,17 @@ const FloorPlanManageUpdate = () => {
 
 
   const handleAddTable = () => {
-    if (!selectedTable || !selectedTable.table || !selectedTable.numberOfSeats) {
+    if (!selectedTableDetail || !selectedTableDetail.table || !selectedTableDetail.numberOfSeats) {
       alert("Please fill in all the fields");
       return;
     }
     closeTableModal();
-    if (selectedTable) {
+    if (selectedTableDetail) {
       setFloorPlan((prev) => {
         const updatedSections = [...(prev.sections || [])];
         const updatedSection = {
           ...updatedSections[selectedSectionIndex],
-          tableDetails: [...(updatedSections[selectedSectionIndex]?.tableDetails || []), selectedTable],
+          tableDetails: [...(updatedSections[selectedSectionIndex]?.tableDetails || []), selectedTableDetail],
         };
         updatedSections[selectedSectionIndex] = updatedSection;
         return {
@@ -132,7 +132,7 @@ const FloorPlanManageUpdate = () => {
           sections: updatedSections,
         };
       });
-      setSelectedTable({
+      setSelectedTableDetail({
         table: null,
         numberOfSeats: null,
         position: {
@@ -310,7 +310,7 @@ const FloorPlanManageUpdate = () => {
                   required={true}
                   getOptionValue={option => option.id}
                   getOptionLabel={option => option.name}
-                  onChange={(option) => setSelectedTable((prev) => ({
+                  onChange={(option) => setSelectedTableDetail((prev) => ({
                     ...prev,
                     table: option
                   }))}
@@ -320,11 +320,11 @@ const FloorPlanManageUpdate = () => {
                 </label>
                 <InputNumber
                   required={true}
-                  onChange={(e) => setSelectedTable((prev) => ({
+                  onChange={(e) => setSelectedTableDetail((prev) => ({
                     ...prev,
                     numberOfSeats: e.value
                   }))}
-                  value={selectedTable?.numberOfSeats}
+                  value={selectedTableDetail?.numberOfSeats}
                 />
 
               </div>
@@ -433,7 +433,6 @@ const FloorPlanManageUpdate = () => {
         }}
       >
         {floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.map((tableDetail: any, index) => {
-          console.log(tableDetail, "tableDeta")
           return (
             <div
               key={index}
@@ -454,7 +453,15 @@ const FloorPlanManageUpdate = () => {
               onMouseEnter={() => setHoveredTableIndex(index)}
               onMouseLeave={() => setHoveredTableIndex(null)}
             >
-              {tableDetail?.table?.name}
+              <div
+                style={{
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {tableDetail?.table?.name}
+              </div>
               {hoveredTableIndex === index && (
                 <div
                   style={{

@@ -1,0 +1,29 @@
+{
+  "tempApp": {
+    "FloorPlan": {
+      "home": {
+        "title": "Floor Plans",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Floor Plan",
+        "createOrEditLabel": "Create or edit a Floor Plan",
+        "notFound": "No Floor Plans found"
+      },
+      "created": "A new Floor Plan is created with identifier {{ param }}",
+      "updated": "A Floor Plan is updated with identifier {{ param }}",
+      "deleted": "A Floor Plan is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Floor Plan {{ id }}?"
+      },
+      "detail": {
+        "title": "Floor Plan"
+      },
+      "id": "ID",
+      "name": "Name",
+      "image": "Image",
+      "branch": "Branch",
+      "dimensions": "Dimensions",
+      "width": "Width",
+      "height": "Height"
+    }
+  }
+}
