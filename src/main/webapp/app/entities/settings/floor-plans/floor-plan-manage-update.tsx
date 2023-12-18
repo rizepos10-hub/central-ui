@@ -103,6 +103,9 @@ const FloorPlanManageUpdate = () => {
   };
 
   const handleAddSection = () => {
+    if(newSection?.name.trim() === ""){
+      alert("Please enter section name")
+    }
     closeSectionModal()
     const updatedSections = [...floorPlan.sections, newSection]
     setFloorPlan((prev) => ({
@@ -525,7 +528,8 @@ const FloorPlanManageUpdate = () => {
                   onChange={(e) =>
                     setNewSection((prev) => ({
                       ...prev,
-                          name: e.target.value
+                      name: e.target.value,
+                      order: floorPlan?.sections.length + 1
                     }))}
                 />
               </div>
