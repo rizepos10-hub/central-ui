@@ -17,11 +17,12 @@ import {IFloorPlan, IFloorPlanSection} from "app/shared/model/floor-plan.model";
 import {Checkbox} from "primereact/checkbox";
 import {IFloorPlanTable} from "app/shared/model/floor-plan-table.model";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState} from "react-jhipster";
+import {getSortState, Translate} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import tables from "app/entities/settings/floor-plans/tables";
 import Select from "react-select";
 import {InputText} from "primereact/inputtext";
+import Attachment from "app/shared/layout/attachment/attachment";
 
 
 
@@ -86,6 +87,20 @@ const FloorPlanManageUpdate = () => {
   const handleSectionChange = (e) => {
     setSelectedSectionIndex(e.index);
   }
+
+  const removeImage = () => {
+    setNewSection((prev) => ({
+      ...prev,
+      backgroundImage: null
+    }))
+  };
+
+  const addImage = (imageInfo) => {
+   setNewSection((prev) => ( {
+     ...prev,
+     backgroundImage: imageInfo
+   }))
+  };
 
   const handleAddSection = () => {
     closeSectionModal()
@@ -227,7 +242,8 @@ const FloorPlanManageUpdate = () => {
 
   const selectedSection = floorPlan?.sections?.[selectedSectionIndex];
   const boardDimensions = selectedSection?.dimensions ?? null;
-
+  const sectionBackground = selectedSection?.backgroundImage?.url ?? null;
+  console.log('sectionBackground:', sectionBackground);
 
   useEffect(() => {
     Promise.all([
@@ -430,6 +446,9 @@ const FloorPlanManageUpdate = () => {
           width: `${boardDimensions?.width}px`,
           height: `${boardDimensions?.height}px`,
           border: '1px solid #000',
+          backgroundImage: `url(${sectionBackground})`,
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover',
         }}
       >
         {floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.map((tableDetail: any, index) => {
@@ -552,7 +571,16 @@ const FloorPlanManageUpdate = () => {
                   />
                 </div>
               </div>
-
+              <div className={"d-flex flex-column"}>
+                <label  className={"mt-2"}>
+                  <Translate contentKey={"tempApp.table.image"}>Image</Translate>
+                </label>
+                <Attachment
+                  image={newSection?.backgroundImage}
+                  onRemoveImage={removeImage}
+                  onAddImage={addImage}
+                />
+              </div>
               <div className={"d-flex gap-8"}>
                 <label className={"mt-2"}>
                   Visible

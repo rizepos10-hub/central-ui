@@ -8,7 +8,7 @@ import { useAppDispatch } from "app/config/store";
 const Attachment = ({ image, onRemoveImage, onAddImage, type = null }) => {
   const dispatch = useAppDispatch();
 
-
+    console.log(image, '3awima')
 
   const handleImageChange = async (event) => {
     const file = event.target.files[0];

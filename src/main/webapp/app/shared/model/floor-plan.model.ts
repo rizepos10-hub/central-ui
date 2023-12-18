@@ -1,4 +1,5 @@
 import { IBranch } from 'app/shared/model/branch.model';
+import {IAttachment} from "app/shared/model/attachment.model";
 
 interface ITablePosition {
   x?: number;
@@ -16,9 +17,7 @@ interface ITableDetails {
 export interface IFloorPlanSection {
   id?: string;
   name?: string;
-  backgroundImage?: {
-    id?: string;
-  };
+  backgroundImage?: IAttachment;
   tableDetails?: ITableDetails[];
   order?: number;
   dimensions?: {
