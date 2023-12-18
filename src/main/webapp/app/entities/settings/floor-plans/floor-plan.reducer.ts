@@ -101,6 +101,7 @@ export const FloorPlanSlice = createEntitySlice({
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
+
       })
       .addCase(deleteEntity.fulfilled, state => {
         state.updating = false;
