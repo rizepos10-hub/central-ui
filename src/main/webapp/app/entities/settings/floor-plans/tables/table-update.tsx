@@ -140,34 +140,35 @@ export const FloorPlanTableUpdate = () => {
                     <Translate contentKey={"tempApp.floorPlanTable.dimensions"}>Dimensions</Translate>
                   </label>
                   <div className={"d-flex flex-column gap-3 my-2"}>
-                    <div className={"d-flex gap-2"}>
-                    <label  className={"mt-5"}>
+                    <div className="p-inputgroup w-full md:w-10rem">
+                      <span className="p-inputgroup-addon">
                       <Translate contentKey={"tempApp.floorPlanTable.width"}>Width</Translate>
-                    </label>
+                    </span>
                       <InputNumber
                       size={1}
-                      className={"mt-4"}
                       maxFractionDigits={2}
                       name="dimension-width"
                       required={true}
                       value={floorPlanTable?.dimensions?.width || 0}
                       onChange={(e) => handleDimensionChange("width",e)}
                     />
+                      <span className="p-inputgroup-addon">px</span>
                     </div>
 
-                    <div className={"d-flex gap-2"}>
-                      <label  className={"mt-2 "}>
+                    <div className="p-inputgroup w-full md:w-10rem">
+                      <span className="p-inputgroup-addon">
                         <Translate contentKey={"tempApp.floorPlanTable.height"}>Height</Translate>
-                      </label>
+                      </span>
                       <InputNumber
                         size={1}
-                        className={"mt-1"}
                         maxFractionDigits={2}
                         name="dimension-width"
                         required={true}
                         value={floorPlanTable?.dimensions?.height || 0}
                         onChange={(e) => handleDimensionChange("height",e)}
                       />
+                      <span className="p-inputgroup-addon">px</span>
+
                     </div>
                   </div>
 

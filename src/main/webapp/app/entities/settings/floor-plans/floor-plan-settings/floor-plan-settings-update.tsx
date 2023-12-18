@@ -30,9 +30,7 @@ export const FloorPlanSettingsUpdate = () => {
   const updating = useAppSelector(state => state.floorPlanSettings.updating);
   const updateSuccess = useAppSelector(state => state.floorPlanSettings.updateSuccess);
 
-  const handleClose = () => {
-    navigate('/pizza-size' + location.search);
-  };
+
 
   useEffect(() => {
     dispatch(getEntity());
@@ -42,13 +40,11 @@ export const FloorPlanSettingsUpdate = () => {
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
+
     if(floorPlanSettingsEntity){
       setFloorPlanSettings(floorPlanSettingsEntity)
     }
-  }, [updateSuccess, floorPlanSettingsEntity?.name]);
+  }, [updateSuccess,loading]);
 
   const handleChange = (e,name) => {
     const value = e.value
@@ -120,11 +116,12 @@ export const FloorPlanSettingsUpdate = () => {
                 <div className="d-flex flex-column">
                   <h5>Section Dimensions</h5>
                   <div className={"d-flex gap-3 mb-2"}>
-                    <div>
-                    <label className="mt-2">Width:</label>
+                    <div className="p-inputgroup w-full md:w-10rem">
+                      <span className="p-inputgroup-addon">
+                          width
+                   </span>
                     <InputNumber
                       size={1}
-                      className="mt-1"
                       maxFractionDigits={2}
                       name="sectionDimensions-width"
                       required={true}
@@ -132,18 +129,21 @@ export const FloorPlanSettingsUpdate = () => {
                       onChange={ (e) => handleChange(e,"sectionDimensions-width")}
 
                     />
+                      <span className="p-inputgroup-addon">px</span>
                     </div>
-                    <div>
-                    <label className="mt-2">Height:</label>
+                    <div className="p-inputgroup w-full md:w-10rem">
+                      <span className="p-inputgroup-addon">
+                        height
+                      </span>
                     <InputNumber
                       size={1}
-                      className="mt-1"
                       maxFractionDigits={2}
                       name="sectionDimensions-height"
                       required={true}
                       value={floorPlanSettings?.sectionDimensions?.height || 0}
                       onChange={ (e) => handleChange(e,"sectionDimensions-height")}
                     />
+                      <span className="p-inputgroup-addon">px</span>
                   </div>
                   </div>
                 </div>
@@ -151,11 +151,12 @@ export const FloorPlanSettingsUpdate = () => {
                 <div className="d-flex flex-column mt-3">
                   <h5>Table Dimensions</h5>
                   <div className={"d-flex gap-3 mb-2"}>
-                    <div>
-                      <label className="mt-2">Width:</label>
+                    <div className="p-inputgroup w-full md:w-10rem">
+                      <span className="p-inputgroup-addon">
+                          width
+                   </span>
                       <InputNumber
                         size={1}
-                        className="mt-1"
                         maxFractionDigits={2}
                         name="tableDimensions-width"
                         required={true}
@@ -163,12 +164,14 @@ export const FloorPlanSettingsUpdate = () => {
                         onChange={ (e) => handleChange(e,"tableDimensions-width")}
 
                       />
+                      <span className="p-inputgroup-addon">px</span>
                     </div>
-                    <div>
-                      <label className="mt-2">Height:</label>
+                    <div className="p-inputgroup w-full md:w-10rem">
+                      <span className="p-inputgroup-addon">
+                        height
+                      </span>
                       <InputNumber
                         size={1}
-                        className="mt-1"
                         maxFractionDigits={2}
                         name="tableDimensions-height"
                         required={true}
@@ -176,12 +179,13 @@ export const FloorPlanSettingsUpdate = () => {
                         onChange={ (e) => handleChange(e,"tableDimensions-height")}
 
                       />
+                      <span className="p-inputgroup-addon">px</span>
                     </div>
                   </div>
                 </div>
                 <div className={"d-flex flex-column"}>
                   <label  className={"mt-2"}>
-                    <Translate contentKey={"tempApp.floorPlanSettings.tableImage"}>Table Image</Translate>
+                    <Translate contentKey={"tempApp.FloorPlanSettings.tableImage"}>Table Image</Translate>
                   </label>
                   <Attachment
                     image={floorPlanSettings.tableImage}
@@ -192,7 +196,7 @@ export const FloorPlanSettingsUpdate = () => {
 
                 <div className={"d-flex flex-column"}>
                   <label  className={"mt-2"}>
-                    <Translate contentKey={"tempApp.floorPlanSettings.sectionBackground"}>Section Background Image</Translate>
+                    <Translate contentKey={"tempApp.FloorPlanSettings.sectionBackground"}>Section Background Image</Translate>
                   </label>
                   <Attachment
                     image={floorPlanSettings.sectionBackground}

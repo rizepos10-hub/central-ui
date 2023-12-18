@@ -6,13 +6,16 @@ import {
 } from "app/shared/model/enumerations/sales-reports.models";
 
 import {fetchSalesReport} from "app/modules/analytics/api";
-import DateCustomComponent from "app/modules/analytics/reports/custom-date-range";
+import DateCustomComponent from "app/modules/analytics/reports/sales-report/custom-date-range";
 import {format, getDayOfYear, startOfYear, sub, subYears} from "date-fns";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {ColumnGroup} from "primereact/columngroup";
 import { Row as PrimeRow } from "primereact/row";
 import {Tooltip} from "primereact/tooltip";
+import {useAppDispatch, useAppSelector} from "app/config/store";
+import {fetchSalesReportRedux} from "app/modules/analytics/reports/sales-report/sales-report.reducer";
+import {Spinner} from "reactstrap";
 
 
 type Slot = {
@@ -75,18 +78,18 @@ type formRequest = {
 }
 
 export const SalesReport = () => {
-
+  const dispatch = useAppDispatch();
   const reportTypesOptions = Object.entries(SalesReportsTypes).map(([key,val]) => ({label: key, value: val}));
   console.log(reportTypesOptions, 'reportTypesOptions')
   const reportMeasuresOptions = Object.entries(SalesReportsMeasures).map(([key,val]) => ({label: key, value: val}));
 
   const [selectedType, setSelectedType] = useState(reportTypesOptions?.[0]?.value);
   const [selectedMeasure, setSelectedMeasure] = useState(reportMeasuresOptions?.[0]?.value);
-  const [reportData, setReportData] = useState<SalesReport>();
-  const [appliedDateRange, setAppliedDateRange] = useState<dateRange | null>(
-
-  );
-  console.log(reportData, 'reportData')
+  const [appliedDateRange, setAppliedDateRange] = useState<dateRange | null>();
+  const salesReportData = useAppSelector(state => state.salesReportReducer.data);
+  const salesReportLoading = useAppSelector(state => state.salesReportReducer.loading);
+  const salesReportError = useAppSelector(state => state.salesReportReducer.error);
+  console.log(salesReportData, 'datadatadatadata')
 
   const handleDateRangeApply = (selectedDateRange: dateRange) => {
     setAppliedDateRange(selectedDateRange);
@@ -109,9 +112,9 @@ export const SalesReport = () => {
       measure: selectedMeasure,
       type: selectedType,
     };
-   const resp = await fetchSalesReport(formRequest);
-   setReportData(resp)
-
+   // const resp = await fetchSalesReport(formRequest);
+   // setReportData(resp)
+    dispatch(fetchSalesReportRedux(formRequest))
   };
 
   useEffect(() => {
@@ -139,8 +142,8 @@ export const SalesReport = () => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
-  const sortedHeaderSlots = reportData?.headerSlots?.sort((a, b) => a.order - b.order);
-  const propertiesToDisplay = Object.keys(reportData?.rows[0] ?? {}).filter((property) =>
+  const sortedHeaderSlots = salesReportData?.headerSlots?.sort((a, b) => a.order - b.order);
+  const propertiesToDisplay = Object.keys(salesReportData?.rows[0] ?? {}).filter((property) =>
     property !== "rowRecord"
     && property !== "amount"
     && property !== "value"
@@ -177,7 +180,7 @@ export const SalesReport = () => {
   );
 
 
-  const totalsRowForFooter = (Object.values(reportData?.totalByDateRange || {}));
+  const totalsRowForFooter = (Object.values(salesReportData?.totalByDateRange || {}));
   const measure = selectedMeasure.toLowerCase();
 
 
@@ -288,11 +291,11 @@ export const SalesReport = () => {
   // );
 
 
-
-
   return (
     <>
-      <h1><strong>Sales Report</strong></h1>
+      <h1>
+        <strong>Sales Report</strong>
+      </h1>
 
       <div className="d-flex gap-3">
         <div className="d-flex flex-column gap-1">
@@ -318,10 +321,11 @@ export const SalesReport = () => {
           scrollable
           stripedRows
           showGridlines
+          loading={salesReportLoading}
           size={"small"}
           tableStyle={{ minWidth: '50rem' }}
           scrollHeight="45rem"
-          value={reportData?.rows}
+          value={salesReportData?.rows}
         >
           <Column field={"rowRecord.name"}/>
           {sortedHeaderSlots?.map((header) => (
