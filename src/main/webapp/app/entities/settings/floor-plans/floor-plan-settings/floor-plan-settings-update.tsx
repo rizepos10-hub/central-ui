@@ -185,7 +185,7 @@ export const FloorPlanSettingsUpdate = () => {
                 </div>
                 <div className={"d-flex flex-column"}>
                   <label  className={"mt-2"}>
-                    <Translate contentKey={"tempApp.FloorPlanSettings.tableImage"}>Table Image</Translate>
+                    <Translate contentKey={"tempApp.floorPlanSettings.tableImage"}>Table Image</Translate>
                   </label>
                   <Attachment
                     image={floorPlanSettings.tableImage}
@@ -196,7 +196,7 @@ export const FloorPlanSettingsUpdate = () => {
 
                 <div className={"d-flex flex-column"}>
                   <label  className={"mt-2"}>
-                    <Translate contentKey={"tempApp.FloorPlanSettings.sectionBackground"}>Section Background Image</Translate>
+                    <Translate contentKey={"tempApp.floorPlanSettings.sectionBackground"}>Section Background Image</Translate>
                   </label>
                   <Attachment
                     image={floorPlanSettings.sectionBackground}

@@ -1,6 +1,6 @@
 {
   "tempApp": {
-    "floorPlanTable": {
+    "table": {
       "home": {
         "title": "Tables",
         "refreshListLabel": "Refresh list",

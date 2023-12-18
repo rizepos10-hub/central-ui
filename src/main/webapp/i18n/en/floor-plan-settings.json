@@ -1,6 +1,6 @@
 {
   "tempApp": {
-    "FloorPlanSettings": {
+    "floorPlanSettings": {
       "home": {
         "title": "Settings",
         "refreshListLabel": "Refresh list",
@@ -21,7 +21,7 @@
       "width": "Width",
       "height": "Height",
       "sectionBackground": "Section Background",
-      "settingImage": "Table Image"
+      "tableImage": "Table Image"
     }
   }
 }

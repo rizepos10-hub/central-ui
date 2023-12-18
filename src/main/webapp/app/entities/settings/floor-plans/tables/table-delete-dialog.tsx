@@ -44,8 +44,8 @@ export const PizzaSizeDeleteDialog = () => {
       <ModalHeader toggle={handleClose} data-cy="floorPlanTableDeleteDialogHeading">
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="tempApp.floorPlanTable.delete.question">
-        <Translate contentKey="tempApp.floorPlanTable.delete.question" interpolate={{ id: floorPlanTableEntity.id }}>
+      <ModalBody id="tempApp.table.delete.question">
+        <Translate contentKey="tempApp.table.delete.question" interpolate={{ id: floorPlanTableEntity.id }}>
           Are you sure you want to delete this Addon?
         </Translate>
       </ModalBody>
