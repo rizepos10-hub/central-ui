@@ -178,7 +178,7 @@ const CreateFloorPlan = () => {
                           {
                           ...prev.sections?.[0],
                           name: e.target.value,
-                          order: 0,
+                          order: 1,
                           },
                         ...(prev.sections || []).slice(1),
                       ],
