@@ -124,7 +124,7 @@ export const FloorPlanTableUpdate = () => {
               <FormGroup>
                 <div className={"d-flex flex-column gap-0"}>
                 <label  className={"mt-5"}>
-                  <Translate contentKey={"tempApp.floorPlanTable.name"}>Name</Translate>
+                  <Translate contentKey={"tempApp.table.name"}>Name</Translate>
                 </label>
                 <InputText
                   type="text"
@@ -137,12 +137,12 @@ export const FloorPlanTableUpdate = () => {
                 </div>
                 <div className={"d-flex flex-column"}>
                   <label  className={"mt-5"}>
-                    <Translate contentKey={"tempApp.floorPlanTable.dimensions"}>Dimensions</Translate>
+                    <Translate contentKey={"tempApp.table.dimensions"}>Dimensions</Translate>
                   </label>
                   <div className={"d-flex flex-column gap-3 my-2"}>
                     <div className="p-inputgroup w-full md:w-10rem">
                       <span className="p-inputgroup-addon">
-                      <Translate contentKey={"tempApp.floorPlanTable.width"}>Width</Translate>
+                      <Translate contentKey={"tempApp.table.width"}>Width</Translate>
                     </span>
                       <InputNumber
                       size={1}
@@ -157,7 +157,7 @@ export const FloorPlanTableUpdate = () => {
 
                     <div className="p-inputgroup w-full md:w-10rem">
                       <span className="p-inputgroup-addon">
-                        <Translate contentKey={"tempApp.floorPlanTable.height"}>Height</Translate>
+                        <Translate contentKey={"tempApp.table.height"}>Height</Translate>
                       </span>
                       <InputNumber
                         size={1}
@@ -175,7 +175,7 @@ export const FloorPlanTableUpdate = () => {
                 </div>
                 <div className={"d-flex flex-column"}>
                   <label className={"mt-2"}>
-                    <Translate contentKey={"tempApp.floorPlanTable.branch"}>Branch</Translate>
+                    <Translate contentKey={"tempApp.table.branch"}>Branch</Translate>
                   </label>
                  <Select
                    options={branchList}
@@ -188,7 +188,7 @@ export const FloorPlanTableUpdate = () => {
                 </div>
                 <div className={"d-flex flex-column"}>
                   <label  className={"mt-2"}>
-                    <Translate contentKey={"tempApp.floorPlanTable.image"}>Image</Translate>
+                    <Translate contentKey={"tempApp.table.image"}>Image</Translate>
                   </label>
                   <Attachment
                     image={floorPlanTable.image}
