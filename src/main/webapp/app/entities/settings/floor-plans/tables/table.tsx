@@ -67,7 +67,7 @@ export const FloorPlanTable = () => {
     const editUrl = `/floor-plan/table/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        {rowData.name}
+        {rowData?.name}
       </Link>
     );
   };
@@ -118,7 +118,7 @@ export const FloorPlanTable = () => {
       <div >
         <DataTable value={floorPlanTablesList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
-          <Column field="branch" header="Branch"  body={(rowData) => rowData.branch.name}   sortable  />
+          <Column field="branch" header="Branch"  body={(rowData) => rowData?.branch?.name}   sortable  />
           <Column field="width" header="Width"  body={(rowData) => rowData.dimensions?.width}  sortable  />
           <Column field="height" header="Height"  body={(rowData) => rowData.dimensions?.height}  sortable  />
           <Column field="image" header="Image"  body={(rowData) => <img height={40} width={40} src={rowData.image?.url} /> }  sortable  />
