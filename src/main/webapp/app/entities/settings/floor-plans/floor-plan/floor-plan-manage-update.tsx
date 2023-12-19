@@ -450,6 +450,20 @@ console.log(floorPlan, 'floorPlanfloorPlan')
             />
             <span className="p-inputgroup-addon">px</span>
           </div>
+
+          <div className="p-inputgroup w-full md:w-10rem">
+
+            <InputNumber
+              placeholder={"Height"}
+              size={12}
+              maxFractionDigits={2}
+              required={true}
+              value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.height || null}
+              onChange={handleSectionHeightChange}
+            />
+
+          </div>
+
         </div>
         <div className={"d-flex ml-auto mt-2"}>
 
