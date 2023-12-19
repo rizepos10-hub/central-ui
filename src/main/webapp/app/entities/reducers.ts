@@ -30,7 +30,7 @@ import pizzaTopping from 'app/entities/pizza-settings/pizza-topping/pizza-toppin
 import predefinedPizza from 'app/entities/pizza-settings/pizza-predefined/pizza-predefined.reducer';
 import floorPlanTable from 'app/entities/settings/floor-plans/tables/table.reducer';
 import floorPlanSettings from 'app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer';
-import floorPlan from "app/entities/settings/floor-plans/floor-plan.reducer";
+import floorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 

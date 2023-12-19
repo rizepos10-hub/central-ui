@@ -8,7 +8,7 @@ import {
 } from "reactstrap";
 import {TabPanel, TabView} from "primereact/tabview";
 import {useParams} from "react-router-dom";
-import {getEntity, updateEntity} from "app/entities/settings/floor-plans/floor-plan.reducer";
+import {getEntity, updateEntity} from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {getEntities as getTables} from "app/entities/settings/floor-plans/tables/table.reducer";
 import {Button} from "primereact/button";
@@ -23,6 +23,7 @@ import tables from "app/entities/settings/floor-plans/tables";
 import Select from "react-select";
 import {InputText} from "primereact/inputtext";
 import Attachment from "app/shared/layout/attachment/attachment";
+import SectionModal from "app/entities/settings/floor-plans/floor-plan/floor-plan-new-section-modal";
 
 
 
@@ -43,7 +44,6 @@ const FloorPlanManageUpdate = () => {
   const [hoveredTableIndex, setHoveredTableIndex] = useState(null);
   const [tableModalIsOpen, setTableModalIsOpen] = useState(false);
   const [sectionModalIsOpen, setSectionModalIsOpen] = useState(false);
-  const [newSection, setNewSection] = useState<IFloorPlanSection>()
   const [selectedTableDetail, setSelectedTableDetail] = useState({
     table: null,
     numberOfSeats: null,
@@ -88,23 +88,12 @@ const FloorPlanManageUpdate = () => {
     setSelectedSectionIndex(e.index);
   }
 
-  const removeImage = () => {
-    setNewSection((prev) => ({
-      ...prev,
-      backgroundImage: null
-    }))
-  };
 
-  const addImage = (imageInfo) => {
-   setNewSection((prev) => ( {
-     ...prev,
-     backgroundImage: imageInfo
-   }))
-  };
 
-  const handleAddSection = () => {
+  const handleAddSection = (newSection) => {
     if(newSection?.name.trim() === ""){
       alert("Please enter section name")
+      return
     }
     closeSectionModal()
 
@@ -113,7 +102,6 @@ const FloorPlanManageUpdate = () => {
       ...prev,
       sections: updatedSections
     }))
-    setNewSection({})
   }
   const handleSectionWidthChange = (e) => {
     const newWidth = e.value;
@@ -160,13 +148,15 @@ const FloorPlanManageUpdate = () => {
 
     setFloorPlan((prev) => ({
       ...prev,
-      sections: [
-        {
-          ...prev?.sections?.[selectedSectionIndex],
-          visible: isVisible,
-        },
-        ...(prev?.sections || []).slice(1),
-      ],
+      sections: prev.sections.map((section, index) => {
+        if (index === selectedSectionIndex) {
+          return {
+            ...section,
+            visible: isVisible
+          };
+        }
+        return section;
+      }),
     }));
   };
 
@@ -547,109 +537,8 @@ console.log(floorPlan, 'floorPlanfloorPlan')
           />
       </div>
       ) : null}
-      <Modal
-        isOpen={sectionModalIsOpen}
-        contentlabel="Tables Modal"
-      >
-        <ModalHeader toggle={closeSectionModal}>Add New Section </ModalHeader>
-        <ModalBody>
-          <div className="d-flex flex-column justify-content-center align-items-center mt-5" style={{minWidth: "50%"}}>
-            <div className={"d-flex flex-column w-75"}>
-              <div className={"d-flex  justify-content-between"}>
-                <label  className={"mt-5"}>
-                  Section Name
-                </label>
-                <InputText
-                  type="text"
-                  size={35}
-                  className={"mt-4"}
-                  name="name"
-                  required={true}
-                  id="floor-plan-name"
-                  value={newSection?.name || ''}
-                  onChange={(e) =>
-                    setNewSection((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))}
-                />
-              </div>
-              <div className={"d-flex  justify-content-between mt-5"}>
-                <label>
-                  Dimensions
-                </label>
-                <div className={"d-flex gap-4"}>
-                  <InputNumber
-                    size={12}
-                    placeholder={"Width"}
-                    maxFractionDigits={2}
-                    className={"mb-5 "}
-                    name="dimension-width"
-                    required={true}
-                    value={newSection?.dimensions?.width || null}
-                    onChange={(e) =>
-                      setNewSection((prev) => ({
-                        ...prev,
-                        dimensions: {
-                          ...prev?.dimensions,
-                          width: e.value,
-                        },
-                      }))
-                    }
-                  />
-                  <InputNumber
-                    placeholder={"Height"}
-                    size={12}
-                    className={"mb-5 "}
-                    maxFractionDigits={2}
-                    required={true}
-                    value={newSection?.dimensions?.height || null}
-                    onChange={(e) =>
-                      setNewSection((prev) => ({
-                        ...prev,
-                            dimensions: {
-                              ...prev?.dimensions,
-                              height: e.value,
-                            },
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-              <div className={"d-flex flex-column"}>
-                <label  className={"mt-2"}>
-                  <Translate contentKey={"tempApp.table.image"}>Image</Translate>
-                </label>
-                <Attachment
-                  image={newSection?.backgroundImage}
-                  onRemoveImage={removeImage}
-                  onAddImage={addImage}
-                />
-              </div>
-              <div className={"d-flex gap-8"}>
-                <label className={"mt-2"}>
-                  Visible
-                </label>
-                <div className={"ml-7 mt-1"}>
-                  <Checkbox
-                    checked={newSection?.visible}
-                    className={"mt-1"}
-                    onChange={(e) =>
-                      setNewSection((prev) => ({
-                            ...prev,
-                            visible: e.checked,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button label="Add" onClick={handleAddSection}/>
-        </ModalFooter>
-      </Modal>
+      {/* New Section Modal */}
+      {sectionModalIsOpen && <SectionModal isOpen={sectionModalIsOpen} onClose={closeSectionModal} onAddSection={handleAddSection}/>}
     </Card>
   );
 };

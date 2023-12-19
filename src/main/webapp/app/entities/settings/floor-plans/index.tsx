@@ -2,11 +2,11 @@ import React from 'react';
 import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
-import FloorPlan from "app/entities/settings/floor-plans/floor-plan";
-import CreateFloorPlan from "app/entities/settings/floor-plans/floor-plan-create";
-import FloorPlanManageUpdate from "app/entities/settings/floor-plans/floor-plan-manage-update";
-import FloorPlanEditUpdate from "app/entities/settings/floor-plans/floor-plan-edit-update";
-import FloorPlanDeleteDialog from "app/entities/settings/floor-plans/floor-plan-delete-dialog";
+import FloorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan";
+import CreateFloorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan-create";
+import FloorPlanManageUpdate from "app/entities/settings/floor-plans/floor-plan/floor-plan-manage-update";
+import FloorPlanEditUpdate from "app/entities/settings/floor-plans/floor-plan/floor-plan-edit-update";
+import FloorPlanDeleteDialog from "app/entities/settings/floor-plans/floor-plan/floor-plan-delete-dialog";
 
 
 
