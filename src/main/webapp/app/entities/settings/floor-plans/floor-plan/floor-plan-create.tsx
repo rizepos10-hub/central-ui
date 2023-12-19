@@ -15,7 +15,7 @@ import {FormGroup, Row} from "reactstrap";
 import {Checkbox} from "primereact/checkbox";
 import {InputNumber} from "primereact/inputnumber";
 import Attachment from "app/shared/layout/attachment/attachment";
-import {createEntity} from "app/entities/settings/floor-plans/floor-plan.reducer";
+import {createEntity} from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 import {useNavigate} from "react-router-dom";
 
 const items: MenuItem[] = [

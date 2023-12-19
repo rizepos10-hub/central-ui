@@ -13,7 +13,7 @@ import {
 } from "reactstrap";
 import {TabPanel, TabView} from "primereact/tabview";
 import {useParams} from "react-router-dom";
-import {getEntity, updateEntity} from "app/entities/settings/floor-plans/floor-plan.reducer";
+import {getEntity, updateEntity} from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {getEntities as getTables} from "app/entities/settings/floor-plans/tables/table.reducer";
 import {Button} from "primereact/button";
