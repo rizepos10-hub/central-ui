@@ -15,8 +15,8 @@ const initialState: EntityState<IItem> = {
   updateSuccess: false,
 };
 
-const apiUrl = 'api/items';
-const summaryUrl = 'api/items/summary';
+const apiUrl = 'api/items/restaurant-variable';
+const summaryUrl = 'api/items/restaurant-variable/summary';
 
 const apiSearchUrl = 'api/_search/items';
 
