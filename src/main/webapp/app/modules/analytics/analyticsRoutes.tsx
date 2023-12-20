@@ -7,7 +7,8 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import TopItems from "app/modules/analytics/TopItems";
 import SalesSummaryReport from "app/modules/analytics/reports/Reports";
 import EndOFDayReport from "app/modules/analytics/reports/EndOfDayReport";
-import {SalesReport} from "app/modules/analytics/reports/sales-report";
+import {SalesReport} from "app/modules/analytics/reports/sales-report/sales-report";
+import {EndOfDays} from "app/modules/analytics/reports/end-of-days";
 
 
 
@@ -16,7 +17,8 @@ export default () => {
     <div>
       <ErrorBoundaryRoutes>
         <Route path="topItems" element={<TopItems />} />
-        <Route path="endofday" element={<EndOFDayReport />} />
+        <Route path="endofday" element={<EndOfDays />} />
+        <Route path="endofday/:id" element={<EndOFDayReport />} />
         <Route path="reports" element={<SalesSummaryReport />} />
         <Route path="sales" element={<SalesReport />} />
 

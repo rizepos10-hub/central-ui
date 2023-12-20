@@ -63,6 +63,7 @@ function MenuUpdate() {
     branch: '',
     menuScreens: [],
   });
+  const [draggedIndex, setDraggedIndex] = useState(null);
   const [selectedMainScreen, setSelectedMainScreen] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState({
     isMenuModalOpen: false,
@@ -787,50 +788,53 @@ function MenuUpdate() {
       return null;
     }
 
+
     console.log(subscreens, 'hellloizz');
 
     return (
-      <div className="d-flex flex-wrap mb-3">
-        {subscreens.map((item, index) => (
-          <div key={index} className="d-flex flex-column p-1 cursor-pointer mb-3">
-            <Card
-              style={{ width: '390px' }}
-              className="mb-3 position-relative"
-            >
-                <div className="d-flex justify-content-end">
-                  <FaBars onClick={() => openEditModal(item, index, 'sub')} />
-                </div>
-              <div  onClick={() => {
-                if (item.componentType === 'SUB_SCREENS') {
-                  handleNavigateToSubScreen(item);
-                }
-              }}>
-
-
-              <h4 className="m-0 mb-2">{item.name}</h4>
-                <div className="d-flex align-items-center">
-                  <Button
-                    style={{ backgroundColor: item.backgroundColor, width: '55px', height: '30px', marginRight: '10px' }}
-                  />
-                  <span className="m-0">{item.componentType}</span>
-                </div>
+      <div className="container mb-3">
+        <div className="row">
+          {subscreens.map((item, index) => (
+            <div key={index} className="col-md-6 mb-3">
+              <div className="d-flex flex-column p-1 cursor-pointer">
+                <Card className="mb-3 position-relative">
+                  <div className="d-flex justify-content-end">
+                    <FaBars onClick={() => openEditModal(item, index, 'sub')} />
+                  </div>
+                  <div
+                    onClick={() => {
+                      if (item.componentType === 'SUB_SCREENS') {
+                        handleNavigateToSubScreen(item);
+                      }
+                    }}
+                  >
+                    <h4 className="m-0 mb-2">{item.name}</h4>
+                    <div className="d-flex align-items-center">
+                      <Button
+                        style={{ backgroundColor: item.backgroundColor, width: '55px', height: '30px', marginRight: '10px' }}
+                      />
+                      <span className="m-0">{item.componentType}</span>
+                    </div>
+                  </div>
+                  <div className="d-flex justify-content-end">
+                    <Button
+                      color="danger"
+                      size="sm"
+                      onClick={() => handleRemoveCard(mainScreenIndex, index)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </Card>
               </div>
-              <div className="d-flex justify-content-end">
-                <Button
-                  color="danger"
-                  size="sm"
-                  onClick={() => handleRemoveCard(mainScreenIndex, index)}
-                >
-                  Remove
-                </Button>
-              </div>
-            </Card>
-          </div>
-        ))}
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
 
+  console.log("component rendered ")
 
 
   const findSubScreenByName = (subScreens, name) => {
@@ -933,6 +937,7 @@ function MenuUpdate() {
   }, [id,updateSuccess]);
 
   useEffect(() => {
+    console.log("rendered12")
     if (menuEntity && menuEntity.id) {
       let newData = {
         name: menuEntity.name,
@@ -1056,6 +1061,26 @@ function MenuUpdate() {
   console.log(menuEntity, 'menuEntity')
   console.log(data, 'dataa')
 
+  const handleMainDragStart = (index) => {
+    setSelectedMainScreen(index)
+    setDraggedIndex(index);
+  };
+
+  const handleMainDragOver = (index) => {
+    if (index !== draggedIndex) {
+      const newData = [...data.menuScreens];
+      const [draggedItem] = newData.splice(draggedIndex, 1);
+      newData.splice(index, 0, draggedItem);
+      setData({ ...data, menuScreens: newData });
+      setDraggedIndex(index);
+      setSelectedMainScreen(index)
+    }
+  };
+
+  const handleMainDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
   return (
     <div className="mt-5" >
       <Card>
@@ -1108,7 +1133,14 @@ function MenuUpdate() {
             </div>
             <ListGroup className="mt-3">
               {data.menuScreens?.map((mainScreen, index) => (
-                <div key={index} className="mb-3">
+                <div
+                  key={index}
+                  className="mb-3"
+                  draggable
+                  onDragStart={() => handleMainDragStart(index)}
+                  onDragOver={() => handleMainDragOver(index)}
+                  onDragEnd={handleMainDragEnd}
+                >
                   <Card className="d-flex p-3 cursor-pointer">
                   <div  onClick={() => {
                     const mainScreenItems = mainScreen?.subScreens?.filter((item) => item.componentType === "ITEM")
@@ -1119,8 +1151,8 @@ function MenuUpdate() {
                     setBreadcrumb(() => [mainScreen.name]);
 
                   }}>
-                    <div className="d-flex justify-content-end">
-                      <FaBars onClick={() => openEditModal(mainScreen, index, 'main')} />
+                    <div className="d-flex justify-content-end" >
+                      <FaBars  onClick={() => openEditModal(mainScreen, index, 'main')} />
                     </div>
                     <h5 className="m-0 mr-3 mb-2">{mainScreen.name}</h5>
                     <div className='d-flex flex-row justify-content-between'>
@@ -1145,7 +1177,6 @@ function MenuUpdate() {
           <Col md="8" className="border-left">
             <div className="d-flex justify-content-between">
               <Col md="8">
-
                   <h2>
                 {breadcrumb?.length > 0 &&
                   breadcrumb.map((breadcrumbTitle, index) => (
@@ -1154,19 +1185,15 @@ function MenuUpdate() {
                       className="cursor-pointer"
                       onClick={() => navigateToBreadcrumbItem(index)}
                     >
-          {breadcrumbTitle}
+                      {breadcrumbTitle}
                       {index < breadcrumb.length - 1 && ' / '}
-        </span>
+                  </span>
                   ))}
-
               </h2>
-
               </Col>
+
               <Col>
-
               <div>
-
-
                 <Button color="primary" id="addButton" onClick={() => setPopoverOpen(!popoverOpen)} className="ml-2">
                   Add Button
                 </Button>
@@ -1195,14 +1222,9 @@ function MenuUpdate() {
                 </Button>
               </div>
               </Col>
-
             </div>
-
             <ListGroup className="mt-3">{renderCurrentSubScreen()}</ListGroup>
-
           </Col>
-
-
         </Row>
       </Card>
 

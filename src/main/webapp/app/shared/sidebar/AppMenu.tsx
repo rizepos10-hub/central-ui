@@ -33,19 +33,50 @@ const AppMenu = () => {
                           {
                             label: 'Catalogue',
                             role: ['ROLE_ADMIN'],
-
                             icon: 'pi pi-book',
                             items: [
+                              {
+                                label: 'Pizza Settings',
+                                icon: 'pi pi-folder-open',
+                                items: [
+                                  {
+                                    label: 'Sizes',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-size'
+                                  },
+                                  {
+                                    label: 'Crust Settings',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-crust'
+                                  },
+                                  {
+                                    label: 'Toppings',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-topping'
+                                  },
+                                  {
+                                    label: 'Topping Groups',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-topping/groups'
+                                  },
+                                  {
+                                    label: 'Predefined Pizza',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/predefined-pizza'
+                                  },
+                                  {
+                                    label: 'Make Your Own',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/own-pizza'
+                                  },
+                                ]
+                              },
                               {
                                 label: 'Category',
                                 icon: 'pi pi-folder-open',
                                 to: '/term/items'
                               },
-                              {
-                                label: 'Pizza Definition',
-                                icon: 'pi pi-folder-open',
-                                to: '/pizza-group'
-                              },
+
                               {
                                 label: 'Items',
                                 icon: ' pi pi-th-large',
@@ -240,7 +271,23 @@ const AppMenu = () => {
                                 label: 'Floor plans',
                                 role: ['ROLE_ADMIN'],
                                 icon: 'pi pi-plus-circle',
-                                to: '/floor-plans'
+                                items: [
+                                  {
+                                    label: 'List',
+                                    icon: 'pi pi-star',
+                                    to: '/floor-plan'
+                                  },
+                                  {
+                                    label: 'Tables',
+                                    icon: 'pi pi-moon',
+                                    to: '/floor-plan/table'
+                                  },
+                                  {
+                                    label: 'Settings',
+                                    icon: 'pi pi-moon',
+                                    to: '/floor-plan/settings'
+                                  },
+                                ]
                               },
                               {
                                 label: 'Transfer Operations',

@@ -22,7 +22,16 @@ import productionCenter from 'app/entities/location/production-center/production
 
 import taxProfiles from 'app/entities/settings/tax-profiles/tax-profile.reducer';
 import businessDetail from 'app/entities/settings/business-details/business-detail.reducer';
-import pizzaGroup from 'app/entities/pizza-group/pizza-group.reducer';
+import pizzaGroup from 'app/entities/pizza-settings/pizza-group.reducer';
+import pizzaSize from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
+import pizzaCrustThickness from 'app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness.reducer';
+import pizzaCrustType from 'app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer';
+import pizzaTopping from 'app/entities/pizza-settings/pizza-topping/pizza-topping.reducer';
+import predefinedPizza from 'app/entities/pizza-settings/pizza-predefined/pizza-predefined.reducer';
+import floorPlanTable from 'app/entities/settings/floor-plans/tables/table.reducer';
+import floorPlanSettings from 'app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer';
+import floorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
+
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
@@ -50,7 +59,14 @@ const entitiesReducers = {
   printingProfiles,
   productionCenter,
   pizzaGroup,
-  itemDefinitions
+  pizzaSize,
+  pizzaTopping,
+  pizzaCrustThickness,
+  pizzaCrustType,
+  predefinedPizza,
+  floorPlanTable,
+  floorPlanSettings,
+  floorPlan
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };

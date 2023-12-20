@@ -1,0 +1,24 @@
+{
+  "tempApp": {
+    "crustThickness": {
+      "home": {
+        "title": "Crust Thicknesses",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Crust Thickness",
+        "createOrEditLabel": "Create or edit a Crust Thickness",
+        "notFound": "No Crust Thicknesses found"
+      },
+      "created": "A new Crust Thickness is created with identifier {{ param }}",
+      "updated": "A Crust Thickness is updated with identifier {{ param }}",
+      "deleted": "A Crust Thickness is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Crust Thickness {{ id }}?"
+      },
+      "detail": {
+        "title": "Crust Thickness"
+      },
+      "id": "ID",
+      "name": "Name"
+    }
+  }
+}

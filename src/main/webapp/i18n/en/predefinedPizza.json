@@ -1,0 +1,25 @@
+{
+  "tempApp": {
+    "predefinedPizza": {
+      "home": {
+        "title": "Predefined Pizzas",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Predefined Pizza",
+        "createOrEditLabel": "Create or edit a Predefined Pizza",
+        "notFound": "No Predefined Pizzas found"
+      },
+      "created": "A new Predefined Pizza is created with identifier {{ param }}",
+      "updated": "A Predefined Pizza is updated with identifier {{ param }}",
+      "deleted": "A Predefined Pizza is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Predefined Pizza {{ id }}?"
+      },
+      "detail": {
+        "title": "Predefined Pizza"
+      },
+      "id": "ID",
+      "name": "Name",
+      "toppings": "Toppings"
+    }
+  }
+}

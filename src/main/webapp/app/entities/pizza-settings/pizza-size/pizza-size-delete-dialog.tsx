@@ -5,9 +5,9 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './pizza-group.reducer';
+import { getEntity, deleteEntity } from './pizza-size.reducer';
 
-export const PizzaGroupDeleteDialog = () => {
+export const PizzaSizeDeleteDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -21,11 +21,11 @@ export const PizzaGroupDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const pizzaGroupEntity = useAppSelector(state => state.pizzaGroup.entity);
-  const updateSuccess = useAppSelector(state => state.pizzaGroup.updateSuccess);
+  const pizzaSizeEntity = useAppSelector(state => state.pizzaSize.entity);
+  const updateSuccess = useAppSelector(state => state.pizzaSize.updateSuccess);
 
   const handleClose = () => {
-    navigate('/pizza-group' + location.search);
+    navigate('/pizza-size' + location.search);
   };
 
   useEffect(() => {
@@ -36,17 +36,17 @@ export const PizzaGroupDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(pizzaGroupEntity.id));
+    dispatch(deleteEntity(pizzaSizeEntity.id));
   };
 
   return (
     <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="pizza-groupDeleteDialogHeading">
+      <ModalHeader toggle={handleClose} data-cy="pizzaSizeDeleteDialogHeading">
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="tempApp.pizza-group.delete.question">
-        <Translate contentKey="tempApp.pizza-group.delete.question" interpolate={{ id: pizzaGroupEntity.id }}>
-          Are you sure you want to delete this Branch?
+      <ModalBody id="tempApp.pizzaSize.delete.question">
+        <Translate contentKey="tempApp.pizzaSize.delete.question" interpolate={{ id: pizzaSizeEntity.id }}>
+          Are you sure you want to delete this Addon?
         </Translate>
       </ModalBody>
       <ModalFooter>
@@ -55,7 +55,7 @@ export const PizzaGroupDeleteDialog = () => {
           &nbsp;
           <Translate contentKey="entity.action.cancel">Cancel</Translate>
         </Button>
-        <Button id="jhi-confirm-delete-pizza-group" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+        <Button id="jhi-confirm-delete-pizzaSize" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
           <FontAwesomeIcon icon="trash" />
           &nbsp;
           <Translate contentKey="entity.action.delete">Delete</Translate>
@@ -65,4 +65,4 @@ export const PizzaGroupDeleteDialog = () => {
   );
 };
 
-export default PizzaGroupDeleteDialog;
+export default PizzaSizeDeleteDialog;

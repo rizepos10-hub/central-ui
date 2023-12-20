@@ -72,6 +72,9 @@ module.exports = async options =>
     },
     stats: process.env.JHI_DISABLE_WEBPACK_LOGS ? 'none' : options.stats,
     plugins: [
+      new webpack.DefinePlugin({
+        'process.env.REACT_APP_COMMIT_ID': JSON.stringify(require('child_process').execSync('git rev-parse HEAD').toString().trim()),
+      }),
       process.env.JHI_DISABLE_WEBPACK_LOGS
         ? null
         : new SimpleProgressWebpackPlugin({

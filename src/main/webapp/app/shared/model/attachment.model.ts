@@ -8,6 +8,7 @@ export interface IAttachment {
   size?: number;
   type?: AttachmentType;
   item?: IItem | null;
+  url?: string | null;
 }
 
 export const defaultValue: Readonly<IAttachment> = {};
