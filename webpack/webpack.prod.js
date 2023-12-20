@@ -16,6 +16,10 @@ module.exports = async () =>
   webpackMerge(await commonConfig({ env: ENV }), {
     // devtool: 'source-map', // Enable source maps. Please note that this will slow down the build
     mode: ENV,
+    performance: {
+      maxAssetSize: 4 * 1024 * 1024, // 4 MiB
+      maxEntrypointSize: 4 * 1024 * 1024, // 4 MiB
+    },
     entry: {
       main: './src/main/webapp/app/index',
     },
