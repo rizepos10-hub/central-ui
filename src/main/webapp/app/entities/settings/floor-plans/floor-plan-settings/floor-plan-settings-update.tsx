@@ -16,7 +16,6 @@ export const FloorPlanSettingsUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id } = useParams<'id'>();
-  const isNew = id === undefined;
 
   const [floorPlanSettings, setFloorPlanSettings] = useState<IFloorPlanSettings>({
     sectionDimensions: null,
@@ -40,7 +39,6 @@ export const FloorPlanSettingsUpdate = () => {
   }, []);
 
   useEffect(() => {
-
     if(floorPlanSettingsEntity){
       setFloorPlanSettings(floorPlanSettingsEntity)
     }

@@ -11,19 +11,18 @@ import {useParams} from "react-router-dom";
 import {getEntity, updateEntity} from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {getEntities as getTables} from "app/entities/settings/floor-plans/tables/table.reducer";
+import {getEntity as getDeffaultSettings} from "app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer"
 import {Button} from "primereact/button";
 import {InputNumber} from "primereact/inputnumber";
-import {IFloorPlan, IFloorPlanSection} from "app/shared/model/floor-plan.model";
+import {IFloorPlan} from "app/shared/model/floor-plan.model";
 import {Checkbox} from "primereact/checkbox";
 import {IFloorPlanTable} from "app/shared/model/floor-plan-table.model";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState, Translate} from "react-jhipster";
+import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import tables from "app/entities/settings/floor-plans/tables";
 import Select from "react-select";
-import {InputText} from "primereact/inputtext";
-import Attachment from "app/shared/layout/attachment/attachment";
 import SectionModal from "app/entities/settings/floor-plans/floor-plan/floor-plan-new-section-modal";
+import {InputText} from "primereact/inputtext";
 
 
 
@@ -31,9 +30,16 @@ import SectionModal from "app/entities/settings/floor-plans/floor-plan/floor-pla
 const FloorPlanManageUpdate = () => {
   const { id } = useParams();
   const dispatch = useAppDispatch();
+  const floorPlanSettingsEntity = useAppSelector(state => state.floorPlanSettings.entity);
+  const {
+    tableImage: defaultTableImage,
+    tableDimensions: defaultTableDimensions,
+    sectionBackground: defaultSectionBackground,
+    sectionsDimensions: defaultSectionsDimensions
+  } = floorPlanSettingsEntity
   const floorPlanEntity = useAppSelector(state => state.floorPlan.entity);
   const {branch: floorPlanBranch} = floorPlanEntity;
-  console.log(floorPlanEntity, 'floorPlanEntity')
+
 
   const updateSuccess = useAppSelector(state => state.floorPlan.updateSuccess);
   const floorPlanTablesList: IFloorPlanTable[] = useAppSelector(state => state.floorPlanTable.entities)
@@ -48,8 +54,8 @@ const FloorPlanManageUpdate = () => {
     table: null,
     numberOfSeats: null,
     position: {
-      x: null,
-      y: null,
+      x: 0,
+      y: 0,
     },
   });
   const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
@@ -103,8 +109,28 @@ const FloorPlanManageUpdate = () => {
       sections: updatedSections
     }))
   }
+
+  const handleKeyDown = (e) => {
+    // Allow numeric keys, Backspace, Arrow keys, and non-numeric keys when Control key is pressed
+    if (!(e.key === 'Backspace' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || /^\d$/.test(e.key) || e.ctrlKey)) {
+      e.preventDefault();
+    }
+  };
+
+
   const handleSectionWidthChange = (e) => {
-    const newWidth = e.value;
+    const newWidth = parseInt(e.target.value, 10);
+
+    // Check if any table will be outside the new width
+    const tablesOutsideBounds = floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.some((tableDetail) => {
+      const tableRightEdge = tableDetail.position.x + tableDetail.table.dimensions.width;
+      return tableRightEdge > newWidth;
+    });
+
+    if (tablesOutsideBounds) {
+      alert("Cannot change width, some tables are outside the new bounds.");
+      return;
+    }
 
     setFloorPlan((prev) => ({
       ...prev,
@@ -124,7 +150,18 @@ const FloorPlanManageUpdate = () => {
   };
 
   const handleSectionHeightChange = (e) => {
-    const newHeight = e.value;
+    const newHeight =  parseInt(e.target.value, 10);
+    console.log(e.originalEvent, 'eewre')
+
+    const tablesOutsideBounds = floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.some((tableDetail) => {
+      const tableBottomEdge = tableDetail.position.y + tableDetail.table.dimensions.height;
+      return tableBottomEdge > newHeight;
+    });
+
+    if (tablesOutsideBounds) {
+      alert("Cannot change height, some tables are outside the new bounds.");
+      return;
+    }
 
     setFloorPlan((prev) => ({
       ...prev,
@@ -293,11 +330,12 @@ const FloorPlanManageUpdate = () => {
 
   const selectedSection = floorPlan?.sections?.[selectedSectionIndex];
   const boardDimensions = selectedSection?.dimensions ?? null;
-  const sectionBackground = selectedSection?.backgroundImage?.url ?? null;
+  const sectionBackground = selectedSection?.backgroundImage?.url ?? defaultSectionBackground;
 
 
 
   useEffect(() => {
+    dispatch(getDeffaultSettings())
     Promise.all([
       dispatch(getEntity(id)),
       dispatch(
@@ -342,8 +380,11 @@ console.log(floorPlan, 'floorPlanfloorPlan')
     style={{overflow: "scroll"}}
     >
       <div className={"d-flex justify-content-between mb-5"}>
+        <div>
       <h2>Floor Plan Management</h2>
+      <h3>{floorPlan?.name} <span className={"text-sm"}>{floorPlan?.branch?.name?.trim()}</span></h3>
 
+        </div>
         <Button onClick={openSectionModal}>Add New Section</Button>
       </div>
       <TabView scrollable activeIndex={selectedSectionIndex} onTabChange={handleSectionChange}>
@@ -424,14 +465,14 @@ console.log(floorPlan, 'floorPlanfloorPlan')
             <span className="p-inputgroup-addon">
                   width
               </span>
-            <InputNumber
+            <InputText
               size={12}
               placeholder={"Width"}
-              maxFractionDigits={2}
               name="dimension-width"
               required={true}
-              value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.width || null}
+              value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.width.toString() || null}
               onChange={handleSectionWidthChange}
+              onKeyDown={handleKeyDown}
             />
             <span className="p-inputgroup-addon">px</span>
           </div>
@@ -439,13 +480,13 @@ console.log(floorPlan, 'floorPlanfloorPlan')
                 <span className="p-inputgroup-addon">
                   height
               </span>
-            <InputNumber
+            <InputText
               placeholder={"Height"}
               size={12}
-              maxFractionDigits={2}
               required={true}
-              value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.height || null}
+              value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.height.toString()}
               onChange={handleSectionHeightChange}
+              onKeyDown={handleKeyDown}
 
             />
             <span className="p-inputgroup-addon">px</span>
@@ -543,12 +584,12 @@ console.log(floorPlan, 'floorPlanfloorPlan')
             </div>
           )
         })}
-          <img
+          {sectionBackground ? <img
             src={sectionBackground}
             alt={selectedSection?.name}
             width={`${boardDimensions?.width}px`}
             height={`${boardDimensions?.height}px`}
-          />
+          /> : null}
       </div>
       ) : null}
       {/* New Section Modal */}
