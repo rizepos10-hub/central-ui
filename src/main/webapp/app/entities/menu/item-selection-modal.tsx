@@ -48,7 +48,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
       return totalItems;
     }
 
-    return itemList.filter((item) => item.terms[0]?.id === selectedCategory.value).length;
+    return itemList.filter((item) => item.categories[0]?.id === selectedCategory.value).length;
   };
 
   const getFilteredItems = () => {
@@ -56,7 +56,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
       return itemList;
     }
     const filteredItems = itemList.filter((item) => {
-      return item.terms[0]?.id === selectedCategory.value;
+      return item.categories[0]?.id === selectedCategory.value;
     });
 
     return filteredItems;
@@ -120,18 +120,18 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   const isItemSelected = (id) => selectedItems?.find((selected) => selected.id === id );
 
-  const categoryIds = itemList.map((item) => item.terms[0]?.id)
+  const categoryIds = itemList.map((item) => item.categories[0]?.id)
 
   const uniqueCategoryIds = new Set(categoryIds);
 
   const uniqueCategoryIdsArray = Array.from(uniqueCategoryIds);
 
   const categoriesOption = uniqueCategoryIdsArray.map((categoryId) => {
-    const category = itemList.find((item) => item.terms[0]?.id === categoryId);
+    const category = itemList.find((item) => item.categories[0]?.id === categoryId);
 
     return {
-      label: category?.terms[0]?.name || "Unknown Category",
-      value: category?.terms[0]?.id,
+      label: category?.categories[0]?.name || "Unknown Category",
+      value: category?.categories[0]?.id,
     };
   });
 
