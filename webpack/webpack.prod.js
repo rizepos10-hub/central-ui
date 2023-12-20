@@ -114,6 +114,7 @@ module.exports = async () =>
         clientsClaim: true,
         skipWaiting: true,
         exclude: [/swagger-ui/],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MiB (adjust as needed)
       }),
     ],
   });
