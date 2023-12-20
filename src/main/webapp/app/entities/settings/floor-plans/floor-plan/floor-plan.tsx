@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import {  filterFloorPlans } from './floor-plan.reducer';
 import {DataTable, DataTableFilterMeta, DataTableFilterMetaData} from "primereact/datatable";
-import {Column} from "primereact/column";
+import {Column, ColumnFilterElementTemplateOptions} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
 import {IFloorPlan} from "app/shared/model/floor-plan.model";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
@@ -18,6 +18,10 @@ import {InputText} from "primereact/inputtext";
 import {Dropdown} from "primereact/dropdown";
 import {format} from "date-fns";
 import {DataTableLazyModel} from "app/shared/model/enumerations/data-table-lazy.model";
+import {TriStateCheckbox, TriStateCheckboxChangeEvent} from "primereact/tristatecheckbox";
+import {classNames} from "primereact/utils";
+import {DropdownItem} from "reactstrap";
+import {isBoolean} from "lodash";
 
 
 interface LazyTableState {
@@ -47,6 +51,7 @@ export const FloorPlan = () => {
     filters: {
       name:{value: '', matchMode: 'startsWith'},
       branch: { value: '', matchMode: 'equals' },
+      active: { value: null, matchMode: FilterMatchMode.EQUALS },
     }});
 
   const floorPlanList :IFloorPlan[] = useAppSelector(state => state.floorPlan.entities);
@@ -64,36 +69,53 @@ export const FloorPlan = () => {
       value: branch.id,
     }));
 
+  const filterBranchElement = () => (
+    <Dropdown
+      value={(lazyState.filters.branch as DataTableFilterMetaData)?.value || ''}
+
+      options={filteredBranchOptions}
+      onChange={(e) => {
+        const selectedBranchId = e.value;
+        setLazyState((prevState) => ({
+          ...prevState,
+          filters: {
+            ...prevState.filters,
+            branch: { value: selectedBranchId, matchMode: 'equals' } ,
+          },
+        }));
+      }}
+      placeholder="Select a branch"
+    />);
+
+
+  // const filteredActiveOptions: {label: string, value: null | boolean}[] = [{ label: "active", value: null}];
+  //
+  // const filteractiveElement = () => (
+  //   <Dropdown
+  //     value={(lazyState.filters.active as DataTableFilterMetaData)?.value || ''}
+  //
+  //     options={filteredBranchOptions}
+  //     onChange={(e) => {
+  //       const selectedBranchId = e.value;
+  //       setLazyState((prevState) => ({
+  //         ...prevState,
+  //         filters: {
+  //           ...prevState.filters,
+  //           branch: { value: selectedBranchId, matchMode: 'equals' } ,
+  //         },
+  //       }));
+  //     }}
+  //     placeholder="Select a branch"
+  //   />)
+  // const activeColumnTemplate = rowData => {
+  //   return rowData.active ?<p className="text-success ml-2  ">&#10004;</p>:
+  //     <p className="text-danger ml-2 ">&#10006;</p>
+  // };
 
 
 
   useEffect(() => {
-    const queryParams = {
-      first: lazyState.first,
-      page: lazyState.page ,
-      size: lazyState.rows ,
-      filters: {}
-    };
-    if (lazyState.filters.branch?.value) {
-      queryParams.filters['branch.id'] = {
-        value: lazyState.filters.branch.value,
-        matchMode: DataTableLazyModel[lazyState.filters.branch.matchMode],
-      };
-    }
-
-    if (lazyState.filters.name?.value) {
-      queryParams.filters['name'] = {
-        value: lazyState.filters.name.value,
-        matchMode: DataTableLazyModel[lazyState.filters.name.matchMode],
-      };
-    }
-    console.log(queryParams, 'queryParams')
-    dispatch(filterFloorPlans(queryParams));
-    dispatch(getBranches({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`
-    }))
+    handleSyncList()
 
   },[lazyState])
 
@@ -128,7 +150,37 @@ export const FloorPlan = () => {
 
 
   const handleSyncList = () => {
+    const queryParams = {
+      first: lazyState.first,
+      page: lazyState.page ,
+      size: lazyState.rows ,
+      filters: {}
+    };
+    if (lazyState.filters.branch?.value) {
+      queryParams.filters['branch.id'] = {
+        value: lazyState.filters.branch.value,
+        matchMode: DataTableLazyModel[lazyState.filters.branch.matchMode],
+      };
+    }
 
+    if (lazyState.filters.name?.value) {
+      queryParams.filters['name'] = {
+        value: lazyState.filters.name.value,
+        matchMode: DataTableLazyModel[lazyState.filters.name.matchMode],
+      };
+    }
+    if (isBoolean(lazyState.filters.active?.value)) {
+      queryParams.filters['active'] = {
+        value: lazyState.filters.active.value,
+        matchMode: DataTableLazyModel[lazyState.filters.active.matchMode],
+      };
+    }
+    dispatch(filterFloorPlans(queryParams));
+    dispatch(getBranches({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`
+    }))
   };
 
 
@@ -144,9 +196,40 @@ console.log("floorPlanList", floorPlanList)
     );
   };
 
-  const activeColumnTemplate = rowData => {
-    return rowData.active ?<p className="text-success ml-2  ">&#10004;</p>:
-      <p className="text-danger ml-2 ">&#10006;</p>
+
+  const verifiedBodyTemplate = (rowData) => {
+    console.log(rowData, 'hello')
+    return <i className={classNames('pi', { 'text-green-500 pi-check-circle': rowData.active, 'text-red-500 pi-times-circle': !rowData.active })}></i>;
+  };
+
+  const verifiedFilterTemplate = (options: ColumnFilterElementTemplateOptions) => {
+    console.log(options, 'lollol');
+
+    const handleDropdownChange = (e) => {
+      setLazyState((prev) => ({
+        ...prev,
+        filters: {
+          ...prev.filters,
+          active: { value: e.value, matchMode: 'equals' },
+        },
+      }));
+
+    };
+
+    const dropdownItems = [
+      { label: 'All', value: null },
+      { label: 'Active', value: true },
+      { label: 'Not Active', value: false },
+    ];
+
+    return (
+        <Dropdown
+          options={dropdownItems}
+          value={lazyState?.filters?.active?.value}
+          onChange={handleDropdownChange}
+          placeholder={"Filter by active"}
+        />
+    );
   };
 
   const manageColumnTemplate = (rowData) => {
@@ -225,33 +308,11 @@ console.log("floorPlanList", floorPlanList)
         >
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
 
-          <Column
-            sortable
-            filter
-            header="Branch"
+          <Column sortable filter header="Branch" showFilterMenu={false} filterElement={filterBranchElement} body={(data) => (data.branch?.name)} />
 
-            showFilterMenu={false}
-            filterElement={
-              <Dropdown
-                value={(lazyState.filters.branch as DataTableFilterMetaData)?.value || ''}
+          <Column header="Active" field={"active"} body={verifiedBodyTemplate} showFilterMatchModes={false}
+                  dataType="boolean" bodyClassName="text-center" style={{width: '10%'}} filter filterElement={verifiedFilterTemplate}  />
 
-                options={filteredBranchOptions}
-                onChange={(e) => {
-                  const selectedBranchId = e.value;
-                  setLazyState((prevState) => ({
-                    ...prevState,
-                    filters: {
-                      ...prevState.filters,
-                      branch: { value: selectedBranchId, matchMode: 'equals' } ,
-                    },
-                  }));
-                }}
-                placeholder="Select a branch"
-              />}
-            body={(data) => (data.branch?.name)}
-           />
-
-          <Column header="Active" body={activeColumnTemplate} style={{width: '10%'}}   />
           <Column header="Manage"  body={manageColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
