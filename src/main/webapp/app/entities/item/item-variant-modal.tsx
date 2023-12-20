@@ -71,9 +71,9 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   const branchList = useAppSelector(state => state.branch.entities);
 
-  const itemList = useAppSelector(state => state.item.entities);
+  // const itemList = useAppSelector(state => state.item.entities);
 
-  console.log(itemList, 'itemlo');
+  // console.log(itemList, 'itemlo');
 
   const [branchPrices, setBranchPrices] = useState({});
   const [selectedItemWithVariants, setSelectedItemWithVariants] = useState(null);
@@ -155,30 +155,30 @@ const ItemVariantModal = (props: IVariantProps) => {
 
 
 
-  const handleVariantSelection = (itemId, variant, isSelected) => {
-    setSelectedVariants(prevVariants => {
-      const updatedVariants = { ...prevVariants };
-      if (isSelected) {
-        updatedVariants[itemId] = [...(updatedVariants[itemId] || []), variant];
-      } else {
-        updatedVariants[itemId] = (updatedVariants[itemId] || []).filter(v => v.id !== variant.id);
-      }
-      return updatedVariants;
-    });
+  // const handleVariantSelection = (itemId, variant, isSelected) => {
+  //   setSelectedVariants(prevVariants => {
+  //     const updatedVariants = { ...prevVariants };
+  //     if (isSelected) {
+  //       updatedVariants[itemId] = [...(updatedVariants[itemId] || []), variant];
+  //     } else {
+  //       updatedVariants[itemId] = (updatedVariants[itemId] || []).filter(v => v.id !== variant.id);
+  //     }
+  //     return updatedVariants;
+  //   });
 
-    if (isSelected) {
-      setSelectedItems(prevItems => {
-        if (!prevItems.some(selectedItem => selectedItem?.id === itemId)) {
-          return [...prevItems, itemList.find(item => item?.id === itemId)];
-        }
-        return prevItems;
-      });
-    } else {
-      if (!selectedVariants[itemId] || selectedVariants[itemId].length === 0) {
-        setSelectedItems(prevItems => prevItems.filter(item => item?.id !== itemId));
-      }
-    }
-  };
+  //   if (isSelected) {
+  //     setSelectedItems(prevItems => {
+  //       if (!prevItems.some(selectedItem => selectedItem?.id === itemId)) {
+  //         return [...prevItems, itemList.find(item => item?.id === itemId)];
+  //       }
+  //       return prevItems;
+  //     });
+  //   } else {
+  //     if (!selectedVariants[itemId] || selectedVariants[itemId].length === 0) {
+  //       setSelectedItems(prevItems => prevItems.filter(item => item?.id !== itemId));
+  //     }
+  //   }
+  // };
   const handleQuantityChange = (itemId, variantId, quantity) => {
     const parsedQuantity = parseFloat(quantity);
 
@@ -217,14 +217,14 @@ const ItemVariantModal = (props: IVariantProps) => {
     // return editingVariant.every((item) => variantItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null));
   };
 
-  const groupedMenuItems = itemList.reduce((groups, item) => {
-    const termName = item.terms[0]?.name || 'Uncategorized';
-    if (!groups[termName]) {
-      groups[termName] = [];
-    }
-    groups[termName].push(item);
-    return groups;
-  }, {});
+  // const groupedMenuItems = itemList.reduce((groups, item) => {
+  //   const termName = item.categories[0]?.name || 'Uncategorized';
+  //   if (!groups[termName]) {
+  //     groups[termName] = [];
+  //   }
+  //   groups[termName].push(item);
+  //   return groups;
+  // }, {});
 
   const variant = ({ name, price }) => {
     const selectedDiscountObjects = selectedDiscounts.map(item => ({
@@ -523,7 +523,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
 
   useEffect(() => {
-    dispatch(getItemsForRecipe({ itemId: itemId ?? null, editingVariant: editingVariant?.id ?? null }));
+    // dispatch(getItemsForRecipe({ itemId: itemId ?? null, editingVariant: editingVariant?.id ?? null }));
 
     dispatch(getBranches({
       page: paginationState.activePage - 1,
@@ -1044,119 +1044,119 @@ const ItemVariantModal = (props: IVariantProps) => {
                   </tbody>
                 </Table>
               </FormGroup>
-              {!isPizza ? <FormGroup>
-                <h3>Combo</h3>
-                <div className="d-flex justify-content-end mr-4">
-                  <Button color="primary" onClick={toggleModal} disabled={allItemsPresent()}>
-                    Add Item
-                  </Button>
-                </div>
-                <Table>
-                  <thead>
-                  <tr>
-                    <th>Item Name</th>
-                    <th>Item Variants</th>
-                    <th>Quantity</th>
-                    <th>Addons</th>
-                    <th>Delete</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {Object.keys(selectedVariants).map((itemId) => (
-                    <React.Fragment key={itemId}>
-                      {console.log('Debug - itemId:', itemId)}
-                      {console.log('Debug - selectedVariants[itemId]:', selectedVariants[itemId])}
+              {/* {!isPizza ? <FormGroup> */}
+              {/*   <h3>Combo</h3> */}
+              {/*   <div className="d-flex justify-content-end mr-4"> */}
+              {/*     <Button color="primary" onClick={toggleModal} disabled={allItemsPresent()}> */}
+              {/*       Add Item */}
+              {/*     </Button> */}
+              {/*   </div> */}
+              {/*   <Table> */}
+              {/*     <thead> */}
+              {/*     <tr> */}
+              {/*       <th>Item Name</th> */}
+              {/*       <th>Item Variants</th> */}
+              {/*       <th>Quantity</th> */}
+              {/*       <th>Addons</th> */}
+              {/*       <th>Delete</th> */}
+              {/*     </tr> */}
+              {/*     </thead> */}
+              {/*     <tbody> */}
+              {/*     {Object.keys(selectedVariants).map((itemId) => ( */}
+              {/*       <React.Fragment key={itemId}> */}
+              {/*         {console.log('Debug - itemId:', itemId)} */}
+              {/*         {console.log('Debug - selectedVariants[itemId]:', selectedVariants[itemId])} */}
 
-                      {/* Debugging */}
-                      {selectedVariants[itemId].map((variant) => {
-                        const item = itemList.find((item) => item?.id === itemId);
-                        const itemName = itemNameMap[itemId];
-                        console.log(selectedVariants, 'lolili')
-                        console.log(itemNameMap, 'itemNameMap')
+              {/*         /!* Debugging *!/ */}
+              {/*         {selectedVariants[itemId].map((variant) => { */}
+              {/*           const item = itemList.find((item) => item?.id === itemId); */}
+              {/*           const itemName = itemNameMap[itemId]; */}
+              {/*           console.log(selectedVariants, 'lolili') */}
+              {/*           console.log(itemNameMap, 'itemNameMap') */}
 
 
-                        const recipeDetail = recipeDetails[itemId] || {};
-                        const variantQuantity = recipeDetail.variantQuantities?.[variant?.id] || "";
-                        const selectedAddons = recipeDetail.selectedAddons?.[variant?.id] || [];
+              {/*           const recipeDetail = recipeDetails[itemId] || {}; */}
+              {/*           const variantQuantity = recipeDetail.variantQuantities?.[variant?.id] || ""; */}
+              {/*           const selectedAddons = recipeDetail.selectedAddons?.[variant?.id] || []; */}
 
-                        console.log('Debug - item:', item);
-                        console.log('Debug - itemList:', itemList);
+              {/*           console.log('Debug - item:', item); */}
+              {/*           console.log('Debug - itemList:', itemList); */}
 
-                        console.log('Debug - variant:', variant);
-                        console.log('Debug - recipeDetail:', recipeDetail);
-                        console.log('Debug - variantQuantity:', variantQuantity);
-                        console.log('Debug - selectedAddons:', selectedAddons);
+              {/*           console.log('Debug - variant:', variant); */}
+              {/*           console.log('Debug - recipeDetail:', recipeDetail); */}
+              {/*           console.log('Debug - variantQuantity:', variantQuantity); */}
+              {/*           console.log('Debug - selectedAddons:', selectedAddons); */}
 
-                        return (
-                          <tr key={variant?.id}>
-                            <td>{item?.name || itemName}</td>
-                            <td>{variant?.name}</td>
-                            <td>
-                              Quantity:{" "}
-                              <ValidatedField
-                                type="number"
-                                name={`quantity_${itemId}_${variant?.id}`}
-                                placeholder={`Enter quantity for ${variant.name}`}
-                                value={variantQuantity}
-                                onChange={(e) => {
-                                  const inputValue = e.target.value;
-                                  if (/^[1-9]\d*$/.test(inputValue) || inputValue === "") {
-                                    handleQuantityChange(itemId, variant?.id, inputValue);
-                                  }
-                                }}
+              {/*           return ( */}
+              {/*             <tr key={variant?.id}> */}
+              {/*               <td>{item?.name || itemName}</td> */}
+              {/*               <td>{variant?.name}</td> */}
+              {/*               <td> */}
+              {/*                 Quantity:{" "} */}
+              {/*                 <ValidatedField */}
+              {/*                   type="number" */}
+              {/*                   name={`quantity_${itemId}_${variant?.id}`} */}
+              {/*                   placeholder={`Enter quantity for ${variant.name}`} */}
+              {/*                   value={variantQuantity} */}
+              {/*                   onChange={(e) => { */}
+              {/*                     const inputValue = e.target.value; */}
+              {/*                     if (/^[1-9]\d*$/.test(inputValue) || inputValue === "") { */}
+              {/*                       handleQuantityChange(itemId, variant?.id, inputValue); */}
+              {/*                     } */}
+              {/*                   }} */}
 
-                              />
-                            </td>
-                            <td>
-                              Addons:
-                              <div className="addon-select-wrapper">
+              {/*                 /> */}
+              {/*               </td> */}
+              {/*               <td> */}
+              {/*                 Addons: */}
+              {/*                 <div className="addon-select-wrapper"> */}
 
-                                <AddonDropdown
-                                  itemAddons={item?.addons}
-                                  variantAddons={variant?.addons}
-                                  selectedAddons={selectedAddons}
-                                  onAddAddon={(addon) =>
-                                    handleAddAddon(itemId, variant?.id, {
-                                      id: addon?.id,
-                                      name: addon.name,
-                                    })
-                                  }
-                                  onIncrement={(selectedAddon) =>
-                                    handleAddonAmountChange(
-                                      itemId,
-                                      variant?.id,
-                                      selectedAddon?.id,
-                                      "increment"
-                                    )
-                                  }
+              {/*                   <AddonDropdown */}
+              {/*                     itemAddons={item?.addons} */}
+              {/*                     variantAddons={variant?.addons} */}
+              {/*                     selectedAddons={selectedAddons} */}
+              {/*                     onAddAddon={(addon) => */}
+              {/*                       handleAddAddon(itemId, variant?.id, { */}
+              {/*                         id: addon?.id, */}
+              {/*                         name: addon.name, */}
+              {/*                       }) */}
+              {/*                     } */}
+              {/*                     onIncrement={(selectedAddon) => */}
+              {/*                       handleAddonAmountChange( */}
+              {/*                         itemId, */}
+              {/*                         variant?.id, */}
+              {/*                         selectedAddon?.id, */}
+              {/*                         "increment" */}
+              {/*                       ) */}
+              {/*                     } */}
 
-                                  onDecrement={(selectedAddon) =>
-                                    handleAddonAmountChange(
-                                      itemId,
-                                      variant?.id,
-                                      selectedAddon?.id,
-                                      "decrement"
-                                    )
-                                  }
+              {/*                     onDecrement={(selectedAddon) => */}
+              {/*                       handleAddonAmountChange( */}
+              {/*                         itemId, */}
+              {/*                         variant?.id, */}
+              {/*                         selectedAddon?.id, */}
+              {/*                         "decrement" */}
+              {/*                       ) */}
+              {/*                     } */}
 
-                                />
-                              </div>
-                            </td>
+              {/*                   /> */}
+              {/*                 </div> */}
+              {/*               </td> */}
 
-                            <td>
-                              <Button type={"button"} color="danger"
-                                      onClick={() => handleDeleteItem(itemId, variant.id)}>
-                                <FontAwesomeIcon icon="trash"/>
-                              </Button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </React.Fragment>
-                  ))}
-                  </tbody>
-                </Table>
-              </FormGroup> : null}
+              {/*               <td> */}
+              {/*                 <Button type={"button"} color="danger" */}
+              {/*                         onClick={() => handleDeleteItem(itemId, variant.id)}> */}
+              {/*                   <FontAwesomeIcon icon="trash"/> */}
+              {/*                 </Button> */}
+              {/*               </td> */}
+              {/*             </tr> */}
+              {/*           ); */}
+              {/*         })} */}
+              {/*       </React.Fragment> */}
+              {/*     ))} */}
+              {/*     </tbody> */}
+              {/*   </Table> */}
+              {/* </FormGroup> : null} */}
             </Row>
             <Row>
 
@@ -1174,100 +1174,100 @@ const ItemVariantModal = (props: IVariantProps) => {
               <ModalHeader toggle={toggleModal}>Add New Item</ModalHeader>
               <ModalBody>
                 <Row>
-                  <Col md="3">
-                    <ListGroup>
-                      {Object.keys(groupedMenuItems).map(termName => (
-                        <ListGroupItem
-                          key={termName}
-                          tag="button"
-                          action
-                          onClick={() => setActiveTerm(termName)}
-                          active={termName === activeTerm}
-                        >
-                          {termName}
-                        </ListGroupItem>
-                      ))}
-                    </ListGroup>
-                  </Col>
-                  <Col md="9">
-                    {activeTerm ? (
-                      <>
-                        <h3>{activeTerm}</h3>
-                        <Row className="justify-content-center mt-4">
-                          {groupedMenuItems[activeTerm].map(item => (
-                            <Col key={item.id} sm="6" md="4" lg="4" className="mb-4">
-                              <div
-                                style={{
-                                  cursor: 'pointer',
-                                  border: selectedItems?.some(selectedItem => selectedItem.id === item.id)
-                                    ? '2px solid #007bff'
-                                    : '2px solid #dee2e6',
-                                }}
-                                onClick={() => {
-                                  if (selectedItems?.some(selectedItem => selectedItem.id === item.id)) {
-                                    setSelectedItems(prevItems => prevItems?.filter(i => i.id !== item.id));
-                                    setSelectedVariants(prevVariants => ({ ...prevVariants, [item.id]: [] }));
-                                  } else {
-                                    setSelectedItems(prevItems => [...prevItems, item]);
-                                  }
-                                }}
-                                className={`${selectedItems?.some(selectedItem => selectedItem.id === item.id) ? 'border-primary' : ''}`}
-                              >
-                                <Card
-                                  style={{
-                                    background: `url(${item.attachments[0]?.url})`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                  }}
-                                  className={`border-4 shadow-sm h-100`}
-                                >
-                                  <CardBody>
-                                    <div
-                                      className="overlay"
-                                      style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        bottom: 0,
-                                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                      }}
-                                      onClick={() => handleItemClick(item)}
-                                    >
-                                      <h5 style={{ color: '#fff' }}>{item.name}</h5>
-                                    </div>
-                                  </CardBody>
-                                </Card>
-                              </div>
-                              <div className="mt-2">
-                                <h6>Variants:</h6>
-                                {item.variants.map(variant => (
-                                  <div key={variant.id} className="form-check">
-                                    <input
-                                      type="radio"
-                                      className="form-check-input"
-                                      id={`variant-${variant?.id}`}
-                                      name={`variant-${item?.id}`} // Use the same name for all variant radios within the same item
-                                      checked={selectedVariants[item?.id]?.some(v => v.id === variant.id)}
-                                      onChange={e => handleVariantSelection(item?.id, variant, e.target.checked)}
-                                    />
-                                    <label className="form-check-label" htmlFor={`variant-${variant.id}`}>
-                                      {variant.name}
-                                    </label>
-                                  </div>
-                                ))}
-                              </div>
-                            </Col>
-                          ))}
-                        </Row>
-                      </>
-                    ) : (
-                      <p>Please select a term to view its items.</p>
-                    )}
-                  </Col>
+                  {/* <Col md="3"> */}
+                  {/*   <ListGroup> */}
+                  {/*     {Object.keys(groupedMenuItems).map(termName => ( */}
+                  {/*       <ListGroupItem */}
+                  {/*         key={termName} */}
+                  {/*         tag="button" */}
+                  {/*         action */}
+                  {/*         onClick={() => setActiveTerm(termName)} */}
+                  {/*         active={termName === activeTerm} */}
+                  {/*       > */}
+                  {/*         {termName} */}
+                  {/*       </ListGroupItem> */}
+                  {/*     ))} */}
+                  {/*   </ListGroup> */}
+                  {/* </Col> */}
+                  {/* <Col md="9"> */}
+                  {/*   {activeTerm ? ( */}
+                  {/*     <> */}
+                  {/*       <h3>{activeTerm}</h3> */}
+                  {/*       <Row className="justify-content-center mt-4"> */}
+                  {/*         {groupedMenuItems[activeTerm].map(item => ( */}
+                  {/*           <Col key={item.id} sm="6" md="4" lg="4" className="mb-4"> */}
+                  {/*             <div */}
+                  {/*               style={{ */}
+                  {/*                 cursor: 'pointer', */}
+                  {/*                 border: selectedItems?.some(selectedItem => selectedItem.id === item.id) */}
+                  {/*                   ? '2px solid #007bff' */}
+                  {/*                   : '2px solid #dee2e6', */}
+                  {/*               }} */}
+                  {/*               onClick={() => { */}
+                  {/*                 if (selectedItems?.some(selectedItem => selectedItem.id === item.id)) { */}
+                  {/*                   setSelectedItems(prevItems => prevItems?.filter(i => i.id !== item.id)); */}
+                  {/*                   setSelectedVariants(prevVariants => ({ ...prevVariants, [item.id]: [] })); */}
+                  {/*                 } else { */}
+                  {/*                   setSelectedItems(prevItems => [...prevItems, item]); */}
+                  {/*                 } */}
+                  {/*               }} */}
+                  {/*               className={`${selectedItems?.some(selectedItem => selectedItem.id === item.id) ? 'border-primary' : ''}`} */}
+                  {/*             > */}
+                  {/*               <Card */}
+                  {/*                 style={{ */}
+                  {/*                   background: `url(${item.attachments[0]?.url})`, */}
+                  {/*                   backgroundSize: 'cover', */}
+                  {/*                   backgroundPosition: 'center', */}
+                  {/*                 }} */}
+                  {/*                 className={`border-4 shadow-sm h-100`} */}
+                  {/*               > */}
+                  {/*                 <CardBody> */}
+                  {/*                   <div */}
+                  {/*                     className="overlay" */}
+                  {/*                     style={{ */}
+                  {/*                       position: 'absolute', */}
+                  {/*                       top: 0, */}
+                  {/*                       left: 0, */}
+                  {/*                       right: 0, */}
+                  {/*                       bottom: 0, */}
+                  {/*                       backgroundColor: 'rgba(0, 0, 0, 0.4)', */}
+                  {/*                       display: 'flex', */}
+                  {/*                       alignItems: 'center', */}
+                  {/*                       justifyContent: 'center', */}
+                  {/*                     }} */}
+                  {/*                     onClick={() => handleItemClick(item)} */}
+                  {/*                   > */}
+                  {/*                     <h5 style={{ color: '#fff' }}>{item.name}</h5> */}
+                  {/*                   </div> */}
+                  {/*                 </CardBody> */}
+                  {/*               </Card> */}
+                  {/*             </div> */}
+                  {/*             <div className="mt-2"> */}
+                  {/*               <h6>Variants:</h6> */}
+                  {/*               {item.variants.map(variant => ( */}
+                  {/*                 <div key={variant.id} className="form-check"> */}
+                  {/*                   <input */}
+                  {/*                     type="radio" */}
+                  {/*                     className="form-check-input" */}
+                  {/*                     id={`variant-${variant?.id}`} */}
+                  {/*                     name={`variant-${item?.id}`} // Use the same name for all variant radios within the same item */}
+                  {/*                     checked={selectedVariants[item?.id]?.some(v => v.id === variant.id)} */}
+                  {/*                     onChange={e => handleVariantSelection(item?.id, variant, e.target.checked)} */}
+                  {/*                   /> */}
+                  {/*                   <label className="form-check-label" htmlFor={`variant-${variant.id}`}> */}
+                  {/*                     {variant.name} */}
+                  {/*                   </label> */}
+                  {/*                 </div> */}
+                  {/*               ))} */}
+                  {/*             </div> */}
+                  {/*           </Col> */}
+                  {/*         ))} */}
+                  {/*       </Row> */}
+                  {/*     </> */}
+                  {/*   ) : ( */}
+                  {/*     <p>Please select a term to view its items.</p> */}
+                  {/*   )} */}
+                  {/* </Col> */}
                 </Row>
               </ModalBody>
               <ModalFooter>

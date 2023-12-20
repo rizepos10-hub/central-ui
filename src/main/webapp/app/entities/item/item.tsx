@@ -183,7 +183,7 @@ console.log(errorMessage, 'errorMessage')
     }
   };
 
-  const categoryNames = itemList && new  Set(itemList?.map((item) => item.terms[0]?.name));
+  const categoryNames = itemList && new  Set(itemList?.map((item) => item.categories[0]?.name));
   const categoryFilterOptions = Array.from(categoryNames)?.map((categoryName) => ({
     label: categoryName,
     value: categoryName,
@@ -304,7 +304,7 @@ console.log(errorMessage, 'errorMessage')
 
   const processedItemList = itemList?.map(item => ({
     ...item,
-    categoryForSorting: item.terms[0]?.name || '',
+    categoryForSorting: item.categories[0]?.name || '',
   }));
 
 
