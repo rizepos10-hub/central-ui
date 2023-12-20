@@ -967,6 +967,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                     placeholder="enter variant price"
                     name="price"
                     required
+                    onWheel={(e:any) => e.target.blur()}
                     value={price}
                     onChange={e => setPrice(e.target.value)}
                     validate={{
@@ -978,43 +979,43 @@ const ItemVariantModal = (props: IVariantProps) => {
                 </div>
 
                 <h4>Special Prices</h4>
-                {!isPizza ? <Row>
-                  <Col>
-                    <h5 className="font-semibold">Wholesale Prices</h5>
-                    {Object.keys(wholesalePrices).map((priceKey, index) => (
-                      <>
-                        <label className="font-semibold">{priceKey}</label>
-                        <ValidatedField
-                          key={index}
-                          type="number"
-                          placeholder={`Enter price ${index + 1}`}
-                          name={`wholesale_price_${index + 1}`}
-                          value={parseFloat(wholesalePrices[priceKey])}
-                          onChange={(e) => handleWholesalePriceChange(priceKey, e.target.value)}
+                {/* {!isPizza ? <Row> */}
+                {/*   <Col> */}
+                {/*     <h5 className="font-semibold">Wholesale Prices</h5> */}
+                {/*     {Object.keys(wholesalePrices).map((priceKey, index) => ( */}
+                {/*       <> */}
+                {/*         <label className="font-semibold">{priceKey}</label> */}
+                {/*         <ValidatedField */}
+                {/*           key={index} */}
+                {/*           type="number" */}
+                {/*           placeholder={`Enter price ${index + 1}`} */}
+                {/*           name={`wholesale_price_${index + 1}`} */}
+                {/*           value={parseFloat(wholesalePrices[priceKey])} */}
+                {/*           onChange={(e) => handleWholesalePriceChange(priceKey, e.target.value)} */}
 
-                        />
-                      </>
-                    ))}
-                  </Col>
-                  <Col>
-                    <h5 className="font-semibold">Retail Prices</h5>
-                    {Object.keys(retailPrices).map((priceKey, index) => (
-                      <>
-                        <label className="font-semibold">{priceKey}</label><ValidatedField
-                        key={priceKey}
-                        type="number"
-                        placeholder={`Enter price ${index + 1}`}
-                        name={`retail_price_${index + 1}`}
-                        value={parseFloat(retailPrices[priceKey])}
-                        onChange={(e) => handleRetailPriceChange(priceKey, e.target.value)}
-                        validate={{
-                          required: {value: true, message: translate('entity.validation.required')},
-                        }}
-                      />
-                      </>
-                    ))}
-                  </Col>
-                </Row> : null}
+                {/*         /> */}
+                {/*       </> */}
+                {/*     ))} */}
+                {/*   </Col> */}
+                {/*   <Col> */}
+                {/*     <h5 className="font-semibold">Retail Prices</h5> */}
+                {/*     {Object.keys(retailPrices).map((priceKey, index) => ( */}
+                {/*       <> */}
+                {/*         <label className="font-semibold">{priceKey}</label><ValidatedField */}
+                {/*         key={priceKey} */}
+                {/*         type="number" */}
+                {/*         placeholder={`Enter price ${index + 1}`} */}
+                {/*         name={`retail_price_${index + 1}`} */}
+                {/*         value={parseFloat(retailPrices[priceKey])} */}
+                {/*         onChange={(e) => handleRetailPriceChange(priceKey, e.target.value)} */}
+                {/*         validate={{ */}
+                {/*           required: {value: true, message: translate('entity.validation.required')}, */}
+                {/*         }} */}
+                {/*       /> */}
+                {/*       </> */}
+                {/*     ))} */}
+                {/*   </Col> */}
+                {/* </Row> : null} */}
                 <Table>
                   <thead>
                     <tr>
@@ -1031,6 +1032,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                             type="number"
                             name={`branchPrice_${branch.id}`}
                             placeholder={`Enter price for ${branch.name}`}
+                            onWheel={(e:any) => e.target.blur()}
                             value={branchPrices[branch.id] || ''}
                             onChange={e => handleBranchPriceChange(branch.id, e.target.value)}
                             validate={{

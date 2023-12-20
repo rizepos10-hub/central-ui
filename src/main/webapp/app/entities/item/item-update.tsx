@@ -254,8 +254,8 @@ export const ItemUpdate = () => {
     if (itemEntity?.variants) {
       setVariants(itemEntity.variants);
     }
-    if (itemEntity?.terms) {
-      setSelectedTerms(itemEntity.terms?.map(term => ({ id: term.id, label: term.name, value: term.id })));
+    if (itemEntity?.categories) {
+      setSelectedTerms(itemEntity.categories?.map(term => ({ id: term.id, label: term.name, value: term.id })));
     }
     if (itemEntity?.accountingGroups) {
       setSelectedAccountingGroups(itemEntity.accountingGroups?.map(group => ({ label: group.name, value: group.id })));
@@ -389,7 +389,7 @@ export const ItemUpdate = () => {
       productionCenter: selectedProductionCenter,
       addons: selectedAddons,
       addonGroups: selectedAddonGroups,
-      terms: selectedTerms?.map(term => ({ id: term.value })),
+      categories: selectedTerms?.map(term => ({ id: term.value })),
       attachments: selectedAttachments,
       variants: variants,
       name,
