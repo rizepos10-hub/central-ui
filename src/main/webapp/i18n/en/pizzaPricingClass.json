@@ -1,0 +1,29 @@
+{
+  "tempApp": {
+    "pizzaPricingClass": {
+      "home": {
+        "title": "Pizza Pricing Classes",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Pizza Pricing Class",
+        "createOrEditLabel": "Create or edit a Pizza Pricing Class",
+        "search": "Search for Pizza Pricing Class",
+        "notFound": "No Pizza Pricing Classes found"
+      },
+      "created": "A new Pizza Pricing Class is created with identifier {{ param }}",
+      "updated": "A Pizza Pricing Class is updated with identifier {{ param }}",
+      "deleted": "A Pizza Pricing Class is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Pizza Pricing Class {{ id }}?"
+      },
+      "detail": {
+        "title": "Pizza Pricing Class"
+      },
+      "id": "ID",
+      "name": "Name",
+      "desc": "Description",
+      "optionalOptions": "Optional Options",
+      "requiredOptions": "Required Options"
+
+    }
+  }
+}

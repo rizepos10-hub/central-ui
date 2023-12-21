@@ -36,42 +36,6 @@ const AppMenu = () => {
                             icon: 'pi pi-book',
                             items: [
                               {
-                                label: 'Pizza Settings',
-                                icon: 'pi pi-folder-open',
-                                items: [
-                                  {
-                                    label: 'Sizes',
-                                    icon: 'pi pi-folder-open',
-                                    to: '/pizza-size'
-                                  },
-                                  {
-                                    label: 'Crust Settings',
-                                    icon: 'pi pi-folder-open',
-                                    to: '/pizza-crust'
-                                  },
-                                  {
-                                    label: 'Toppings',
-                                    icon: 'pi pi-folder-open',
-                                    to: '/pizza-topping'
-                                  },
-                                  {
-                                    label: 'Topping Groups',
-                                    icon: 'pi pi-folder-open',
-                                    to: '/pizza-topping/groups'
-                                  },
-                                  {
-                                    label: 'Predefined Pizza',
-                                    icon: 'pi pi-folder-open',
-                                    to: '/predefined-pizza'
-                                  },
-                                  {
-                                    label: 'Make Your Own',
-                                    icon: 'pi pi-folder-open',
-                                    to: '/own-pizza'
-                                  },
-                                ]
-                              },
-                              {
                                 label: 'Category',
                                 icon: 'pi pi-folder-open',
                                 to: '/term/items'
@@ -200,6 +164,47 @@ const AppMenu = () => {
                                 icon: ' pi pi-th-large',
                                 role: ['ROLE_ADMIN', 'ROLE_BO-BUSINESS-SETTING'],
                                 to: '/details'
+                              },
+                              {
+                                label: 'Pizza Settings',
+                                icon: 'pi pi-folder-open',
+                                items: [
+                                  {
+                                    label: 'Sizes',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-size'
+                                  },
+                                  {
+                                    label: 'Crust Settings',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-crust'
+                                  },
+                                  {
+                                    label: 'Toppings',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-topping'
+                                  },
+                                  {
+                                    label: 'Topping Groups',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-topping/groups'
+                                  },
+                                  {
+                                    label: 'Pricing Class',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-pricing-class?type=CRUST_TYPE'
+                                  },
+                                  {
+                                    label: 'Predefined Pizza',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/predefined-pizza'
+                                  },
+                                  {
+                                    label: 'Make Your Own',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/own-pizza'
+                                  },
+                                ]
                               },
                               {
                                 label: 'Reporting shifts ',

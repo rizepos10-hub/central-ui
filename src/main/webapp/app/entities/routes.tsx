@@ -30,6 +30,7 @@ import ProductionCenter from 'app/entities/location/production-center';
 import PageNotFound from "app/shared/error/page-not-found";
 import PizzaSize from "app/entities/pizza-settings/pizza-size";
 import PizzaTopping from "app/entities/pizza-settings/pizza-topping";
+import PizzaPricingClass from "app/entities/pizza-settings/pizza-pricing-class";
 import PizzaCrustRoutes from "app/entities/pizza-settings/pizza-crust-setting";
 import PizzaCrustThicknessRoutes from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness-routes";
 import PizzaCrustTypeRoutes from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type-routes";
@@ -83,6 +84,7 @@ export default () => {
         <Route path="pizza-crust-thickness/*" element={<PizzaCrustThicknessRoutes />} />
         <Route path="pizza-crust-type/*" element={<PizzaCrustTypeRoutes />} />
         <Route path="predefined-pizza/*" element={<PredefinedPizza />} />
+        <Route path="pizza-pricing-class/*" element={<PizzaPricingClass />} />
 
 
         <Route path="floor-plan/table/*" element={<FloorPlanTableRoutes />} />

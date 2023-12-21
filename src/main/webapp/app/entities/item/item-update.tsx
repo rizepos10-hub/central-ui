@@ -299,9 +299,9 @@ export const ItemUpdate = () => {
     if (itemEntity.desc) {
       setDesc(itemEntity.desc);
     }
-    const { id: newTermId } = newItem;
-    if (updateSuccess && newTermId) {
-      navigate(`/item/${newTermId}/edit?page=1&sort=id,asc`);
+    const { id: newItemId } = newItem;
+    if (updateSuccess && newItemId) {
+      navigate(`/item/${newItemId}/edit?page=1&sort=id,asc`);
     }
   }, [updateSuccess, itemEntity]);
 

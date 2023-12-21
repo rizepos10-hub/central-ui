@@ -24,6 +24,7 @@ import taxProfiles from 'app/entities/settings/tax-profiles/tax-profile.reducer'
 import businessDetail from 'app/entities/settings/business-details/business-detail.reducer';
 import pizzaGroup from 'app/entities/pizza-settings/pizza-group.reducer';
 import pizzaSize from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
+import pizzaPricingClass from 'app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer';
 import pizzaCrustThickness from 'app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness.reducer';
 import pizzaCrustType from 'app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer';
 import pizzaTopping from 'app/entities/pizza-settings/pizza-topping/pizza-topping.reducer';
@@ -63,6 +64,7 @@ const entitiesReducers = {
   pizzaTopping,
   pizzaCrustThickness,
   pizzaCrustType,
+  pizzaPricingClass,
   predefinedPizza,
   floorPlanTable,
   floorPlanSettings,
