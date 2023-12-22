@@ -39,6 +39,7 @@ import FloorPlanTableRoutes from "app/entities/settings/floor-plans/tables";
 import FloorPlanSettingsUpdate from "app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings-update";
 import FloorPlanSettingsRoutes from "app/entities/settings/floor-plans/floor-plan-settings";
 import FloorPlanRoutes from "app/entities/settings/floor-plans";
+import PizzaItem from "app/entities/pizza-item";
 
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
@@ -90,6 +91,11 @@ export default () => {
         <Route path="floor-plan/table/*" element={<FloorPlanTableRoutes />} />
         <Route path="floor-plan/settings/*" element={<FloorPlanSettingsRoutes />} />
         <Route path="floor-plan/*" element={<FloorPlanRoutes />} />
+
+
+        <Route path="restaurant/pizza/*" element={<PizzaItem />} />
+
+
 
 
 

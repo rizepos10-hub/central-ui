@@ -2,6 +2,7 @@ import AppSubMenu from './AppSubMenu';
 import React from "react";
 
 const AppMenu = () => {
+
     const model: any = [
                       {
                         label: 'Control Panel',
@@ -36,11 +37,52 @@ const AppMenu = () => {
                             icon: 'pi pi-book',
                             items: [
                               {
+                                label: 'Restaurant',
+                                icon: 'pi pi-folder-open',
+                                items: [
+                                  {
+                                    label: 'Regular',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'restaurant/regular'
+                                  },
+                                  {
+                                    label: 'Combo',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'restaurant/combo'
+                                  },
+                                  {
+                                    label: 'Pizza Item',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'restaurant/pizza'
+                                  },
+                                ]
+                              },
+                              {
+                                label: 'Retail',
+                                icon: 'pi pi-folder-open',
+                                items: [
+                                  {
+                                    label: 'Simple',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'retail/simple'
+                                  },
+                                  {
+                                    label: 'Variable',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'retail/variable'
+                                  },
+                                  {
+                                    label: 'Grouped',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'retail/grouped'
+                                  },
+                                ]
+                              },
+                              {
                                 label: 'Category',
                                 icon: 'pi pi-folder-open',
                                 to: '/term/items'
                               },
-
                               {
                                 label: 'Items',
                                 icon: ' pi pi-th-large',
@@ -329,9 +371,6 @@ const AppMenu = () => {
                           },
                         ]
                       },
-
-
-
 
 
     ];

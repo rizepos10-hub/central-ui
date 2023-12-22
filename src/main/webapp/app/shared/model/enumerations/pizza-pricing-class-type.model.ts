@@ -5,4 +5,6 @@ export enum PizzaPricingClassType {
   'Crust Thickness' = 'CRUST_THICKNESS',
 
   'Topping' = 'TOPPING',
+
+  "Predefined" = "PREDEFINED"
 }

@@ -33,6 +33,8 @@ import floorPlanTable from 'app/entities/settings/floor-plans/tables/table.reduc
 import floorPlanSettings from 'app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer';
 import floorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 
+import pizzaItem from "app/entities/pizza-item/pizza-item.reducer";
+
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
@@ -68,7 +70,8 @@ const entitiesReducers = {
   predefinedPizza,
   floorPlanTable,
   floorPlanSettings,
-  floorPlan
+  floorPlan,
+  pizzaItem
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };
