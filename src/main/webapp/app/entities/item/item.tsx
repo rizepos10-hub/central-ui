@@ -20,7 +20,7 @@ import {Modal} from "reactstrap";
 import {FilterMatchMode} from "primereact/api";
 import {Dropdown} from "primereact/dropdown";
 
-import {getItemCategories as getTerms, getItemCategories} from '../term/term.reducer';
+import { getRestaurantItemCategories} from '../term/term.reducer';
 
 
 export const Item = () => {
@@ -118,7 +118,7 @@ console.log(errorMessage, 'errorMessage')
 
   useEffect(() => {
     sortEntities();
-    dispatch(getItemCategories({
+    dispatch(getRestaurantItemCategories({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,

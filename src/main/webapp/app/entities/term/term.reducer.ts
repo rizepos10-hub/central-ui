@@ -36,10 +36,9 @@ export const getMenuCategories = createAsyncThunk('term/fetch_entity_list', asyn
   return response
 });
 
-export const getItemCategories = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
+export const getRestaurantItemCategories = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
 
-console.log('lolll')
-  const requestUrl = `api/terms/search?taxonomy=Item%20Category&${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
+  const requestUrl = `api/restaurant-categories${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
   const  response = await axios.get<ITerm[]>(requestUrl)
   return response
 });
@@ -49,6 +48,26 @@ export const getEntity = createAsyncThunk(
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
     return axios.get<ITerm>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const createRestaurantItemCategory = createAsyncThunk(
+  'term/create_restaurant_item_category',
+  async (entity: ITerm, thunkAPI) => {
+    const result = await axios.post<ITerm>("api/restaurant-categories", cleanEntity(entity));
+    // thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const updateRestaurantItemCategory = createAsyncThunk(
+  'term/update_restaurant_item_category',
+  async (entity: ITerm, thunkAPI) => {
+    const result = await axios.put<ITerm>(`api/restaurant-categories/${entity.id}`, cleanEntity(entity));
+    // thunkAPI.dispatch(getEntities({}));
+    return result;
   },
   { serializeError: serializeAxiosError }
 );

@@ -126,11 +126,11 @@ export const PizzaPricingClassTypeUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ? "Add New Pizza Price Class" : "Edit Pizza Price Class"}</h2>
+          <h2>{isNew ? `Add New Pizza Price Class ${pizzaPriceClassType} ` : `Edit Pizza Price Class ${pizzaPriceClassType}`}</h2>
         </Col>
       </Row>
       <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+        <Col md="8" className={`d-flex flex-column p-3 bg-white`}>
           {loading ? (
             <p>Loading...</p>
           ) : (

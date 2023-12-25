@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
 
-import { getItemCategories as getTerms } from 'app/entities/term/term.reducer';
+import { getRestaurantItemCategories as getTerms } from 'app/entities/term/term.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
 

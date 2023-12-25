@@ -4,7 +4,7 @@ import {Button, Row, Col, Table, Input, FormGroup} from 'reactstrap';
 import { getSortState,  Translate, translate, ValidatedField } from 'react-jhipster';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getItemCategories as getTerms } from 'app/entities/term/term.reducer';
+import { getRestaurantItemCategories } from 'app/entities/term/term.reducer';
 import {getEntities as getAddons} from "app/entities/addon/addon.reducer";
 import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
 import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
@@ -12,7 +12,7 @@ import {getEntities as getAddonGroups} from "app/entities/addon-groups/addon-gro
 import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import {InputText} from "primereact/inputtext";
-import Select from "react-select";
+import Select, {ActionMeta, MultiValue} from "react-select";
 import {IItem} from "app/shared/model/item.model";
 import Attachment from "app/shared/layout/attachment/attachment";
 import {Checkbox} from "primereact/checkbox";
@@ -30,7 +30,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const termsOptions = useAppSelector(state => state.term.entities);
+  const itemTermsOptions = useAppSelector(state => state.term.entities);
   const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities);
   const addonsOptions = useAppSelector(state => state.addon.entities);
   const addonGroupsOptions = useAppSelector(state => state.addonGroups.entities);
@@ -55,7 +55,8 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
     onFieldChange('addonGroups', updatedAddonGroups);
   };
 
-  const handleAddonGroupChange = (selectedAddonGroups: IAddonGroups[]) => {
+  const handleAddonGroupChange = (selectedAddonGroups: MultiValue<{ id: string; name: string; }>, actionMeta: ActionMeta<{ id: string; name: string; }>) => {
+
     const existingAddonGroupsMap = new Map(item?.addonGroups?.map((group) => [group.addonGroup?.id, group]));
 
     const updatedAddonGroups = selectedAddonGroups.map((selectedGroup) => {
@@ -72,7 +73,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
 
   useEffect(() => {
     dispatch(
-      getTerms({
+      getRestaurantItemCategories({
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
@@ -103,16 +104,9 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
   }, []);
 
 
-
-
-
-
-
-
   return (
     <div>
       <Row >
-
               <FormGroup>
               <Row className={"my-3"} >
                 <Col md="6">
@@ -124,6 +118,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       type="text"
                       name="name"
                       id="name"
+                      required={true}
                       placeholder="Item Name"
                       value={item.name || ''}
                       onChange={(e) => onFieldChange('name', e.target.value)}
@@ -170,10 +165,12 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                         <Translate contentKey="tempApp.item.terms">Category</Translate>
                       </label>
                       <Select
-                        value={item?.terms}
+                        value={item?.categories}
                         isMulti={true}
-                        options={termsOptions}
-                        onChange={(selectedTerms) => onFieldChange('terms',selectedTerms)}
+                        options={itemTermsOptions}
+                        getOptionLabel={(option) => option.name}
+                        getOptionValue={(option) => option.id}
+                        onChange={(selectedItemTerms) => onFieldChange('categories',selectedItemTerms)}
                       />
                     </div>
                   </Col>

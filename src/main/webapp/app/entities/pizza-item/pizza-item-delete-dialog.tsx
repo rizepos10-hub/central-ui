@@ -21,11 +21,11 @@ export const AddonDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const addonEntity = useAppSelector(state => state.addon.entity);
-  const updateSuccess = useAppSelector(state => state.addon.updateSuccess);
+  const pizzaItemEntity = useAppSelector(state => state.pizzaItem.entity);
+  const updateSuccess = useAppSelector(state => state.pizzaItem.updateSuccess);
 
   const handleClose = () => {
-    navigate('/addon' + location.search);
+    navigate('/restaurant/pizza' + location.search);
   };
 
   useEffect(() => {
@@ -36,16 +36,16 @@ export const AddonDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(addonEntity.id));
+    dispatch(deleteEntity(pizzaItemEntity.id));
   };
 
   return (
     <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="addonDeleteDialogHeading">
+      <ModalHeader toggle={handleClose} data-cy="pizzaItemDeleteDialogHeading">
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="tempApp.addon.delete.question">
-        <Translate contentKey="tempApp.addon.delete.question" interpolate={{ id: addonEntity.id }}>
+      <ModalBody id="tempApp.restaurant-pizza.delete.question">
+        <Translate contentKey="tempApp.restaurant-pizza.delete.question" interpolate={{ id: pizzaItemEntity.id }}>
           Are you sure you want to delete this Addon?
         </Translate>
       </ModalBody>
@@ -55,7 +55,7 @@ export const AddonDeleteDialog = () => {
           &nbsp;
           <Translate contentKey="entity.action.cancel">Cancel</Translate>
         </Button>
-        <Button id="jhi-confirm-delete-addon" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+        <Button id="jhi-confirm-delete-restaurant-pizza" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
           <FontAwesomeIcon icon="trash" />
           &nbsp;
           <Translate contentKey="entity.action.delete">Delete</Translate>

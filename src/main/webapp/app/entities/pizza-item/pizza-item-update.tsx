@@ -1,12 +1,11 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {Button, Row, Col, Spinner, FormGroup, Table} from 'reactstrap';
-import {Button as PrimeButton} from "primereact/button"
 import {getSortState, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
+import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-item.reducer';
 import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
@@ -25,10 +24,10 @@ import {InputNumber} from "primereact/inputnumber";
 
 const items: MenuItem[] = [
   {
-    label: 'Pizza Item Type',
+    label: "1",
   },
   {
-    label: 'Create Your Pizza Item',
+    label: "2",
   },
 
 ];
@@ -54,17 +53,8 @@ export const PizzaItemUpdate = () => {
   );
 
 
-  const [pizzaItem, setPizzaItem] = useState<IPizzaItem>({
-    ...pizzaItemEntity,
-    itemType: "RESTAURANT",
-    itemVariantType: "RESTAURANT_PIZZA",
-    variants: [{
-      multiple: false,
-      multiplePizzaDetails: []
-    }]
-  });
+  const [pizzaItem, setPizzaItem] = useState<IPizzaItem>({});
 
-  console.log(pizzaItem, 'pizzaItempizzaItem')
 
   const filteredOptions = useMemo(() => {
     const toppings = pizzaPricingClasses.filter(option => option.type === 'TOPPING');
@@ -78,12 +68,12 @@ export const PizzaItemUpdate = () => {
   const [activeIndex, setActiveIndex] = useState(0);
 
 
-  const handleFieldChange = (fieldName, value) => {
-    setPizzaItem({
-      ...pizzaItem,
+  const handleFieldChange = useCallback((fieldName, value) => {
+    setPizzaItem((prevState) => ({
+      ...prevState,
       [fieldName]: value,
-    });
-  };
+    }));
+  }, [])
 
   const handleSinglePizzaValuesChange = (fieldName, value) => {
     console.log(fieldName, 'field', value, "value");
@@ -100,6 +90,8 @@ export const PizzaItemUpdate = () => {
       };
     });
   };
+
+
   const handleMultiplePizzaInputChange = (index, fieldName, value) => {
     setPizzaItem((prev) => {
       const updatedDetails = [...prev.variants[0].multiplePizzaDetails];
@@ -116,12 +108,26 @@ export const PizzaItemUpdate = () => {
       };
     });
   };
+  const handleRemoveMultiplePizzaInput = (index) => {
+    setPizzaItem((prev) => {
+      const updatedPizzaDetails = prev?.variants?.[0]?.multiplePizzaDetails.filter((_, i) => i !== index);
 
+      return {
+        ...prev,
+        variants: [
+          {
+            ...prev.variants[0],
+            multiplePizzaDetails: updatedPizzaDetails,
+          },
+        ],
+      };
+    });
+  };
   const addNewPizzaDetail = () => {
     setPizzaItem((prev) => {
       const newDetail = {
-        numberOfPizza: 0,
-        freeToppingsNumber: 0,
+        numberOfPizza: 2,
+        freeToppingsNumber: null,
       };
 
       const updatedDetails = [...prev.variants[0].multiplePizzaDetails, newDetail];
@@ -139,8 +145,8 @@ export const PizzaItemUpdate = () => {
   };
 
   const multipleOptions = ["Simple", "Multiple"];
-  const handleMultipleCheck = (e) => {
 
+  const handleMultipleClick = (e) => {
     setPizzaItem((prev) => {
       const updatedVariants = [
         {
@@ -155,9 +161,23 @@ export const PizzaItemUpdate = () => {
     });
   };
 
+  const handleNextClick = () => {
+    // Clear multiplePizzaDetails if its not multiple
+    if (!pizzaItem?.variants?.[0].multiple) {
+      setPizzaItem((prev) => {
+        const updatedVariants = {...pizzaItem.variants}
+        updatedVariants[0].multiplePizzaDetails = [];
+        return {
+          ...pizzaItem,
+          variants: updatedVariants
+        }
+      });
+    }
+    setActiveIndex(1)
+  }
 
-  const handleClose = () => {
-    navigate('/restaurant/pizza' + location.search);
+  const handleNavigate = (pizzaItemId) => {
+    navigate(`/restaurant/pizza/${pizzaItemId}/edit` + location.search);
   };
 
   useEffect(() => {
@@ -176,14 +196,30 @@ export const PizzaItemUpdate = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-  },[id]);
+
+  },[id, isNew]);
 
   useEffect(() => {
+
     if(!isNew){
-      console.log(pizzaItemEntity, 'pizzaItemEntity')
       setPizzaItem(pizzaItemEntity);
+    }else{
+      setPizzaItem({
+        ...pizzaItemEntity,
+        itemType: "RESTAURANT",
+        itemVariantType: "RESTAURANT_PIZZA",
+        variants: [{
+          multiple: false,
+          multiplePizzaDetails: []
+        }]
+      })
     }
-  }, [pizzaItemEntity]);
+    const pizzaItemId = pizzaItemEntity?.id
+    if(updateSuccess){
+      handleNavigate(pizzaItemId);
+    }
+
+  }, [pizzaItemEntity, updateSuccess]);
 
 
   const saveEntity = e => {
@@ -224,44 +260,44 @@ export const PizzaItemUpdate = () => {
               <div className={ "card d-flex flex-column"}>
             <div className={"  p-6  d-flex flex-column justify-content-center align-items-center"}>
               <label>Pizza Item Type</label>
-              <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Simple'} onChange={handleMultipleCheck} options={multipleOptions} />
+              <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Simple'} onChange={handleMultipleClick} options={multipleOptions} />
             </div>
               <div className={"ml-auto"}>
-                <Button onClick={() => setActiveIndex(1)}>Next</Button>
+                <Button onClick={handleNextClick}>Next</Button>
               </div>
             </div>
         </div>: null}
       <Row>
         {activeIndex === 1 || !isNew ?
           <form onSubmit={saveEntity}>
-            <FormGroup>
+            <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
 
-          <Col md="8" className="d-flex flex-column p-3  bg-white">
+          <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
             <SharedItemUpdate item={pizzaItem} onFieldChange={handleFieldChange}/>
 
-            {!pizzaItem?.variants?.[0]?.multiple ?
               <Row className={"my-6"} >
-                <Row>
-                <Col md="6">
-                  <div className={"d-flex flex-column gap-2"}>
-                    <label>
-                     Predefined Pizza
-                    </label>
-                  <Select
-                    value={pizzaItem?.variants?.[0]?.predefinedPizza?.[0]}
-                    options={predefinedPizzaOptions}
-                    getOptionLabel={option => option.name}
-                    getOptionValue={option => option.id}
-                    onChange={(predefinedPizza) => handleSinglePizzaValuesChange("predefinedPizza", predefinedPizza)}
-                    />
-                  </div>
-                </Col>
-              </Row>
+                {!pizzaItem?.variants?.[0]?.multiple ?<Row>
+                  <Col md="6">
+                    <div className={"d-flex flex-column gap-2"}>
+                      <label>
+                        Predefined Pizza
+                      </label>
+                      <Select
+                        value={pizzaItem?.variants?.[0]?.predefinedPizza?.[0]}
+                        required
+                        options={predefinedPizzaOptions}
+                        getOptionLabel={option => option.name}
+                        getOptionValue={option => option.id}
+                        onChange={(predefinedPizza) => handleSinglePizzaValuesChange("predefinedPizza", predefinedPizza)}
+                      />
+                    </div>
+                  </Col>
+                </Row> : null}
               <Row className={"mt-2"}>
-                <Col md="3">
+                {!pizzaItem?.variants?.[0]?.multiple ? <Col md="3">
                   <div className={"d-flex flex-column gap-2"}>
                     <label>
-                      Topping Pricing
+                      Item Pricing
                     </label>
                     <Select
                       value={pizzaItem?.variants?.[0]?.itemPricingClass}
@@ -271,7 +307,7 @@ export const PizzaItemUpdate = () => {
                       onChange={(itemPriceOption) => handleSinglePizzaValuesChange("itemPricingClass", itemPriceOption)}
                     />
                   </div>
-                </Col>
+                </Col> : null}
 
                 <Col md="3">
                   <div className={"d-flex flex-column gap-2"}>
@@ -280,6 +316,7 @@ export const PizzaItemUpdate = () => {
                     </label>
                     <Select
                       value={pizzaItem?.variants?.[0]?.toppingPricing}
+                      required
                       options={filteredOptions?.toppings}
                       getOptionLabel={option => option.name}
                       getOptionValue={option => option.id}
@@ -295,6 +332,7 @@ export const PizzaItemUpdate = () => {
                     </label>
                     <Select
                       value={pizzaItem?.variants?.[0]?.crustTypePricing}
+                      required
                       options={filteredOptions?.crustTypes}
                       getOptionLabel={option => option.name}
                       getOptionValue={option => option.id}
@@ -310,6 +348,7 @@ export const PizzaItemUpdate = () => {
                     </label>
                     <Select
                       value={pizzaItem?.variants?.[0]?.crustThicknessPricing}
+                      required
                       options={filteredOptions?.crustThicknesses}
                       getOptionLabel={option => option.name}
                       getOptionValue={option => option.id}
@@ -319,7 +358,6 @@ export const PizzaItemUpdate = () => {
                 </Col>
               </Row>
             </Row>
-              : null}
 
             {pizzaItem?.variants?.[0]?.multiple ? (
               <Row>
@@ -327,8 +365,9 @@ export const PizzaItemUpdate = () => {
                   <Table>
                     <thead>
                     <tr>
-                      <th>Number of Pizza</th>
+                      <th>Number of Pizzas</th>
                       <th>Free Toppings Number</th>
+                      <th>Remove</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -337,6 +376,7 @@ export const PizzaItemUpdate = () => {
                         <td>
                           <InputNumber
                             value={detail.numberOfPizza}
+                            min={2}
                             onChange={(e) =>
                               handleMultiplePizzaInputChange(index, "numberOfPizza", e.value)
                             }
@@ -345,10 +385,14 @@ export const PizzaItemUpdate = () => {
                         <td>
                           <InputNumber
                             value={detail.freeToppingsNumber}
+                            required
                             onChange={(e) =>
                               handleMultiplePizzaInputChange(index, "freeToppingsNumber", e.value)
                             }
                           />
+                        </td>
+                        <td>
+                         <PrimeButton onClick={() => handleRemoveMultiplePizzaInput(index)} severity={"danger"} >Remove</PrimeButton>
                         </td>
                       </tr>
                     ))}

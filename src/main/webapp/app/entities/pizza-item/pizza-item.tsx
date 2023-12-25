@@ -14,6 +14,7 @@ import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
 import {IPizzaItem} from "app/shared/model/pizza-item.model";
+import {Dropdown} from "primereact/dropdown";
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
@@ -92,6 +93,8 @@ export const PizzaItem = () => {
     sortEntities();
   };
 
+
+
   const formatCurrency = (value: number) => {
     return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   };
@@ -169,9 +172,13 @@ export const PizzaItem = () => {
       </h2>
 
       <div >
-        <DataTable value={pizzaItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
+        <DataTable loading={loading} value={pizzaItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+          <Column header="Image"  body={(rowData) =>
+            <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
+          <Column field="desc" header="Description" />
 
+          <Column field="stock" sortable header="In Stock" />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
