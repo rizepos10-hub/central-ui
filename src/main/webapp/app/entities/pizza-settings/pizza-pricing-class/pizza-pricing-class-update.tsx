@@ -1,0 +1,190 @@
+import React, {useEffect, useMemo, useState} from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+
+import { getEntity, updateEntity, createEntity, reset } from './pizza-pricing-class.reducer';
+
+import {getEntities as getSizes} from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
+
+import {InputText} from "primereact/inputtext";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {getSortState} from "react-jhipster";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
+import {InputNumber} from "primereact/inputnumber";
+
+export const PizzaPricingClassTypeUpdate = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { id } = useParams<'id'>();
+  const isNew = id === undefined;
+
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const pizzaPriceClassType :any  = urlSearchParams.get("type");
+  const [pizzaPricingClass, setPizzaPricingClass] = useState<IPizzaPricingClass>({
+    name: '',
+    prices: {},
+    type: ''
+  });
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
+
+
+  const pizzaPricingClassEntity = useAppSelector(state => state.pizzaPricingClass.entity);
+  const loading = useAppSelector(state => state.pizzaPricingClass.loading);
+  const updating = useAppSelector(state => state.pizzaPricingClass.updating);
+  const updateSuccess = useAppSelector(state => state.pizzaPricingClass.updateSuccess);
+  const pizzaSizesList = useAppSelector(state => state.pizzaSize.entities);
+
+  const sizesMap = useMemo(() => {
+    return pizzaSizesList.reduce((acc, size) => {
+      acc[size.id] = size.name;
+      return acc;
+    }, {});
+  }, [pizzaSizesList?.length]);
+
+  const handleClose = (id) => {
+    navigate(`/pizza-pricing-class/${id}/edit?type=${pizzaPriceClassType}`);
+  };
+
+
+  useEffect(() => {
+    if (isNew) {
+      dispatch(reset());
+    } else {
+      dispatch(getEntity(id));
+    }
+    dispatch(getSizes({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+
+  }, []);
+
+  useEffect(() => {
+
+    const { id: newEntityId } = pizzaPricingClassEntity;
+    if (updateSuccess && newEntityId) {
+      handleClose(newEntityId);
+    }
+    if (!isNew) {
+      const existingPrices = pizzaPricingClassEntity?.prices || {};
+
+      const existingSizeIds = new Set(Object.keys(existingPrices));
+
+      const missingSizeIds = pizzaSizesList
+        .filter((size) => !existingSizeIds.has(size.id))
+        .map((size) => size.id);
+
+      const initialPricesForMissingSizes = missingSizeIds.reduce((acc, sizeId) => {
+        acc[sizeId] = null;
+        return acc;
+      }, {});
+
+      const updatedPrices = {
+        ...existingPrices,
+        ...initialPricesForMissingSizes,
+      };
+      setPizzaPricingClass( { ...pizzaPricingClassEntity, prices: updatedPrices });
+    }else{
+      const priceType = urlSearchParams.get("type");
+      const initialPrices = pizzaSizesList.reduce((acc, size) => {
+        acc[size.id] = null;
+        return acc;
+      }, {});
+      setPizzaPricingClass((prevState) => ({ ...prevState, type: priceType, prices: initialPrices }));
+    }
+
+
+  }, [updateSuccess,pizzaSizesList?.length,pizzaPricingClassEntity]);
+
+  const handleChange = e => {
+    const { name, value } = e.target;
+    setPizzaPricingClass(prevState => ({ ...prevState, [name]: value }));
+  };
+
+
+  const saveEntity = (e) => {
+    e.preventDefault();
+    const entity = {
+      ...pizzaPricingClass,
+    };
+    if (isNew) {
+      dispatch(createEntity(entity));
+    } else {
+      dispatch(updateEntity(entity));
+    }
+  };
+
+  return (
+    <div>
+      <Row>
+        <Col md="8">
+          <h2>{isNew ? `Add New Pizza Price Class ${pizzaPriceClassType} ` : `Edit Pizza Price Class ${pizzaPriceClassType}`}</h2>
+        </Col>
+      </Row>
+      <Row>
+        <Col md="8" className={`d-flex flex-column p-3 bg-white`}>
+          {loading ? (
+            <p>Loading...</p>
+          ) : (
+            <form onSubmit={saveEntity}>
+              <FormGroup>
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label for="pizza-pricing-class-name">Name</Label>
+                  <InputText
+                    type="text"
+                    name="name"
+                    required={true}
+                    id="pizza-pricing-class-name"
+                    value={pizzaPricingClass.name || ''}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
+                  {pizzaPricingClass?.prices &&
+                    Object.entries(pizzaPricingClass.prices).map(([sizeId, value], index) => (
+                      <div key={index} className={"d-flex gap-4 my-3"}>
+                        <label className={"mt-2"}>{sizesMap[sizeId]}</label>
+                        <InputNumber
+                          value={value}
+                          onChange={(e) => {
+                            setPizzaPricingClass((prevState) => ({
+                              ...prevState,
+                              prices: {
+                                ...prevState.prices,
+                                [sizeId]: e.value,
+                              },
+                            }));
+                          }}
+                        />
+                      </div>
+                    ))}
+                </div>
+
+              </FormGroup>
+              <Button tag={Link} to={`/pizza-pricing-class?type=${pizzaPriceClassType}`} replace color="info">
+                <FontAwesomeIcon icon="arrow-left" />
+                &nbsp;Back
+              </Button>
+              &nbsp;
+              <Button color="primary" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;Save
+              </Button>
+            </form>
+          )}
+        </Col>
+      </Row>
+    </div>
+  );
+};
+
+export default PizzaPricingClassTypeUpdate;

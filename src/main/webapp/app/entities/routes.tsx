@@ -30,6 +30,7 @@ import ProductionCenter from 'app/entities/location/production-center';
 import PageNotFound from "app/shared/error/page-not-found";
 import PizzaSize from "app/entities/pizza-settings/pizza-size";
 import PizzaTopping from "app/entities/pizza-settings/pizza-topping";
+import PizzaPricingClass from "app/entities/pizza-settings/pizza-pricing-class";
 import PizzaCrustRoutes from "app/entities/pizza-settings/pizza-crust-setting";
 import PizzaCrustThicknessRoutes from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness-routes";
 import PizzaCrustTypeRoutes from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type-routes";
@@ -38,6 +39,7 @@ import FloorPlanTableRoutes from "app/entities/settings/floor-plans/tables";
 import FloorPlanSettingsUpdate from "app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings-update";
 import FloorPlanSettingsRoutes from "app/entities/settings/floor-plans/floor-plan-settings";
 import FloorPlanRoutes from "app/entities/settings/floor-plans";
+import PizzaItem from "app/entities/pizza-item";
 
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
@@ -83,11 +85,17 @@ export default () => {
         <Route path="pizza-crust-thickness/*" element={<PizzaCrustThicknessRoutes />} />
         <Route path="pizza-crust-type/*" element={<PizzaCrustTypeRoutes />} />
         <Route path="predefined-pizza/*" element={<PredefinedPizza />} />
+        <Route path="pizza-pricing-class/*" element={<PizzaPricingClass />} />
 
 
         <Route path="floor-plan/table/*" element={<FloorPlanTableRoutes />} />
         <Route path="floor-plan/settings/*" element={<FloorPlanSettingsRoutes />} />
         <Route path="floor-plan/*" element={<FloorPlanRoutes />} />
+
+
+        <Route path="restaurant/pizza/*" element={<PizzaItem />} />
+
+
 
 
 

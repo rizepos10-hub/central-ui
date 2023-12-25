@@ -50,11 +50,11 @@ export const PizzaToppingUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getTaxonomies({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+    // dispatch(getTaxonomies({
+    //   page: paginationState.activePage - 1,
+    //   size: paginationState.itemsPerPage,
+    //   sort: `${paginationState.sort},${paginationState.order}`,
+    // }));
     dispatch(getToppingGroups({
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
@@ -100,7 +100,7 @@ export const PizzaToppingUpdate = () => {
 
    const handleCreate = (inputValue: string) => {
       const entity = {
-        taxonomy: { id : taxonomies.find(otherEntity => otherEntity?.name === 'Topping Groups')?.id },
+        // taxonomy: { id : taxonomies.find(otherEntity => otherEntity?.name === 'Topping Groups')?.id },
         name: inputValue
       };
         dispatch(createToppingGroup(entity));
@@ -132,7 +132,7 @@ export const PizzaToppingUpdate = () => {
                   />
                 </div>
                 <div className={"d-flex flex-column"}>
-                  <Label for="pizza-topping-group">Name</Label>
+                  <Label for="pizza-topping-group">Topping Group</Label>
                   <CreatableSelect
                     isDisabled={updating}
                     isLoading={updating}

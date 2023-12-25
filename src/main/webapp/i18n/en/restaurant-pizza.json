@@ -1,0 +1,29 @@
+{
+  "tempApp": {
+    "restaurant-pizza": {
+      "home": {
+        "title": "Restaurant Pizza Items",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Restaurant Pizza Item",
+        "createOrEditLabel": "Create or edit a Restaurant Pizza Item",
+        "search": "Search for Restaurant Pizza Item",
+        "notFound": "No Restaurant Pizza Items found"
+      },
+      "created": "A new Restaurant Pizza Item is created with identifier {{ param }}",
+      "updated": "A Restaurant Pizza Item is updated with identifier {{ param }}",
+      "deleted": "A Restaurant Pizza Item is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Restaurant Pizza Item {{ id }}?"
+      },
+      "detail": {
+        "title": "Restaurant Pizza Item"
+      },
+      "id": "ID",
+      "name": "Name",
+      "taxonomy": "Taxonomy",
+      "parents": "Parents",
+      "pizzaItem": "Restaurant Pizza Item",
+      "item": "Item"
+    }
+  }
+}

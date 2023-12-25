@@ -7,7 +7,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntities as getTaxonomies } from 'app/entities/taxonomy/taxonomy.reducer';
-import {getEntities as getTerms, getItemCategories} from 'app/entities/term/term.reducer';
+import {
+  createRestaurantItemCategory,
+  getEntities as getTerms,
+  getRestaurantItemCategories, updateRestaurantItemCategory
+} from 'app/entities/term/term.reducer';
 import { getEntity, updateEntity, createEntity, reset } from '../term.reducer';
 import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 
@@ -30,7 +34,6 @@ export const UpdateItemCategory = () => {
   console.log(id, 'identity')
   const isNew = id === undefined;
 
-  const taxonomies = useAppSelector(state => state.taxonomy.entities);
   const terms = useAppSelector(state => state.term.entities).map((term) => ({label: term.name, value: term.id}))
   const termEntity = useAppSelector(state => state.term.entity);
   const loading = useAppSelector(state => state.term.loading);
@@ -73,12 +76,7 @@ export const UpdateItemCategory = () => {
       dispatch(getEntity(id));
     }
 
-    dispatch(getTaxonomies({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-    dispatch(getItemCategories({
+    dispatch(getRestaurantItemCategories({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -179,7 +177,6 @@ export const UpdateItemCategory = () => {
       ...termEntity,
       ...values,
       accountingGroups: accountingGroupsToSave,
-      taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
       parents: parentsToSave,
       attachments: selectedAttachments,
 
@@ -187,21 +184,19 @@ export const UpdateItemCategory = () => {
 
     console.log(entity, 'entity saved')
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createRestaurantItemCategory(entity));
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateRestaurantItemCategory(entity));
     }
   };
 
   const defaultValues = () =>
     isNew
       ? {
-        taxonomy: taxonomies.find(otherEntity => otherEntity?.name === 'Item Category')?.id,
         term: '',
       }
       : {
         ...termEntity,
-        taxonomy: termEntity?.taxonomy?.id,
       };
   console.log(terms, 'terms')
   return (

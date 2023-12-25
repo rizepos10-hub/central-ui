@@ -23,7 +23,7 @@ const apiSearchUrl = 'api/_search/items';
 // Actions
 
 export const searchEntities = createAsyncThunk('item/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `api/_search/items/by-name?query=${query}&page=${page}&size=${size}`;
+  const requestUrl = `api/_search/items/restaurant-pizza/by-name?query=${query}&page=${page}&size=${size}`;
 
   // Perform the API call
   return axios.get<IItem[]>(requestUrl);

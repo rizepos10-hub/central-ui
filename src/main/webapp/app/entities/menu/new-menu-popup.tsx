@@ -86,11 +86,11 @@ const NewMenuPopup = () => {
   useEffect(() => {
 
     const {id: newMenuId} = newMenu
-    const {type : newMenuType} = newMenu
+    const newMenuType = selectedType
     if (updateSuccess && newMenuId) {
       navigate(`/menu/${newMenuId}/${newMenuType}/edit?page=1&sort=id,asc`)
     }
-  }, [newMenu]);
+  }, [newMenu, updateSuccess]);
 
   console.log(terms, 'termos')
 

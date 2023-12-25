@@ -2,6 +2,7 @@ import AppSubMenu from './AppSubMenu';
 import React from "react";
 
 const AppMenu = () => {
+
     const model: any = [
                       {
                         label: 'Control Panel',
@@ -36,38 +37,44 @@ const AppMenu = () => {
                             icon: 'pi pi-book',
                             items: [
                               {
-                                label: 'Pizza Settings',
+                                label: 'Restaurant',
                                 icon: 'pi pi-folder-open',
                                 items: [
                                   {
-                                    label: 'Sizes',
+                                    label: 'Regular',
                                     icon: 'pi pi-folder-open',
-                                    to: '/pizza-size'
+                                    to: 'restaurant/regular'
                                   },
                                   {
-                                    label: 'Crust Settings',
+                                    label: 'Combo',
                                     icon: 'pi pi-folder-open',
-                                    to: '/pizza-crust'
+                                    to: 'restaurant/combo'
                                   },
                                   {
-                                    label: 'Toppings',
+                                    label: 'Pizza Item',
                                     icon: 'pi pi-folder-open',
-                                    to: '/pizza-topping'
+                                    to: 'restaurant/pizza'
+                                  },
+                                ]
+                              },
+                              {
+                                label: 'Retail',
+                                icon: 'pi pi-folder-open',
+                                items: [
+                                  {
+                                    label: 'Simple',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'retail/simple'
                                   },
                                   {
-                                    label: 'Topping Groups',
+                                    label: 'Variable',
                                     icon: 'pi pi-folder-open',
-                                    to: '/pizza-topping/groups'
+                                    to: 'retail/variable'
                                   },
                                   {
-                                    label: 'Predefined Pizza',
+                                    label: 'Grouped',
                                     icon: 'pi pi-folder-open',
-                                    to: '/predefined-pizza'
-                                  },
-                                  {
-                                    label: 'Make Your Own',
-                                    icon: 'pi pi-folder-open',
-                                    to: '/own-pizza'
+                                    to: 'retail/grouped'
                                   },
                                 ]
                               },
@@ -76,7 +83,6 @@ const AppMenu = () => {
                                 icon: 'pi pi-folder-open',
                                 to: '/term/items'
                               },
-
                               {
                                 label: 'Items',
                                 icon: ' pi pi-th-large',
@@ -202,6 +208,47 @@ const AppMenu = () => {
                                 to: '/details'
                               },
                               {
+                                label: 'Pizza Settings',
+                                icon: 'pi pi-folder-open',
+                                items: [
+                                  {
+                                    label: 'Sizes',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-size'
+                                  },
+                                  {
+                                    label: 'Crust Settings',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-crust'
+                                  },
+                                  {
+                                    label: 'Toppings',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-topping'
+                                  },
+                                  {
+                                    label: 'Topping Groups',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-topping/groups'
+                                  },
+                                  {
+                                    label: 'Pricing Class',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-pricing-class?type=CRUST_TYPE'
+                                  },
+                                  {
+                                    label: 'Predefined Pizza',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/predefined-pizza'
+                                  },
+                                  {
+                                    label: 'Make Your Own',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/own-pizza'
+                                  },
+                                ]
+                              },
+                              {
                                 label: 'Reporting shifts ',
                                 icon: 'pi pi-folder-open',
                                 role: ['ROLE_ADMIN'],
@@ -324,9 +371,6 @@ const AppMenu = () => {
                           },
                         ]
                       },
-
-
-
 
 
     ];

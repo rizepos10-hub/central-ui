@@ -9,7 +9,7 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {searchEntities, getEntities, getItemCategories} from '../term.reducer';
+import {searchEntities, getEntities, getRestaurantItemCategories} from '../term.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
@@ -46,7 +46,7 @@ export const ItemCategories = () => {
       );
     } else {
       dispatch(
-        getItemCategories({
+        getRestaurantItemCategories({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,

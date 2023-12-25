@@ -8,7 +8,6 @@ import { useAppDispatch } from "app/config/store";
 const Attachment = ({ image, onRemoveImage, onAddImage, type = null }) => {
   const dispatch = useAppDispatch();
 
-    console.log(image, '3awima')
 
   const handleImageChange = async (event) => {
     const file = event.target.files[0];
@@ -34,7 +33,6 @@ const Attachment = ({ image, onRemoveImage, onAddImage, type = null }) => {
         url: imageUrl,
       };
       onAddImage(imageInfo, `${type === 'Builder' ? 'builderImage' : 'icon'}`)
-      console.log(imageInfo, 'helloi');
       return imageInfo;
     } catch (error) {
       console.error('Error uploading image:', error);
