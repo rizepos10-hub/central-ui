@@ -3,19 +3,19 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import UpdateItemCategory from "app/entities/term/Item-Category/update-item-category";
-import UpdateMenuCategory from "app/entities/term/Menu-Category/UpdateMenuCategory";
-import DeleteItemCategoryDialog from "app/entities/term/Item-Category/delete-item-category-dialog";
+import UpdateItemRestaurantCategory from "app/entities/term/Item-restaurant-category/update-item-restaurant-category";
+import UpdateMenuCategory from "app/entities/term/Menu-Category/update-menu-category";
+import DeleteItemRestaurantCategoryDialog from "app/entities/term/Item-restaurant-category/delete-item-restaurant-category-dialog";
 import DeleteMenuCategoryDialog from "app/entities/term/Menu-Category/delete-menu-category-dialog";
 import MenuCategoriesTest from "app/entities/term/Menu-Category/menu-categories";
-import ItemCategoriesTest from "app/entities/term/Item-Category/item-categories";
+import ItemCategoriesTest from "app/entities/term/Item-restaurant-category/item-restaurant-categories";
 
 const TermRoutes = () => (
   <ErrorBoundaryRoutes>
 
 
     <Route path="items" element={<ItemCategoriesTest />} />
-    <Route path="items/new" element={<UpdateItemCategory />} />
+    <Route path="items/new" element={<UpdateItemRestaurantCategory />} />
 
 
     <Route path="menus" element={<MenuCategoriesTest />} />
@@ -25,8 +25,8 @@ const TermRoutes = () => (
 
 
 
-      <Route path="items/edit" element={<UpdateItemCategory />} />
-      <Route path="items/delete" element={<DeleteItemCategoryDialog />} />
+      <Route path="items/edit" element={<UpdateItemRestaurantCategory />} />
+      <Route path="items/delete" element={<DeleteItemRestaurantCategoryDialog />} />
 
       <Route path="menus/edit" element={<UpdateMenuCategory />} />
       <Route path="menus/delete" element={<DeleteMenuCategoryDialog />} />

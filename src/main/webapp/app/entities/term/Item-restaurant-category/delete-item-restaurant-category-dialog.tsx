@@ -5,9 +5,9 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from '../term.reducer';
+import { getEntity, deleteEntity } from './item-restaurant-category.reducer';
 
-export const DeleteItemCategoryDialog = () => {
+export const DeleteItemRestaurantCategoryDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -21,8 +21,8 @@ export const DeleteItemCategoryDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const termEntity = useAppSelector(state => state.term.entity);
-  const updateSuccess = useAppSelector(state => state.term.updateSuccess);
+  const termEntity = useAppSelector(state => state.restaurantCategory.entity);
+  const updateSuccess = useAppSelector(state => state.restaurantCategory.updateSuccess);
 
   const handleClose = () => {
     navigate('/term/items' + location.search);
@@ -65,4 +65,4 @@ export const DeleteItemCategoryDialog = () => {
   );
 };
 
-export default DeleteItemCategoryDialog;
+export default DeleteItemRestaurantCategoryDialog;

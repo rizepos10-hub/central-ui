@@ -18,6 +18,10 @@ import voidReasons from 'app/entities/settings/void-reasons/void-reasons.reducer
 import printer from 'app/entities/settings/printing/printer/printer.reducer';
 import printingProfiles from 'app/entities/settings/printing/printing-profiles/printing-profile.reducer';
 import productionCenter from 'app/entities/location/production-center/production-center.reducer';
+import restaurantCategory from 'app/entities/term/Item-restaurant-category/item-restaurant-category.reducer';
+import menuCategory from 'app/entities/term/Menu-Category/menu-category.reducer';
+
+
 
 
 import taxProfiles from 'app/entities/settings/tax-profiles/tax-profile.reducer';
@@ -32,7 +36,7 @@ import predefinedPizza from 'app/entities/pizza-settings/pizza-predefined/pizza-
 import floorPlanTable from 'app/entities/settings/floor-plans/tables/table.reducer';
 import floorPlanSettings from 'app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer';
 import floorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
-
+import toppingGroup from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer"
 import pizzaItem from "app/entities/pizza-item/pizza-item.reducer";
 
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
@@ -71,7 +75,10 @@ const entitiesReducers = {
   floorPlanTable,
   floorPlanSettings,
   floorPlan,
-  pizzaItem
+  pizzaItem,
+  restaurantCategory,
+  menuCategory,
+  toppingGroup
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };

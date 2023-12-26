@@ -20,7 +20,6 @@ import {useNavigate, useParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {createEntity, duplicateMenu, getEntity, reset, sendEvent, updateEntity} from "app/entities/menu/menu.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {getEntities as getTerms} from "app/entities/term/term.reducer";
 import {getSortState, TextFormat, translate, Translate, ValidatedField, ValidatedForm} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -31,6 +30,7 @@ import {FaBars} from "react-icons/fa";
 import Select from "react-select";
 import MenuPosPreview from "app/entities/menu/menu-pos-preview";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {getEntities as getMenuCategories} from "app/entities/term/Menu-Category/menu-category.reducer";
 
 function MenuUpdate() {
 
@@ -42,7 +42,7 @@ function MenuUpdate() {
   const isNew = id === undefined;
 
 
-  const terms = useAppSelector(state => state.term.entities)
+  const menuCategories = useAppSelector(state => state.menuCategory.entities);
   const menuEntity = useAppSelector(state => state.menu.entity);
   const loading = useAppSelector(state => state.menu.loading);
   const updating = useAppSelector(state => state.menu.updating);
@@ -53,7 +53,7 @@ function MenuUpdate() {
   );
 
 // For Menu Edit Modal
-  const [selectedCategory, setSelectedCategory] = useState();
+  const [selectedCategory, setSelectedCategory] = useState({id: '', name: ''});
   const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
   const initialBranches = {label : menuEntity?.branch?.name , value: menuEntity?.branch?.id}
   const [selectedBranches, setSelectedBranches] = useState<any>();
@@ -97,9 +97,7 @@ function MenuUpdate() {
     setSelectedMainScreen(null);
   };
 
-  useEffect(() => {
-    console.log("Data updated: ", data);
-  }, [data]);
+
 
 
   const openEditModal = (selectedScreen, screenIndex, screenType) => {
@@ -917,7 +915,7 @@ function MenuUpdate() {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }))
-    dispatch(getTerms({
+    dispatch(getMenuCategories({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -940,7 +938,7 @@ function MenuUpdate() {
         menuScreens: menuEntity.menuScreens ,
       };
       if (menuEntity?.category){
-        setSelectedCategory(menuEntity.category.name)
+        setSelectedCategory(menuEntity.category)
       }
       if (menuEntity?.branch){
         setSelectedBranches({label: menuEntity?.branch?.name , value: menuEntity?.branch?.id})
@@ -1004,9 +1002,9 @@ function MenuUpdate() {
         category: selectedCategory
       };
 
-      const handleCategoryChange = (event) => {
-        console.log(event.target.value, 'change')
-        setSelectedCategory(event.target.value);
+      const handleCategoryChange = (selectedCtgry) => {
+
+        setSelectedCategory(selectedCtgry);
       };
 
       const handleBranchChange = (selectedBranches) => {
@@ -1032,7 +1030,7 @@ function MenuUpdate() {
       ...restValues,
       name: data.name,
       branch: { id: selectedBranches.value },
-      category: selectedCategory ? terms?.find((it) => it.name === selectedCategory) : null,
+      category:selectedCategory,
       menuScreens: data.menuScreens,
     };
 
@@ -1043,6 +1041,7 @@ function MenuUpdate() {
     }
 
     setIsModalOpen({...isModalOpen, isEditModalOpen: false});
+    setIsModalOpen({...isModalOpen, isMenuModalOpen: false});
   };
 
       if(loading){
@@ -1327,8 +1326,9 @@ function MenuUpdate() {
         </ModalBody>
       </Modal>
 
-      {isModalOpen.isMenuModalOpen && ( <Modal isOpen={isModalOpen.isMenuModalOpen} className="modal-lg"
-             toggle={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} >
+      {isModalOpen.isMenuModalOpen && (
+        <Modal isOpen={isModalOpen.isMenuModalOpen} className="modal-lg"
+            >
         <ModalHeader  toggle={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} >
           <Translate contentKey="tempApp.menu.home.createOrEditLabel">Create or edit a Menu</Translate>
         </ModalHeader>
@@ -1359,25 +1359,17 @@ function MenuUpdate() {
               <Select defaultValue={initialBranches}
                       onChange={handleBranchChange} options={branchList} />
             </div>
-            <ValidatedField
-              id="menu-category"
-              name="category"
-              data-cy="category"
-              label={translate('tempApp.menu.category')}
-              type="select"
-              required
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-            >
-              {terms
-                ? terms.map((otherEntity) => (
-                  <option key={otherEntity.id} value={otherEntity.name}>
-                    {otherEntity.name}
-                  </option>
-                ))
-                : null}
 
-            </ValidatedField>
+            <div className="mb-3">
+              Category
+              <Select
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                options={menuCategories}
+                getOptionLabel={option => option.name}
+                getOptionValue={option => option.id}
+                />
+            </div>
             <Button  id="cancel-save" data-cy="entityCreateCancelButton"
                      onClick={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} replace color="info">
               <FontAwesomeIcon icon="arrow-left"/>

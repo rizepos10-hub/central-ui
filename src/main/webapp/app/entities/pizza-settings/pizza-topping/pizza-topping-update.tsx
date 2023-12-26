@@ -4,9 +4,8 @@ import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getTaxonomies } from 'app/entities/taxonomy/taxonomy.reducer';
 
-import {getEntity, updateEntity, createEntity, reset, getToppingGroups, createToppingGroup} from './pizza-topping.reducer';
+import {getEntity, updateEntity, createEntity, reset} from './pizza-topping.reducer';
 
 import {InputText} from "primereact/inputtext";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
@@ -14,6 +13,7 @@ import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {ITopping} from "app/shared/model/topping.model";
 import CreatableSelect from "react-select/creatable";
+import {getEntities as getToppingGroups, createEntity as createToppingGroup} from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
 
 export const PizzaToppingUpdate = () => {
   const dispatch = useAppDispatch();
@@ -28,11 +28,11 @@ export const PizzaToppingUpdate = () => {
       name: ""
     },
   });
-  const pizzaToppingGroups = useAppSelector(state => state.pizzaTopping.toppingGroups).map(tpngGrp => ({...tpngGrp, label: tpngGrp.name, value: tpngGrp.id}));
-  const pizzaToppingEntity = useAppSelector(state => state.pizzaTopping.entity);
-  const taxonomies = useAppSelector(state => state.taxonomy.entities);
-  console.log(pizzaToppingGroups, 'pizzaToppingGroups')
+  const pizzaToppingGroups = useAppSelector(state => state.toppingGroup.entities).map(tpngGrp => ({...tpngGrp, label: tpngGrp.name, value: tpngGrp.id}));
+  const updatingGroup = useAppSelector(state => state.toppingGroup.updating);
 
+
+  const pizzaToppingEntity = useAppSelector(state => state.pizzaTopping.entity);
   const loading = useAppSelector(state => state.pizzaTopping.loading);
   const updating = useAppSelector(state => state.pizzaTopping.updating);
   const updateSuccess = useAppSelector(state => state.pizzaTopping.updateSuccess);
@@ -50,11 +50,6 @@ export const PizzaToppingUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    // dispatch(getTaxonomies({
-    //   page: paginationState.activePage - 1,
-    //   size: paginationState.itemsPerPage,
-    //   sort: `${paginationState.sort},${paginationState.order}`,
-    // }));
     dispatch(getToppingGroups({
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
@@ -68,7 +63,15 @@ export const PizzaToppingUpdate = () => {
       handleClose();
     }
     if(pizzaToppingEntity){
-      setPizzaTopping(pizzaToppingEntity)
+      setPizzaTopping(() => {
+        const toppingGroup = {...pizzaToppingEntity.group};
+        const modifiedGroup = {...toppingGroup, label: toppingGroup.name, value: toppingGroup?.id};
+        console.log(modifiedGroup, 'modifiedGroup')
+        return {
+          ...pizzaToppingEntity,
+          group: modifiedGroup
+        }
+      })
     }
   }, [updateSuccess, pizzaToppingEntity?.name]);
 
@@ -78,13 +81,14 @@ export const PizzaToppingUpdate = () => {
   };
 
   const handleGroupChange = (selectedGroup) => {
-    console.log("clicked", selectedGroup)
+    console.log(selectedGroup, 'selectedGroup')
     const selectedToppingGroup = selectedGroup ? selectedGroup : null
     setPizzaTopping((prev) => ({...prev, group: selectedToppingGroup}))
   }
 
   const saveEntity = (e) => {
-    e.preventDefault()
+    e.preventDefault();
+    console.log("triggered")
     const entity = {
       ...pizzaTopping,
     };
@@ -100,7 +104,6 @@ export const PizzaToppingUpdate = () => {
 
    const handleCreate = (inputValue: string) => {
       const entity = {
-        // taxonomy: { id : taxonomies.find(otherEntity => otherEntity?.name === 'Topping Groups')?.id },
         name: inputValue
       };
         dispatch(createToppingGroup(entity));
@@ -134,13 +137,14 @@ export const PizzaToppingUpdate = () => {
                 <div className={"d-flex flex-column"}>
                   <Label for="pizza-topping-group">Topping Group</Label>
                   <CreatableSelect
-                    isDisabled={updating}
-                    isLoading={updating}
+                    isDisabled={updatingGroup}
+                    isLoading={updatingGroup}
                     options={pizzaToppingGroups}
                     value={pizzaTopping.group}
                     onCreateOption={handleCreate}
                     onChange={handleGroupChange}
                     isClearable={true}
+
                   />
 
                 </div>

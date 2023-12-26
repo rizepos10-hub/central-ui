@@ -31,7 +31,7 @@ export const getEntities = createAsyncThunk('term/fetch_entity_list', async ({ p
 });
 
 export const getMenuCategories = createAsyncThunk('term/fetch_entity_list', async ({ page, size, sort, taxonomyName }: IQueryParams) => {
-  const requestUrl = `api/terms/search?taxonomy=Menu%20Category&${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
+  const requestUrl = `api/menu-categories${sort ? `?page=${page}&size=${size}&sort=${sort}?` : '?'}cacheBuster=${new Date().getTime()}`;
   const  response = await axios.get<ITerm[]>(requestUrl)
   return response
 });
@@ -43,10 +43,20 @@ export const getRestaurantItemCategories = createAsyncThunk('term/fetch_entity_l
   return response
 });
 
+
+
 export const getEntity = createAsyncThunk(
   'term/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
+    return axios.get<ITerm>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+export const getItemCategoryById = createAsyncThunk(
+  'term/fetch_item_category',
+  async (id: string | number) => {
+    const requestUrl = `api/restaurant-categories/${id}`;
     return axios.get<ITerm>(requestUrl);
   },
   { serializeError: serializeAxiosError }
@@ -82,6 +92,8 @@ export const createEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+
+
 export const updateEntity = createAsyncThunk(
   'term/update_entity',
   async (entity: ITerm, thunkAPI) => {
@@ -113,6 +125,10 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+
+
+
+
 // slice
 
 export const TermSlice = createEntitySlice({
@@ -121,6 +137,9 @@ export const TermSlice = createEntitySlice({
   extraReducers(builder) {
     builder
       .addCase(getEntity.fulfilled, (state, action) => {
+        state.loading = false;
+        state.entity = action.payload.data;
+      }).addCase(getItemCategoryById.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
       })
@@ -145,7 +164,7 @@ export const TermSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity,getItemCategoryById, searchEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

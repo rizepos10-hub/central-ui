@@ -9,12 +9,12 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {searchEntities, getEntities, getRestaurantItemCategories} from '../term.reducer';
+import {searchEntities, getEntities} from './item-restaurant-category.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
 
-export const ItemCategories = () => {
+export const ItemRestaurantCategories = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -25,8 +25,8 @@ export const ItemCategories = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const termList = useAppSelector(state => state.term.entities)
-  const loading = useAppSelector(state => state.term.loading);
+  const termList = useAppSelector(state => state.restaurantCategory.entities)
+  const loading = useAppSelector(state => state.restaurantCategory.loading);
 
   const totalItems = termList.length;
 
@@ -46,7 +46,7 @@ export const ItemCategories = () => {
       );
     } else {
       dispatch(
-        getRestaurantItemCategories({
+        getEntities({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
@@ -188,4 +188,4 @@ export const ItemCategories = () => {
   );
 };
 
-export default ItemCategories;
+export default ItemRestaurantCategories;

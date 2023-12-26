@@ -7,8 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
-import {  getToppingGroups } from './pizza-topping.reducer';
+import {getEntities} from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
@@ -23,9 +22,9 @@ export const PizzaToppingGroup = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const pizzaToppingGroups = useAppSelector(state => state.pizzaTopping.toppingGroups);
-  const loading = useAppSelector(state => state.pizzaTopping.loading);
-  const totalItems = useAppSelector(state => state.pizzaTopping.totalItems);
+  const pizzaToppingGroups = useAppSelector(state => state.toppingGroup.entities);
+  const loading = useAppSelector(state => state.toppingGroup.loading);
+  const totalItems = useAppSelector(state => state.toppingGroup.totalItems);
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
@@ -35,7 +34,7 @@ export const PizzaToppingGroup = () => {
   const getAllEntities = () => {
 
     dispatch(
-      getToppingGroups({
+      getEntities({
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
@@ -63,7 +62,7 @@ export const PizzaToppingGroup = () => {
 
 
   const nameColumnTemplate = rowData => {
-    const editUrl = `/pizza-topping/${rowData.id}/edit-group?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/pizza-topping-group/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -71,7 +70,7 @@ export const PizzaToppingGroup = () => {
     );
   };
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/pizza-topping/${rowData.id}/edit-group?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/pizza-topping-group/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
@@ -80,7 +79,7 @@ export const PizzaToppingGroup = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/pizza-topping/${rowData.id}/delete-group?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/pizza-topping-group/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -88,7 +87,7 @@ export const PizzaToppingGroup = () => {
     );
   };
   const handleCreate = () => {
-    navigate('/pizza-topping/new-group')
+    navigate('/pizza-topping-group/new')
   }
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">

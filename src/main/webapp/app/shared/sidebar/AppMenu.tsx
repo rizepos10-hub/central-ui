@@ -229,7 +229,7 @@ const AppMenu = () => {
                                   {
                                     label: 'Topping Groups',
                                     icon: 'pi pi-folder-open',
-                                    to: '/pizza-topping/groups'
+                                    to: '/pizza-topping-group'
                                   },
                                   {
                                     label: 'Pricing Class',

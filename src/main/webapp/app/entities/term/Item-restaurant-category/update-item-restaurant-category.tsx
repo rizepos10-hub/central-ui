@@ -4,60 +4,66 @@ import { Button, Row, Col, FormText } from 'reactstrap';
 import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { ITaxonomy } from 'app/shared/model/taxonomy.model';
 import { getEntities as getTaxonomies } from 'app/entities/taxonomy/taxonomy.reducer';
-import {getEntities as getTerms, getMenuCategories} from 'app/entities/term/term.reducer';
-import { getEntity, updateEntity, createEntity, reset } from '../term.reducer';
+
+import { getEntity, updateEntity, createEntity, reset } from './item-restaurant-category.reducer';
+import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
+
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 import Select from "react-select";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import {getEntities} from "app/entities/term/Item-restaurant-category/item-restaurant-category.reducer";
 
-export const UpdateMenuCategory = () => {
+export const UpdateItemRestaurantCategory = () => {
   const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
 
+  const location = useLocation();
 
 
   const { id } = useParams<'id'>();
-  console.log(id, 'identity1')
 
+  console.log(id, 'identity')
   const isNew = id === undefined;
 
-  const taxonomies = useAppSelector(state => state.taxonomy.entities);
-  const terms = useAppSelector(state => state.term.entities);
-  const termEntity = useAppSelector(state => state.term.entity);
-  const loading = useAppSelector(state => state.term.loading);
-  const updating = useAppSelector(state => state.term.updating);
-  const updateSuccess = useAppSelector(state => state.term.updateSuccess);
-  const newTerm = useAppSelector(state => state.term.entity)
-
-
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
+  const terms = useAppSelector(state => state.restaurantCategory.entities).map((term) => ({label: term.name, value: term.id}))
+  const termEntity = useAppSelector(state => state.restaurantCategory.entity);
+  const loading = useAppSelector(state => state.restaurantCategory.loading);
+  const updating = useAppSelector(state => state.restaurantCategory.updating);
+  const updateSuccess = useAppSelector(state => state.restaurantCategory.updateSuccess);
+  const newTerm = useAppSelector(state => state.restaurantCategory.entity)
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadImageStatus, setUploadImageStatus] = useState('idle');
 
   const [selectedAttachments, setSelectedAttachments] = useState([])
 
-  const [selectedParent, setSelectedParent] = useState([]);
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
+
+  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities).map(term => ({ value: term.id, label: term.name }));
+
+  const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
+
+  const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
+  const [selectedParents, setSelectedParents] :any = useState();
+
+  const [parentsToSave, setParentsToSave] :any = useState([]);
 
 
-  const termOptions = terms.map(term => ( {label: term?.name, value: term.id, id: term.id }))
-
-  const handleParentChange = selected => {
-    setSelectedParent([selected])
-  }
 
 
+  console.log(termEntity, 'termEntity')
+  const handleClose = () => {
+    navigate('/term' + location.search);
+  };
 
-  console.log(terms, 'termss')
 
 
   useEffect(() => {
@@ -67,41 +73,61 @@ export const UpdateMenuCategory = () => {
       dispatch(getEntity(id));
     }
 
-    dispatch(getTaxonomies({
+    dispatch(getEntities({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-    dispatch(getMenuCategories({
+    dispatch(getAccountingGroups({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    }));
 
     return () => {
       dispatch(reset());
     };
+  }, [updateSuccess]);
 
-  }, []);
 
 
   useEffect(() => {
 
-
-
-      const {id: newTermId} = newTerm
-      if (updateSuccess && newTermId) {
-        navigate(`/term/${newTermId}/menus/edit?page=1&sort=id,asc`)
-      }
     if (termEntity?.attachments) {
       setSelectedAttachments(termEntity.attachments.map(attachment => ({ id: attachment.id, url: attachment.url })));
     }
-    if (termEntity.parents?.length > 0){
-      setSelectedParent((termEntity.parents.map((term) => ( {label: term?.name, value: term?.id, id: term?.id}) )))
-    }
-    console.log(termEntity, 'termEntity1')
 
-  }, [updateSuccess, termEntity ]);
+    if (termEntity?.accountingGroups) {
+      setSelectedAccountingGroups(termEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
+      setAccountingGroupsToSave(termEntity.accountingGroups?.map(group => ({  id : group.id })));
+    }
+
+    if(termEntity?.parents && termEntity.parents.length > 0){
+      setSelectedParents({label : termEntity.parents[0]?.name, value: termEntity.parents[0]?.id})
+      setParentsToSave(termEntity?.parents?.map(group => ({  id : group?.id })));
+
+    }
+    const {id: newTermId} = newTerm
+    if (updateSuccess && newTermId) {
+      navigate(`/term/${newTermId}/items/edit?page=1&sort=id,asc`)
+    }
+
+  }, [updateSuccess, termEntity?.attachments]);
+
+  const removeAttachment = (attachmentId) => {
+    setSelectedAttachments((prevAttachments) =>
+      prevAttachments.filter((attachment) => attachment.id !== attachmentId)
+    );
+  };
+  const handleAccountingGroupsChange = selectedAccounting => {
+    setSelectedAccountingGroups(selectedAccounting);
+    setAccountingGroupsToSave([{id: selectedAccounting.value}])
+  };
+
+  const handleParentsChange = selectedParent => {
+    setSelectedParents(selectedParent);
+    setParentsToSave([{id: selectedParent.value}])
+  };
 
 
   const handleImageChange = async (event) => {
@@ -129,6 +155,7 @@ export const UpdateMenuCategory = () => {
       };
       setSelectedAttachments((prevAttachments) => [ imageInfo]);
       setUploadImageStatus('success');
+      console.log(imageInfo, 'helloi')
 
       return imageInfo;
     } catch (error) {
@@ -140,24 +167,19 @@ export const UpdateMenuCategory = () => {
 
   };
 
+  console.log(termEntity, 'termEntity')
 
-console.log(termEntity)
   const saveEntity = values => {
-    setSelectedImage('')
-    setSelectedAttachments([])
-
-    console.log(values, 'lol')
-
     const entity = {
       ...termEntity,
       ...values,
-      taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
-      parents: selectedParent.map(parent => ({id :parent.id})),
+      accountingGroups: accountingGroupsToSave,
+      parents: parentsToSave,
       attachments: selectedAttachments,
 
     };
-    console.log(entity, 'entity')
 
+    console.log(entity, 'entity saved')
     if (isNew) {
       dispatch(createEntity(entity));
     } else {
@@ -165,33 +187,26 @@ console.log(termEntity)
     }
   };
 
-  const removeAttachment = (attachmentId) => {
-    setSelectedAttachments((prevAttachments) =>
-      prevAttachments.filter((attachment) => attachment.id !== attachmentId)
-    );
-  };
-
   const defaultValues = () =>
     isNew
       ? {
-        taxonomy: taxonomies.find(otherEntity => otherEntity?.name === 'Menu Category')?.id,
+        term: '',
       }
       : {
         ...termEntity,
-        taxonomy: termEntity?.taxonomy?.id,
       };
-  console.log(termEntity?.parents, 'ddd')
+  console.log(terms, 'terms')
   return (
     <div>
-      <Row>
+      <Row >
         <Col md="8">
           <h2  data-cy="TermCreateUpdateHeading">
-            {isNew ? "Create a Menu Category" : "Edit Menu Category"}
+            {isNew ? "Create an Item Category" : "Edit Item Category"}
           </h2>
         </Col>
       </Row>
-      <Row>
-        <Col md="8"  className="d-flex flex-column p-3  bg-white">
+      <Row >
+        <Col md="8" className="d-flex flex-column p-3  bg-white">
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -216,8 +231,34 @@ console.log(termEntity)
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
+              {/* <ValidatedField */}
+              {/*   id="term-taxonomy" */}
+              {/*   name="taxonomy" */}
+              {/*   data-cy="taxonomy" */}
+              {/*   label={'Category'} */}
+              {/*   type="select" */}
+              {/*   readOnly={true} */}
+              {/*   required */}
+              {/* > */}
+              {/*   { taxonomies && */}
+              {/*     taxonomies */}
+              {/*       .filter((otherEntity) => otherEntity.name === "Item Category") */}
+              {/*       .map((filteredEntity) => ( */}
+              {/*         <option value={filteredEntity.id} key={filteredEntity.id}> */}
+              {/*           {filteredEntity.name} */}
+              {/*         </option> */}
+              {/*       ) */}
+              {/*   )} */}
+              {/* </ValidatedField> */}
+              <div className="mb-3">
+              <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
+              <Select  value={selectedAccountingGroups}  onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
+              </div>
 
-
+              <div className="mb-3">
+                <Translate contentKey="tempApp.term.parents">Parents</Translate>
+                <Select  value={selectedParents}  onChange={handleParentsChange} options={terms} />
+              </div>
               <div className="mb-3">
                 <ValidatedField
                   label={'Item Image'}
@@ -278,11 +319,9 @@ console.log(termEntity)
                 </div>
               </div>
 
-              <div className="my-4 p-1">
-                <label>Parents</label>
-                <Select options={termOptions} value={selectedParent} onChange={handleParentChange} />
-              </div>
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/term/menus" replace color="info">
+
+
+              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/term/items" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
@@ -303,48 +342,4 @@ console.log(termEntity)
   );
 };
 
-export default UpdateMenuCategory;
-
-//
-// {isNew ? (
-//   <ValidatedField
-//     id="term-parents"
-//     name="parents"
-//     data-cy="parents"
-//     label={translate('tempApp.term.parents')}
-//     type="select"
-//   >
-//     <option value="">{''}</option>
-//     {terms &&
-//       terms
-//         .filter(term => term.taxonomy && term.taxonomy.name === 'Menu Category')
-//         .map(otherEntity => (
-//           <option value={otherEntity.id} key={otherEntity.id}>
-//             {otherEntity.name}
-//           </option>
-//         ))}
-//   </ValidatedField>
-// ) : (
-//   <ValidatedField
-//     name="parents"
-//     label={translate('tempApp.term.parents')}
-//     type="select"
-//   >
-//     <option defaultValue={termEntity?.parents && termEntity.parents.length > 0 ?  termEntity.parents[0]?.name    : ''}>
-//       {termEntity?.parents && termEntity.parents.length > 0 ? termEntity.parents[0]?.name : ''}
-//     </option>
-//
-//     {terms &&
-//       terms
-//         .filter(term => term.taxonomy && term.taxonomy?.name === 'Menu Category')
-//         .map(otherEntity => (
-//           <option value={otherEntity.id} key={otherEntity.id}>
-//             {otherEntity?.name}
-//           </option>
-//         ))}
-//     {termEntity?.parents && termEntity.parents.length > 0 && termEntity.parents[0]?.name && (
-//       <option value="">{''}</option>
-//     )}
-//   </ValidatedField>
-// )}
-//
+export default UpdateItemRestaurantCategory;
