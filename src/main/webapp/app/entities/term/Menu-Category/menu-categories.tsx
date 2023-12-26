@@ -11,7 +11,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ITerm } from 'app/shared/model/term.model';
-import {searchEntities, getEntities, getMenuCategories} from '../term.reducer';
+import {searchEntities, getEntities} from './menu-category.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
@@ -27,20 +27,20 @@ export const MenuCategories = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const termList = useAppSelector(state => state.term.entities)
-  const loading = useAppSelector(state => state.term.loading);
+  const menuCategoryList = useAppSelector(state => state.menuCategory.entities)
+  const loading = useAppSelector(state => state.menuCategory.loading);
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
-  const totalItems = termList.length;
+  const totalItems = menuCategoryList.length;
 
 
-  console.log(termList, 'menuCategories')
+  console.log(menuCategoryList, 'menuCategories')
 
   const getAllEntities = () => {
 
       dispatch(
-        getMenuCategories({
+        getEntities({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
@@ -141,7 +141,7 @@ export const MenuCategories = () => {
       </h2>
 
       <div className="table-responsive">
-        <DataTable value={termList} editMode="row" header={header}
+        <DataTable value={menuCategoryList} editMode="row" header={header}
                    loading={loading} removableSort filters={filters} filterDisplay="row"
                    paginator totalRecords={totalItems} rows={5}>
           <Column field="name" sortable header="Name" filterPlaceholder={"Search by name"}  filter body={nameColumnTemplate} style={{ width: '20%' }} />

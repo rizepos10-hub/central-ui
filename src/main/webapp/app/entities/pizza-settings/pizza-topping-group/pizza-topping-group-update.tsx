@@ -7,10 +7,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntities as getTaxonomies } from 'app/entities/taxonomy/taxonomy.reducer';
-import { getEntity, updateEntity, createEntity, reset }   from "app/entities/term/term.reducer";
+import { getEntity, updateEntity, createEntity, reset }   from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {getToppingGroups} from "app/entities/pizza-settings/pizza-topping/pizza-topping.reducer";
 
 export const ToppingGroupUpdate = () => {
   const dispatch = useAppDispatch();
@@ -24,13 +22,10 @@ export const ToppingGroupUpdate = () => {
 
   const isNew = id === undefined;
 
-  const taxonomies = useAppSelector(state => state.taxonomy.entities);
-  const terms = useAppSelector(state => state.term.entities);
-  const termEntity = useAppSelector(state => state.term.entity);
-  const loading = useAppSelector(state => state.term.loading);
-  const updating = useAppSelector(state => state.term.updating);
-  const updateSuccess = useAppSelector(state => state.term.updateSuccess);
-  const newTerm = useAppSelector(state => state.term.entity)
+  const termEntity = useAppSelector(state => state.toppingGroup.entity);
+  const loading = useAppSelector(state => state.toppingGroup.loading);
+  const updating = useAppSelector(state => state.toppingGroup.updating);
+  const updateSuccess = useAppSelector(state => state.toppingGroup.updateSuccess);
 
 
   const [paginationState, setPaginationState] = useState(
@@ -40,7 +35,6 @@ export const ToppingGroupUpdate = () => {
 
 
 
-  console.log(terms, 'termss')
 
 
   useEffect(() => {
@@ -50,11 +44,6 @@ export const ToppingGroupUpdate = () => {
       dispatch(getEntity(id));
     }
 
-    dispatch(getTaxonomies({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
 
 
     return () => {
@@ -68,9 +57,9 @@ export const ToppingGroupUpdate = () => {
 
 
 
-    const {id: newTermId} = newTerm
+    const {id: newTermId} = termEntity
     if (updateSuccess && newTermId) {
-      navigate(`/pizza-topping/${newTermId}/edit-group`)
+      navigate(`/pizza-topping-group/${newTermId}/edit`)
     }
 
 
@@ -83,7 +72,6 @@ export const ToppingGroupUpdate = () => {
     const entity = {
       ...termEntity,
       ...values,
-      taxonomy: taxonomies.find(it => it.id.toString() === values.taxonomy.toString()),
     };
     console.log("saved entity" ,entity)
     if (isNew) {
@@ -97,11 +85,9 @@ export const ToppingGroupUpdate = () => {
   const defaultValues = () =>
     isNew
       ? {
-        taxonomy: taxonomies.find(otherEntity => otherEntity?.name === 'Topping Groups')?.id,
       }
       : {
         ...termEntity,
-        taxonomy: termEntity?.taxonomy?.id,
       };
   console.log(termEntity?.parents, 'ddd')
   return (
@@ -130,7 +116,7 @@ export const ToppingGroupUpdate = () => {
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/pizza-topping/groups" replace color="info">
+              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/pizza-topping-group" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">

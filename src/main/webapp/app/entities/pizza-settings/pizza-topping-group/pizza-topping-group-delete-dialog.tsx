@@ -5,7 +5,7 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from '../../term/term.reducer';
+import { getEntity, deleteEntity } from './pizza-topping-group.reducer';
 
 export const DeleteToppingGroupDialog = () => {
   const dispatch = useAppDispatch();
@@ -21,8 +21,8 @@ export const DeleteToppingGroupDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const termEntity = useAppSelector(state => state.term.entity);
-  const updateSuccess = useAppSelector(state => state.term.updateSuccess);
+  const pizzaToppingGroup = useAppSelector(state => state.toppingGroup.entity);
+  const updateSuccess = useAppSelector(state => state.toppingGroup.updateSuccess);
 
   const handleClose = () => {
     navigate('/pizza-topping/groups' + location.search);
@@ -36,7 +36,7 @@ export const DeleteToppingGroupDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(termEntity.id));
+    dispatch(deleteEntity(pizzaToppingGroup.id));
   };
 
   return (
@@ -45,7 +45,7 @@ export const DeleteToppingGroupDialog = () => {
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.term.delete.question">
-        <Translate contentKey="tempApp.term.delete.question" interpolate={{ id: termEntity.id }}>
+        <Translate contentKey="tempApp.term.delete.question" interpolate={{ id: pizzaToppingGroup.id }}>
           Are you sure you want to delete this Term?
         </Translate>
       </ModalBody>

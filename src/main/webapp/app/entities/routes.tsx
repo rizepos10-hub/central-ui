@@ -40,6 +40,7 @@ import FloorPlanSettingsUpdate from "app/entities/settings/floor-plans/floor-pla
 import FloorPlanSettingsRoutes from "app/entities/settings/floor-plans/floor-plan-settings";
 import FloorPlanRoutes from "app/entities/settings/floor-plans";
 import PizzaItem from "app/entities/pizza-item";
+import PizzaToppingGroup from "app/entities/pizza-settings/pizza-topping-group";
 
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
@@ -79,8 +80,10 @@ export default () => {
 
 
         <Route path="pizza-group/*" element={<PizzaGroup />} />
+
         <Route path="pizza-size/*" element={<PizzaSize />} />
         <Route path="pizza-topping/*" element={<PizzaTopping />} />
+        <Route path="pizza-topping-group/*" element={<PizzaToppingGroup />} />
         <Route path="pizza-crust/*" element={<PizzaCrustRoutes />} />
         <Route path="pizza-crust-thickness/*" element={<PizzaCrustThicknessRoutes />} />
         <Route path="pizza-crust-type/*" element={<PizzaCrustTypeRoutes />} />
