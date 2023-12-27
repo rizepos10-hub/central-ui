@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import CustomSelectForPizza from "app/entities/item/pizza-display/custom-select-for-modfiers";
+import CustomSelectForPizza from "app/entities/regalar-item/pizza-display/custom-select-for-modfiers";
 
 function ToppingOptions ({option,selectedModifiersFromOptions,setSelectedModifiersFromOptions, missingRequiredOptionIds}) {
 

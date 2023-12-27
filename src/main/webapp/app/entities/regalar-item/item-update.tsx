@@ -19,13 +19,13 @@ import { getEntities as getAccountingGroups } from 'app/entities/settings/accoun
 import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
 import { getEntity, updateEntity, createEntity, reset, getEntities as getItems, importAddons } from './item.reducer';
 import Select from 'react-select';
-import ItemVariantModal from 'app/entities/item/item-variant-modal';
+import ItemVariantModal from 'app/entities/regalar-item/item-variant-modal';
 import attachment, { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { Button as PrimeButton } from 'primereact/button';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import AddonImportModal from 'app/entities/item/addon-import-modal';
+import AddonImportModal from 'app/entities/regalar-item/addon-import-modal';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
 import axios from 'axios';
 import {Checkbox} from "primereact/checkbox";
@@ -67,7 +67,6 @@ export const ItemUpdate = () => {
   const [selectedAddonGroups, setSelectedAddonGroups] = useState([]);
 
   const itemTypeOptions = [{label: 'ITEM', value: 'ITEM'}, {label: "PIZZA", value: "PIZZA"}]
-  const [selectedType, setSelectedType]:any = useState(itemTypeOptions[0])
 
   const addonsOptions = addons?.map(addon => ({ value: addon.id, label: addon.name, id: addon.id }));
 
@@ -190,7 +189,7 @@ export const ItemUpdate = () => {
     setModalVariantImages([variantImage]);
   };
   const handleClose = () => {
-    navigate(`/item/${id}`);
+    navigate(`/restaurant/regular/${id}`);
   };
 
   useEffect(() => {
@@ -264,9 +263,7 @@ export const ItemUpdate = () => {
     if (itemEntity?.productionCenter) {
       setSelectedProductionCenter( ({ label: itemEntity.productionCenter?.name, value: itemEntity.productionCenter?.id, id: itemEntity.productionCenter?.id }));
     }
-    if (itemEntity?.type){
-      setSelectedType({label: itemEntity.type, value: itemEntity.type})
-    }
+
     if (itemEntity?.attachments) {
       setSelectedAttachments(itemEntity.attachments?.map(attachment => ({ id: attachment.id, url: attachment?.url })));
     }
@@ -301,7 +298,7 @@ export const ItemUpdate = () => {
     }
     const { id: newItemId } = newItem;
     if (updateSuccess && newItemId) {
-      navigate(`/item/${newItemId}/edit?page=1&sort=id,asc`);
+      navigate(`/restaurant/regular/${newItemId}/edit?page=1&sort=id,asc`);
     }
   }, [updateSuccess, itemEntity]);
 
@@ -383,7 +380,8 @@ export const ItemUpdate = () => {
     const entity = {
       ...itemEntity,
       ...values,
-      type: selectedType.value,
+      itemType: "RESTAURANT",
+      itemVariantType: "RESTAURANT_VARIABLE",
       status: itemStatus,
       accountingGroups: accountingGroupsToSave,
       productionCenter: selectedProductionCenter,
@@ -478,7 +476,7 @@ const handleBackClick = () => {
   if(isFromMenu){
     navigate( -1)
   }else{
-    navigate("/item")
+    navigate("/restaurant/regular")
   }
 }
   const handleImportAddonModalClose = () => {
@@ -585,7 +583,7 @@ const handleBackClick = () => {
       {openedModal && (
         <ItemVariantModal
           showModal={openedModal}
-          itemType={selectedType?.value}
+          itemType={"RESTAURANT"}
           handleClose={handleCloseModal}
           handleSave={handleSaveVariant}
           editingVariantIndex={editingVariantIndex}
@@ -716,10 +714,6 @@ const handleBackClick = () => {
                       value={desc}
                       onChange={e => setDesc(e.target.value)}
                     />
-                  </div>
-                  <div style={{ width: '20%' }}>
-                    <Translate contentKey="tempApp.item.type">Type</Translate>
-                    <Select  value={selectedType} onChange={(type) => setSelectedType(type)} options={itemTypeOptions.map((type):any => type)} />
                   </div>
                 </div>
                 <div className="d-flex justify-content-between mb-1">

@@ -3,7 +3,7 @@ import branch from 'app/entities/branch/branch.reducer';
 import discount from 'app/entities/discount/discount.reducer';
 import attachment from 'app/entities/attachment/attachment.reducer';
 import customer from 'app/entities/customer/customer.reducer';
-import item from 'app/entities/item/item.reducer';
+import item from 'app/entities/regalar-item/item.reducer';
 import taxonomy from 'app/entities/taxonomy/taxonomy.reducer';
 import addon from 'app/entities/addon/addon.reducer'
 import addonGroups from 'app/entities/addon-groups/addon-groups.reducer';

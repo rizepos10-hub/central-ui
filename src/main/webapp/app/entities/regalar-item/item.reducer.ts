@@ -32,7 +32,7 @@ export const searchEntities = createAsyncThunk('item/search_entity', async ({ qu
 export const getItemsForRecipe = createAsyncThunk(
   'item/fetch_items_for_recipe_list',
   async ({ itemId, editingVariant }: { itemId?: string; editingVariant?: string }) => {
-    const requestUrl = `/api/items/for-recipe?${itemId ? `itemId=${itemId}` : ''}${editingVariant ? `&variantId=${editingVariant}` : ''}`;
+    const requestUrl = `/items/restaurant-variable/for-recipe?${itemId ? `itemId=${itemId}` : ''}${editingVariant ? `&variantId=${editingVariant}` : ''}`;
     const response = await axios.get<IItem[]>(requestUrl);
     console.log(response, 'response');
     return response;

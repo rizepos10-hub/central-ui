@@ -12,8 +12,8 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {
   checkAndFetchPizzaDefinition,
 } from "app/entities/pizza-settings/utils";
-import CustomSelectForPizza from "app/entities/item/pizza-display/custom-select-for-modfiers";
-import ToppingOptions from "app/entities/item/pizza-display/topping-options";
+import CustomSelectForPizza from "app/entities/regalar-item/pizza-display/custom-select-for-modfiers";
+import ToppingOptions from "app/entities/regalar-item/pizza-display/topping-options";
 import {Button} from "primereact/button";
 import {getEntityByType} from "app/entities/item-definitions/item-definitions.reducer";
 
