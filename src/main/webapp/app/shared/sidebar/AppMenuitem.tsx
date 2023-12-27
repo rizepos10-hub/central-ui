@@ -17,7 +17,12 @@ const AppMenuitem = (props: AppMenuItemProps) => {
     const menuitemRef = useRef<HTMLLIElement>(null);
     const item = props.item;
     const key = props.parentKey ? props.parentKey + '-' + props.index : String(props.index);
-    const isActiveRoute = item!.to && location.pathname === item!.to || (location.pathname + location.search) === item!.to;
+    console.log(key, 'keyyyyy')
+    const path = location.pathname;
+    const parts = path.split('/');
+    const lastPath = parts[parts.length - 1];
+
+    const isActiveRoute = item!.to && path === item!.to || (path + location.search) === item!.to || path?.substring(1) === item!.to;
     const account = useAppSelector(state => state.authentication.account);
     const userRole = account.authorities
     const active = activeMenu === key || !!(activeMenu && activeMenu.startsWith(key + '-'));
@@ -38,10 +43,17 @@ const AppMenuitem = (props: AppMenuItemProps) => {
 
   useEffect(() => {
     const onRouteChange = () => {
-      const isRouteActive = item!.to && (location.pathname + location.search) === item!.to;
+      const isRouteActive =
+        item!.to && (location.pathname + location.search) === item!.to
+        || (path + location.search) === item!.to
+        || path?.substring(1) === item!.to;
 
       if (isRouteActive) {
         setActiveMenu(key);
+        const activeRouteItem = menuitemRef.current?.querySelector('.active-menuitem .active-route');
+        if (activeRouteItem) {
+          activeRouteItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
     };
 
@@ -51,6 +63,10 @@ const AppMenuitem = (props: AppMenuItemProps) => {
       setActiveMenu("")
     };
   }, []);
+
+
+
+
 
   useEffect(() => {
     const onRouteChange = (newLocation) => {

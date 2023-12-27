@@ -19,13 +19,13 @@ import { getEntities as getAccountingGroups } from 'app/entities/settings/accoun
 import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
 import { getEntity, updateEntity, createEntity, reset, getEntities as getItems, importAddons } from './item.reducer';
 import Select from 'react-select';
-import ItemVariantModal from 'app/entities/regalar-item/item-variant-modal';
+import ItemVariantModal from 'app/entities/item/restaurant/regalar-item/item-variant-modal';
 import attachment, { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { Button as PrimeButton } from 'primereact/button';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import AddonImportModal from 'app/entities/regalar-item/addon-import-modal';
+import AddonImportModal from 'app/entities/item/restaurant/regalar-item/addon-import-modal';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
 import axios from 'axios';
 import {Checkbox} from "primereact/checkbox";
@@ -52,15 +52,15 @@ export const ItemUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
   const menus = useAppSelector(state => state.menu.entities);
-  const itemEntity = useAppSelector(state => state.item.entity);
-  const loading = useAppSelector(state => state.item.loading);
-  const updating = useAppSelector(state => state.item.updating);
-  const updateSuccess = useAppSelector(state => state.item.updateSuccess);
+  const itemEntity = useAppSelector(state => state.regularItem.entity);
+  const loading = useAppSelector(state => state.regularItem.loading);
+  const updating = useAppSelector(state => state.regularItem.updating);
+  const updateSuccess = useAppSelector(state => state.regularItem.updateSuccess);
   const itemStatusValues = Object.keys(ItemStatus);
   const addons = useAppSelector(state => state.addon.entities);
   const addonGroups = useAppSelector(state => state.addonGroups.entities);
 
-  const items = useAppSelector(state => state.item.entities);
+  const items = useAppSelector(state => state.regularItem.entities);
 
   const [selectedAddons, setSelectedAddons] = useState([]);
 
@@ -112,7 +112,7 @@ export const ItemUpdate = () => {
 
   const [variants, setVariants] = useState([]);
 
-  const newItem = useAppSelector(state => state.item.entity);
+  const newItem = useAppSelector(state => state.regularItem.entity);
 
   const [modalVariantImages, setModalVariantImages] = useState([]);
 

@@ -31,7 +31,7 @@ import { getEntities as getTerms } from 'app/entities/term/term.reducer';
 import { IMenu } from 'app/shared/model/menu.model';
 import {getEntity, updateEntity, createEntity, reset, sendEvent, duplicateMenu} from './menu.reducer';
 import {faTimes} from "@fortawesome/free-solid-svg-icons";
-import {getEntities as getItems , searchEntities as searchItems} from "app/entities/regalar-item/item.reducer";
+import {getEntities as getItems , searchEntities as searchItems} from "app/entities/item/restaurant/regalar-item/item.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import Select from "react-select";
 import {APP_DATE_FORMAT} from "app/config/constants";

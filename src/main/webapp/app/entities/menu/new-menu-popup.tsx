@@ -8,7 +8,7 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {createEntity, getEntity, reset, updateEntity} from "app/entities/menu/menu.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {getEntities as getTerms, getMenuCategories} from "app/entities/term/term.reducer";
-import {getEntities as getItems} from "app/entities/regalar-item/item.reducer";
+import {getEntities as getItems} from "app/entities/item/restaurant/regalar-item/item.reducer";
 import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime} from "app/shared/util/date-utils";
 import {result} from "lodash";
 import {MenuTypeModel} from "app/shared/model/enumerations/menu-type.model";
