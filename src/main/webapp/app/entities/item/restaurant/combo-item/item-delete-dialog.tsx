@@ -21,11 +21,11 @@ export const ItemDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const itemEntity = useAppSelector(state => state.item.entity);
-  const updateSuccess = useAppSelector(state => state.item.updateSuccess);
+  const itemEntity = useAppSelector(state => state.comboItem.entity);
+  const updateSuccess = useAppSelector(state => state.comboItem.updateSuccess);
 
   const handleClose = () => {
-    navigate('/item' + location.search);
+    navigate('/restaurant/combo' + location.search);
   };
 
   useEffect(() => {

@@ -22,7 +22,7 @@ const apiSearchUrl = 'api/_search/items';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('item/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
+export const searchEntities = createAsyncThunk('regular_item/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `api/_search/items/restaurant-pizza/by-name?query=${query}&page=${page}&size=${size}`;
 
   // Perform the API call
@@ -59,14 +59,14 @@ export const importData = createAsyncThunk('importData', async (file: File) => {
   }
 });
 
-export const getEntities = createAsyncThunk('item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+export const getEntities = createAsyncThunk('regular_item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   const response = await axios.get<IItem[]>(requestUrl);
   console.log(response, 'responsin');
   return response;
 });
 
-export const getItemsSummary = createAsyncThunk('item/fetch_item_summary_list', async ({ page, size, sort }: IQueryParams) => {
+export const getItemsSummary = createAsyncThunk('regular_item/fetch_item_summary_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${summaryUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   const response = await axios.get<IItem[]>(requestUrl);
   console.log(response, 'responsin');
@@ -99,7 +99,7 @@ export const importAddons = createAsyncThunk<IItem, {  fromItem: string }, { rej
 );
 
 export const getEntity = createAsyncThunk(
-  'item/fetch_entity',
+  'regular_item/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
     return axios.get<IItem>(requestUrl);
@@ -108,7 +108,7 @@ export const getEntity = createAsyncThunk(
 );
 
 export const createEntity = createAsyncThunk(
-  'item/create_entity',
+  'regular_item/create_entity',
   async (entity: IItem, thunkAPI) => {
     const result = await axios.post<IItem>(apiUrl, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
@@ -118,7 +118,7 @@ export const createEntity = createAsyncThunk(
 );
 
 export const updateEntity = createAsyncThunk(
-  'item/update_entity',
+  'regular_item/update_entity',
   async (entity: IItem, thunkAPI) => {
     const result = await axios.put<IItem>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
@@ -128,7 +128,7 @@ export const updateEntity = createAsyncThunk(
 );
 
 export const partialUpdateEntity = createAsyncThunk(
-  'item/partial_update_entity',
+  'regular_item/partial_update_entity',
   async (entity: IItem, thunkAPI) => {
     const result = await axios.patch<IItem>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
@@ -138,7 +138,7 @@ export const partialUpdateEntity = createAsyncThunk(
 );
 
 export const deleteEntity = createAsyncThunk(
-  'item/delete_entity',
+  'regular_item/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
     const result = await axios.delete<IItem>(requestUrl);
@@ -150,8 +150,8 @@ export const deleteEntity = createAsyncThunk(
 
 // slice
 
-export const ItemSlice = createEntitySlice({
-  name: 'item',
+export const RegularItemSlice = createEntitySlice({
+  name: 'regular-item',
   initialState,
   extraReducers(builder) {
     builder
@@ -193,7 +193,7 @@ export const ItemSlice = createEntitySlice({
   },
 });
 
-export const { reset } = ItemSlice.actions;
+export const { reset } = RegularItemSlice.actions;
 
 // Reducer
-export default ItemSlice.reducer;
+export default RegularItemSlice.reducer;

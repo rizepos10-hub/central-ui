@@ -3,7 +3,6 @@ import branch from 'app/entities/branch/branch.reducer';
 import discount from 'app/entities/discount/discount.reducer';
 import attachment from 'app/entities/attachment/attachment.reducer';
 import customer from 'app/entities/customer/customer.reducer';
-import item from 'app/entities/regalar-item/item.reducer';
 import taxonomy from 'app/entities/taxonomy/taxonomy.reducer';
 import addon from 'app/entities/addon/addon.reducer'
 import addonGroups from 'app/entities/addon-groups/addon-groups.reducer';
@@ -37,7 +36,10 @@ import floorPlanTable from 'app/entities/settings/floor-plans/tables/table.reduc
 import floorPlanSettings from 'app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer';
 import floorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 import toppingGroup from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer"
-import pizzaItem from "app/entities/pizza-item/pizza-item.reducer";
+import pizzaItem from "app/entities/item/restaurant/pizza-item/pizza-item.reducer";
+import regularItem from 'app/entities/item/restaurant/regalar-item/item.reducer';
+import comboItem from 'app/entities/item/restaurant/combo-item/item.reducer';
+import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
 
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 
@@ -49,7 +51,6 @@ const entitiesReducers = {
   discount,
   attachment,
   customer,
-  item,
   taxonomy,
   addon,
   addonGroups,
@@ -78,7 +79,11 @@ const entitiesReducers = {
   pizzaItem,
   restaurantCategory,
   menuCategory,
-  toppingGroup
+  toppingGroup,
+  regularItem,
+  comboItem,
+  restaurantItems
+
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };

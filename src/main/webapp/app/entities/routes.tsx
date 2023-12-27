@@ -6,7 +6,8 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import Menu from './menu/index';
 import Discount from './discount';
 import Customer from './customer';
-import Item from './regalar-item';
+import RegularItem from './item/restaurant/regalar-item';
+import ComboItem from './item/restaurant/combo-item';
 import Addon from './addon';
 import AddonGroups from './addon-groups';
 import PizzaGroup from './pizza-settings';
@@ -39,7 +40,7 @@ import FloorPlanTableRoutes from "app/entities/settings/floor-plans/tables";
 import FloorPlanSettingsUpdate from "app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings-update";
 import FloorPlanSettingsRoutes from "app/entities/settings/floor-plans/floor-plan-settings";
 import FloorPlanRoutes from "app/entities/settings/floor-plans";
-import PizzaItem from "app/entities/pizza-item";
+import PizzaItem from "app/entities/item/restaurant/pizza-item";
 import PizzaToppingGroup from "app/entities/pizza-settings/pizza-topping-group";
 
 
@@ -96,7 +97,8 @@ export default () => {
 
 
         <Route path="restaurant/pizza/*" element={<PizzaItem />} />
-        <Route path="restaurant/regular/*" element={<Item />} />
+        <Route path="restaurant/regular/*" element={<RegularItem />} />
+        <Route path="restaurant/combo/*" element={<ComboItem />} />
 
 
 

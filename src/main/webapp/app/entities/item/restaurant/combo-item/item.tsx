@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+  import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,12 +15,12 @@ import { Column } from 'primereact/column';
 import {Tag} from "primereact/tag";
 import {Rating} from "primereact/rating";
 import {Button} from "primereact/button";
-import VariantView from "app/entities/regalar-item/variant-view";
+import VariantView from "app/entities/item/restaurant/regalar-item/variant-view";
 import {Modal} from "reactstrap";
 import {FilterMatchMode} from "primereact/api";
 import {Dropdown} from "primereact/dropdown";
 
-import { getRestaurantItemCategories} from '../term/term.reducer';
+import { getRestaurantItemCategories} from '../../../term/term.reducer';
 
 
 export const Item = () => {
@@ -38,11 +38,11 @@ export const Item = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedVariants, setSelectedVariants] = useState([]);
 
-  const itemList = useAppSelector(state => state.item.entities);
-  const loading = useAppSelector(state => state.item.loading);
-  const errorMessage = useAppSelector(state => state.item.errorMessage);
+  const itemList = useAppSelector(state => state.comboItem.entities);
+  const loading = useAppSelector(state => state.comboItem.loading);
+  const errorMessage = useAppSelector(state => state.comboItem.errorMessage);
 
-  const totalItems = useAppSelector(state => state.item.totalItems);
+  const totalItems = useAppSelector(state => state.comboItem.totalItems);
 
   const termList = useAppSelector(state => state.term.entities)
 
@@ -222,7 +222,7 @@ console.log(errorMessage, 'errorMessage')
   };
 
   const handleCreate = () => {
-    navigate('/restaurant/regular/new')
+    navigate('/restaurant/combo/new')
   }
 
 
@@ -248,7 +248,7 @@ console.log(errorMessage, 'errorMessage')
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Add new Item" raised onClick={handleCreate} disabled={loading}>
+        <Button label="Create New Combo Item" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -256,7 +256,7 @@ console.log(errorMessage, 'errorMessage')
   );
 
   const nameColumnTemplate = rowData => {
-    const editUrl = `/item/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/restaurant/combo/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -266,7 +266,7 @@ console.log(errorMessage, 'errorMessage')
 
 
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/item/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/restaurant/combo/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
@@ -275,7 +275,7 @@ console.log(errorMessage, 'errorMessage')
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/item/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/restaurant/combo/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
