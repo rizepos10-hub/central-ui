@@ -6,7 +6,7 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import Menu from './menu/index';
 import Discount from './discount';
 import Customer from './customer';
-import Item from './item';
+import Item from './regalar-item';
 import Addon from './addon';
 import AddonGroups from './addon-groups';
 import PizzaGroup from './pizza-settings';
@@ -58,7 +58,6 @@ export default () => {
 
         <Route path="discount/*" element={<Discount />} />
         <Route path="customer/*" element={<Customer />} />
-        <Route path="item/*" element={<Item />} />
         <Route path="addon/*" element={<Addon />} />
         <Route path="addon-groups/*" element={<AddonGroups />} />
 
@@ -97,6 +96,7 @@ export default () => {
 
 
         <Route path="restaurant/pizza/*" element={<PizzaItem />} />
+        <Route path="restaurant/regular/*" element={<Item />} />
 
 
 

@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { getSortState } from 'react-jhipster';
 import { ITEMS_PER_PAGE_Summary } from 'app/shared/util/pagination.constants';
-import { getEntities, searchEntities,reset } from 'app/entities/item/item.reducer';
+import { getEntities, searchEntities,reset } from 'app/entities/regalar-item/item.reducer';
 import Select from "react-select";
 
 interface ItemSelectionModalProps {

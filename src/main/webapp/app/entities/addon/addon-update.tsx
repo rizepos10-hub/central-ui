@@ -9,7 +9,7 @@ import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IItem } from 'app/shared/model/item.model';
-import { getEntities as getItems } from 'app/entities/item/item.reducer';
+import { getEntities as getItems } from 'app/entities/regalar-item/item.reducer';
 import { IAddon } from 'app/shared/model/addon.model';
 import { getEntity, updateEntity, createEntity, reset } from './addon.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
