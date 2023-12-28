@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './pizza-item.reducer';
 
-export const AddonDeleteDialog = () => {
+export const PizzaDeleteDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -46,7 +46,7 @@ export const AddonDeleteDialog = () => {
       </ModalHeader>
       <ModalBody id="tempApp.restaurant-pizza.delete.question">
         <Translate contentKey="tempApp.restaurant-pizza.delete.question" interpolate={{ id: pizzaItemEntity.id }}>
-          Are you sure you want to delete this Addon?
+          Are you sure you want to delete this Pizza?
         </Translate>
       </ModalBody>
       <ModalFooter>
@@ -65,4 +65,4 @@ export const AddonDeleteDialog = () => {
   );
 };
 
-export default AddonDeleteDialog;
+export default PizzaDeleteDialog;

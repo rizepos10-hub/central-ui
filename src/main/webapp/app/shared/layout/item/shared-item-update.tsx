@@ -25,6 +25,7 @@ type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChange: OnFieldChangeFunction}) => {
   const dispatch = useAppDispatch();
   const location = useLocation();
+  const isSimplePizza = item?.itemType === "RESTAURANT" && item?.variants?.[0]?.multiple === false;
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -109,7 +110,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
       <Row >
               <FormGroup>
               <Row className={"my-3"} >
-                <Col md="6">
+                {!isSimplePizza ? <Col md="6">
                   <div className={"d-flex flex-column gap-2"}>
                     <label>
                       <Translate contentKey={"tempApp.item.name"}>Name</Translate>
@@ -122,9 +123,9 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       placeholder="Item Name"
                       value={item.name || ''}
                       onChange={(e) => onFieldChange('name', e.target.value)}
-                      />
+                    />
                   </div>
-                </Col>
+                </Col> : null}
 
                 <Col md="6">
                   <div className={"d-flex flex-column gap-2"}>
