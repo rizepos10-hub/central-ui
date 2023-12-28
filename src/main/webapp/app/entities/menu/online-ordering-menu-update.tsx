@@ -27,11 +27,11 @@ import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ITerm } from 'app/shared/model/term.model';
-import { getEntities as getTerms } from 'app/entities/term/term.reducer';
+import { getEntities as getTerms } from 'app/entities/term/Menu-Category/menu-category.reducer';
 import { IMenu } from 'app/shared/model/menu.model';
 import {getEntity, updateEntity, createEntity, reset, sendEvent, duplicateMenu} from './menu.reducer';
 import {faTimes} from "@fortawesome/free-solid-svg-icons";
-import {getEntities as getItems , searchEntities as searchItems} from "app/entities/item/restaurant/regalar-item/item.reducer";
+import {getEntities as getItems , searchEntities as searchItems} from "app/entities/item/restaurant/restaurant-item.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import Select from "react-select";
 import {APP_DATE_FORMAT} from "app/config/constants";
@@ -56,8 +56,8 @@ export const OnlineOrderingMenuUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const terms = useAppSelector(state => state.term.entities)
-  const itemList = useAppSelector(state => state.item.entities);
+  const menuCategories = useAppSelector(state => state.menuCategory.entities)
+  const itemList = useAppSelector(state => state.restaurantItems.entities);
   const menuEntity = useAppSelector(state => state.menu.entity);
   const loading = useAppSelector(state => state.menu.loading);
   const updating = useAppSelector(state => state.menu.updating);
@@ -196,7 +196,6 @@ export const OnlineOrderingMenuUpdate = () => {
       dispatch(reset());
     } else {
       dispatch(getEntity(id));
-      dispatch(getEntity(id));
     }
     dispatch(getBranches({
       page: paginationState.activePage - 1,
@@ -228,7 +227,7 @@ export const OnlineOrderingMenuUpdate = () => {
 
     if (menuEntity?.item && !activeTab) {
       setMenuItems(menuEntity.item.map(item => item));
-      setDisplayedTerms([...new Set(itemList?.map(item => item.terms[0]?.name || "Uncategorized"))]
+      setDisplayedTerms([...new Set(itemList?.map(item => item.categories?.[0]?.name || "Uncategorized"))]
         .sort((a, b) => (a === 'Uncategorized' ? 1 : b === 'Uncategorized' ? -1 : 0)));
       setActiveTab(displayedTerms[0]);
 
@@ -293,7 +292,7 @@ export const OnlineOrderingMenuUpdate = () => {
     const entity = {
       ...menuEntity,
       ...restValues,
-      category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
+      category: selectedCategory ? menuCategories.find((it) => it.name === selectedCategory) : null,
       item: [...filteredMenuItems, ...itemIds],
       branch: { id: selectedBranches.value }
     };
@@ -338,7 +337,7 @@ export const OnlineOrderingMenuUpdate = () => {
 
 
   const groupedMenuItems = itemList.reduce((groups, item) => {
-    const termName = item.terms[0]?.name || 'Uncategorized';
+    const termName = item?.categories?.[0]?.name || 'Uncategorized';
     if (!groups[termName]) {
       groups[termName] = [];
     }
@@ -373,7 +372,7 @@ export const OnlineOrderingMenuUpdate = () => {
       setFilteredValue(menuItems);
     } else {
       const filtered = menuItems?.filter((product) => {
-        return product.terms[0]?.name === selectedTerm;
+        return product.menuCategories[0]?.name === selectedTerm;
       });
       setFilteredValue(filtered);
     }
@@ -426,7 +425,7 @@ export const OnlineOrderingMenuUpdate = () => {
             {/* <Rating value={data.rating} readOnly cancel={false} className="mb-2"></Rating> */}
             <div className="flex align-items-center">
               <i className="pi pi-tag mr-2"></i>
-              <span className="font-semibold">{data.terms[0]?.name || 'Uncategorized'}</span>
+              <span className="font-semibold">{data.menuCategories[0]?.name || 'Uncategorized'}</span>
             </div>
           </div>
           <div className="flex flex-row md:flex-column justify-content-between w-full md:w-auto align-items-center md:align-items-end mt-5 md:mt-0">
@@ -448,7 +447,7 @@ export const OnlineOrderingMenuUpdate = () => {
           <div className="flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
             <div className="flex align-items-center">
               <i className="pi pi-tag mr-2" />
-              <span className="font-semibold">{data.terms[0]?.name || 'Uncategorized'}</span>
+              <span className="font-semibold">{data.menuCategories[0]?.name || 'Uncategorized'}</span>
             </div>
             {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
           </div>
@@ -622,8 +621,8 @@ export const OnlineOrderingMenuUpdate = () => {
                     value={selectedCategory}
                     onChange={handleCategoryChange}
                   >
-                    {terms
-                      ? terms.map((otherEntity) => (
+                    {menuCategories
+                      ? menuCategories.map((otherEntity) => (
                         <option key={otherEntity.id} value={otherEntity.name}>
                           {otherEntity.name}
                         </option>
@@ -704,7 +703,7 @@ export const OnlineOrderingMenuUpdate = () => {
                                       <CardBody>
                                         <h6>{item.name}</h6>
                                         {/* <p>{item.desc}</p> */}
-                                        <p>{item.terms[0]?.name}</p>
+                                        <p>{item.menuCategories[0]?.name}</p>
                                       </CardBody>
                                     </Card>
                                   </div>
