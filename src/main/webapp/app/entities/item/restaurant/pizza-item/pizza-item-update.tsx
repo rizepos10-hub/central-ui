@@ -24,13 +24,14 @@ import {InputNumber} from "primereact/inputnumber";
 
 const items: MenuItem[] = [
   {
-    label: "1",
+    label: "Choose Pizza Type",
   },
   {
-    label: "2",
+    label: "Create Your Pizza",
   },
 
 ];
+
 
 
 export const PizzaItemUpdate = () => {
@@ -55,7 +56,7 @@ export const PizzaItemUpdate = () => {
 
   const [pizzaItem, setPizzaItem] = useState<IPizzaItem>({});
 
-
+  const isMultiple = pizzaItem?.variants?.[0]?.multiple === true
   const filteredOptions = useMemo(() => {
     const toppings = pizzaPricingClasses.filter(option => option.type === 'TOPPING');
     const crustTypes = pizzaPricingClasses.filter(option => option.type === 'CRUST_TYPE');
@@ -86,6 +87,7 @@ export const PizzaItemUpdate = () => {
       ];
       return {
         ...prev,
+        name: fieldName === "predefinedPizza" ? value?.name : prev?.name,
         variants: updatedVariants,
       };
     });
@@ -146,12 +148,12 @@ export const PizzaItemUpdate = () => {
 
   const multipleOptions = ["Simple", "Multiple"];
 
-  const handleMultipleClick = (e) => {
+  const handleMultipleClick = (type) => {
     setPizzaItem((prev) => {
       const updatedVariants = [
         {
           ...prev.variants[0],
-          multiple: e.value === "Multiple",
+          multiple: type === "MULTIPLE",
         },
       ];
       return {
@@ -253,14 +255,34 @@ export const PizzaItemUpdate = () => {
           </h2>
         </Col>
       </Row>
-      {isNew ? <Steps model={items} activeIndex={activeIndex} onSelect={e => activeIndex === 1 && setActiveIndex(e.index)}
-              readOnly={activeIndex === 0}/> : null}
+      {isNew ?
+        <div className="card">
+        <Steps
+        model={items}
+        activeIndex={activeIndex}
+        onSelect={e => activeIndex === 1 && setActiveIndex(e.index)}
+        readOnly={activeIndex === 0}
+        />
+        </div>: null}
         {activeIndex === 0 && isNew ?
             <div className={"d-flex justify-content-center"}>
-              <div className={ "card d-flex flex-column"}>
+              <div className={ "card d-flex flex-column w-7 h-40rem "}>
             <div className={"  p-6  d-flex flex-column justify-content-center align-items-center"}>
-              <label>Pizza Item Type</label>
-              <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Simple'} onChange={handleMultipleClick} options={multipleOptions} />
+              <h4>Pizza Item Type</h4>
+              <div className="p-selectbutton d-flex gap-8 p-buttonset p-component p-3" role="group" data-pc-name="selectbutton"
+                   data-pc-section="root">
+                <div className={`p-button h-20rem w-20rem p-component ${!isMultiple ? "p-highlight" : "" }`} role="button" aria-label="Simple" aria-pressed="true"
+                     tabIndex={0} data-pc-section="button" onClick={() => handleMultipleClick("SIMPLE")}>
+                  <span className="p-button-label p-c" data-pc-section="label">Simple</span>
+                  <span role="presentation" className="p-ink" style={{height: "78.0256px", width:"78.0256px"}}></span>
+                </div>
+                <div className={`p-button  h-20rem w-20rem  p-component ${isMultiple ? "p-highlight" : "" }`} role="button" aria-label="Multiple" aria-pressed="false"
+                     tabIndex={0} data-pc-section="button"  onClick={() => handleMultipleClick("MULTIPLE")}>
+                  <span className="p-button-label p-c" data-pc-section="label">Multiple</span>
+                  <span role="presentation" className="p-ink" style={{height: "78.0256px", width:"78.0256px"}}></span>
+                </div>
+              </div>
+              {/* <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Simple'} onChange={handleMultipleClick} options={multipleOptions} /> */}
             </div>
               <div className={"ml-auto"}>
                 <Button onClick={handleNextClick}>Next</Button>
@@ -273,26 +295,28 @@ export const PizzaItemUpdate = () => {
             <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
 
           <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+            {!pizzaItem?.variants?.[0]?.multiple ?<Row>
+              <Col md="6">
+                <div className={"d-flex flex-column gap-2"}>
+                  <label>
+                    Predefined Pizza
+                  </label>
+                  <Select
+                    value={pizzaItem?.variants?.[0]?.predefinedPizza?.[0]}
+                    required
+                    options={predefinedPizzaOptions}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    onChange={(predefinedPizza) => handleSinglePizzaValuesChange("predefinedPizza", predefinedPizza)}
+                  />
+                </div>
+              </Col>
+            </Row> : null}
+
             <SharedItemUpdate item={pizzaItem} onFieldChange={handleFieldChange}/>
 
               <Row className={"my-6"} >
-                {!pizzaItem?.variants?.[0]?.multiple ?<Row>
-                  <Col md="6">
-                    <div className={"d-flex flex-column gap-2"}>
-                      <label>
-                        Predefined Pizza
-                      </label>
-                      <Select
-                        value={pizzaItem?.variants?.[0]?.predefinedPizza?.[0]}
-                        required
-                        options={predefinedPizzaOptions}
-                        getOptionLabel={option => option.name}
-                        getOptionValue={option => option.id}
-                        onChange={(predefinedPizza) => handleSinglePizzaValuesChange("predefinedPizza", predefinedPizza)}
-                      />
-                    </div>
-                  </Col>
-                </Row> : null}
+
               <Row className={"mt-2"}>
                 {!pizzaItem?.variants?.[0]?.multiple ? <Col md="3">
                   <div className={"d-flex flex-column gap-2"}>

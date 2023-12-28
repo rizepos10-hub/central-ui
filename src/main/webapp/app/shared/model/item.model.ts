@@ -22,6 +22,7 @@ export interface IItem {
     addonGroup?: IAddonGroups
   }[];
   status?: ItemStatus | null;
+  variants?: any;
   visibility?: IVisibility;
   attachments?: IAttachment[] | null;
   terms?: ITerm[] | null;
