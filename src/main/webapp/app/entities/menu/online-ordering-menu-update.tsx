@@ -447,7 +447,7 @@ export const OnlineOrderingMenuUpdate = () => {
           <div className="flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
             <div className="flex align-items-center">
               <i className="pi pi-tag mr-2" />
-              <span className="font-semibold">{data.menuCategories[0]?.name || 'Uncategorized'}</span>
+              <span className="font-semibold">{data.categories?.[0]?.name || 'Uncategorized'}</span>
             </div>
             {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
           </div>
@@ -703,7 +703,7 @@ export const OnlineOrderingMenuUpdate = () => {
                                       <CardBody>
                                         <h6>{item.name}</h6>
                                         {/* <p>{item.desc}</p> */}
-                                        <p>{item.menuCategories[0]?.name}</p>
+                                        <p>{item.categories?.[0]?.name}</p>
                                       </CardBody>
                                     </Card>
                                   </div>
