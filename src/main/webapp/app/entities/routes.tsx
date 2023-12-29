@@ -42,6 +42,8 @@ import FloorPlanSettingsRoutes from "app/entities/settings/floor-plans/floor-pla
 import FloorPlanRoutes from "app/entities/settings/floor-plans";
 import PizzaItem from "app/entities/item/restaurant/pizza-item";
 import PizzaToppingGroup from "app/entities/pizza-settings/pizza-topping-group";
+import SimpleItem from "app/entities/item/retail/simple-item";
+import RetailAttributes from "app/entities/item/retail/attributes";
 
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
@@ -100,7 +102,8 @@ export default () => {
         <Route path="restaurant/regular/*" element={<RegularItem />} />
         <Route path="restaurant/combo/*" element={<ComboItem />} />
 
-
+        <Route path="retail/attributes/*" element={<RetailAttributes />} />
+        <Route path="retail/simple/*" element={<SimpleItem />} />
 
 
 
