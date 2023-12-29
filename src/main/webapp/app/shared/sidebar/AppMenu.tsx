@@ -76,6 +76,11 @@ const AppMenu = () => {
                                     icon: 'pi pi-folder-open',
                                     to: 'retail/grouped'
                                   },
+                                  {
+                                    label: 'Attributes',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'retail/attributes'
+                                  },
                                 ]
                               },
                               {

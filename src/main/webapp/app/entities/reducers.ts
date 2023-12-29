@@ -40,6 +40,10 @@ import pizzaItem from "app/entities/item/restaurant/pizza-item/pizza-item.reduce
 import regularItem from 'app/entities/item/restaurant/regalar-item/item.reducer';
 import comboItem from 'app/entities/item/restaurant/combo-item/item.reducer';
 import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
+import simpleItem from "app/entities/item/retail/simple-item/simple-item.reducer";
+import retailItems from "app/entities/item/retail/retail-items.reducer";
+import retailAttribute from "app/entities/item/retail/attributes/retail-attribute.reducer";
+import retailAttributeValue from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 
@@ -82,7 +86,11 @@ const entitiesReducers = {
   toppingGroup,
   regularItem,
   comboItem,
-  restaurantItems
+  simpleItem,
+  restaurantItems,
+  retailItems,
+  retailAttribute,
+  retailAttributeValue
 
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
