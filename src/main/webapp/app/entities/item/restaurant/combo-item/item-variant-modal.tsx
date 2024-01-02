@@ -34,7 +34,7 @@ import { getEntities as getBranches } from '../../../branch/branch.reducer';
 import { InputText } from 'primereact/inputtext';
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import Pizza from "app/entities/item/restaurant/regalar-item/pizza-display/pizza";
+import Pizza from "app/entities/item/restaurant/regular-item/pizza-display/pizza";
 import { getEntities as getItemsForRecipe } from "app/entities/item/restaurant/restaurant-item.reducer"
 import restaurantItems from "app/entities/item/restaurant/restaurant-item.reducer";
 

@@ -15,7 +15,7 @@ import { Column } from 'primereact/column';
 import {Tag} from "primereact/tag";
 import {Rating} from "primereact/rating";
 import {Button} from "primereact/button";
-import VariantView from "app/entities/item/restaurant/regalar-item/variant-view";
+import VariantView from "app/entities/item/restaurant/regular-item/variant-view";
 import {Modal} from "reactstrap";
 import {FilterMatchMode} from "primereact/api";
 import {Dropdown} from "primereact/dropdown";

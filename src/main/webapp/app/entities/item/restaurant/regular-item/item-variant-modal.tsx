@@ -35,7 +35,7 @@ import { getItemsForRecipe, getEntities } from './item.reducer';
 import { InputText } from 'primereact/inputtext';
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import Pizza from "app/entities/item/restaurant/regalar-item/pizza-display/pizza";
+import Pizza from "app/entities/item/restaurant/regular-item/pizza-display/pizza";
 
 interface IVariantProps {
   showModal: boolean;

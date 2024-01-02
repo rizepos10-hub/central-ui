@@ -16,7 +16,7 @@ import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 import Select from "react-select";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {getEntities} from "app/entities/term/Item-restaurant-category/item-restaurant-category.reducer";
+import {getEntities} from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
 
 export const UpdateItemRestaurantCategory = () => {
   const dispatch = useAppDispatch();
@@ -31,8 +31,8 @@ export const UpdateItemRestaurantCategory = () => {
   console.log(id, 'identity')
   const isNew = id === undefined;
 
-  const terms = useAppSelector(state => state.restaurantCategory.entities).map((term) => ({label: term.name, value: term.id}))
-  const termEntity = useAppSelector(state => state.restaurantCategory.entity);
+  const categories = useAppSelector(state => state.restaurantCategory.entities).map((category) => ({label: category.name, value: category.id}))
+  const categoryEntity = useAppSelector(state => state.restaurantCategory.entity);
   const loading = useAppSelector(state => state.restaurantCategory.loading);
   const updating = useAppSelector(state => state.restaurantCategory.updating);
   const updateSuccess = useAppSelector(state => state.restaurantCategory.updateSuccess);
@@ -47,7 +47,7 @@ export const UpdateItemRestaurantCategory = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities).map(term => ({ value: term.id, label: term.name }));
+  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities).map(category => ({ value: category.id, label: category.name }));
 
   const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
 
@@ -59,10 +59,8 @@ export const UpdateItemRestaurantCategory = () => {
 
 
 
-  console.log(termEntity, 'termEntity')
-  const handleClose = () => {
-    navigate('/term' + location.search);
-  };
+  console.log(categoryEntity, 'categoryEntity')
+
 
 
 
@@ -93,26 +91,26 @@ export const UpdateItemRestaurantCategory = () => {
 
   useEffect(() => {
 
-    if (termEntity?.attachments) {
-      setSelectedAttachments(termEntity.attachments.map(attachment => ({ id: attachment.id, url: attachment.url })));
+    if (categoryEntity?.attachments) {
+      setSelectedAttachments(categoryEntity.attachments.map(attachment => ({ id: attachment.id, url: attachment.url })));
     }
 
-    if (termEntity?.accountingGroups) {
-      setSelectedAccountingGroups(termEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
-      setAccountingGroupsToSave(termEntity.accountingGroups?.map(group => ({  id : group.id })));
+    if (categoryEntity?.accountingGroups) {
+      setSelectedAccountingGroups(categoryEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
+      setAccountingGroupsToSave(categoryEntity.accountingGroups?.map(group => ({  id : group.id })));
     }
 
-    if(termEntity?.parents && termEntity.parents.length > 0){
-      setSelectedParents({label : termEntity.parents[0]?.name, value: termEntity.parents[0]?.id})
-      setParentsToSave(termEntity?.parents?.map(group => ({  id : group?.id })));
+    if(categoryEntity?.parents && categoryEntity.parents.length > 0){
+      setSelectedParents({label : categoryEntity.parents[0]?.name, value: categoryEntity.parents[0]?.id})
+      setParentsToSave(categoryEntity?.parents?.map(group => ({  id : group?.id })));
 
     }
     const {id: newTermId} = newTerm
     if (updateSuccess && newTermId) {
-      navigate(`/term/${newTermId}/items/edit?page=1&sort=id,asc`)
+      navigate(`/category/${newTermId}/restaurant-items/edit?page=1&sort=id,asc`)
     }
 
-  }, [updateSuccess, termEntity?.attachments]);
+  }, [updateSuccess, categoryEntity?.attachments]);
 
   const removeAttachment = (attachmentId) => {
     setSelectedAttachments((prevAttachments) =>
@@ -167,11 +165,11 @@ export const UpdateItemRestaurantCategory = () => {
 
   };
 
-  console.log(termEntity, 'termEntity')
+  console.log(categoryEntity, 'categoryEntity')
 
   const saveEntity = values => {
     const entity = {
-      ...termEntity,
+      ...categoryEntity,
       ...values,
       accountingGroups: accountingGroupsToSave,
       parents: parentsToSave,
@@ -190,18 +188,18 @@ export const UpdateItemRestaurantCategory = () => {
   const defaultValues = () =>
     isNew
       ? {
-        term: '',
+        category: '',
       }
       : {
-        ...termEntity,
+        ...categoryEntity,
       };
-  console.log(terms, 'terms')
+  console.log(categories, 'categories')
   return (
     <div>
       <Row >
         <Col md="8">
           <h2  data-cy="TermCreateUpdateHeading">
-            {isNew ? "Create an Item Category" : "Edit Item Category"}
+            {isNew ? "Create Restaurant Category" : "Edit Restaurant Category"}
           </h2>
         </Col>
       </Row>
@@ -216,14 +214,14 @@ export const UpdateItemRestaurantCategory = () => {
               {/*     name="id" */}
               {/*     required */}
               {/*     readOnly */}
-              {/*     id="term-id" */}
+              {/*     id="category-id" */}
               {/*     label={translate('global.field.id')} */}
               {/*     validate={{ required: true }} */}
               {/*   /> */}
               {/* ) : null} */}
               <ValidatedField
                 label={translate('tempApp.term.name')}
-                id="term-name"
+                id="category-name"
                 name="name"
                 data-cy="name"
                 type="text"
@@ -232,7 +230,7 @@ export const UpdateItemRestaurantCategory = () => {
                 }}
               />
               {/* <ValidatedField */}
-              {/*   id="term-taxonomy" */}
+              {/*   id="category-taxonomy" */}
               {/*   name="taxonomy" */}
               {/*   data-cy="taxonomy" */}
               {/*   label={'Category'} */}
@@ -257,7 +255,7 @@ export const UpdateItemRestaurantCategory = () => {
 
               <div className="mb-3">
                 <Translate contentKey="tempApp.term.parents">Parents</Translate>
-                <Select  value={selectedParents}  onChange={handleParentsChange} options={terms} />
+                <Select  value={selectedParents}  onChange={handleParentsChange} options={categories} />
               </div>
               <div className="mb-3">
                 <ValidatedField
@@ -321,7 +319,7 @@ export const UpdateItemRestaurantCategory = () => {
 
 
 
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/term/items" replace color="info">
+              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/category/restaurant-items" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">

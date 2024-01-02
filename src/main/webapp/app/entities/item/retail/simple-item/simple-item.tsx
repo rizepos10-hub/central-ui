@@ -142,7 +142,7 @@ export const SimpleItem = () => {
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Simple Item" raised onClick={handleCreate} disabled={loading}>
+        <Button label="Create New Simple Item" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>

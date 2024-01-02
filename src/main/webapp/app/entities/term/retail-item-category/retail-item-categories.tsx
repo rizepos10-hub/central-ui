@@ -9,7 +9,7 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {searchEntities, getEntities} from './item-restaurant-category.reducer';
+import {searchEntities, getEntities} from './retail-item-category.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
@@ -25,10 +25,10 @@ export const ItemRestaurantCategories = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const termList = useAppSelector(state => state.restaurantCategory.entities)
-  const loading = useAppSelector(state => state.restaurantCategory.loading);
+  const categoryList = useAppSelector(state => state.retailCategory.entities)
+  const loading = useAppSelector(state => state.retailCategory.loading);
 
-  const totalItems = termList.length;
+  const totalItems = categoryList.length;
 
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -112,7 +112,7 @@ export const ItemRestaurantCategories = () => {
   console.log(totalItems, 'totalItemCategories')
 
   const nameColumnTemplate = rowData => {
-    const editUrl = `/term/${rowData.id}/items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/category/${rowData.id}/retail-items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -120,7 +120,7 @@ export const ItemRestaurantCategories = () => {
     );
   };
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/term/${rowData.id}/items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/category/${rowData.id}/retail-items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
@@ -129,7 +129,7 @@ export const ItemRestaurantCategories = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/term/${rowData.id}/items/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/category/${rowData.id}/retail-items/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -137,7 +137,7 @@ export const ItemRestaurantCategories = () => {
     );
   };
   const handleCreate = () => {
-    navigate('/term/items/new')
+    navigate('/category/retail-items/new')
   }
 
   const header = (
@@ -148,24 +148,24 @@ export const ItemRestaurantCategories = () => {
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Item Category" raised onClick={handleCreate} disabled={loading}>
+        <Button label="Create New Retail Category" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
     </div>
   );
 
-  console.log(termList, 'termlist')
+  console.log(categoryList, 'categorylist')
 
   return (
     <div>
       <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
-        Item Categories View
+        Retail Categories View
 
       </h2>
 
       <div className="table-responsive">
-        <DataTable value={termList} editMode="row" paginator header={header}
+        <DataTable value={categoryList} editMode="row" paginator header={header}
                    loading={loading} removableSort  filters={filters} filterDisplay="row"
                    totalRecords={totalItems} rows={5}>
           <Column field="name" header="Name" filterPlaceholder={"Search by name"} filter sortable body={nameColumnTemplate} style={{ width: '20%' }} />
