@@ -55,6 +55,17 @@ const AppMenu = () => {
                                     icon: 'pi pi-folder-open',
                                     to: 'restaurant/pizza'
                                   },
+                                  {
+                                    label: 'Addons',
+                                    icon: 'pi pi-plus-circle',
+                                    to: '/addon'
+                                  },
+
+                                  {
+                                    label: 'Addon Groups',
+                                    icon: 'pi pi-plus-circle',
+                                    to: '/addon-groups'
+                                  },
                                 ]
                               },
                               {
@@ -92,18 +103,6 @@ const AppMenu = () => {
                                 label: 'Items',
                                 icon: ' pi pi-th-large',
                                 to: '/item'
-                              },
-
-                              {
-                                label: 'Addons',
-                                icon: 'pi pi-plus-circle',
-                                to: '/addon'
-                              },
-
-                              {
-                                label: 'Addon Groups',
-                                icon: 'pi pi-plus-circle',
-                                to: '/addon-groups'
                               },
 
                             ]
