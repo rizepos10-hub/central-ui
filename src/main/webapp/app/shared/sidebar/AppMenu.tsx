@@ -41,6 +41,11 @@ const AppMenu = () => {
                                 icon: 'pi pi-folder-open',
                                 items: [
                                   {
+                                    label: 'Category',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/category/restaurant-items'
+                                  },
+                                  {
                                     label: 'Regular',
                                     icon: 'pi pi-folder-open',
                                     to: 'restaurant/regular'
@@ -51,7 +56,7 @@ const AppMenu = () => {
                                     to: 'restaurant/combo'
                                   },
                                   {
-                                    label: 'Pizza Item',
+                                    label: 'Pizza',
                                     icon: 'pi pi-folder-open',
                                     to: 'restaurant/pizza'
                                   },
@@ -72,6 +77,11 @@ const AppMenu = () => {
                                 label: 'Retail',
                                 icon: 'pi pi-folder-open',
                                 items: [
+                                  {
+                                    label: 'Category',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/category/retail-items'
+                                  },
                                   {
                                     label: 'Simple',
                                     icon: 'pi pi-folder-open',
@@ -94,16 +104,7 @@ const AppMenu = () => {
                                   },
                                 ]
                               },
-                              {
-                                label: 'Category',
-                                icon: 'pi pi-folder-open',
-                                to: '/term/items'
-                              },
-                              {
-                                label: 'Items',
-                                icon: ' pi pi-th-large',
-                                to: '/item'
-                              },
+
 
                             ]
                           },
@@ -115,7 +116,7 @@ const AppMenu = () => {
                               {
                                 label: 'Category',
                                 icon: 'pi pi-folder',
-                                to: '/term/menus'
+                                to: '/category/menus'
                               },
                               {
                                 label: 'Pos List',

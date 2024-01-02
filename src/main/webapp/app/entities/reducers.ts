@@ -17,7 +17,8 @@ import voidReasons from 'app/entities/settings/void-reasons/void-reasons.reducer
 import printer from 'app/entities/settings/printing/printer/printer.reducer';
 import printingProfiles from 'app/entities/settings/printing/printing-profiles/printing-profile.reducer';
 import productionCenter from 'app/entities/location/production-center/production-center.reducer';
-import restaurantCategory from 'app/entities/term/Item-restaurant-category/item-restaurant-category.reducer';
+import restaurantCategory from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import retailCategory from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import menuCategory from 'app/entities/term/Menu-Category/menu-category.reducer';
 
 
@@ -37,13 +38,14 @@ import floorPlanSettings from 'app/entities/settings/floor-plans/floor-plan-sett
 import floorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 import toppingGroup from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer"
 import pizzaItem from "app/entities/item/restaurant/pizza-item/pizza-item.reducer";
-import regularItem from 'app/entities/item/restaurant/regalar-item/item.reducer';
+import regularItem from 'app/entities/item/restaurant/regular-item/item.reducer';
 import comboItem from 'app/entities/item/restaurant/combo-item/item.reducer';
-import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
 import simpleItem from "app/entities/item/retail/simple-item/simple-item.reducer";
-import retailItems from "app/entities/item/retail/retail-items.reducer";
 import retailAttribute from "app/entities/item/retail/attributes/retail-attribute.reducer";
 import retailAttributeValue from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
+import retailItems from "app/entities/item/retail/retail-items.reducer";
+import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
+import allItems from 'app/entities/item/all-items.reducer';
 
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 
@@ -82,15 +84,17 @@ const entitiesReducers = {
   floorPlan,
   pizzaItem,
   restaurantCategory,
+  retailCategory,
   menuCategory,
   toppingGroup,
   regularItem,
   comboItem,
   simpleItem,
+  retailAttribute,
+  retailAttributeValue,
   restaurantItems,
   retailItems,
-  retailAttribute,
-  retailAttributeValue
+  allItems,
 
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */

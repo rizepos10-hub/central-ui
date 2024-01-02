@@ -3,19 +3,27 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import UpdateItemRestaurantCategory from "app/entities/term/Item-restaurant-category/update-item-restaurant-category";
+import UpdateItemRestaurantCategory from "app/entities/term/restaurant-Item-category/update-item-restaurant-category";
 import UpdateMenuCategory from "app/entities/term/Menu-Category/update-menu-category";
-import DeleteItemRestaurantCategoryDialog from "app/entities/term/Item-restaurant-category/delete-item-restaurant-category-dialog";
+import DeleteItemRestaurantCategoryDialog from "app/entities/term/restaurant-Item-category/delete-item-restaurant-category-dialog";
 import DeleteMenuCategoryDialog from "app/entities/term/Menu-Category/delete-menu-category-dialog";
 import MenuCategoriesTest from "app/entities/term/Menu-Category/menu-categories";
-import ItemCategoriesTest from "app/entities/term/Item-restaurant-category/item-restaurant-categories";
+import RestaurantItemCategory from "app/entities/term/restaurant-Item-category/item-restaurant-categories";
+
+import RetailItemCategory from "app/entities/term/retail-item-category/retail-item-categories"
+import UpdateRetailItemCategory from "app/entities/term/retail-item-category/update-retail-item-category";
+import DeleteRetailItemCategoryDialog from "app/entities/term/retail-item-category/delete-retail-item-category-dialog";
 
 const TermRoutes = () => (
   <ErrorBoundaryRoutes>
 
 
-    <Route path="items" element={<ItemCategoriesTest />} />
-    <Route path="items/new" element={<UpdateItemRestaurantCategory />} />
+    <Route path="restaurant-items" element={<RestaurantItemCategory />} />
+    <Route path="restaurant-items/new" element={<UpdateItemRestaurantCategory />} />
+
+
+    <Route path="retail-items" element={<RetailItemCategory />} />
+    <Route path="retail-items/new" element={<UpdateRetailItemCategory />} />
 
 
     <Route path="menus" element={<MenuCategoriesTest />} />
@@ -23,11 +31,15 @@ const TermRoutes = () => (
 
     <Route path=":id">
 
+      {/* restaurant Item category edit or delete */}
+      <Route path="restaurant-items/edit" element={<UpdateItemRestaurantCategory />} />
+      <Route path="restaurant-items/delete" element={<DeleteItemRestaurantCategoryDialog />} />
 
+      {/* restaurant Item category edit or delete */}
+      <Route path="retail-items/edit" element={<UpdateRetailItemCategory />} />
+      <Route path="restaurant-items/delete" element={<DeleteRetailItemCategoryDialog />} />
 
-      <Route path="items/edit" element={<UpdateItemRestaurantCategory />} />
-      <Route path="items/delete" element={<DeleteItemRestaurantCategoryDialog />} />
-
+      {/* menu  category edit or delete */}
       <Route path="menus/edit" element={<UpdateMenuCategory />} />
       <Route path="menus/delete" element={<DeleteMenuCategoryDialog />} />
 

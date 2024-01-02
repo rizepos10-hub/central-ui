@@ -6,7 +6,7 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import Menu from './menu/index';
 import Discount from './discount';
 import Customer from './customer';
-import RegularItem from './item/restaurant/regalar-item';
+import RegularItem from './item/restaurant/regular-item';
 import ComboItem from './item/restaurant/combo-item';
 import Addon from './addon';
 import AddonGroups from './addon-groups';
@@ -64,7 +64,7 @@ export default () => {
         <Route path="addon/*" element={<Addon />} />
         <Route path="addon-groups/*" element={<AddonGroups />} />
 
-        <Route path="term/*" element={<Term />} />
+        <Route path="category/*" element={<Term />} />
         <Route path="order/*" element={<Order />} />
 
         <Route path="tax/*" element={<Tax />} />

@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
 
-import { getRestaurantItemCategories as getTerms } from 'app/entities/term/term.reducer';
+import { getEntities as getRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
 
@@ -19,13 +19,13 @@ import { getEntities as getAccountingGroups } from 'app/entities/settings/accoun
 import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
 import { getEntity, updateEntity, createEntity, reset, getEntities as getItems, importAddons } from './item.reducer';
 import Select from 'react-select';
-import ItemVariantModal from 'app/entities/item/restaurant/regalar-item/item-variant-modal';
+import ItemVariantModal from 'app/entities/item/restaurant/regular-item/item-variant-modal';
 import attachment, { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { Button as PrimeButton } from 'primereact/button';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import AddonImportModal from 'app/entities/item/restaurant/regalar-item/addon-import-modal';
+import AddonImportModal from 'app/entities/item/restaurant/regular-item/addon-import-modal';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
 import axios from 'axios';
 import {Checkbox} from "primereact/checkbox";
@@ -74,14 +74,14 @@ export const ItemUpdate = () => {
 
   const itemOptions = items?.map(item => ({ value: item.id, label: item.name }));
 
-  const entityTerms = itemEntity.terms?.map(term => ({ value: term.id, label: term.name }));
+  const entityTerms = itemEntity.categories?.map(category => ({ value: category.id, label: category.name }));
 
-  const termsOptions = useAppSelector(state => state.term.entities)?.map(term => ({ value: term.id, label: term.name }));
+  const categoriesOptions = useAppSelector(state => state.restaurantCategory.entities)?.map(category => ({ value: category.id, label: category.name }));
 
 
-  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities)?.map(term => ({
-    value: term.id,
-    label: term.name,
+  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities)?.map(category => ({
+    value: category.id,
+    label: category.name,
   }));
 
   const productionCenterOptions = useAppSelector(state => state.productionCenter.entities).map(pCenter => ({
@@ -217,7 +217,7 @@ export const ItemUpdate = () => {
       })
     );
     dispatch(
-      getTerms({
+      getRestaurantCategories({
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
@@ -254,7 +254,7 @@ export const ItemUpdate = () => {
       setVariants(itemEntity.variants);
     }
     if (itemEntity?.categories) {
-      setSelectedTerms(itemEntity.categories?.map(term => ({ id: term.id, label: term.name, value: term.id })));
+      setSelectedTerms(itemEntity.categories?.map(category => ({ id: category.id, label: category.name, value: category.id })));
     }
     if (itemEntity?.accountingGroups) {
       setSelectedAccountingGroups(itemEntity.accountingGroups?.map(group => ({ label: group.name, value: group.id })));
@@ -267,7 +267,7 @@ export const ItemUpdate = () => {
     if (itemEntity?.attachments) {
       setSelectedAttachments(itemEntity.attachments?.map(attachment => ({ id: attachment.id, url: attachment?.url })));
     }
-    console.log(itemEntity, 'termos');
+    console.log(itemEntity, 'categoryos');
     if (itemEntity?.addons) {
       setSelectedAddons(itemEntity?.addons?.map(addon => ({ id: addon.id, label: addon.name, value: addon.id })));
     }
@@ -298,7 +298,7 @@ export const ItemUpdate = () => {
     }
     const { id: newItemId } = newItem;
     if (updateSuccess && newItemId) {
-      navigate(`/restaurant/regular/${newItemId}/edit?page=1&sort=id,asc`);
+      navigate(`/restaurant/regular/${newItemId}/edit` + location.search);
     }
   }, [updateSuccess, itemEntity]);
 
@@ -387,7 +387,7 @@ export const ItemUpdate = () => {
       productionCenter: selectedProductionCenter,
       addons: selectedAddons,
       addonGroups: selectedAddonGroups,
-      categories: selectedTerms?.map(term => ({ id: term.value })),
+      categories: selectedTerms?.map(category => ({ id: category.value })),
       attachments: selectedAttachments,
       variants: variants,
       name,
@@ -471,14 +471,14 @@ export const ItemUpdate = () => {
   };
 
 
-const handleBackClick = () => {
-  const isFromMenu = queryParams.has("fromMenu");
-  if(isFromMenu){
-    navigate( -1)
-  }else{
-    navigate("/restaurant/regular")
+  const handleBackClick = () => {
+    const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
+    if (fromMenuId) {
+      navigate(`/menu/${fromMenuId}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
+    } else {
+      navigate("/retail/simple");
+    }
   }
-}
   const handleImportAddonModalClose = () => {
     setOpenedAddonModal(false);
   };
@@ -645,7 +645,7 @@ const handleBackClick = () => {
                 </div>
                 <div style={{ width: '22%' }}>
                   <Translate contentKey="tempApp.item.terms">Category</Translate>
-                  <Select  isMulti={true} value={selectedTerms} onChange={handleTermChange} options={termsOptions} />
+                  <Select  isMulti={true} value={selectedTerms} onChange={handleTermChange} options={categoriesOptions} />
                 </div>
                 <div style={{ width: '22%' }}>
                   <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>

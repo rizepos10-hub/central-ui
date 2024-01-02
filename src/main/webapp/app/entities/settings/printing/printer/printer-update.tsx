@@ -9,7 +9,7 @@ import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IItem } from 'app/shared/model/item.model';
-import { getEntities as getItems } from 'app/entities/item/restaurant/regalar-item/item.reducer';
+import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
 import { IPrinter } from 'app/shared/model/printer.model';
 import { getEntity, updateEntity, createEntity, reset } from './printer.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';

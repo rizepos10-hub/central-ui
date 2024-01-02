@@ -31,7 +31,7 @@ import { getEntities as getTerms } from 'app/entities/term/Menu-Category/menu-ca
 import { IMenu } from 'app/shared/model/menu.model';
 import {getEntity, updateEntity, createEntity, reset, sendEvent, duplicateMenu} from './menu.reducer';
 import {faTimes} from "@fortawesome/free-solid-svg-icons";
-import {getEntities as getItems , searchEntities as searchItems} from "app/entities/item/restaurant/restaurant-item.reducer";
+import {getEntities as getItems } from "app/entities/item/all-items.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import Select from "react-select";
 import {APP_DATE_FORMAT} from "app/config/constants";
@@ -45,6 +45,8 @@ import {Skeleton} from "primereact/skeleton";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {toast} from "react-toastify";
 import {OrderList} from "primereact/orderlist";
+import {ItemRoute} from "app/shared/model/enumerations/item-route.model";
+import {IItem} from "app/shared/model/item.model";
 
 
 export const OnlineOrderingMenuUpdate = () => {
@@ -57,7 +59,7 @@ export const OnlineOrderingMenuUpdate = () => {
   const isNew = id === undefined;
 
   const menuCategories = useAppSelector(state => state.menuCategory.entities)
-  const itemList = useAppSelector(state => state.restaurantItems.entities);
+  const itemList = useAppSelector(state => state.allItems.entities);
   const menuEntity = useAppSelector(state => state.menu.entity);
   const loading = useAppSelector(state => state.menu.loading);
   const updating = useAppSelector(state => state.menu.updating);
@@ -191,6 +193,18 @@ export const OnlineOrderingMenuUpdate = () => {
     setRefresh(prev => !prev)
   };
 
+  const onFilter = () => {
+    if (selectedTerm === '') {
+      setFilteredValue(menuItems);
+    } else {
+      const filtered = menuItems?.filter((product) => {
+        return product.menuCategories[0]?.name === selectedTerm;
+      });
+      setFilteredValue(filtered);
+    }
+  };
+
+
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
@@ -221,6 +235,8 @@ export const OnlineOrderingMenuUpdate = () => {
       reset()
     }
   }, [refresh, selectedItems,navigate]);
+
+
 
 
   useEffect(() => {
@@ -293,7 +309,7 @@ export const OnlineOrderingMenuUpdate = () => {
       ...menuEntity,
       ...restValues,
       category: selectedCategory ? menuCategories.find((it) => it.name === selectedCategory) : null,
-      item: [...filteredMenuItems, ...itemIds],
+      item: [...filteredMenuItems, ...itemIds].map(item => ({id: item.id})),
       branch: { id: selectedBranches.value }
     };
 
@@ -367,16 +383,6 @@ export const OnlineOrderingMenuUpdate = () => {
     { label: 'Price Low to High', value: 'price' }
   ];
 
-  const onFilter = () => {
-    if (selectedTerm === '') {
-      setFilteredValue(menuItems);
-    } else {
-      const filtered = menuItems?.filter((product) => {
-        return product.menuCategories[0]?.name === selectedTerm;
-      });
-      setFilteredValue(filtered);
-    }
-  };
 
 
 
@@ -440,7 +446,7 @@ export const OnlineOrderingMenuUpdate = () => {
   };
 
 
-  const dataviewGridItem = (data: Demo.Product) => {
+  const dataviewGridItem = (data: IItem) => {
     return (
       <div className="col-12 lg:col-4">
         <div className="card m-3 border-1 surface-border">
@@ -452,14 +458,13 @@ export const OnlineOrderingMenuUpdate = () => {
             {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
           </div>
           <Link
-
-            to={`/item/${data.id}/edit?fromMenu`}
+            to={`/${ItemRoute[data.itemVariantType]}/${data.id}/edit?fromMenu=${menuEntity?.id}`}
           >
             <div className="flex flex-column align-items-center text-center mb-3">
               <img  src={data?.attachments && data?.attachments[0]?.url} alt={data.name} className="w-9 shadow-2 my-3 mx-0" />
 
               <div className="text-2xl font-bold">{data.name}</div>
-              <div className="mb-3">{data.description}</div>
+              <div className="mb-3">{data.desc}</div>
               {/* <Rating value={data.rating} readOnly cancel={false} /> */}
             </div>
           </Link>

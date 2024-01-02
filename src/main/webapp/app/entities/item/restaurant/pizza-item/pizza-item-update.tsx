@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
 import {Button, Row, Col, Spinner, FormGroup, Table} from 'reactstrap';
 import {getSortState, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -37,7 +37,10 @@ const items: MenuItem[] = [
 export const PizzaItemUpdate = () => {
   const dispatch = useAppDispatch();
 
+
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
 
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
@@ -181,6 +184,15 @@ export const PizzaItemUpdate = () => {
   const handleNavigate = (pizzaItemId) => {
     navigate(`/restaurant/pizza/${pizzaItemId}/edit` + location.search);
   };
+
+  const handleBackClick = () => {
+    const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
+    if (fromMenuId) {
+      navigate(`/menu/${fromMenuId}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
+    } else {
+      navigate("/retail/simple");
+    }
+  }
 
   useEffect(() => {
     if(isNew){
@@ -434,7 +446,7 @@ export const PizzaItemUpdate = () => {
             ) : null}
 
             <div className={"d-flex"}>
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/restaurant/pizza" replace
+              <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
                       color="info">
                 <FontAwesomeIcon icon="arrow-left"/>
                 &nbsp;

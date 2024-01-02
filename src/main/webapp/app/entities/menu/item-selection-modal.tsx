@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { getSortState } from 'react-jhipster';
 import { ITEMS_PER_PAGE_Summary } from 'app/shared/util/pagination.constants';
-import { getEntities, searchEntities,reset } from 'app/entities/item/restaurant/regalar-item/item.reducer';
+import { getEntities, searchEntities,reset } from 'app/entities/item/all-items.reducer';
 import Select from "react-select";
 
 interface ItemSelectionModalProps {
@@ -16,9 +16,9 @@ interface ItemSelectionModalProps {
 
 const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const dispatch = useAppDispatch();
-  const totalItems = useAppSelector((state) => state.item.totalItems);
-  const itemList = useAppSelector((state) => state.item.entities);
-  const loading = useAppSelector((state) => state.item.loading);
+  const totalItems = useAppSelector((state) => state.allItems.totalItems);
+  const itemList = useAppSelector((state) => state.allItems.entities);
+  const loading = useAppSelector((state) => state.allItems.loading);
 
   const [currentPage, setCurrentPage] = useState(1);
 

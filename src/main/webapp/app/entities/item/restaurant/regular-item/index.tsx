@@ -6,7 +6,7 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import Item from './item';
 import ItemUpdate from './item-update';
 import ItemDeleteDialog from './item-delete-dialog';
-import VariantView from "app/entities/item/restaurant/regalar-item/variant-view";
+import VariantView from "app/entities/item/restaurant/regular-item/variant-view";
 
 const ItemRoutes = () => (
   <ErrorBoundaryRoutes>

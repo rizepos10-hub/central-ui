@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
 import {Button, Row, Col, Spinner, FormGroup, Table, FormText} from 'reactstrap';
 import {getSortState, translate, Translate, ValidatedField} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -25,6 +25,7 @@ import {ITerm} from "app/shared/model/term.model";
 import {getEntities as getAttributeValues, reset as resetAttributeValues} from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import {AccordionTab, Accordion} from "primereact/accordion";
 import AsyncSelect from "react-select/async";
+import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
 
 
 
@@ -42,6 +43,8 @@ export const SimpleItemUpdate = () => {
   const updateSuccess = useAppSelector(state => state.simpleItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
+  const location = useLocation();
+
 
   const attributeValuesList = useAppSelector(state => state.retailAttributeValue.entities);
   const loadingAttributesValues = useAppSelector(state => state.retailAttributeValue.loading);
@@ -52,13 +55,19 @@ export const SimpleItemUpdate = () => {
   );
 
 
-  const [simpleItem, setSimpleItem] = useState<ISimpleItem>({});
+  const [simpleItem, setSimpleItem] = useState<ISimpleItem>({
+    itemType: "RETAIL",
+    itemVariantType: ItemVariantType.RETAIL_SIMPLE,
+    variants: [{
+      branchVariantDetails: {}
+    }]
+  });
 
   const filteredAvailableAttributes = () => {
 
     const existingAttributeIds = simpleItem?.attributes?.map(attr => attr.attributeTax.id);
 
-    return attributesList?.filter(attr => !existingAttributeIds.includes(attr.id));
+    return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
   };
 
   const [itemAttribute, setItemAttribute] = useState<{
@@ -70,6 +79,14 @@ export const SimpleItemUpdate = () => {
   })
 
 
+  const handleBackClick = () => {
+    const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
+    if (fromMenuId) {
+      navigate(`/menu/${fromMenuId}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
+    } else {
+      navigate("/retail/simple");
+    }
+  }
 
   const handleFieldChange = useCallback((fieldName, value) => {
     setSimpleItem((prevState) => ({
@@ -179,15 +196,6 @@ export const SimpleItemUpdate = () => {
 
     if(!isNew){
       setSimpleItem(simpleItemEntity);
-    }else{
-      setSimpleItem({
-        ...simpleItemEntity,
-        itemType: "RETAIL",
-        itemVariantType: "RETAIL_SIMPLE",
-        variants: [{
-          branchVariantDetails: {}
-        }]
-      })
     }
     const simpleItemId = simpleItemEntity?.id
     if(updateSuccess){
@@ -385,7 +393,7 @@ export const SimpleItemUpdate = () => {
 
 
             <div className={"d-flex"}>
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/retail/simple" replace
+              <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"  replace
                       color="info">
                 <FontAwesomeIcon icon="arrow-left"/>
                 &nbsp;

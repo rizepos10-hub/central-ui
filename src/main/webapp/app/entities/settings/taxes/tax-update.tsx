@@ -9,7 +9,7 @@ import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IItem } from 'app/shared/model/item.model';
-import { getEntities as getItems } from 'app/entities/item/restaurant/regalar-item/item.reducer';
+import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
 import { ITax } from 'app/shared/model/tax.model';
 import { getEntity, updateEntity, createEntity, reset } from './tax.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';

@@ -155,6 +155,7 @@ export const PizzaPricingClassTypeUpdate = () => {
                         <label className={"mt-2"}>{sizesMap[sizeId]}</label>
                         <InputNumber
                           value={value}
+                          maxFractionDigits={2}
                           onChange={(e) => {
                             setPizzaPricingClass((prevState) => ({
                               ...prevState,

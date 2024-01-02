@@ -92,7 +92,7 @@ export const deleteEntity = createAsyncThunk(
 
 // slice
 
-export const TermSlice = createEntitySlice({
+export const RestaurantCategorySlice = createEntitySlice({
   name: 'restaurant-category',
   initialState,
   extraReducers(builder) {
@@ -135,7 +135,7 @@ export const TermSlice = createEntitySlice({
   },
 });
 
-export const { reset } = TermSlice.actions;
+export const { reset } = RestaurantCategorySlice.actions;
 
 // Reducer
-export default TermSlice.reducer;
+export default RestaurantCategorySlice.reducer;

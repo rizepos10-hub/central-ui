@@ -4,7 +4,8 @@ import {Button, Row, Col, Table, Input, FormGroup} from 'reactstrap';
 import { getSortState,  Translate, translate, ValidatedField } from 'react-jhipster';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getRestaurantItemCategories } from 'app/entities/term/term.reducer';
+import { getEntities as getRestaurantItemCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import { getEntities as  getRetailItemCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import {getEntities as getAddons} from "app/entities/addon/addon.reducer";
 import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
 import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
@@ -25,13 +26,19 @@ type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChange: OnFieldChangeFunction}) => {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const isSimplePizza = item?.itemType === "RESTAURANT" && item?.variants?.[0]?.multiple === false;
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
+  const isRestaurantItem = item?.itemType === "RESTAURANT";
+  const isRetailItem = item?.itemType === "RETAIL";
+  const isSimplePizza = isRestaurantItem && item?.variants?.[0]?.multiple === false;
 
-  const itemTermsOptions = useAppSelector(state => state.term.entities);
+  const itemCategoriesOptions =
+    isRetailItem ? useAppSelector(state => state.retailCategory.entities) :
+      useAppSelector(state => state.restaurantCategory.entities) ;
+  console.log(itemCategoriesOptions, 'itemCategoriesOptions')
+
   const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities);
   const addonsOptions = useAppSelector(state => state.addon.entities);
   const addonGroupsOptions = useAppSelector(state => state.addonGroups.entities);
@@ -70,16 +77,24 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
     onFieldChange('addonGroups', updatedAddonGroups);
   };
 
-
+console.log(isRetailItem, 'isRetailItem')
 
   useEffect(() => {
-    dispatch(
-      getRestaurantItemCategories({
+    if (isRestaurantItem){
+      dispatch(getRestaurantItemCategories({
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
-      })
-    );
+      }));
+    }else if(isRetailItem){
+      console.log("itemCategoriesOptions")
+      dispatch(getRetailItemCategories({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      }));
+    }
+
     dispatch(getAddonGroups({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
@@ -168,7 +183,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       <Select
                         value={item?.categories}
                         isMulti={true}
-                        options={itemTermsOptions}
+                        options={itemCategoriesOptions}
                         getOptionLabel={(option) => option.name}
                         getOptionValue={(option) => option.id}
                         onChange={(selectedItemTerms) => onFieldChange('categories',selectedItemTerms)}
@@ -206,7 +221,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                   </Col>
                 </Row>
 
-                {item?.itemType === "RESTAURANT" ?
+                {isRestaurantItem ?
                   <>
                     <Row className={"my-3"}>
                     <Col md="6">
