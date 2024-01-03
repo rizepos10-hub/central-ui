@@ -19,6 +19,7 @@ import { sendActivity } from 'app/config/websocket-middleware';
 import Instructions from "app/modules/login/instructions";
 import BusinessDetailRoutes from "app/entities/settings/business-details";
 import {useAppSelector} from "app/config/store";
+import {LoyaltyRecords} from "app/shared/loyalty/LoyaltyRecords";
 
 const loading = <div>loading ...</div>;
 
@@ -81,6 +82,16 @@ const AppRoutes = () => {
             <Route path="finish" element={<PasswordResetFinish />} />
           </Route>
         </Route>
+
+        <Route
+          path="loyalty"
+          element={
+            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER]}>
+              <LoyaltyRecords />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="admin/*"
           element={

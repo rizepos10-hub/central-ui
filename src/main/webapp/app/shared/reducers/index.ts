@@ -14,6 +14,7 @@ import settings from 'app/modules/account/settings/settings.reducer';
 import passwordReset from 'app/modules/account/password-reset/password-reset.reducer';
 import entitiesReducers from 'app/entities/reducers';
 import analyticsReducers from "app/modules/analytics/reducers";
+import loyalty from "app/shared/loyalty/loyalty-records.reducer";
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 import tenant from '../../shared/tenant/TenantContext';
 
@@ -30,6 +31,7 @@ const rootReducer: ReducersMapObject = {
   settings,
   tenant,
   loadingBar,
+  loyalty,
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
   ...entitiesReducers,
