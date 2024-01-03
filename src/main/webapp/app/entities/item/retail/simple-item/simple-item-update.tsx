@@ -26,6 +26,7 @@ import {getEntities as getAttributeValues, reset as resetAttributeValues} from "
 import {AccordionTab, Accordion} from "primereact/accordion";
 import AsyncSelect from "react-select/async";
 import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
+import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
 
 
 
@@ -37,10 +38,10 @@ export const SimpleItemUpdate = () => {
 
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
-  const simpleItemEntity = useAppSelector(state => state.simpleItem.entity);
-  const loading = useAppSelector(state => state.simpleItem.loading);
-  const updating = useAppSelector(state => state.simpleItem.updating);
-  const updateSuccess = useAppSelector(state => state.simpleItem.updateSuccess);
+  const simpleItemEntity = useAppSelector(state => state.simpleRetailItem.entity);
+  const loading = useAppSelector(state => state.simpleRetailItem.loading);
+  const updating = useAppSelector(state => state.simpleRetailItem.updating);
+  const updateSuccess = useAppSelector(state => state.simpleRetailItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
   const location = useLocation();

@@ -44,6 +44,7 @@ import PizzaItem from "app/entities/item/restaurant/pizza-item";
 import PizzaToppingGroup from "app/entities/pizza-settings/pizza-topping-group";
 import SimpleItem from "app/entities/item/retail/simple-item";
 import RetailAttributes from "app/entities/item/retail/attributes";
+import VariableItem from "app/entities/item/retail/variable-item";
 
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
@@ -104,6 +105,7 @@ export default () => {
 
         <Route path="retail/attributes/*" element={<RetailAttributes />} />
         <Route path="retail/simple/*" element={<SimpleItem />} />
+        <Route path="retail/variable/*" element={<VariableItem />} />
 
 
 

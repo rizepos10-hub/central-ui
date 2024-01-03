@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './simple-item.reducer';
+import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
 
 export const SimpleDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -21,8 +22,8 @@ export const SimpleDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const simpleItemEntity = useAppSelector(state => state.simpleItem.entity);
-  const updateSuccess = useAppSelector(state => state.simpleItem.updateSuccess);
+  const simpleItemEntity = useAppSelector(state => state.simpleRetailItem.entity);
+  const updateSuccess = useAppSelector(state => state.simpleRetailItem.updateSuccess);
 
   const handleClose = () => {
     navigate('/retail/simple' + location.search);

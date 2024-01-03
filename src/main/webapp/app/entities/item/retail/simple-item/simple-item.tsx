@@ -15,6 +15,7 @@ import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
 import {Dropdown} from "primereact/dropdown";
 import {ISimpleItem} from "app/shared/model/simple-item.model";
+import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
 
 export const SimpleItem = () => {
   const dispatch = useAppDispatch();
@@ -27,9 +28,9 @@ export const SimpleItem = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const simpleItemsList:ISimpleItem[] = useAppSelector(state => state.simpleItem.entities);
-  const loading = useAppSelector(state => state.simpleItem.loading);
-  const totalItems = useAppSelector(state => state.simpleItem.totalItems);
+  const simpleItemsList:ISimpleItem[] = useAppSelector(state => state.simpleRetailItem.entities);
+  const loading = useAppSelector(state => state.simpleRetailItem.loading);
+  const totalItems = useAppSelector(state => state.simpleRetailItem.totalItems);
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
