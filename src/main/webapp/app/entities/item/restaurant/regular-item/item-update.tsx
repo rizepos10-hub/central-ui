@@ -596,14 +596,14 @@ export const ItemUpdate = () => {
         />
       )}
 
-      {openedAddonModal && (
-        <AddonImportModal
-          showModal={openedAddonModal}
-          handleSave={handleImportAddonModalSave}
-          handleClose={handleImportAddonModalClose}
-          itemOptions={itemOptions}
-        />
-      )}
+      {/* {openedAddonModal && ( */}
+      {/*   <AddonImportModal */}
+      {/*     showModal={openedAddonModal} */}
+      {/*     handleSave={handleImportAddonModalSave} */}
+      {/*     handleClose={handleImportAddonModalClose} */}
+      {/*     itemOptions={itemOptions} */}
+      {/*   /> */}
+      {/* )} */}
 
       <Row >
         <Col md="8">
