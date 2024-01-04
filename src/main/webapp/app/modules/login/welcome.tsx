@@ -98,7 +98,7 @@ export default function Welcome()
             As initial step you need to run the POS  server so the pos clients can connect to the cloud.
             Please download the setup from the link and run it on  your local server.
           </p>
-          <a rel="noreferrer" href="http://164.92.188.249/html/pos/installer.zip" target={"_blank"} >POS SERVER</a>
+          <a rel="noreferrer" href="http://164.92.188.249/pos/installer.zip" target={"_blank"} >POS SERVER</a>
 
           <h4>Credentials</h4>
           <div className=" d-flex gap-5">
@@ -118,7 +118,10 @@ export default function Welcome()
                 <h5>Branch Information</h5>
               </div>
               <div className="card-body">
-
+                <div className="mb-3">
+                  <strong className="mr-3">ID:</strong>
+                  {branchToShow.id}
+                </div>
                 <div className="mb-3">
                   <strong className="mr-3">Name:</strong>
                   {branchToShow.name}
@@ -142,7 +145,7 @@ export default function Welcome()
               </div>
             </div>
             }
-            
+
             {branchesCredentials.brokerConfig &&
               <div className="card" style={{marginBottom: '2rem'}}>
               <div className="card-header">
