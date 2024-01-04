@@ -35,7 +35,7 @@ import { InputText } from 'primereact/inputtext';
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import Pizza from "app/entities/item/restaurant/regular-item/pizza-display/pizza";
-import { getEntities as getItemsForRecipe } from "app/entities/item/restaurant/restaurant-item.reducer"
+import { getEntities as getItemsForRecipe } from "app/entities/item/all-items.reducer"
 import restaurantItems from "app/entities/item/restaurant/restaurant-item.reducer";
 
 interface IVariantProps {
@@ -73,7 +73,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   const branchList = useAppSelector(state => state.branch.entities);
 
-  const itemList = useAppSelector(state => state.restaurantItems.entities).filter(item => item.id !== itemId);
+  const itemList = useAppSelector(state => state.allItems.entities).filter(item => item.id !== itemId);
 
   console.log(itemList, 'itemlo');
 
