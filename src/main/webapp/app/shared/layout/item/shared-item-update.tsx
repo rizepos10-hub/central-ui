@@ -147,14 +147,6 @@ console.log(isRetailItem, 'isRetailItem')
 
   return (
     <div>
-      {openedAddonModal && (
-        <AddonImportModal
-          showModal={openedAddonModal}
-          handleSave={handleImportAddonModalSave}
-          handleClose={handleImportAddonModalClose}
-          itemOptions={options}
-        />
-      )}
       <Row >
               <FormGroup>
               <Row className={"my-3"} >
@@ -256,6 +248,14 @@ console.log(isRetailItem, 'isRetailItem')
 
                 {isRestaurantItem ?
                   <>
+                    {openedAddonModal && (
+                      <AddonImportModal
+                        showModal={openedAddonModal}
+                        handleSave={handleImportAddonModalSave}
+                        handleClose={handleImportAddonModalClose}
+                        itemOptions={options}
+                      />
+                    )}
                     <Row className={"my-3"}>
                     <Col md="6">
                       <div className={"d-flex flex-column gap-2"}>
