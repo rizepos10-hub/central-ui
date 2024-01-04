@@ -222,7 +222,7 @@ export const VariableItemUpdate = () => {
       variants: [
         ...prev.variants,
         {
-          name: '',
+          name: variableItem?.name,
           attachments: [],
           discounts: [],
           sku: '',
