@@ -36,7 +36,6 @@ export const TaxProfileUpdate = () => {
   const isNew = id === undefined;
 
 
-  const items = useAppSelector(state => state.item.entities);
   const taxEntity = useAppSelector(state => state.taxProfiles.entity);
   const loading = useAppSelector(state => state.taxProfiles.loading);
   const updating = useAppSelector(state => state.taxProfiles.updating);

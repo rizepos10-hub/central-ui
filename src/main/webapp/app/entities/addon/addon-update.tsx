@@ -26,7 +26,6 @@ export const AddonUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const items = useAppSelector(state => state.item.entities);
   const addonEntity = useAppSelector(state => state.addon.entity);
   const loading = useAppSelector(state => state.addon.loading);
   const updating = useAppSelector(state => state.addon.updating);
