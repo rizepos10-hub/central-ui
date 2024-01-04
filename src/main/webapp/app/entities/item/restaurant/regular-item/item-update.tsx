@@ -240,7 +240,13 @@ export const ItemUpdate = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-
+    dispatch(
+      getSharedItemEntities({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
     // console.log(modalVariantImages, 'variantfromchild');
 
     return () => {
@@ -589,15 +595,6 @@ export const ItemUpdate = () => {
 
     setSelectedAddons(mergedAddons.map(addon => ({ id: addon.id, label: addon.name, value: addon.id })));
   }
-  useEffect(()=>{
-      dispatch(
-        getSharedItemEntities({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-  },[]);
 
   return (
     <div>
