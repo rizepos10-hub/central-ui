@@ -190,7 +190,8 @@ export const PizzaItemUpdate = () => {
     if (fromMenuId) {
       navigate(`/menu/${fromMenuId}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
     } else {
-      navigate("/retail/simple");
+      navigate("/restaurant/pizza");
+
     }
   }
 
