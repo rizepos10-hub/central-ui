@@ -61,6 +61,11 @@ const FloorPlanManageUpdate = () => {
   const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
   const [floorPlan, setFloorPlan] = useState<IFloorPlan>();
 
+  const [sectionDimensions, setSectionDimensions]:any = useState({
+    width: null,
+    height: null
+  })
+
     const excludedTableIds = floorPlan?.sections?.flatMap(section =>
       section?.tableDetails?.map(tableDetail => tableDetail?.table?.id)
     );
@@ -117,68 +122,123 @@ const FloorPlanManageUpdate = () => {
     }
   };
 
+  const handleSectionWidthChange = (e, index) => {
+    const newWidth = e.target.value;
+    setSectionDimensions((prev) => {
+      const updatedDimensions = [...prev];
+      updatedDimensions[index] = { ...updatedDimensions[index], width: newWidth };
+      return updatedDimensions;
+    });
+  };
 
-  const handleSectionWidthChange = (e) => {
-    const newWidth = parseInt(e.target.value, 10);
+  const handleSectionHeightChange = (e, index) => {
+    const newHeight = e.target.value;
+    setSectionDimensions((prev) => {
+      const updatedDimensions = [...prev];
+      updatedDimensions[index] = { ...updatedDimensions[index], height: newHeight };
+      return updatedDimensions;
+    });
+  };
 
-    // Check if any table will be outside the new width
-    const tablesOutsideBounds = floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.some((tableDetail) => {
+  const handleSectionWidthBlur = (index) => {
+    const newWidth = parseInt(sectionDimensions[index]?.width, 10);
+
+    const tablesOutsideBounds = floorPlan?.sections?.[index]?.tableDetails?.some((tableDetail) => {
       const tableRightEdge = tableDetail.position.x + tableDetail.table.dimensions.width;
       return tableRightEdge > newWidth;
     });
 
     if (tablesOutsideBounds) {
       alert("Cannot change width, some tables are outside the new bounds.");
-      return;
+    } else {
+      setFloorPlan((prev) => ({
+        ...prev,
+        sections: prev.sections.map((section, sectionIndex) => {
+          if (sectionIndex === index) {
+            return {
+              ...section,
+              dimensions: {
+                ...section.dimensions,
+                width: newWidth,
+              },
+            };
+          }
+          return section;
+        }),
+      }));
     }
-
-    setFloorPlan((prev) => ({
-      ...prev,
-      sections: prev.sections.map((section, index) => {
-        if (index === selectedSectionIndex) {
-          return {
-            ...section,
-            dimensions: {
-              ...section.dimensions,
-              width: newWidth,
-            },
-          };
-        }
-        return section;
-      }),
-    }));
   };
 
-  const handleSectionHeightChange = (e) => {
-    const newHeight =  parseInt(e.target.value, 10);
-    console.log(e.originalEvent, 'eewre')
+  const handleSectionHeightBlur = (index) => {
+    const newHeight = parseInt(sectionDimensions[index]?.height, 10);
 
-    const tablesOutsideBounds = floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.some((tableDetail) => {
+    const tablesOutsideBounds = floorPlan?.sections?.[index]?.tableDetails?.some((tableDetail) => {
       const tableBottomEdge = tableDetail.position.y + tableDetail.table.dimensions.height;
       return tableBottomEdge > newHeight;
     });
 
     if (tablesOutsideBounds) {
       alert("Cannot change height, some tables are outside the new bounds.");
-      return;
+    } else {
+      setFloorPlan((prev) => ({
+        ...prev,
+        sections: prev.sections.map((section, sectionIndex) => {
+          if (sectionIndex === index) {
+            return {
+              ...section,
+              dimensions: {
+                ...section.dimensions,
+                height: newHeight,
+              },
+            };
+          }
+          return section;
+        }),
+      }));
     }
-
-    setFloorPlan((prev) => ({
-      ...prev,
-      sections: prev.sections.map((section, index) => {
-        if (index === selectedSectionIndex) {
-          return {
-            ...section,
-            dimensions: {
-              ...section.dimensions,
-              height: newHeight,
-            },
-          };
-        }
-        return section;
-      }),
-    }));
   };
+
+
+
+  // const handleSectionWidthChange = (e) => {
+  //   const newWidth = parseInt(e.target.value, 10);
+  //   setSectionDimensions((prev) => ({
+  //     ...prev,
+  //     width: newWidth
+  //   }))
+  //
+  // };
+
+  // const handleSectionHeightChange = (e) => {
+  //   const newHeight =  parseInt(e.target.value, 10);
+  //   console.log(e.originalEvent, 'eewre')
+  //
+  //   const tablesOutsideBounds = floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.some((tableDetail) => {
+  //     const tableBottomEdge = tableDetail.position.y + tableDetail.table.dimensions.height;
+  //     return tableBottomEdge > newHeight;
+  //   });
+  //
+  //   if (tablesOutsideBounds) {
+  //     alert("Cannot change height, some tables are outside the new bounds.");
+  //     return;
+  //   }
+  //
+  //   setFloorPlan((prev) => ({
+  //     ...prev,
+  //     sections: prev.sections.map((section, index) => {
+  //       if (index === selectedSectionIndex) {
+  //         return {
+  //           ...section,
+  //           dimensions: {
+  //             ...section.dimensions,
+  //             height: newHeight,
+  //           },
+  //         };
+  //       }
+  //       return section;
+  //     }),
+  //   }));
+  // };
 
   const handleSectionVisibleChange = (e) => {
     const isVisible = e.checked;
@@ -354,6 +414,11 @@ const FloorPlanManageUpdate = () => {
         const floorPlanSortedSection = {...floorPlanData, sections: sortedSections};
         console.log(floorPlanSortedSection, 'floorPlanSortedSection')
         setFloorPlan(floorPlanSortedSection);
+        const initialDimensions = sortedSections.map((section) => ({
+          width: section.dimensions.width.toString(),
+          height: section.dimensions.height.toString(),
+        }));
+        setSectionDimensions(initialDimensions);
       })
 
   }, [id,updateSuccess]);
@@ -374,6 +439,7 @@ const FloorPlanManageUpdate = () => {
     dispatch(updateEntity(savedEntity))
   }
 
+
 console.log(floorPlan, 'floorPlanfloorPlan')
   return (
     <Card
@@ -385,7 +451,9 @@ console.log(floorPlan, 'floorPlanfloorPlan')
       <h3>{floorPlan?.name} <span className={"text-sm"}>{floorPlan?.branch?.name?.trim()}</span></h3>
 
         </div>
+        <div className={"ml-auto"}>
         <Button onClick={openSectionModal}>Add New Section</Button>
+        </div>
       </div>
       <TabView scrollable activeIndex={selectedSectionIndex} onTabChange={handleSectionChange}>
 
@@ -468,11 +536,11 @@ console.log(floorPlan, 'floorPlanfloorPlan')
             <InputText
               size={12}
               placeholder={"Width"}
-              name="dimension-width"
+              name={`dimension-width-${selectedSectionIndex}`}
               required={true}
-              value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.width.toString() || null}
-              onChange={handleSectionWidthChange}
-              onKeyDown={handleKeyDown}
+              value={sectionDimensions[selectedSectionIndex]?.width}
+              onChange={(e) => handleSectionWidthChange(e, selectedSectionIndex)}
+              onBlur={() => handleSectionWidthBlur(selectedSectionIndex)} // Separate onBlur handler
             />
             <span className="p-inputgroup-addon">px</span>
           </div>
@@ -484,10 +552,9 @@ console.log(floorPlan, 'floorPlanfloorPlan')
               placeholder={"Height"}
               size={12}
               required={true}
-              value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.height.toString()}
-              onChange={handleSectionHeightChange}
-              onKeyDown={handleKeyDown}
-
+              value={sectionDimensions[selectedSectionIndex]?.height}
+              onChange={(e) => handleSectionHeightChange(e, selectedSectionIndex)}
+              onBlur={() => handleSectionHeightBlur(selectedSectionIndex)} // Separate onBlur handler
             />
             <span className="p-inputgroup-addon">px</span>
           </div>

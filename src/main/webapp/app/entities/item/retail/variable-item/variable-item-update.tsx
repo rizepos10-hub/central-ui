@@ -27,6 +27,7 @@ import {AccordionTab, Accordion} from "primereact/accordion";
 import AsyncSelect from "react-select/async";
 import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
+import {isEqual} from "lodash";
 
 
 
@@ -171,18 +172,26 @@ export const VariableItemUpdate = () => {
 
     const generate = (index, currentCombination) => {
       if (index === variableItem?.attributes?.length) {
-        const variant = {
+        const newVariant = {
           name: variableItem?.name || '',
           attachments: [],
           discounts: [],
-          sku: null,
+          sku: '',
           price: null,
           salePrice: null,
           branchVariantDetails: {},
           attributeValues: { ...currentCombination },
         };
 
-        combinations.push(variant);
+
+        const isDuplicate = variableItem?.variants.some((variant) =>
+          isEqual(variant.attributeValues, newVariant.attributeValues)
+        );
+
+        if (!isDuplicate) {
+          combinations.push(newVariant);
+        }
+
         return;
       }
 
@@ -192,7 +201,7 @@ export const VariableItemUpdate = () => {
       for (const term of attributeTerms) {
         generate(index + 1, {
           ...currentCombination,
-          [attributeTax.id]:  term,
+          [attributeTax.id]: term,
         });
       }
     };
@@ -202,9 +211,28 @@ export const VariableItemUpdate = () => {
     console.log(combinations, 'combinationscombinations')
     setVariableItem((prevState) => ({
       ...prevState,
-      variants: combinations,
+      variants: [...prevState.variants, ...combinations],
     }));
     return combinations;
+  };
+
+  const handleAddVariant = () => {
+    setVariableItem((prev) => ({
+      ...prev,
+      variants: [
+        ...prev.variants,
+        {
+          name: variableItem?.name,
+          attachments: [],
+          discounts: [],
+          sku: '',
+          price: null,
+          salePrice: null,
+          branchVariantDetails: {},
+          attributeValues: {},
+        },
+      ],
+    }));
   };
 
 
@@ -384,15 +412,19 @@ export const VariableItemUpdate = () => {
                   </Col>
 
 
-                  <Col md="4" >
+                  <Col md="3" >
                     <Button color="primary" disabled={filteredAvailableAttributes().length === 0} className={"mt-5"} onClick={handleAddAttribute}>
                       Add Attribute
                     </Button>
                   </Col>
+                  <Col md="5" className={"d-flex gap-3"}>
 
-                  <Col md="4" >
                     <Button color="primary" disabled={filteredAvailableAttributes().length === 0} className={"mt-5"} onClick={generateCombinations}>
-                      Generate Attributes
+                      Generate Variants
+                    </Button>
+
+                    <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
+                      Add Single Variant
                     </Button>
                   </Col>
                   <Col md={"8"} className={"mt-2"}>
