@@ -172,15 +172,13 @@ export const VariableItemUpdate = () => {
     const generate = (index, currentCombination) => {
       if (index === variableItem?.attributes?.length) {
         const variant = {
-          id: null,
           name: variableItem?.name || '',
-          attachments: null,
-          discounts: null,
+          attachments: [],
+          discounts: [],
           sku: null,
           price: null,
           salePrice: null,
           branchVariantDetails: {},
-          archived: null,
           attributeValues: { ...currentCombination },
         };
 
