@@ -92,7 +92,7 @@ export const MenuCategories = () => {
   };
 
   const nameColumnTemplate = rowData => {
-    const editUrl = `/term/${rowData.id}/menus/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/category/${rowData.id}/menus/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -100,7 +100,7 @@ export const MenuCategories = () => {
     );
   };
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/term/${rowData.id}/menus/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/category/${rowData.id}/menus/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
@@ -109,7 +109,7 @@ export const MenuCategories = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/term/${rowData.id}/menus/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/category/${rowData.id}/menus/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -117,7 +117,7 @@ export const MenuCategories = () => {
     );
   };
   const handleCreate = () => {
-    navigate('/term/menus/new')
+    navigate('/category/menus/new')
   }
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">

@@ -77,7 +77,7 @@ export const Login = () => {
       <div className="px-5 min-h-screen flex justify-content-center align-items-center ">
         <div className="border-1 surface-border surface-card border-round py-7 px-4 md:px-7 z-1">
           <div className="mb-4">
-            <div className="text-900 text-xl font-bold mb-2">Log in</div>
+            <div className="text-900 text-xl font-bold mb-2">Log cin</div>
             <span className="text-600 font-medium">Please enter your details</span>
           </div>
           <div className="flex flex-column">

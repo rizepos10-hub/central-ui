@@ -25,7 +25,7 @@ export const DeleteMenuCategoryDialog = () => {
   const updateSuccess = useAppSelector(state => state.menuCategory.updateSuccess);
 
   const handleClose = () => {
-    navigate('/term/menus' + location.search);
+    navigate('/category/menus' + location.search);
   };
 
   useEffect(() => {

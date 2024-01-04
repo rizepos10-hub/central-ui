@@ -81,7 +81,7 @@ export const UpdateMenuCategory = () => {
 
       const {id: newTermId} = newTerm
       if (updateSuccess && newTermId) {
-        navigate(`/term/${newTermId}/menus/edit?page=1&sort=id,asc`)
+        navigate(`/category/${newTermId}/menus/edit?page=1&sort=id,asc`)
       }
     if (termEntity?.attachments) {
       setSelectedAttachments(termEntity.attachments.map(attachment => ({ id: attachment.id, url: attachment.url })));
@@ -272,7 +272,7 @@ console.log(termEntity)
                 <label>Parents</label>
                 <Select options={termOptions} value={selectedParent} onChange={handleParentChange} />
               </div>
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/term/menus" replace color="info">
+              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/category/menus" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">

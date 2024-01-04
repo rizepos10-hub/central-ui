@@ -16,6 +16,7 @@ import {FilterMatchMode} from "primereact/api";
 import {Dropdown} from "primereact/dropdown";
 import {IVariableItem} from "app/shared/model/variable-item.model";
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
+import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
 
 export const VariableItem = () => {
   const dispatch = useAppDispatch();
@@ -28,7 +29,8 @@ export const VariableItem = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const variableItemsList:IVariableItem[] = useAppSelector(state => state.variableRetailItem.entities);
+  const variableItemsList:IVariableItem[] = useAppSelector(state => state.variableRetailItem.entities)
+    .filter(item => item.itemVariantType === ItemVariantType.RETAIL_VARIABLE);
   const loading = useAppSelector(state => state.variableRetailItem.loading);
   const totalItems = useAppSelector(state => state.variableRetailItem.totalItems);
   const [filters, setFilters] = useState({
