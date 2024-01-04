@@ -32,6 +32,8 @@ import {Checkbox} from "primereact/checkbox";
 import * as url from "url";
 import _default from "chart.js/dist/plugins/plugin.tooltip";
 import type = _default.defaults.animations.numbers.type;
+import {IItem} from "app/shared/model/item.model";
+import {getEntities as getSharedItemEntities} from "app/entities/item/restaurant/restaurant-item.reducer";
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -416,60 +418,60 @@ export const ItemUpdate = () => {
     setOpenedAddonModal(true);
   };
 
-  const handleImportAddonModalSave = (itemId: string) => {
-    const payload = {
-      fromItem: itemId,
-    };
-
-    dispatch(importAddons(payload)).then((data) => {
-      console.log(data.payload.addons, 'dddda');
-
-      // For addons
-      const prevAddonsMap = new Map(selectedAddons.map((addon) => [addon.id, addon]));
-
-      if (data.payload.addons) {
-        for (const addon of data.payload.addons) {
-          prevAddonsMap.set(addon.id, {
-            id: addon.id,
-            label: addon.name,
-            value: addon.id
-          });
-        }
-      }
-
-      const mergedAddonsArray = Array.from(prevAddonsMap.values());
-
-      setSelectedAddons(mergedAddonsArray);
-
-      // For addonGroups
-      console.log(data.payload.addonGroups, 'kamel12')
-
-      const prevAddonGroupsMap = new Map(selectedAddonGroups.map((group) => [group.addonGroup.id, group]));
-
-      console.log(selectedAddonGroups , 'selectedAddonGroups21')
-
-      if (data.payload.addonGroups && data.payload.addonGroups.length > 0) {
-        for (const group of data.payload.addonGroups) {
-          prevAddonGroupsMap.set(group.addonGroup.id, {
-            required: group.required,
-            addonGroup: {
-              label: group.addonGroup.name,
-              value: group.addonGroup.id,
-              id: group.addonGroup.id
-            }
-          });
-        }
-
-        const mergedAddonGroupsArray = Array.from(prevAddonGroupsMap.values());
-
-        setSelectedAddonGroups(mergedAddonGroupsArray);
-      } else {
-        console.log('No addonGroups in the imported item');
-      }
-    });
-
-    console.log('sending request with id ' + itemId);
-  };
+  // const handleImportAddonModalSave = (itemId: string) => {
+  //   const payload = {
+  //     fromItem: itemId,
+  //   };
+  //
+  //   dispatch(importAddons(payload)).then((data) => {
+  //     console.log(data.payload.addons, 'dddda');
+  //
+  //     // For addons
+  //     const prevAddonsMap = new Map(selectedAddons.map((addon) => [addon.id, addon]));
+  //
+  //     if (data.payload.addons) {
+  //       for (const addon of data.payload.addons) {
+  //         prevAddonsMap.set(addon.id, {
+  //           id: addon.id,
+  //           label: addon.name,
+  //           value: addon.id
+  //         });
+  //       }
+  //     }
+  //
+  //     const mergedAddonsArray = Array.from(prevAddonsMap.values());
+  //
+  //     setSelectedAddons(mergedAddonsArray);
+  //
+  //     // For addonGroups
+  //     console.log(data.payload.addonGroups, 'kamel12')
+  //
+  //     const prevAddonGroupsMap = new Map(selectedAddonGroups.map((group) => [group.addonGroup.id, group]));
+  //
+  //     console.log(selectedAddonGroups , 'selectedAddonGroups21')
+  //
+  //     if (data.payload.addonGroups && data.payload.addonGroups.length > 0) {
+  //       for (const group of data.payload.addonGroups) {
+  //         prevAddonGroupsMap.set(group.addonGroup.id, {
+  //           required: group.required,
+  //           addonGroup: {
+  //             label: group.addonGroup.name,
+  //             value: group.addonGroup.id,
+  //             id: group.addonGroup.id
+  //           }
+  //         });
+  //       }
+  //
+  //       const mergedAddonGroupsArray = Array.from(prevAddonGroupsMap.values());
+  //
+  //       setSelectedAddonGroups(mergedAddonGroupsArray);
+  //     } else {
+  //       console.log('No addonGroups in the imported item');
+  //     }
+  //   });
+  //
+  //   console.log('sending request with id ' + itemId);
+  // };
 
 
   const handleBackClick = () => {
@@ -579,6 +581,25 @@ export const ItemUpdate = () => {
           ...itemEntity,
         };
 
+  const options = useAppSelector(state => state.restaurantItems.entities);
+  const handleImportAddonModalSave = (option: IItem) => {
+    const addons = itemEntity.addons;
+    const extraAddons = option.addons;
+    const uniqueIds = Array.from(new Set([...addons, ...extraAddons].map(item => item.id)));
+    const mergedAddons = uniqueIds.map(id => [...addons, ...extraAddons].find(item => item.id === id));
+
+    setSelectedAddons(mergedAddons.map(addon => ({ id: addon.id, label: addon.name, value: addon.id })));
+  }
+  useEffect(()=>{
+    dispatch(
+      getSharedItemEntities({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
+  },[]);
+
   return (
     <div>
       {openedModal && (
@@ -597,14 +618,14 @@ export const ItemUpdate = () => {
         />
       )}
 
-      {/* {openedAddonModal && ( */}
-      {/*   <AddonImportModal */}
-      {/*     showModal={openedAddonModal} */}
-      {/*     handleSave={handleImportAddonModalSave} */}
-      {/*     handleClose={handleImportAddonModalClose} */}
-      {/*     itemOptions={itemOptions} */}
-      {/*   /> */}
-      {/* )} */}
+      {openedAddonModal && (
+        <AddonImportModal
+          showModal={openedAddonModal}
+          handleSave={handleImportAddonModalSave}
+          handleClose={handleImportAddonModalClose}
+          itemOptions={options}
+        />
+      )}
 
       <Row >
         <Col md="8">

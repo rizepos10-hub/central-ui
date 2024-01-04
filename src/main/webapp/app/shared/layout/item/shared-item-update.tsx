@@ -273,11 +273,13 @@ console.log(isRetailItem, 'isRetailItem')
                       </div>
                     </Col>
                     <Col md={'6'}>
-                      <div className={'d-flex flex-column gap-2'}>
+                      <div className={'d-flex flex-column gap-2 flex-start'}>
                         <label>
                           <Translate contentKey={'tempApp.item.importAddons'}>Addons</Translate>
                         </label>
-                        <Button onClick={openImportAddonModal}> Import Addons</Button>
+                        <div>
+                          <Button onClick={openImportAddonModal}> Import Addons</Button>
+                        </div>
                       </div>
                     </Col>
                   </Row>
