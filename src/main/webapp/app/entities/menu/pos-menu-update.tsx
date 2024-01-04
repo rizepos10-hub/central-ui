@@ -1037,6 +1037,7 @@ function MenuUpdate() {
       branch: { id: selectedBranches.value },
       category:selectedCategory,
       menuScreens: data.menuScreens,
+      item: data?.item?.map(item => ({id: item.id}))
     };
 
     if (isNew) {
