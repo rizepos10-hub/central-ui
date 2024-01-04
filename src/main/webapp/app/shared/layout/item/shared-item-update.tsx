@@ -19,6 +19,8 @@ import Attachment from "app/shared/layout/attachment/attachment";
 import {Checkbox} from "primereact/checkbox";
 import {IAddonGroups} from "app/shared/model/addon-groups.model";
 import {cloneDeep} from "lodash";
+import AddonImportModal from "app/entities/item/restaurant/regular-item/addon-import-modal";
+import { getEntities as getSharedItemEntities } from 'app/entities/item/restaurant/restaurant-item.reducer';
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -116,9 +118,32 @@ console.log(isRetailItem, 'isRetailItem')
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-
+    dispatch(
+      getSharedItemEntities({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
   }, []);
 
+  const [openedAddonModal, setOpenedAddonModal] = useState(false);
+  const openImportAddonModal = () => {
+    setOpenedAddonModal(true);
+  };
+  const options = useAppSelector(state => state.restaurantItems.entities);
+
+  const handleImportAddonModalSave = (option: IItem) => {
+    const addons = item.addons;
+    const extraAddons = option.addons;
+    const uniqueIds = Array.from(new Set([...addons, ...extraAddons].map(item => item.id)));
+    const mergedAddons = uniqueIds.map(id => [...addons, ...extraAddons].find(item => item.id === id));
+
+    onFieldChange('addons', mergedAddons);
+  };
+  const handleImportAddonModalClose = () => {
+    setOpenedAddonModal(false);
+  };
 
   return (
     <div>
@@ -223,6 +248,14 @@ console.log(isRetailItem, 'isRetailItem')
 
                 {isRestaurantItem ?
                   <>
+                    {openedAddonModal && (
+                      <AddonImportModal
+                        showModal={openedAddonModal}
+                        handleSave={handleImportAddonModalSave}
+                        handleClose={handleImportAddonModalClose}
+                        itemOptions={options}
+                      />
+                    )}
                     <Row className={"my-3"}>
                     <Col md="6">
                       <div className={"d-flex flex-column gap-2"}>
@@ -239,16 +272,16 @@ console.log(isRetailItem, 'isRetailItem')
                         />
                       </div>
                     </Col>
-                    {/* To Do Import Addons */}
-                    {/* <Col md={"6"}> */}
-                    {/*   <div className={"d-flex flex-column gap-2"}> */}
-                    {/*     <label> */}
-                    {/*       <Translate contentKey={"tempApp.item.importAddons"}>Addons</Translate> */}
-                    {/*     </label> */}
-                    {/*     <Button onClick={openImportAddonModal}> Import Addons</Button> */}
-                    {/*   </div> */}
-                    {/*   */}
-                    {/* </Col> */}
+                    <Col md={'6'}>
+                      <div className={'d-flex flex-column gap-2 flex-start'}>
+                        <label>
+                          <Translate contentKey={'tempApp.item.importAddons'}>Addons</Translate>
+                        </label>
+                        <div>
+                          <Button onClick={openImportAddonModal}> Import Addons</Button>
+                        </div>
+                      </div>
+                    </Col>
                   </Row>
                     <Row>
                       <div className="mt-2">

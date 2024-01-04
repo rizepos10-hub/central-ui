@@ -10,54 +10,59 @@ import { Link } from 'react-router-dom';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import Select from 'react-select';
+import { IItem } from 'app/shared/model/item.model';
 
 interface IAddonImportProps {
   showModal: boolean;
   handleClose?: () => void;
-  handleSave: (itemId: string) => void;
+  handleSave: (item: IItem) => void;
   itemOptions: { value: string; label: string }[];
 }
 
 const AddonImportModal = (props: IAddonImportProps) => {
-  const [selectedItemToImport, setSelectedItemToImport] = useState({ value: '' });
+  const [selectedItemToImport, setSelectedItemToImport] = useState({});
   const itemImportId = '';
 
-  const handleSaveImportAddons =  () => {
-    props.handleSave(selectedItemToImport.value);
+  const handleSaveImportAddons = () => {
+    props.handleSave(selectedItemToImport);
 
     props.handleClose();
   };
 
-  const handleItemImportChange = selectedItemToImport => {
+  const handleItemImportChange = selectedItem => {
     // itemImportId = selectedItemToImport.name
-    setSelectedItemToImport(selectedItemToImport);
+    setSelectedItemToImport(selectedItem);
   };
 
   return (
     <>
       <Modal isOpen={props.showModal} toggle={props.handleClose} backdrop="static" size="xl" autoFocus={false}>
-        <ValidatedForm onSubmit={handleSaveImportAddons}>
-          <ModalBody>
-            <div className="col md-6">
-              <h2>
-                <Translate contentKey="tempApp.item.import-addon"></Translate>
-              </h2>
-              <h4>
-                <Translate contentKey="tempApp.item.home.search"></Translate>
-              </h4>
-              <Select isMulti={false} onChange={handleItemImportChange} options={props.itemOptions} />
-            </div>
+        <ModalBody>
+          <div className="col md-6">
+            <h2>
+              <Translate contentKey="tempApp.item.import-addon"></Translate>
+            </h2>
+            <h4>
+              <Translate contentKey="tempApp.item.home.search"></Translate>
+            </h4>
+            <Select
+              isMulti={false}
+              onChange={handleItemImportChange}
+              options={props.itemOptions}
+              getOptionLabel={option => option.name}
+              getOptionValue={option => option.id}
+            />
+          </div>
 
-            <ModalFooter>
-              <Button color="secondary" onClick={props.handleClose} tabIndex={1}>
-                <Translate contentKey="entity.action.cancel">Cancel</Translate>
-              </Button>{' '}
-              <Button color="primary" type="submit" data-cy="submit">
-                Import Addons
-              </Button>
-            </ModalFooter>
-          </ModalBody>
-        </ValidatedForm>
+          <ModalFooter>
+            <Button color="secondary" onClick={props.handleClose} tabIndex={1}>
+              <Translate contentKey="entity.action.cancel">Cancel</Translate>
+            </Button>{' '}
+            <Button color="primary" onClick={handleSaveImportAddons}>
+              Import Addons
+            </Button>
+          </ModalFooter>
+        </ModalBody>
       </Modal>
     </>
   );
