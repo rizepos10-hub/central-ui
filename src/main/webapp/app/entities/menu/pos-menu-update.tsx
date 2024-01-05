@@ -64,7 +64,7 @@ function MenuUpdate() {
     menuScreens: [],
   });
   const [draggedIndex, setDraggedIndex] = useState(null);
-  const [selectedMainScreen, setSelectedMainScreen] = useState(null);
+  const [selectedMainScreen, setSelectedMainScreen] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState({
     isMenuModalOpen: false,
     isMainScreenModalOpen: false,
@@ -85,7 +85,7 @@ function MenuUpdate() {
   const [selectedScreenType, setSelectedScreenType] = useState(null);
   const [editScreenName, setEditScreenName] = useState('');
   const [editScreenColor, setEditScreenColor] = useState('');
-  const [breadcrumb, setBreadcrumb] = useState(['']);
+  const [breadcrumb, setBreadcrumb] = useState([]);
 
 
   const [subScreenStack, setSubScreenStack] = useState([]);
@@ -332,7 +332,9 @@ function MenuUpdate() {
       ...data,
       menuScreens: [...data.menuScreens, newMainScreen],
     });
-
+    setSubScreenStack([newMainScreen?.subscreens])
+    setSelectedMainScreen(data?.menuScreens?.length)
+    setBreadcrumb([newMainScreenName])
     setIsModalOpen({...isModalOpen, isMainScreenModalOpen: false});
     setNewMainScreenName('');
     setSelectedColorTheme('');
@@ -949,6 +951,9 @@ function MenuUpdate() {
         setSelectedBranches({label: menuEntity?.branch?.name , value: menuEntity?.branch?.id})
       }
       setData(newData);
+      setBreadcrumb([menuEntity?.menuScreens?.[0]?.name]);
+      setSubScreenStack([menuEntity?.menuScreens?.[0]]);
+
     }
   }, [menuEntity,updateSuccess]);
 

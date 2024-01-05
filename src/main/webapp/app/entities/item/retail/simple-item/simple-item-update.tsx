@@ -284,6 +284,7 @@ export const SimpleItemUpdate = () => {
                       name="price"
                       id="price"
                       required={true}
+                      maxFractionDigits={2}
                       placeholder="Item Price"
                       value={simpleItem?.variants?.[0]?.price}
                       onChange={(e) => handleSimpleItemChange('price', e.value)}
@@ -299,7 +300,7 @@ export const SimpleItemUpdate = () => {
                     <InputNumber
                       name="sale-price"
                       id="sale-price"
-                      required={true}
+                      maxFractionDigits={2}
                       placeholder="Item Sale Price"
                       value={simpleItem?.variants?.[0]?.salePrice}
                       onChange={(e) => handleSimpleItemChange('salePrice', e.value)}

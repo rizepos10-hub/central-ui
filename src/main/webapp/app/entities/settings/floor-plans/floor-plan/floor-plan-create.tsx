@@ -44,6 +44,8 @@ const CreateFloorPlan = () => {
   const newFloorPlanEntity = useAppSelector(state => state.floorPlan.entity);
   const updateSuccess = useAppSelector(state => state.floorPlan.updateSuccess);
 
+  const isFirstNextDisabled = newFloorPlan?.name?.trim() === '' || !newFloorPlan?.name;
+
 
 
   const removeImage = () => {
@@ -109,6 +111,7 @@ const CreateFloorPlan = () => {
 
   };
 
+
   return (
     <Row className="card ">
       <Steps model={items} activeIndex={activeIndex} onSelect={(e) => setActiveIndex(e.index)} readOnly={false} />
@@ -119,7 +122,7 @@ const CreateFloorPlan = () => {
         <div className="d-flex flex-column justify-content-center align-items-center mt-5">
           <InputText name={"name"} value={newFloorPlan?.name} size={70} className={"py-3"} placeholder="Floor Plan Name" onChange={handleChange} />
           <div className="mt-1 ml-auto">
-            <Button label="Next" onClick={() => setActiveIndex((prev) => prev + 1)} />
+            <Button disabled={isFirstNextDisabled} label="Next" onClick={() => setActiveIndex((prev) => prev + 1)} />
           </div>
         </div>
       ) : null}
@@ -148,7 +151,7 @@ const CreateFloorPlan = () => {
             </div>
           </div>
           <div className="mt-1 ml-auto">
-            <Button label="Next" onClick={() => setActiveIndex((prev) => prev + 1)} />
+            <Button disabled={!newFloorPlan?.branch} label="Next" onClick={() => setActiveIndex((prev) => prev + 1)} />
           </div>
         </div>
       ) : null}

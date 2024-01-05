@@ -106,9 +106,9 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   const [variantItems, setVariantItems] = useState([]);
 
-  const [comboDetails, setRecipeDetails] = useState({});
+  const [comboDetails, setComboDetails] = useState({});
 
-  const [comboPackages, setIngredients] = useState([]);
+  const [comboPackages, setComboPackages] = useState([]);
 
   const [attachments, setAttachments] = useState([]);
 
@@ -183,7 +183,7 @@ const ItemVariantModal = (props: IVariantProps) => {
   const handleQuantityChange = (itemId, variantId, quantity) => {
     const parsedQuantity = parseFloat(quantity);
 
-    setRecipeDetails((prevDetails) => ({
+    setComboDetails((prevDetails) => ({
       ...prevDetails,
       [itemId]: {
         ...prevDetails[itemId],
@@ -194,7 +194,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       },
     }));
 
-    setIngredients((prevIngredients) => {
+    setComboPackages((prevIngredients) => {
       return prevIngredients.map((ingredient) => {
         if (ingredient.item?.id === itemId && ingredient.variantId === variantId) {
           return {
@@ -386,7 +386,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
 
   const updateRecipeDetails = (itemId, variantId, data) => {
-    setRecipeDetails((prevState) => ({
+    setComboDetails((prevState) => ({
       ...prevState,
       [itemId]: {
         ...(prevState[itemId] || {}),
@@ -408,7 +408,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       const newIngredientsData = selectedItems.flatMap((selectedItem) => {
         return selectedVariants[selectedItem.id].map((variant) => {
           const quantityFieldName = `quantity_${selectedItem.id}_${variant.id}`;
-          const variantQuantity = parseFloat(comboDetails[selectedItem.id]?.variantQuantities?.[variant.id] || 0);
+          const variantQuantity = parseFloat(comboDetails[selectedItem.id]?.variantQuantities?.[variant.id] || 1);
 
           const newIngredient = {
             item: {
@@ -452,7 +452,7 @@ const ItemVariantModal = (props: IVariantProps) => {
         });
       });
 
-      setIngredients([...comboPackages]);
+      setComboPackages([...comboPackages]);
 
       setSelectedItems([]);
       setModalOpen(false);
@@ -552,7 +552,7 @@ const ItemVariantModal = (props: IVariantProps) => {
     const initialItemNameMap = {};
 
     console.log(editingVariant?.comboPackages, 'editingVariant?.comboPackages')
-    if (editingVariant && comboDetails) {
+    if (editingVariant && editingVariant?.comboPackages?.length > 0) {
       editingVariant?.comboPackages?.forEach((itemData) => {
         const { item, variant, amount, addons } = itemData;
         const id = item?.id;
@@ -626,8 +626,8 @@ const ItemVariantModal = (props: IVariantProps) => {
 
     setSelectedVariants(initialSelectedVariants);
     setVariantItems(initialVariantItems);
-    setRecipeDetails(initialRecipeDetails);
-    setIngredients(initialIngredients);
+    setComboDetails(initialRecipeDetails);
+    setComboPackages(initialIngredients);
     setItemNameMap(initialItemNameMap); // Set the itemNameMap
 
   }, []);
@@ -750,7 +750,7 @@ const ItemVariantModal = (props: IVariantProps) => {
   };
 
   const handleAddAddon = (itemId, variantId, addon) => {
-    setRecipeDetails((prevDetails) => {
+    setComboDetails((prevDetails) => {
       const existingSelectedAddons = prevDetails[itemId]?.selectedAddons?.[variantId] || [];
 
       // Check if the addon already exists in the selected addons
@@ -791,14 +791,14 @@ const ItemVariantModal = (props: IVariantProps) => {
     });
 
     // Filter out the ingredient associated with the variant
-    setIngredients(prevIngredients => prevIngredients.filter(ingredient => !(ingredient.item.id === itemId && ingredient.variantId === variantId)));
+    setComboPackages(prevIngredients => prevIngredients.filter(ingredient => !(ingredient.item.id === itemId && ingredient.variantId === variantId)));
   };
 
 
 
 
   const handleAddonAmountChange = (itemId, variantId, addonId, action) => {
-    setRecipeDetails((prevDetails) => {
+    setComboDetails((prevDetails) => {
       const updatedSelectedAddons = {
         ...prevDetails[itemId]?.selectedAddons,
         [variantId]: [...(prevDetails[itemId]?.selectedAddons?.[variantId] || [])],
@@ -818,7 +818,7 @@ const ItemVariantModal = (props: IVariantProps) => {
           );
         }
 
-        setIngredients((prevIngredients) => {
+        setComboPackages((prevIngredients) => {
           return prevIngredients.map((ingredient) => {
             if (
               ingredient.item?.id === itemId &&
@@ -1083,11 +1083,12 @@ const ItemVariantModal = (props: IVariantProps) => {
                       {selectedVariants[itemId].map((variant) => {
                         const item = itemList.find((item) => item?.id === itemId);
                         const itemName = itemNameMap[itemId];
-                        console.log(selectedVariants, 'lolili')
+                        console.log(variant, 'lolili')
                         console.log(itemNameMap, 'itemNameMap')
 
 
                         const comboDetail = comboDetails[itemId] || {};
+                        console.log(comboDetails[itemId], 'comboDetails[itemId]')
                         const variantQuantity = comboDetail.variantQuantities?.[variant?.id] || "";
                         const selectedAddons = comboDetail.selectedAddons?.[variant?.id] || [];
 

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import "./welcome.css";
+import "./instructions.css";
 import { Card } from 'primereact/card';
 import {useLocation} from "react-router-dom";
 import {getBranchesCredentials} from "app/entities/settings/business-details/business-detail.reducer";
@@ -12,7 +12,7 @@ import {CardBody, CardText, CardTitle} from "reactstrap";
 
 
 
-export default function Welcome()
+export default function Instructions()
 {
   const dispatch = useAppDispatch()
   const location = useLocation();
@@ -23,7 +23,7 @@ export default function Welcome()
   const findBranch = (branchId) => {
    const foundBranch = branchesCredentials?.branches?.find(branch => branch.id === branchId) || {}
 
-    return foundBranch.client ? foundBranch.client : {}
+    return foundBranch.client ? foundBranch : {}
   }
 
   const [branchesCredentials,setBranchesCredentials] = useState<any>({});
@@ -32,7 +32,9 @@ export default function Welcome()
 
   console.log(branchesCredentials, 'branchesCredentials')
 
-  const branchToShow = findBranch(selectedBranch)
+  const branchToShow = findBranch(selectedBranch);
+
+  console.log(branchToShow, 'branchToShow')
 
 
 
@@ -128,19 +130,19 @@ export default function Welcome()
                 </div>
                 <div className="mb-3">
                   <strong className="mr-3">Client ID:</strong>
-                  {branchToShow.clientId}
+                  {branchToShow?.client?.clientId}
                 </div>
                 <div className="mb-3">
                   <strong className="mr-3">Service Secret:</strong>
-                  {branchToShow.serviceSecret}
+                  {branchToShow?.client?.serviceSecret}
                 </div>
                 <div className="mb-3">
                   <strong className="mr-3">Service URL:</strong>
-                  {branchToShow.serviceUrl || 'N/A'}
+                  {branchToShow?.client?.serviceUrl || 'N/A'}
                 </div>
                 <div className="mb-3">
                   <strong className="mr-3">Details:</strong>
-                  {branchToShow.details || 'N/A'}
+                  {branchToShow?.client?.details || 'N/A'}
                 </div>
               </div>
             </div>
