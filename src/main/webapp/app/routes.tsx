@@ -16,7 +16,7 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import PageNotFound from 'app/shared/error/page-not-found';
 import { AUTHORITIES } from 'app/config/constants';
 import { sendActivity } from 'app/config/websocket-middleware';
-import Welcome from "app/modules/login/welcome";
+import Instructions from "app/modules/login/instructions";
 import BusinessDetailRoutes from "app/entities/settings/business-details";
 import {useAppSelector} from "app/config/store";
 
@@ -47,7 +47,7 @@ const AppRoutes = () => {
           path="instructions"
           element={
             <PrivateRoute>
-              <Welcome />
+              <Instructions />
             </PrivateRoute>
           }
         />

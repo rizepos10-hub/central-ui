@@ -246,11 +246,7 @@ const AppMenu = () => {
                                     icon: 'pi pi-folder-open',
                                     to: '/predefined-pizza'
                                   },
-                                  {
-                                    label: 'Make Your Own',
-                                    icon: 'pi pi-folder-open',
-                                    to: '/own-pizza'
-                                  },
+
                                 ]
                               },
                               {

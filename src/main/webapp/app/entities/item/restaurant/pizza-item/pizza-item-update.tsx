@@ -339,6 +339,7 @@ export const PizzaItemUpdate = () => {
                     <Select
                       value={pizzaItem?.variants?.[0]?.itemPricingClass}
                       options={filteredOptions?.itemPricingClass}
+                      isClearable
                       getOptionLabel={option => option.name}
                       getOptionValue={option => option.id}
                       onChange={(itemPriceOption) => handleSinglePizzaValuesChange("itemPricingClass", itemPriceOption)}

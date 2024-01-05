@@ -101,7 +101,7 @@ export const RetailAttributes = () => {
     const editUrl = `/retail/attributes/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        {rowData.key}
+        {rowData.name}
       </Link>
     );
   };

@@ -51,6 +51,8 @@ export const VariableItemUpdate = () => {
   const attributeValuesList = useAppSelector(state => state.retailAttributeValue.entities);
   const loadingAttributesValues = useAppSelector(state => state.retailAttributeValue.loading);
 
+  console.log(attributeValuesList, 'attributeValuesListattributeValuesList')
+
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -73,10 +75,7 @@ export const VariableItemUpdate = () => {
   const [itemAttribute, setItemAttribute] = useState<{
     attributeTax: ITaxonomy;
     attributeTerms: ITerm[];
-  }>({
-    attributeTax: {},
-    attributeTerms: []
-  })
+  } | null>(null)
 
 
   const handleBackClick = () => {
@@ -133,6 +132,11 @@ export const VariableItemUpdate = () => {
 
   const handleAddAttribute = () => {
 
+    if(!itemAttribute){
+      alert("Please select an attribute to add.");
+      return;
+    }
+    console.log(itemAttribute, 'itemAttribute')
     setVariableItem((prev) => ({
       ...prev,
       attributes: [
@@ -140,6 +144,7 @@ export const VariableItemUpdate = () => {
         itemAttribute,
       ],
     }));
+    setItemAttribute(null)
   };
 
   const handleItemAttributeSelect = (selectedOption) => {
@@ -184,8 +189,12 @@ export const VariableItemUpdate = () => {
         };
 
 
-        const isDuplicate = variableItem?.variants.some((variant) =>
-          isEqual(variant.attributeValues, newVariant.attributeValues)
+        const isDuplicate = variableItem?.variants.some((variant) =>{
+
+            console.log(variant.attributeValues, 'variant.attributeValues')
+            console.log( newVariant.attributeValues, 'variant.attributeValues123')
+            return isEqual(variant.attributeValues, newVariant.attributeValues)
+        }
         );
 
         if (!isDuplicate) {
@@ -299,7 +308,7 @@ export const VariableItemUpdate = () => {
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    })).then(response => console.log(response, 'responseresponse'))
   };
 
   const handleHeaderChange = (variantIndex, attributeId, selectedOption) => {
@@ -336,17 +345,43 @@ export const VariableItemUpdate = () => {
       });
     }
   };
+  const handleRemoveAttribute = (attributeIndex) => {
+    const isConfirmed = window.confirm("Are you sure?");
+    if(isConfirmed){
+      setVariableItem((prev) => {
+        const updateAttributes = [...prev.attributes];
+        updateAttributes.splice(attributeIndex, 1);
+        return {
+          ...prev,
+          attributes: updateAttributes,
+        };
+      });
+    }
+  };
+
+  const AttributeAccordionHeader = (attributeIndex) => (
+    <div onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation()
+    }} className={"d-flex gap-3 ml-2 w-full"}>
+      <label className={"mt-2"}><strong>{variableItem?.attributes?.[attributeIndex]?.attributeTax?.name}</strong></label>
+
+      <Button className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
+        Remove Attribute
+      </Button>
+    </div>
+  )
 
 
-  const header = (variantIndex) => (
+  const VariantAccordionHeader = (variantIndex) => (
     <div onClick={(e) => {
       e.preventDefault();
       e.stopPropagation()
     }} className={"d-flex gap-3 ml-2"}>
       <label className={"mt-2"}><strong>{variableItem?.variants?.[variantIndex]?.name}</strong></label>
 
+
       {variableItem?.attributes?.map((attribute, index) => {
-        console.log(variableItem?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id], 'variableItem?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id]')
         return (
           <AsyncSelect
             key={index}
@@ -355,16 +390,15 @@ export const VariableItemUpdate = () => {
             getOptionValue={option => option.id}
             isLoading={loadingAttributesValues}
             onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-            defaultOptions={attributeValuesList}
+            defaultOptions={attribute?.attributeTerms}
             onChange={(selectedOption) => handleHeaderChange(variantIndex, attribute?.attributeTax?.id, selectedOption)}
           />
         )
       })}
       <Button className={"ml-auto"} color="danger" onClick={() => handleDeleteVariant(variantIndex)}>
-        Delete
+        Delete Variant
       </Button>
     </div>
-
   )
 
 
@@ -373,6 +407,8 @@ export const VariableItemUpdate = () => {
   if(loading){
     return <Spinner />
   }
+
+  console.log(variableItem, 'variableItemvariableItem')
 
 
   return (
@@ -402,10 +438,10 @@ export const VariableItemUpdate = () => {
                         Select Attribute
                       </label>
                       <Select
-                        value={itemAttribute?.attributeTax}
+                        value={itemAttribute?.attributeTax || null}
                         options={filteredAvailableAttributes()}
                         getOptionValue={option => option.id}
-                        getOptionLabel={option => option.key}
+                        getOptionLabel={option => option.name}
                         onChange={(attribute) => handleItemAttributeSelect(attribute)}
                       />
                     </div>
@@ -419,7 +455,7 @@ export const VariableItemUpdate = () => {
                   </Col>
                   <Col md="5" className={"d-flex gap-3"}>
 
-                    <Button color="primary" disabled={filteredAvailableAttributes().length === 0} className={"mt-5"} onClick={generateCombinations}>
+                    <Button color="primary" className={"mt-5"} onClick={generateCombinations}>
                       Generate Variants
                     </Button>
 
@@ -430,9 +466,9 @@ export const VariableItemUpdate = () => {
                   <Col md={"8"} className={"mt-2"}>
                     <Accordion multiple activeIndex={[0]}>
                       {variableItem?.attributes?.map((attribute, index) => (
-                        <AccordionTab key={index} header={attribute?.attributeTax?.key}>
+                        <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
                           <div className={"d-flex gap-3"}>
-                            <label className={"mt-2"}>Name: {attribute?.attributeTax?.key}</label>
+                            <label className={"mt-2"}>Name: {attribute?.attributeTax?.name}</label>
                             <Col md={"9"}>
                               <AsyncSelect
                                 value={attribute?.attributeTerms}
@@ -455,7 +491,7 @@ export const VariableItemUpdate = () => {
                       {variableItem?.variants?.map((variant, variantIndex) => (
                         <Col md={"12"} key={variantIndex} className={"mt-2"}>
                           <Accordion multiple  activeIndex={[0]}>
-                          <AccordionTab headerTemplate={() => header(variantIndex)} key={variantIndex} >
+                          <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
                             <Row>
 
                               <Col md="4">
@@ -501,6 +537,7 @@ export const VariableItemUpdate = () => {
                                   required={true}
                                   placeholder="Item Price"
                                   value={variant?.price}
+                                  maxFractionDigits={2}
                                   onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
                                 />
                               </div>
@@ -514,8 +551,8 @@ export const VariableItemUpdate = () => {
                                 <InputNumber
                                   name="sale-price"
                                   id="sale-price"
-                                  required={true}
                                   placeholder="Item Sale Price"
+                                  maxFractionDigits={2}
                                   value={variant?.salePrice}
                                   onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
                                 />
