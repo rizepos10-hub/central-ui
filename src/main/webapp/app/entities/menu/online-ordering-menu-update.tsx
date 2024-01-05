@@ -420,22 +420,22 @@ export const OnlineOrderingMenuUpdate = () => {
   );
 
 
-  const dataviewListItem = (data: Demo.Product) => {
+  const dataviewListItem = (data: IItem) => {
     return (
       <div className="col-12">
         <div className="flex flex-column md:flex-row align-items-center p-3 w-full">
-          <img src={data?.attachments && data?.attachments[0]?.url} alt={data.name} className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
+          <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url} alt={data.name} className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
           <div className="flex-1 flex flex-column align-items-center text-center md:text-left">
             <div className="font-bold text-2xl">{data.name}</div>
-            <div className="mb-2">{data.description}</div>
+            <div className="mb-2">{data.desc}</div>
             {/* <Rating value={data.rating} readOnly cancel={false} className="mb-2"></Rating> */}
             <div className="flex align-items-center">
               <i className="pi pi-tag mr-2"></i>
-              <span className="font-semibold">{data.menuCategories[0]?.name || 'Uncategorized'}</span>
+              <span className="font-semibold">{data.categories?.[0]?.name || 'Uncategorized'}</span>
             </div>
           </div>
           <div className="flex flex-row md:flex-column justify-content-between w-full md:w-auto align-items-center md:align-items-end mt-5 md:mt-0">
-            <span className="text-2xl font-semibold mb-2 align-self-center md:align-self-end">  ${getPriceForBranch(data) ?? data.variants[0]?.price}</span>
+            <span className="text-2xl font-semibold mb-2 align-self-center md:align-self-end">  ${getPriceForBranch(data) ?? data.variants?.[0]?.price}</span>
 
             {/* <Button icon="pi pi-shopping-cart" label="Add to Cart" disabled={data.inventoryStatus === 'OUTOFSTOCK'} className="mb-2 p-button-sm"></Button> */}
             {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}

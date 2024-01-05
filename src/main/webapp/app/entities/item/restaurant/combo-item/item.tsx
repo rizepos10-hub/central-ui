@@ -34,9 +34,9 @@ export const Item = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [itemNameProp,setItemNameProp] = useState([])
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [selectedVariants, setSelectedVariants] = useState([]);
+
+  const [itemProp, setItemProp] = useState();
 
   const itemList = useAppSelector(state => state.comboItem.entities);
   const loading = useAppSelector(state => state.comboItem.loading);
@@ -291,8 +291,7 @@ console.log(errorMessage, 'errorMessage')
     return (
       <div>
         <Button  onClick={() => {
-          setSelectedVariants(rowData.variants);
-          setItemNameProp(rowData.name)
+          setItemProp(rowData)
           toggleModal();
         }}>
           Show Variants
@@ -358,7 +357,7 @@ console.log(errorMessage, 'errorMessage')
               <i onClick={toggleModal} className="pi pi-times cursor-pointer  " style={{ fontSize: '1.5rem' }}></i>
           </div>
           <div className="modal-body">
-            <VariantView variants={selectedVariants} itemName={itemNameProp} />
+            <VariantView item={itemProp} />
           </div>
         </Modal>
 

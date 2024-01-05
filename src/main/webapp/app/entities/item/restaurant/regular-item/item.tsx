@@ -34,9 +34,8 @@ export const Item = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [itemNameProp,setItemNameProp] = useState([])
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [selectedVariants, setSelectedVariants] = useState([]);
+  const [itemProp, setItemProp] = useState();
 
   const itemList = useAppSelector(state => state.regularItem.entities);
   const loading = useAppSelector(state => state.regularItem.loading);
@@ -291,8 +290,7 @@ console.log(errorMessage, 'errorMessage')
     return (
       <div>
         <Button  onClick={() => {
-          setSelectedVariants(rowData.variants);
-          setItemNameProp(rowData.name)
+          setItemProp(rowData)
           toggleModal();
         }}>
           Show Variants
@@ -326,7 +324,7 @@ console.log(errorMessage, 'errorMessage')
 
           <Column field="name"  sortable header="Name" filter filterPlaceholder="Search by name" body={nameColumnTemplate} />
           <Column header="Image"  body={(rowData) =>
-          <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
+          <img src={rowData.attachments[0]?.url ?? rowData?.variants?.[0]?.attachments?.[0]?.url} alt={rowData.name}  className="w-6rem shadow-2 border-round" /> } />
           {/* <Column field="desc" header="Description" /> */}
           <Column header="Variant"  body={variantColumnTemplate} />
           {/* <Column field="price" header="Price" body={priceBodyTemplate} /> */}
@@ -358,7 +356,7 @@ console.log(errorMessage, 'errorMessage')
               <i onClick={toggleModal} className="pi pi-times cursor-pointer  " style={{ fontSize: '1.5rem' }}></i>
           </div>
           <div className="modal-body">
-            <VariantView variants={selectedVariants} itemName={itemNameProp} />
+            <VariantView item={itemProp} />
           </div>
         </Modal>
 

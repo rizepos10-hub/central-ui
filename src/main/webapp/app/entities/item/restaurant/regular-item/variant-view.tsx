@@ -5,13 +5,12 @@ import { Rating } from "primereact/rating";
 import { Tag } from "primereact/tag";
 import {useLocation} from "react-router-dom";
 
-export default function VariantView({variants, itemName}) {
+export default function VariantView({item}) {
 
   const [layout, setLayout] = useState<"grid" | "list">("grid");
 
 
 
-  console.log(variants, 'varianto')
 
   const getSeverity = (variant) => {
     switch (variant.inventoryStatus) {
@@ -35,7 +34,7 @@ export default function VariantView({variants, itemName}) {
         <div className="flex flex-column xl:flex-row xl:align-items-start p-4 gap-4">
           <img
             className="w-6 h-8rem sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round"
-            src={variant.attachments[0]?.url}
+            src={variant.attachments[0]?.url ?? item?.attachments?.[0]?.url}
             alt={variant.name}
           />
           <div className="flex flex-column sm:flex-row justify-content-between align-items-center xl:align-items-start flex-1 gap-4">
@@ -45,7 +44,7 @@ export default function VariantView({variants, itemName}) {
               <div className="flex align-items-center gap-3">
                 <span className="flex align-items-center gap-2">
                   <i className="pi pi-tag"></i>
-                  <span className="font-semibold">{itemName}</span>
+                  <span className="font-semibold">{item?.name}</span>
                 </span>
                 <Tag
                   value={variant.inventoryStatus}
@@ -74,7 +73,7 @@ export default function VariantView({variants, itemName}) {
           <div className="flex flex-wrap align-items-center justify-content-between gap-2">
             <div className="flex align-items-center gap-2">
               <i className="pi pi-tag"></i>
-              <span className="font-semibold">{itemName}</span>
+              <span className="font-semibold">{item?.name}</span>
             </div>
             <Tag
               value={variant.inventoryStatus}
@@ -84,7 +83,7 @@ export default function VariantView({variants, itemName}) {
           <div className="flex flex-column align-items-center gap-3 py-5">
             <img
               className="w-6 h-8rem shadow-2 border-round img-fluid"
-              src={variant.attachments[0]?.url}
+              src={variant.attachments[0]?.url ?? item?.attachments?.[0]?.url}
               alt={variant.name}
             />
             <div className="text-2xl font-bold">{variant.name}</div>
@@ -125,7 +124,7 @@ export default function VariantView({variants, itemName}) {
 
   return (
       <DataView
-        value={variants}
+        value={item?.variants}
         itemTemplate={itemTemplate}
         layout={layout}
         header={header()}
