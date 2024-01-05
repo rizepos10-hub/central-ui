@@ -942,6 +942,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                     )
                 )}
                 {selectedImage && (
+                  <div  style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
                   <img
                     src={URL.createObjectURL(selectedImage)}
                     alt="Selected Image"
@@ -951,6 +952,21 @@ const ItemVariantModal = (props: IVariantProps) => {
                       maxHeight: '100px',
                     }}
                   />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '5px',
+                        right: '5px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        borderRadius: '50%',
+                        padding: '2px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => setSelectedImage(null)}
+                    >
+                      <FontAwesomeIcon icon={faTrashAlt} />
+                    </div>
+                  </div>
                 )}
               </div>
 
