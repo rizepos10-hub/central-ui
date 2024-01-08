@@ -430,7 +430,7 @@ export const PizzaItemUpdate = () => {
                           />
                         </td>
                         <td>
-                         <PrimeButton onClick={() => handleRemoveMultiplePizzaInput(index)} severity={"danger"} >Remove</PrimeButton>
+                         <PrimeButton type={"button"} onClick={() => handleRemoveMultiplePizzaInput(index)} severity={"danger"} >Remove</PrimeButton>
                         </td>
                       </tr>
                     ))}
