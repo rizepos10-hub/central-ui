@@ -35,7 +35,7 @@ import { InputText } from 'primereact/inputtext';
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import Pizza from "app/entities/item/restaurant/regular-item/pizza-display/pizza";
-import { getEntities as getItemsForRecipe } from "app/entities/item/all-items.reducer"
+import { getEntities as getItemsForCombo } from "app/entities/item/restaurant/combo-item/items-for-combo.reducer"
 import restaurantItems from "app/entities/item/restaurant/restaurant-item.reducer";
 
 interface IVariantProps {
@@ -73,7 +73,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   const branchList = useAppSelector(state => state.branch.entities);
 
-  const itemList = useAppSelector(state => state.allItems.entities).filter(item => item.id !== itemId);
+  const itemList = useAppSelector(state => state.itemsForCombo.entities);
 
   console.log(itemList, 'itemlo');
 
@@ -528,14 +528,14 @@ const ItemVariantModal = (props: IVariantProps) => {
 
 
   useEffect(() => {
-    // dispatch(getItemsForRecipe({ itemId: itemId ?? null, editingVariant: editingVariant?.id ?? null }));
+    // dispatch(getItemsForCombo({ itemId: itemId ?? null, editingVariant: editingVariant?.id ?? null }));
 
     dispatch(getBranches({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-    dispatch(getItemsForRecipe({
+    dispatch(getItemsForCombo({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -1089,7 +1089,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
                         const comboDetail = comboDetails[itemId] || {};
                         console.log(comboDetails[itemId], 'comboDetails[itemId]')
-                        const variantQuantity = comboDetail.variantQuantities?.[variant?.id] || "";
+                        const variantQuantity = comboDetail.variantQuantities?.[variant?.id] || 1;
                         const selectedAddons = comboDetail.selectedAddons?.[variant?.id] || [];
 
                         console.log('Debug - item:', item);

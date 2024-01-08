@@ -45,6 +45,8 @@ import variableRetailItem from "app/entities/item/retail/variable-item/variable-
 import retailAttribute from "app/entities/item/retail/attributes/retail-attribute.reducer";
 import retailAttributeValue from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import retailItems from "app/entities/item/retail/retail-items.reducer";
+import itemsForCombo from 'app/entities/item/restaurant/combo-item/items-for-combo.reducer';
+
 import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
 import allItems from 'app/entities/item/all-items.reducer';
 
@@ -96,6 +98,7 @@ const entitiesReducers = {
   retailAttributeValue,
   restaurantItems,
   retailItems,
+  itemsForCombo,
   allItems,
 
 
