@@ -1,82 +1,131 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getLoyaltyRecords } from 'app/shared/loyalty/loyalty-records.reducer';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { getSortState } from 'react-jhipster';
-import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { searchCustomers } from 'app/shared/loyalty/loyalty-customers-reducer';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+import {getEntities} from "app/entities/customer/customer.reducer";
+import {layouts} from "chart.js";
+
+
 
 export const LoyaltyRecords = () => {
   const dispatch = useAppDispatch();
-  const location = useLocation();
-  const navigate = useNavigate();
 
   const records = useAppSelector(state => state.loyalty.entities);
   const loading = useAppSelector(state => state.loyalty.loading);
   const totalItems = useAppSelector(state => state.loyalty.totalItems);
   const errorMessage = useAppSelector(state => state.loyalty.errorMessage);
 
-  const [search, setSearch] = useState('');
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
 
-  const getAllLoyaltyRecords = () => {
-    if (search) {
-      dispatch(
-        getLoyaltyRecords({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    } else {
-      dispatch(
-        getLoyaltyRecords({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
+  interface LazyTableState {
+    first: number;
+    rows: number;
+    page: number;
+    sortField?: string;
+    sortOrder?: any;
+    filters: any;
+  }
+  const [lazyState, setLazyState] = useState<LazyTableState>({
+    first: 0,
+    rows: 10,
+    page: 0,
+    sortField: null,
+    sortOrder: null,
+    filters: {
+      'customer.id': {value: '', matchMode: 'CONTAINS'},
+      points: {value: '', matchMode: 'STARTS_WITH'}
+    },
+  });
+
+  const handleOnFilter = (e) => {
+    setLazyState(prev => {
+      return {
+        ...prev,
+        first: 0,
+        filters: {
+          'customer.id': e.filters['customer.id'],
+          points: e.filters.points
+        }
+      }
+    });
+  };
+  const handleOnSort = (e) => {
+    setLazyState(prev => {
+      return { ...prev, sortField: e.sortField, sortOrder: e.sortOrder}
+    })
+  }
+
+  const handleOnPage = (e) => {
+    setLazyState(prev => {
+      return { ...prev, first: e.first, page: e.page }
+    })
   };
 
-  const sortLoyaltyRecords = () => {
-    getAllLoyaltyRecords();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
-  };
+
 
   useEffect(() => {
-    sortLoyaltyRecords();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
+    const filters: any = {};
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = params.get('page');
-    const sort = params.get(SORT);
-    if (page && sort) {
-      const sortSplit = sort.split(',');
-      setPaginationState({
-        ...paginationState,
-        activePage: +page,
-        sort: sortSplit[0],
-        order: sortSplit[1],
-      });
+    if (lazyState.filters.points.value){
+      filters['points'] = {value: +(lazyState.filters.points.value), matchMode: 'EQUALS'};
     }
-  }, [location.search]);
+    if (lazyState.filters['customer.id'].value) {
+      const searchKey = lazyState.filters['customer.id'].value;
+
+      dispatch(searchCustomers({
+        first: 0,
+          rows: 10,
+          page: 0,
+          sortField: null,
+          sortOrder: null,
+          filters: {
+            email: {value: searchKey, matchMode: "CONTAINS"}
+          },
+      }))
+        .then((res:any) => {
+          const ids = res?.payload.data.map(customer => customer.id);
+          if (ids.length > 0)
+            filters['customer.id'] = {
+              operator: "OR",
+              constraints: ids.map(id => {return {value: id, matchMode: 'EQUALS'}})
+            };
+          else filters['customer.id'] = {value: '', matchMode: "EQUALS"}
+
+          const params = {
+            first: lazyState.first || 0,
+            rows: lazyState.rows || 10,
+            page: lazyState.page || 0,
+            sortField: lazyState.sortField || null,
+            sortOrder: lazyState.sortOrder || null,
+            filters,
+          }
+          dispatch(
+            getLoyaltyRecords(params)
+          );
+          return;
+        });
+    }
+
+    const params = {
+      first: lazyState.first || 0,
+      rows: lazyState.rows || 10,
+      page: lazyState.page || 0,
+      sortField: lazyState.sortField || null,
+      sortOrder: lazyState.sortOrder || null,
+      filters,
+    }
+    dispatch(
+      getLoyaltyRecords(params)
+    );
+  }, [lazyState]);
 
   const nameBodyTemplate = (rowData: any) => {
     return (
       <>
         <span className="p-column-title">Name</span>
-        <span className="font-medium text-lg mb-1 font-bold" key={rowData.id}>
-          {rowData.customer.firstName + ' ' + rowData.customer.lastName}{' '}
+        <span key={rowData.id}>
+          {rowData.customerName}
         </span>
       </>
     );
@@ -85,8 +134,8 @@ export const LoyaltyRecords = () => {
     return (
       <>
         <span className="p-column-title">Points</span>
-        <span className="font-medium text-lg mb-1 font-bold" key={rowData.id}>
-          {rowData.points}{' '}
+        <span key={rowData.id}>
+          {rowData.points}
         </span>
       </>
     );
@@ -97,16 +146,16 @@ export const LoyaltyRecords = () => {
     </div>
   );
   const mappedRecords = records.map(record => {
-    return { customerName: record.customer.firstName + ' ' + record.customer.lastName, ...record };
+    return { customerName: record?.customer? record.customer.firstName  + ' ' + record.customer.lastName : '', ...record };
   });
-
-  console.log(mappedRecords);
 
   return (
     <>
       <div className="col-12">
         <DataTable
+          lazy
           value={mappedRecords}
+          dataKey='id'
           header={header}
           paginator
           rows={5}
@@ -116,13 +165,29 @@ export const LoyaltyRecords = () => {
           className="datatable-responsive"
           emptyMessage="No Customers found."
           loading={loading}
+
+          first={lazyState.first}
+          onFilter={handleOnFilter}
+          filters={lazyState.filters}
+          onPage={handleOnPage}
+          //onSort={handleOnSort}
+          sortField={lazyState.sortField}
+          sortOrder={lazyState.sortOrder}
         >
+          <Column
+            field="customer.id"
+            header="Email"
+            sortable
+            filter
+            filterPlaceholder="Search by email"
+            body={(rowData)=>{return rowData.customer?.id}}
+            headerStyle={{ minWidth: '12rem' }}
+            filterMatchMode={'contains'}
+          />
           <Column
             field="customerName"
             header="Name"
             sortable
-            filter
-            filterPlaceholder="Search by name"
             body={nameBodyTemplate}
             headerStyle={{ minWidth: '12rem' }}
           />
@@ -134,9 +199,8 @@ export const LoyaltyRecords = () => {
             filterPlaceholder="Search by points"
             body={pointsBodyTemplate}
             headerStyle={{ minWidth: '10rem' }}
+            filterMatchMode={"startsWith"}
           />
-          {/* <Column field="currentPrice" header="Price" body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
-            <Column field="inventoryStatus" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} /> */}
         </DataTable>
       </div>
     </>

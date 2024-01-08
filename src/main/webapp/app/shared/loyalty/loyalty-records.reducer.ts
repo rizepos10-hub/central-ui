@@ -11,7 +11,6 @@ interface LoyaltyRecord {
 }
 
 const apiUrl = 'api/customer-points';
-const apiSearchUrl = '';
 
 const initialState: EntityState<LoyaltyRecord> = {
   loading: false,
@@ -23,15 +22,10 @@ const initialState: EntityState<LoyaltyRecord> = {
   updateSuccess: false,
 };
 
-export const searchLoyaltyRecords = createAsyncThunk('loyaltyRecords/search_records', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<LoyaltyRecord[]>(requestUrl);
+export const getLoyaltyRecords = createAsyncThunk('loyaltyRecords/fetch_loyalty_records', async (queryParams: any) => {
+  return axios.post<LoyaltyRecord[]>('api/customer-points', queryParams );
 });
 
-export const getLoyaltyRecords = createAsyncThunk('loyaltyRecords/fetch_loyalty_records', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
-  return axios.get<LoyaltyRecord[]>(requestUrl);
-});
 
 const loyaltyRecordsSlice = createEntitySlice({
   name: 'loyaltyRecords',
@@ -39,18 +33,13 @@ const loyaltyRecordsSlice = createEntitySlice({
   reducers: {},
   extraReducers(builder) {
     builder
-      .addCase(getLoyaltyRecords.fulfilled, (state, action) => {
-        state.loading = false;
-        state.entities = action.payload.data;
-      })
-      .addMatcher(isPending(getLoyaltyRecords, searchLoyaltyRecords), state => {
+      .addMatcher(isPending(getLoyaltyRecords), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isFulfilled(getLoyaltyRecords, searchLoyaltyRecords), (state, action) => {
+      .addMatcher(isFulfilled(getLoyaltyRecords), (state, action) => {
         const { data, headers } = action.payload;
-
         return {
           ...state,
           loading: false,
