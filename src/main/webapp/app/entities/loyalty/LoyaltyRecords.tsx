@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getLoyaltyRecords } from 'app/shared/loyalty/loyalty-records.reducer';
-import { searchCustomers } from 'app/shared/loyalty/loyalty-customers-reducer';
+import { getLoyaltyRecords } from 'app/entities/loyalty/loyalty-records.reducer';
+import { searchCustomers } from 'app/entities/loyalty/loyalty-customers-reducer';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
@@ -92,7 +92,8 @@ export const LoyaltyRecords = () => {
     lazyState.filters['customer.id'].value ||
     lazyState.filters['customer.email'].value ||
     lazyState.filters['customer.firstName'].value ||
-    lazyState.filters['customer.lastName'].value;
+    lazyState.filters['customer.lastName'].value ||
+    lazyState.filters['customer.phone'].value;
 
   useEffect(() => {
     const filters: any = {};

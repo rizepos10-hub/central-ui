@@ -19,7 +19,7 @@ import { sendActivity } from 'app/config/websocket-middleware';
 import Instructions from "app/modules/login/instructions";
 import BusinessDetailRoutes from "app/entities/settings/business-details";
 import {useAppSelector} from "app/config/store";
-import {LoyaltyRecords} from "app/shared/loyalty/LoyaltyRecords";
+import {LoyaltyRecords} from "app/entities/loyalty/LoyaltyRecords";
 
 const loading = <div>loading ...</div>;
 
