@@ -4,9 +4,6 @@ import { getLoyaltyRecords } from 'app/shared/loyalty/loyalty-records.reducer';
 import { searchCustomers } from 'app/shared/loyalty/loyalty-customers-reducer';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import {getEntities} from "app/entities/customer/customer.reducer";
-import {layouts} from "chart.js";
-
 
 
 export const LoyaltyRecords = () => {
@@ -35,7 +32,11 @@ export const LoyaltyRecords = () => {
     sortOrder: null,
     filters: {
       'customer.id': {value: '', matchMode: 'CONTAINS'},
-      points: {value: '', matchMode: 'STARTS_WITH'}
+      'customer.firstName': {value: '', matchMode: 'CONTAINS'},
+      'customer.lastName': {value: '', matchMode: 'CONTAINS'},
+      'customer.email': {value: '', matchMode: 'CONTAINS'},
+      'customer.phone': {value: '', matchMode: 'CONTAINS'},
+      points: {value: '', matchMode: 'EQUALS'}
     },
   });
 
@@ -46,6 +47,10 @@ export const LoyaltyRecords = () => {
         first: 0,
         filters: {
           'customer.id': e.filters['customer.id'],
+          'customer.firstName': e.filters['customer.firstName'],
+          'customer.lastName': e.filters['customer.lastName'],
+          'customer.email': e.filters['customer.email'],
+          'customer.phone': e.filters['customer.phone'],
           points: e.filters.points
         }
       }
@@ -63,49 +68,63 @@ export const LoyaltyRecords = () => {
     })
   };
 
+  const getCustomersIdsAsync = () => {
+    const getCustomersFilters = (keys: string[])=> {
+      const customersFilters: any = {};
+      keys.forEach((key)=>{
+        if (lazyState.filters[`customer.${key}`].value)
+          customersFilters[key] = { value: lazyState.filters[`customer.${key}`].value, matchMode: "CONTAINS"};
+      })
+      return customersFilters;
+    }
 
+    return dispatch(searchCustomers({
+      first: 0,
+      rows: 999999999,
+      page: 0,
+      sortField: null,
+      sortOrder: null,
+      filters: getCustomersFilters(['id', 'firstName', 'lastName', 'email', 'phone']),
+    }))
+  }
+
+  const hasCustomerFilters =
+    lazyState.filters['customer.id'].value ||
+    lazyState.filters['customer.email'].value ||
+    lazyState.filters['customer.firstName'].value ||
+    lazyState.filters['customer.lastName'].value;
 
   useEffect(() => {
     const filters: any = {};
 
-    if (lazyState.filters.points.value){
+    if (lazyState.filters['points']?.value){
       filters['points'] = {value: +(lazyState.filters.points.value), matchMode: 'EQUALS'};
     }
-    if (lazyState.filters['customer.id'].value) {
-      const searchKey = lazyState.filters['customer.id'].value;
 
-      dispatch(searchCustomers({
-        first: 0,
-          rows: ROWS_PER_PAGE,
-          page: 0,
-          sortField: null,
-          sortOrder: null,
-          filters: {
-            email: {value: searchKey, matchMode: "CONTAINS"}
-          },
-      }))
-        .then((res:any) => {
-          const ids = res?.payload.data.map(customer => customer.id);
-          if (ids.length > 0)
-            filters['customer.id'] = {
-              operator: "OR",
-              constraints: ids.map(id => {return {value: id, matchMode: 'EQUALS'}})
-            };
-          else filters['customer.id'] = {value: '', matchMode: "EQUALS"}
+    // set filters by customer id
+    if (hasCustomerFilters) {
+      getCustomersIdsAsync().then((res:any) => {
+        const ids = res?.payload.data.map(customer => customer.id);
+        if (ids.length > 0)
+          filters['customer.id'] = {
+            operator: "OR",
+            constraints: ids.map(id => {return {value: id, matchMode: 'EQUALS'}})
+          };
+        else filters['customer.id'] = {value: '', matchMode: "EQUALS"}
 
-          const params = {
-            first: lazyState.first || 0,
-            rows: lazyState.rows || ROWS_PER_PAGE,
-            page: lazyState.page || 0,
-            sortField: lazyState.sortField || null,
-            sortOrder: lazyState.sortOrder || null,
-            filters,
-          }
-          dispatch(
-            getLoyaltyRecords(params)
-          );
-          return;
-        });
+        const params = {
+          first: lazyState.first || 0,
+          rows: lazyState.rows || ROWS_PER_PAGE,
+          page: lazyState.page || 0,
+          sortField: lazyState.sortField || null,
+          sortOrder: lazyState.sortOrder || null,
+          filters,
+        }
+        dispatch(
+          getLoyaltyRecords(params)
+        );
+        return;
+      });
     }
 
     const params = {
@@ -119,43 +138,22 @@ export const LoyaltyRecords = () => {
     dispatch(
       getLoyaltyRecords(params)
     );
+
   }, [lazyState]);
 
-  const nameBodyTemplate = (rowData: any) => {
-    return (
-      <>
-        <span className="p-column-title">Name</span>
-        <span key={rowData.id}>
-          {rowData.customerName}
-        </span>
-      </>
-    );
-  };
-  const pointsBodyTemplate = (rowData: any) => {
-    return (
-      <>
-        <span className="p-column-title">Points</span>
-        <span key={rowData.id}>
-          {rowData.points}
-        </span>
-      </>
-    );
-  };
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Loyalty Records</span>
     </div>
   );
-  const mappedRecords = records.map(record => {
-    return { customerName: record?.customer? record.customer.firstName  + ' ' + record.customer.lastName : '', ...record };
-  });
 
   return (
     <>
       <div className="col-12">
         <DataTable
           lazy
-          value={mappedRecords}
+          value={records}
           dataKey='id'
           header={header}
           paginator
@@ -176,27 +174,43 @@ export const LoyaltyRecords = () => {
           sortOrder={lazyState.sortOrder}
         >
           <Column
-            field="customer.id"
+            field="customer.email"
             header="Email"
             // sortable
             filter
-            filterPlaceholder="Search by email"
-            body={(rowData)=>{return rowData.customer?.id}}
+            filterPlaceholder="Search"
+            showFilterMenu={false}
+            body={(rowData)=>{return rowData.customer?.email}}
             headerStyle={{ minWidth: '12rem' }}
-            filterMatchMode={'contains'}
           />
           <Column
-            field="customerName"
-            header="Name"
+            field="customer.firstName"
+            header="First Name"
+            body={(rowData)=>{return rowData.customer?.firstName}}
             // sortable
-            body={nameBodyTemplate}
+            filter
+            filterPlaceholder="Search"
+            showFilterMenu={false}
+            headerStyle={{ minWidth: '12rem' }}
+          />
+          <Column
+            field="customer.lastName"
+            header="Last Name"
+            body={(rowData)=>{return rowData.customer?.lastName}}
+            // sortable
+            filter
+            filterPlaceholder="Search"
+            showFilterMenu={false}
             headerStyle={{ minWidth: '12rem' }}
           />
           <Column
             field="customer.phone"
             header="Phone Number"
-            // sortable
+            filter
+            filterPlaceholder="Search"
+            showFilterMenu={false}
             body={(rowData)=>{return rowData.customer?.phone}}
+            // sortable
             headerStyle={{ minWidth: '12rem' }}
           />
           <Column
@@ -204,10 +218,9 @@ export const LoyaltyRecords = () => {
             header="Points"
             // sortable
             filter
-            filterPlaceholder="Search by points"
-            body={pointsBodyTemplate}
-            headerStyle={{ minWidth: '10rem' }}
-            filterMatchMode={"startsWith"}
+            filterPlaceholder="Search"
+            showFilterMenu={false}
+            headerStyle={{ minWidth: '12rem' }}
           />
         </DataTable>
       </div>
