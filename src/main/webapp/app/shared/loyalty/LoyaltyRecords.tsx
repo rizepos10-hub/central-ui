@@ -10,6 +10,7 @@ import {layouts} from "chart.js";
 
 
 export const LoyaltyRecords = () => {
+  const ROWS_PER_PAGE = 5;
   const dispatch = useAppDispatch();
 
   const records = useAppSelector(state => state.loyalty.entities);
@@ -28,7 +29,7 @@ export const LoyaltyRecords = () => {
   }
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
-    rows: 10,
+    rows: ROWS_PER_PAGE,
     page: 0,
     sortField: null,
     sortOrder: null,
@@ -75,7 +76,7 @@ export const LoyaltyRecords = () => {
 
       dispatch(searchCustomers({
         first: 0,
-          rows: 10,
+          rows: ROWS_PER_PAGE,
           page: 0,
           sortField: null,
           sortOrder: null,
@@ -94,7 +95,7 @@ export const LoyaltyRecords = () => {
 
           const params = {
             first: lazyState.first || 0,
-            rows: lazyState.rows || 10,
+            rows: lazyState.rows || ROWS_PER_PAGE,
             page: lazyState.page || 0,
             sortField: lazyState.sortField || null,
             sortOrder: lazyState.sortOrder || null,
@@ -109,7 +110,7 @@ export const LoyaltyRecords = () => {
 
     const params = {
       first: lazyState.first || 0,
-      rows: lazyState.rows || 10,
+      rows: lazyState.rows || ROWS_PER_PAGE,
       page: lazyState.page || 0,
       sortField: lazyState.sortField || null,
       sortOrder: lazyState.sortOrder || null,
@@ -158,7 +159,7 @@ export const LoyaltyRecords = () => {
           dataKey='id'
           header={header}
           paginator
-          rows={5}
+          rows={ROWS_PER_PAGE}
           removableSort
           totalRecords={totalItems}
           filterDisplay="row"
@@ -177,7 +178,7 @@ export const LoyaltyRecords = () => {
           <Column
             field="customer.id"
             header="Email"
-            sortable
+            // sortable
             filter
             filterPlaceholder="Search by email"
             body={(rowData)=>{return rowData.customer?.id}}
@@ -187,14 +188,21 @@ export const LoyaltyRecords = () => {
           <Column
             field="customerName"
             header="Name"
-            sortable
+            // sortable
             body={nameBodyTemplate}
+            headerStyle={{ minWidth: '12rem' }}
+          />
+          <Column
+            field="customer.phone"
+            header="Phone Number"
+            // sortable
+            body={(rowData)=>{return rowData.customer?.phone}}
             headerStyle={{ minWidth: '12rem' }}
           />
           <Column
             field="points"
             header="Points"
-            sortable
+            // sortable
             filter
             filterPlaceholder="Search by points"
             body={pointsBodyTemplate}
