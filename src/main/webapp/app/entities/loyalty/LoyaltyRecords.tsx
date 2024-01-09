@@ -45,6 +45,7 @@ export const LoyaltyRecords = () => {
       return {
         ...prev,
         first: 0,
+        page: 0,
         filters: {
           'customer.id': e.filters['customer.id'],
           'customer.firstName': e.filters['customer.firstName'],
