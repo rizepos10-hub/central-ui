@@ -81,6 +81,7 @@ const AppRoutes = () => {
             <Route path="finish" element={<PasswordResetFinish />} />
           </Route>
         </Route>
+
         <Route
           path="admin/*"
           element={
