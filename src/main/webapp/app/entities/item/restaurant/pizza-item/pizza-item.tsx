@@ -15,6 +15,7 @@ import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
 import {IPizzaItem} from "app/shared/model/pizza-item.model";
 import {Dropdown} from "primereact/dropdown";
+import ImageDisplay from "app/shared/layout/image/image-display";
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
@@ -175,7 +176,12 @@ export const PizzaItem = () => {
         <DataTable loading={loading} value={pizzaItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
           <Column header="Image"  body={(rowData) =>
-            <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
+            <ImageDisplay
+              imageType={"product"}
+              imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url }
+              height={50}
+              width={50}
+            />} />
           <Column field="desc" header="Description" />
 
           <Column field="stock" sortable header="In Stock" />

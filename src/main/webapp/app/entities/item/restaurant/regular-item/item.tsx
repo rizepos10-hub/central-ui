@@ -21,6 +21,7 @@ import {FilterMatchMode} from "primereact/api";
 import {Dropdown} from "primereact/dropdown";
 
 import { getRestaurantItemCategories} from '../../../term/term.reducer';
+import ImageDisplay from "app/shared/layout/image/image-display";
 
 
 export const Item = () => {
@@ -323,10 +324,13 @@ console.log(errorMessage, 'errorMessage')
                    tableStyle={{ minWidth: '60rem' }}>
 
           <Column field="name"  sortable header="Name" filter filterPlaceholder="Search by name" body={nameColumnTemplate} />
-          <Column header="Image"
-                  body={(rowData) => <img src={rowData.attachments[0]?.url ?? rowData?.variants?.[0]?.attachments?.[0]?.url}
-               alt={rowData.name}  className="w-6rem shadow-2 border-round" /> }
-          />
+          <Column header="Image"  body={(rowData) =>
+            <ImageDisplay
+              imageType={"product"}
+              imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url }
+              height={50}
+              width={50}
+            />} />
           {/* <Column field="desc" header="Description" /> */}
           <Column header="Variant"  body={variantColumnTemplate} />
           {/* <Column field="price" header="Price" body={priceBodyTemplate} /> */}

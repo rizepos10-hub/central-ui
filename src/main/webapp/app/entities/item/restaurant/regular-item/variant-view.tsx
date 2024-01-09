@@ -4,6 +4,8 @@ import { DataView, DataViewLayoutOptions } from "primereact/dataview";
 import { Rating } from "primereact/rating";
 import { Tag } from "primereact/tag";
 import {useLocation} from "react-router-dom";
+import ImageDisplay from "app/shared/layout/image/image-display";
+import {Column} from "primereact/column";
 
 export default function VariantView({item}) {
 
@@ -81,10 +83,17 @@ export default function VariantView({item}) {
             ></Tag>
           </div>
           <div className="flex flex-column align-items-center gap-3 py-5">
-            <img
-              className="w-6 h-8rem shadow-2 border-round img-fluid"
-              src={variant.attachments[0]?.url ?? item?.attachments?.[0]?.url}
-              alt={variant.name}
+            {/* <img */}
+            {/*   className="w-6 h-8rem shadow-2 border-round img-fluid" */}
+            {/*   src={variant.attachments[0]?.url ?? item?.attachments?.[0]?.url} */}
+            {/*   alt={variant.name} */}
+            {/* /> */}
+              <ImageDisplay
+                imageType={"product"}
+                imageUrl={variant.attachments[0]?.url ?? item?.attachments?.[0]?.url}
+                height={300}
+                width={100}
+                className="w-6 h-8rem shadow-2 border-round img-fluid"
             />
             <div className="text-2xl font-bold">{variant.name}</div>
             {/* <Rating value={variant.rating} readOnly cancel={false}></Rating> */}

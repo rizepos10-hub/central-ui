@@ -47,6 +47,7 @@ import {toast} from "react-toastify";
 import {OrderList} from "primereact/orderlist";
 import {ItemRoute} from "app/shared/model/enumerations/item-route.model";
 import {IItem} from "app/shared/model/item.model";
+import ImageDisplay from "app/shared/layout/image/image-display";
 
 
 export const OnlineOrderingMenuUpdate = () => {
@@ -465,14 +466,19 @@ export const OnlineOrderingMenuUpdate = () => {
             to={`/${ItemRoute[data.itemVariantType]}/${data.id}/edit?fromMenu=${menuEntity?.id}`}
           >
             <div className="flex flex-column align-items-center text-center mb-3">
-              {data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url ?
-                <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url}
-                     alt={data.name}
-                     className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5"/>
-                : null}
 
+                {/* <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url} */}
+                {/*      alt={data.name} */}
+                {/*      className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5"/> */}
+              <ImageDisplay
+                imageType={"product"}
+                imageUrl={data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url }
+                className={"my-4 md:my-0 w-9 md:w-10rem rounded"}
+                height={100}
+                width={100}
+                />
               <div className="text-2xl font-bold">{data.name}</div>
-              <div className="mb-3">{data.desc}</div>
+              <div className="mb-3">{data.desc || "no description"}</div>
               {/* <Rating value={data.rating} readOnly cancel={false} /> */}
             </div>
           </Link>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ImageDisplay = ({ imageType, imageUrl = null, style={} }) => {
+const ImageDisplay = ({ imageType, imageUrl = null, style={} , className = '', height, width}) => {
 
   let selectedImageUrl = "" ;
 
@@ -21,10 +21,7 @@ const ImageDisplay = ({ imageType, imageUrl = null, style={} }) => {
   }
 
   return (
-    <div>
-      <h2>Image Display</h2>
-      <img src={selectedImageUrl} alt={imageType} style={{ width:"40px",height:"40px", ...style }} />
-    </div>
+      <img src={selectedImageUrl} height={height} width={width} alt={imageType} className={className} style={{ ...style }} />
   );
 };
 
