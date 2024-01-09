@@ -188,7 +188,7 @@ const AppMenu = () => {
                             label: 'Loyalty',
                             role: ['ROLE_ADMIN'],
                             icon: ' pi pi-dollar',
-                            to: '/loyalty'
+                            to: 'customer/loyalty'
                           },
                           {
                             label: 'Stock',

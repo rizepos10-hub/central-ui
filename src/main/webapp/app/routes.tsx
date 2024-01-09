@@ -84,15 +84,6 @@ const AppRoutes = () => {
         </Route>
 
         <Route
-          path="loyalty"
-          element={
-            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER]}>
-              <LoyaltyRecords />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
           path="admin/*"
           element={
             <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN]}>
