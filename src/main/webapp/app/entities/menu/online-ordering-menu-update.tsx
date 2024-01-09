@@ -424,7 +424,11 @@ export const OnlineOrderingMenuUpdate = () => {
     return (
       <div className="col-12">
         <div className="flex flex-column md:flex-row align-items-center p-3 w-full">
-          <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url} alt={data.name} className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
+          {data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url ?
+            <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url}
+                alt={data.name}
+                className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5"/>
+          : null}
           <div className="flex-1 flex flex-column align-items-center text-center md:text-left">
             <div className="font-bold text-2xl">{data.name}</div>
             <div className="mb-2">{data.desc}</div>
@@ -461,7 +465,11 @@ export const OnlineOrderingMenuUpdate = () => {
             to={`/${ItemRoute[data.itemVariantType]}/${data.id}/edit?fromMenu=${menuEntity?.id}`}
           >
             <div className="flex flex-column align-items-center text-center mb-3">
-              <img  src={data?.attachments && data?.attachments[0]?.url} alt={data.name} className="w-9 shadow-2 my-3 mx-0" />
+              {data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url ?
+                <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url}
+                     alt={data.name}
+                     className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5"/>
+                : null}
 
               <div className="text-2xl font-bold">{data.name}</div>
               <div className="mb-3">{data.desc}</div>

@@ -14,6 +14,7 @@ import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {ITopping} from "app/shared/model/topping.model";
 import CreatableSelect from "react-select/creatable";
 import {getEntities as getToppingGroups, createEntity as createToppingGroup} from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
+import Attachment from "app/shared/layout/attachment/attachment";
 
 export const PizzaToppingUpdate = () => {
   const dispatch = useAppDispatch();
@@ -81,14 +82,20 @@ export const PizzaToppingUpdate = () => {
   };
 
   const handleGroupChange = (selectedGroup) => {
-    console.log(selectedGroup, 'selectedGroup')
     const selectedToppingGroup = selectedGroup ? selectedGroup : null
     setPizzaTopping((prev) => ({...prev, group: selectedToppingGroup}))
   }
 
+  const handleAddImage = (imageType, imageInfo) => {
+    setPizzaTopping((prevState) => ({...prevState, [imageType]:imageInfo }))
+  }
+
+  const handleRemoveImage = (imageType) => {
+    setPizzaTopping((prevState) => ({...prevState, [imageType]: null }))
+  }
+
   const saveEntity = (e) => {
     e.preventDefault();
-    console.log("triggered")
     const entity = {
       ...pizzaTopping,
     };
@@ -148,6 +155,25 @@ export const PizzaToppingUpdate = () => {
                   />
 
                 </div>
+
+                <div className={"d-flex flex-column"}>
+                  <Label >Topping Image</Label>
+                  <Attachment
+                    onAddImage={(imageInfo) => handleAddImage("image", imageInfo)}
+                    onRemoveImage={() => handleRemoveImage("image")}
+                    image={pizzaTopping?.image}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column"}>
+                  <Label >Topping Icon</Label>
+                  <Attachment
+                    onAddImage={(imageInfo) => handleAddImage("icon", imageInfo)}
+                    onRemoveImage={() => handleRemoveImage("icon")}
+                    image={pizzaTopping?.icon}
+                  />
+                </div>
+
               </FormGroup>
               <Button tag={Link} to="/pizza-topping" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
