@@ -51,7 +51,6 @@ import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reduce
 import allItems from 'app/entities/item/all-items.reducer';
 
 import loyalty from "app/entities/loyalty/loyalty-records.reducer";
-import loyaltyCustomers from "app/entities/loyalty/loyalty-customers-reducer";
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
@@ -103,7 +102,6 @@ const entitiesReducers = {
   itemsForCombo,
   allItems,
   loyalty,
-  loyaltyCustomers,
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };

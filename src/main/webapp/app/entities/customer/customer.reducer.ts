@@ -25,6 +25,10 @@ export const searchEntities = createAsyncThunk('customer/search_entity', async (
   return axios.get<ICustomer[]>(requestUrl);
 });
 
+export const searchCustomers = createAsyncThunk('loyaltyRecords/fetch_loyalty_customers', async (queryParams: any) => {
+  return axios.post<ICustomer[]>(apiSearchUrl, queryParams );
+});
+
 export const getEntities = createAsyncThunk('customer/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<ICustomer[]>(requestUrl);
@@ -120,7 +124,7 @@ export const CustomerSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities, searchCustomers), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -136,7 +140,7 @@ export const CustomerSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, searchCustomers), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

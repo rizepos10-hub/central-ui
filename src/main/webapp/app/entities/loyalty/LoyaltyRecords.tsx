@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getLoyaltyRecords } from 'app/entities/loyalty/loyalty-records.reducer';
-import { searchCustomers } from 'app/entities/loyalty/loyalty-customers-reducer';
+import { searchCustomers } from 'app/entities/customer/customer.reducer';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
