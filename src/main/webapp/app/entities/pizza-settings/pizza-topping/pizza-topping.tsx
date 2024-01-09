@@ -116,6 +116,15 @@ export const PizzaTopping = () => {
         <DataTable value={pizzaToppingList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
 
+          <Column header="Image"
+                  body={(rowData) => rowData.image?.url ? <img src={rowData.image?.url}
+                                          alt={rowData.name + "image"}  className="w-6rem shadow-2 border-round" /> : "" }
+          />
+
+          <Column header="Icon"
+                  body={(rowData) => rowData.icon?.url ?  <img src={rowData.icon?.url}
+                                          alt={rowData.name + "icon"}  className="w-6rem shadow-2 border-round" /> : "" }
+          />
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
