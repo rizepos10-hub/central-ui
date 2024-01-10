@@ -6,7 +6,6 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import Customer from './customer';
 import CustomerUpdate from './customer-update';
 import CustomerDeleteDialog from './customer-delete-dialog';
-import {LoyaltyRecords} from "app/entities/loyalty/LoyaltyRecords";
 
 const CustomerRoutes = () => (
   <ErrorBoundaryRoutes>
@@ -16,8 +15,6 @@ const CustomerRoutes = () => (
       <Route path="edit" element={<CustomerUpdate />} />
       <Route path="delete" element={<CustomerDeleteDialog />} />
     </Route>
-    <Route path="loyalty" element={<LoyaltyRecords />}
-    />
   </ErrorBoundaryRoutes>
 );
 
