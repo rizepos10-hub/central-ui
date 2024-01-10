@@ -7,6 +7,12 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-crust-thickness.reducer';
 import {InputText} from "primereact/inputtext";
+import Select from "react-select";
+import {getEntities} from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {getSortState} from "react-jhipster";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import {ICrustThickness} from "app/shared/model/crust-thickness.model";
 
 export const PizzaCrustThicknessUpdate = () => {
   const dispatch = useAppDispatch();
@@ -14,14 +20,20 @@ export const PizzaCrustThicknessUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const [pizzaCrustThickness, setPizzaCrustThickness] = useState({
+  const [pizzaCrustThickness, setPizzaCrustThickness] = useState<ICrustThickness>({
     name: '',
+    hiddenOnSizes: []
   });
 
   const pizzaCrustThicknessEntity = useAppSelector(state => state.pizzaCrustThickness.entity);
+  const pizzaSizes = useAppSelector(state => state.pizzaSize.entities);
   const loading = useAppSelector(state => state.pizzaCrustThickness.loading);
   const updating = useAppSelector(state => state.pizzaCrustThickness.updating);
   const updateSuccess = useAppSelector(state => state.pizzaCrustThickness.updateSuccess);
+
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
   const handleClose = () => {
     navigate('/pizza-crust' + location.search);
@@ -33,6 +45,11 @@ export const PizzaCrustThicknessUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
+    dispatch(getEntities({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
   }, []);
 
   useEffect(() => {
@@ -48,6 +65,10 @@ export const PizzaCrustThicknessUpdate = () => {
     const { name, value } = e.target;
     setPizzaCrustThickness(prevState => ({ ...prevState, [name]: value }));
   };
+
+  const handleHiddenChange = (selectedSizes) => {
+    setPizzaCrustThickness(prevState => ({...prevState, hiddenOnSizes: selectedSizes}))
+  }
 
   const saveEntity = (e) => {
     e.preventDefault()
@@ -86,6 +107,19 @@ export const PizzaCrustThicknessUpdate = () => {
                     value={pizzaCrustThickness.name}
                     onChange={handleChange}
                   />
+                </div>
+
+                <div className={"d-flex flex-column"}>
+                  <Label for="pizza-curstThickness-hiddenOn">Hidden On</Label>
+                 <Select
+                   options={pizzaSizes}
+                   isMulti
+                   getOptionValue={option => option.id}
+                   getOptionLabel={option => option.name}
+                   id="pizza-curstThickness-hiddenOn"
+                   value={pizzaCrustThickness?.hiddenOnSizes}
+                   onChange={handleHiddenChange}
+                 />
                 </div>
               </FormGroup>
               <Button tag={Link} to="/pizza-crust" replace color="info">

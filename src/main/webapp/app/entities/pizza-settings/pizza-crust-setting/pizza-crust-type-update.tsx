@@ -7,6 +7,12 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-crust-type.reducer';
 import {InputText} from "primereact/inputtext";
+import Select from "react-select";
+import {ICrustType} from "app/shared/model/crust-type.model";
+import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {getSortState} from "react-jhipster";
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import {getEntities} from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
 
 export const PizzaCrustTypeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -14,14 +20,21 @@ export const PizzaCrustTypeUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const [pizzaCrustType, setPizzaCrustType] = useState({
+  const [pizzaCrustType, setPizzaCrustType] = useState<ICrustType>({
     name: '',
+    hiddenOnSizes: []
   });
 
   const pizzaCrustTypeEntity = useAppSelector(state => state.pizzaCrustType.entity);
+  const pizzaSizes = useAppSelector(state => state.pizzaSize.entities);
   const loading = useAppSelector(state => state.pizzaCrustType.loading);
   const updating = useAppSelector(state => state.pizzaCrustType.updating);
   const updateSuccess = useAppSelector(state => state.pizzaCrustType.updateSuccess);
+
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
+
 
   const handleClose = () => {
     navigate('/pizza-crust' + location.search);
@@ -33,6 +46,11 @@ export const PizzaCrustTypeUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
+    dispatch(getEntities({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
   }, []);
 
   useEffect(() => {
@@ -48,6 +66,11 @@ export const PizzaCrustTypeUpdate = () => {
     const { name, value } = e.target;
     setPizzaCrustType(prevState => ({ ...prevState, [name]: value }));
   };
+
+
+  const handleHiddenChange = (selectedSizes) => {
+    setPizzaCrustType(prevState => ({...prevState, hiddenOnSizes: selectedSizes}))
+  }
 
   const saveEntity = (e) => {
     e.preventDefault()
@@ -85,6 +108,18 @@ export const PizzaCrustTypeUpdate = () => {
                     id="pizza-crustType-name"
                     value={pizzaCrustType.name}
                     onChange={handleChange}
+                  />
+                </div>
+                <div className={"d-flex flex-column"}>
+                  <Label for="pizza-crustType-hiddenOn">Hidden On</Label>
+                  <Select
+                    options={pizzaSizes}
+                    isMulti
+                    getOptionValue={option => option.id}
+                    getOptionLabel={option => option.name}
+                    id="pizza-crustType-hiddenOn"
+                    value={pizzaCrustType?.hiddenOnSizes}
+                    onChange={handleHiddenChange}
                   />
                 </div>
               </FormGroup>
