@@ -1,41 +1,33 @@
 import { createEntitySlice, EntityState, IQueryParams } from 'app/shared/reducers/reducer.utils';
 import { createAsyncThunk, createSlice, isFulfilled, isPending } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { ICustomer } from 'app/shared/model/customer.model';
-
-interface LoyaltyRecord {
-  id: string;
-  customer: ICustomer;
-  isArchived: boolean;
-  points: number;
-}
+import { defaultValue, ILoyalty } from 'app/shared/model/loyalty.model';
 
 const apiUrl = 'api/customer-points';
+const updateUrl = 'api/loyalty-point';
 
-const initialState: EntityState<LoyaltyRecord> = {
+const initialState: EntityState<ILoyalty> = {
   loading: false,
   errorMessage: null,
   entities: [],
-  entity: {},
+  entity: defaultValue,
   totalItems: 0,
   updating: false,
   updateSuccess: false,
 };
 
-export const getLoyaltyRecords = createAsyncThunk('loyaltyRecords/fetch_allRecords', async (queryParams: any) => {
-  return axios.post<LoyaltyRecord[]>('api/customer-points', queryParams );
+export const getEntities = createAsyncThunk('loyaltyRecords/fetch_allRecords', async (queryParams: any) => {
+  return axios.post<ILoyalty[]>(apiUrl, queryParams );
 });
 
-export const getLoyaltyRecordById = createAsyncThunk('loyaltyRecords/fetch_recordById', async (id: string)=>{
-  return axios.get<LoyaltyRecord>(`api/customer-points/${id}`);
+export const getEntity = createAsyncThunk('loyaltyRecords/fetch_recordById', async (id: string)=>{
+  return axios.get<ILoyalty>(`${apiUrl}/${id}`);
 })
 
-export const updateLoyaltyRecord = createAsyncThunk('loyaltyRecords/update_record', async (queryParams: any)=> {
-  const { id, points } = queryParams;
-  console.log(`ID: ${id}, POINTS:${points}`);
-  return axios.put(`/api/loyalty-point/${id}`, {id, points});
+export const updateEntities = createAsyncThunk('loyaltyRecords/update_record', async (queryParams: any)=> {
+  const { id } = queryParams;
+  return axios.put(`${updateUrl}/${id}`, queryParams);
 })
-
 
 const loyaltyRecordsSlice = createEntitySlice({
   name: 'loyaltyRecords',
@@ -43,12 +35,12 @@ const loyaltyRecordsSlice = createEntitySlice({
   reducers: {},
   extraReducers(builder) {
     builder
-      .addMatcher(isPending(getLoyaltyRecords, getLoyaltyRecordById), state => {
+      .addMatcher(isPending(getEntities, getEntity), state => {
         state.errorMessage = null;
         state.loading = true;
         state.updateSuccess = false;
       })
-      .addMatcher(isFulfilled(getLoyaltyRecords), (state, action) => {
+      .addMatcher(isFulfilled(getEntities), (state, action) => {
         const { data, headers } = action.payload;
         return {
           ...state,
@@ -58,7 +50,7 @@ const loyaltyRecordsSlice = createEntitySlice({
           updateSuccess: false
         };
       })
-      .addMatcher(isFulfilled(getLoyaltyRecordById), (state, action)=>{
+      .addMatcher(isFulfilled(getEntity), (state, action)=>{
         const {data, headers} = action.payload;
         return {
           ...state,
@@ -66,11 +58,11 @@ const loyaltyRecordsSlice = createEntitySlice({
           entity: data,
           updateSuccess: false
         }
-      }).addMatcher(isPending(updateLoyaltyRecord), (state)=> {
+      }).addMatcher(isPending(updateEntities), (state)=> {
         state.updating = true;
         state.updateSuccess = false;
         state.errorMessage = null;
-    }).addMatcher(isFulfilled(updateLoyaltyRecord), (state, action)=>{
+    }).addMatcher(isFulfilled(updateEntities), (state, action)=>{
       state.updateSuccess = true;
       state.updating = false;
     });

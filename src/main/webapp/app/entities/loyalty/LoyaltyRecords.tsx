@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getLoyaltyRecords } from 'app/entities/loyalty/loyalty-records.reducer';
+import { getEntities } from 'app/entities/loyalty/loyalty-records.reducer';
 import { searchCustomers } from 'app/entities/customer/customer.reducer';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -144,7 +144,7 @@ export const LoyaltyRecords = () => {
           filters,
         }
         dispatch(
-          getLoyaltyRecords(params)
+          getEntities(params)
         );
         return;
       });
@@ -159,7 +159,7 @@ export const LoyaltyRecords = () => {
       filters,
     }
     dispatch(
-      getLoyaltyRecords(params)
+      getEntities(params)
     );
 
   }, [lazyState]);
@@ -172,7 +172,7 @@ export const LoyaltyRecords = () => {
   );
 
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/loyalty/${rowData.customer?.id || "CUSTOMER_NOT_FOUND"}/edit`;
+    const editUrl = `/loyalty/${rowData.customer?.id}/edit`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
@@ -184,7 +184,7 @@ export const LoyaltyRecords = () => {
       <div className="col-12">
         <DataTable
           lazy
-          value={records}
+          value={records.filter(record => record.customer !== null)}
           dataKey='id'
           header={header}
           paginator
