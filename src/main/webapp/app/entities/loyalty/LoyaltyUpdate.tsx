@@ -8,7 +8,7 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {getLoyaltyRecordById, updateLoyaltyRecord} from "app/entities/loyalty/loyalty-records.reducer";
 
 export const LoyaltyUpdate = () => {
-  const { id } = useParams<'id'>();  // fetch the loyal customer
+  const { id: customerId } = useParams<'id'>();
 
   const dispatch = useAppDispatch();
   const record = useAppSelector(state => state.loyalty.entity);
@@ -17,7 +17,6 @@ export const LoyaltyUpdate = () => {
   const updateSuccess = useAppSelector(state => state.loyalty.updateSuccess);
 
   const navigate = useNavigate();
-  const pointsRef = useRef<HTMLInputElement>(null);
   const onSave = (e) => {
     e.preventDefault();
     dispatch(updateLoyaltyRecord({id:record.id, points}));
@@ -28,8 +27,8 @@ export const LoyaltyUpdate = () => {
     setPoints(+(e.value));
   }
   useEffect(()=>{
-    if (id !== 'CUSTOMER_NOT_FOUND') {
-      dispatch(getLoyaltyRecordById(id));
+    if (customerId !== 'CUSTOMER_NOT_FOUND') {
+      dispatch(getLoyaltyRecordById(customerId));
     }
   }, [])
   useEffect(()=>{
@@ -46,7 +45,7 @@ export const LoyaltyUpdate = () => {
   }, [updateSuccess])
 
   if (loading) return <p>Loading...</p>;
-  if (id === 'CUSTOMER_NOT_FOUND') return (
+  if (customerId === 'CUSTOMER_NOT_FOUND') return (
     <>
       <h2>Customer Not Found</h2>
       <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/loyalty" replace color="info">
