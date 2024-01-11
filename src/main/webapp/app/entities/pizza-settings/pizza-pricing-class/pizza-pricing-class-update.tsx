@@ -11,7 +11,7 @@ import {getEntities as getSizes} from "app/entities/pizza-settings/pizza-size/pi
 
 import {InputText} from "primereact/inputtext";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState} from "react-jhipster";
+import {getSortState, isNumber} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
 import {InputNumber} from "primereact/inputnumber";
@@ -41,8 +41,9 @@ export const PizzaPricingClassTypeUpdate = () => {
   const pizzaSizesList = useAppSelector(state => state.pizzaSize.entities);
 
   const sizesMap = useMemo(() => {
-    return pizzaSizesList.reduce((acc, size) => {
-      acc[size.id] = size.name;
+
+    return pizzaSizesList?.slice()?.sort((size1, size2) => size1?.order - size2?.order)?.reduce((acc, size) => {
+      acc[size.id] = size;
       return acc;
     }, {});
   }, [pizzaSizesList?.length]);
@@ -51,6 +52,7 @@ export const PizzaPricingClassTypeUpdate = () => {
     navigate(`/pizza-pricing-class/${id}/edit?type=${pizzaPriceClassType}`);
   };
 
+  console.log(sizesMap, 'sizesMap')
 
   useEffect(() => {
     if (isNew) {
@@ -150,24 +152,27 @@ export const PizzaPricingClassTypeUpdate = () => {
 
                 <div className={"d-flex flex-column mb-3"}>
                   {pizzaPricingClass?.prices &&
-                    Object.entries(pizzaPricingClass.prices).map(([sizeId, value], index) => (
-                      <div key={index} className={"d-flex gap-4 my-3"}>
-                        <label className={"mt-2"}>{sizesMap[sizeId]}</label>
-                        <InputNumber
-                          value={value}
-                          maxFractionDigits={2}
-                          onChange={(e) => {
-                            setPizzaPricingClass((prevState) => ({
-                              ...prevState,
-                              prices: {
-                                ...prevState.prices,
-                                [sizeId]: e.value,
-                              },
-                            }));
-                          }}
-                        />
-                      </div>
-                    ))}
+                    Object.entries(pizzaPricingClass.prices)
+                      .sort(([sizeId1], [sizeId2]) => sizesMap[sizeId1]?.order - sizesMap[sizeId2]?.order)
+                      .map(([sizeId, value], index) => {
+                        return (
+                        <div key={index} className={"d-flex gap-4 my-3"}>
+                          <label className={"mt-2"}>{sizesMap[sizeId]?.name}</label>
+                          <InputNumber
+                            value={value}
+                            maxFractionDigits={2}
+                            onChange={(e) => {
+                              setPizzaPricingClass((prevState) => ({
+                                ...prevState,
+                                prices: {
+                                  ...prevState.prices,
+                                  [sizeId]: e.value,
+                                },
+                              }));
+                            }}
+                          />
+                        </div>
+                      )})}
                 </div>
 
               </FormGroup>

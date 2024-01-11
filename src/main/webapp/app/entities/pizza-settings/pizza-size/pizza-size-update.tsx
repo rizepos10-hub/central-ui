@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -7,14 +7,18 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-size.reducer';
 import {InputText} from "primereact/inputtext";
+import {IPizzaSize} from "app/shared/model/pizza-size.model";
 
 export const PizzaSizeUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { search } = useLocation();
+  const urlParams = new URLSearchParams(search);
+  const orderParam = urlParams.get('order');
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const [pizzaSize, setPizzaSize] = useState({
+  const [pizzaSize, setPizzaSize] = useState<IPizzaSize>({
     name: '',
   });
 
@@ -22,6 +26,9 @@ export const PizzaSizeUpdate = () => {
   const loading = useAppSelector(state => state.pizzaSize.loading);
   const updating = useAppSelector(state => state.pizzaSize.updating);
   const updateSuccess = useAppSelector(state => state.pizzaSize.updateSuccess);
+  const pizzaSizesList = useAppSelector(state => state.pizzaSize.entities);
+
+  console.log(pizzaSizesList, 'pizzaSizesList2')
 
   const handleClose = () => {
     navigate('/pizza-size' + location.search);
@@ -53,6 +60,7 @@ export const PizzaSizeUpdate = () => {
     e.preventDefault()
     const entity = {
       ...pizzaSize,
+     order: isNew ? Number(orderParam) : pizzaSize.order
     };
 
     if (isNew) {

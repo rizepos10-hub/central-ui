@@ -9,7 +9,7 @@ import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {getEntities, updateAllEntities} from './pizza-size.reducer';
+import {getEntities, reset, updateAllEntities} from './pizza-size.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
@@ -48,9 +48,18 @@ export const PizzaSize = () => {
 
   useEffect(() => {
     getAllEntities();
-    const sortedSizes = pizzaSizesList?.slice()?.sort((size1, size2) => size1.order - size2.order)
-    setSizeList(sortedSizes);
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, pizzaSizesList?.length]);
+    return () => {
+      dispatch(reset())
+    }
+  }, [paginationState.activePage, paginationState.order, paginationState.sort ]);
+
+  useEffect(() => {
+    if(pizzaSizesList.length > 0){
+      const sortedSizes = pizzaSizesList?.slice()?.sort((size1, size2) => size1.order - size2.order)
+      setSizeList(sortedSizes);
+    }
+
+  }, [ pizzaSizesList?.length])
 
 
 
@@ -95,7 +104,7 @@ export const PizzaSize = () => {
     );
   };
   const handleCreate = () => {
-    navigate('/pizza-size/new')
+    navigate(`/pizza-size/new?order=${totalItems + 1}`)
   }
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
@@ -140,8 +149,8 @@ export const PizzaSize = () => {
           totalRecords={totalItems}
           rows={5}
         >
-          <Column rowReorder style={{ width: '3rem' }} />
-          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+          <Column rowReorder className={"w-2rem py-5"} />
+          <Column field="name"  header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
 
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}

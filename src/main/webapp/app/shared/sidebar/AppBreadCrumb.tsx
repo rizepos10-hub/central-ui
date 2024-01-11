@@ -9,6 +9,8 @@ const AppBreadcrumb = (props: AppBreadcrumbProps) => {
     const [breadcrumb, setBreadcrumb] = useState<Breadcrumb | null>(null);
     const { breadcrumbs } = useContext(LayoutContext);
 
+
+
   useEffect(() => {
     const filteredBreadcrumbs = breadcrumbs?.find((crumb) => {
       return crumb.to?.replace(/\/$/, '') === location.pathname.replace(/\/$/, '');

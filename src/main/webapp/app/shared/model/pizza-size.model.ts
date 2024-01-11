@@ -4,6 +4,7 @@ import {IVisibility} from "app/shared/model/visibility.model";
 export interface IPizzaSize {
   id?: string;
   name?: string;
+  order?: number;
   visibility?: IVisibility
 }
 

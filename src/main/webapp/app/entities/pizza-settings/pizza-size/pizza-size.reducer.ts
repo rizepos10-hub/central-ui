@@ -37,7 +37,7 @@ export const createEntity = createAsyncThunk(
   'pizzaSize/create_entity',
   async (entity: IPizzaSize, thunkAPI) => {
     const result = await axios.post<IPizzaSize>(apiUrl, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    thunkAPI.dispatch(getEntities({})).then(response => console.log(response));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -47,7 +47,7 @@ export const updateEntity = createAsyncThunk(
   'pizzaSize/update_entity',
   async (entity: IPizzaSize, thunkAPI) => {
     const result = await axios.put<IPizzaSize>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    thunkAPI.dispatch(getEntities({})).then(response => console.log(response, 'responseresponse'));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -90,6 +90,7 @@ export const deleteEntity = createAsyncThunk(
 export const PizzaSizeSlice = createEntitySlice({
   name: 'pizzaSize',
   initialState,
+
   extraReducers(builder) {
     builder
       .addCase(getEntity.fulfilled, (state, action) => {

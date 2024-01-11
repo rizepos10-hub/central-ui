@@ -100,7 +100,7 @@ export default function Instructions()
             As initial step you need to run the POS  server so the pos clients can connect to the cloud.
             Please download the setup from the link and run it on  your local server.
           </p>
-          <a rel="noreferrer" href="http://164.92.188.249/pos/installer.zip" target={"_blank"} >POS SERVER</a>
+          <a rel="noreferrer" href="http://164.92.188.249/pos/pos-server-installer.exe" target={"_blank"} >POS SERVER</a>
 
           <h4>Credentials</h4>
           <div className=" d-flex gap-5">
@@ -154,6 +154,10 @@ export default function Instructions()
                 <h5>Business Information</h5>
               </div>
               <div className="card-body">
+                <div className="mb-3">
+                  <strong className="mr-3">Id:</strong>
+                  {branchesCredentials?.realmId}
+                </div>
                 <div className="mb-3">
                   <strong className="mr-3">Username:</strong>
                   {branchesCredentials?.brokerConfig?.users[0]?.username}
