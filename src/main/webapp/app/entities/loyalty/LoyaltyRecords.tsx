@@ -172,7 +172,7 @@ export const LoyaltyRecords = () => {
   );
 
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/loyalty/${rowData.id}/edit`;
+    const editUrl = `/loyalty/${rowData.customer?.id || "CUSTOMER_NOT_FOUND"}/edit`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />

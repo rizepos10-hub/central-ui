@@ -16,7 +16,7 @@ const initialState: EntityState<LoyaltyRecord> = {
   loading: false,
   errorMessage: null,
   entities: [],
-  entity: {} as LoyaltyRecord,
+  entity: {},
   totalItems: 0,
   updating: false,
   updateSuccess: false,
@@ -27,7 +27,13 @@ export const getLoyaltyRecords = createAsyncThunk('loyaltyRecords/fetch_allRecor
 });
 
 export const getLoyaltyRecordById = createAsyncThunk('loyaltyRecords/fetch_recordById', async (id: string)=>{
-  return axios.get<LoyaltyRecord>(`${apiUrl}/${id}`);
+  return axios.get<LoyaltyRecord>(`api/customer-points/${id}`);
+})
+
+export const updateLoyaltyRecord = createAsyncThunk('loyaltyRecords/update_record', async (queryParams: any)=> {
+  const { id, points } = queryParams;
+  console.log(`ID: ${id}, POINTS:${points}`);
+  return axios.put(`/api/loyalty-point/${id}`, {id, points});
 })
 
 
@@ -39,8 +45,8 @@ const loyaltyRecordsSlice = createEntitySlice({
     builder
       .addMatcher(isPending(getLoyaltyRecords, getLoyaltyRecordById), state => {
         state.errorMessage = null;
-        state.updateSuccess = false;
         state.loading = true;
+        state.updateSuccess = false;
       })
       .addMatcher(isFulfilled(getLoyaltyRecords), (state, action) => {
         const { data, headers } = action.payload;
@@ -49,6 +55,7 @@ const loyaltyRecordsSlice = createEntitySlice({
           loading: false,
           entities: data,
           totalItems: parseInt(headers['x-total-count'], 10),
+          updateSuccess: false
         };
       })
       .addMatcher(isFulfilled(getLoyaltyRecordById), (state, action)=>{
@@ -57,8 +64,16 @@ const loyaltyRecordsSlice = createEntitySlice({
           ...state,
           loading: false,
           entity: data,
+          updateSuccess: false
         }
-      });
+      }).addMatcher(isPending(updateLoyaltyRecord), (state)=> {
+        state.updating = true;
+        state.updateSuccess = false;
+        state.errorMessage = null;
+    }).addMatcher(isFulfilled(updateLoyaltyRecord), (state, action)=>{
+      state.updateSuccess = true;
+      state.updating = false;
+    });
   },
 });
 
