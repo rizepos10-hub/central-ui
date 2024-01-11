@@ -116,9 +116,9 @@ const EndOFDayReport = () => {
         <p>Location: Random Location</p>
       </div>
 
-      <div >
-        <UnclosedOrders openedOrders={salesData.openedOrders} />
-      </div>
+      {/* <div > */}
+      {/*   <UnclosedOrders openedOrders={salesData.openedOrders} /> */}
+      {/* </div> */}
       <SalesSection title="Total Sales" data={salesData.totalSales} isTotalSales={true}/>
 
       <div className="row mt-5">

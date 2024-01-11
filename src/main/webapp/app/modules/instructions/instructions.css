@@ -1,5 +1,5 @@
 .welcome-container {
-  background-image: url('./welcome.jpg');
+  background-image: url('welcome.jpg');
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
