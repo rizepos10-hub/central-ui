@@ -45,7 +45,7 @@ import PizzaToppingGroup from "app/entities/pizza-settings/pizza-topping-group";
 import SimpleItem from "app/entities/item/retail/simple-item";
 import RetailAttributes from "app/entities/item/retail/attributes";
 import VariableItem from "app/entities/item/retail/variable-item";
-import {LoyaltyRecords} from "app/entities/loyalty/LoyaltyRecords";
+import Loyalty from "app/entities/loyalty";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -62,7 +62,7 @@ export default () => {
 
         <Route path="discount/*" element={<Discount />} />
         <Route path="customer/*" element={<Customer />} />
-        <Route path="loyalty" element={<LoyaltyRecords />}/>
+        <Route path="loyalty/*" element={<Loyalty />}/>
         <Route path="addon/*" element={<Addon />} />
         <Route path="addon-groups/*" element={<AddonGroups />} />
 
