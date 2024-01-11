@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getLoyaltyRecords } from 'app/entities/loyalty/loyalty-records.reducer';
+import { getEntities } from 'app/entities/loyalty/loyalty-records.reducer';
 import { searchCustomers } from 'app/entities/customer/customer.reducer';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+import {Link} from "react-router-dom";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 
 export const LoyaltyRecords = () => {
@@ -68,13 +70,33 @@ export const LoyaltyRecords = () => {
       return { ...prev, first: e.first, page: e.page }
     })
   };
-
+  const mapMatchMode = (matchMode: string): string =>{
+    switch (matchMode){
+      case 'equals':
+        return 'EQUALS';
+      case 'notEquals':
+        return 'NOT_EQUALS';
+      case 'startsWith':
+        return 'STARTS_WITH';
+      case 'endsWith':
+        return "END_WITH";
+      case 'contains':
+        return 'CONTAINS';
+      case 'notContains':
+        return 'NOT_CONTAINS';
+      default:
+        return "CONTAINS";
+    }
+  }
   const getCustomersIdsAsync = () => {
     const getCustomersFilters = (keys: string[])=> {
       const customersFilters: any = {};
       keys.forEach((key)=>{
         if (lazyState.filters[`customer.${key}`].value)
-          customersFilters[key] = { value: lazyState.filters[`customer.${key}`].value, matchMode: "CONTAINS"};
+          customersFilters[key] = {
+            value: lazyState.filters[`customer.${key}`].value,
+            matchMode: mapMatchMode(lazyState.filters[`customer.${key}`].matchMode)
+          };
       })
       return customersFilters;
     }
@@ -123,7 +145,7 @@ export const LoyaltyRecords = () => {
           filters,
         }
         dispatch(
-          getLoyaltyRecords(params)
+          getEntities(params)
         );
         return;
       });
@@ -138,7 +160,7 @@ export const LoyaltyRecords = () => {
       filters,
     }
     dispatch(
-      getLoyaltyRecords(params)
+      getEntities(params)
     );
 
   }, [lazyState]);
@@ -150,12 +172,20 @@ export const LoyaltyRecords = () => {
     </div>
   );
 
+  const editColumnTemplate = (rowData) => {
+    const editUrl = `/loyalty/${rowData.customer?.id}/edit`;
+    return (
+      <Link to={editUrl}>
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+      </Link>
+    );
+  };
   return (
     <>
       <div className="col-12">
         <DataTable
           lazy
-          value={records}
+          value={records.filter(record => record.customer !== null)}
           dataKey='id'
           header={header}
           paginator
@@ -171,7 +201,7 @@ export const LoyaltyRecords = () => {
           onFilter={handleOnFilter}
           filters={lazyState.filters}
           onPage={handleOnPage}
-          //onSort={handleOnSort}
+          // onSort={handleOnSort}
           sortField={lazyState.sortField}
           sortOrder={lazyState.sortOrder}
         >
@@ -181,7 +211,6 @@ export const LoyaltyRecords = () => {
             // sortable
             filter
             filterPlaceholder="Search"
-            showFilterMenu={false}
             body={(rowData)=>{return rowData.customer?.email}}
             headerStyle={{ minWidth: '12rem' }}
           />
@@ -192,7 +221,6 @@ export const LoyaltyRecords = () => {
             // sortable
             filter
             filterPlaceholder="Search"
-            showFilterMenu={false}
             headerStyle={{ minWidth: '12rem' }}
           />
           <Column
@@ -202,7 +230,6 @@ export const LoyaltyRecords = () => {
             // sortable
             filter
             filterPlaceholder="Search"
-            showFilterMenu={false}
             headerStyle={{ minWidth: '12rem' }}
           />
           <Column
@@ -210,7 +237,6 @@ export const LoyaltyRecords = () => {
             header="Phone Number"
             filter
             filterPlaceholder="Search"
-            showFilterMenu={false}
             body={(rowData)=>{return rowData.customer?.phone}}
             // sortable
             headerStyle={{ minWidth: '12rem' }}
@@ -224,6 +250,8 @@ export const LoyaltyRecords = () => {
             showFilterMenu={false}
             headerStyle={{ minWidth: '12rem' }}
           />
+          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
         </DataTable>
       </div>
     </>
