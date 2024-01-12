@@ -71,15 +71,15 @@ export const login: (username: string, password: string, tenant: string, remembe
     const response = result.payload as AxiosResponse;
     const bearerToken = response?.data?.access_token;
     const refreshToken = response?.data?.refresh_token;
-    if (bearerToken) {
+    if (bearerToken && refreshToken) {
       Storage.session.set(TENANT_KEY, tenant);
-      if (rememberMe) {
+      // if (rememberMe) {
         Storage.local.set(AUTH_TOKEN_KEY, bearerToken);
         Storage.local.set(REFRESH_TOKEN_KEY, refreshToken);
-      } else {
-        Storage.session.set(AUTH_TOKEN_KEY, bearerToken);
-        Storage.session.set(REFRESH_TOKEN_KEY, refreshToken);
-      }
+      // } else {
+      //   Storage.session.set(AUTH_TOKEN_KEY, bearerToken);
+      //   Storage.session.set(REFRESH_TOKEN_KEY, refreshToken);
+      // }
     }
     dispatch(getSession());
   };
