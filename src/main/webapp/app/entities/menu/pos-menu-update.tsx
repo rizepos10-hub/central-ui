@@ -1022,18 +1022,18 @@ function MenuUpdate() {
         setSelectedBranches(selectedBranches);
       }
 
-  const saveEntity = (values = null) => {
+  const saveEntity = (data = null) => {
     if (!data.name) {
       alert('Please enter a menu name.');
       return;
     }
-    console.log(values, 'values')
-    if(values) {
-      values.createdDate = convertDateTimeToServer(values.createdDate);
-      values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate)
+    console.log(data, 'data')
+    if(data) {
+      data.createdDate = convertDateTimeToServer(data.createdDate);
+      data.lastModifiedDate = convertDateTimeToServer(data.lastModifiedDate)
     }
 
-    const { ...restValues } = values;
+    const { ...restValues } = data;
 
     const updatedMenuEntity = {
       ...menuEntity,
