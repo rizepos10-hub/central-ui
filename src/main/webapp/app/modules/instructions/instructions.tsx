@@ -121,7 +121,7 @@ export default function Instructions()
               </div>
               <div className="card-body">
                 <div className="mb-3">
-                  <strong className="mr-3">ID:</strong>
+                  <strong className="mr-3">Branch ID:</strong>
                   {branchToShow.id}
                 </div>
                 <div className="mb-3">
@@ -155,7 +155,7 @@ export default function Instructions()
               </div>
               <div className="card-body">
                 <div className="mb-3">
-                  <strong className="mr-3">Id:</strong>
+                  <strong className="mr-3">Realm Id:</strong>
                   {branchesCredentials?.realmId}
                 </div>
                 <div className="mb-3">

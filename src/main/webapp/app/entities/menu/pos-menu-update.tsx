@@ -64,7 +64,7 @@ function MenuUpdate() {
     menuScreens: [],
   });
   const [draggedIndex, setDraggedIndex] = useState(null);
-  const [selectedMainScreen, setSelectedMainScreen] = useState(0);
+  const [selectedMainScreenIndex, setSelectedMainScreenIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState({
     isMenuModalOpen: false,
     isMainScreenModalOpen: false,
@@ -95,7 +95,7 @@ function MenuUpdate() {
       ...isModalOpen,
       isMainScreenModalOpen: true,
     });
-    setSelectedMainScreen(null);
+    setSelectedMainScreenIndex(null);
   };
 
 
@@ -333,7 +333,7 @@ function MenuUpdate() {
       menuScreens: [...data.menuScreens, newMainScreen],
     });
     setSubScreenStack([newMainScreen?.subscreens])
-    setSelectedMainScreen(data?.menuScreens?.length)
+    setSelectedMainScreenIndex(data?.menuScreens?.length)
     setBreadcrumb([newMainScreenName])
     setIsModalOpen({...isModalOpen, isMainScreenModalOpen: false});
     setNewMainScreenName('');
@@ -343,7 +343,7 @@ function MenuUpdate() {
 
 
   const handleButtonAdd = (itemType) => {
-    if (selectedMainScreen !== null) {
+    if (selectedMainScreenIndex !== null) {
       if (itemType === 'Sub-screen') {
         toggleSubScreenModal();
       } else if (itemType === 'Item') {
@@ -419,16 +419,16 @@ function MenuUpdate() {
   const handleRemoveSelectedItem = (itemId) => {
     console.log("Handling removal of item with ID:", itemId);
 
-    if (selectedMainScreen !== null) {
+    if (selectedMainScreenIndex !== null) {
       const updatedData = { ...data };
       const updatedMenuScreens = [...updatedData.menuScreens];
       let updatedSubScreenStack;
 
       if (subScreenStack.length === 1) {
-        updatedMenuScreens[selectedMainScreen] = {
-          ...updatedMenuScreens[selectedMainScreen],
+        updatedMenuScreens[selectedMainScreenIndex] = {
+          ...updatedMenuScreens[selectedMainScreenIndex],
           subScreens: (
-            updatedMenuScreens[selectedMainScreen].subScreens || []
+            updatedMenuScreens[selectedMainScreenIndex].subScreens || []
           ).filter(subScreen => {
             console.log(subScreen, 'imsubss');
             return subScreen.component?.item?.id !== itemId;
@@ -436,10 +436,10 @@ function MenuUpdate() {
         };
       } else {
         const topSubScreen = subScreenStack[subScreenStack.length - 1];
-        updatedMenuScreens[selectedMainScreen] = {
-          ...updatedMenuScreens[selectedMainScreen],
+        updatedMenuScreens[selectedMainScreenIndex] = {
+          ...updatedMenuScreens[selectedMainScreenIndex],
           subScreens: findAndRemoveItem(
-            updatedMenuScreens[selectedMainScreen].subScreens,
+            updatedMenuScreens[selectedMainScreenIndex].subScreens,
             topSubScreen,
             itemId
           ),
@@ -470,7 +470,7 @@ function MenuUpdate() {
 
   const handleAddSelectedItem = (item) => {
     console.log("I entered here");
-    if (selectedMainScreen !== null) {
+    if (selectedMainScreenIndex !== null) {
       const newItemSubScreen = {
         name: item.name,
         backgroundColor: selectedColorTheme,
@@ -489,10 +489,10 @@ function MenuUpdate() {
       if (subScreenStack.length === 1) {
         console.log("Correct");
 
-        updatedMenuScreens[selectedMainScreen] = {
-          ...updatedMenuScreens[selectedMainScreen],
+        updatedMenuScreens[selectedMainScreenIndex] = {
+          ...updatedMenuScreens[selectedMainScreenIndex],
           subScreens: [
-            ...(updatedMenuScreens[selectedMainScreen].subScreens || []),
+            ...(updatedMenuScreens[selectedMainScreenIndex].subScreens || []),
             newItemSubScreen,
           ],
         };
@@ -500,10 +500,10 @@ function MenuUpdate() {
         const topSubScreen = subScreenStack[subScreenStack.length - 1];
         console.log("Kamel topSubScreen", topSubScreen);
 
-        updatedMenuScreens[selectedMainScreen] = {
-          ...updatedMenuScreens[selectedMainScreen],
+        updatedMenuScreens[selectedMainScreenIndex] = {
+          ...updatedMenuScreens[selectedMainScreenIndex],
           subScreens: findAndAddItem(
-            updatedMenuScreens[selectedMainScreen].subScreens,
+            updatedMenuScreens[selectedMainScreenIndex].subScreens,
             topSubScreen,
             newItemSubScreen
           ),
@@ -609,7 +609,7 @@ function MenuUpdate() {
 
 
     if (subScreenStack.length === 1){
-    const topSubScreens = updatedMenuScreens[selectedMainScreen]?.subScreens;
+    const topSubScreens = updatedMenuScreens[selectedMainScreenIndex]?.subScreens;
 
     console.log(topSubScreens, 'kameltopSubScreens')
 
@@ -620,10 +620,10 @@ function MenuUpdate() {
     }
     else {
       console.log("imhere1")
-      updatedMenuScreens[selectedMainScreen] = {
-        ...updatedMenuScreens[selectedMainScreen],
+      updatedMenuScreens[selectedMainScreenIndex] = {
+        ...updatedMenuScreens[selectedMainScreenIndex],
         subScreens: [
-          ...(updatedMenuScreens[selectedMainScreen].subScreens || []),
+          ...(updatedMenuScreens[selectedMainScreenIndex].subScreens || []),
           {
             name: newSubScreenName,
             backgroundColor: newSubScreenColor,
@@ -642,10 +642,10 @@ function MenuUpdate() {
         alert('Sub-screen with the same name already exists on this level.');
       }
       else{
-        updatedMenuScreens[selectedMainScreen] = {
-          ...updatedMenuScreens[selectedMainScreen],
+        updatedMenuScreens[selectedMainScreenIndex] = {
+          ...updatedMenuScreens[selectedMainScreenIndex],
           subScreens: findAndAddSubScreen(
-            updatedMenuScreens[selectedMainScreen].subScreens,
+            updatedMenuScreens[selectedMainScreenIndex].subScreens,
             topSubScreen,
             {
               name: newSubScreenName,
@@ -792,10 +792,17 @@ function MenuUpdate() {
     console.log(subscreens, 'hellloizz');
 
     return (
-      <div className="container mb-3">
+      <div className="container mb-3" onDragOver={(e) => e.preventDefault()}>
         <div className="row">
           {subscreens.map((item, index) => (
-            <div key={index} className="col-md-6 mb-3">
+            <div
+              key={index}
+              className="col-md-6 mb-3"
+              draggable
+              onDragStart={() => handleSubDragStart(mainScreenIndex, index)}
+              onDragOver={(e) => handleSubDragOver( index, e)}
+              onDragEnd={handleSubDragEnd}
+            >
               <div className="d-flex flex-column p-1 cursor-pointer">
                 <Card className="mb-3 position-relative">
                   <div className="d-flex justify-content-end">
@@ -833,6 +840,81 @@ function MenuUpdate() {
       </div>
     );
   };
+  const handleSubDragStart = (mainIndex, subIndex) => {
+    setSelectedMainScreenIndex(mainIndex);
+    setDraggedIndex( subIndex );
+  };
+
+  const handleSubDragOver = (subIndex, e) => {
+    e.preventDefault();
+
+    setData((prevData) => {
+      const updatedData = { ...prevData };
+      const updatedMenuScreens = [...updatedData.menuScreens];
+      const targetMainScreen = updatedMenuScreens[selectedMainScreenIndex];
+
+      if (subIndex === draggedIndex) {
+        return updatedData;
+      }
+
+      if (subScreenStack.length === 1) {
+        const targetSubScreens = [...targetMainScreen.subScreens];
+        const [draggedItem] = targetSubScreens.splice(draggedIndex, 1);
+
+        targetSubScreens.splice(subIndex, 0, draggedItem);
+        updatedMenuScreens[selectedMainScreenIndex] = { ...targetMainScreen, subScreens: targetSubScreens };
+      } else {
+        const updatedSubscreenStack = [...subScreenStack];
+        const topSubScreen = updatedSubscreenStack[updatedSubscreenStack.length - 1];
+
+        const updatedSubScreens = updateSubScreens(targetMainScreen.subScreens, topSubScreen, subIndex);
+
+        const lastSubScreenInSubScreenStack = [...(topSubScreen?.subScreens || [])];
+        const [draggedItem] = lastSubScreenInSubScreenStack.splice(draggedIndex, 1);
+
+        lastSubScreenInSubScreenStack.splice(subIndex, 0, draggedItem);
+        updatedSubscreenStack[updatedSubscreenStack.length - 1] = { ...topSubScreen, subScreens: lastSubScreenInSubScreenStack };
+
+        console.log('Updated subScreenStack:', lastSubScreenInSubScreenStack);
+        setSubScreenStack(updatedSubscreenStack);
+        updatedMenuScreens[selectedMainScreenIndex] = { ...targetMainScreen, subScreens: updatedSubScreens };
+      }
+
+      setDraggedIndex(subIndex);
+      return { ...updatedData, menuScreens: updatedMenuScreens };
+    });
+  };
+
+  const updateSubScreens = (subScreens, targetSubScreen, dropIndex) => {
+    return subScreens.map((subScreen, index) => {
+      if (areObjectsEqual(subScreen, targetSubScreen)) {
+        const updatedSubScreens = [...subScreen.subScreens];
+        const [draggedItem] = updatedSubScreens.splice(draggedIndex, 1);
+        updatedSubScreens.splice(dropIndex, 0, draggedItem);
+
+        return {
+          ...subScreen,
+          subScreens: updatedSubScreens,
+        };
+      } else if (subScreen.subScreens) {
+        const updatedNestedSubScreens = updateSubScreens(subScreen.subScreens, targetSubScreen, dropIndex);
+        return {
+          ...subScreen,
+          subScreens: updatedNestedSubScreens,
+        };
+      }
+      return subScreen;
+    });
+  };
+
+
+
+
+  const handleSubDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+
 
   console.log("component rendered ")
 
@@ -848,11 +930,11 @@ function MenuUpdate() {
 
   const renderCurrentSubScreen = () => {
 
-    if (!data.menuScreens || data.menuScreens.length === 0 || selectedMainScreen === null) {
+    if (!data.menuScreens || data.menuScreens.length === 0 || selectedMainScreenIndex === null) {
       return null;
     }
 
-    const mainScreen = data.menuScreens[selectedMainScreen];
+    const mainScreen = data.menuScreens[selectedMainScreenIndex];
 
     if (!mainScreen || !mainScreen.subScreens || mainScreen.subScreens.length === 0) {
       return null;
@@ -873,7 +955,7 @@ function MenuUpdate() {
 
     return (
       <div className="ml-3">
-        {renderSubScreens(currentSubScreens, selectedMainScreen)}
+        {renderSubScreens(currentSubScreens, selectedMainScreenIndex)}
       </div>
     );
   };
@@ -933,6 +1015,7 @@ function MenuUpdate() {
       reset()
       setBreadcrumb([])
       setSubScreenStack([])
+      setSelectedMainScreenIndex(0)
     }
   }, [id,updateSuccess]);
 
@@ -1067,7 +1150,7 @@ function MenuUpdate() {
   console.log(data, 'dataa')
 
   const handleMainDragStart = (index) => {
-    setSelectedMainScreen(index)
+    setSelectedMainScreenIndex(index)
     setDraggedIndex(index);
   };
 
@@ -1078,7 +1161,7 @@ function MenuUpdate() {
       newData.splice(index, 0, draggedItem);
       setData({ ...data, menuScreens: newData });
       setDraggedIndex(index);
-      setSelectedMainScreen(index)
+      setSelectedMainScreenIndex(index)
     }
   };
 
@@ -1151,7 +1234,7 @@ function MenuUpdate() {
                     const mainScreenItems = mainScreen?.subScreens?.filter((item) => item.componentType === "ITEM")
                       .map((item) =>({ id :item.component.item.id , name: item.component.item.name, desc: item.component.item.desc}))
                     setSelectedItems(mainScreenItems || [])
-                    setSelectedMainScreen(index)
+                    setSelectedMainScreenIndex(index)
                     setSubScreenStack([mainScreen]);
                     setBreadcrumb(() => [mainScreen.name]);
 
