@@ -512,15 +512,12 @@ export const OnlineOrderingMenuUpdate = () => {
     if (isConfirmed) {
       dispatch(duplicateMenu(id))
         .then((result:any) => {
-          console.log('Duplicate successful:', result);
-
           if (result?.payload?.id) {
-            navigate(`/menu/${result.payload.id}/edit`);
+            navigate(`/menu/${result?.payload?.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
           } else {
             console.error('Failed to duplicate menu: No ID returned');
           }
-
-          setRefresh(prev => !prev);
+          // setRefresh(prev => !prev);
         })
         .catch(error => {
           console.error('Error duplicating menu:', error);
