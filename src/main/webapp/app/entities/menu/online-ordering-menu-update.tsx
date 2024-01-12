@@ -199,7 +199,7 @@ export const OnlineOrderingMenuUpdate = () => {
       setFilteredValue(menuItems);
     } else {
       const filtered = menuItems?.filter((product) => {
-        return product.menuCategories[0]?.name === selectedTerm;
+        return product.categories[0]?.name === selectedTerm;
       });
       setFilteredValue(filtered);
     }
