@@ -172,7 +172,7 @@ export default function Instructions()
                   {branchesCredentials?.brokerConfig?.vHostName}
                 </div>
                 <div className="mb-3">
-                  <strong className="mr-3">Service Secret:</strong>
+                  <strong className="mr-3">Exchange:</strong>
                   {branchesCredentials?.brokerConfig.topics[0]}
 
                 </div>
