@@ -596,7 +596,6 @@ export const ItemUpdate = () => {
 
     setSelectedAddons(mergedAddons.map(addon => ({ id: addon.id, label: addon.name, value: addon.id })));
   }
-
   return (
     <div>
       {openedModal && (
@@ -609,6 +608,7 @@ export const ItemUpdate = () => {
           onVariantImageUpload={handleVariantImageUpload}
           editingVariantId={editingVariantId}
           itemId={id}
+          itemName={name}
           variants={variants}
           handleEditExistingVariant={handleEditExistingVariant}
           addonsOptions={addonsOptions}

@@ -48,6 +48,7 @@ interface IVariantProps {
   handleEditExistingVariant: any;
   addonsOptions: any;
   itemId: string;
+  itemName: string;
   itemType: string;
   editingVariantIndex: number;
 }
@@ -91,7 +92,7 @@ const ItemVariantModal = (props: IVariantProps) => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
-  const [name, setName] = useState(editingVariant?.name || '');
+  const [name, setName] = useState(editingVariant?.name || props.itemName);
   const [price, setPrice] = useState(editingVariant?.price || '');
   const [selectedVariantAddons, setSelectedVariantAddons] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -376,7 +377,7 @@ const ItemVariantModal = (props: IVariantProps) => {
   };
 
   const resetForm = () => {
-    setName('');
+    setName(props.itemName);
     setPrice('');
     setSelectedDiscounts([]);
     setSelectedImage(null);
@@ -469,7 +470,7 @@ const ItemVariantModal = (props: IVariantProps) => {
   useEffect(() => {
     if (editingVariant) {
       console.log(editingVariant, 'editingVariant');
-      setName(editingVariant.name || '');
+      setName(editingVariant.name || props.itemName);
       setPrice(editingVariant.price || '');
       if(editingVariant?.addons){
         console.log(editingVariant?.addons, 'editingVariant?.addons)')
