@@ -26,7 +26,6 @@ const setupAxiosInterceptors = onUnauthenticated => {
           clientId: 'central-app',
         };
 
-        try {
           const response = await axios.post(SERVER_ADMIN_API_URL + '/api/auth/refresh', requestBody);
           const newAccessToken = response?.data?.access_token;
           const newRefreshToken = response?.data?.refresh_token;
@@ -42,13 +41,8 @@ const setupAxiosInterceptors = onUnauthenticated => {
 
             return newAccessToken;
           }
-        } catch (refreshError) {
-          onUnauthenticated();
-          throw refreshError;
-        } finally {
-          isRefreshing = false;
-        }
       }
+      isRefreshing = false;
     }
     return null;
   };
@@ -70,23 +64,16 @@ const setupAxiosInterceptors = onUnauthenticated => {
       if (!refreshPromise) {
         refreshPromise = refreshAccessToken();
       }
-
-      try {
         const newAccessToken = await refreshPromise;
         if (newAccessToken) {
           err.config.headers.Authorization = `Bearer ${newAccessToken}`;
           return axios(err.config);
+        }else{
+          onUnauthenticated();
         }
-      } catch (refreshError) {
-        onUnauthenticated();
-        return Promise.reject(refreshError);
-      } finally {
         refreshPromise = null;
-      }
-    } else {
-      onUnauthenticated();
-      return Promise.reject(err);
     }
+    return Promise.reject(err);
   };
 
   axios.interceptors.request.use(onRequestSuccess);
