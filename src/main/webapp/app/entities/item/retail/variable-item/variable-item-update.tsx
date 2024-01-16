@@ -434,7 +434,7 @@ export const VariableItemUpdate = () => {
                 <Row>
                   <Col md="4">
                     <div className={"d-flex flex-column gap-2"}>
-                      <label>
+                      <label className={"text-xl font-bold"}>
                         Select Attribute
                       </label>
                       <Select
@@ -496,7 +496,7 @@ export const VariableItemUpdate = () => {
 
                               <Col md="4">
                                 <div className={"d-flex flex-column gap-2 mt-2"}>
-                                  <label>
+                                  <label className={"text-xl font-bold"}>
                                     Name
                                   </label>
                                   <InputText
@@ -512,7 +512,7 @@ export const VariableItemUpdate = () => {
 
                             <Col md="4">
                               <div className={"d-flex flex-column gap-2 mt-2"}>
-                                <label>
+                                <label className={"text-xl font-bold"}>
                                   SKU
                                 </label>
                                 <InputText
@@ -528,7 +528,7 @@ export const VariableItemUpdate = () => {
 
                             <Col md="4">
                               <div className={"d-flex flex-column gap-2 mt-2"}>
-                                <label>
+                                <label className={"text-xl font-bold"}>
                                   Price
                                 </label>
                                 <InputNumber
@@ -545,7 +545,7 @@ export const VariableItemUpdate = () => {
 
                             <Col md="4">
                               <div className={"d-flex flex-column gap-2 mt-2"}>
-                                <label>
+                                <label className={"text-xl font-bold"}>
                                   Sale Price
                                 </label>
                                 <InputNumber

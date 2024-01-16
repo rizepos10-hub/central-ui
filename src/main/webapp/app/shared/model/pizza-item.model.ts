@@ -5,10 +5,28 @@ import {IAttachment} from "app/shared/model/attachment.model";
 import {IDiscount} from "app/shared/model/discount.model";
 import {IPredefinedPizza} from "app/shared/model/predefined-pizza.model";
 import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
+import {ITopping} from "app/shared/model/topping.model";
+import {ICrustType} from "app/shared/model/crust-type.model";
+import {ICrustThickness} from "app/shared/model/crust-thickness.model";
 
 interface IMultiplePizzaDetails{
   numberOfPizza?: number;
   freeToppingsNumber?: number;
+}
+
+interface IToppingPricingItem {
+  topping: ITopping;
+  pricingClass: IPizzaPricingClass;
+}
+
+interface ICrustTypePricingItem {
+  crustType: ICrustType;
+  pricingClass: IPizzaPricingClass;
+}
+
+interface ICrustThicknessPricingItem {
+  crustThickness: ICrustThickness;
+  pricingClass: IPizzaPricingClass;
 }
 
 interface IPizzaItemVariant {
@@ -17,10 +35,10 @@ interface IPizzaItemVariant {
   attachments?: IAttachment[];
   discounts?: IDiscount[];
   predefinedPizza?: IPredefinedPizza[];
-  toppingPricing?: IPizzaPricingClass;
   itemPricingClass?: IPizzaPricingClass;
-  crustTypePricing?: IPizzaPricingClass;
-  crustThicknessPricing?: IPizzaPricingClass;
+  toppingPricing?: IToppingPricingItem[];
+  crustTypePricing?: ICrustTypePricingItem[];
+  crustThicknessPricing?: ICrustThicknessPricingItem[];
   multiplePizzaDetails?: IMultiplePizzaDetails[];
   multiple?: boolean;
   archived?: boolean;

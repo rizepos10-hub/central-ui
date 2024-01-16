@@ -15,6 +15,8 @@ import {ITopping} from "app/shared/model/topping.model";
 import CreatableSelect from "react-select/creatable";
 import {getEntities as getToppingGroups, createEntity as createToppingGroup} from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
 import Attachment from "app/shared/layout/attachment/attachment";
+import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
+import Select from "react-select";
 
 export const PizzaToppingUpdate = () => {
   const dispatch = useAppDispatch();
@@ -28,7 +30,10 @@ export const PizzaToppingUpdate = () => {
       id: "",
       name: ""
     },
+    pricingClass: {}
   });
+  const toppingPricingClasses = useAppSelector(state => state.pizzaPricingClass.entities).filter(option => option.type === 'TOPPING');
+
   const pizzaToppingGroups = useAppSelector(state => state.toppingGroup.entities).map(tpngGrp => ({...tpngGrp, label: tpngGrp.name, value: tpngGrp.id}));
   const updatingGroup = useAppSelector(state => state.toppingGroup.updating);
 
@@ -56,6 +61,11 @@ export const PizzaToppingUpdate = () => {
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
+    dispatch(getPricingClasses({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, []);
 
   console.log(pizzaToppingGroups, 'pizzaToppingGroups')
@@ -141,7 +151,7 @@ export const PizzaToppingUpdate = () => {
                     onChange={handleChange}
                   />
                 </div>
-                <div className={"d-flex flex-column"}>
+                <div className={"d-flex flex-column my-2"}>
                   <Label for="pizza-topping-group">Topping Group</Label>
                   <CreatableSelect
                     isDisabled={updatingGroup}
@@ -153,10 +163,24 @@ export const PizzaToppingUpdate = () => {
                     isClearable={true}
 
                   />
-
                 </div>
 
-                <div className={"d-flex flex-column"}>
+                <div className={"d-flex flex-column  my-2"}>
+                    <label>
+                      Pricing Class
+                    </label>
+                    <Select
+                      value={pizzaTopping?.pricingClass}
+                      required
+                      options={toppingPricingClasses}
+                      getOptionLabel={option => option.name}
+                      getOptionValue={option => option.id}
+                      onChange={(toppingPriceOption) => setPizzaTopping((prevState) => ({...prevState, pricingClass: toppingPriceOption}))}
+                    />
+                  </div>
+
+
+                <div className={"d-flex flex-column my-2"}>
                   <Label >Topping Image</Label>
                   <Attachment
                     onAddImage={(imageInfo) => handleAddImage("image", imageInfo)}
@@ -165,7 +189,7 @@ export const PizzaToppingUpdate = () => {
                   />
                 </div>
 
-                <div className={"d-flex flex-column"}>
+                <div className={"d-flex flex-column my-2"}>
                   <Label >Topping Icon</Label>
                   <Attachment
                     onAddImage={(imageInfo) => handleAddImage("icon", imageInfo)}

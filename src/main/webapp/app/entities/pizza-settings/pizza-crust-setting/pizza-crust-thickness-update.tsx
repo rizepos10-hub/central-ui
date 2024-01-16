@@ -13,6 +13,7 @@ import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-uti
 import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {ICrustThickness} from "app/shared/model/crust-thickness.model";
+import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
 
 export const PizzaCrustThicknessUpdate = () => {
   const dispatch = useAppDispatch();
@@ -22,10 +23,13 @@ export const PizzaCrustThicknessUpdate = () => {
 
   const [pizzaCrustThickness, setPizzaCrustThickness] = useState<ICrustThickness>({
     name: '',
-    hiddenOnSizes: []
+    hiddenOnSizes: [],
+    pricingClass: {}
   });
 
   const pizzaCrustThicknessEntity = useAppSelector(state => state.pizzaCrustThickness.entity);
+  const crustThicknessPricingClasses = useAppSelector(state => state.pizzaPricingClass.entities).filter(option => option.type === 'CRUST_THICKNESS');
+
   const pizzaSizes = useAppSelector(state => state.pizzaSize.entities);
   const loading = useAppSelector(state => state.pizzaCrustThickness.loading);
   const updating = useAppSelector(state => state.pizzaCrustThickness.updating);
@@ -49,7 +53,12 @@ export const PizzaCrustThicknessUpdate = () => {
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    }));
+    dispatch(getPricingClasses({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, []);
 
   useEffect(() => {
@@ -121,6 +130,21 @@ export const PizzaCrustThicknessUpdate = () => {
                    onChange={handleHiddenChange}
                  />
                 </div>
+
+                <div className={"d-flex flex-column  my-2"}>
+                  <label>
+                    Pricing Class
+                  </label>
+                  <Select
+                    value={pizzaCrustThickness?.pricingClass}
+                    required
+                    options={crustThicknessPricingClasses}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    onChange={(toppingPriceOption) => setPizzaCrustThickness((prevState) => ({...prevState, pricingClass: toppingPriceOption}))}
+                  />
+                </div>
+
               </FormGroup>
               <Button tag={Link} to="/pizza-crust" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
