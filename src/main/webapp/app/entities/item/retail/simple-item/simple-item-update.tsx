@@ -261,8 +261,8 @@ export const SimpleItemUpdate = () => {
 
                 <Col md="4">
                   <div className={"d-flex flex-column gap-2"}>
-                    <label>
-                      SKU
+                    <label className={"text-xl font-bold"}>
+                    SKU
                     </label>
                     <InputText
                       name="sku"
@@ -277,7 +277,7 @@ export const SimpleItemUpdate = () => {
 
                 <Col md="4">
                   <div className={"d-flex flex-column gap-2"}>
-                    <label>
+                    <label className={"text-xl font-bold"}>
                       Price
                     </label>
                     <InputNumber
@@ -294,7 +294,7 @@ export const SimpleItemUpdate = () => {
 
                 <Col md="4">
                   <div className={"d-flex flex-column gap-2"}>
-                    <label>
+                    <label className={"text-xl font-bold"}>
                     Sale Price
                     </label>
                     <InputNumber
@@ -344,7 +344,7 @@ export const SimpleItemUpdate = () => {
                 <Row>
                   <Col md="4">
                     <div className={"d-flex flex-column gap-2"}>
-                      <label>
+                      <label className={"text-xl font-bold"}>
                        Select Attribute
                       </label>
                       <Select

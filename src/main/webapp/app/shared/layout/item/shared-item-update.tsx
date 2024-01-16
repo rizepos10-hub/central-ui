@@ -20,7 +20,7 @@ import {Checkbox} from "primereact/checkbox";
 import {IAddonGroups} from "app/shared/model/addon-groups.model";
 import {cloneDeep} from "lodash";
 import AddonImportModal from "app/entities/item/restaurant/regular-item/addon-import-modal";
-import { getEntities as getSharedItemEntities } from 'app/entities/item/restaurant/restaurant-item.reducer';
+import { getEntities as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -79,7 +79,6 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
     onFieldChange('addonGroups', updatedAddonGroups);
   };
 
-console.log(isRetailItem, 'isRetailItem')
 
   useEffect(() => {
     if (isRestaurantItem){
@@ -88,8 +87,25 @@ console.log(isRetailItem, 'isRetailItem')
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
+
+      dispatch(
+        getRestaurantItems({
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
+      dispatch(getAddonGroups({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      }))
+      dispatch(getAddons({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      }))
     }else if(isRetailItem){
-      console.log("itemCategoriesOptions")
       dispatch(getRetailItemCategories({
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
@@ -97,16 +113,6 @@ console.log(isRetailItem, 'isRetailItem')
       }));
     }
 
-    dispatch(getAddonGroups({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }))
-    dispatch(getAddons({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }))
     dispatch(getProductionCenters({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
@@ -118,13 +124,7 @@ console.log(isRetailItem, 'isRetailItem')
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-    dispatch(
-      getSharedItemEntities({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      })
-    );
+
   }, []);
 
   const [openedAddonModal, setOpenedAddonModal] = useState(false);
@@ -152,8 +152,8 @@ console.log(isRetailItem, 'isRetailItem')
               <Row className={"my-3"} >
                 {!isSimplePizza ? <Col md="6">
                   <div className={"d-flex flex-column gap-2"}>
-                    <label>
-                      <Translate contentKey={"tempApp.item.name"}>Name</Translate>
+                    <label className={"text-xl font-bold"}>
+                    <Translate contentKey={"tempApp.item.name"}>Name</Translate>
                     </label>
                     <InputText
                       type="text"
@@ -169,8 +169,8 @@ console.log(isRetailItem, 'isRetailItem')
 
                 <Col md="6">
                   <div className={"d-flex flex-column gap-2"}>
-                    <label>
-                      <Translate contentKey={"tempApp.item.desc"}>Description</Translate>
+                    <label className={"text-xl font-bold"}>
+                    <Translate contentKey={"tempApp.item.desc"}>Description</Translate>
                     </label>
                     <InputText
                       type="text"
@@ -187,8 +187,8 @@ console.log(isRetailItem, 'isRetailItem')
                 <Row className={"my-3"} >
                 <Col md="4">
                     <div className={"d-flex flex-column gap-2"}>
-                      <label>
-                        <Translate contentKey="tempApp.item.productionCenter">Production Center</Translate>
+                      <label className={"text-xl font-bold"}>
+                      <Translate contentKey="tempApp.item.productionCenter">Production Center</Translate>
                       </label>
                       <Select
                         value={item?.productionCenter}
@@ -202,8 +202,8 @@ console.log(isRetailItem, 'isRetailItem')
 
                   <Col md="4">
                     <div className={"d-flex flex-column gap-2"}>
-                      <label>
-                        <Translate contentKey="tempApp.item.terms">Category</Translate>
+                      <label className={"text-xl font-bold"}>
+                      <Translate contentKey="tempApp.item.terms">Category</Translate>
                       </label>
                       <Select
                         value={item?.categories}
@@ -218,8 +218,8 @@ console.log(isRetailItem, 'isRetailItem')
 
                   <Col md="4">
                     <div className={"d-flex flex-column gap-2"}>
-                      <label>
-                        <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
+                      <label className={"text-xl font-bold"}>
+                      <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
                       </label>
                       <Select
                         value={item?.accountingGroups}
@@ -234,8 +234,9 @@ console.log(isRetailItem, 'isRetailItem')
                 <Row className={"my-3"} >
                   <Col md={"6"}>
                 <div className={"d-flex flex-column"}>
-                    <label  className={"mt-2"}>
-                      <Translate contentKey={"tempApp.table.image"}>Image</Translate>
+                  <label className={"text-xl mt-2 font-bold"}>
+
+                  <Translate contentKey={"tempApp.table.image"}>Image</Translate>
                     </label>
                     <Attachment
                       image={item?.attachments?.[0]}
@@ -259,8 +260,8 @@ console.log(isRetailItem, 'isRetailItem')
                     <Row className={"my-3"}>
                     <Col md="6">
                       <div className={"d-flex flex-column gap-2"}>
-                        <label>
-                          <Translate contentKey={"tempApp.item.addons"}>Addons</Translate>
+                        <label className={"text-xl font-bold"}>
+                        <Translate contentKey={"tempApp.item.addons"}>Addons</Translate>
                         </label>
                         <Select
                           value={item?.addons}
@@ -274,7 +275,7 @@ console.log(isRetailItem, 'isRetailItem')
                     </Col>
                     <Col md={'6'}>
                       <div className={'d-flex flex-column gap-2 flex-start'}>
-                        <label>
+                        <label className={"text-xl font-bold"}>
                           <Translate contentKey={'tempApp.item.importAddons'}>Addons</Translate>
                         </label>
                         <div>
@@ -285,7 +286,10 @@ console.log(isRetailItem, 'isRetailItem')
                   </Row>
                     <Row>
                       <div className="mt-2">
-                        <h5>Addon Groups</h5>
+
+                        <label className={"text-xl font-bold"}>
+                          Addon Groups
+                        </label>
                         <div className="col-md-6">
                           <Select
                             isMulti={true}

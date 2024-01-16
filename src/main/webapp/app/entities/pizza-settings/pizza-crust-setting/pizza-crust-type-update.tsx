@@ -13,6 +13,7 @@ import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-uti
 import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {getEntities} from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
+import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
 
 export const PizzaCrustTypeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -22,8 +23,11 @@ export const PizzaCrustTypeUpdate = () => {
 
   const [pizzaCrustType, setPizzaCrustType] = useState<ICrustType>({
     name: '',
-    hiddenOnSizes: []
+    hiddenOnSizes: [],
+    pricingClass: {}
   });
+  const crustTypePricingClasses = useAppSelector(state => state.pizzaPricingClass.entities)
+    .filter(option => option.type === 'CRUST_THICKNESS');
 
   const pizzaCrustTypeEntity = useAppSelector(state => state.pizzaCrustType.entity);
   const pizzaSizes = useAppSelector(state => state.pizzaSize.entities);
@@ -50,7 +54,12 @@ export const PizzaCrustTypeUpdate = () => {
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    }));
+    dispatch(getPricingClasses({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   }, []);
 
   useEffect(() => {
@@ -120,6 +129,20 @@ export const PizzaCrustTypeUpdate = () => {
                     id="pizza-crustType-hiddenOn"
                     value={pizzaCrustType?.hiddenOnSizes}
                     onChange={handleHiddenChange}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column  my-2"}>
+                  <label>
+                    Pricing Class
+                  </label>
+                  <Select
+                    value={pizzaCrustType?.pricingClass}
+                    required
+                    options={crustTypePricingClasses}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    onChange={(toppingPriceOption) => setPizzaCrustType((prevState) => ({...prevState, pricingClass: toppingPriceOption}))}
                   />
                 </div>
               </FormGroup>

@@ -1,5 +1,6 @@
 import {ITerm} from "app/shared/model/term.model";
 import {IAttachment} from "app/shared/model/attachment.model";
+import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
 
 export interface ITopping {
   id?: string;
@@ -7,6 +8,7 @@ export interface ITopping {
   group?: ITerm;
   image?: IAttachment;
   icon?:IAttachment;
+  pricingClass?: IPizzaPricingClass
 }
 
 export const defaultValue: Readonly<ITopping> = {};

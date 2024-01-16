@@ -12,15 +12,21 @@ import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
 import {IPizzaItem} from "app/shared/model/pizza-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
-import {Checkbox} from "primereact/checkbox";
-import {SelectButton} from "primereact/selectbutton";
-import {InputText} from "primereact/inputtext";
 import Select from "react-select";
 import {getEntities as getPredefinedPizzas} from "app/entities/pizza-settings/pizza-predefined/pizza-predefined.reducer";
 import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer"
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
+import {Accordion, AccordionTab} from "primereact/accordion";
+import AsyncSelect from "react-select/async";
+import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
+import {getEntities as getToppings} from "app/entities/pizza-settings/pizza-topping/pizza-topping.reducer";
+import {ITopping} from "app/shared/model/topping.model";
+import {ICrustType} from "app/shared/model/crust-type.model";
+import {getEntities as getCrustTypes} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer";
+import {getEntities as getCrustThicknesses} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness.reducer";
+import {ICrustThickness} from "app/shared/model/crust-thickness.model";
 
 const items: MenuItem[] = [
   {
@@ -32,7 +38,11 @@ const items: MenuItem[] = [
 
 ];
 
-
+const pricingClassesMap = {
+  "toppingPricing" : "topping",
+  "crustTypePricing" : "crustType",
+  "crustThicknessPricing" : "crustThickness",
+}
 
 export const PizzaItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -48,6 +58,9 @@ export const PizzaItemUpdate = () => {
   const loading = useAppSelector(state => state.pizzaItem.loading);
   const updating = useAppSelector(state => state.pizzaItem.updating);
   const updateSuccess = useAppSelector(state => state.pizzaItem.updateSuccess);
+  const pizzaToppingList = useAppSelector(state => state.pizzaTopping.entities);
+  const crustTypeList = useAppSelector(state => state.pizzaCrustType.entities);
+  const crustThicknessList = useAppSelector(state => state.pizzaCrustThickness.entities);
 
   const predefinedPizzaOptions = useAppSelector(state => state.predefinedPizza.entities);
   const pizzaPricingClasses = useAppSelector(state => state.pizzaPricingClass.entities);
@@ -95,6 +108,58 @@ export const PizzaItemUpdate = () => {
       };
     });
   };
+
+  const handlePricingClassChange = (fieldName, values) => {
+    setPizzaItem((prev) => {
+      const existingVariants = prev.variants && prev.variants.length > 0 ? prev.variants[0][fieldName] || [] : [];
+
+      const newValues = values.map(value => {
+        const existingValue = existingVariants.find(existing => existing[pricingClassesMap[fieldName]]?.id === value?.id);
+
+        return {
+          [pricingClassesMap[fieldName]]: value,
+          pricingClass: existingValue ? existingValue.pricingClass : value.pricingClass
+        };
+      });
+
+      const updatedVariants = [
+        {
+          ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
+          [fieldName]: newValues,
+        },
+      ];
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+
+  const handlePricingClassChangeSecondSelect = (fieldName, selectedPricingClass, index) => {
+    setPizzaItem((prev) => {
+      const updatedVariants = [...(prev.variants || [])];
+      const updatedFieldPricing = [...(updatedVariants[0]?.[fieldName] || [])];
+      console.log(updatedFieldPricing, 'updatedFieldPricingupdatedFieldPricing')
+
+      updatedFieldPricing[index] = {
+        ...updatedFieldPricing[index],
+        pricingClass: selectedPricingClass,
+      };
+
+      updatedVariants[0] = {
+        ...updatedVariants[0],
+        [fieldName]: updatedFieldPricing,
+      };
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
 
 
   const handleMultiplePizzaInputChange = (index, fieldName, value) => {
@@ -211,6 +276,24 @@ export const PizzaItemUpdate = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
+    dispatch(getToppings({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getCrustTypes({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getCrustThicknesses({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
 
   },[id, isNew]);
 
@@ -311,8 +394,8 @@ export const PizzaItemUpdate = () => {
             {!pizzaItem?.variants?.[0]?.multiple ?<Row>
               <Col md="6">
                 <div className={"d-flex flex-column gap-2"}>
-                  <label>
-                    Predefined Pizza
+                  <label className={"text-xl font-bold"}>
+                  Predefined Pizza
                   </label>
                   <Select
                     value={pizzaItem?.variants?.[0]?.predefinedPizza?.[0]}
@@ -329,11 +412,10 @@ export const PizzaItemUpdate = () => {
             <SharedItemUpdate item={pizzaItem} onFieldChange={handleFieldChange}/>
 
               <Row className={"my-6"} >
-
               <Row className={"mt-2"}>
                 {!pizzaItem?.variants?.[0]?.multiple ? <Col md="3">
                   <div className={"d-flex flex-column gap-2"}>
-                    <label>
+                    <label className={"text-xl font-bold"}>
                       Item Pricing
                     </label>
                     <Select
@@ -347,54 +429,142 @@ export const PizzaItemUpdate = () => {
                   </div>
                 </Col> : null}
 
-                <Col md="3">
-                  <div className={"d-flex flex-column gap-2"}>
-                    <label>
-                      Topping Pricing
-                    </label>
-                    <Select
-                      value={pizzaItem?.variants?.[0]?.toppingPricing}
-                      required
-                      options={filteredOptions?.toppings}
-                      getOptionLabel={option => option.name}
-                      getOptionValue={option => option.id}
-                      onChange={(toppingPriceOption) => handleSinglePizzaValuesChange("toppingPricing", toppingPriceOption)}
-                    />
-                  </div>
-                </Col>
-
-                <Col md="3">
-                  <div className={"d-flex flex-column gap-2"}>
-                    <label>
-                      Crust Type Pricing
-                    </label>
-                    <Select
-                      value={pizzaItem?.variants?.[0]?.crustTypePricing}
-                      required
-                      options={filteredOptions?.crustTypes}
-                      getOptionLabel={option => option.name}
-                      getOptionValue={option => option.id}
-                      onChange={(crustTypePriceOption) => handleSinglePizzaValuesChange("crustTypePricing", crustTypePriceOption)}
-                    />
-                  </div>
-                </Col>
-
-                <Col md="3">
-                  <div className={"d-flex flex-column gap-2"}>
-                    <label>
-                      Crust Thickness Pricing
-                    </label>
-                    <Select
-                      value={pizzaItem?.variants?.[0]?.crustThicknessPricing}
-                      required
-                      options={filteredOptions?.crustThicknesses}
-                      getOptionLabel={option => option.name}
-                      getOptionValue={option => option.id}
-                      onChange={(crustThicknessPriceOption) => handleSinglePizzaValuesChange("crustThicknessPricing", crustThicknessPriceOption)}
-                    />
-                  </div>
-                </Col>
               </Row>
+            </Row>
+            <Row>
+              <Accordion multiple activeIndex={[0]} className={"my-3"}>
+                  <AccordionTab  header={"Toppings"}>
+                    <div className={"d-flex gap-3"}>
+                      <label className={"mt-2"}>Add Toppings</label>
+                      <Col md={"6"}>
+                        <Select
+                          value={pizzaItem?.variants?.[0]?.toppingPricing?.map((toppingPrice) => toppingPrice.topping)}
+                          isMulti
+                          getOptionLabel={(option: ITopping) => option.name}
+                          getOptionValue={(option: ITopping) => option.id}
+                          onChange={(toppingPriceOption) => handlePricingClassChange("toppingPricing", toppingPriceOption)}
+                          options={pizzaToppingList}
+                        />
+                        <Table>
+                          <thead>
+                          <tr>
+                            <th>Topping</th>
+                            <th>Pricing Class</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                          {pizzaItem?.variants?.[0]?.toppingPricing?.map((toppingPrice, index) => (
+                            <tr key={index}>
+                              <td>{toppingPrice.topping.name}</td>
+                              <td>
+                                <Select
+                                  value={toppingPrice.pricingClass}
+                                  getOptionLabel={(option: IPizzaPricingClass) => option.name}
+                                  getOptionValue={(option: IPizzaPricingClass) => option.id}
+                                  onChange={(selectedPricingClass) =>
+                                    handlePricingClassChangeSecondSelect("toppingPricing", selectedPricingClass, index)
+                                  }
+                                  options={filteredOptions.toppings}
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                          </tbody>
+                        </Table>
+                      </Col>
+                    </div>
+                  </AccordionTab>
+              </Accordion>
+
+              <Accordion multiple activeIndex={[0]} className={"my-3"}>
+                <AccordionTab  header={"Crust Type"}>
+                  <div className={"d-flex gap-3"}>
+                    <label className={"mt-2"}>Add Crust Types</label>
+                    <Col md={"6"}>
+                      <Select
+                        value={pizzaItem?.variants?.[0]?.crustTypePricing?.map((crustTypePricing) => crustTypePricing?.crustType)}
+                        isMulti
+                        getOptionLabel={(option: ICrustType) => option.name}
+                        getOptionValue={(option: ICrustType) => option.id}
+                        onChange={(crustTypeOption) => handlePricingClassChange("crustTypePricing", crustTypeOption)}
+                        options={crustTypeList}
+                      />
+                      <Table>
+                        <thead>
+                        <tr>
+                          <th>Crust Type</th>
+                          <th>Pricing Class</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {pizzaItem?.variants?.[0]?.crustTypePricing?.map((crustTypePricing, index) => {
+                          return (
+                            <tr key={index}>
+                              <td>{crustTypePricing?.crustType?.name}</td>
+                              <td>
+                                <Select
+                                  value={crustTypePricing?.pricingClass}
+                                  getOptionLabel={(option: IPizzaPricingClass) => option.name}
+                                  getOptionValue={(option: IPizzaPricingClass) => option.id}
+                                  onChange={(selectedPricingClass) =>
+                                    handlePricingClassChangeSecondSelect("crustTypePricing", selectedPricingClass, index)
+                                  }
+                                  options={filteredOptions.crustTypes}
+                                />
+                              </td>
+                            </tr>
+                          )
+                        })}
+                        </tbody>
+                      </Table>
+                    </Col>
+                  </div>
+                </AccordionTab>
+              </Accordion>
+
+              <Accordion multiple activeIndex={[0]} className={"my-3"}>
+                <AccordionTab  header={"Crust Thickness"}>
+                  <div className={"d-flex gap-3"}>
+                    <label className={"mt-2"}>Add Crust Thicknesses</label>
+                    <Col md={"6"}>
+                      <Select
+                        value={pizzaItem?.variants?.[0]?.crustThicknessPricing?.map((crustThicknessPricing) => crustThicknessPricing.crustThickness)}
+                        isMulti
+                        getOptionLabel={(option: ICrustThickness) => option.name}
+                        getOptionValue={(option: ICrustThickness) => option.id}
+                        onChange={(crustThicknessOption) => handlePricingClassChange("crustThicknessPricing", crustThicknessOption)}
+                        options={crustThicknessList}
+                      />
+                      <Table>
+                        <thead>
+                        <tr>
+                          <th>Crust Thickness</th>
+                          <th>Pricing Class</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {pizzaItem?.variants?.[0]?.crustThicknessPricing?.map((crustThicknessPricing, index) => (
+                          <tr key={index}>
+                            <td>{crustThicknessPricing?.crustThickness?.name}</td>
+                            <td>
+                              <Select
+                                value={crustThicknessPricing?.pricingClass}
+                                getOptionLabel={(option: IPizzaPricingClass) => option.name}
+                                getOptionValue={(option: IPizzaPricingClass) => option.id}
+                                onChange={(selectedPricingClass) =>
+                                  handlePricingClassChangeSecondSelect("crustThicknessPricing", selectedPricingClass, index)
+                                }
+                                options={filteredOptions?.crustThicknesses}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                        </tbody>
+                      </Table>
+                    </Col>
+                  </div>
+                </AccordionTab>
+              </Accordion>
             </Row>
 
             {pizzaItem?.variants?.[0]?.multiple ? (
@@ -409,11 +579,11 @@ export const PizzaItemUpdate = () => {
                     </tr>
                     </thead>
                     <tbody>
-                    {pizzaItem.variants[0].multiplePizzaDetails?.map((detail, index) => (
+                    {pizzaItem?.variants?.[0]?.multiplePizzaDetails?.map((detail, index) => (
                       <tr key={index}>
                         <td>
                           <InputNumber
-                            value={detail.numberOfPizza}
+                            value={detail?.numberOfPizza}
                             min={2}
                             onChange={(e) =>
                               handleMultiplePizzaInputChange(index, "numberOfPizza", e.value)
@@ -422,7 +592,7 @@ export const PizzaItemUpdate = () => {
                         </td>
                         <td>
                           <InputNumber
-                            value={detail.freeToppingsNumber}
+                            value={detail?.freeToppingsNumber}
                             required
                             onChange={(e) =>
                               handleMultiplePizzaInputChange(index, "freeToppingsNumber", e.value)
