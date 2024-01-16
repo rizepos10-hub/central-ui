@@ -31,6 +31,7 @@ import Select from "react-select";
 import MenuPosPreview from "app/entities/menu/menu-pos-preview";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getEntities as getMenuCategories} from "app/entities/term/Menu-Category/menu-category.reducer";
+import {InputText} from "primereact/inputtext";
 
 function MenuUpdate() {
 
@@ -1103,18 +1104,18 @@ function MenuUpdate() {
         setSelectedBranches(selectedBranches);
       }
 
-  const saveEntity = (data = null) => {
+  const saveEntity = (values = null) => {
     if (!data.name) {
       alert('Please enter a menu name.');
       return;
     }
-    console.log(data, 'data')
-    if(data) {
-      data.createdDate = convertDateTimeToServer(data.createdDate);
-      data.lastModifiedDate = convertDateTimeToServer(data.lastModifiedDate)
+    console.log(values, 'values')
+    if(values) {
+      values.createdDate = convertDateTimeToServer(values.createdDate);
+      values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate)
     }
 
-    const { ...restValues } = data;
+    const { ...restValues } = values;
 
     const updatedMenuEntity = {
       ...menuEntity,
@@ -1443,18 +1444,20 @@ function MenuUpdate() {
         </ModalHeader>
         <ModalBody>
           <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-
-            <ValidatedField
-              label={translate('tempApp.menu.name')}
-              id="menu-name"
-              name="name"
-              data-cy="name"
-              type="text"
-              validate={{
-                required: { value: true, message: translate('entity.validation.required') },
-                maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-              }}
-            />
+            <div className={"d-flex flex-column gap-2"}>
+              <label>
+                <Translate contentKey={"tempApp.menu.name"}>Name</Translate>
+              </label>
+              <InputText
+                type="text"
+                name="name"
+                id="name"
+                required={true}
+                placeholder="Menu Name"
+                value={data.name || ''}
+                onChange={(e) => setData((prev) => ({...prev, name: e.target.value}))}
+              />
+            </div>
             <ValidatedField
               label={translate('tempApp.menu.menuUrl')}
               id="menu-menuUrl"
