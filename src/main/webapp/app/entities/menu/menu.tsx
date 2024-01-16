@@ -36,6 +36,7 @@ export const Menu = () => {
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     'category.name': { value: null, matchMode: FilterMatchMode.EQUALS },
+    'branch.name': {value: null, matchMode: FilterMatchMode.STARTS_WITH}
   });
 
   const params = new URLSearchParams(location.search);
@@ -182,10 +183,11 @@ console.log(menuList, 'menu list')
             style={{ width: '20%' }}
           />
           <Column
-            field="createdDate"
-            header="Created At"
+            field="branch.name"
+            header="Branch"
             sortable
-            body={(rowData) => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
+            filter
+            filterPlaceholder={'Search by Branch'}
           />
           <Column
             field="lastModifiedDate"
