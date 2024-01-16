@@ -3,9 +3,10 @@ import { Sidebar } from 'primereact/sidebar';
 import React, { useContext } from 'react';
 import { LayoutContext } from './context/layoutcontext';
 import {useNavigate} from "react-router-dom";
-import {useAppSelector} from "app/config/store";
+import {useAppSelector, useAppDispatch} from "app/config/store";
 import {toast} from "react-toastify";
 import {Button} from "primereact/button";
+import {logout} from "app/shared/reducers/authentication";
 
 const AppProfileSidebar = () => {
 
@@ -20,7 +21,7 @@ const AppProfileSidebar = () => {
 
   const {firstName, lastName} = account
 
-
+  const dispatch = useAppDispatch();
 
   const handleSignOut = () => {
     const toastId = toast.info(
@@ -55,7 +56,11 @@ const AppProfileSidebar = () => {
       }
     );
   };
-
+  const handleSignOutImmediate = ()=>{
+    onProfileSidebarHide();
+    dispatch(logout());
+    navigate('/login');
+  }
 
     return (
         <Sidebar visible={layoutState.profileSidebarVisible} onHide={onProfileSidebarHide} position="right" className="layout-profile-sidebar w-full sm:w-25rem">
@@ -97,7 +102,7 @@ const AppProfileSidebar = () => {
                     {/*         </div> */}
                     {/*     </a> */}
                     {/* </li> */}
-                    <li  onClick={handleSignOut}>
+                    <li  onClick={handleSignOutImmediate}>
                         <a className="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150">
                             <span>
                                 <i className="pi pi-power-off text-xl text-primary"></i>
