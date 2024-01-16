@@ -7,7 +7,7 @@ import {useAppDispatch} from "app/config/store";
 import {Dropdown} from "primereact/dropdown";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
-import {CardBody, CardText, CardTitle} from "reactstrap";
+import {CardBody, CardText, CardTitle, Spinner} from "reactstrap";
 
 
 
@@ -29,6 +29,7 @@ export default function Instructions()
   const [branchesCredentials,setBranchesCredentials] = useState<any>({});
 
   const [selectedBranch, setSelectedBranch] = useState();
+  const [loading, setLoading] = useState(false)
 
   console.log(branchesCredentials, 'branchesCredentials')
 
@@ -46,12 +47,14 @@ export default function Instructions()
 
   useEffect(() => {
 
+    setLoading(true)
     dispatch(getBranchesCredentials({}))
       .then((res: any) => {
         const receivedData = res?.payload?.data;
         setBranchesCredentials(receivedData);
         const defaultSelectedBranch = receivedData?.branches?.[0]?.id || null;
         setSelectedBranch(defaultSelectedBranch);
+        setLoading(false)
       })
 
   }, []);
@@ -70,6 +73,9 @@ export default function Instructions()
 
 
 
+  if(loading){
+    return <Spinner />
+  }
 
 
 
