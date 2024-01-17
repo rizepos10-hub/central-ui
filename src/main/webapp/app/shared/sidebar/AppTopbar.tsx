@@ -7,9 +7,11 @@ import { Button } from 'primereact/button';
 import {AppTopbarRef} from "app/shared/sidebar/types/layout";
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
-    const { onMenuToggle, showProfileSidebar, showConfigSidebar } = useContext(LayoutContext);
+    const { onMenuToggle, showProfileSidebar, showConfigSidebar, layoutState,isDesktop } = useContext(LayoutContext);
     const menubuttonRef = useRef(null);
 
+    const giveMargin = layoutState?.staticMenuDesktopInactive === false;
+    const isDesktopEnvironment = isDesktop();
     const onConfigButtonClick = () => {
         showConfigSidebar();
     };
@@ -19,8 +21,9 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     }));
 
     return (
-        <div className="layout-topbar">
-            <div className="topbar-start">
+      <div className="layout-topbar bg-white" style={{ marginLeft: isDesktopEnvironment &&  giveMargin ? '18rem' : '0' }}>
+
+      <div className="topbar-start">
                 <button ref={menubuttonRef} type="button" className="topbar-menubutton p-link p-trigger" onClick={onMenuToggle}>
                     <i className="pi pi-bars"></i>
                 </button>

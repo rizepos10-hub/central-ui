@@ -183,6 +183,8 @@ console.log(isAdmin, 'hello admin')
           {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
           <AppSidebar />
         </div> }
+        {isAuthenticated && <AppTopbar ref={topbarRef}/>}
+
         <div className={isAuthenticated ? 'layout-content-wrapper' : ''}>
 
         <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" />
@@ -196,7 +198,6 @@ console.log(isAdmin, 'hello admin')
             {/*   isOpenAPIEnabled={isOpenAPIEnabled} */}
             {/* /> */}
 
-            {isAuthenticated && <AppTopbar ref={topbarRef}/>}
 
             {isAuthenticated && isOpenAPIEnabled && <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>}
 
