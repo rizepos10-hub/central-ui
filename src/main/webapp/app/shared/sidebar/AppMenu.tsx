@@ -2,15 +2,18 @@ import AppSubMenu from './AppSubMenu';
 import React from "react";
 
 const AppMenu = () => {
+
     const model: any = [
-                      {
-                        label: 'Control Panel',
-                        icon: 'pi pi-home',
-                        items: [
                           {
-                            label:'Dashboard',
+                            label: 'Control Panel',
                             icon: 'pi pi-home',
-                            to: '/'
+                            items: [
+                              {
+                                label: 'Dashboard',
+                                icon: 'pi pi-home',
+                                to: '/'
+                              },
+                            ]
                           },
                           {
                             label: 'Users',
@@ -36,64 +39,74 @@ const AppMenu = () => {
                             icon: 'pi pi-book',
                             items: [
                               {
-                                label: 'Pizza Settings',
+                                label: 'Restaurant',
                                 icon: 'pi pi-folder-open',
                                 items: [
                                   {
-                                    label: 'Sizes',
+                                    label: 'Category',
                                     icon: 'pi pi-folder-open',
-                                    to: '/pizza-size'
+                                    to: '/category/restaurant-items'
                                   },
                                   {
-                                    label: 'Crust Settings',
+                                    label: 'Regular',
                                     icon: 'pi pi-folder-open',
-                                    to: '/pizza-crust'
+                                    to: 'restaurant/regular'
                                   },
                                   {
-                                    label: 'Toppings',
+                                    label: 'Combo',
                                     icon: 'pi pi-folder-open',
-                                    to: '/pizza-topping'
+                                    to: 'restaurant/combo'
                                   },
                                   {
-                                    label: 'Topping Groups',
+                                    label: 'Pizza',
                                     icon: 'pi pi-folder-open',
-                                    to: '/pizza-topping/groups'
+                                    to: 'restaurant/pizza'
                                   },
                                   {
-                                    label: 'Predefined Pizza',
-                                    icon: 'pi pi-folder-open',
-                                    to: '/predefined-pizza'
+                                    label: 'Addons',
+                                    icon: 'pi pi-plus-circle',
+                                    to: '/addon'
                                   },
+
                                   {
-                                    label: 'Make Your Own',
-                                    icon: 'pi pi-folder-open',
-                                    to: '/own-pizza'
+                                    label: 'Addon Groups',
+                                    icon: 'pi pi-plus-circle',
+                                    to: '/addon-groups'
                                   },
                                 ]
                               },
                               {
-                                label: 'Category',
+                                label: 'Retail',
                                 icon: 'pi pi-folder-open',
-                                to: '/term/items'
+                                items: [
+                                  {
+                                    label: 'Category',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/category/retail-items'
+                                  },
+                                  {
+                                    label: 'Simple',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'retail/simple'
+                                  },
+                                  {
+                                    label: 'Variable',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'retail/variable'
+                                  },
+                                  {
+                                    label: 'Grouped',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'retail/grouped'
+                                  },
+                                  {
+                                    label: 'Attributes',
+                                    icon: 'pi pi-folder-open',
+                                    to: 'retail/attributes'
+                                  },
+                                ]
                               },
 
-                              {
-                                label: 'Items',
-                                icon: ' pi pi-th-large',
-                                to: '/item'
-                              },
-
-                              {
-                                label: 'Addons',
-                                icon: 'pi pi-plus-circle',
-                                to: '/addon'
-                              },
-
-                              {
-                                label: 'Addon Groups',
-                                icon: 'pi pi-plus-circle',
-                                to: '/addon-groups'
-                              },
 
                             ]
                           },
@@ -105,7 +118,7 @@ const AppMenu = () => {
                               {
                                 label: 'Category',
                                 icon: 'pi pi-folder',
-                                to: '/term/menus'
+                                to: '/category/menus'
                               },
                               {
                                 label: 'Pos List',
@@ -171,8 +184,24 @@ const AppMenu = () => {
                             label: 'Customers',
                             role: ['ROLE_ADMIN'],
                             icon: ' pi pi-users',
-                            to: '/customer'
+
+                            items: [
+                              {
+                                label: 'All Customers',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/customer'
+
+                              },
+                              {
+                                label: 'Loyalty',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-dollar',
+                                to: '/loyalty'
+                              },
+                            ]
                           },
+
                           {
                             label: 'Stock',
                             role: ['ROLE_ADMIN'],
@@ -185,11 +214,7 @@ const AppMenu = () => {
                             icon: 'pi pi-box',
                             to: '/inventory'
                           },
-                          {
-                            label: 'Instructions',
-                            icon: ' pi pi-th-large',
-                            to: '/instructions'
-                          },
+
                           {
                             label: 'Settings',
                             icon: 'pi pi-book',
@@ -200,6 +225,43 @@ const AppMenu = () => {
                                 icon: ' pi pi-th-large',
                                 role: ['ROLE_ADMIN', 'ROLE_BO-BUSINESS-SETTING'],
                                 to: '/details'
+                              },
+                              {
+                                label: 'Pizza Settings',
+                                icon: 'pi pi-folder-open',
+                                items: [
+                                  {
+                                    label: 'Sizes',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-size'
+                                  },
+                                  {
+                                    label: 'Crust Settings',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-crust'
+                                  },
+                                  {
+                                    label: 'Toppings',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-topping'
+                                  },
+                                  {
+                                    label: 'Topping Groups',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-topping-group'
+                                  },
+                                  {
+                                    label: 'Pricing Class',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/pizza-pricing-class?type=CRUST_TYPE'
+                                  },
+                                  {
+                                    label: 'Predefined Pizza',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/predefined-pizza'
+                                  },
+
+                                ]
                               },
                               {
                                 label: 'Reporting shifts ',
@@ -309,6 +371,11 @@ const AppMenu = () => {
                                 to: '/void-reasons'
                               },
                               {
+                                label: 'Instructions',
+                                icon: ' pi pi-th-large',
+                                to: '/instructions'
+                              },
+                              {
                                 label: 'Reporting automations',
                                 role: ['ROLE_ADMIN'],
                                 icon: 'pi pi-plus-circle',
@@ -322,11 +389,6 @@ const AppMenu = () => {
                               },
                             ]
                           },
-                        ]
-                      },
-
-
-
 
 
     ];

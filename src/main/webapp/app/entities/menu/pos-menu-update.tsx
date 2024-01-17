@@ -20,7 +20,6 @@ import {useNavigate, useParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {createEntity, duplicateMenu, getEntity, reset, sendEvent, updateEntity} from "app/entities/menu/menu.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {getEntities as getTerms} from "app/entities/term/term.reducer";
 import {getSortState, TextFormat, translate, Translate, ValidatedField, ValidatedForm} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -31,6 +30,8 @@ import {FaBars} from "react-icons/fa";
 import Select from "react-select";
 import MenuPosPreview from "app/entities/menu/menu-pos-preview";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import {getEntities as getMenuCategories} from "app/entities/term/Menu-Category/menu-category.reducer";
+import {InputText} from "primereact/inputtext";
 
 function MenuUpdate() {
 
@@ -42,7 +43,7 @@ function MenuUpdate() {
   const isNew = id === undefined;
 
 
-  const terms = useAppSelector(state => state.term.entities)
+  const menuCategories = useAppSelector(state => state.menuCategory.entities);
   const menuEntity = useAppSelector(state => state.menu.entity);
   const loading = useAppSelector(state => state.menu.loading);
   const updating = useAppSelector(state => state.menu.updating);
@@ -53,7 +54,7 @@ function MenuUpdate() {
   );
 
 // For Menu Edit Modal
-  const [selectedCategory, setSelectedCategory] = useState();
+  const [selectedCategory, setSelectedCategory] = useState({id: '', name: ''});
   const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
   const initialBranches = {label : menuEntity?.branch?.name , value: menuEntity?.branch?.id}
   const [selectedBranches, setSelectedBranches] = useState<any>();
@@ -64,7 +65,7 @@ function MenuUpdate() {
     menuScreens: [],
   });
   const [draggedIndex, setDraggedIndex] = useState(null);
-  const [selectedMainScreen, setSelectedMainScreen] = useState(null);
+  const [selectedMainScreenIndex, setSelectedMainScreenIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState({
     isMenuModalOpen: false,
     isMainScreenModalOpen: false,
@@ -85,7 +86,7 @@ function MenuUpdate() {
   const [selectedScreenType, setSelectedScreenType] = useState(null);
   const [editScreenName, setEditScreenName] = useState('');
   const [editScreenColor, setEditScreenColor] = useState('');
-  const [breadcrumb, setBreadcrumb] = useState(['']);
+  const [breadcrumb, setBreadcrumb] = useState([]);
 
 
   const [subScreenStack, setSubScreenStack] = useState([]);
@@ -95,12 +96,10 @@ function MenuUpdate() {
       ...isModalOpen,
       isMainScreenModalOpen: true,
     });
-    setSelectedMainScreen(null);
+    setSelectedMainScreenIndex(null);
   };
 
-  useEffect(() => {
-    console.log("Data updated: ", data);
-  }, [data]);
+
 
 
   const openEditModal = (selectedScreen, screenIndex, screenType) => {
@@ -334,7 +333,9 @@ function MenuUpdate() {
       ...data,
       menuScreens: [...data.menuScreens, newMainScreen],
     });
-
+    setSubScreenStack([newMainScreen?.subscreens])
+    setSelectedMainScreenIndex(data?.menuScreens?.length)
+    setBreadcrumb([newMainScreenName])
     setIsModalOpen({...isModalOpen, isMainScreenModalOpen: false});
     setNewMainScreenName('');
     setSelectedColorTheme('');
@@ -343,7 +344,7 @@ function MenuUpdate() {
 
 
   const handleButtonAdd = (itemType) => {
-    if (selectedMainScreen !== null) {
+    if (selectedMainScreenIndex !== null) {
       if (itemType === 'Sub-screen') {
         toggleSubScreenModal();
       } else if (itemType === 'Item') {
@@ -419,16 +420,16 @@ function MenuUpdate() {
   const handleRemoveSelectedItem = (itemId) => {
     console.log("Handling removal of item with ID:", itemId);
 
-    if (selectedMainScreen !== null) {
+    if (selectedMainScreenIndex !== null) {
       const updatedData = { ...data };
       const updatedMenuScreens = [...updatedData.menuScreens];
       let updatedSubScreenStack;
 
       if (subScreenStack.length === 1) {
-        updatedMenuScreens[selectedMainScreen] = {
-          ...updatedMenuScreens[selectedMainScreen],
+        updatedMenuScreens[selectedMainScreenIndex] = {
+          ...updatedMenuScreens[selectedMainScreenIndex],
           subScreens: (
-            updatedMenuScreens[selectedMainScreen].subScreens || []
+            updatedMenuScreens[selectedMainScreenIndex].subScreens || []
           ).filter(subScreen => {
             console.log(subScreen, 'imsubss');
             return subScreen.component?.item?.id !== itemId;
@@ -436,10 +437,10 @@ function MenuUpdate() {
         };
       } else {
         const topSubScreen = subScreenStack[subScreenStack.length - 1];
-        updatedMenuScreens[selectedMainScreen] = {
-          ...updatedMenuScreens[selectedMainScreen],
+        updatedMenuScreens[selectedMainScreenIndex] = {
+          ...updatedMenuScreens[selectedMainScreenIndex],
           subScreens: findAndRemoveItem(
-            updatedMenuScreens[selectedMainScreen].subScreens,
+            updatedMenuScreens[selectedMainScreenIndex].subScreens,
             topSubScreen,
             itemId
           ),
@@ -470,7 +471,7 @@ function MenuUpdate() {
 
   const handleAddSelectedItem = (item) => {
     console.log("I entered here");
-    if (selectedMainScreen !== null) {
+    if (selectedMainScreenIndex !== null) {
       const newItemSubScreen = {
         name: item.name,
         backgroundColor: selectedColorTheme,
@@ -489,10 +490,10 @@ function MenuUpdate() {
       if (subScreenStack.length === 1) {
         console.log("Correct");
 
-        updatedMenuScreens[selectedMainScreen] = {
-          ...updatedMenuScreens[selectedMainScreen],
+        updatedMenuScreens[selectedMainScreenIndex] = {
+          ...updatedMenuScreens[selectedMainScreenIndex],
           subScreens: [
-            ...(updatedMenuScreens[selectedMainScreen].subScreens || []),
+            ...(updatedMenuScreens[selectedMainScreenIndex].subScreens || []),
             newItemSubScreen,
           ],
         };
@@ -500,10 +501,10 @@ function MenuUpdate() {
         const topSubScreen = subScreenStack[subScreenStack.length - 1];
         console.log("Kamel topSubScreen", topSubScreen);
 
-        updatedMenuScreens[selectedMainScreen] = {
-          ...updatedMenuScreens[selectedMainScreen],
+        updatedMenuScreens[selectedMainScreenIndex] = {
+          ...updatedMenuScreens[selectedMainScreenIndex],
           subScreens: findAndAddItem(
-            updatedMenuScreens[selectedMainScreen].subScreens,
+            updatedMenuScreens[selectedMainScreenIndex].subScreens,
             topSubScreen,
             newItemSubScreen
           ),
@@ -609,7 +610,7 @@ function MenuUpdate() {
 
 
     if (subScreenStack.length === 1){
-    const topSubScreens = updatedMenuScreens[selectedMainScreen]?.subScreens;
+    const topSubScreens = updatedMenuScreens[selectedMainScreenIndex]?.subScreens;
 
     console.log(topSubScreens, 'kameltopSubScreens')
 
@@ -620,10 +621,10 @@ function MenuUpdate() {
     }
     else {
       console.log("imhere1")
-      updatedMenuScreens[selectedMainScreen] = {
-        ...updatedMenuScreens[selectedMainScreen],
+      updatedMenuScreens[selectedMainScreenIndex] = {
+        ...updatedMenuScreens[selectedMainScreenIndex],
         subScreens: [
-          ...(updatedMenuScreens[selectedMainScreen].subScreens || []),
+          ...(updatedMenuScreens[selectedMainScreenIndex].subScreens || []),
           {
             name: newSubScreenName,
             backgroundColor: newSubScreenColor,
@@ -642,10 +643,10 @@ function MenuUpdate() {
         alert('Sub-screen with the same name already exists on this level.');
       }
       else{
-        updatedMenuScreens[selectedMainScreen] = {
-          ...updatedMenuScreens[selectedMainScreen],
+        updatedMenuScreens[selectedMainScreenIndex] = {
+          ...updatedMenuScreens[selectedMainScreenIndex],
           subScreens: findAndAddSubScreen(
-            updatedMenuScreens[selectedMainScreen].subScreens,
+            updatedMenuScreens[selectedMainScreenIndex].subScreens,
             topSubScreen,
             {
               name: newSubScreenName,
@@ -792,10 +793,17 @@ function MenuUpdate() {
     console.log(subscreens, 'hellloizz');
 
     return (
-      <div className="container mb-3">
+      <div className="container mb-3" onDragOver={(e) => e.preventDefault()}>
         <div className="row">
           {subscreens.map((item, index) => (
-            <div key={index} className="col-md-6 mb-3">
+            <div
+              key={index}
+              className="col-md-6 mb-3"
+              draggable
+              onDragStart={() => handleSubDragStart(mainScreenIndex, index)}
+              onDragOver={(e) => handleSubDragOver( index, e)}
+              onDragEnd={handleSubDragEnd}
+            >
               <div className="d-flex flex-column p-1 cursor-pointer">
                 <Card className="mb-3 position-relative">
                   <div className="d-flex justify-content-end">
@@ -833,6 +841,81 @@ function MenuUpdate() {
       </div>
     );
   };
+  const handleSubDragStart = (mainIndex, subIndex) => {
+    setSelectedMainScreenIndex(mainIndex);
+    setDraggedIndex( subIndex );
+  };
+
+  const handleSubDragOver = (subIndex, e) => {
+    e.preventDefault();
+
+    setData((prevData) => {
+      const updatedData = { ...prevData };
+      const updatedMenuScreens = [...updatedData.menuScreens];
+      const targetMainScreen = updatedMenuScreens[selectedMainScreenIndex];
+
+      if (subIndex === draggedIndex) {
+        return updatedData;
+      }
+
+      if (subScreenStack.length === 1) {
+        const targetSubScreens = [...targetMainScreen.subScreens];
+        const [draggedItem] = targetSubScreens.splice(draggedIndex, 1);
+
+        targetSubScreens.splice(subIndex, 0, draggedItem);
+        updatedMenuScreens[selectedMainScreenIndex] = { ...targetMainScreen, subScreens: targetSubScreens };
+      } else {
+        const updatedSubscreenStack = [...subScreenStack];
+        const topSubScreen = updatedSubscreenStack[updatedSubscreenStack.length - 1];
+
+        const updatedSubScreens = updateSubScreens(targetMainScreen.subScreens, topSubScreen, subIndex);
+
+        const lastSubScreenInSubScreenStack = [...(topSubScreen?.subScreens || [])];
+        const [draggedItem] = lastSubScreenInSubScreenStack.splice(draggedIndex, 1);
+
+        lastSubScreenInSubScreenStack.splice(subIndex, 0, draggedItem);
+        updatedSubscreenStack[updatedSubscreenStack.length - 1] = { ...topSubScreen, subScreens: lastSubScreenInSubScreenStack };
+
+        console.log('Updated subScreenStack:', lastSubScreenInSubScreenStack);
+        setSubScreenStack(updatedSubscreenStack);
+        updatedMenuScreens[selectedMainScreenIndex] = { ...targetMainScreen, subScreens: updatedSubScreens };
+      }
+
+      setDraggedIndex(subIndex);
+      return { ...updatedData, menuScreens: updatedMenuScreens };
+    });
+  };
+
+  const updateSubScreens = (subScreens, targetSubScreen, dropIndex) => {
+    return subScreens.map((subScreen, index) => {
+      if (areObjectsEqual(subScreen, targetSubScreen)) {
+        const updatedSubScreens = [...subScreen.subScreens];
+        const [draggedItem] = updatedSubScreens.splice(draggedIndex, 1);
+        updatedSubScreens.splice(dropIndex, 0, draggedItem);
+
+        return {
+          ...subScreen,
+          subScreens: updatedSubScreens,
+        };
+      } else if (subScreen.subScreens) {
+        const updatedNestedSubScreens = updateSubScreens(subScreen.subScreens, targetSubScreen, dropIndex);
+        return {
+          ...subScreen,
+          subScreens: updatedNestedSubScreens,
+        };
+      }
+      return subScreen;
+    });
+  };
+
+
+
+
+  const handleSubDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+
 
   console.log("component rendered ")
 
@@ -848,11 +931,11 @@ function MenuUpdate() {
 
   const renderCurrentSubScreen = () => {
 
-    if (!data.menuScreens || data.menuScreens.length === 0 || selectedMainScreen === null) {
+    if (!data.menuScreens || data.menuScreens.length === 0 || selectedMainScreenIndex === null) {
       return null;
     }
 
-    const mainScreen = data.menuScreens[selectedMainScreen];
+    const mainScreen = data.menuScreens[selectedMainScreenIndex];
 
     if (!mainScreen || !mainScreen.subScreens || mainScreen.subScreens.length === 0) {
       return null;
@@ -873,7 +956,7 @@ function MenuUpdate() {
 
     return (
       <div className="ml-3">
-        {renderSubScreens(currentSubScreens, selectedMainScreen)}
+        {renderSubScreens(currentSubScreens, selectedMainScreenIndex)}
       </div>
     );
   };
@@ -921,7 +1004,7 @@ function MenuUpdate() {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }))
-    dispatch(getTerms({
+    dispatch(getMenuCategories({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -933,6 +1016,7 @@ function MenuUpdate() {
       reset()
       setBreadcrumb([])
       setSubScreenStack([])
+      setSelectedMainScreenIndex(0)
     }
   }, [id,updateSuccess]);
 
@@ -945,12 +1029,15 @@ function MenuUpdate() {
         menuScreens: menuEntity.menuScreens ,
       };
       if (menuEntity?.category){
-        setSelectedCategory(menuEntity.category.name)
+        setSelectedCategory(menuEntity.category)
       }
       if (menuEntity?.branch){
         setSelectedBranches({label: menuEntity?.branch?.name , value: menuEntity?.branch?.id})
       }
       setData(newData);
+      setBreadcrumb([menuEntity?.menuScreens?.[0]?.name]);
+      setSubScreenStack([menuEntity?.menuScreens?.[0]]);
+
     }
   }, [menuEntity,updateSuccess]);
 
@@ -962,10 +1049,8 @@ function MenuUpdate() {
     if (isConfirmed) {
       dispatch(duplicateMenu(id))
         .then((result:any) => {
-          console.log('Duplicate successful:', result);
-
           if (result?.payload?.id) {
-            navigate(`/menu/${result.payload.id}/edit`);
+            navigate(`/menu/${result.payload.id}/POS/edit?page=1&sort=id,asc`);
           } else {
             console.error('Failed to duplicate menu: No ID returned');
           }
@@ -1009,9 +1094,9 @@ function MenuUpdate() {
         category: selectedCategory
       };
 
-      const handleCategoryChange = (event) => {
-        console.log(event.target.value, 'change')
-        setSelectedCategory(event.target.value);
+      const handleCategoryChange = (selectedCtgry) => {
+
+        setSelectedCategory(selectedCtgry);
       };
 
       const handleBranchChange = (selectedBranches) => {
@@ -1037,8 +1122,9 @@ function MenuUpdate() {
       ...restValues,
       name: data.name,
       branch: { id: selectedBranches.value },
-      category: selectedCategory ? terms?.find((it) => it.name === selectedCategory) : null,
+      category:selectedCategory,
       menuScreens: data.menuScreens,
+      item: data?.item?.map(item => ({id: item.id}))
     };
 
     if (isNew) {
@@ -1048,6 +1134,7 @@ function MenuUpdate() {
     }
 
     setIsModalOpen({...isModalOpen, isEditModalOpen: false});
+    setIsModalOpen({...isModalOpen, isMenuModalOpen: false});
   };
 
       if(loading){
@@ -1062,7 +1149,7 @@ function MenuUpdate() {
   console.log(data, 'dataa')
 
   const handleMainDragStart = (index) => {
-    setSelectedMainScreen(index)
+    setSelectedMainScreenIndex(index)
     setDraggedIndex(index);
   };
 
@@ -1073,7 +1160,7 @@ function MenuUpdate() {
       newData.splice(index, 0, draggedItem);
       setData({ ...data, menuScreens: newData });
       setDraggedIndex(index);
-      setSelectedMainScreen(index)
+      setSelectedMainScreenIndex(index)
     }
   };
 
@@ -1146,7 +1233,7 @@ function MenuUpdate() {
                     const mainScreenItems = mainScreen?.subScreens?.filter((item) => item.componentType === "ITEM")
                       .map((item) =>({ id :item.component.item.id , name: item.component.item.name, desc: item.component.item.desc}))
                     setSelectedItems(mainScreenItems || [])
-                    setSelectedMainScreen(index)
+                    setSelectedMainScreenIndex(index)
                     setSubScreenStack([mainScreen]);
                     setBreadcrumb(() => [mainScreen.name]);
 
@@ -1349,25 +1436,28 @@ function MenuUpdate() {
         </ModalBody>
       </Modal>
 
-      {isModalOpen.isMenuModalOpen && ( <Modal isOpen={isModalOpen.isMenuModalOpen} className="modal-lg"
-             toggle={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} >
+      {isModalOpen.isMenuModalOpen && (
+        <Modal isOpen={isModalOpen.isMenuModalOpen} className="modal-lg"
+            >
         <ModalHeader  toggle={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} >
           <Translate contentKey="tempApp.menu.home.createOrEditLabel">Create or edit a Menu</Translate>
         </ModalHeader>
         <ModalBody>
           <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-
-            <ValidatedField
-              label={translate('tempApp.menu.name')}
-              id="menu-name"
-              name="name"
-              data-cy="name"
-              type="text"
-              validate={{
-                required: { value: true, message: translate('entity.validation.required') },
-                maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-              }}
-            />
+            <div className={"d-flex flex-column gap-2"}>
+              <label>
+                <Translate contentKey={"tempApp.menu.name"}>Name</Translate>
+              </label>
+              <InputText
+                type="text"
+                name="name"
+                id="name"
+                required={true}
+                placeholder="Menu Name"
+                value={data.name || ''}
+                onChange={(e) => setData((prev) => ({...prev, name: e.target.value}))}
+              />
+            </div>
             <ValidatedField
               label={translate('tempApp.menu.menuUrl')}
               id="menu-menuUrl"
@@ -1381,25 +1471,17 @@ function MenuUpdate() {
               <Select defaultValue={initialBranches}
                       onChange={handleBranchChange} options={branchList} />
             </div>
-            <ValidatedField
-              id="menu-category"
-              name="category"
-              data-cy="category"
-              label={translate('tempApp.menu.category')}
-              type="select"
-              required
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-            >
-              {terms
-                ? terms.map((otherEntity) => (
-                  <option key={otherEntity.id} value={otherEntity.name}>
-                    {otherEntity.name}
-                  </option>
-                ))
-                : null}
 
-            </ValidatedField>
+            <div className="mb-3">
+              Category
+              <Select
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                options={menuCategories}
+                getOptionLabel={option => option.name}
+                getOptionValue={option => option.id}
+                />
+            </div>
             <Button  id="cancel-save" data-cy="entityCreateCancelButton"
                      onClick={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} replace color="info">
               <FontAwesomeIcon icon="arrow-left"/>

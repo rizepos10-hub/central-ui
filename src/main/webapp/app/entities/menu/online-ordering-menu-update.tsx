@@ -27,11 +27,11 @@ import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ITerm } from 'app/shared/model/term.model';
-import { getEntities as getTerms } from 'app/entities/term/term.reducer';
+import { getEntities as getTerms } from 'app/entities/term/Menu-Category/menu-category.reducer';
 import { IMenu } from 'app/shared/model/menu.model';
 import {getEntity, updateEntity, createEntity, reset, sendEvent, duplicateMenu} from './menu.reducer';
 import {faTimes} from "@fortawesome/free-solid-svg-icons";
-import {getEntities as getItems , searchEntities as searchItems} from "app/entities/item/item.reducer";
+import {getEntities as getItems } from "app/entities/item/all-items.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import Select from "react-select";
 import {APP_DATE_FORMAT} from "app/config/constants";
@@ -45,6 +45,9 @@ import {Skeleton} from "primereact/skeleton";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {toast} from "react-toastify";
 import {OrderList} from "primereact/orderlist";
+import {ItemRoute} from "app/shared/model/enumerations/item-route.model";
+import {IItem} from "app/shared/model/item.model";
+import ImageDisplay from "app/shared/layout/image/image-display";
 
 
 export const OnlineOrderingMenuUpdate = () => {
@@ -56,8 +59,8 @@ export const OnlineOrderingMenuUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const terms = useAppSelector(state => state.term.entities)
-  const itemList = useAppSelector(state => state.item.entities);
+  const menuCategories = useAppSelector(state => state.menuCategory.entities)
+  const itemList = useAppSelector(state => state.allItems.entities);
   const menuEntity = useAppSelector(state => state.menu.entity);
   const loading = useAppSelector(state => state.menu.loading);
   const updating = useAppSelector(state => state.menu.updating);
@@ -191,11 +194,22 @@ export const OnlineOrderingMenuUpdate = () => {
     setRefresh(prev => !prev)
   };
 
+  const onFilter = () => {
+    if (selectedTerm === '') {
+      setFilteredValue(menuItems);
+    } else {
+      const filtered = menuItems?.filter((product) => {
+        return product.categories[0]?.name === selectedTerm;
+      });
+      setFilteredValue(filtered);
+    }
+  };
+
+
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
     } else {
-      dispatch(getEntity(id));
       dispatch(getEntity(id));
     }
     dispatch(getBranches({
@@ -219,16 +233,18 @@ export const OnlineOrderingMenuUpdate = () => {
       handleRefresh()
     }
     return () => {
-      reset()
+      dispatch(reset())
     }
   }, [refresh, selectedItems,navigate]);
+
+
 
 
   useEffect(() => {
 
     if (menuEntity?.item && !activeTab) {
       setMenuItems(menuEntity.item.map(item => item));
-      setDisplayedTerms([...new Set(itemList?.map(item => item.terms[0]?.name || "Uncategorized"))]
+      setDisplayedTerms([...new Set(itemList?.map(item => item.categories?.[0]?.name || "Uncategorized"))]
         .sort((a, b) => (a === 'Uncategorized' ? 1 : b === 'Uncategorized' ? -1 : 0)));
       setActiveTab(displayedTerms[0]);
 
@@ -293,8 +309,8 @@ export const OnlineOrderingMenuUpdate = () => {
     const entity = {
       ...menuEntity,
       ...restValues,
-      category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
-      item: [...filteredMenuItems, ...itemIds],
+      category: selectedCategory ? menuCategories.find((it) => it.name === selectedCategory) : null,
+      item: [...filteredMenuItems, ...itemIds].map(item => ({id: item.id})),
       branch: { id: selectedBranches.value }
     };
 
@@ -338,7 +354,7 @@ export const OnlineOrderingMenuUpdate = () => {
 
 
   const groupedMenuItems = itemList.reduce((groups, item) => {
-    const termName = item.terms[0]?.name || 'Uncategorized';
+    const termName = item?.categories?.[0]?.name || 'Uncategorized';
     if (!groups[termName]) {
       groups[termName] = [];
     }
@@ -368,16 +384,6 @@ export const OnlineOrderingMenuUpdate = () => {
     { label: 'Price Low to High', value: 'price' }
   ];
 
-  const onFilter = () => {
-    if (selectedTerm === '') {
-      setFilteredValue(menuItems);
-    } else {
-      const filtered = menuItems?.filter((product) => {
-        return product.terms[0]?.name === selectedTerm;
-      });
-      setFilteredValue(filtered);
-    }
-  };
 
 
 
@@ -415,22 +421,26 @@ export const OnlineOrderingMenuUpdate = () => {
   );
 
 
-  const dataviewListItem = (data: Demo.Product) => {
+  const dataviewListItem = (data: IItem) => {
     return (
       <div className="col-12">
         <div className="flex flex-column md:flex-row align-items-center p-3 w-full">
-          <img src={data?.attachments && data?.attachments[0]?.url} alt={data.name} className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
+          {data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url ?
+            <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url}
+                alt={data.name}
+                className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5"/>
+          : null}
           <div className="flex-1 flex flex-column align-items-center text-center md:text-left">
             <div className="font-bold text-2xl">{data.name}</div>
-            <div className="mb-2">{data.description}</div>
+            <div className="mb-2">{data.desc}</div>
             {/* <Rating value={data.rating} readOnly cancel={false} className="mb-2"></Rating> */}
             <div className="flex align-items-center">
               <i className="pi pi-tag mr-2"></i>
-              <span className="font-semibold">{data.terms[0]?.name || 'Uncategorized'}</span>
+              <span className="font-semibold">{data.categories?.[0]?.name || 'Uncategorized'}</span>
             </div>
           </div>
           <div className="flex flex-row md:flex-column justify-content-between w-full md:w-auto align-items-center md:align-items-end mt-5 md:mt-0">
-            <span className="text-2xl font-semibold mb-2 align-self-center md:align-self-end">  ${getPriceForBranch(data) ?? data.variants[0]?.price}</span>
+            <span className="text-2xl font-semibold mb-2 align-self-center md:align-self-end">  ${getPriceForBranch(data) ?? data.variants?.[0]?.price}</span>
 
             {/* <Button icon="pi pi-shopping-cart" label="Add to Cart" disabled={data.inventoryStatus === 'OUTOFSTOCK'} className="mb-2 p-button-sm"></Button> */}
             {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
@@ -441,26 +451,34 @@ export const OnlineOrderingMenuUpdate = () => {
   };
 
 
-  const dataviewGridItem = (data: Demo.Product) => {
+  const dataviewGridItem = (data: IItem) => {
     return (
       <div className="col-12 lg:col-4">
         <div className="card m-3 border-1 surface-border">
           <div className="flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
             <div className="flex align-items-center">
               <i className="pi pi-tag mr-2" />
-              <span className="font-semibold">{data.terms[0]?.name || 'Uncategorized'}</span>
+              <span className="font-semibold">{data.categories?.[0]?.name || 'Uncategorized'}</span>
             </div>
             {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
           </div>
           <Link
-
-            to={`/item/${data.id}/edit?fromMenu`}
+            to={`/${ItemRoute[data.itemVariantType]}/${data.id}/edit?fromMenu=${menuEntity?.id}`}
           >
             <div className="flex flex-column align-items-center text-center mb-3">
-              <img  src={data?.attachments && data?.attachments[0]?.url} alt={data.name} className="w-9 shadow-2 my-3 mx-0" />
 
+                {/* <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url} */}
+                {/*      alt={data.name} */}
+                {/*      className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5"/> */}
+              <ImageDisplay
+                imageType={"product"}
+                imageUrl={data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url }
+                className={"my-4 md:my-0 w-9 md:w-10rem rounded"}
+                height={100}
+                width={100}
+                />
               <div className="text-2xl font-bold">{data.name}</div>
-              <div className="mb-3">{data.description}</div>
+              <div className="mb-3">{data.desc || "no description"}</div>
               {/* <Rating value={data.rating} readOnly cancel={false} /> */}
             </div>
           </Link>
@@ -494,15 +512,12 @@ export const OnlineOrderingMenuUpdate = () => {
     if (isConfirmed) {
       dispatch(duplicateMenu(id))
         .then((result:any) => {
-          console.log('Duplicate successful:', result);
-
           if (result?.payload?.id) {
-            navigate(`/menu/${result.payload.id}/edit`);
+            navigate(`/menu/${result?.payload?.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
           } else {
             console.error('Failed to duplicate menu: No ID returned');
           }
-
-          setRefresh(prev => !prev);
+          // setRefresh(prev => !prev);
         })
         .catch(error => {
           console.error('Error duplicating menu:', error);
@@ -622,8 +637,8 @@ export const OnlineOrderingMenuUpdate = () => {
                     value={selectedCategory}
                     onChange={handleCategoryChange}
                   >
-                    {terms
-                      ? terms.map((otherEntity) => (
+                    {menuCategories
+                      ? menuCategories.map((otherEntity) => (
                         <option key={otherEntity.id} value={otherEntity.name}>
                           {otherEntity.name}
                         </option>
@@ -704,7 +719,7 @@ export const OnlineOrderingMenuUpdate = () => {
                                       <CardBody>
                                         <h6>{item.name}</h6>
                                         {/* <p>{item.desc}</p> */}
-                                        <p>{item.terms[0]?.name}</p>
+                                        <p>{item.categories?.[0]?.name}</p>
                                       </CardBody>
                                     </Card>
                                   </div>

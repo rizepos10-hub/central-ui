@@ -170,9 +170,11 @@ export const PizzaCrust = () => {
         Pizza Crust View
       </h2>
 
-      <div className={"card"} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+      <div className={"card"} >
       <DataTable  value={crustThicknessList} editMode="row" header={thicknessHeader} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={crustThicknessTotalItems} rows={5}>
           <Column field="name" header="Name" filter body={thicknessNameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+
+          <Column field="hiddenOnSizes" header="Hidden On Sizes"  body={(rowData) => rowData?.hiddenOnSizes?.map(size => size.name).join(" | ")}  sortable  />
 
           <Column header="Edit"  body={thicknessEditColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
@@ -180,9 +182,11 @@ export const PizzaCrust = () => {
           <Column  header="Delete" body={thicknessDeleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
         </DataTable>
-
+      </div>
+      <div className={"card mt-3"} >
         <DataTable  value={crustTypeList} editMode="row" header={crustTypeHeader} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={crustTypeTotalItems} rows={5}>
           <Column field="name" header="Name" filter body={crustTypeNameTemplate} filterPlaceholder={"Search by name"}  sortable  />
+          <Column field="hiddenOnSizes" header="Hidden On Sizes" body={(rowData) => rowData?.hiddenOnSizes?.map(size => size.name).join(" | ")}  sortable  />
 
           <Column header="Edit"  body={crustTypeEditColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />

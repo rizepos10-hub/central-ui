@@ -6,8 +6,9 @@ import { serializeAxiosError } from './reducer.utils';
 import { AppThunk } from 'app/config/store';
 import { setLocale } from 'app/shared/reducers/locale';
 
-const AUTH_TOKEN_KEY = 'jhi-authenticationToken';
-
+export const AUTH_TOKEN_KEY = 'jhi-authenticationToken';
+export const REFRESH_TOKEN_KEY = "cloudLinks-refreshToken"
+export const TENANT_KEY = 'TENANT';
 export const initialState = {
   loading: false,
   isAuthenticated: false,
@@ -15,6 +16,8 @@ export const initialState = {
   loginError: false, // Errors returned from server side
   showModalLogin: false,
   account: {} as any,
+  refreshToken: null as string | null,
+  tokenExpiration: null,
   errorMessage: null as unknown as string, // Errors returned from server side
   redirectMessage: null as unknown as string,
   sessionHasBeenFetched: false,
@@ -67,12 +70,16 @@ export const login: (username: string, password: string, tenant: string, remembe
     const result = await dispatch(authenticate({ username, password, tenant, rememberMe }));
     const response = result.payload as AxiosResponse;
     const bearerToken = response?.data?.access_token;
-    if (bearerToken) {
-      if (rememberMe) {
+    const refreshToken = response?.data?.refresh_token;
+    if (bearerToken && refreshToken) {
+      Storage.session.set(TENANT_KEY, tenant);
+      // if (rememberMe) {
         Storage.local.set(AUTH_TOKEN_KEY, bearerToken);
-      } else {
-        Storage.session.set(AUTH_TOKEN_KEY, bearerToken);
-      }
+        Storage.local.set(REFRESH_TOKEN_KEY, refreshToken);
+      // } else {
+      //   Storage.session.set(AUTH_TOKEN_KEY, bearerToken);
+      //   Storage.session.set(REFRESH_TOKEN_KEY, refreshToken);
+      // }
     }
     dispatch(getSession());
   };
@@ -81,9 +88,28 @@ export const clearAuthToken = () => {
   if (Storage.local.get(AUTH_TOKEN_KEY)) {
     Storage.local.remove(AUTH_TOKEN_KEY);
   }
+  if (Storage.session.get(TENANT_KEY)) {
+    Storage.session.remove(TENANT_KEY);
+  }
   if (Storage.session.get(AUTH_TOKEN_KEY)) {
     Storage.session.remove(AUTH_TOKEN_KEY);
   }
+  if (Storage.local.get(REFRESH_TOKEN_KEY)) {
+    Storage.local.remove(REFRESH_TOKEN_KEY);
+  }
+  if (Storage.session.get(REFRESH_TOKEN_KEY)) {
+    Storage.session.remove(REFRESH_TOKEN_KEY);
+  }
+};
+
+export const clearAccessToken = () => {
+  if (Storage.local.get(AUTH_TOKEN_KEY)) {
+    Storage.local.remove(AUTH_TOKEN_KEY);
+  }
+  if (Storage.session.get(AUTH_TOKEN_KEY)) {
+    Storage.session.remove(AUTH_TOKEN_KEY);
+  }
+
 };
 
 export const logout: () => AppThunk = () => dispatch => {

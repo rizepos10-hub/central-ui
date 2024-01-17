@@ -6,7 +6,8 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import Menu from './menu/index';
 import Discount from './discount';
 import Customer from './customer';
-import Item from './item';
+import RegularItem from './item/restaurant/regular-item';
+import ComboItem from './item/restaurant/combo-item';
 import Addon from './addon';
 import AddonGroups from './addon-groups';
 import PizzaGroup from './pizza-settings';
@@ -30,6 +31,7 @@ import ProductionCenter from 'app/entities/location/production-center';
 import PageNotFound from "app/shared/error/page-not-found";
 import PizzaSize from "app/entities/pizza-settings/pizza-size";
 import PizzaTopping from "app/entities/pizza-settings/pizza-topping";
+import PizzaPricingClass from "app/entities/pizza-settings/pizza-pricing-class";
 import PizzaCrustRoutes from "app/entities/pizza-settings/pizza-crust-setting";
 import PizzaCrustThicknessRoutes from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness-routes";
 import PizzaCrustTypeRoutes from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type-routes";
@@ -38,7 +40,12 @@ import FloorPlanTableRoutes from "app/entities/settings/floor-plans/tables";
 import FloorPlanSettingsUpdate from "app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings-update";
 import FloorPlanSettingsRoutes from "app/entities/settings/floor-plans/floor-plan-settings";
 import FloorPlanRoutes from "app/entities/settings/floor-plans";
-
+import PizzaItem from "app/entities/item/restaurant/pizza-item";
+import PizzaToppingGroup from "app/entities/pizza-settings/pizza-topping-group";
+import SimpleItem from "app/entities/item/retail/simple-item";
+import RetailAttributes from "app/entities/item/retail/attributes";
+import VariableItem from "app/entities/item/retail/variable-item";
+import Loyalty from "app/entities/loyalty";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -55,11 +62,11 @@ export default () => {
 
         <Route path="discount/*" element={<Discount />} />
         <Route path="customer/*" element={<Customer />} />
-        <Route path="item/*" element={<Item />} />
+        <Route path="loyalty/*" element={<Loyalty />}/>
         <Route path="addon/*" element={<Addon />} />
         <Route path="addon-groups/*" element={<AddonGroups />} />
 
-        <Route path="term/*" element={<Term />} />
+        <Route path="category/*" element={<Term />} />
         <Route path="order/*" element={<Order />} />
 
         <Route path="tax/*" element={<Tax />} />
@@ -77,17 +84,29 @@ export default () => {
 
 
         <Route path="pizza-group/*" element={<PizzaGroup />} />
+
         <Route path="pizza-size/*" element={<PizzaSize />} />
         <Route path="pizza-topping/*" element={<PizzaTopping />} />
+        <Route path="pizza-topping-group/*" element={<PizzaToppingGroup />} />
         <Route path="pizza-crust/*" element={<PizzaCrustRoutes />} />
         <Route path="pizza-crust-thickness/*" element={<PizzaCrustThicknessRoutes />} />
         <Route path="pizza-crust-type/*" element={<PizzaCrustTypeRoutes />} />
         <Route path="predefined-pizza/*" element={<PredefinedPizza />} />
+        <Route path="pizza-pricing-class/*" element={<PizzaPricingClass />} />
 
 
         <Route path="floor-plan/table/*" element={<FloorPlanTableRoutes />} />
         <Route path="floor-plan/settings/*" element={<FloorPlanSettingsRoutes />} />
         <Route path="floor-plan/*" element={<FloorPlanRoutes />} />
+
+
+        <Route path="restaurant/pizza/*" element={<PizzaItem />} />
+        <Route path="restaurant/regular/*" element={<RegularItem />} />
+        <Route path="restaurant/combo/*" element={<ComboItem />} />
+
+        <Route path="retail/attributes/*" element={<RetailAttributes />} />
+        <Route path="retail/simple/*" element={<SimpleItem />} />
+        <Route path="retail/variable/*" element={<VariableItem />} />
 
 
 

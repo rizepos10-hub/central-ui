@@ -17,10 +17,9 @@ import { hasAnyAuthority } from 'app/shared/auth/private-route';
 import ErrorBoundary from 'app/shared/error/error-boundary';
 import { AUTHORITIES } from 'app/config/constants';
 import AppRoutes from 'app/routes';
-import TenantContext from 'app/shared/tenant/TenantContext';
-import Sidebar, {Layout} from "app/shared/sidebar/Layout";
-import {LayoutProvider} from "app/shared/sidebar/context/layoutcontext";
-
+import Sidebar, { Layout } from 'app/shared/sidebar/Layout';
+import { LayoutProvider } from 'app/shared/sidebar/context/layoutcontext';
+import { getState, setTenant } from 'app/shared/tenant/TenantContext';
 
 // const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
@@ -43,6 +42,7 @@ export const App = () => {
   useEffect(() => {
     dispatch(getSession());
     dispatch(getProfile());
+    dispatch(setTenant({ tenant: tenant }));
   }, []);
 
   const currentLocale = useAppSelector(state => state.locale.currentLocale);
@@ -53,36 +53,35 @@ export const App = () => {
   const isOpenAPIEnabled = useAppSelector(state => state.applicationProfile.isOpenAPIEnabled);
 
   const paddingTop = '60px';
+
   return (
-    <TenantContext.Provider value={tenant}>
-      <BrowserRouter basename={baseHref}>
-        <LayoutProvider>
+    // <Provider store={getStore()}>
+    <BrowserRouter basename={baseHref}>
+      <LayoutProvider>
         {/* <div className="app-container" style={{ paddingTop }}> */}
-          {/* <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" /> */}
-          {/* <ErrorBoundary> */}
-          {/*   <Header */}
-          {/*     isAuthenticated={isAuthenticated} */}
-          {/*     isAdmin={isAdmin} */}
-          {/*     currentLocale={currentLocale} */}
-          {/*     ribbonEnv={ribbonEnv} */}
-          {/*     isInProduction={isInProduction} */}
-          {/*     isOpenAPIEnabled={isOpenAPIEnabled} */}
-          {/*   /> */}
-          {/* </ErrorBoundary> */}
-          {/* <div className="container-fluid view-container row" id="app-view-container"> */}
-            <Layout isAuthenticated={isAuthenticated}>
-              <ErrorBoundary>
-                <AppRoutes  />
-              </ErrorBoundary>
+        {/* <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" /> */}
+        {/* <ErrorBoundary> */}
+        {/*   <Header */}
+        {/*     isAuthenticated={isAuthenticated} */}
+        {/*     isAdmin={isAdmin} */}
+        {/*     currentLocale={currentLocale} */}
+        {/*     ribbonEnv={ribbonEnv} */}
+        {/*     isInProduction={isInProduction} */}
+        {/*     isOpenAPIEnabled={isOpenAPIEnabled} */}
+        {/*   /> */}
+        {/* </ErrorBoundary> */}
+        {/* <div className="container-fluid view-container row" id="app-view-container"> */}
+        <Layout isAuthenticated={isAuthenticated}>
+          <ErrorBoundary>
+            <AppRoutes />
+          </ErrorBoundary>
           {/* </div> */}
-        {/* </div> */}
-            </Layout>
+          {/* </div> */}
+        </Layout>
+      </LayoutProvider>
+    </BrowserRouter>
 
-        </LayoutProvider>
-
-      </BrowserRouter>
-
-     </TenantContext.Provider>
+    // </Provider>
   );
 };
 

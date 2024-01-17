@@ -32,7 +32,6 @@ export const CustomerUpdate = () => {
   const [selectedVariants, setSelectedVariants] = useState([]);
   const [selectedRetailPrice, setSelectedRetailPrice] = useState({});
   const [selectedWholeSalesPrice, setSelectedWholeSalesPrice] = useState({});
-  const [dropdownOpen, setDropdownOpen] = useState({});
 
   const toggleItemSelectionModal = () => {
     setIsItemSelectionModalOpen(!isItemSelectionModalOpen);
@@ -57,25 +56,25 @@ export const CustomerUpdate = () => {
       dispatch(reset());
     } else {
       dispatch(getEntity(id));
-      dispatch(getPricesForCustomer(id)).then((response:any) => {
-        const fetchedPrices = response.payload.data;
-console.log(fetchedPrices, 'fetchedd')
-        const formattedVariants = fetchedPrices.map((priceData) => {
-          const variantDetails = priceData.item.variants.find((variant) => variant.id === priceData.variantId)
-          console.log(variantDetails, 'loll')
-          console.log(priceData.priceNumberByCustomerType, 'loll')
-          return {
-            itemId: priceData.item.id,
-            variantId: priceData.variantId,
-            itemName: priceData.item.name,
-            variantName: priceData.variantName,
-            specialPrices: priceData.priceNumberByCustomerType,
-            specialPricesOptions: variantDetails.specialPrices,
-          };
-        });
-
-        setSelectedVariants(formattedVariants);
-      });
+      // dispatch(getPricesForCustomer(id)).then((response:any) => {
+      //   const fetchedPrices = response.payload.data;
+      //   console.log(fetchedPrices, 'fetchedd')
+      //   const formattedVariants = fetchedPrices.map((priceData) => {
+      //     const variantDetails = priceData.item.variants.find((variant) => variant.id === priceData.variantId)
+      //     console.log(variantDetails, 'loll')
+      //     console.log(priceData.priceNumberByCustomerType, 'loll')
+      //     return {
+      //       itemId: priceData.item.id,
+      //       variantId: priceData.variantId,
+      //       itemName: priceData.item.name,
+      //       variantName: priceData.variantName,
+      //       specialPrices: priceData.priceNumberByCustomerType,
+      //       specialPricesOptions: variantDetails.specialPrices,
+      //     };
+      //   });
+      //
+      //   setSelectedVariants(formattedVariants);
+      // });
     }
   }, []);
 
@@ -222,16 +221,16 @@ console.log(fetchedPrices, 'fetchedd')
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
-                <div className="d-flex justify-content-end">
-                  <Button onClick={toggleItemSelectionModal}>Add Items</Button>
-                </div>
+                {/* <div className="d-flex justify-content-end"> */}
+                {/*   <Button onClick={toggleItemSelectionModal}>Add Items</Button> */}
+                {/* </div> */}
 
-                <ItemSelectionModal
-                  isOpen={isItemSelectionModalOpen}
-                  toggle={toggleItemSelectionModal}
-                  selectedVariant={selectedVariants}
-                  handleToggleSelect={handleToggleSelectVariant}
-                />
+                {/* <ItemSelectionModal */}
+                {/*   isOpen={isItemSelectionModalOpen} */}
+                {/*   toggle={toggleItemSelectionModal} */}
+                {/*   selectedVariant={selectedVariants} */}
+                {/*   handleToggleSelect={handleToggleSelectVariant} */}
+                {/* /> */}
 
               {selectedVariants.length > 0 && (
                 <div>

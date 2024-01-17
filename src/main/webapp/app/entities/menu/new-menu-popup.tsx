@@ -8,7 +8,7 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {createEntity, getEntity, reset, updateEntity} from "app/entities/menu/menu.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {getEntities as getTerms, getMenuCategories} from "app/entities/term/term.reducer";
-import {getEntities as getItems} from "app/entities/item/item.reducer";
+import {getEntities as getItems} from "app/entities/item/restaurant/regular-item/item.reducer";
 import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime} from "app/shared/util/date-utils";
 import {result} from "lodash";
 import {MenuTypeModel} from "app/shared/model/enumerations/menu-type.model";
@@ -86,11 +86,11 @@ const NewMenuPopup = () => {
   useEffect(() => {
 
     const {id: newMenuId} = newMenu
-    const {type : newMenuType} = newMenu
+    const newMenuType = selectedType
     if (updateSuccess && newMenuId) {
       navigate(`/menu/${newMenuId}/${newMenuType}/edit?page=1&sort=id,asc`)
     }
-  }, [newMenu]);
+  }, [newMenu, updateSuccess]);
 
   console.log(terms, 'termos')
 

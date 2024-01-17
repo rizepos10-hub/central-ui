@@ -15,6 +15,7 @@ import passwordReset from 'app/modules/account/password-reset/password-reset.red
 import entitiesReducers from 'app/entities/reducers';
 import analyticsReducers from "app/modules/analytics/reducers";
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
+import tenant from '../../shared/tenant/TenantContext';
 
 const rootReducer: ReducersMapObject = {
   authentication,
@@ -27,6 +28,7 @@ const rootReducer: ReducersMapObject = {
   passwordReset,
   password,
   settings,
+  tenant,
   loadingBar,
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */

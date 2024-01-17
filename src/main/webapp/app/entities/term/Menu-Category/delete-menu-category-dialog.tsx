@@ -5,7 +5,7 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from '../term.reducer';
+import { getEntity, deleteEntity } from './menu-category.reducer';
 
 export const DeleteMenuCategoryDialog = () => {
   const dispatch = useAppDispatch();
@@ -21,11 +21,11 @@ export const DeleteMenuCategoryDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const termEntity = useAppSelector(state => state.term.entity);
-  const updateSuccess = useAppSelector(state => state.term.updateSuccess);
+  const menuCategoryEntity = useAppSelector(state => state.menuCategory.entity);
+  const updateSuccess = useAppSelector(state => state.menuCategory.updateSuccess);
 
   const handleClose = () => {
-    navigate('/term/menus' + location.search);
+    navigate('/category/menus' + location.search);
   };
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export const DeleteMenuCategoryDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(termEntity.id));
+    dispatch(deleteEntity(menuCategoryEntity.id));
   };
 
   return (
@@ -45,7 +45,7 @@ export const DeleteMenuCategoryDialog = () => {
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.term.delete.question">
-        <Translate contentKey="tempApp.term.delete.question" interpolate={{ id: termEntity.id }}>
+        <Translate contentKey="tempApp.term.delete.question" interpolate={{ id: menuCategoryEntity.id }}>
           Are you sure you want to delete this Term?
         </Translate>
       </ModalBody>

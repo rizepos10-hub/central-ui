@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
+import {Button as PrimeButton } from 'primereact/button';
+import {Button} from "reactstrap";
 import {  getSortState } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -8,7 +9,7 @@ import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {  getEntities } from './pizza-size.reducer';
+import {getEntities, reset, updateAllEntities} from './pizza-size.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
@@ -24,6 +25,7 @@ export const PizzaSize = () => {
   );
 
   const pizzaSizesList = useAppSelector(state => state.pizzaSize.entities);
+  const [sizeList, setSizeList] = useState([]);
   const loading = useAppSelector(state => state.pizzaSize.loading);
   const totalItems = useAppSelector(state => state.pizzaSize.totalItems);
   const [filters, setFilters] = useState({
@@ -46,7 +48,18 @@ export const PizzaSize = () => {
 
   useEffect(() => {
     getAllEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort]);
+    return () => {
+      dispatch(reset())
+    }
+  }, [paginationState.activePage, paginationState.order, paginationState.sort ]);
+
+  useEffect(() => {
+    if(pizzaSizesList.length > 0){
+      const sortedSizes = pizzaSizesList?.slice()?.sort((size1, size2) => size1.order - size2.order)
+      setSizeList(sortedSizes);
+    }
+
+  }, [ pizzaSizesList?.length])
 
 
 
@@ -57,6 +70,11 @@ export const PizzaSize = () => {
   };
 
 
+  const handleSave = () => {
+    const newSizesList = sizeList?.map((size, index) => ({...size, order: index}))
+    console.log(newSizesList, 'newSizesList')
+    dispatch(updateAllEntities(newSizesList))
+  }
 
 
 
@@ -86,19 +104,24 @@ export const PizzaSize = () => {
     );
   };
   const handleCreate = () => {
-    navigate('/pizza-size/new')
+    navigate(`/pizza-size/new?order=${totalItems + 1}`)
   }
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Pizza Sizes</span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <PrimeButton label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label="Add New Size" raised onClick={handleCreate} disabled={loading}>
+        </PrimeButton>
+        <PrimeButton label="Add New Size" className={"me-5"} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
+        </PrimeButton>
+
+        <Button className={"btn btn-primary"} onClick={handleSave} disabled={loading} >
+          Save
         </Button>
+
       </div>
     </div>
   );
@@ -113,8 +136,21 @@ export const PizzaSize = () => {
       </h2>
 
       <div >
-        <DataTable value={pizzaSizesList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+        <DataTable
+          value={sizeList}
+          editMode="row"
+          header={header}
+          removableSort
+          reorderableRows
+          onRowReorder={(e) => setSizeList(e.value)}
+          filters={filters}
+          filterDisplay="row"
+          paginator
+          totalRecords={totalItems}
+          rows={5}
+        >
+          <Column rowReorder className={"w-2rem py-5"} />
+          <Column field="name"  header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
 
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}

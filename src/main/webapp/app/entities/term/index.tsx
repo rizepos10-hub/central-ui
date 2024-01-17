@@ -3,19 +3,27 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import UpdateItemCategory from "app/entities/term/Item-Category/update-item-category";
-import UpdateMenuCategory from "app/entities/term/Menu-Category/UpdateMenuCategory";
-import DeleteItemCategoryDialog from "app/entities/term/Item-Category/delete-item-category-dialog";
+import UpdateItemRestaurantCategory from "app/entities/term/restaurant-Item-category/update-item-restaurant-category";
+import UpdateMenuCategory from "app/entities/term/Menu-Category/update-menu-category";
+import DeleteItemRestaurantCategoryDialog from "app/entities/term/restaurant-Item-category/delete-item-restaurant-category-dialog";
 import DeleteMenuCategoryDialog from "app/entities/term/Menu-Category/delete-menu-category-dialog";
 import MenuCategoriesTest from "app/entities/term/Menu-Category/menu-categories";
-import ItemCategoriesTest from "app/entities/term/Item-Category/item-categories";
+import RestaurantItemCategory from "app/entities/term/restaurant-Item-category/item-restaurant-categories";
+
+import RetailItemCategory from "app/entities/term/retail-item-category/retail-item-categories"
+import UpdateRetailItemCategory from "app/entities/term/retail-item-category/update-retail-item-category";
+import DeleteRetailItemCategoryDialog from "app/entities/term/retail-item-category/delete-retail-item-category-dialog";
 
 const TermRoutes = () => (
   <ErrorBoundaryRoutes>
 
 
-    <Route path="items" element={<ItemCategoriesTest />} />
-    <Route path="items/new" element={<UpdateItemCategory />} />
+    <Route path="restaurant-items" element={<RestaurantItemCategory />} />
+    <Route path="restaurant-items/new" element={<UpdateItemRestaurantCategory />} />
+
+
+    <Route path="retail-items" element={<RetailItemCategory />} />
+    <Route path="retail-items/new" element={<UpdateRetailItemCategory />} />
 
 
     <Route path="menus" element={<MenuCategoriesTest />} />
@@ -23,11 +31,15 @@ const TermRoutes = () => (
 
     <Route path=":id">
 
+      {/* restaurant Item category edit or delete */}
+      <Route path="restaurant-items/edit" element={<UpdateItemRestaurantCategory />} />
+      <Route path="restaurant-items/delete" element={<DeleteItemRestaurantCategoryDialog />} />
 
+      {/* restaurant Item category edit or delete */}
+      <Route path="retail-items/edit" element={<UpdateRetailItemCategory />} />
+      <Route path="restaurant-items/delete" element={<DeleteRetailItemCategoryDialog />} />
 
-      <Route path="items/edit" element={<UpdateItemCategory />} />
-      <Route path="items/delete" element={<DeleteItemCategoryDialog />} />
-
+      {/* menu  category edit or delete */}
       <Route path="menus/edit" element={<UpdateMenuCategory />} />
       <Route path="menus/delete" element={<DeleteMenuCategoryDialog />} />
 

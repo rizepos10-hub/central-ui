@@ -18,7 +18,7 @@ import {
 import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getItems } from 'app/entities/item/item.reducer';
+import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
 import { ITax } from 'app/shared/model/tax.model';
 import { getEntity, updateEntity, createEntity, reset } from './tax-profile.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
@@ -36,7 +36,6 @@ export const TaxProfileUpdate = () => {
   const isNew = id === undefined;
 
 
-  const items = useAppSelector(state => state.item.entities);
   const taxEntity = useAppSelector(state => state.taxProfiles.entity);
   const loading = useAppSelector(state => state.taxProfiles.loading);
   const updating = useAppSelector(state => state.taxProfiles.updating);

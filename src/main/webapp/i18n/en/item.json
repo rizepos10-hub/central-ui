@@ -25,6 +25,7 @@
       "type": "Type",
       "accountingGroups": "Accounting Group",
       "productionCenter": "Production Center",
+      "importAddons": "Import Addons",
       "orderCount": "Order Count",
       "avgRating": "Avg Rating",
       "ratingCount": "Rating Count",
