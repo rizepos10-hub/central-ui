@@ -6,6 +6,6 @@ module.exports = {
   // If you use an API server, in `prod` mode, you will need to enable CORS
   // (see the `jhipster.cors` common JHipster property in the `application-*.yml` configurations)
 
-  SERVER_ADMIN_API_URL: 'http://rize-pos.com/admin-app',
-  SERVER_API_URL: 'http://rize-pos.com/central-app',
+  SERVER_ADMIN_API_URL: 'https://rize-pos.com/admin-app',
+  SERVER_API_URL: 'https://rize-pos.com/central-app',
 };
