@@ -233,7 +233,7 @@ export const OnlineOrderingMenuUpdate = () => {
       handleRefresh()
     }
     return () => {
-      reset()
+      dispatch(reset())
     }
   }, [refresh, selectedItems,navigate]);
 
