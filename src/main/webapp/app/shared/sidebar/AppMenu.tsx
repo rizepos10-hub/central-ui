@@ -4,14 +4,16 @@ import React from "react";
 const AppMenu = () => {
 
     const model: any = [
-                      {
-                        label: 'Control Panel',
-                        icon: 'pi pi-home',
-                        items: [
                           {
-                            label:'Dashboard',
+                            label: 'Control Panel',
                             icon: 'pi pi-home',
-                            to: '/'
+                            items: [
+                              {
+                                label: 'Dashboard',
+                                icon: 'pi pi-home',
+                                to: '/'
+                              },
+                            ]
                           },
                           {
                             label: 'Users',
@@ -182,14 +184,24 @@ const AppMenu = () => {
                             label: 'Customers',
                             role: ['ROLE_ADMIN'],
                             icon: ' pi pi-users',
-                            to: '/customer'
+
+                            items: [
+                              {
+                                label: 'All Customers',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/customer'
+
+                              },
+                              {
+                                label: 'Loyalty',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-dollar',
+                                to: '/loyalty'
+                              },
+                            ]
                           },
-                          {
-                            label: 'Loyalty',
-                            role: ['ROLE_ADMIN'],
-                            icon: ' pi pi-dollar',
-                            to: '/loyalty'
-                          },
+
                           {
                             label: 'Stock',
                             role: ['ROLE_ADMIN'],
@@ -202,11 +214,7 @@ const AppMenu = () => {
                             icon: 'pi pi-box',
                             to: '/inventory'
                           },
-                          {
-                            label: 'Instructions',
-                            icon: ' pi pi-th-large',
-                            to: '/instructions'
-                          },
+
                           {
                             label: 'Settings',
                             icon: 'pi pi-book',
@@ -363,6 +371,11 @@ const AppMenu = () => {
                                 to: '/void-reasons'
                               },
                               {
+                                label: 'Instructions',
+                                icon: ' pi pi-th-large',
+                                to: '/instructions'
+                              },
+                              {
                                 label: 'Reporting automations',
                                 role: ['ROLE_ADMIN'],
                                 icon: 'pi pi-plus-circle',
@@ -376,8 +389,6 @@ const AppMenu = () => {
                               },
                             ]
                           },
-                        ]
-                      },
 
 
     ];
