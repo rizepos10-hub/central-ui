@@ -613,7 +613,6 @@ export const ItemUpdate = () => {
             <Row>
               <Col md={10}>
                 <TabView>
-
                   <TabPanel header={'Details'}>
                     <div>
                       {openedModal && (
@@ -953,7 +952,6 @@ export const ItemUpdate = () => {
                   <TabPanel header={'Visibility'}>
                     <Visibility initialState={visibility} onStateChanged={(state) => setVisibility(state)}/>
                   </TabPanel>
-
                 </TabView>
               </Col>
               <Col md={2}>

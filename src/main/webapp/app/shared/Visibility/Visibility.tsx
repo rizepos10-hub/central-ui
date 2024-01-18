@@ -72,8 +72,16 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
       }: appObj)
     })
   }
-  const getIsVisible = ()=>{
-    return visibility.find(obj => obj.application === selectedApplication)?.visible;
+  const getIsVisible = () => {
+    if (visibility.find(obj => obj.application === selectedApplication)){
+      return visibility.find(obj => obj.application === selectedApplication)?.visible
+    }
+    else
+    {
+      setVisibility(prev => {
+        return [...visibility, {application: selectedApplication, visible: true, schedule: null}];
+      })
+    }
   }
 
   useEffect(()=>{
