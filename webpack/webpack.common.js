@@ -106,6 +106,7 @@ module.exports = async options => {
           SERVER_ADMIN_API_URL: `${
             development ? JSON.stringify(environmentDev.SERVER_ADMIN_API_URL) : JSON.stringify(environmentProd.SERVER_ADMIN_API_URL)
           }`,
+          SERVER_DOMAIN: `${development ? JSON.stringify(environmentDev.SERVER_DOMAIN) : JSON.stringify(environmentProd.SERVER_DOMAIN)}`
         }),
         new ESLintPlugin({
           baseConfig: {
