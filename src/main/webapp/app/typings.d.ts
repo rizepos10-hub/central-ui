@@ -1,6 +1,7 @@
 declare const VERSION: string;
 declare const SERVER_API_URL: string;
 declare const SERVER_ADMIN_API_URL: string;
+declare const SERVER_DOMAIN: string;
 declare const DEVELOPMENT: string;
 declare const I18N_HASH: string;
 

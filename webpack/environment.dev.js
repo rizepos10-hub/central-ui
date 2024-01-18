@@ -8,4 +8,5 @@ module.exports = {
 
   SERVER_ADMIN_API_URL: 'http://164.92.188.249:8089',
   SERVER_API_URL: 'http://164.92.188.249:8080',
+  SERVER_DOMAIN: 'http://164.92.188.249'
 };
