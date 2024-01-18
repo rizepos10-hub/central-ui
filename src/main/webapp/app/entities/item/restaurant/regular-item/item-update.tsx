@@ -614,7 +614,7 @@ export const ItemUpdate = () => {
               <Col md={10}>
                 <TabView>
 
-                  <TabPanel header={'Properties'}>
+                  <TabPanel header={'Details'}>
                     <div>
                       {openedModal && (
                         <ItemVariantModal
