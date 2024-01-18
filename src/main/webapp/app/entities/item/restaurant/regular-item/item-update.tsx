@@ -39,7 +39,8 @@ import {Accordion, AccordionTab} from 'primereact/accordion';
 import {DayOfWeek} from "app/shared/model/enumerations/day-of-week.model";
 import {SourceType} from "app/shared/model/enumerations/source-type.model";
 import {InputText} from "primereact/inputtext";
-import app from "app/app";
+import Visibility from 'app/shared/Visibility/Visibility'
+import {IVisibility} from "app/shared/model/visibility.model";
 
 
 export const ItemUpdate = () => {
@@ -316,7 +317,7 @@ export const ItemUpdate = () => {
       navigate(`/restaurant/regular/${newItemId}/edit` + location.search);
     }
 
-    setVisibilty(itemEntity.visibility || []);
+    setVisibility(itemEntity.visibility || []);
   }, [updateSuccess, itemEntity]);
 
   const handleTermChange = selectedOptions => {
@@ -607,126 +608,9 @@ export const ItemUpdate = () => {
 
 
   /// Visibility Section
-
-  interface Visibility {
-    application: SourceType;
-    visible: boolean;
-    schedule: any;
-  }
-
-  const applications = Object.values(SourceType);
-  const allDays = Object.values(DayOfWeek);
-
-  const [selectedApplication, setSelectedApplication] = useState<SourceType>(SourceType.BRANCH_POS);
-  const [visibility, setVisibilty] = useState<Visibility[]>(itemEntity.visibility || []);
-
-  const getHourRangesForDay = (day: DayOfWeek) => {
-    const appObject = visibility.find(application => application.application === selectedApplication);
-
-    return appObject?.schedule?.[day] || undefined;
-  };
-
-  const handleAddHourRange = (day: DayOfWeek) => {
-    setVisibilty(prev => {
-      const appObjectRef = prev.find(obj => obj.application === selectedApplication);
-
-      if (appObjectRef) {
-        const updatedSchedule = { ...appObjectRef.schedule, [day]: [...(appObjectRef.schedule?.[day] || []), { from: '', to: '' }] };
-        return prev.map(obj => (obj.application === selectedApplication ? { ...obj, schedule: updatedSchedule } : obj));
-      } else {
-        const newObj = { application: selectedApplication, visible: true, schedule: { [day]: [{ from: '', to: '' }] } };
-        return [...prev, newObj];
-      }
-    });
-  };
-
-  const handleRemoveHourRange = (day, hourRangeIndex) => {
-    setVisibilty(prev => {
-      return prev.map (obj => (obj.application === selectedApplication?
-        {
-          ...obj, schedule: {
-          ...obj.schedule,
-            [day]: [...obj.schedule[day].slice(0, hourRangeIndex), ...obj.schedule[day].slice(hourRangeIndex + 1)]
-          }
-        } : obj))
-    })
-  }
-
-  const handleChangeHourRange = (day: DayOfWeek, hourRangeIndex: number, key: string, value: string) => {
-    setVisibilty(prev =>  {
-      return prev.map(appObj => appObj.application === selectedApplication?
-        {...appObj, schedule:
-          {
-            ...appObj.schedule,
-            [day]: appObj.schedule[day].map((range, index) => index === hourRangeIndex? {...range, [key]: value}: range)
-          }
-        }
-        : appObj)
-    })
-  }
-
-  const handleChangeIsVisible = (value: boolean) => {
-    setVisibilty(prev => {
-      return prev.map(appObj => appObj.application === selectedApplication? {
-        ...appObj, visible: value
-      }: appObj)
-    })
-  }
-  const getIsVisible = ()=>{
-    return visibility.find(obj => obj.application === selectedApplication)?.visible;
-  }
-
-  const accordionTabContent = (day: DayOfWeek) => {
-    return (
-      <>
-        <div className="d-flex justify-content-end mt-3">
-          <PrimeButton type="button" className="my-3" onClick={() => handleAddHourRange(day)}>
-            Add Visibility Hours
-          </PrimeButton>
-        </div>
-        { getHourRangesForDay(day) && getHourRangesForDay(day).map((hourRange, rangeIndex) => {
-          return (
-            <div key={rangeIndex} className="d-flex flex-row align-items-center mb-3">
-              <label className="mr-2">From:</label>
-              <InputText
-                type="text"
-                placeholder="HH:mm:ss"
-                pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
-
-                value={hourRange.from}
-                onChange={(e) => handleChangeHourRange(day, rangeIndex, 'from', e.target.value)}/>
-
-              <label className="ml-2 mr-2">To:</label>
-              <InputText
-                type="text"
-                placeholder="HH:mm:ss"
-                pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
-                value={hourRange.to}
-                onChange={(e) => handleChangeHourRange(day, rangeIndex, 'to',  e.target.value)}/>
-
-              <button
-                type="button"
-                className="btn btn-danger btn-sm ml-2"
-                onClick={() => handleRemoveHourRange(day, rangeIndex)}
-              >
-                X
-              </button>
-            </div>);
-        })}
-      </>);
-  }
-
-  const content = (
-
-      <div className='d-flex justify-content-between'>
-        <label>Visibility</label>
-        <Button>Save</Button>
-      </div>
-
-  )
+  const [visibility, setVisibility] = useState<IVisibility[]>();
 
   return (
-
       <Row>
         <Card>
           <CardBody>
@@ -1071,36 +955,14 @@ export const ItemUpdate = () => {
                     </div>
                   </TabPanel>
                   <TabPanel header={'Visibility'}>
-                    <h2>Item Visibility</h2>
-                    <div className="d-flex justify-content-between">
-                      <Dropdown value={selectedApplication} onChange={(e) => setSelectedApplication(e.value)} options={applications}
-                                placeholder="Select an Application" className="w-full md:w-14rem mb-4" />
-                      {selectedApplication && (
-                        <div className='d-flex'>
-                          <label htmlFor="isVisible" className="mr-2">Visible</label>
-                          <Checkbox inputId="isVisible" onChange={e => handleChangeIsVisible(e.checked)}
-                                 checked={getIsVisible()}/>
-                        </div>
-                      )}
-                    </div>
-
-                    {selectedApplication &&
-                      <Accordion>
-                        {allDays.map((day, dayIndex)=>{
-                          return (
-                            <AccordionTab key={dayIndex} header={day}>
-                              {accordionTabContent(day)}
-                            </AccordionTab>
-                          )
-                        })}
-                      </Accordion>}
+                    <Visibility initialState={visibility} onStateChanged={(state) => setVisibility(state)}/>
                   </TabPanel>
 
                 </TabView>
               </Col>
               <Col md={2}>
                 <Button color='secondary' className='mr-1' onClick={handleBackClick}>Back</Button>
-                <Button color='primary' onClick={saveEntity}>Save</Button>
+                <Button color='primary' onClick={saveEntity}> Save </Button>
 
               </Col>
             </Row>
