@@ -34,13 +34,9 @@ import {IItem} from "app/shared/model/item.model";
 import {getEntities as getSharedItemEntities} from "app/entities/item/restaurant/restaurant-item.reducer";
 
 import {TabPanel, TabView} from "primereact/tabview";
-import {Dropdown} from "primereact/dropdown";
-import {Accordion, AccordionTab} from 'primereact/accordion';
-import {DayOfWeek} from "app/shared/model/enumerations/day-of-week.model";
-import {SourceType} from "app/shared/model/enumerations/source-type.model";
-import {InputText} from "primereact/inputtext";
+
 import Visibility from 'app/shared/Visibility/Visibility'
-import {IVisibility} from "app/shared/model/visibility.model";
+import { IVisibility } from "app/shared/model/visibility.model";
 
 
 export const ItemUpdate = () => {
