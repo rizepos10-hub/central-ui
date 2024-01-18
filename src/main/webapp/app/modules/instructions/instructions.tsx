@@ -106,7 +106,7 @@ export default function Instructions()
             As initial step you need to run the POS  server so the pos clients can connect to the cloud.
             Please download the setup from the link and run it on  your local server.
           </p>
-          <a rel="noreferrer" href="http://164.92.188.249/pos/pos-server-installer.exe" target={"_blank"} >POS SERVER</a>
+          <a rel="noreferrer" href={`${SERVER_DOMAIN}/pos/pos-server-installer.exe`} target={"_blank"} >POS SERVER</a>
 
           <h4>Credentials</h4>
           <div className=" d-flex gap-5">

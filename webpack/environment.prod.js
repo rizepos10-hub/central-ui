@@ -8,4 +8,5 @@ module.exports = {
 
   SERVER_ADMIN_API_URL: 'https://rize-pos.com/admin-app',
   SERVER_API_URL: 'https://rize-pos.com/central-app',
+  SERVER_DOMAIN: 'https://rize-pos.com'
 };
