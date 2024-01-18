@@ -104,14 +104,14 @@ console.log(menuList, 'menu list')
   };
 
   const categoryNames = new Set(menuList.filter(cat => cat.category?.name !== undefined || null).map((menu) => menu.category?.name));
+  const branchNames = new Set(menuList.filter(item => item.branch?.name !== undefined || null).map((menu) => menu.branch?.name));
   const categoryFilterOptions = Array.from(categoryNames)
     .map((categoryName) => ({
     label: categoryName,
     value: categoryName,
   }));
-  console.log(categoryNames, 'categoryNames')
+  const branchFilterOptions = Array.from(branchNames).map((branchName) => ({label: branchName, value: branchName}));
 
-  console.log(categoryFilterOptions, 'categoryFilterOptions')
   const categoryFilter = (
     <Dropdown
       value={filters['category.name']?.value}
@@ -127,6 +127,21 @@ console.log(menuList, 'menu list')
     />
 
   );
+  const branchFilter = (
+    <Dropdown
+      value={filters['branch.name']?.value}
+      options={branchFilterOptions}
+      onChange={(e) => {
+        const updatedFilters = {
+          ...filters,
+          'branch.name': { value: e.value, matchMode: FilterMatchMode.EQUALS },
+        };
+        setFilters(updatedFilters);
+      }}
+      placeholder="Select a branch"
+    />
+  )
+
   const editColumnTemplate = (rowData) => {
     const editUrl = `/menu/${rowData.id}/${menuType}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
@@ -187,7 +202,8 @@ console.log(menuList, 'menu list')
             header="Branch"
             sortable
             filter
-            filterPlaceholder={'Search by Branch'}
+            filterElement={branchFilter}
+            filterField={"branch.name"}
           />
           <Column
             field="lastModifiedDate"
