@@ -589,7 +589,7 @@ export const ItemUpdate = () => {
 
   const options = useAppSelector(state => state.restaurantItems.entities);
   const handleImportAddonModalSave = (option: IItem) => {
-    const addons = itemEntity.addons;
+    const addons = itemEntity.addons || [];
     const extraAddons = option.addons;
     const uniqueIds = Array.from(new Set([...addons, ...extraAddons].map(item => item.id)));
     const mergedAddons = uniqueIds.map(id => [...addons, ...extraAddons].find(item => item.id === id));
