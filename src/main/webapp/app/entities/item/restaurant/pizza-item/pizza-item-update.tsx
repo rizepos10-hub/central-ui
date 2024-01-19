@@ -227,7 +227,7 @@ export const PizzaItemUpdate = () => {
     });
   };
 
-  const multipleOptions = ["Simple", "Multiple"];
+  const multipleOptions = ["Single", "Multiple"];
 
   const handleMultipleClick = (type) => {
     setPizzaItem((prev) => {
@@ -380,9 +380,9 @@ export const PizzaItemUpdate = () => {
               <h4>Pizza Item Type</h4>
               <div className="p-selectbutton d-flex gap-8 p-buttonset p-component p-3" role="group" data-pc-name="selectbutton"
                    data-pc-section="root">
-                <div className={`p-button h-20rem w-20rem p-component ${!isMultiple ? "p-highlight" : "" }`} role="button" aria-label="Simple" aria-pressed="true"
-                     tabIndex={0} data-pc-section="button" onClick={() => handleMultipleClick("SIMPLE")}>
-                  <span className="p-button-label p-c" data-pc-section="label">Simple</span>
+                <div className={`p-button h-20rem w-20rem p-component ${!isMultiple ? "p-highlight" : "" }`} role="button" aria-label="Single" aria-pressed="true"
+                     tabIndex={0} data-pc-section="button" onClick={() => handleMultipleClick("SINGLE")}>
+                  <span className="p-button-label p-c" data-pc-section="label">Single</span>
                   <span role="presentation" className="p-ink" style={{height: "78.0256px", width:"78.0256px"}}></span>
                 </div>
                 <div className={`p-button  h-20rem w-20rem  p-component ${isMultiple ? "p-highlight" : "" }`} role="button" aria-label="Multiple" aria-pressed="false"
@@ -391,7 +391,7 @@ export const PizzaItemUpdate = () => {
                   <span role="presentation" className="p-ink" style={{height: "78.0256px", width:"78.0256px"}}></span>
                 </div>
               </div>
-              {/* <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Simple'} onChange={handleMultipleClick} options={multipleOptions} /> */}
+              {/* <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Single'} onChange={handleMultipleClick} options={multipleOptions} /> */}
             </div>
               <div className={"ml-auto"}>
                 <Button onClick={handleNextClick}>Next</Button>
