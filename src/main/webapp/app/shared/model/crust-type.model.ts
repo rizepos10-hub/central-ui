@@ -6,6 +6,7 @@ export interface ICrustType {
   name?: string;
   hiddenOnSizes?: IPizzaSize[];
   pricingClass?: IPizzaPricingClass;
+  chosenByDefault?: boolean;
 
 }
 

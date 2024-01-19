@@ -14,6 +14,7 @@ import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {getEntities} from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
 import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
+import {Checkbox} from "primereact/checkbox";
 
 export const PizzaCrustTypeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -27,7 +28,7 @@ export const PizzaCrustTypeUpdate = () => {
     pricingClass: {}
   });
   const crustTypePricingClasses = useAppSelector(state => state.pizzaPricingClass.entities)
-    .filter(option => option.type === 'CRUST_THICKNESS');
+    .filter(option => option.type === 'CRUST_TYPE');
 
   const pizzaCrustTypeEntity = useAppSelector(state => state.pizzaCrustType.entity);
   const pizzaSizes = useAppSelector(state => state.pizzaSize.entities);
@@ -119,7 +120,7 @@ export const PizzaCrustTypeUpdate = () => {
                     onChange={handleChange}
                   />
                 </div>
-                <div className={"d-flex flex-column"}>
+                <div className={"d-flex flex-column my-3"}>
                   <Label for="pizza-crustType-hiddenOn">Hidden On</Label>
                   <Select
                     options={pizzaSizes}
@@ -132,7 +133,7 @@ export const PizzaCrustTypeUpdate = () => {
                   />
                 </div>
 
-                <div className={"d-flex flex-column  my-2"}>
+                <div className={"d-flex flex-column  my-3"}>
                   <label>
                     Pricing Class
                   </label>
@@ -145,6 +146,19 @@ export const PizzaCrustTypeUpdate = () => {
                     onChange={(toppingPriceOption) => setPizzaCrustType((prevState) => ({...prevState, pricingClass: toppingPriceOption}))}
                   />
                 </div>
+
+                <div className={"d-flex my-3 gap-2"}>
+                  <label>
+                    Chosen By Default
+                  </label>
+                  <Checkbox
+                    checked={pizzaCrustType?.chosenByDefault}
+                    onChange={(e) => setPizzaCrustType((prev) =>
+                      ({...prev, chosenByDefault: e.checked }))}
+                  />
+                </div>
+
+
               </FormGroup>
               <Button tag={Link} to="/pizza-crust" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
