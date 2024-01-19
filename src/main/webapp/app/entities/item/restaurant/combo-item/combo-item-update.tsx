@@ -56,7 +56,19 @@ export const ComboItemUpdate = () => {
       ...prevState,
       [fieldName]: value,
     }));
-  }, [])
+  }, []);
+
+  const handlePriceChange = (price) => {
+    setComboItem((prev) => ({
+      ...prev,
+      variants: [
+        {
+          ...(prev.variants && prev?.variants?.[0] ? prev.variants[0] : {}),
+          price
+        }
+      ]
+    }))
+  }
 
 
   const handleBranchPriceChange = (branchId, price) => {
@@ -311,6 +323,23 @@ export const ComboItemUpdate = () => {
               item={comboItem}
               onFieldChange={handleFieldChange}
             />
+
+            <Col md="4">
+              <div className={"d-flex flex-column gap-2"}>
+                <label className={"text-xl font-bold"}>
+                  Price
+                </label>
+                <InputNumber
+                  name="price"
+                  id="price"
+                  required={true}
+                  maxFractionDigits={2}
+                  placeholder="Item Price"
+                  value={comboItem?.variants?.[0]?.price}
+                  onChange={(e) => handlePriceChange(e.value)}
+                />
+              </div>
+            </Col>
 
             <Col md="8" className={"mt-3"}>
               <h4>Branch Prices</h4>
