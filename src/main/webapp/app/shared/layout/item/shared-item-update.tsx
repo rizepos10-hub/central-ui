@@ -144,6 +144,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
   const handleImportAddonModalClose = () => {
     setOpenedAddonModal(false);
   };
+  console.log(item, 'itemitem')
 
   return (
     <div>
@@ -229,6 +230,19 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                         onChange={(accountingGroup) => onFieldChange('accountingGroups',[accountingGroup])}
                       />
                     </div>
+                  </Col>
+                </Row>
+                <Row className={"my-3"} >
+                  <Col md={"4"}>
+                <div className={"d-flex my-3 gap-2"}>
+                  <label className={"text-xl font-bold"}>
+                    Excluded From Loyalty Points
+                  </label>
+                  <Checkbox
+                    checked={item?.excludedFromLoyaltyPoints}
+                    onChange={(e) => onFieldChange('excludedFromLoyaltyPoints', e.checked)}
+                  />
+                </div>
                   </Col>
                 </Row>
                 <Row className={"my-3"} >
