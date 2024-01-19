@@ -87,9 +87,9 @@ export const ItemUpdate = () => {
   }));
 
   const productionCenterOptions = useAppSelector(state => state.productionCenter.entities).map(pCenter => ({
-      label: pCenter.name,
-      value: pCenter.id,
-      id: pCenter.id
+    label: pCenter.name,
+    value: pCenter.id,
+    id: pCenter.id
   }))
 
 
@@ -584,8 +584,8 @@ export const ItemUpdate = () => {
       ? {}
       : {
 
-          ...itemEntity,
-        };
+        ...itemEntity,
+      };
 
   const options = useAppSelector(state => state.restaurantItems.entities);
   const handleImportAddonModalSave = (option: IItem) => {
@@ -817,7 +817,7 @@ export const ItemUpdate = () => {
                         value: group.addonGroup?.value,
                         label: group.addonGroup?.label
                       }))}
-                      onChange={handleAddonGroupChange} options={addonGroupsOptions} />
+                              onChange={handleAddonGroupChange} options={addonGroupsOptions} />
                     </div>
                     <Table>
                       <thead>
@@ -846,59 +846,59 @@ export const ItemUpdate = () => {
 
               {variants && (
                 <div className="mb-3">
-                 <h5> <Translate contentKey="tempApp.item.variants">Variants</Translate></h5>
+                  <h5> <Translate contentKey="tempApp.item.variants">Variants</Translate></h5>
                   <table className="table table-striped">
                     <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Image</th>
-                        <th>Discounts</th>
-                      </tr>
+                    <tr>
+                      <th>Name</th>
+                      <th>Price</th>
+                      <th>Image</th>
+                      <th>Discounts</th>
+                    </tr>
                     </thead>
                     <tbody>
-                      {variants
-                        .filter(variant => variant.isArchived !== true)
-                        ?.map((variant, index) => (
-                          <tr key={index}>
-                            <td className="align-middle">{variant.name}</td>
-                            <td className="align-middle">{variant.price}</td>
-                            <td className="align-middle">
-                              {variant.attachments?.map((attachment,i) => (
-                                <img
-                                  key={i}
-                                  alt={attachment?.name}
-                                  src={attachment?.url}
-                                  className="img-fluid m-lg-1"
-                                  style={{
-                                    maxWidth: '40px',
-                                    maxHeight: '45px',
-                                  }}
-                                />
+                    {variants
+                      .filter(variant => variant.isArchived !== true)
+                      ?.map((variant, index) => (
+                        <tr key={index}>
+                          <td className="align-middle">{variant.name}</td>
+                          <td className="align-middle">{variant.price}</td>
+                          <td className="align-middle">
+                            {variant.attachments?.map((attachment,i) => (
+                              <img
+                                key={i}
+                                alt={attachment?.name}
+                                src={attachment?.url}
+                                className="img-fluid m-lg-1"
+                                style={{
+                                  maxWidth: '40px',
+                                  maxHeight: '45px',
+                                }}
+                              />
+                            ))}
+                          </td>
+                          <td className="align-middle">
+                            <ul>
+                              {variant.discounts?.map((discount,i) => (
+                                <li key={i}>{`${
+                                  discount?.type === 'PERCENTAGE' ? `${discount?.value}%` : `${discount?.value} ${discount?.type}`
+                                }`}</li>
                               ))}
-                            </td>
-                            <td className="align-middle">
-                              <ul>
-                                {variant.discounts?.map((discount,i) => (
-                                  <li key={i}>{`${
-                                    discount?.type === 'PERCENTAGE' ? `${discount?.value}%` : `${discount?.value} ${discount?.type}`
-                                  }`}</li>
-                                ))}
-                              </ul>
-                            </td>
+                            </ul>
+                          </td>
 
-                            <td>
-                              <Button type={'button'} onClick={() => openEditVariantModal(variant,index)} color="secondary">
-                                <FontAwesomeIcon icon="pencil-alt" />
-                              </Button>
-                            </td>
-                            <td>
-                              <Button type={'button'} color="danger" onClick={() => handleArchiveVariant( index)}>
-                                <FontAwesomeIcon icon="trash" />
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
+                          <td>
+                            <Button type={'button'} onClick={() => openEditVariantModal(variant,index)} color="secondary">
+                              <FontAwesomeIcon icon="pencil-alt" />
+                            </Button>
+                          </td>
+                          <td>
+                            <Button type={'button'} color="danger" onClick={() => handleArchiveVariant( index)}>
+                              <FontAwesomeIcon icon="trash" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>

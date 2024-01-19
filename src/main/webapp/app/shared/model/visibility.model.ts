@@ -1,3 +1,4 @@
+import {SourceType} from "app/shared/model/enumerations/source-type.model";
 
 export interface ITimeRange {
   from: string;
@@ -9,8 +10,9 @@ export interface ISchedule {
 }
 
 export interface IVisibility {
+  application?: SourceType;
   visible?: boolean | null;
-  schedule?: ISchedule;
+  schedule?: ISchedule | null;
 }
 
 export const defaultValue: Readonly<IVisibility> = {};
