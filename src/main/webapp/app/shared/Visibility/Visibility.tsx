@@ -18,7 +18,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
   const allDays = Object.values(DayOfWeek);
 
   const [selectedApplication, setSelectedApplication] = useState<SourceType>(SourceType.BRANCH_POS);
-  const [visibility, setVisibility] = useState<IVisibility[]>(initialState);
+  const [visibility, setVisibility] = useState<IVisibility[]>(initialState || []);
 
   const getHourRangesForDay = (day: DayOfWeek) => {
     const appObject = visibility.find(application => application.application === selectedApplication);
@@ -73,8 +73,9 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
     })
   }
   const getIsVisible = () => {
-    if (visibility.find(obj => obj.application === selectedApplication)){
-      return visibility.find(obj => obj.application === selectedApplication)?.visible
+    const existingVisibility = visibility.find(obj => obj.application === selectedApplication);
+    if (existingVisibility) {
+      return existingVisibility.visible;
     }
     else
     {
