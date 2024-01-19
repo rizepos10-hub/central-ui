@@ -14,17 +14,17 @@ interface IMultiplePizzaDetails{
   freeToppingsNumber?: number;
 }
 
-interface IToppingPricingItem {
+export interface IToppingPricingItem {
   topping: ITopping;
   pricingClass: IPizzaPricingClass;
 }
 
-interface ICrustTypePricingItem {
+export interface ICrustTypePricingItem {
   crustType: ICrustType;
   pricingClass: IPizzaPricingClass;
 }
 
-interface ICrustThicknessPricingItem {
+export interface ICrustThicknessPricingItem {
   crustThickness: ICrustThickness;
   pricingClass: IPizzaPricingClass;
 }

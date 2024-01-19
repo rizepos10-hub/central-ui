@@ -323,16 +323,13 @@ export const SimpleItemUpdate = () => {
                     <tr key={branch.id}>
                       <td>{branch.name}</td>
                       <td>
-                        <ValidatedField
-                          type="number"
+                        <InputNumber
                           name={`branchPrice_${branch.id}`}
                           placeholder={`Enter price for ${branch.name}`}
                           onWheel={(e: any) => e.target.blur()}
+                          size={60}
                           value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
-                          onChange={e => handleBranchPriceChange(branch.id, e.target.value)}
-                          validate={{
-                            required: { value: true, message: translate('entity.validation.required') },
-                          }}
+                          onChange={e => handleBranchPriceChange(branch.id, e.value)}
                         />
                       </td>
                     </tr>

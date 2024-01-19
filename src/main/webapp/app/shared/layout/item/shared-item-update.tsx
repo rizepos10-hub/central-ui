@@ -33,13 +33,14 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
   const isRestaurantItem = item?.itemType === "RESTAURANT";
+  console.log(isRestaurantItem, 'isRestaurantItemisRestaurantItem')
+
   const isRetailItem = item?.itemType === "RETAIL";
   const isSimplePizza = isRestaurantItem && item?.variants?.[0]?.multiple === false;
 
   const itemCategoriesOptions =
     isRetailItem ? useAppSelector(state => state.retailCategory.entities) :
       useAppSelector(state => state.restaurantCategory.entities) ;
-  console.log(itemCategoriesOptions, 'itemCategoriesOptions')
 
   const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities);
   const addonsOptions = useAppSelector(state => state.addon.entities);
@@ -87,7 +88,6 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
-
       dispatch(
         getRestaurantItems({
           page: paginationState.activePage - 1,
@@ -111,8 +111,8 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
-    }
 
+    }
     dispatch(getProductionCenters({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
@@ -131,7 +131,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
   const openImportAddonModal = () => {
     setOpenedAddonModal(true);
   };
-  const options = useAppSelector(state => state.restaurantItems.entities);
+  const restaurantItemsOptions = useAppSelector(state => state.restaurantItems.entities);
 
   const handleImportAddonModalSave = (option: IItem) => {
     const addons = item.addons;
@@ -254,7 +254,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                         showModal={openedAddonModal}
                         handleSave={handleImportAddonModalSave}
                         handleClose={handleImportAddonModalClose}
-                        itemOptions={options}
+                        itemOptions={restaurantItemsOptions}
                       />
                     )}
                     <Row className={"my-3"}>

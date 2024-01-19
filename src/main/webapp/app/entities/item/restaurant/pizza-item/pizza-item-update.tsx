@@ -86,19 +86,32 @@ export const PizzaItemUpdate = () => {
 
 
   const handleFieldChange = useCallback((fieldName, value) => {
-    setPizzaItem((prevState) => ({
-      ...prevState,
-      [fieldName]: value,
-    }));
-  }, [])
+    setPizzaItem((prevState) => {
+      const updatedState = {
+        ...prevState,
+        [fieldName]: value,
+      };
+
+      if (fieldName === 'name') {
+        const updatedVariant = {
+          ...prevState.variants[0],
+          name: value,
+        };
+        updatedState.variants = [updatedVariant];
+      }
+
+      return updatedState;
+    });
+  }, []);
+
 
   const handleSinglePizzaValuesChange = (fieldName, value) => {
-    console.log(fieldName, 'field', value, "value");
     setPizzaItem((prev) => {
       const updatedVariants = [
         {
           ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
           [fieldName]: fieldName === "predefinedPizza" ? [value] : value,
+          ...(fieldName === "predefinedPizza" && { name : value.name })
         },
       ];
       return {
