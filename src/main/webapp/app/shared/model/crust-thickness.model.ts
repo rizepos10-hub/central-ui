@@ -5,7 +5,8 @@ export interface ICrustThickness {
   id?: string;
   name?: string;
   hiddenOnSizes?: IPizzaSize[];
-  pricingClass?: IPizzaPricingClass
+  pricingClass?: IPizzaPricingClass;
+  chosenByDefault?: boolean;
 }
 
 export const defaultValue: Readonly<ICrustThickness> = {};

@@ -14,6 +14,7 @@ import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {ICrustThickness} from "app/shared/model/crust-thickness.model";
 import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
+import {Checkbox} from "primereact/checkbox";
 
 export const PizzaCrustThicknessUpdate = () => {
   const dispatch = useAppDispatch();
@@ -118,7 +119,7 @@ export const PizzaCrustThicknessUpdate = () => {
                   />
                 </div>
 
-                <div className={"d-flex flex-column"}>
+                <div className={"d-flex flex-column my-3"}>
                   <Label for="pizza-curstThickness-hiddenOn">Hidden On</Label>
                  <Select
                    options={pizzaSizes}
@@ -131,7 +132,7 @@ export const PizzaCrustThicknessUpdate = () => {
                  />
                 </div>
 
-                <div className={"d-flex flex-column  my-2"}>
+                <div className={"d-flex flex-column  my-3"}>
                   <label>
                     Pricing Class
                   </label>
@@ -142,6 +143,17 @@ export const PizzaCrustThicknessUpdate = () => {
                     getOptionLabel={option => option.name}
                     getOptionValue={option => option.id}
                     onChange={(toppingPriceOption) => setPizzaCrustThickness((prevState) => ({...prevState, pricingClass: toppingPriceOption}))}
+                  />
+                </div>
+
+                <div className={"d-flex my-3 gap-2"}>
+                  <label>
+                    Chosen By Default
+                  </label>
+                  <Checkbox
+                    checked={pizzaCrustThickness?.chosenByDefault}
+                    onChange={(e) => setPizzaCrustThickness((prev) =>
+                      ({...prev, chosenByDefault: e.checked }))}
                   />
                 </div>
 
