@@ -39,13 +39,13 @@ import floorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan.r
 import toppingGroup from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer"
 import pizzaItem from "app/entities/item/restaurant/pizza-item/pizza-item.reducer";
 import regularItem from 'app/entities/item/restaurant/regular-item/item.reducer';
-import comboItem from 'app/entities/item/restaurant/combo-item/item.reducer';
+import comboItem from 'app/entities/item/restaurant/combo-item/combo-item.reducer';
 import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
 import retailAttribute from "app/entities/item/retail/attributes/retail-attribute.reducer";
 import retailAttributeValue from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import retailItems from "app/entities/item/retail/retail-items.reducer";
-import itemsForCombo from 'app/entities/item/restaurant/combo-item/items-for-combo.reducer';
+import itemsForCombo from 'app/entities/item/restaurant/combo-item-prev/items-for-combo.reducer';
 
 import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
 import allItems from 'app/entities/item/all-items.reducer';
