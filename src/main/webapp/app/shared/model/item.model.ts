@@ -21,6 +21,7 @@ export interface IItem {
     required?: boolean,
     addonGroup?: IAddonGroups
   }[];
+  excludedFromLoyaltyPoints?: boolean;
   status?: ItemStatus | null;
   variants?: any;
   visibility?: IVisibility;

@@ -70,6 +70,8 @@ export const ItemUpdate = () => {
 
   const itemTypeOptions = [{label: 'ITEM', value: 'ITEM'}, {label: "PIZZA", value: "PIZZA"}]
 
+  const [excludedFromLoyaltyPoints, setExcludedFromLoyaltyPoints] = useState(false);
+
   const addonsOptions = addons?.map(addon => ({ value: addon.id, label: addon.name, id: addon.id }));
 
   const addonGroupsOptions = addonGroups?.map(addon => ({ value: addon.id, label: addon.name, id: addon.id}));
@@ -304,6 +306,9 @@ export const ItemUpdate = () => {
     if (itemEntity.desc) {
       setDesc(itemEntity.desc);
     }
+    if(itemEntity?.excludedFromLoyaltyPoints !== null){
+      setExcludedFromLoyaltyPoints(itemEntity?.excludedFromLoyaltyPoints)
+    }
     const { id: newItemId } = newItem;
     if (updateSuccess && newItemId) {
       navigate(`/restaurant/regular/${newItemId}/edit` + location.search);
@@ -399,7 +404,8 @@ export const ItemUpdate = () => {
       attachments: selectedAttachments,
       variants: variants,
       name,
-      desc
+      desc,
+      excludedFromLoyaltyPoints
 
     };
     if (isNew) {
@@ -735,6 +741,15 @@ export const ItemUpdate = () => {
                       onChange={e => setDesc(e.target.value)}
                     />
                   </div>
+                </div>
+                <div className={"d-flex my-3 gap-2"}>
+                  <label >
+                    Excluded From Loyalty Points
+                  </label>
+                  <Checkbox
+                    checked={excludedFromLoyaltyPoints}
+                    onChange={(e) => setExcludedFromLoyaltyPoints(e.checked)}
+                  />
                 </div>
                 <div className="d-flex justify-content-between mb-1">
                   <div className="mb-3">
