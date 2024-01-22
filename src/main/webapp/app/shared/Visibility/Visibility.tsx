@@ -20,6 +20,7 @@ function convertStringToNullableDate (date: string) : Nullable<Date> {
     ? new Date(0, 0, 0, hours, minutes, seconds)
     : null;
 }
+
 function convertNullableDateToString (date: Nullable<Date> | Date[] | string) : string {
   if (date !== null && date instanceof Date) {
     const hours = date.getHours().toString().padStart(2, '0');
@@ -50,10 +51,10 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
       const appObjectRef = prev.find(obj => obj.application === selectedApplication);
 
       if (appObjectRef) {
-        const updatedSchedule = { ...appObjectRef.schedule, [day]: [...(appObjectRef.schedule?.[day] || []), { from: '', to: '' }] };
+        const updatedSchedule = { ...appObjectRef.schedule, [day]: [...(appObjectRef.schedule?.[day] || []), { from: '00:00:00', to: '01:00:00' }] };
         return prev.map(obj => (obj.application === selectedApplication ? { ...obj, schedule: updatedSchedule } : obj));
       } else {
-        const newObj = { application: selectedApplication, visible: true, schedule: { [day]: [{ from: '', to: '' }] } };
+        const newObj = { application: selectedApplication, visible: true, schedule: { [day]: [{ from: '00:00:00', to: '01:00:00' }] } };
         return [...prev, newObj];
       }
     });
@@ -108,6 +109,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
     onStateChanged(visibility);
   },[visibility, initialState])
 
+
   const accordionTabContent = (day: DayOfWeek) => {
     return (
       <>
@@ -125,7 +127,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
                 onChange={(e) =>
                   handleChangeHourRange(day, rangeIndex, 'from', convertNullableDateToString(e.value))}
                 timeOnly
-                className={hourRange.from? '':'p-invalid'}
+                className={hourRange.from ? '' : 'p-invalid'}
               />
 
               <label className="ml-2 mr-2">To:</label>
@@ -134,7 +136,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
                 onChange={(e) =>
                   handleChangeHourRange(day, rangeIndex, 'to', convertNullableDateToString(e.value))}
                 timeOnly
-                className={hourRange.to? '':'p-invalid'}
+                className={hourRange.to ? '' : 'p-invalid'}
               />
 
               <button
