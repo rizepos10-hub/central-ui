@@ -7,10 +7,29 @@ import {SourceType} from "app/shared/model/enumerations/source-type.model";
 import {DayOfWeek} from "app/shared/model/enumerations/day-of-week.model";
 import {Button as PrimeButton} from "primereact/button";
 import {InputText} from "primereact/inputtext";
+import {Nullable} from "primereact/ts-helpers";
+import {Calendar} from "primereact/calendar";
 
 interface Props {
   initialState: IVisibility[];
   onStateChanged: (state: IVisibility[]) => void;
+}
+function convertStringToNullableDate (date: string) : Nullable<Date> {
+  const [hours, minutes, seconds] = date ? date.split(':').map(Number) : [undefined, undefined, undefined];
+  return (hours !== undefined && minutes !== undefined && seconds !== undefined)
+    ? new Date(0, 0, 0, hours, minutes, seconds)
+    : null;
+}
+function convertNullableDateToString (date: Nullable<Date> | Date[] | string) : string {
+  if (date !== null && date instanceof Date) {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+
+    return `${hours}:${minutes}:${seconds}`;
+  } else {
+    return '';
+  }
 }
 const Visibility = ({ initialState, onStateChanged }:Props) => {
 
@@ -101,21 +120,22 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
           return (
             <div key={rangeIndex} className="d-flex flex-row align-items-center mb-3">
               <label className="mr-2">From:</label>
-              <InputText
-                type="text"
-                placeholder="HH:mm:ss"
-                pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
-
-                value={hourRange.from}
-                onChange={(e) => handleChangeHourRange(day, rangeIndex, 'from', e.target.value)}/>
+              <Calendar
+                value={convertStringToNullableDate(hourRange.from)}
+                onChange={(e) =>
+                  handleChangeHourRange(day, rangeIndex, 'from', convertNullableDateToString(e.value))}
+                timeOnly
+                className={hourRange.from? '':'p-invalid'}
+              />
 
               <label className="ml-2 mr-2">To:</label>
-              <InputText
-                type="text"
-                placeholder="HH:mm:ss"
-                pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
-                value={hourRange.to}
-                onChange={(e) => handleChangeHourRange(day, rangeIndex, 'to',  e.target.value)}/>
+              <Calendar
+                value={convertStringToNullableDate(hourRange.to)}
+                onChange={(e) =>
+                  handleChangeHourRange(day, rangeIndex, 'to', convertNullableDateToString(e.value))}
+                timeOnly
+                className={hourRange.to? '':'p-invalid'}
+              />
 
               <button
                 type="button"
