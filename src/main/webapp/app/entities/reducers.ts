@@ -46,6 +46,8 @@ import retailAttribute from "app/entities/item/retail/attributes/retail-attribut
 import retailAttributeValue from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import retailItems from "app/entities/item/retail/retail-items.reducer";
 import itemsForCombo from 'app/entities/item/restaurant/combo-item-prev/items-for-combo.reducer';
+import currencies from "app/entities/settings/currencySettings/currencies.reducer"
+import currencySettings from "app/entities/settings/currencySettings/currency-settings.reducer"
 
 import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
 import allItems from 'app/entities/item/all-items.reducer';
@@ -102,6 +104,8 @@ const entitiesReducers = {
   itemsForCombo,
   allItems,
   loyalty,
+  currencies,
+  currencySettings,
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };
