@@ -29,17 +29,23 @@ export interface ICrustThicknessPricingItem {
   pricingClass: IPizzaPricingClass;
 }
 
+export interface IBasePizzaDetail {
+  toppingsNumber: number;
+  pricingClass: IPizzaPricingClass;
+}
+
 interface IPizzaItemVariant {
   id?: string | null;
   name?: string | null;
   attachments?: IAttachment[];
   discounts?: IDiscount[];
-  predefinedPizza?: IPredefinedPizza[];
+  predefinedPizza?: IPredefinedPizza;
   itemPricingClass?: IPizzaPricingClass;
   toppingPricing?: IToppingPricingItem[];
   crustTypePricing?: ICrustTypePricingItem[];
   crustThicknessPricing?: ICrustThicknessPricingItem[];
   multiplePizzaDetails?: IMultiplePizzaDetails[];
+  basePizzaDetails?: IBasePizzaDetail[];
   multiple?: boolean;
   archived?: boolean;
 }

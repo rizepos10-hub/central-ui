@@ -9,7 +9,7 @@ import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-item.reducer';
 import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
-import {IPizzaItem} from "app/shared/model/pizza-item.model";
+import {IBasePizzaDetail, IPizzaItem} from "app/shared/model/pizza-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
 import Select from "react-select";
@@ -105,12 +105,13 @@ export const PizzaItemUpdate = () => {
   }, []);
 
 
+
   const handleSinglePizzaValuesChange = (fieldName, value) => {
     setPizzaItem((prev) => {
       const updatedVariants = [
         {
           ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
-          [fieldName]: fieldName === "predefinedPizza" ? [value] : value,
+          [fieldName] : value,
           ...(fieldName === "predefinedPizza" && { name : value.name })
         },
       ];
@@ -175,6 +176,65 @@ export const PizzaItemUpdate = () => {
 
 
 
+  const addNewBaseDetail = () => {
+    setPizzaItem((prev) => {
+      const newDetail: IBasePizzaDetail = {
+        toppingsNumber: 2,
+        pricingClass: null,
+      };
+
+      const updatedDetails = [...(prev?.variants?.[0].basePizzaDetails || []), newDetail];
+
+      return {
+        ...prev,
+        variants: [
+          {
+            ...prev.variants?.[0],
+            basePizzaDetails: updatedDetails,
+          },
+        ],
+      };
+    });
+  };
+
+  const handleBaseDetailChange = (index, fieldName, value) => {
+    setPizzaItem((prev) => {
+      const updatedVariants = [...prev.variants];
+      const updatedDetails = [...updatedVariants[0].basePizzaDetails];
+
+      updatedDetails[index] = {
+        ...updatedDetails[index],
+        [fieldName]: value,
+      };
+
+      return {
+        ...prev,
+        variants: [
+          {
+            ...updatedVariants[0],
+            basePizzaDetails: updatedDetails,
+          },
+        ],
+      };
+    });
+  };
+
+  const handleRemoveBaseDetail = (index) => {
+    setPizzaItem((prev) => {
+      const updatedBaseDetails = prev?.variants?.[0]?.basePizzaDetails.filter((_, i) => i !== index);
+
+      return {
+        ...prev,
+        variants: [
+          {
+            ...prev.variants[0],
+            basePizzaDetails: updatedBaseDetails,
+          },
+        ],
+      };
+    });
+  };
+
   const handleMultiplePizzaInputChange = (index, fieldName, value) => {
     setPizzaItem((prev) => {
       const updatedDetails = [...prev.variants[0].multiplePizzaDetails];
@@ -191,6 +251,7 @@ export const PizzaItemUpdate = () => {
       };
     });
   };
+
   const handleRemoveMultiplePizzaInput = (index) => {
     setPizzaItem((prev) => {
       const updatedPizzaDetails = prev?.variants?.[0]?.multiplePizzaDetails.filter((_, i) => i !== index);
@@ -199,27 +260,28 @@ export const PizzaItemUpdate = () => {
         ...prev,
         variants: [
           {
-            ...prev.variants[0],
+            ...prev.variants?.[0],
             multiplePizzaDetails: updatedPizzaDetails,
           },
         ],
       };
     });
   };
-  const addNewPizzaDetail = () => {
+
+  const addNewMultiplePizzaDetail = () => {
     setPizzaItem((prev) => {
       const newDetail = {
         numberOfPizza: 2,
         freeToppingsNumber: null,
       };
 
-      const updatedDetails = [...prev.variants[0].multiplePizzaDetails, newDetail];
+      const updatedDetails = [...(prev?.variants?.[0].multiplePizzaDetails || []), newDetail];
 
       return {
         ...prev,
         variants: [
           {
-            ...prev.variants[0],
+            ...prev?.variants?.[0],
             multiplePizzaDetails: updatedDetails,
           },
         ],
@@ -335,6 +397,7 @@ export const PizzaItemUpdate = () => {
 
   const saveEntity = e => {
     e.preventDefault();
+    console.table(pizzaItem)
     const entity = {
       ...pizzaItem,
     };
@@ -404,14 +467,15 @@ export const PizzaItemUpdate = () => {
             <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
 
           <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
-            {!pizzaItem?.variants?.[0]?.multiple ?<Row>
+            {!pizzaItem?.variants?.[0]?.multiple ?
+              <Row>
               <Col md="6">
                 <div className={"d-flex flex-column gap-2"}>
                   <label className={"text-xl font-bold"}>
                   Predefined Pizza
                   </label>
                   <Select
-                    value={pizzaItem?.variants?.[0]?.predefinedPizza?.[0]}
+                    value={pizzaItem?.variants?.[0]?.predefinedPizza}
                     required
                     options={predefinedPizzaOptions}
                     getOptionLabel={option => option.name}
@@ -444,6 +508,62 @@ export const PizzaItemUpdate = () => {
 
               </Row>
             </Row>
+
+
+            {!pizzaItem?.variants?.[0]?.multiple && pizzaItem?.variants?.[0]?.predefinedPizza?.base ?
+              <Accordion multiple activeIndex={[0]} className={"my-3"}>
+                <AccordionTab  header={"Make Your Own Pizza Settings"}>
+              <Row>
+                <Col md="8">
+                  <Table>
+                    <thead>
+                    <tr>
+                      <th>Number of Toppings</th>
+                      <th>Pricing Class</th>
+                      <th>Remove</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {pizzaItem?.variants?.[0]?.basePizzaDetails?.map((baseDetail, index) => (
+                      <tr key={index}>
+                        <td>
+                          <InputNumber
+                            value={baseDetail?.toppingsNumber}
+                            min={2}
+                            onChange={(e) =>
+                              handleBaseDetailChange(index, "toppingsNumber", e.value)
+                            }
+                          />
+                        </td>
+                        <td>
+                         <Select
+                           options={pizzaPricingClasses}
+                           value={baseDetail?.pricingClass}
+                           getOptionValue={(option: IPizzaPricingClass) => option.id}
+                           getOptionLabel={(option: IPizzaPricingClass) => option.name}
+                           onChange={(pricingClass) =>
+                             handleBaseDetailChange(index, "pricingClass", pricingClass)
+                           }
+                         />
+                        </td>
+                        <td>
+                          <PrimeButton type={"button"} onClick={() => handleRemoveBaseDetail(index)} severity={"danger"} >Remove</PrimeButton>
+                        </td>
+                      </tr>
+                    ))}
+                    <tr>
+                      <td colSpan={2}>
+                        <Button color="primary" onClick={addNewBaseDetail}>
+                          Add
+                        </Button>
+                      </td>
+                    </tr>
+                    </tbody>
+                  </Table>
+                </Col>
+              </Row>
+            </AccordionTab>
+          </Accordion>: null}
             <Row>
               <Accordion multiple activeIndex={[0]} className={"my-3"}>
                   <AccordionTab  header={"Toppings"}>
@@ -619,7 +739,7 @@ export const PizzaItemUpdate = () => {
                     ))}
                     <tr>
                       <td colSpan={2}>
-                        <Button color="primary" onClick={addNewPizzaDetail}>
+                        <Button color="primary" onClick={addNewMultiplePizzaDetail}>
                           Add
                         </Button>
                       </td>
