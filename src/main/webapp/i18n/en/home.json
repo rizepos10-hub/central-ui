@@ -1,19 +1,22 @@
 {
   "home": {
     "title": "Welcome, Java Hipster!",
-    "subtitle": "This is your homepage",
-    "logged": {
-      "message": "You are logged in as user \"{{username}}\"."
-    },
-    "question": "If you have any question on JHipster:",
-    "link": {
-      "homepage": "JHipster homepage",
-      "stackoverflow": "JHipster on Stack Overflow",
-      "bugtracker": "JHipster bug tracker",
-      "chat": "JHipster public chat room",
-      "follow": "follow @jhipster on Twitter"
-    },
-    "like": "If you like JHipster, don't forget to give us a star on",
-    "github": "GitHub"
+    "sales": "Sales",
+    "revenue": "Revenue",
+    "visitors": "Visitors",
+    "stock": "Stock",
+    "revenueOverview": "Revenue Overview",
+    "salesByCategory": "Sales by Category",
+    "recentSales": "Recent Sales",
+    "topProducts": "Top Products",
+    "table": {
+      "name": "Name",
+      "category": "Category",
+      "price": "Price",
+      "status": "Status",
+      "emptyMessage": "No Products Found",
+      "search": "Search",
+      "export": "Export"
+    }
   }
 }
