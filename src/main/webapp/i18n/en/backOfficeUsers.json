@@ -1,0 +1,44 @@
+{
+  "backOfficeUsers": {
+    "user": {
+      "title": "Users View",
+      "table": {
+        "title": "Users",
+        "fields": {
+          "name": "Name",
+          "username": "Username",
+          "email": "Email",
+          "enabled": "Enabled",
+          "edit": "Edit"
+        },
+        "search": {
+          "name": "Search by Name",
+          "username": "Search by Username",
+          "email": "Search by Email"
+        }
+      },
+      "buttons": {
+        "refreshList": "Refresh List",
+        "createNewUser": "Create New User"
+      }
+    },
+    "delete": {
+
+    },
+    "update": {
+      "create": {
+        "title": "Create New User"
+      },
+      "edit": {
+        "title": "Edit User"
+      },
+      "username": "Username",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "password": "Password",
+      "enabled": "Enabled",
+      "permissions": "Permissions"
+    }
+  }
+}
