@@ -16,6 +16,10 @@ import {Tooltip} from "primereact/tooltip";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {fetchSalesReportRedux} from "app/modules/analytics/reports/sales-report/sales-report.reducer";
 import {Spinner} from "reactstrap";
+import Select from "react-select";
+import {ICurrency} from "app/shared/model/currency.model";
+import {getEntities as getCurrencies} from "app/entities/settings/currencySettings/currencies.reducer";
+import {getEntity} from "app/entities/settings/currencySettings/currency-settings.reducer";
 
 
 type Slot = {
@@ -89,7 +93,22 @@ export const SalesReport = () => {
   const salesReportData = useAppSelector(state => state.salesReportReducer.data);
   const salesReportLoading = useAppSelector(state => state.salesReportReducer.loading);
   const salesReportError = useAppSelector(state => state.salesReportReducer.error);
-  console.log(salesReportData, 'datadatadatadata')
+
+  const [displayCurrency, setDisplayCurrency] = useState<ICurrency>()
+  const currencySettingsEntity = useAppSelector(state => state.currencySettings.entity);
+  const currencySettingsLoading = useAppSelector(state => state.currencySettings.loading);
+  const currencies =  useAppSelector(state => state.currencies.entities);
+  const exchangeRatesArray = currencySettingsEntity?.exchangeRates || [];
+  const currenciesSet = new Set(exchangeRatesArray.map(option => option.currency));
+  const filteredDisplayCurrencies :ICurrency[]= currencies?.filter(option => currenciesSet.has(option.code));
+  const exchange = exchangeRatesArray?.find((exRate) => {
+    return exRate.currency === (displayCurrency?.code || currencySettingsEntity?.displayCurrency.code);
+  });
+
+  console.log(exchange, 'exchange')
+
+
+
 
   const handleDateRangeApply = (selectedDateRange: dateRange) => {
     setAppliedDateRange(selectedDateRange);
@@ -118,12 +137,23 @@ export const SalesReport = () => {
   };
 
   useEffect(() => {
+    dispatch(getCurrencies({
+      page: 0,
+      size: 500,
+      sort: 'asc',
+    }));
+    dispatch(getEntity());
+  },[]);
 
-    fetchReportData()
+  useEffect(() => {
 
-  }, [selectedMeasure, selectedType, appliedDateRange
+    fetchReportData();
 
-  ])
+
+  }, [selectedMeasure, selectedType, appliedDateRange]);
+
+
+
 
 
 
@@ -152,7 +182,7 @@ export const SalesReport = () => {
   const datatableRows = propertiesToDisplay.map((property) => (
     <Column key={property} field={property} body={(rowData) => {
       const value = rowData[property];
-      return typeof value === 'number' ? value.toFixed(2) : value;
+      return typeof value === 'number' ? `${(value *( exchange?.rate || 1))} ${exchange?.currency || ''}`  : value;
     }} />
   ));
 
@@ -196,7 +226,7 @@ export const SalesReport = () => {
       <PrimeRow>
         <Column  footer="Totals" className="bg-white text-left"   />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column  className="bg-white"  key={index} footer={totalsRecord.value?.toFixed(2)} />
+          <Column  className="bg-white"  key={index} footer={`${(totalsRecord?.value * ( exchange?.rate || 1))} ${exchange?.currency}`}  />
         ))}
         <Column  className="bg-white"  colSpan={10} />
 
@@ -207,7 +237,7 @@ export const SalesReport = () => {
         <PrimeRow>
         <Column footer={capitalizeFirstLetter(selectedMeasure.toLowerCase())} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord: any, index) => (
-          <Column className="bg-white"   key={index} footer={totalsRecord[measure]?.toFixed(2)}/>
+          <Column className="bg-white"   key={index} footer={`${(totalsRecord[measure] * ( exchange?.rate || 1))} ${exchange?.currency || ''}`}/>
         ))}
           <Column  className="bg-white"  colSpan={10} />
       </PrimeRow> : null}
@@ -216,7 +246,7 @@ export const SalesReport = () => {
          <PrimeRow>
          <Column footer={"Revenue"} className="bg-white text-left" />
          {totalsRowForFooter.map((totalsRecord: any, index) => (
-           <Column className="bg-white"   key={index} footer={totalsRecord.revenue?.toFixed(2)}/>
+           <Column className="bg-white"   key={index} footer={`${(totalsRecord.revenue * ( exchange?.rate || 1))} ${exchange?.currency || ''}`}/>
          ))}
            <Column  className="bg-white"  colSpan={10} />
        </PrimeRow> : null }
@@ -224,7 +254,7 @@ export const SalesReport = () => {
        <PrimeRow>
          <Column footer={"Cost Of Goods"} className="bg-white text-left" />
          {totalsRowForFooter.map((totalsRecord: any, index) => (
-           <Column className="bg-white"  key={index} footer={totalsRecord.costOfGoods?.toFixed(2)}/>
+           <Column className="bg-white"  key={index} footer={`${(totalsRecord.costOfGoods * ( exchange?.rate || 1))} ${exchange?.currency || ''}`}/>
          ))}
          <Column  className="bg-white"  colSpan={10} />
        </PrimeRow>
@@ -233,7 +263,7 @@ export const SalesReport = () => {
       <PrimeRow>
         <Column footer={"Returned"} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column  className="bg-white"  key={index} footer={totalsRecord.returns?.toFixed(2)} />
+          <Column  className="bg-white"  key={index} footer={`${(totalsRecord.returns * ( exchange?.rate || 1))} ${exchange?.currency || ''}`} />
         ))}
         <Column  className="bg-white"  colSpan={10} />
       </PrimeRow> : null }
@@ -241,7 +271,7 @@ export const SalesReport = () => {
       <PrimeRow>
         <Column footer={"Margin"} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column className="bg-white"  key={index} footer={totalsRecord.margin?.toFixed(2)} />
+          <Column className="bg-white"  key={index} footer={`${(totalsRecord.margin * ( exchange?.rate || 1))} ${exchange?.currency || ''}`} />
         ))}
         <Column  className="bg-white"  colSpan={10} />
       </PrimeRow>
@@ -249,7 +279,7 @@ export const SalesReport = () => {
       <PrimeRow>
         <Column footer={"Gross Profit"} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column className="bg-white"  key={index} footer={totalsRecord.grossProfit?.toFixed(2)} />
+          <Column className="bg-white"  key={index} footer={`${(totalsRecord.grossProfit * ( exchange?.rate || 1))} ${exchange?.currency || ''}`} />
         ))}
         <Column  className="bg-white"  colSpan={10} />
       </PrimeRow>
@@ -258,7 +288,7 @@ export const SalesReport = () => {
          <PrimeRow>
          <Column footer={"Tax"} className="bg-white text-left" />
          {totalsRowForFooter.map((totalsRecord: any, index) => (
-           <Column className="bg-white"  key={index} footer={totalsRecord.tax?.toFixed(2)}/>
+           <Column className="bg-white"  key={index} footer={`${(totalsRecord.tax * ( exchange?.rate || 1))} ${exchange?.currency || ''}`}/>
          ))}
            <Column  className="bg-white"  colSpan={10} />
        </PrimeRow> : null}
@@ -312,6 +342,20 @@ export const SalesReport = () => {
             <DateCustomComponent onApplyDateRange={handleDateRangeApply} />
           </div>
         </div>
+        <div className="d-flex flex-column gap-1">
+          <div className="d-flex flex-column gap-1">
+            <label>Display Currency</label>
+            <Dropdown
+              value={displayCurrency ?? currencySettingsEntity.displayCurrency}
+              onChange={(e) => setDisplayCurrency(e.value)}
+              options={filteredDisplayCurrencies}
+              showClear
+              filter
+              optionLabel={"name"}
+              placeholder="Select a Currency"
+            />
+          </div>
+        </div>
       </div>
       <div className="my-3 card">
         <Tooltip target=".export-buttons>button" position="bottom" />
@@ -333,11 +377,11 @@ export const SalesReport = () => {
                                          body={(rowData) => {
                                          const slotIndex = rowData.slots.findIndex((s) => s.order === header.order);
                                          console.log(rowData.slots, `hello slots from`, rowData.rowRecord?.name)
-                                         return slotIndex >= 0 ? rowData.slots[slotIndex].value?.toFixed(2) : null}} />
+                                         return slotIndex >= 0 ? `${(rowData.slots[slotIndex].value * ( exchange?.rate || 1))} ${exchange?.currency || ''}` : null}} />
           ))}
             <Column
                    body={(rowData) => {
-                     return rowData["value"].toFixed(2);
+                     return`${(rowData["value"] * ( exchange?.rate || 1))} ${exchange?.currency || ''}`;
                    }}/>
           {datatableRows}
         </DataTable>
