@@ -1,0 +1,41 @@
+{
+  "restaurantCategories": {
+    "categories": {
+      "title": "Restaurant Categories View",
+      "table": {
+        "title": "Categories",
+        "fields": {
+          "name": "Name",
+          "accountingGroups": "Accounting Groups",
+          "image": "Image",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "buttons": {
+          "refreshList": "Refresh List",
+          "createNewCategory": "Create New Restaurant Category"
+        },
+        "search": {
+          "name": "Search by Name",
+          "accountingGroups": "Search by Acc. Groups"
+        }
+      }
+    },
+    "delete": {
+      "title": "Confirm Delete Operation",
+      "question": "Are you sure you want to delete Term {{ id }}"
+    },
+    "update": {
+      "create": {
+        "title": "Create Restaurant Category"
+      },
+      "edit": {
+        "title": "Edit Restaurant Category"
+      },
+      "name": "Name",
+      "accountingGroups": "Accounting Groups",
+      "parents": "Parents",
+      "image": "Item Image"
+    }
+  }
+}
