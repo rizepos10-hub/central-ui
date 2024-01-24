@@ -209,7 +209,7 @@ export const UserUpdate = () => {
     <div className="" >
         <div className="col-8">
           <h2>
-            {isNew ? "Create New User" : `Edit User`}
+            {isNew ? translate("backOfficeUsers.update.create.title") : translate("backOfficeUsers.update.edit.title")}
           </h2>
       </div>
       <div className="col-8">
@@ -218,7 +218,7 @@ export const UserUpdate = () => {
           <form onSubmit={handleSubmit}>
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="username">
-                <Translate contentKey="tempApp.user.username">Username</Translate>
+                <Translate contentKey="backOfficeUsers.update.username" />
               </label>
               <InputText
                 id="username"
@@ -232,7 +232,7 @@ export const UserUpdate = () => {
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="firstName">
-                <Translate contentKey="tempApp.user.firstName">First Name</Translate>
+                <Translate contentKey="backOfficeUsers.update.firstName" />
               </label>
               <InputText
                 id="firstName"
@@ -244,7 +244,7 @@ export const UserUpdate = () => {
             </div>
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="lastName">
-                <Translate contentKey="tempApp.user.lastName">Last Name</Translate>
+                <Translate contentKey="backOfficeUsers.update.lastName" />
               </label>
               <InputText
                 id="lastName"
@@ -257,7 +257,7 @@ export const UserUpdate = () => {
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="email">
-                <Translate contentKey="tempApp.user.email">Email</Translate>
+                <Translate contentKey="backOfficeUsers.update.email" />
               </label>
               <InputText
                 id="email"
@@ -269,7 +269,7 @@ export const UserUpdate = () => {
             </div>
             {isNew && <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="password">
-                <Translate contentKey="tempApp.user.password">Password</Translate>
+                <Translate contentKey="backOfficeUsers.update.password" />
               </label>
               <InputText
                 id="password"
@@ -282,7 +282,7 @@ export const UserUpdate = () => {
             </div>}
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="enabled">
-                <Translate contentKey="tempApp.user.enabled">Enabled</Translate>
+                <Translate contentKey="backOfficeUsers.update.enabled" />
               </label>
               <Checkbox
                 inputId={`enabled-${user.enabled}`}
@@ -294,7 +294,7 @@ export const UserUpdate = () => {
             </div>
             <div className="p-field d-flex flex-column gap-3 mb-3">
               <label className="font-bold">
-                Permissions
+                <Translate contentKey="backOfficeUsers.update.permissions" />
               </label>
               <ul className="p-field d-flex flex-column gap-1 mb-0">
                 {allRoles?.map(role => (
@@ -319,7 +319,7 @@ export const UserUpdate = () => {
                 className="p-button-secondary"
                 onClick={() => navigate('/back-office-user')}
               >
-                Back
+                <Translate contentKey="common.buttons.back" />
               </Button>
               <Button
                 id="save-entity"
@@ -327,7 +327,7 @@ export const UserUpdate = () => {
                 disabled={updating}
                 icon="pi pi-save"
               >
-                Save
+                <Translate contentKey="common.buttons.save" />
               </Button>
             </div>
           </form>

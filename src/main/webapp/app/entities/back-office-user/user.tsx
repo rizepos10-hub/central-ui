@@ -119,13 +119,13 @@ export const User = () => {
   console.log(userList, 'userList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Users</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'backOfficeUsers.user.table.title'}/></span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={getUsers} disabled={loading}>
+        <Button label={translate("backOfficeUsers.user.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={getUsers} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new User" raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("backOfficeUsers.user.buttons.createNewUser")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -133,27 +133,24 @@ export const User = () => {
   );
   return (
     <div>
-      <h2 >
-    Users View
-
-      </h2>
+      <h2 ><Translate contentKey={'backOfficeUsers.user.title'} /></h2>
 
       <div >
         <DataTable value={modifiedUserList} editMode="row" header={header}  paginator
                    globalFilterFields={['firstName', 'lastName' ]} loading={loading}
                    filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
           <Column
-            field="name" header="Name" filter
-            filterElement={ <InputText  placeholder="Search by name" onChange={handleNameFilterChange}/> }
+            field="name" header={translate("backOfficeUsers.user.table.fields.name")} filter
+            filterElement={ <InputText  placeholder={translate("backOfficeUsers.user.table.search.name")} onChange={handleNameFilterChange}/> }
             filterField="name" body={nameColumnTemplate} sortable
           />
 
-          <Column field="username" header="Username" filter filterPlaceholder="Search by username"  sortable   />
+          <Column field="username" header={translate("backOfficeUsers.user.table.fields.username")} filter filterPlaceholder={translate("backOfficeUsers.user.table.search.username")}  sortable   />
 
-          <Column field="email" header="Email" filter filterPlaceholder="Search by email"  sortable   />
+          <Column field="email" header={translate("backOfficeUsers.user.table.fields.email")} filter filterPlaceholder={translate("backOfficeUsers.user.table.search.email")}  sortable   />
 
-          <Column header="Enabled" body={activeColumnTemplate} style={{width: '10%'}}   />
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate("backOfficeUsers.user.table.fields.enabled")} body={activeColumnTemplate} style={{width: '10%'}}   />
+          <Column header={translate("backOfficeUsers.user.table.fields.edit")}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
           {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}

@@ -282,7 +282,7 @@ export const UserUpdate = () => {
     <div>
         <div className="col-8">
           <h2>
-            {isNew ? "Create New User" : `Edit User`}
+            {isNew ? <Translate contentKey={'posUsers.update.create.title'}/> : <Translate contentKey={'posUsers.update.edit.title'}/>}
           </h2>
         </div>
         <div className="col-8">
@@ -292,7 +292,7 @@ export const UserUpdate = () => {
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="firstName">
-                <Translate contentKey="tempApp.user.firstName">First Name</Translate>
+                <Translate contentKey={'posUsers.update.firstName'}/>
               </label>
               <InputText
                 id="firstName"
@@ -300,12 +300,12 @@ export const UserUpdate = () => {
                 value={user.firstName || ''}
                 onChange={handleInputChange}
                 required
-                placeholder="Enter first name"
+                placeholder={translate("posUsers.update.placeholders.firstName")}
               />
             </div>
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="lastName">
-                <Translate contentKey="tempApp.user.lastName">Last Name</Translate>
+                <Translate contentKey={'posUsers.update.lastName'}/>
               </label>
               <InputText
                 id="lastName"
@@ -313,13 +313,13 @@ export const UserUpdate = () => {
                 value={user.lastName || ''}
                 onChange={handleInputChange}
                 required
-                placeholder="Enter last name"
+                placeholder={translate("posUsers.update.placeholders.lastName")}
               />
             </div>
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="userName">
-                <Translate contentKey="tempApp.user.username">User Name</Translate>
+                <Translate contentKey={'posUsers.update.username'}/>
               </label>
               <InputText
                 id="userName"
@@ -327,13 +327,13 @@ export const UserUpdate = () => {
                 value={user.userName || ''}
                 onChange={handleInputChange}
                 required
-                placeholder="Enter user name"
+                placeholder={translate("posUsers.update.placeholders.username")}
               />
             </div>
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="email">
-                <Translate contentKey="tempApp.user.email">Email</Translate>
+                <Translate contentKey={'posUsers.update.email'}/>
               </label>
               <InputText
                 id="email"
@@ -341,13 +341,13 @@ export const UserUpdate = () => {
                 value={user.email}
                 onChange={handleInputChange}
                 required
-                placeholder="Enter email"
+                placeholder={translate("posUsers.update.placeholders.email")}
               />
             </div>
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="pinCode">
-                <Translate contentKey="tempApp.user.pinCode">pinCode</Translate>&nbsp;<label className="text-sm"> (3 digits)</label>
+                <Translate contentKey={'posUsers.update.pinCode'}/>&nbsp;<label className="text-sm"> (3 digits)</label>
               </label>
               <InputText
                 id="pinCode"
@@ -358,14 +358,14 @@ export const UserUpdate = () => {
                 pattern="[0-9]{3}"
                 minLength={3}
                 maxLength={3}
-                placeholder="Enter pin code"
+                placeholder={translate("posUsers.update.placeholders.pinCode")}
 
 
               />
             </div>
              <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="password">
-                <Translate contentKey="tempApp.user.password">Password</Translate>
+                <Translate contentKey={'posUsers.update.password'}/>
               </label>
               <InputText
                 id="password"
@@ -374,13 +374,13 @@ export const UserUpdate = () => {
                 value={user.password}
                 onChange={handlePasswordChange}
                 required={isNew ? true : false}
-                placeholder="Enter password"
+                placeholder={translate("posUsers.update.placeholders.password")}
 
               />
             </div>
 
             <div className="mb-3">
-              Authorities
+              <Translate contentKey={'posUsers.update.authorities'}/>
               <Select  defaultValue={initialAuthorities}
                        value={selectedAuthorities}
                        onChange={handleAuthoritiesChange}
@@ -388,7 +388,7 @@ export const UserUpdate = () => {
             </div>
 
             <div className="mb-3">
-              Branches
+              <Translate contentKey={'posUsers.update.branches'}/>
               <Select  defaultValue={initialBranches}
                        value={selectedBranches}
                        isMulti
@@ -397,7 +397,7 @@ export const UserUpdate = () => {
             </div>
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="activated">
-                <Translate contentKey="tempApp.user.activated">Activated</Translate>
+                <Translate contentKey={'posUsers.update.activated'}/>
               </label>
               <Checkbox
                 inputId={`activated-${user.activated}`}
@@ -416,7 +416,7 @@ export const UserUpdate = () => {
                 className="p-button-secondary"
                 onClick={() => navigate('/branch-pos-user')}
               >
-                Back
+                <Translate contentKey={'common.buttons.back'}/>
               </Button>
               <Button
                 id="save-entity"
@@ -424,7 +424,7 @@ export const UserUpdate = () => {
                 disabled={updating}
                 icon="pi pi-save"
               >
-                Save
+                <Translate contentKey={'common.buttons.save'}/>
               </Button>
             </div>
           </form>

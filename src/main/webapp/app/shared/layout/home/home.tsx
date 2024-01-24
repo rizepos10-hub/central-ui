@@ -22,6 +22,7 @@ import {
 } from "app/modules/analytics/api";
 import {format, subWeeks} from "date-fns";
 import {Spinner} from "reactstrap";
+import {translate, Translate} from "react-jhipster";
 
 export default function Home() {
 
@@ -374,7 +375,7 @@ export default function Home() {
     <div className="grid">
       <div className="col-12 md:col-6 xl:col-3">
         <div className="card h-full">
-          <span className="font-semibold text-lg">Sales</span>
+          <span className="font-semibold text-lg"><Translate  contentKey={'home.sales'}/></span>
           <div className="flex justify-content-between align-items-start mt-3">
             {
               loading.topFieldsData ? (
@@ -405,7 +406,7 @@ export default function Home() {
       </div>
       <div className="col-12 md:col-6 xl:col-3">
         <div className="card h-full">
-          <span className="font-semibold text-lg">Revenue</span>
+          <span className="font-semibold text-lg"><Translate  contentKey={'home.revenue'}/></span>
           <div className="flex justify-content-between align-items-start mt-3">
             {
               loading.topFieldsData ? (
@@ -435,7 +436,7 @@ export default function Home() {
       </div>
       <div className="col-12 md:col-6 xl:col-3">
         <div className="card h-full">
-          <span className="font-semibold text-lg">Visitors</span>
+          <span className="font-semibold text-lg"><Translate  contentKey={'home.visitors'}/></span>
           <div className="flex justify-content-between align-items-start mt-3">
             {
               loading.topFieldsData ? (
@@ -465,7 +466,7 @@ export default function Home() {
       </div>
       <div className="col-12 md:col-6 xl:col-3">
         <div className="card h-full">
-          <span className="font-semibold text-lg">Stock</span>
+          <span className="font-semibold text-lg"><Translate  contentKey={'home.stock'}/></span>
           <div className="flex justify-content-between align-items-start mt-3">
             {
               loading.topFieldsData ? (
@@ -497,7 +498,7 @@ export default function Home() {
     <div className="col-12 xl:col-9">
         <div className="card h-auto">
           <div className="flex align-items-start justify-content-between mb-6">
-            <span className="text-900 text-xl font-semibold">Revenue Overview</span>
+            <span className="text-900 text-xl font-semibold"><Translate  contentKey={'home.revenueOverview'}/></span>
             <Dropdown options={years.map(year => ({label: year.toString(), value: year}))}
                       defaultValue={selectedYear} value={selectedYear} className="w-10rem" optionLabel="label"
                       onChange={onYearChange}/>
@@ -511,7 +512,7 @@ export default function Home() {
 
         <div className="col-12 xl:col-3">
           <div className="card h-auto">
-            <div className="text-900 text-xl font-semibold mb-6">Sales by Category</div>
+            <div className="text-900 text-xl font-semibold mb-6"><Translate  contentKey={'home.salesByCategory'}/></div>
             {loading.chartsData ? (
             <Spinner />
             ) : (
@@ -523,34 +524,34 @@ export default function Home() {
       <div className="col-12 lg:col-8">
         <div className="card">
           <div className="flex flex-column md:flex-row md:align-items-start md:justify-content-between mb-3">
-            <div className="text-900 text-xl font-semibold mb-3 md:mb-0">Recent Sales</div>
+            <div className="text-900 text-xl font-semibold mb-3 md:mb-0"><Translate  contentKey={'home.recentSales'}/></div>
             <div className="inline-flex align-items-center">
                             <span className="p-input-icon-left flex-auto">
                                 <i className="pi pi-search"></i>
-                                <InputText type={'text'} value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Search" style={{ borderRadius: '2rem' }} className="w-full" />
+                                <InputText type={'text'} value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={translate('home.table.search')} style={{ borderRadius: '2rem' }} className="w-full" />
                             </span>
               <Tooltip target=".export-target-button" />
-              <Button icon="pi pi-upload" className="p-button-rounded mx-3 export-target-button" data-pr-tooltip="Export" onClick={exportCSV}></Button>
+              <Button icon="pi pi-upload" className="p-button-rounded mx-3 export-target-button" data-pr-tooltip={translate("home.table.export")} onClick={exportCSV}></Button>
             </div>
           </div>
           <DataTable ref={dt} value={recentSales}
                      paginator  rows={5}
                      className="datatable-responsive"
                      globalFilter={globalFilterValue}
-                     emptyMessage="No products found."
+                     emptyMessage={<Translate  contentKey={'home.table.emptyMessage'}/>}
                      loading={loading.recentSalesData}
                      responsiveLayout="scroll">
-            <Column  field="itemName" header="Name" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
-            <Column field="category[0].name" header="Category" sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
-            <Column field="currentPrice" header="Price" body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
-            <Column field="inventoryStatus" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
+            <Column  field="itemName" header={<Translate  contentKey={'home.table.name'}/>} sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
+            <Column field="category[0].name" header={<Translate  contentKey={'home.table.category'}/>} sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
+            <Column field="currentPrice" header={<Translate  contentKey={'home.table.price'}/>} body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
+            <Column field="inventoryStatus" header={<Translate  contentKey={'home.table.status'}/>} body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
             {/* <Column body={searchBodyTemplate} style={{ textAlign: 'center' }} /> */}
           </DataTable>
         </div>
       </div>
       <div className="col-12 lg:col-4" >
         <div className="card h-full">
-          <div className="text-900 text-xl font-semibold mb-3">Top Products</div>
+          <div className="text-900 text-xl font-semibold mb-3"><Translate  contentKey={'home.topProducts'}/></div>
           { loading.topItemsData ? (
             <ul className="list-none p-0 m-0">
             <Spinner />
