@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, Spinner, FormGroup, Table} from 'reactstrap';
+import {Button, Row, Col, Spinner, FormGroup, Table, Card, CardBody} from 'reactstrap';
 import {getSortState, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -27,6 +27,8 @@ import {ICrustType} from "app/shared/model/crust-type.model";
 import {getEntities as getCrustTypes} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer";
 import {getEntities as getCrustThicknesses} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness.reducer";
 import {ICrustThickness} from "app/shared/model/crust-thickness.model";
+import {TabPanel, TabView} from "primereact/tabview";
+import Visibility from "app/shared/Visibility/Visibility";
 
 const items: MenuItem[] = [
   {
@@ -420,6 +422,11 @@ export const PizzaItemUpdate = () => {
     return <Spinner />
   }
 
+  // return (
+  //   <form onSubmit={saveEntity}>
+  //
+  //   </form>
+  // );
 
   return (
     <div>
@@ -467,311 +474,334 @@ export const PizzaItemUpdate = () => {
       <Row>
         {activeIndex === 1 || !isNew ?
           <form onSubmit={saveEntity}>
-            <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
+            <Card>
+              <CardBody>
+                <Row>
+                  <Col md={10}>
+                    <TabView>
+                      <TabPanel header={'Details'}>
+                        <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
 
-          <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
-            {!pizzaItem?.variants?.[0]?.multiple ?
-              <Row>
-              <Col md="6">
-                <div className={"d-flex flex-column gap-2"}>
-                  <label className={"text-xl font-bold"}>
-                  Predefined Pizza
-                  </label>
-                  <Select
-                    value={pizzaItem?.variants?.[0]?.predefinedPizza}
-                    required
-                    options={predefinedPizzaOptions}
-                    getOptionLabel={option => option.name}
-                    getOptionValue={option => option.id}
-                    onChange={(predefinedPizza) => handleSinglePizzaValuesChange("predefinedPizza", predefinedPizza)}
-                  />
-                </div>
-              </Col>
-            </Row> : null}
+                          <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                            {!pizzaItem?.variants?.[0]?.multiple ?
+                              <Row>
+                                <Col md="6">
+                                  <div className={"d-flex flex-column gap-2"}>
+                                    <label className={"text-xl font-bold"}>
+                                      Predefined Pizza
+                                    </label>
+                                    <Select
+                                      value={pizzaItem?.variants?.[0]?.predefinedPizza}
+                                      required
+                                      options={predefinedPizzaOptions}
+                                      getOptionLabel={option => option.name}
+                                      getOptionValue={option => option.id}
+                                      onChange={(predefinedPizza) => handleSinglePizzaValuesChange("predefinedPizza", predefinedPizza)}
+                                    />
+                                  </div>
+                                </Col>
+                              </Row> : null}
 
-            <SharedItemUpdate item={pizzaItem} onFieldChange={handleFieldChange}/>
+                            <SharedItemUpdate item={pizzaItem} onFieldChange={handleFieldChange}/>
 
-              <Row className={"my-6"} >
-              <Row className={"mt-2"}>
-                {!pizzaItem?.variants?.[0]?.multiple ? <Col md="3">
-                  <div className={"d-flex flex-column gap-2"}>
-                    <label className={"text-xl font-bold"}>
-                      Item Pricing
-                    </label>
-                    <Select
-                      value={pizzaItem?.variants?.[0]?.itemPricingClass}
-                      options={filteredOptions?.itemPricingClass}
-                      isClearable
-                      getOptionLabel={option => option.name}
-                      getOptionValue={option => option.id}
-                      onChange={(itemPriceOption) => handleSinglePizzaValuesChange("itemPricingClass", itemPriceOption)}
-                    />
-                  </div>
-                </Col> : null}
+                            <Row className={"my-6"} >
+                              <Row className={"mt-2"}>
+                                {!pizzaItem?.variants?.[0]?.multiple ? <Col md="3">
+                                  <div className={"d-flex flex-column gap-2"}>
+                                    <label className={"text-xl font-bold"}>
+                                      Item Pricing
+                                    </label>
+                                    <Select
+                                      value={pizzaItem?.variants?.[0]?.itemPricingClass}
+                                      options={filteredOptions?.itemPricingClass}
+                                      isClearable
+                                      getOptionLabel={option => option.name}
+                                      getOptionValue={option => option.id}
+                                      onChange={(itemPriceOption) => handleSinglePizzaValuesChange("itemPricingClass", itemPriceOption)}
+                                    />
+                                  </div>
+                                </Col> : null}
 
-              </Row>
-            </Row>
+                              </Row>
+                            </Row>
 
 
-            {!pizzaItem?.variants?.[0]?.multiple && pizzaItem?.variants?.[0]?.predefinedPizza?.base ?
-              <Accordion multiple activeIndex={[0]} className={"my-3"}>
-                <AccordionTab  header={"Make Your Own Pizza Settings"}>
-              <Row>
-                <Col md="8">
-                  <Table>
-                    <thead>
-                    <tr>
-                      <th>Number of Toppings</th>
-                      <th>Pricing Class</th>
-                      <th>Remove</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {pizzaItem?.variants?.[0]?.basePizzaDetails?.map((baseDetail, index) => (
-                      <tr key={index}>
-                        <td>
-                          <InputNumber
-                            value={baseDetail?.toppingsNumber}
-                            min={2}
-                            onChange={(e) =>
-                              handleBaseDetailChange(index, "toppingsNumber", e.value)
-                            }
-                          />
-                        </td>
-                        <td>
-                         <Select
-                           options={pizzaPricingClasses}
-                           value={baseDetail?.pricingClass}
-                           getOptionValue={(option: IPizzaPricingClass) => option.id}
-                           getOptionLabel={(option: IPizzaPricingClass) => option.name}
-                           onChange={(pricingClass) =>
-                             handleBaseDetailChange(index, "pricingClass", pricingClass)
-                           }
-                         />
-                        </td>
-                        <td>
-                          <PrimeButton type={"button"} onClick={() => handleRemoveBaseDetail(index)} severity={"danger"} >Remove</PrimeButton>
-                        </td>
-                      </tr>
-                    ))}
-                    <tr>
-                      <td colSpan={2}>
-                        <Button color="primary" onClick={addNewBaseDetail}>
-                          Add
-                        </Button>
-                      </td>
-                    </tr>
-                    </tbody>
-                  </Table>
-                </Col>
-              </Row>
-            </AccordionTab>
-          </Accordion>: null}
-            <Row>
-              <Accordion multiple activeIndex={[0]} className={"my-3"}>
-                  <AccordionTab  header={"Toppings"}>
-                    <div className={"d-flex gap-3"}>
-                      <label className={"mt-2"}>Add Toppings</label>
-                      <Col md={"6"}>
-                        <Select
-                          value={pizzaItem?.variants?.[0]?.toppingPricing?.map((toppingPrice) => toppingPrice.topping)}
-                          isMulti
-                          getOptionLabel={(option: ITopping) => option.name}
-                          getOptionValue={(option: ITopping) => option.id}
-                          onChange={(toppingPriceOption) => handlePricingClassChange("toppingPricing", toppingPriceOption)}
-                          options={pizzaToppingList}
-                        />
-                        <Table>
-                          <thead>
-                          <tr>
-                            <th>Topping</th>
-                            <th>Pricing Class</th>
-                          </tr>
-                          </thead>
-                          <tbody>
-                          {pizzaItem?.variants?.[0]?.toppingPricing?.map((toppingPrice, index) => (
-                            <tr key={index}>
-                              <td>{toppingPrice.topping.name}</td>
-                              <td>
-                                <Select
-                                  value={toppingPrice.pricingClass}
-                                  getOptionLabel={(option: IPizzaPricingClass) => option.name}
-                                  getOptionValue={(option: IPizzaPricingClass) => option.id}
-                                  onChange={(selectedPricingClass) =>
-                                    handlePricingClassChangeSecondSelect("toppingPricing", selectedPricingClass, index)
-                                  }
-                                  options={filteredOptions.toppings}
-                                />
-                              </td>
-                            </tr>
-                          ))}
-                          </tbody>
-                        </Table>
-                      </Col>
-                    </div>
-                  </AccordionTab>
-              </Accordion>
+                            {!pizzaItem?.variants?.[0]?.multiple && pizzaItem?.variants?.[0]?.predefinedPizza?.base ?
+                              <Accordion multiple activeIndex={[0]} className={"my-3"}>
+                                <AccordionTab  header={"Make Your Own Pizza Settings"}>
+                                  <Row>
+                                    <Col md="8">
+                                      <Table>
+                                        <thead>
+                                        <tr>
+                                          <th>Number of Toppings</th>
+                                          <th>Pricing Class</th>
+                                          <th>Remove</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {pizzaItem?.variants?.[0]?.basePizzaDetails?.map((baseDetail, index) => (
+                                          <tr key={index}>
+                                            <td>
+                                              <InputNumber
+                                                value={baseDetail?.toppingsNumber}
+                                                min={2}
+                                                onChange={(e) =>
+                                                  handleBaseDetailChange(index, "toppingsNumber", e.value)
+                                                }
+                                              />
+                                            </td>
+                                            <td>
+                                              <Select
+                                                options={pizzaPricingClasses}
+                                                value={baseDetail?.pricingClass}
+                                                getOptionValue={(option: IPizzaPricingClass) => option.id}
+                                                getOptionLabel={(option: IPizzaPricingClass) => option.name}
+                                                onChange={(pricingClass) =>
+                                                  handleBaseDetailChange(index, "pricingClass", pricingClass)
+                                                }
+                                              />
+                                            </td>
+                                            <td>
+                                              <PrimeButton type={"button"} onClick={() => handleRemoveBaseDetail(index)} severity={"danger"} >Remove</PrimeButton>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                        <tr>
+                                          <td colSpan={2}>
+                                            <Button color="primary" onClick={addNewBaseDetail}>
+                                              Add
+                                            </Button>
+                                          </td>
+                                        </tr>
+                                        </tbody>
+                                      </Table>
+                                    </Col>
+                                  </Row>
+                                </AccordionTab>
+                              </Accordion>: null}
+                            <Row>
+                              <Accordion multiple activeIndex={[0]} className={"my-3"}>
+                                <AccordionTab  header={"Toppings"}>
+                                  <div className={"d-flex gap-3"}>
+                                    <label className={"mt-2"}>Add Toppings</label>
+                                    <Col md={"6"}>
+                                      <Select
+                                        value={pizzaItem?.variants?.[0]?.toppingPricing?.map((toppingPrice) => toppingPrice.topping)}
+                                        isMulti
+                                        getOptionLabel={(option: ITopping) => option.name}
+                                        getOptionValue={(option: ITopping) => option.id}
+                                        onChange={(toppingPriceOption) => handlePricingClassChange("toppingPricing", toppingPriceOption)}
+                                        options={pizzaToppingList}
+                                      />
+                                      <Table>
+                                        <thead>
+                                        <tr>
+                                          <th>Topping</th>
+                                          <th>Pricing Class</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {pizzaItem?.variants?.[0]?.toppingPricing?.map((toppingPrice, index) => (
+                                          <tr key={index}>
+                                            <td>{toppingPrice.topping.name}</td>
+                                            <td>
+                                              <Select
+                                                value={toppingPrice.pricingClass}
+                                                getOptionLabel={(option: IPizzaPricingClass) => option.name}
+                                                getOptionValue={(option: IPizzaPricingClass) => option.id}
+                                                onChange={(selectedPricingClass) =>
+                                                  handlePricingClassChangeSecondSelect("toppingPricing", selectedPricingClass, index)
+                                                }
+                                                options={filteredOptions.toppings}
+                                              />
+                                            </td>
+                                          </tr>
+                                        ))}
+                                        </tbody>
+                                      </Table>
+                                    </Col>
+                                  </div>
+                                </AccordionTab>
+                              </Accordion>
 
-              <Accordion multiple activeIndex={[0]} className={"my-3"}>
-                <AccordionTab  header={"Crust Type"}>
-                  <div className={"d-flex gap-3"}>
-                    <label className={"mt-2"}>Add Crust Types</label>
-                    <Col md={"6"}>
-                      <Select
-                        value={pizzaItem?.variants?.[0]?.crustTypePricing?.map((crustTypePricing) => crustTypePricing?.crustType)}
-                        isMulti
-                        getOptionLabel={(option: ICrustType) => option.name}
-                        getOptionValue={(option: ICrustType) => option.id}
-                        onChange={(crustTypeOption) => handlePricingClassChange("crustTypePricing", crustTypeOption)}
-                        options={crustTypeList}
-                      />
-                      <Table>
-                        <thead>
-                        <tr>
-                          <th>Crust Type</th>
-                          <th>Pricing Class</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {pizzaItem?.variants?.[0]?.crustTypePricing?.map((crustTypePricing, index) => {
-                          return (
-                            <tr key={index}>
-                              <td>{crustTypePricing?.crustType?.name}</td>
-                              <td>
-                                <Select
-                                  value={crustTypePricing?.pricingClass}
-                                  getOptionLabel={(option: IPizzaPricingClass) => option.name}
-                                  getOptionValue={(option: IPizzaPricingClass) => option.id}
-                                  onChange={(selectedPricingClass) =>
-                                    handlePricingClassChangeSecondSelect("crustTypePricing", selectedPricingClass, index)
-                                  }
-                                  options={filteredOptions.crustTypes}
-                                />
-                              </td>
-                            </tr>
-                          )
-                        })}
-                        </tbody>
-                      </Table>
-                    </Col>
-                  </div>
-                </AccordionTab>
-              </Accordion>
+                              <Accordion multiple activeIndex={[0]} className={"my-3"}>
+                                <AccordionTab  header={"Crust Type"}>
+                                  <div className={"d-flex gap-3"}>
+                                    <label className={"mt-2"}>Add Crust Types</label>
+                                    <Col md={"6"}>
+                                      <Select
+                                        value={pizzaItem?.variants?.[0]?.crustTypePricing?.map((crustTypePricing) => crustTypePricing?.crustType)}
+                                        isMulti
+                                        getOptionLabel={(option: ICrustType) => option.name}
+                                        getOptionValue={(option: ICrustType) => option.id}
+                                        onChange={(crustTypeOption) => handlePricingClassChange("crustTypePricing", crustTypeOption)}
+                                        options={crustTypeList}
+                                      />
+                                      <Table>
+                                        <thead>
+                                        <tr>
+                                          <th>Crust Type</th>
+                                          <th>Pricing Class</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {pizzaItem?.variants?.[0]?.crustTypePricing?.map((crustTypePricing, index) => {
+                                          return (
+                                            <tr key={index}>
+                                              <td>{crustTypePricing?.crustType?.name}</td>
+                                              <td>
+                                                <Select
+                                                  value={crustTypePricing?.pricingClass}
+                                                  getOptionLabel={(option: IPizzaPricingClass) => option.name}
+                                                  getOptionValue={(option: IPizzaPricingClass) => option.id}
+                                                  onChange={(selectedPricingClass) =>
+                                                    handlePricingClassChangeSecondSelect("crustTypePricing", selectedPricingClass, index)
+                                                  }
+                                                  options={filteredOptions.crustTypes}
+                                                />
+                                              </td>
+                                            </tr>
+                                          )
+                                        })}
+                                        </tbody>
+                                      </Table>
+                                    </Col>
+                                  </div>
+                                </AccordionTab>
+                              </Accordion>
 
-              <Accordion multiple activeIndex={[0]} className={"my-3"}>
-                <AccordionTab  header={"Crust Thickness"}>
-                  <div className={"d-flex gap-3"}>
-                    <label className={"mt-2"}>Add Crust Thicknesses</label>
-                    <Col md={"6"}>
-                      <Select
-                        value={pizzaItem?.variants?.[0]?.crustThicknessPricing?.map((crustThicknessPricing) => crustThicknessPricing.crustThickness)}
-                        isMulti
-                        getOptionLabel={(option: ICrustThickness) => option.name}
-                        getOptionValue={(option: ICrustThickness) => option.id}
-                        onChange={(crustThicknessOption) => handlePricingClassChange("crustThicknessPricing", crustThicknessOption)}
-                        options={crustThicknessList}
-                      />
-                      <Table>
-                        <thead>
-                        <tr>
-                          <th>Crust Thickness</th>
-                          <th>Pricing Class</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {pizzaItem?.variants?.[0]?.crustThicknessPricing?.map((crustThicknessPricing, index) => (
-                          <tr key={index}>
-                            <td>{crustThicknessPricing?.crustThickness?.name}</td>
-                            <td>
-                              <Select
-                                value={crustThicknessPricing?.pricingClass}
-                                getOptionLabel={(option: IPizzaPricingClass) => option.name}
-                                getOptionValue={(option: IPizzaPricingClass) => option.id}
-                                onChange={(selectedPricingClass) =>
-                                  handlePricingClassChangeSecondSelect("crustThicknessPricing", selectedPricingClass, index)
-                                }
-                                options={filteredOptions?.crustThicknesses}
-                              />
-                            </td>
-                          </tr>
-                        ))}
-                        </tbody>
-                      </Table>
-                    </Col>
-                  </div>
-                </AccordionTab>
-              </Accordion>
-            </Row>
+                              <Accordion multiple activeIndex={[0]} className={"my-3"}>
+                                <AccordionTab  header={"Crust Thickness"}>
+                                  <div className={"d-flex gap-3"}>
+                                    <label className={"mt-2"}>Add Crust Thicknesses</label>
+                                    <Col md={"6"}>
+                                      <Select
+                                        value={pizzaItem?.variants?.[0]?.crustThicknessPricing?.map((crustThicknessPricing) => crustThicknessPricing.crustThickness)}
+                                        isMulti
+                                        getOptionLabel={(option: ICrustThickness) => option.name}
+                                        getOptionValue={(option: ICrustThickness) => option.id}
+                                        onChange={(crustThicknessOption) => handlePricingClassChange("crustThicknessPricing", crustThicknessOption)}
+                                        options={crustThicknessList}
+                                      />
+                                      <Table>
+                                        <thead>
+                                        <tr>
+                                          <th>Crust Thickness</th>
+                                          <th>Pricing Class</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {pizzaItem?.variants?.[0]?.crustThicknessPricing?.map((crustThicknessPricing, index) => (
+                                          <tr key={index}>
+                                            <td>{crustThicknessPricing?.crustThickness?.name}</td>
+                                            <td>
+                                              <Select
+                                                value={crustThicknessPricing?.pricingClass}
+                                                getOptionLabel={(option: IPizzaPricingClass) => option.name}
+                                                getOptionValue={(option: IPizzaPricingClass) => option.id}
+                                                onChange={(selectedPricingClass) =>
+                                                  handlePricingClassChangeSecondSelect("crustThicknessPricing", selectedPricingClass, index)
+                                                }
+                                                options={filteredOptions?.crustThicknesses}
+                                              />
+                                            </td>
+                                          </tr>
+                                        ))}
+                                        </tbody>
+                                      </Table>
+                                    </Col>
+                                  </div>
+                                </AccordionTab>
+                              </Accordion>
+                            </Row>
 
-            {pizzaItem?.variants?.[0]?.multiple ? (
-              <Row>
-                <Col md="8">
-                  <Table>
-                    <thead>
-                    <tr>
-                      <th>Number of Pizzas</th>
-                      <th>Free Toppings Number</th>
-                      <th>Remove</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {pizzaItem?.variants?.[0]?.multiplePizzaDetails?.map((detail, index) => (
-                      <tr key={index}>
-                        <td>
-                          <InputNumber
-                            value={detail?.numberOfPizza}
-                            min={2}
-                            onChange={(e) =>
-                              handleMultiplePizzaInputChange(index, "numberOfPizza", e.value)
-                            }
-                          />
-                        </td>
-                        <td>
-                          <InputNumber
-                            value={detail?.freeToppingsNumber}
-                            required
-                            onChange={(e) =>
-                              handleMultiplePizzaInputChange(index, "freeToppingsNumber", e.value)
-                            }
-                          />
-                        </td>
-                        <td>
-                         <PrimeButton type={"button"} onClick={() => handleRemoveMultiplePizzaInput(index)} severity={"danger"} >Remove</PrimeButton>
-                        </td>
-                      </tr>
-                    ))}
-                    <tr>
-                      <td colSpan={2}>
-                        <Button color="primary" onClick={addNewMultiplePizzaDetail}>
-                          Add
-                        </Button>
-                      </td>
-                    </tr>
-                    </tbody>
-                  </Table>
-                </Col>
-              </Row>
-            ) : null}
+                            {pizzaItem?.variants?.[0]?.multiple ? (
+                              <Row>
+                                <Col md="8">
+                                  <Table>
+                                    <thead>
+                                    <tr>
+                                      <th>Number of Pizzas</th>
+                                      <th>Free Toppings Number</th>
+                                      <th>Remove</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {pizzaItem?.variants?.[0]?.multiplePizzaDetails?.map((detail, index) => (
+                                      <tr key={index}>
+                                        <td>
+                                          <InputNumber
+                                            value={detail?.numberOfPizza}
+                                            min={2}
+                                            onChange={(e) =>
+                                              handleMultiplePizzaInputChange(index, "numberOfPizza", e.value)
+                                            }
+                                          />
+                                        </td>
+                                        <td>
+                                          <InputNumber
+                                            value={detail?.freeToppingsNumber}
+                                            required
+                                            onChange={(e) =>
+                                              handleMultiplePizzaInputChange(index, "freeToppingsNumber", e.value)
+                                            }
+                                          />
+                                        </td>
+                                        <td>
+                                          <PrimeButton type={"button"} onClick={() => handleRemoveMultiplePizzaInput(index)} severity={"danger"} >Remove</PrimeButton>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                    <tr>
+                                      <td colSpan={2}>
+                                        <Button color="primary" onClick={addNewMultiplePizzaDetail}>
+                                          Add
+                                        </Button>
+                                      </td>
+                                    </tr>
+                                    </tbody>
+                                  </Table>
+                                </Col>
+                              </Row>
+                            ) : null}
 
-            <div className={"d-flex"}>
-              <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
-                      color="info">
-                <FontAwesomeIcon icon="arrow-left"/>
-                &nbsp;
-                <span className="d-none d-md-inline">
+
+                          </Col>
+                        </FormGroup>
+                      </TabPanel>
+                      <TabPanel header={'Visibility'}>
+                        <Visibility initialState={pizzaItem.visibility} onStateChanged={(visibility)=> setPizzaItem((prev => {
+                          return {...prev, visibility}
+                        }))}/>
+                      </TabPanel>
+                    </TabView>
+
+                  </Col>
+                  <Col md={2}>
+                    <div className={"d-flex"}>
+                      <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
+                               color="info">
+                        <FontAwesomeIcon icon="arrow-left"/>
+                        &nbsp;
+                        <span className="d-none d-md-inline">
                                   <Translate contentKey="entity.action.back">Back</Translate>
                               </span>
-              </Button>
-              &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                      disabled={updating}>
-                <FontAwesomeIcon icon="save"/>
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-            </div>
-          </Col>
-            </FormGroup>
+                      </Button>
+                      &nbsp;
+                      <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                              disabled={updating}>
+                        <FontAwesomeIcon icon="save"/>
+                        &nbsp;
+                        <Translate contentKey="entity.action.save">Save</Translate>
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </CardBody>
+            </Card>
+
+
           </form> : null}
 
       </Row>
