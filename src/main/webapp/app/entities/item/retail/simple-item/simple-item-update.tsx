@@ -29,7 +29,6 @@ import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.m
 import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
-import visibility from "app/shared/Visibility/Visibility";
 
 
 
