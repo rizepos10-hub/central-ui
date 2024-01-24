@@ -199,7 +199,7 @@ export const UpdateItemRestaurantCategory = () => {
       <Row >
         <Col md="8">
           <h2  data-cy="TermCreateUpdateHeading">
-            {isNew ? <Translate contentKey={'restaurantCategories.update.create.title'}/> : <Translate contentKey={'restaurantCategories.update.edit.title'}/>}
+            {isNew ? <Translate contentKey={'itemCategories.update.restaurant.create.title'}/> : <Translate contentKey={'itemCategories.update.restaurant.edit.title'}/>}
           </h2>
         </Col>
       </Row>
@@ -220,7 +220,7 @@ export const UpdateItemRestaurantCategory = () => {
               {/*   /> */}
               {/* ) : null} */}
               <ValidatedField
-                label={translate('restaurantCategories.update.name')}
+                label={translate('itemCategories.update.name')}
                 id="category-name"
                 name="name"
                 data-cy="name"
@@ -249,17 +249,17 @@ export const UpdateItemRestaurantCategory = () => {
               {/*   )} */}
               {/* </ValidatedField> */}
               <div className="mb-3">
-              <Translate contentKey="restaurantCategories.update.accountingGroups">Accounting Groups</Translate>
+              <Translate contentKey="itemCategories.update.accountingGroups">Accounting Groups</Translate>
               <Select  value={selectedAccountingGroups}  onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
               </div>
 
               <div className="mb-3">
-                <Translate contentKey="restaurantCategories.update.parents">Parents</Translate>
+                <Translate contentKey="itemCategories.update.parents">Parents</Translate>
                 <Select  value={selectedParents}  onChange={handleParentsChange} options={categories} />
               </div>
               <div className="mb-3">
                 <ValidatedField
-                  label={translate('restaurantCategories.update.image')}
+                  label={translate('itemCategories.update.image')}
                   id="item-image"
                   name="image"
                   data-cy="image"

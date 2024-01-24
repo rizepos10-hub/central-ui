@@ -42,10 +42,10 @@ export const DeleteItemRestaurantCategoryDialog = () => {
   return (
     <Modal isOpen toggle={handleClose}>
       <ModalHeader toggle={handleClose} data-cy="termDeleteDialogHeading">
-        <Translate contentKey="restaurantCategories.delete.title"/>
+        <Translate contentKey="itemCategories.delete.title"/>
       </ModalHeader>
-      <ModalBody id="tempApp.term.delete.question">
-        <Translate contentKey="restaurantCategories.delete.question" interpolate={{ id: termEntity.id }}>
+      <ModalBody id="itemCategories.delete.question">
+        <Translate contentKey="itemCategories.delete.question" interpolate={{ id: termEntity.id }}>
           Are you sure you want to delete this Term?
         </Translate>
       </ModalBody>

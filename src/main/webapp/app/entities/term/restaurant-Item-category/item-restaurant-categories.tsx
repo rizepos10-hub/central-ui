@@ -142,13 +142,13 @@ export const ItemRestaurantCategories = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={"restaurantCategories.categories.table.title"}/></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={"itemCategories.categories.table.title"}/></span>
       <div className="ms-auto">
-        <Button label={translate("restaurantCategories.categories.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate("itemCategories.categories.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("restaurantCategories.categories.table.buttons.createNewCategory")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("itemCategories.categories.table.buttons.createNewCategory")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -160,7 +160,7 @@ export const ItemRestaurantCategories = () => {
   return (
     <div>
       <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
-        <Translate contentKey={'restaurantCategories.categories.title'}/>
+        <Translate contentKey={'itemCategories.categories.restaurant.title'}/>
 
       </h2>
 
@@ -168,17 +168,17 @@ export const ItemRestaurantCategories = () => {
         <DataTable value={categoryList} editMode="row" paginator header={header}
                    loading={loading} removableSort  filters={filters} filterDisplay="row"
                    totalRecords={totalItems} rows={5}>
-          <Column field="name" header={translate("restaurantCategories.categories.table.fields.name")} filterPlaceholder={translate("restaurantCategories.categories.table.search.name")} filter sortable body={nameColumnTemplate} style={{ width: '20%' }} />
+          <Column field="name" header={translate("itemCategories.categories.table.fields.name")} filterPlaceholder={translate("itemCategories.categories.table.search.name")} filter sortable body={nameColumnTemplate} style={{ width: '20%' }} />
 
-          <Column field="accountingGroups" header={translate("restaurantCategories.categories.table.fields.accountingGroups")} body={(rowData)=> rowData.accountingGroups.map((group)=> group.name)} filterPlaceholder={translate("restaurantCategories.categories.table.search.accountingGroups")} sortable  style={{ width: '20%' }} />
+          <Column field="accountingGroups" header={translate("itemCategories.categories.table.fields.accountingGroups")} body={(rowData)=> rowData.accountingGroups.map((group)=> group.name)} filterPlaceholder={translate("itemCategories.categories.table.search.accountingGroups")} sortable  style={{ width: '20%' }} />
 
-          <Column header={translate("restaurantCategories.categories.table.fields.image")}  body={(rowData) =>
+          <Column header={translate("itemCategories.categories.table.fields.image")}  body={(rowData) =>
             <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
 
-          <Column header={translate("restaurantCategories.categories.table.fields.edit")}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate("itemCategories.categories.table.fields.edit")}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header={translate("restaurantCategories.categories.table.fields.delete")} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate("itemCategories.categories.table.fields.delete")} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 

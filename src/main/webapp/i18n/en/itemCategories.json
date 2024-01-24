@@ -1,7 +1,12 @@
 {
-  "restaurantCategories": {
+  "itemCategories": {
     "categories": {
-      "title": "Restaurant Categories View",
+      "restaurant": {
+        "title": "Restaurant Categories View"
+      },
+      "retail": {
+        "title": "Retail Categories View"
+      },
       "table": {
         "title": "Categories",
         "fields": {
@@ -26,11 +31,21 @@
       "question": "Are you sure you want to delete Term {{ id }}"
     },
     "update": {
-      "create": {
-        "title": "Create Restaurant Category"
+      "restaurant": {
+        "create": {
+          "title": "Create Restaurant Category"
+        },
+        "edit": {
+          "title": "Edit Restaurant Category"
+        }
       },
-      "edit": {
-        "title": "Edit Restaurant Category"
+      "retail": {
+        "create": {
+          "title": "Create Retail Category"
+        },
+        "edit": {
+          "title": "Edit Retail Category"
+        }
       },
       "name": "Name",
       "accountingGroups": "Accounting Groups",
