@@ -422,11 +422,6 @@ export const PizzaItemUpdate = () => {
     return <Spinner />
   }
 
-  // return (
-  //   <form onSubmit={saveEntity}>
-  //
-  //   </form>
-  // );
 
   return (
     <div>
