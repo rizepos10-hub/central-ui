@@ -13,7 +13,7 @@ import {IBasePizzaDetail, IPizzaItem} from "app/shared/model/pizza-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
 import Select from "react-select";
-import {getEntities as getPredefinedPizzas} from "app/entities/pizza-settings/pizza-predefined/pizza-predefined.reducer";
+import {getEntitiesForPizzaItem as getPredefinedPizzas, reset as resetPredefined} from "app/entities/pizza-settings/pizza-predefined/pizza-predefined.reducer";
 import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer"
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
@@ -369,6 +369,9 @@ export const PizzaItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
+    return () => {
+      dispatch(resetPredefined())
+    }
 
   },[id, isNew]);
 
