@@ -97,7 +97,7 @@ export const AddonUpdate = () => {
       <Row>
         <Col md="8">
           <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-            {isNew? "Create New Addon Group" : "Edit Addon Group"}
+            {isNew? <Translate contentKey={'addonGroups.update.create.title'}>Create New Addon Group</Translate> : <Translate contentKey={'addonGroups.update.edit.title'}>Edit Addon Group</Translate>}
           </h2>
         </Col>
       </Row>
@@ -113,12 +113,12 @@ export const AddonUpdate = () => {
                   required
                   readOnly
                   id="addon-groups-id"
-                  label={translate('global.field.id')}
+                  label={translate('addonGroups.update.id')}
                   validate={{ required: true }}
                 />
               ) : null}
               <ValidatedField
-                label={translate('tempApp.addon-group.name')}
+                label={translate('addonGroups.update.name')}
                 id="addon-groups-name"
                 name="name"
                 data-cy="name"
@@ -129,7 +129,7 @@ export const AddonUpdate = () => {
               />
 
               <div className="mb-3">
-                <Translate contentKey="tempApp.addon-group.addons">Addons</Translate>
+                <Translate contentKey="addonGroups.update.addons">Addons</Translate>
                 <Select isMulti={true} value={selectedAddons} onChange={handleAddonChange} options={addonsOptions} />
 
               </div>
