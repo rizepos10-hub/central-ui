@@ -1,5 +1,5 @@
 import {FormGroup} from "reactstrap";
-import {Translate} from "react-jhipster";
+import {translate, Translate} from "react-jhipster";
 import {InputText} from "primereact/inputtext";
 import React, {useState} from "react";
 import {ITaxonomy} from "app/shared/model/taxonomy.model";
@@ -53,7 +53,7 @@ const RetailAttributeAdd: React.FC<RetailAttributeAddProps> = ({ type, attribute
 
           <div className={"d-flex flex-column gap-2"}>
             <label>
-              Name
+              <Translate contentKey={'retailAttributes.update.create.label'}>Name</Translate>
             </label>
             <div className={"d-flex gap-3 mt-1"}>
             <InputText
@@ -61,12 +61,12 @@ const RetailAttributeAdd: React.FC<RetailAttributeAddProps> = ({ type, attribute
               type="text"
               name="name"
               id="name"
-              placeholder={`${type} name`}
+              placeholder={type === 'Attribute' ? translate('retailAttributes.update.create.placeholder') : translate('retailAttributes.update.edit.placeholder')}
               value={newAttribute.name}
               onChange={handleInputChange}
             />
 
-            <Button  disabled={updating} label="Add Attribute" type="submit" />
+            <Button  disabled={updating} label={type === 'Attribute' ? translate('retailAttributes.update.create.action'): translate('retailAttributes.update.edit.action')} type="submit" />
 
           </div>
           </div>
