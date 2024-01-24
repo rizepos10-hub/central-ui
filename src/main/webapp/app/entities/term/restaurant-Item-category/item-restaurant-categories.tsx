@@ -148,7 +148,7 @@ export const ItemRestaurantCategories = () => {
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("itemCategories.categories.table.buttons.createNewCategory")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("itemCategories.categories.table.buttons.createNewRestaurantCategory")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>

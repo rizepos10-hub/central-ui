@@ -18,7 +18,8 @@
         },
         "buttons": {
           "refreshList": "Refresh List",
-          "createNewCategory": "Create New Restaurant Category"
+          "createNewRestaurantCategory": "Create New Restaurant Category",
+          "createNewRetailCategory": "Create New Retail Category"
         },
         "search": {
           "name": "Search by Name",
