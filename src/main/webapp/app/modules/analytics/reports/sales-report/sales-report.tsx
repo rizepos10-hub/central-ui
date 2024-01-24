@@ -20,6 +20,7 @@ import Select from "react-select";
 import {ICurrency} from "app/shared/model/currency.model";
 import {getEntities as getCurrencies} from "app/entities/settings/currencySettings/currencies.reducer";
 import {getEntity} from "app/entities/settings/currencySettings/currency-settings.reducer";
+import {formatPrice} from "app/shared/util/price-utils";
 
 
 type Slot = {
@@ -100,9 +101,9 @@ export const SalesReport = () => {
   const currencies =  useAppSelector(state => state.currencies.entities);
   const exchangeRatesArray = currencySettingsEntity?.exchangeRates || [];
   const currenciesSet = new Set(exchangeRatesArray.map(option => option.currency));
-  const filteredDisplayCurrencies :ICurrency[]= currencies?.filter(option => currenciesSet.has(option.code));
+  const filteredDisplayCurrencies :ICurrency[]= currencies?.filter(option => currenciesSet.has(option?.code));
   const exchange = exchangeRatesArray?.find((exRate) => {
-    return exRate.currency === (displayCurrency?.code || currencySettingsEntity?.displayCurrency.code);
+    return exRate.currency === (displayCurrency?.code || currencySettingsEntity?.displayCurrency?.code || currencySettingsEntity?.defaultCurrency?.code);
   });
 
   console.log(exchange, 'exchange')
@@ -182,7 +183,7 @@ export const SalesReport = () => {
   const datatableRows = propertiesToDisplay.map((property) => (
     <Column key={property} field={property} body={(rowData) => {
       const value = rowData[property];
-      return typeof value === 'number' ? `${(value *( exchange?.rate || 1))} ${exchange?.currency || ''}`  : value;
+      return typeof value === 'number' ? `${formatPrice(value, exchange)} `  : value;
     }} />
   ));
 
@@ -226,7 +227,9 @@ export const SalesReport = () => {
       <PrimeRow>
         <Column  footer="Totals" className="bg-white text-left"   />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column  className="bg-white"  key={index} footer={`${(totalsRecord?.value * ( exchange?.rate || 1))} ${exchange?.currency}`}  />
+          <Column  className="bg-white"  key={index}
+                   footer={`${formatPrice(totalsRecord?.value, exchange)}`}
+          />
         ))}
         <Column  className="bg-white"  colSpan={10} />
 
@@ -237,7 +240,9 @@ export const SalesReport = () => {
         <PrimeRow>
         <Column footer={capitalizeFirstLetter(selectedMeasure.toLowerCase())} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord: any, index) => (
-          <Column className="bg-white"   key={index} footer={`${(totalsRecord[measure] * ( exchange?.rate || 1))} ${exchange?.currency || ''}`}/>
+          <Column className="bg-white"   key={index}
+                  footer={`${formatPrice(totalsRecord[measure], exchange)}`}
+          />
         ))}
           <Column  className="bg-white"  colSpan={10} />
       </PrimeRow> : null}
@@ -246,7 +251,9 @@ export const SalesReport = () => {
          <PrimeRow>
          <Column footer={"Revenue"} className="bg-white text-left" />
          {totalsRowForFooter.map((totalsRecord: any, index) => (
-           <Column className="bg-white"   key={index} footer={`${(totalsRecord.revenue * ( exchange?.rate || 1))} ${exchange?.currency || ''}`}/>
+           <Column className="bg-white"   key={index}
+                   footer={`${formatPrice(totalsRecord.revenue, exchange)} `}
+           />
          ))}
            <Column  className="bg-white"  colSpan={10} />
        </PrimeRow> : null }
@@ -254,7 +261,9 @@ export const SalesReport = () => {
        <PrimeRow>
          <Column footer={"Cost Of Goods"} className="bg-white text-left" />
          {totalsRowForFooter.map((totalsRecord: any, index) => (
-           <Column className="bg-white"  key={index} footer={`${(totalsRecord.costOfGoods * ( exchange?.rate || 1))} ${exchange?.currency || ''}`}/>
+           <Column className="bg-white"  key={index}
+                   footer={`${formatPrice(totalsRecord.costOfGoods, exchange)} `}
+           />
          ))}
          <Column  className="bg-white"  colSpan={10} />
        </PrimeRow>
@@ -263,7 +272,9 @@ export const SalesReport = () => {
       <PrimeRow>
         <Column footer={"Returned"} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column  className="bg-white"  key={index} footer={`${(totalsRecord.returns * ( exchange?.rate || 1))} ${exchange?.currency || ''}`} />
+          <Column  className="bg-white"  key={index}
+                   footer={`${formatPrice(totalsRecord.returns, exchange)}`}
+          />
         ))}
         <Column  className="bg-white"  colSpan={10} />
       </PrimeRow> : null }
@@ -271,7 +282,9 @@ export const SalesReport = () => {
       <PrimeRow>
         <Column footer={"Margin"} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column className="bg-white"  key={index} footer={`${(totalsRecord.margin * ( exchange?.rate || 1))} ${exchange?.currency || ''}`} />
+          <Column className="bg-white"  key={index}
+                  footer={`${formatPrice(totalsRecord.margin, exchange)}`}
+          />
         ))}
         <Column  className="bg-white"  colSpan={10} />
       </PrimeRow>
@@ -279,7 +292,9 @@ export const SalesReport = () => {
       <PrimeRow>
         <Column footer={"Gross Profit"} className="bg-white text-left" />
         {totalsRowForFooter.map((totalsRecord : any, index) => (
-          <Column className="bg-white"  key={index} footer={`${(totalsRecord.grossProfit * ( exchange?.rate || 1))} ${exchange?.currency || ''}`} />
+          <Column className="bg-white"  key={index}
+                  footer={`${formatPrice(totalsRecord.grossProfit, exchange)}`}
+          />
         ))}
         <Column  className="bg-white"  colSpan={10} />
       </PrimeRow>
@@ -288,7 +303,9 @@ export const SalesReport = () => {
          <PrimeRow>
          <Column footer={"Tax"} className="bg-white text-left" />
          {totalsRowForFooter.map((totalsRecord: any, index) => (
-           <Column className="bg-white"  key={index} footer={`${(totalsRecord.tax * ( exchange?.rate || 1))} ${exchange?.currency || ''}`}/>
+           <Column className="bg-white"  key={index}
+                   footer={`${formatPrice(totalsRecord.tax, exchange)} `}
+           />
          ))}
            <Column  className="bg-white"  colSpan={10} />
        </PrimeRow> : null}
@@ -346,10 +363,9 @@ export const SalesReport = () => {
           <div className="d-flex flex-column gap-1">
             <label>Display Currency</label>
             <Dropdown
-              value={displayCurrency ?? currencySettingsEntity.displayCurrency}
+              value={displayCurrency ?? currencySettingsEntity.displayCurrency ?? currencySettingsEntity?.defaultCurrency}
               onChange={(e) => setDisplayCurrency(e.value)}
               options={filteredDisplayCurrencies}
-              showClear
               filter
               optionLabel={"name"}
               placeholder="Select a Currency"
@@ -377,11 +393,11 @@ export const SalesReport = () => {
                                          body={(rowData) => {
                                          const slotIndex = rowData.slots.findIndex((s) => s.order === header.order);
                                          console.log(rowData.slots, `hello slots from`, rowData.rowRecord?.name)
-                                         return slotIndex >= 0 ? `${(rowData.slots[slotIndex].value * ( exchange?.rate || 1))} ${exchange?.currency || ''}` : null}} />
+                                         return slotIndex >= 0 ?`${formatPrice(rowData.slots[slotIndex].value, exchange)} ` : null}} />
           ))}
             <Column
                    body={(rowData) => {
-                     return`${(rowData["value"] * ( exchange?.rate || 1))} ${exchange?.currency || ''}`;
+                     return`${formatPrice(rowData["value"], exchange)} `;
                    }}/>
           {datatableRows}
         </DataTable>
