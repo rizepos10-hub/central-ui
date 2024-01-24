@@ -8,7 +8,7 @@ import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {  getEntities } from './pizza-predefined.reducer';
+import {getEntities, reset as resetPredefined} from './pizza-predefined.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
@@ -47,6 +47,9 @@ export const PredefinedPizza = () => {
 
   useEffect(() => {
     getAllEntities();
+      return () => {
+        dispatch(resetPredefined())
+      }
   }, [paginationState.activePage, paginationState.order, paginationState.sort]);
 
 
