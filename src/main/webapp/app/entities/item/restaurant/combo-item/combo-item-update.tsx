@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, Spinner, FormGroup, Table} from 'reactstrap';
+import {Button, Row, Col, Spinner, FormGroup, Table, Card, CardBody} from 'reactstrap';
 import {getSortState, translate, Translate, ValidatedField} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -19,6 +19,8 @@ import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {InputNumber} from "primereact/inputnumber";
 import ComboItemSelection from "app/entities/item/restaurant/combo-item/combo-item-selection";
 import ComboItemAddonDropDown from "app/entities/item/restaurant/combo-item/combo-item-addon";
+import {TabPanel, TabView} from "primereact/tabview";
+import Visibility from "app/shared/Visibility/Visibility";
 
 
 export const ComboItemUpdate = () => {
@@ -295,175 +297,190 @@ export const ComboItemUpdate = () => {
     return <Spinner />
   }
 
-
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>
-            {isNew ? "Create New Combo Item" : `Edit Combo Item`}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
+    <form onSubmit={saveEntity}>
+      <Card>
+        <CardBody>
+          <Row>
+            <Col md={10}>
+              <TabView>
+                <TabPanel header={'Details'}>
+                  <Row>
+                    <Col md="8">
+                      <h2>
+                        {isNew ? "Create New Combo Item" : `Edit Combo Item`}
+                      </h2>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
-          <form onSubmit={saveEntity}>
-            <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
+                      <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
 
-          <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                        {isModalOpen ?<ComboItemSelection
+                          isOpen={isModalOpen}
+                          onAddItems={handleAddItems}
+                          toggleModal={toggleModal}
+                          comboPackages={comboItem?.variants?.[0]?.comboPackages}
+                        /> : null}
 
-            {isModalOpen ?<ComboItemSelection
-              isOpen={isModalOpen}
-              onAddItems={handleAddItems}
-              toggleModal={toggleModal}
-              comboPackages={comboItem?.variants?.[0]?.comboPackages}
-            /> : null}
+                        <SharedItemUpdate
+                          item={comboItem}
+                          onFieldChange={handleFieldChange}
+                        />
 
-            <SharedItemUpdate
-              item={comboItem}
-              onFieldChange={handleFieldChange}
-            />
-
-            <Col md="4">
-              <div className={"d-flex flex-column gap-2"}>
-                <label className={"text-xl font-bold"}>
-                  Price
-                </label>
-                <InputNumber
-                  name="price"
-                  id="price"
-                  required={true}
-                  maxFractionDigits={2}
-                  placeholder="Item Price"
-                  value={comboItem?.variants?.[0]?.price}
-                  onChange={(e) => handlePriceChange(e.value)}
-                />
-              </div>
-            </Col>
-
-            <Col md="8" className={"mt-3"}>
-              <h4>Branch Prices</h4>
-              <Table>
-                <thead>
-                <tr>
-                  <th>Branch</th>
-                  <th>Price</th>
-                </tr>
-                </thead>
-                <tbody>
-                {branchList?.map(branch => (
-                  <tr key={branch.id}>
-                    <td>{branch.name}</td>
-                    <td>
-                      <InputNumber
-                        name={`branchPrice_${branch.id}`}
-                        placeholder={`Enter price for ${branch.name}`}
-                        onWheel={(e: any) => e.target.blur()}
-                        size={60}
-                        value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
-                        onChange={e => handleBranchPriceChange(branch.id, e.value)}
-                      />
-                    </td>
-                  </tr>
-                ))}
-                </tbody>
-              </Table>
-            </Col>
-
-            <Row>
-              <FormGroup>
-                <h3>Combo</h3>
-                <div className="d-flex justify-content-end mr-4">
-                  <Button color="primary" onClick={toggleModal}>
-                    Add Item
-                  </Button>
-                </div>
-                <Table>
-                  <thead>
-                  <tr>
-                    <th>Item Name</th>
-                    <th>Item Variants</th>
-                    <th>Quantity</th>
-                    <th>Addons</th>
-                    <th>Delete</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {comboItem?.variants?.[0]?.comboPackages?.map((comboPackage: any, index) => {
-                    console.log(comboPackage, 'comboPackagecomboPackage')
-                    return (
-                      <tr key={index}>
-                        <td><p>{comboPackage.item?.name}
-                          {comboPackage?.pizzaPackage?
-                            <div className={"d-flex"}>
-                              <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.pizzaSize?.name}&nbsp;</span>
-                              <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.crustType?.name}&nbsp;</span>
-                              <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.crustThickness?.name}</span>
-                            </div>
-                          : null}
-                         </p></td>
-                        <td>{comboPackage?.variant?.name}</td>
-                        <td>
-                          <InputNumber
-                            name={`quantity_${comboPackage?.variant?.id}`}
-                            placeholder={`Enter quantity for ${comboPackage?.variant.name}`}
-                            value={comboPackage.amount}
-                            onChange={(e) => handleComboAmountChange(index, e.value)}
-                          />
-                        </td>
-                        <td>
-                          <div>
-                            <ComboItemAddonDropDown
-                              itemAddons={comboPackage.item?.addons}
-                              variantAddons={comboPackage?.variant?.addons}
-                              selectedComboAddons={comboPackage?.addons}
-                              onIncrement={(addonIndex) => handleAddonAmountChange(index, addonIndex,"increment")}
-                              onDecrement={(addonIndex) => handleAddonAmountChange(index, addonIndex,"decrement")}
-                              onAddAddon={(addon) => handleAddComboAddon(index, addon)}
-                              onDeleteAddon={(addonIndex) => handleDeleteComboAddon(index, addonIndex)}
+                        <Col md="4">
+                          <div className={"d-flex flex-column gap-2"}>
+                            <label className={"text-xl font-bold"}>
+                              Price
+                            </label>
+                            <InputNumber
+                              name="price"
+                              id="price"
+                              required={true}
+                              maxFractionDigits={2}
+                              placeholder="Item Price"
+                              value={comboItem?.variants?.[0]?.price}
+                              onChange={(e) => handlePriceChange(e.value)}
                             />
                           </div>
-                        </td>
-                        <td>
-                          <Button
-                            color="danger"
-                            onClick={() => handleDeleteComboPackage(index)}
-                          >
-                            Delete
-                          </Button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                  </tbody>
-                </Table>
-              </FormGroup>
+                        </Col>
 
-            </Row>
+                        <Col md="8" className={"mt-3"}>
+                          <h4>Branch Prices</h4>
+                          <Table>
+                            <thead>
+                            <tr>
+                              <th>Branch</th>
+                              <th>Price</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {branchList?.map(branch => (
+                              <tr key={branch.id}>
+                                <td>{branch.name}</td>
+                                <td>
+                                  <InputNumber
+                                    name={`branchPrice_${branch.id}`}
+                                    placeholder={`Enter price for ${branch.name}`}
+                                    onWheel={(e: any) => e.target.blur()}
+                                    size={60}
+                                    value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
+                                    onChange={e => handleBranchPriceChange(branch.id, e.value)}
+                                  />
+                                </td>
+                              </tr>
+                            ))}
+                            </tbody>
+                          </Table>
+                        </Col>
 
-
-            <div className={"d-flex"}>
-              <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
-                      color="info">
-                <FontAwesomeIcon icon="arrow-left"/>
+                        <Row>
+                          <FormGroup>
+                            <h3>Combo</h3>
+                            <div className="d-flex justify-content-end mr-4">
+                              <Button color="primary" onClick={toggleModal}>
+                                Add Item
+                              </Button>
+                            </div>
+                            <Table>
+                              <thead>
+                              <tr>
+                                <th>Item Name</th>
+                                <th>Item Variants</th>
+                                <th>Quantity</th>
+                                <th>Addons</th>
+                                <th>Delete</th>
+                              </tr>
+                              </thead>
+                              <tbody>
+                              {comboItem?.variants?.[0]?.comboPackages?.map((comboPackage: any, index) => {
+                                console.log(comboPackage, 'comboPackagecomboPackage')
+                                return (
+                                  <tr key={index}>
+                                    <td><p>{comboPackage.item?.name}
+                                      {comboPackage?.pizzaPackage?
+                                        <div className={"d-flex"}>
+                                          <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.pizzaSize?.name}&nbsp;</span>
+                                          <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.crustType?.name}&nbsp;</span>
+                                          <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.crustThickness?.name}</span>
+                                        </div>
+                                        : null}
+                                    </p></td>
+                                    <td>{comboPackage?.variant?.name}</td>
+                                    <td>
+                                      <InputNumber
+                                        name={`quantity_${comboPackage?.variant?.id}`}
+                                        placeholder={`Enter quantity for ${comboPackage?.variant.name}`}
+                                        value={comboPackage.amount}
+                                        onChange={(e) => handleComboAmountChange(index, e.value)}
+                                      />
+                                    </td>
+                                    <td>
+                                      <div>
+                                        <ComboItemAddonDropDown
+                                          itemAddons={comboPackage.item?.addons}
+                                          variantAddons={comboPackage?.variant?.addons}
+                                          selectedComboAddons={comboPackage?.addons}
+                                          onIncrement={(addonIndex) => handleAddonAmountChange(index, addonIndex,"increment")}
+                                          onDecrement={(addonIndex) => handleAddonAmountChange(index, addonIndex,"decrement")}
+                                          onAddAddon={(addon) => handleAddComboAddon(index, addon)}
+                                          onDeleteAddon={(addonIndex) => handleDeleteComboAddon(index, addonIndex)}
+                                        />
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <Button
+                                        color="danger"
+                                        onClick={() => handleDeleteComboPackage(index)}
+                                      >
+                                        Delete
+                                      </Button>
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                              </tbody>
+                            </Table>
+                          </FormGroup>
+                        </Row>
+                      </Col>
+                    </FormGroup>
+                  </Row>
+                </TabPanel>
+                <TabPanel header={'Visibility'}>
+                  <Visibility
+                    initialState={comboItem.visibility}
+                    onStateChanged={(visibility)=>setComboItem(prev => {
+                      return {...prev, visibility}
+                    })}
+                  />
+                </TabPanel>
+              </TabView>
+            </Col>
+            <Col md={2}>
+              <div className={"d-flex"}>
+                <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
+                         color="info">
+                  <FontAwesomeIcon icon="arrow-left"/>
+                  &nbsp;
+                  <span className="d-none d-md-inline">
+                                <Translate contentKey="entity.action.back">Back</Translate>
+                            </span>
+                </Button>
                 &nbsp;
-                <span className="d-none d-md-inline">
-                                  <Translate contentKey="entity.action.back">Back</Translate>
-                              </span>
-              </Button>
-              &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                      disabled={updating}>
-                <FontAwesomeIcon icon="save"/>
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-            </div>
-          </Col>
-            </FormGroup>
-          </form>
-      </Row>
-    </div>
+                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                        disabled={updating}>
+                  <FontAwesomeIcon icon="save"/>
+                  &nbsp;
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+              </div>
+            </Col>
+          </Row>
+        </CardBody>
+      </Card>
+    </form>
   );
 };
 
