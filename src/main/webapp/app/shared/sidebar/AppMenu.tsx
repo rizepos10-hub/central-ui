@@ -264,6 +264,22 @@ const AppMenu = () => {
                                 ]
                               },
                               {
+                                label: 'Tv Config',
+                                icon: 'pi pi-folder-open',
+                                items: [
+                                  {
+                                    label: 'Tvs',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/tv'
+                                  },
+                                  {
+                                    label: 'Tv Displays',
+                                    icon: 'pi pi-folder-open',
+                                    to: '/tv-display'
+                                  },
+                                ]
+                              },
+                              {
                                 label: 'Reporting shifts ',
                                 icon: 'pi pi-folder-open',
                                 role: ['ROLE_ADMIN'],
