@@ -7,6 +7,7 @@ import {Link, useNavigate} from "react-router-dom";
 import {Dropdown} from "primereact/dropdown";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
+import {translate, Translate} from "react-jhipster";
 
 
 
@@ -82,7 +83,7 @@ export const EndOfDays = () => {
 
   return (
     <Row>
-      <h2>End Of Day Reports</h2>
+      <h2><Translate contentKey={'analytics.endOfDay.title'}>End Of Day Reports</Translate></h2>
       <div className="d-flex  justify-content-start gap-5 ">
 
         <Dropdown
@@ -91,7 +92,7 @@ export const EndOfDays = () => {
           value={selectedBranch}
           options={filteredBranchOptions}
           onChange={(e) => setSelectedBranch(e.value)}
-          placeholder="Select a branch"
+          placeholder={translate('analytics.endOfDay.select')}
         />
       </div>
       <div className="card my-3">
@@ -103,13 +104,13 @@ export const EndOfDays = () => {
                 >
 
         {/* <Column field="id" header="ID" body={(rowData) => (<Link to={rowData.id}>{rowData.id} </Link>)}  /> */}
-        <Column field="toDate" header="To Date" />
-        <Column field="fromDate" header="From Date" />
-        <Column field="actionTakenBy" header="Action Taken By" />
-        <Column field="createdDate" header="Created Date" />
-        <Column field="branch.name" header="Branch Name" />
-        <Column field="branch.appName" header="App Name" />
-        <Column field="branch.appType" header="App Type" />
+        <Column field="toDate" header={translate('analytics.endOfDay.table.toDate')} />
+        <Column field="fromDate" header={translate('analytics.endOfDay.table.fromDate')} />
+        <Column field="actionTakenBy" header={translate('analytics.endOfDay.table.actionBy')} />
+        <Column field="createdDate" header={translate('analytics.endOfDay.table.createdDate')} />
+        <Column field="branch.name" header={translate('analytics.endOfDay.table.branchName')} />
+        <Column field="branch.appName" header={translate('analytics.endOfDay.table.appName')} />
+        <Column field="branch.appType" header={translate('analytics.endOfDay.table.appType')} />
       </DataTable>
       </div>
 

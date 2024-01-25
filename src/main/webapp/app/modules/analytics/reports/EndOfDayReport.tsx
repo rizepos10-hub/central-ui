@@ -7,6 +7,7 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {Alert, Spinner} from "reactstrap";
 import UnclosedOrders from "app/modules/analytics/reports/unclosed-orders";
 import {useParams} from "react-router-dom";
+import {translate, Translate} from "react-jhipster";
 const EndOFDayReport = () => {
 
 
@@ -112,26 +113,26 @@ const EndOFDayReport = () => {
 
     <div className="container mt-5">
       <div className="text-center">
-        <h4>End OF Day Report</h4>
-        <p>Location: Random Location</p>
+        <h4><Translate contentKey={'analytics.endOfDay.report.title'}>End OF Day Report</Translate></h4>
+        <p><Translate contentKey={'analytics.endOfDay.report.location'} interpolate={{location: "Random Location"}}>Location: Random Location</Translate></p>
       </div>
 
       {/* <div > */}
       {/*   <UnclosedOrders openedOrders={salesData.openedOrders} /> */}
       {/* </div> */}
-      <SalesSection title="Total Sales" data={salesData.totalSales} isTotalSales={true}/>
+      <SalesSection title={translate('analytics.endOfDay.report.totalSales')} data={salesData.totalSales} isTotalSales={true}/>
 
       <div className="row mt-5">
         <div className="col-md-12">
-          <h3>Total Received</h3>
+          <h3><Translate contentKey={'analytics.endOfDay.report.totalReceived'}>Total Received</Translate></h3>
           <table className="table table-bordered table-lg">
             <thead>
             <tr className="bg-light">
-              <th>PAYMENT</th>
-              <th>TIP</th>
-              <th>AMOUNT</th>
-              <th>REFUND</th>
-              <th>RECEIVED</th>
+              <th><Translate contentKey={'analytics.endOfDay.report.payment'}>PAYMENT</Translate></th>
+              <th><Translate contentKey={'analytics.endOfDay.report.tip'}>TIP</Translate></th>
+              <th><Translate contentKey={'analytics.endOfDay.report.amount'}>AMOUNT</Translate></th>
+              <th><Translate contentKey={'analytics.endOfDay.report.refund'}>REFUND</Translate></th>
+              <th><Translate contentKey={'analytics.endOfDay.report.received'}>RECEIVED</Translate></th>
             </tr>
             </thead>
             <tbody>
@@ -145,7 +146,7 @@ const EndOFDayReport = () => {
               </tr>
             ))}
             <tr>
-              <td>Total</td>
+              <td><Translate contentKey={'analytics.endOfDay.report.total'}>TOTAL</Translate></td>
               <td
                 className="text-end p-4">{`$ ${calculateTotal(salesData.totalReceived?.map((item) => item.tip + 0))?.toFixed(2)}`}</td>
               <td
@@ -159,9 +160,9 @@ const EndOFDayReport = () => {
           </table>
         </div>
       </div>
-      <SalesSection title="DineIn" data={salesData.totalSalesByOrderOption?.DineIn}/>
-      <SalesSection title="PickUp" data={salesData.totalSalesByOrderOption?.PickUp}/>
-      <SalesSection title="Delivery" data={salesData.totalSalesByOrderOption?.Delivery}/>
+      <SalesSection title={translate('analytics.endOfDay.report.dineIn')} data={salesData.totalSalesByOrderOption?.DineIn}/>
+      <SalesSection title={translate('analytics.endOfDay.report.pickUp')} data={salesData.totalSalesByOrderOption?.PickUp}/>
+      <SalesSection title={translate('analytics.endOfDay.report.delivery')} data={salesData.totalSalesByOrderOption?.Delivery}/>
 
     </div>
   );
