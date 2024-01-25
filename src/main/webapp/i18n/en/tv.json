@@ -1,0 +1,29 @@
+{
+  "tempApp": {
+    "tv": {
+      "home": {
+        "title": "Tvs",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Tv",
+        "createOrEditLabel": "Create or edit a Tv",
+        "notFound": "No Tvs found"
+      },
+      "created": "A new Tv is created with identifier {{ param }}",
+      "updated": "A Tv is updated with identifier {{ param }}",
+      "deleted": "A Tv is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Tv {{ id }}?"
+      },
+      "detail": {
+        "title": "Tv"
+      },
+      "id": "ID",
+      "name": "Name",
+      "branch": "Branch",
+      "dimensions": "Dimensions",
+      "display": "Tv Display",
+      "width": "Width",
+      "height": "Height"
+    }
+  }
+}

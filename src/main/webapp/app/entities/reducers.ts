@@ -48,9 +48,11 @@ import retailItems from "app/entities/item/retail/retail-items.reducer";
 import itemsForCombo from 'app/entities/item/restaurant/combo-item-prev/items-for-combo.reducer';
 import currencies from "app/entities/settings/currencySettings/currencies.reducer"
 import currencySettings from "app/entities/settings/currencySettings/currency-settings.reducer"
-
 import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
 import allItems from 'app/entities/item/all-items.reducer';
+
+import tv from "app/entities/settings/tv-config/tv/tv.reducer"
+import tvDisplay from "app/entities/settings/tv-config/tv-display/tv-display.reducer"
 
 import loyalty from "app/entities/loyalty/loyalty-records.reducer";
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
@@ -106,6 +108,8 @@ const entitiesReducers = {
   loyalty,
   currencies,
   currencySettings,
+  tv,
+  tvDisplay
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };
