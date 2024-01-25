@@ -93,14 +93,14 @@ export const RetailAttributeValuesUpdate = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">{retailAttributeEntity?.key} Values</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'retailAttributes.update.edit.table.title'} interpolate={{attribute: retailAttributeEntity?.key}}>{retailAttributeEntity?.key} Values</Translate></span>
 
     </div>
   );
 
   const deleteColumnTemplate = (rowData) => {
     const deleteAttr = () => {
-      const isConfirmed = window.confirm(`Are  you sure you want to delete ${rowData?.name}`);
+      const isConfirmed = window.confirm(translate('retailAttributes.update.edit.confirmDelete', {value: rowData?.name}));
       if(isConfirmed){
         dispatch(deleteEntity(rowData?.id))
       }
@@ -122,7 +122,9 @@ export const RetailAttributeValuesUpdate = () => {
       <Row>
         <Col md="8">
           <h2 >
-            {`Add New ${retailAttributeEntity?.key}`}
+            <Translate contentKey={'retailAttributes.update.edit.title'} interpolate={{attribute: retailAttributeEntity?.key}}>
+              {`Add New ${retailAttributeEntity?.key}`}
+            </Translate>
           </h2>
         </Col>
       </Row>
@@ -148,7 +150,7 @@ export const RetailAttributeValuesUpdate = () => {
             totalRecords={totalItems}
             rows={5}
           >
-            <Column field="name" header="Name" editor={(options) => textEditor(options)} style={{ width: '20%' }}></Column>
+            <Column field="name" header={translate('retailAttributes.update.edit.table.fields.name')} editor={(options) => textEditor(options)} style={{ width: '20%' }}></Column>
 
             <Column rowEditor  headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
             <Column  body={deleteColumnTemplate}  headerStyle={{ width: '1%',  }} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}  />

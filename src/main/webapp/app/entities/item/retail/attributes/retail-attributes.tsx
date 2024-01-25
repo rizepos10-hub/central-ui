@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import {getSortState, Translate,} from 'react-jhipster';
+import {getSortState, translate, Translate,} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
@@ -128,7 +128,7 @@ export const RetailAttributes = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Retail Attributes</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'retailAttributes.view.table.title'}>Retail Attributes</Translate></span>
 
     </div>
   );
@@ -139,7 +139,7 @@ export const RetailAttributes = () => {
   return (
     <div>
       <h2 >
-        Retail Attributes View
+        <Translate contentKey={'retailAttributes.view.title'}>Retail Attributes View</Translate>
 
       </h2>
       <Col md={"3"}>
@@ -149,13 +149,13 @@ export const RetailAttributes = () => {
 
         <Col md={"12"}>
         <DataTable value={retailAttributeList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+          <Column field="name" header={translate('retailAttributes.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('retailAttributes.view.table.search.name')}  sortable  />
 
 
-          <Column header="Configure"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('retailAttributes.view.table.fields.configure')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('retailAttributes.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
         </DataTable>

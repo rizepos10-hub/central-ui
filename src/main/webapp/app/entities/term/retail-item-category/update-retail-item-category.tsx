@@ -199,7 +199,7 @@ export const UpdateItemRestaurantCategory = () => {
       <Row >
         <Col md="8">
           <h2  data-cy="TermCreateUpdateHeading">
-            {isNew ? "Create Retail Category" : "Edit Retail Category"}
+            {isNew ? <Translate contentKey={"itemCategories.update.retail.create.title"}>Create Retail Category</Translate> : <Translate contentKey={"itemCategories.update.retail.create.title"}>Edit Retail Category</Translate>}
           </h2>
         </Col>
       </Row>
@@ -220,13 +220,13 @@ export const UpdateItemRestaurantCategory = () => {
               {/*   /> */}
               {/* ) : null} */}
               <ValidatedField
-                label={translate('tempApp.term.name')}
+                label={translate('itemCategories.update.name')}
                 id="category-name"
                 name="name"
                 data-cy="name"
                 type="text"
                 validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
+                  required: { value: true, message: translate('common.validation.required') },
                 }}
               />
               {/* <ValidatedField */}
@@ -249,17 +249,17 @@ export const UpdateItemRestaurantCategory = () => {
               {/*   )} */}
               {/* </ValidatedField> */}
               <div className="mb-3">
-              <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
+              <Translate contentKey="itemCategories.update.accountingGroups">Accounting Groups</Translate>
               <Select  value={selectedAccountingGroups}  onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
               </div>
 
               <div className="mb-3">
-                <Translate contentKey="tempApp.term.parents">Parents</Translate>
+                <Translate contentKey="itemCategories.update.parents">Parents</Translate>
                 <Select  value={selectedParents}  onChange={handleParentsChange} options={categories} />
               </div>
               <div className="mb-3">
                 <ValidatedField
-                  label={'Item Image'}
+                  label={translate('itemCategories.update.image')}
                   id="item-image"
                   name="image"
                   data-cy="image"

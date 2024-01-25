@@ -133,13 +133,13 @@ export const Addon = () => {
   console.log(addonList, 'addonlist')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Addons</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'addons.view.table.title'}>Addons</Translate></span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate("addons.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Addon" raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("addons.view.table.buttons.createNewAddon")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -164,25 +164,25 @@ export const Addon = () => {
   return (
     <div>
       <h2 >
-        Addons View
+        <Translate contentKey={'addons.view.title'}>Addons View</Translate>
 
       </h2>
 
       <div >
         <DataTable value={addonList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
-          <Column field="price" header="Price" sortable body={priceBodyTemplate} />
+          <Column field="name" header={translate('addons.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('addons.view.table.search.name')}  sortable  />
+          <Column field="price" header={translate('addons.view.table.fields.price')} sortable body={priceBodyTemplate} />
           <Column
             field="discounts"
-            header="Discounts"
+            header={translate('addons.view.table.fields.discounts')}
             body={renderDiscounts}
             sortable
           />
 
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('addons.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('addons.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 
