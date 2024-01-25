@@ -152,12 +152,12 @@ export const FloorPlanTvUpdate = () => {
                     <Translate contentKey={"tempApp.tv.dimensions"}>Dimensions</Translate>
                   </label>
                   <div className={"d-flex flex-column gap-3 my-2"}>
-                    <div className="p-inputgroup w-full md:w-10rem">
+                    <div className="p-inputgroup w-full md:w-11rem">
                       <span className="p-inputgroup-addon">
                       <Translate contentKey={"tempApp.tv.width"}>Width</Translate>
                     </span>
                       <InputNumber
-                        size={1}
+                        size={2}
                         maxFractionDigits={2}
                         name="dimension-width"
                         required={true}
@@ -167,12 +167,12 @@ export const FloorPlanTvUpdate = () => {
                       <span className="p-inputgroup-addon">px</span>
                     </div>
 
-                    <div className="p-inputgroup w-full md:w-10rem">
+                    <div className="p-inputgroup w-full md:w-11rem">
                       <span className="p-inputgroup-addon">
                         <Translate contentKey={"tempApp.tv.height"}>Height</Translate>
                       </span>
                       <InputNumber
-                        size={1}
+                        size={2}
                         maxFractionDigits={2}
                         name="dimension-width"
                         required={true}
