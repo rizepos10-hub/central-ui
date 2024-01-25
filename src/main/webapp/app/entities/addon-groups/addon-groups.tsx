@@ -128,13 +128,13 @@ export const AddonGroups = () => {
   console.log(addonGroupsList, 'addonGroupsList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Addon Groups</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'addonGroups.view.table.title'}>Addon Groups</Translate></span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate('addonGroups.view.table.buttons.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create New Addon Group" raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate('addonGroups.view.table.buttons.createNewAddonGroup')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -150,14 +150,14 @@ export const AddonGroups = () => {
       </h2>
       <div >
         <DataTable value={addonGroupsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
-          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+          <Column field="name" header={translate('addonGroups.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('addonGroups.view.table.search.name')}  sortable  />
 
-          <Column field="addons" header="Addons"  body={(rowData) => rowData.addons.map(addon => addon.name).join(" | ")}   sortable  />
+          <Column field="addons" header={translate('addonGroups.view.table.fields.addons')}  body={(rowData) => rowData.addons.map(addon => addon.name).join(" | ")}   sortable  />
 
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('addonGroups.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('addonGroups.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 

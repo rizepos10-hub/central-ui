@@ -19,7 +19,7 @@ import { getEntities as getAccountingGroups } from 'app/entities/settings/accoun
 import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
 import { getEntity, updateEntity, createEntity, reset, getEntities as getItems, importAddons } from './item.reducer';
 import Select from 'react-select';
-import ItemVariantModal from 'app/entities/item/restaurant/combo-item/item-variant-modal';
+import ItemVariantModal from 'app/entities/item/restaurant/combo-item-prev/item-variant-modal';
 import attachment, { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
@@ -589,7 +589,7 @@ export const ItemUpdate = () => {
 
   const options = useAppSelector(state => state.restaurantItems.entities);
   const handleImportAddonModalSave = (option: IItem) => {
-    const addons = itemEntity.addons;
+    const addons = itemEntity.addons || [];
     const extraAddons = option.addons;
     const uniqueIds = Array.from(new Set([...addons, ...extraAddons].map(item => item.id)));
     const mergedAddons = uniqueIds.map(id => [...addons, ...extraAddons].find(item => item.id === id));

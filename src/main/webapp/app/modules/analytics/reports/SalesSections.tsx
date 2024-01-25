@@ -1,4 +1,5 @@
 import React from 'react';
+import {Translate} from "react-jhipster";
 
 const SalesSection = ({ title, data, isTotalSales = false }) => {
   const formatValueWithCommas = (value) => {
@@ -19,55 +20,55 @@ const SalesSection = ({ title, data, isTotalSales = false }) => {
             {title} <span className="text-sm" style={{ fontSize: '1rem' }}>{!isTotalSales ? "| Total Sales" : ""}</span>
           </h3>
           <div className="d-flex justify-content-between mb-4">
-            <p>Orders</p>
+            <p><Translate contentKey={'analytics.report.orders'}>Orders</Translate></p>
             <p className="text-end">
               {data?.orders?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
-            <p>Subtotal</p>
+            <p><Translate contentKey={'analytics.report.subtotal'}>Subtotal</Translate></p>
             <p className="text-end">
               {data?.subTotal?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
-            <p>Discount</p>
+            <p><Translate contentKey={'analytics.report.discount'}>Discount</Translate></p>
             <p className="text-end">
               {data?.discount?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
-            <p>Applied Coupon</p>
+            <p><Translate contentKey={'analytics.report.coupon'}>Applied Coupon</Translate></p>
             <p className="text-end">
               {data?.appliedCoupon ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
-            <p>Delivery Charge</p>
+            <p><Translate contentKey={'analytics.report.d-charge'}>Delivery Charge</Translate></p>
             <p className="text-end">
               {data?.deliveryCharge?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
-            <p>Delivery TAX</p>
+            <p><Translate contentKey={'analytics.report.d-tax'}>Delivery TAX</Translate></p>
             <p className="text-end">
               {data?.deliveryTAX?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
-            <p>Refunds</p>
+            <p><Translate contentKey={'analytics.report.refunds'}>Refunds</Translate></p>
             <p className="text-end">
               {data?.refunds?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
-            <p>Gst</p>
+            <p><Translate contentKey={'analytics.report.gst'}>Gst</Translate></p>
             <p className="text-end">
               {data?.gst?.toFixed(2) ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
-            <p>Hst</p>
+            <p><Translate contentKey={'analytics.report.hst'}>Hst</Translate></p>
             <p className="text-end">
               {data?.hst?.toFixed(2) ?? 0}
             </p>
@@ -76,19 +77,19 @@ const SalesSection = ({ title, data, isTotalSales = false }) => {
 
           <hr />
           <div className="d-flex justify-content-between">
-            <strong>NET SALES</strong>
+            <strong><Translate contentKey={'analytics.report.netSales'}>NET SALES</Translate></strong>
             {data?.netSales?.toFixed(2) ?? 0}
           </div>
           <div className="d-flex justify-content-between">
-            <strong>TOTAL TAX</strong>
+            <strong><Translate contentKey={'analytics.report.totalTax'}>TOTAL TAX</Translate></strong>
             {data?.totalTAX?.toFixed(2) ?? 0}
           </div>
           <div className="d-flex justify-content-between">
-            <strong>GROSS SALES</strong>
+            <strong><Translate contentKey={'analytics.report.grossSales'}>GROSS SALES</Translate></strong>
             {data?.grossSales?.toFixed(2) ?? 0}
           </div>
           <div className="d-flex justify-content-between">
-            <strong>TOTAL TIP</strong>
+            <strong><Translate contentKey={'analytics.report.totalTip'}>TOTAL TIP</Translate></strong>
             {data?.totalTip?.toFixed(2) ?? 0}
           </div>
 

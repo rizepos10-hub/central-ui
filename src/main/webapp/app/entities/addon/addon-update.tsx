@@ -140,7 +140,7 @@ export const AddonUpdate = () => {
         <Row>
           <Col md="8">
             <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-              {isNew ? "Create New Addon" : `Edit Addon`}
+              {isNew ? <Translate contentKey={'addons.update.create.title'}>Create New Addon</Translate> : <Translate contentKey={'addons.update.edit.title'}>Edit Addon</Translate>}
             </h2>
           </Col>
         </Row>
@@ -153,12 +153,12 @@ export const AddonUpdate = () => {
                   required
                   readOnly
                   id="addon-id"
-                  label={translate('global.field.id')}
+                  label={translate('addons.update.id')}
                   validate={{ required: true }}
                 />
               ) : null}
               <ValidatedField
-                label={translate('tempApp.addon.name')}
+                label={translate('addons.update.name')}
                 id="addon-name"
                 name="name"
                 data-cy="name"
@@ -167,9 +167,9 @@ export const AddonUpdate = () => {
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
-              <ValidatedField label={translate('tempApp.addon.desc')} id="addon-desc" name="desc" data-cy="desc" type="text" />
+              <ValidatedField label={translate('addons.update.description')} id="addon-desc" name="desc" data-cy="desc" type="text" />
               <ValidatedField
-                label={translate('tempApp.addon.price')}
+                label={translate('addons.update.price')}
                 id="addon-price"
                 name="price"
                 data-cy="price"
@@ -180,7 +180,7 @@ export const AddonUpdate = () => {
                 }}
               />
               <div className="mb-3">
-                <Translate contentKey="tempApp.addon.discount">Discount</Translate>
+                <Translate contentKey="addons.update.discount">Discount</Translate>
                 <Select isMulti={true}
                         value={selectedDiscounts}
                         options={discountsOptions}

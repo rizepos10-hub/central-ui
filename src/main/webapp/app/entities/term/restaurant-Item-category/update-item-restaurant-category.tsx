@@ -199,7 +199,7 @@ export const UpdateItemRestaurantCategory = () => {
       <Row >
         <Col md="8">
           <h2  data-cy="TermCreateUpdateHeading">
-            {isNew ? "Create Restaurant Category" : "Edit Restaurant Category"}
+            {isNew ? <Translate contentKey={'itemCategories.update.restaurant.create.title'}/> : <Translate contentKey={'itemCategories.update.restaurant.edit.title'}/>}
           </h2>
         </Col>
       </Row>
@@ -220,13 +220,13 @@ export const UpdateItemRestaurantCategory = () => {
               {/*   /> */}
               {/* ) : null} */}
               <ValidatedField
-                label={translate('tempApp.term.name')}
+                label={translate('itemCategories.update.name')}
                 id="category-name"
                 name="name"
                 data-cy="name"
                 type="text"
                 validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
+                  required: { value: true, message: translate('common.validation.required') },
                 }}
               />
               {/* <ValidatedField */}
@@ -249,17 +249,17 @@ export const UpdateItemRestaurantCategory = () => {
               {/*   )} */}
               {/* </ValidatedField> */}
               <div className="mb-3">
-              <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
+              <Translate contentKey="itemCategories.update.accountingGroups">Accounting Groups</Translate>
               <Select  value={selectedAccountingGroups}  onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
               </div>
 
               <div className="mb-3">
-                <Translate contentKey="tempApp.term.parents">Parents</Translate>
+                <Translate contentKey="itemCategories.update.parents">Parents</Translate>
                 <Select  value={selectedParents}  onChange={handleParentsChange} options={categories} />
               </div>
               <div className="mb-3">
                 <ValidatedField
-                  label={'Item Image'}
+                  label={translate('itemCategories.update.image')}
                   id="item-image"
                   name="image"
                   data-cy="image"
@@ -323,14 +323,14 @@ export const UpdateItemRestaurantCategory = () => {
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
+                  <Translate contentKey="common.buttons.back">Back</Translate>
                 </span>
               </Button>
               &nbsp;
               <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
+                <Translate contentKey="common.buttons.save">Save</Translate>
               </Button>
             </ValidatedForm>
           )}

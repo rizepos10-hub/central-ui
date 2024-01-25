@@ -44,10 +44,10 @@ export const RetailAttributeDeleteDialog = () => {
   return (
     <Modal isOpen toggle={handleClose}>
       <ModalHeader toggle={handleClose} data-cy="addonDeleteDialogHeading">
-        <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
+        <Translate contentKey="retailAttributes.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.addon.delete.question">
-        <Translate contentKey="tempApp.taxonomy.delete.question" interpolate={{ id: retailAttributeEntity.id }}>
+        <Translate contentKey="retailAttributes.delete.question" interpolate={{ id: retailAttributeEntity.id }}>
           Are you sure you want to delete this Addon?
         </Translate>
       </ModalBody>

@@ -14,18 +14,23 @@ interface IMultiplePizzaDetails{
   freeToppingsNumber?: number;
 }
 
-interface IToppingPricingItem {
+export interface IToppingPricingItem {
   topping: ITopping;
   pricingClass: IPizzaPricingClass;
 }
 
-interface ICrustTypePricingItem {
+export interface ICrustTypePricingItem {
   crustType: ICrustType;
   pricingClass: IPizzaPricingClass;
 }
 
-interface ICrustThicknessPricingItem {
+export interface ICrustThicknessPricingItem {
   crustThickness: ICrustThickness;
+  pricingClass: IPizzaPricingClass;
+}
+
+export interface IBasePizzaDetail {
+  toppingsNumber: number;
   pricingClass: IPizzaPricingClass;
 }
 
@@ -34,12 +39,13 @@ interface IPizzaItemVariant {
   name?: string | null;
   attachments?: IAttachment[];
   discounts?: IDiscount[];
-  predefinedPizza?: IPredefinedPizza[];
+  predefinedPizza?: IPredefinedPizza;
   itemPricingClass?: IPizzaPricingClass;
   toppingPricing?: IToppingPricingItem[];
   crustTypePricing?: ICrustTypePricingItem[];
   crustThicknessPricing?: ICrustThicknessPricingItem[];
   multiplePizzaDetails?: IMultiplePizzaDetails[];
+  basePizzaDetails?: IBasePizzaDetail[];
   multiple?: boolean;
   archived?: boolean;
 }

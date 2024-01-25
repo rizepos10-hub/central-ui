@@ -47,6 +47,10 @@ import RetailAttributes from "app/entities/item/retail/attributes";
 import VariableItem from "app/entities/item/retail/variable-item";
 import Loyalty from "app/entities/loyalty";
 
+import CurrencySettings from "app/entities/settings/currencySettings";
+import TvRoutes from "app/entities/settings/tv-config/tv";
+import TvDisplayRoutes from "app/entities/settings/tv-config/tv-display";
+
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
 export default () => {
@@ -107,6 +111,12 @@ export default () => {
         <Route path="retail/attributes/*" element={<RetailAttributes />} />
         <Route path="retail/simple/*" element={<SimpleItem />} />
         <Route path="retail/variable/*" element={<VariableItem />} />
+
+
+        <Route path="currencies/*" element={<CurrencySettings />} />
+
+        <Route path="tv/*" element={<TvRoutes />} />
+        <Route path="tv-display/*" element={<TvDisplayRoutes />} />
 
 
 

@@ -1,0 +1,55 @@
+{
+  "posUsers": {
+    "user": {
+      "title": "POS Users",
+      "table": {
+        "title": "Users",
+        "fields": {
+          "name": "Name",
+          "email": "Email",
+          "branches": "Branches",
+          "authorities": "Authorities",
+          "activated": "Activated",
+          "edit": "Edit"
+        },
+        "search": {
+          "name": "Search by Name",
+          "email": "Search by Email",
+          "branch": "Search by Branch"
+        },
+        "buttons": {
+          "refreshList": "Refresh List",
+          "createNewUser": "Create New User"
+        }
+      }
+    },
+    "delete": {
+
+    },
+    "update": {
+      "create": {
+        "title": "Create New User"
+      },
+      "edit": {
+        "title": "Edit User"
+      },
+      "placeholders": {
+        "firstName": "Enter First Name",
+        "lastName": "Enter Last Name",
+        "username": "Enter Username",
+        "email": "Enter Email",
+        "pinCode": "Enter Pin Code",
+        "password": "Enter Password"
+      },
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "username": "Username",
+      "email": "Email",
+      "pinCode": "Pin Code",
+      "password": "Password",
+      "authorities": "Authorities",
+      "branches": "Branches",
+      "activated": "Activated"
+    }
+  }
+}

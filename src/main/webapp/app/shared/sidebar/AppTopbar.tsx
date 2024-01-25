@@ -21,7 +21,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     }));
 
     return (
-      <div className="layout-topbar bg-white" style={{ marginLeft: isDesktopEnvironment &&  giveMargin ? '18rem' : '0' }}>
+      <div className="layout-topbar bg-white p-3" style={{ marginLeft: isDesktopEnvironment &&  giveMargin ? '18rem' : '0' }}>
 
       <div className="topbar-start">
                 <button ref={menubuttonRef} type="button" className="topbar-menubutton p-link p-trigger" onClick={onMenuToggle}>
@@ -44,7 +44,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                     </li>
                     <li className="topbar-profile">
                         <button type="button" className="p-link" onClick={showProfileSidebar}>
-                            <img src="content/images/default-user.png" alt="Profile" />
+                          <i className="pi pi-user" style={{ fontSize: '1.2rem', translate: '33%'}}></i>
                         </button>
                     </li>
                 </ul>

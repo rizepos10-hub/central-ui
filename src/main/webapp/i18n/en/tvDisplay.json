@@ -1,0 +1,27 @@
+{
+  "tempApp": {
+    "tvDisplay": {
+      "home": {
+        "title": "Tv Displays",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Tv Display",
+        "createOrEditLabel": "Create or edit a Tv Display",
+        "notFound": "No Tv Displays found"
+      },
+      "created": "A new Tv Display is created with identifier {{ param }}",
+      "updated": "A Tv Display is updated with identifier {{ param }}",
+      "deleted": "A Tv Display is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Tv Display {{ id }}?"
+      },
+      "detail": {
+        "title": "Tv Display"
+      },
+      "id": "ID",
+      "name": "Name",
+      "dimensions": "Dimensions",
+      "width": "Width",
+      "height": "Height"
+    }
+  }
+}

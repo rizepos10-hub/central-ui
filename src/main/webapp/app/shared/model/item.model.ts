@@ -21,9 +21,10 @@ export interface IItem {
     required?: boolean,
     addonGroup?: IAddonGroups
   }[];
+  excludedFromLoyaltyPoints?: boolean;
   status?: ItemStatus | null;
   variants?: any;
-  visibility?: IVisibility;
+  visibility?: IVisibility[] | null;
   attachments?: IAttachment[] | null;
   terms?: ITerm[] | null;
   accountingGroups?: IAccountingGroups[] | null;

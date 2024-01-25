@@ -1,19 +1,22 @@
 {
   "home": {
     "title": "أهلا وسهلا بك، جافا هبستر!",
-    "subtitle": "هذه صفحتك الرئيسية",
-    "logged": {
-      "message": "قمت بتسجيل الدخول كمستخدم \"{{username}}\"."
-    },
-    "question": "إذا كان لديك أي سؤال حول JHipster:",
-    "link": {
-      "homepage": "JHipster homepage",
-      "stackoverflow": "JHipster on Stack Overflow",
-      "bugtracker": "JHipster bug tracker",
-      "chat": "JHipster public chat room",
-      "follow": "follow @jhipster on Twitter"
-    },
-    "like": "إذا كنت تحب JHipster، لا تنسى أن تعطي لنا نجم على",
-    "github": "GitHub"
+    "sales": "المبيعات",
+    "revenue": "الأرباح",
+    "visitors": "الزائرون",
+    "stock": "Stock",
+    "revenueOverview": "Revenue Overview",
+    "salesByCategory": "Sales by Category",
+    "recentSales": "Recent Sales",
+    "topProducts": "Top Products",
+    "table": {
+      "name": "Name",
+      "category": "Category",
+      "price": "Price",
+      "status": "Status",
+      "emptyMessage": "No Products Found",
+      "search": "Search",
+      "export": "Export"
+    }
   }
 }

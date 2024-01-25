@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchTopCustomers, fetchTopItems } from 'app/modules/analytics/api';
 import {Col, ListGroup, ListGroupItem, Row} from "reactstrap";
+import {Translate} from "react-jhipster";
 
 const TopItems = () => {
   const [bestSellers, setBestSellers] = useState([]);
@@ -24,7 +25,7 @@ const TopItems = () => {
         <div className="col-lg-6 mb-4">
           <div className="card h-100 shadow" >
             <div className="card-body">
-              <h4 className="card-title">Best Sellers</h4>
+              <h4 className="card-title"><Translate contentKey={'analytics.topItems.title'}>Best Sellers</Translate></h4>
 
               <ListGroup>
 
@@ -32,16 +33,16 @@ const TopItems = () => {
                     <ListGroupItem>
                       <Row>
                         <Col xs="3">
-                          <strong>Name</strong>
+                          <strong><Translate contentKey={'analytics.topItems.name'}>Name</Translate></strong>
                         </Col>
                         <Col xs="3">
-                          <strong>Variant</strong>
+                          <strong><Translate contentKey={'analytics.topItems.variant'}>Variant</Translate></strong>
                         </Col>
                         <Col xs="3">
-                          <strong>Order Count</strong>
+                          <strong><Translate contentKey={'analytics.topItems.count'}>Order Count</Translate></strong>
                         </Col>
                         <Col xs="3">
-                          <strong>Image</strong>
+                          <strong><Translate contentKey={'analytics.topItems.image'}>Image</Translate></strong>
                         </Col>
                       </Row>
                     </ListGroupItem>}
@@ -86,19 +87,19 @@ const TopItems = () => {
         <div className="col-lg-6 mb-4">
           <div className="card h-100 shadow">
             <div className="card-body">
-              <h4 className="card-title">Best Customers</h4>
+              <h4 className="card-title"><Translate contentKey={'analytics.bestCustomers.title'}>Best Customers</Translate></h4>
                 <ListGroup>
                 {bestCustomers &&
                   <ListGroupItem>
                     <Row>
                       <Col xs="3">
-                        <strong>Customer Name</strong>
+                        <strong><Translate contentKey={'analytics.bestCustomers.name'}>Customer Name</Translate></strong>
                       </Col>
                       <Col xs="3">
-                        <strong>Orders</strong>
+                        <strong><Translate contentKey={'analytics.bestCustomers.orders'}>Orders</Translate></strong>
                       </Col>
                       <Col xs="3">
-                        <strong>Phone Number
+                        <strong><Translate contentKey={'analytics.bestCustomers.phone'}>Phone Number</Translate>
                         </strong>
                       </Col>
 

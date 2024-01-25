@@ -7,6 +7,7 @@ import {format, addDays, addMonths} from 'date-fns';
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {Dropdown} from "primereact/dropdown";
 import {SourceType} from "app/shared/model/enumerations/source-type.model";
+import {translate, Translate} from "react-jhipster";
 const SalesSummaryReport = () => {
 
   const  dispatch = useAppDispatch()
@@ -188,22 +189,22 @@ const SalesSummaryReport = () => {
     <div className="container mt-5">
         <div className="text-center">
           <h2>Pos Business 10</h2>
-          <h4>Sales Summary Report</h4>
-          <p>Location: Random Location</p>
+          <h4><Translate contentKey={'analytics.summary.report.title'}>Sales Summary Report</Translate></h4>
+          <p><Translate contentKey={'analytics.report.location'} interpolate={{location: "Random Location"}}>Location: Random Location</Translate></p>
           <form onSubmit={handleSubmit}>
             <div className="row mb-3">
               <div className="col-md-6">
-                <label htmlFor="fromDate" className="form-label fw-bold">From Date</label>
+                <label htmlFor="fromDate" className="form-label fw-bold"><Translate contentKey={'analytics.summary.fromDate'}>From Date</Translate></label>
                 <input type="date" id="fromDate" className="form-control" value={fromDate} onChange={handleFromDateChange} />
               </div>
               <div className="col-md-6">
-                <label htmlFor="fromDate" className="form-label fw-bold">To Date</label>
+                <label htmlFor="fromDate" className="form-label fw-bold"><Translate contentKey={'analytics.summary.toDate'}>To Date</Translate></label>
 
                 <input type="date" id="toDate" className="form-control" value={toDate} onChange={handleToDateChange} />
               </div>
             </div>
             <div className="text-center">
-              <button type="submit" className="btn btn-primary" >Get Report</button>
+              <button type="submit" className="btn btn-primary" ><Translate contentKey={'analytics.summary.buttons.getReport'}>Get Report</Translate></button>
             </div>
             <div className="d-flex  justify-content-start gap-5 ">
               <Dropdown
@@ -211,7 +212,7 @@ const SalesSummaryReport = () => {
                 value={selectedSource}
                 options={sourceTypeOptions}
                 onChange={(e) => setSelectedSource(e.value)}
-                placeholder="Select a source"
+                placeholder={translate('analytics.summary.select.source')}
               />
               <Dropdown
                 style={{minWidth: '7rem'}}
@@ -219,7 +220,7 @@ const SalesSummaryReport = () => {
                 value={selectedBranch}
                 options={filteredBranchOptions}
                 onChange={(e) => setSelectedBranch(e.value)}
-                placeholder="Select a branch"
+                placeholder={translate('analytics.summary.select.branch')}
               />
             </div>
             <div className="d-flex justify-content-end gap-3">
@@ -228,34 +229,34 @@ const SalesSummaryReport = () => {
                 className="btn btn-primary"
                 onClick={fetchLastWeekData}
               >
-                Last Week
+                <Translate contentKey={'analytics.summary.buttons.lastWeek'}>Last Week</Translate>
               </button>
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={fetchLastTwoWeeksData}
               >
-                Last Two Weeks
+                <Translate contentKey={'analytics.summary.buttons.lastTwoWeeks'}>Last Two Weeks</Translate>
               </button>
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={fetchLastMonthData}
               >
-                Last Month
+                <Translate contentKey={'analytics.summary.buttons.lastMonth'}>Last Month</Translate>
               </button>
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={fetchLastThreeMonthsData}
               >
-                Last 3 Months
+                <Translate contentKey={'analytics.summary.buttons.lastThreeMonths'}>Last 3 Months</Translate>
               </button>
             </div>
           </form>
 
         </div>
-        <SalesSection title="Total Sales" data={salesData.totalSales} isTotalSales={true}/>
+        <SalesSection title={translate('analytics.report.totalSales')} data={salesData.totalSales} isTotalSales={true}/>
 
         <div className="row mt-5">
           <div className="col-md-12">
@@ -263,11 +264,11 @@ const SalesSummaryReport = () => {
             <table className="table table-bordered table-lg">
               <thead>
               <tr className="bg-light">
-                <th>PAYMENT</th>
-                <th>TIP</th>
-                <th>AMOUNT</th>
-                <th>REFUND</th>
-                <th>RECEIVED</th>
+                <th><Translate contentKey={'analytics.report.payment'}>PAYMENT</Translate></th>
+                <th><Translate contentKey={'analytics.report.tip'}>TIP</Translate></th>
+                <th><Translate contentKey={'analytics.report.amount'}>AMOUNT</Translate></th>
+                <th><Translate contentKey={'analytics.report.refund'}>REFUND</Translate></th>
+                <th><Translate contentKey={'analytics.report.received'}>RECEIVED</Translate></th>
               </tr>
               </thead>
               <tbody>
@@ -281,7 +282,7 @@ const SalesSummaryReport = () => {
                 </tr>
               ))}
               <tr>
-                <td>Total</td>
+                <td><Translate contentKey={'analytics.report.total'}>TOTAL</Translate></td>
                 <td
                   className="text-end p-4">{`$ ${calculateTotal(salesData.totalReceived?.map((item) => item.tip + 0))?.toFixed(2)}`}</td>
                 <td
@@ -295,9 +296,9 @@ const SalesSummaryReport = () => {
             </table>
           </div>
         </div>
-        <SalesSection title="DineIn" data={salesData.totalSalesByOrderOption?.DineIn}/>
-        <SalesSection title="PickUp" data={salesData.totalSalesByOrderOption?.PickUp}/>
-        <SalesSection title="Delivery" data={salesData.totalSalesByOrderOption?.Delivery}/>
+        <SalesSection title={translate('analytics.report.dineIn')} data={salesData.totalSalesByOrderOption?.DineIn}/>
+        <SalesSection title={translate('analytics.report.pickUp')} data={salesData.totalSalesByOrderOption?.PickUp}/>
+        <SalesSection title={translate('analytics.report.delivery')} data={salesData.totalSalesByOrderOption?.Delivery}/>
 
      </div>
   );

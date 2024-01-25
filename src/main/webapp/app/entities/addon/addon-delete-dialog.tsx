@@ -42,10 +42,10 @@ export const AddonDeleteDialog = () => {
   return (
     <Modal isOpen toggle={handleClose}>
       <ModalHeader toggle={handleClose} data-cy="addonDeleteDialogHeading">
-        <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
+        <Translate contentKey="addons.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="tempApp.addon.delete.question">
-        <Translate contentKey="tempApp.addon.delete.question" interpolate={{ id: addonEntity.id }}>
+      <ModalBody id="addons.delete.question">
+        <Translate contentKey="addons.delete.question" interpolate={{ id: addonEntity.id }}>
           Are you sure you want to delete this Addon?
         </Translate>
       </ModalBody>
@@ -53,12 +53,12 @@ export const AddonDeleteDialog = () => {
         <Button color="secondary" onClick={handleClose}>
           <FontAwesomeIcon icon="ban" />
           &nbsp;
-          <Translate contentKey="entity.action.cancel">Cancel</Translate>
+          <Translate contentKey="common.buttons.cancel">Cancel</Translate>
         </Button>
         <Button id="jhi-confirm-delete-addon" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
           <FontAwesomeIcon icon="trash" />
           &nbsp;
-          <Translate contentKey="entity.action.delete">Delete</Translate>
+          <Translate contentKey="common.buttons.delete">Delete</Translate>
         </Button>
       </ModalFooter>
     </Modal>

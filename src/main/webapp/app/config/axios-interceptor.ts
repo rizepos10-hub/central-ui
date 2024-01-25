@@ -57,24 +57,48 @@ const setupAxiosInterceptors = onUnauthenticated => {
 
   const onResponseSuccess = response => response;
 
+  // const onResponseError = async err => {
+  //   const status = err.status || (err.response ? err.response.status : 0);
+  //
+  //   if (status === 403 || status === 401) {
+  //     if (!refreshPromise) {
+  //       refreshPromise = refreshAccessToken();
+  //     }
+  //       const newAccessToken = await refreshPromise;
+  //       if (newAccessToken) {
+  //         err.config.headers.Authorization = `Bearer ${newAccessToken}`;
+  //         return axios(err.config);
+  //       }else{
+  //         onUnauthenticated();
+  //       }
+  //       refreshPromise = null;
+  //   }
+  //   return Promise.reject(err);
+  // };
+
   const onResponseError = async err => {
     const status = err.status || (err.response ? err.response.status : 0);
 
-    if (status === 403 || status === 401) {
-      if (!refreshPromise) {
-        refreshPromise = refreshAccessToken();
-      }
-        const newAccessToken = await refreshPromise;
-        if (newAccessToken) {
-          err.config.headers.Authorization = `Bearer ${newAccessToken}`;
-          return axios(err.config);
-        }else{
-          onUnauthenticated();
+    if ((status === 403 || status === 401) && !refreshPromise) {
+      refreshPromise = refreshAccessToken();
+
+      if (refreshPromise) {
+        try {
+          const newAccessToken = await refreshPromise;
+          if (newAccessToken) {
+            err.config.headers.Authorization = `Bearer ${newAccessToken}`;
+            return axios(err.config);
+          } else {
+            onUnauthenticated();
+          }
+        } finally {
+          refreshPromise = null;
         }
-        refreshPromise = null;
+      }
     }
     return Promise.reject(err);
   };
+
 
   axios.interceptors.request.use(onRequestSuccess);
   axios.interceptors.response.use(onResponseSuccess, onResponseError);

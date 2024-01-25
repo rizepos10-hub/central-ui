@@ -16,6 +16,7 @@ const initialState: EntityState<IPredefinedPizza> = {
 };
 
 const apiUrl = 'api/pizza/predefined-pizzas';
+const forItemApiUrl = 'api/pizza/predefined-pizzas/available'
 
 // Actions
 
@@ -23,6 +24,13 @@ export const getEntities = createAsyncThunk('predefinedPizza/fetch_entity_list',
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IPredefinedPizza[]>(requestUrl);
 });
+
+export const getEntitiesForPizzaItem = createAsyncThunk('predefinedPizza/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+  const requestUrl = `${forItemApiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+  return axios.get<IPredefinedPizza[]>(requestUrl);
+});
+
+
 
 export const getEntity = createAsyncThunk(
   'predefinedPizza/fetch_entity',
@@ -100,13 +108,23 @@ export const PredefinedPizzaSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
+      .addMatcher(isFulfilled(getEntitiesForPizzaItem), (state, action) => {
+        const { data, headers } = action.payload;
+
+        return {
+          ...state,
+          loading: false,
+          entities: data,
+          totalItems: parseInt(headers['x-total-count'], 10),
+        };
+      })
       .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity), state => {
+      .addMatcher(isPending(getEntities, getEntity,getEntitiesForPizzaItem), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

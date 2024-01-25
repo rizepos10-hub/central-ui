@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, Spinner, FormGroup, Table, FormText} from 'reactstrap';
+import {Button, Row, Col, Spinner, FormGroup, Table, FormText, Card, CardBody} from 'reactstrap';
 import {getSortState, translate, Translate, ValidatedField} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -28,6 +28,8 @@ import AsyncSelect from "react-select/async";
 import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
 import {isEqual} from "lodash";
+import Visibility from 'app/shared/Visibility/Visibility';
+import {TabPanel, TabView} from "primereact/tabview";
 
 
 
@@ -408,209 +410,221 @@ export const VariableItemUpdate = () => {
     return <Spinner />
   }
 
-  console.log(variableItem, 'variableItemvariableItem')
-
-
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>
-            {isNew ? "Create New Variable Item" : `Edit Variable Item`}
-          </h2>
-        </Col>
-      </Row>
+    <form onSubmit={saveEntity}>
+      <Card>
+        <CardBody>
+          <Row>
+            <Col md={10}>
+              <TabView>
+                <TabPanel header={'Details'}>
+                  <Row>
+                    <Col md="8">
+                      <h2>
+                        {isNew ? "Create New Variable Item" : `Edit Variable Item`}
+                      </h2>
+                    </Col>
+                  </Row>
 
-      <Row>
-        <form onSubmit={saveEntity}>
-          <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
+                  <Row>
 
-            <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                    <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
 
-              <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange}/>
+                      <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
 
-              <Row className={"mb-3"} >
+                        <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange}/>
 
-                <Row>
-                  <Col md="4">
-                    <div className={"d-flex flex-column gap-2"}>
-                      <label className={"text-xl font-bold"}>
-                        Select Attribute
-                      </label>
-                      <Select
-                        value={itemAttribute?.attributeTax || null}
-                        options={filteredAvailableAttributes()}
-                        getOptionValue={option => option.id}
-                        getOptionLabel={option => option.name}
-                        onChange={(attribute) => handleItemAttributeSelect(attribute)}
-                      />
-                    </div>
-                  </Col>
+                        <Row className={"mb-3"} >
 
-
-                  <Col md="3" >
-                    <Button color="primary" disabled={filteredAvailableAttributes().length === 0} className={"mt-5"} onClick={handleAddAttribute}>
-                      Add Attribute
-                    </Button>
-                  </Col>
-                  <Col md="5" className={"d-flex gap-3"}>
-
-                    <Button color="primary" className={"mt-5"} onClick={generateCombinations}>
-                      Generate Variants
-                    </Button>
-
-                    <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
-                      Add Single Variant
-                    </Button>
-                  </Col>
-                  <Col md={"8"} className={"mt-2"}>
-                    <Accordion multiple activeIndex={[0]}>
-                      {variableItem?.attributes?.map((attribute, index) => (
-                        <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
-                          <div className={"d-flex gap-3"}>
-                            <label className={"mt-2"}>Name: {attribute?.attributeTax?.name}</label>
-                            <Col md={"9"}>
-                              <AsyncSelect
-                                value={attribute?.attributeTerms}
-                                isMulti
-                                getOptionLabel={option => option.name}
-                                getOptionValue={option => option.id}
-                                onChange={(selectedOptions) => handleAttributeTermChange(index, selectedOptions)}
-                                isLoading={loadingAttributesValues}
-                                onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                                defaultOptions={attributeValuesList}
-                              />
-
-                            </Col>
-                          </div>
-                        </AccordionTab>
-                      ))}
-                    </Accordion>
-                    <Col md={"12"} className={"mt-2"}>
-                    <Row className={"mt-2"}>
-                      {variableItem?.variants?.map((variant, variantIndex) => (
-                        <Col md={"12"} key={variantIndex} className={"mt-2"}>
-                          <Accordion multiple  activeIndex={[0]}>
-                          <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
-                            <Row>
-
-                              <Col md="4">
-                                <div className={"d-flex flex-column gap-2 mt-2"}>
-                                  <label className={"text-xl font-bold"}>
-                                    Name
-                                  </label>
-                                  <InputText
-                                    name="variant-name"
-                                    id="name"
-                                    required={true}
-                                    placeholder="Variant Name"
-                                    value={variant?.name}
-                                    onChange={(e) => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
-                                  />
-                                </div>
-                              </Col>
-
+                          <Row>
                             <Col md="4">
-                              <div className={"d-flex flex-column gap-2 mt-2"}>
+                              <div className={"d-flex flex-column gap-2"}>
                                 <label className={"text-xl font-bold"}>
-                                  SKU
+                                  Select Attribute
                                 </label>
-                                <InputText
-                                  name="sku"
-                                  id="sku"
-                                  required={true}
-                                  placeholder="Item Sku"
-                                  value={variant?.sku}
-                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
+                                <Select
+                                  value={itemAttribute?.attributeTax || null}
+                                  options={filteredAvailableAttributes()}
+                                  getOptionValue={option => option.id}
+                                  getOptionLabel={option => option.name}
+                                  onChange={(attribute) => handleItemAttributeSelect(attribute)}
                                 />
                               </div>
                             </Col>
 
-                            <Col md="4">
-                              <div className={"d-flex flex-column gap-2 mt-2"}>
-                                <label className={"text-xl font-bold"}>
-                                  Price
-                                </label>
-                                <InputNumber
-                                  name="price"
-                                  id="price"
-                                  required={true}
-                                  placeholder="Item Price"
-                                  value={variant?.price}
-                                  maxFractionDigits={2}
-                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
-                                />
-                              </div>
-                            </Col>
 
-                            <Col md="4">
-                              <div className={"d-flex flex-column gap-2 mt-2"}>
-                                <label className={"text-xl font-bold"}>
-                                  Sale Price
-                                </label>
-                                <InputNumber
-                                  name="sale-price"
-                                  id="sale-price"
-                                  placeholder="Item Sale Price"
-                                  maxFractionDigits={2}
-                                  value={variant?.salePrice}
-                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
-                                />
-                              </div>
+                            <Col md="3" >
+                              <Button color="primary" disabled={filteredAvailableAttributes().length === 0} className={"mt-5"} onClick={handleAddAttribute}>
+                                Add Attribute
+                              </Button>
                             </Col>
-                            </Row>
-                            <Col md="12" className={"mt-3"}>
-                              <h4>Branch Prices</h4>
-                              <Table>
-                                <thead>
-                                <tr>
-                                  <th>Branch</th>
-                                  <th>Price</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {branchList.map(branch => (
-                                  <tr key={branch.id}>
-                                    <td>{branch.name}</td>
-                                    <td>
-                                      <ValidatedField
-                                        type="number"
-                                        name={`branchPrice_${branch.id}`}
-                                        placeholder={`Enter price for ${branch.name}`}
-                                        onWheel={(e: any) => e.target.blur()}
-                                        value={variant?.branchVariantDetails?.[branch.id]?.price}
-                                        onChange={e => handleBranchPriceChange(variantIndex,branch.id, e.target.value)}
-                                        validate={{
-                                          required: { value: true, message: translate('entity.validation.required') },
-                                        }}
-                                      />
-                                    </td>
-                                  </tr>
+                            <Col md="5" className={"d-flex gap-3"}>
+
+                              <Button color="primary" className={"mt-5"} onClick={generateCombinations}>
+                                Generate Variants
+                              </Button>
+
+                              <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
+                                Add Single Variant
+                              </Button>
+                            </Col>
+                            <Col md={"8"} className={"mt-2"}>
+                              <Accordion multiple activeIndex={[0]}>
+                                {variableItem?.attributes?.map((attribute, index) => (
+                                  <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
+                                    <div className={"d-flex gap-3"}>
+                                      <label className={"mt-2"}>Name: {attribute?.attributeTax?.name}</label>
+                                      <Col md={"9"}>
+                                        <AsyncSelect
+                                          value={attribute?.attributeTerms}
+                                          isMulti
+                                          getOptionLabel={option => option.name}
+                                          getOptionValue={option => option.id}
+                                          onChange={(selectedOptions) => handleAttributeTermChange(index, selectedOptions)}
+                                          isLoading={loadingAttributesValues}
+                                          onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                                          defaultOptions={attributeValuesList}
+                                        />
+
+                                      </Col>
+                                    </div>
+                                  </AccordionTab>
                                 ))}
-                                </tbody>
-                              </Table>
+                              </Accordion>
+                              <Col md={"12"} className={"mt-2"}>
+                                <Row className={"mt-2"}>
+                                  {variableItem?.variants?.map((variant, variantIndex) => (
+                                    <Col md={"12"} key={variantIndex} className={"mt-2"}>
+                                      <Accordion multiple  activeIndex={[0]}>
+                                        <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
+                                          <Row>
+
+                                            <Col md="4">
+                                              <div className={"d-flex flex-column gap-2 mt-2"}>
+                                                <label className={"text-xl font-bold"}>
+                                                  Name
+                                                </label>
+                                                <InputText
+                                                  name="variant-name"
+                                                  id="name"
+                                                  required={true}
+                                                  placeholder="Variant Name"
+                                                  value={variant?.name}
+                                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                                                />
+                                              </div>
+                                            </Col>
+
+                                            <Col md="4">
+                                              <div className={"d-flex flex-column gap-2 mt-2"}>
+                                                <label className={"text-xl font-bold"}>
+                                                  SKU
+                                                </label>
+                                                <InputText
+                                                  name="sku"
+                                                  id="sku"
+                                                  required={true}
+                                                  placeholder="Item Sku"
+                                                  value={variant?.sku}
+                                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
+                                                />
+                                              </div>
+                                            </Col>
+
+                                            <Col md="4">
+                                              <div className={"d-flex flex-column gap-2 mt-2"}>
+                                                <label className={"text-xl font-bold"}>
+                                                  Price
+                                                </label>
+                                                <InputNumber
+                                                  name="price"
+                                                  id="price"
+                                                  required={true}
+                                                  placeholder="Item Price"
+                                                  value={variant?.price}
+                                                  maxFractionDigits={2}
+                                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
+                                                />
+                                              </div>
+                                            </Col>
+
+                                            <Col md="4">
+                                              <div className={"d-flex flex-column gap-2 mt-2"}>
+                                                <label className={"text-xl font-bold"}>
+                                                  Sale Price
+                                                </label>
+                                                <InputNumber
+                                                  name="sale-price"
+                                                  id="sale-price"
+                                                  placeholder="Item Sale Price"
+                                                  maxFractionDigits={2}
+                                                  value={variant?.salePrice}
+                                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
+                                                />
+                                              </div>
+                                            </Col>
+                                          </Row>
+                                          <Col md="12" className={"mt-3"}>
+                                            <h4>Branch Prices</h4>
+                                            <Table>
+                                              <thead>
+                                              <tr>
+                                                <th>Branch</th>
+                                                <th>Price</th>
+                                              </tr>
+                                              </thead>
+                                              <tbody>
+                                              {branchList.map(branch => (
+                                                <tr key={branch.id}>
+                                                  <td>{branch.name}</td>
+                                                  <td>
+                                                    <InputNumber
+                                                      type="number"
+                                                      name={`branchPrice_${branch.id}`}
+                                                      placeholder={`Enter price for ${branch.name}`}
+                                                      onWheel={(e: any) => e.target.blur()}
+                                                      size={60}
+                                                      value={variant?.branchVariantDetails?.[branch.id]?.price}
+                                                      onChange={e => handleBranchPriceChange(variantIndex,branch.id, e.value)}
+                                                    />
+                                                  </td>
+                                                </tr>
+                                              ))}
+                                              </tbody>
+                                            </Table>
+                                          </Col>
+
+                                        </AccordionTab>
+                                      </Accordion>
+                                    </Col>
+                                  ))}
+                                </Row>
+                              </Col>
                             </Col>
-
-                          </AccordionTab>
-                          </Accordion>
-                        </Col>
-                      ))}
-                    </Row>
-                  </Col>
-                  </Col>
-                </Row>
-              </Row>
-
-
-
+                          </Row>
+                        </Row>
+                      </Col>
+                    </FormGroup>
+                  </Row>
+                </TabPanel>
+                <TabPanel header={'Visibility'}>
+                  <Visibility
+                    initialState={variableItem.visibility}
+                    onStateChanged={(visibility)=>setVariableItem(prev => {
+                      return {...prev, visibility}
+                    })}/>
+                </TabPanel>
+              </TabView>
+            </Col>
+            <Col md={2}>
               <div className={"d-flex"}>
                 <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"  replace
                         color="info">
                   <FontAwesomeIcon icon="arrow-left"/>
                   &nbsp;
                   <span className="d-none d-md-inline">
-                                  <Translate contentKey="entity.action.back">Back</Translate>
-                              </span>
+                                <Translate contentKey="entity.action.back">Back</Translate>
+                            </span>
                 </Button>
                 &nbsp;
                 <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
@@ -621,11 +635,10 @@ export const VariableItemUpdate = () => {
                 </Button>
               </div>
             </Col>
-          </FormGroup>
-        </form>
-
-      </Row>
-    </div>
+          </Row>
+        </CardBody>
+      </Card>
+    </form>
   );
 };
 
