@@ -132,7 +132,7 @@ export const VoidReasons = () => {
       </h2>
 
       <div >
-        <DataTable value={voidReasonsList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
+        <DataTable value={voidReasonsList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
             field="code" header="Code" filter
             body={codeColumnTemplate}

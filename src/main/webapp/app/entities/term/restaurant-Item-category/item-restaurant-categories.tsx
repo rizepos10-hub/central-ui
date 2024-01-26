@@ -167,7 +167,7 @@ export const ItemRestaurantCategories = () => {
       <div className="table-responsive">
         <DataTable value={categoryList} editMode="row" paginator header={header}
                    loading={loading} removableSort  filters={filters} filterDisplay="row"
-                   totalRecords={totalItems} rows={5}>
+                   totalRecords={totalItems} rows={20}>
           <Column field="name" header={translate("itemCategories.categories.table.fields.name")} filterPlaceholder={translate("itemCategories.categories.table.search.name")} filter sortable body={nameColumnTemplate} style={{ width: '20%' }} />
 
           <Column field="accountingGroups" header={translate("itemCategories.categories.table.fields.accountingGroups")} body={(rowData)=> rowData.accountingGroups.map((group)=> group.name)} filterPlaceholder={translate("itemCategories.categories.table.search.accountingGroups")} sortable  style={{ width: '20%' }} />

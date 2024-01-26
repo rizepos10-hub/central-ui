@@ -139,7 +139,7 @@ export const PrintingProfiles = () => {
       </h2>
 
       <div >
-        <DataTable value={printingProfilesList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
+        <DataTable value={printingProfilesList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
             field="name" header="Name" filter body={nameColumnTemplate}
             filterElement={ <InputText  placeholder="Search by Name" onChange={handleNameFilterChange}/> }

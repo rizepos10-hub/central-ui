@@ -143,7 +143,7 @@ export const MenuCategories = () => {
       <div className="table-responsive">
         <DataTable value={menuCategoryList} editMode="row" header={header}
                    loading={loading} removableSort filters={filters} filterDisplay="row"
-                   paginator totalRecords={totalItems} rows={5}>
+                   paginator totalRecords={totalItems} rows={20}>
           <Column field="name" sortable header="Name" filterPlaceholder={"Search by name"}  filter body={nameColumnTemplate} style={{ width: '20%' }} />
 
           <Column header="Image"  body={(rowData) =>

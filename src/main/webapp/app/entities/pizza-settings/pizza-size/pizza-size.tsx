@@ -147,7 +147,7 @@ export const PizzaSize = () => {
           filterDisplay="row"
           paginator
           totalRecords={totalItems}
-          rows={5}
+          rows={20}
         >
           <Column rowReorder className={"w-2rem py-5"} />
           <Column field="name"  header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />

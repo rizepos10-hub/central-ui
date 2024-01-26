@@ -152,7 +152,7 @@ export const OpenedOrders = ({openedOrders}) => {
             dataKey="id"
             paginator
             first={lazyState.first}
-            rows={10}
+            rows={20}
             totalRecords={totalOrders}
             filters={lazyState.filters}
             onFilter={onFilter}

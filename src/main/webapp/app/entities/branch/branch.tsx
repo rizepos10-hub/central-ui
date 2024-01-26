@@ -130,7 +130,7 @@ export const Branch = () => {
       </h2>
 
       <div className="table-responsive">
-        <DataTable value={branchList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={5}>
+        <DataTable value={branchList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={20}>
           <Column field="name" header="Name" sortable body={nameColumnTemplate} />
           <Column field="numberOfEmployees" sortable header="Employees"  />
 

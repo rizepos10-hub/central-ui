@@ -172,7 +172,8 @@ export const ComboItem = () => {
       </h2>
 
       <div >
-        <DataTable loading={loading} value={comboItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
+        <DataTable loading={loading} value={comboItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
+                   rows={20}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
           <Column header="Image"  body={(rowData) =>
             <ImageDisplay
