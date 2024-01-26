@@ -6,6 +6,7 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import {Link} from "react-router-dom";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {translate, Translate} from "react-jhipster";
 
 
 export const LoyaltyRecords = () => {
@@ -168,7 +169,7 @@ export const LoyaltyRecords = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Loyalty Records</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'loyalty.view.table.title'}>Loyalty Records</Translate></span>
     </div>
   );
 
@@ -207,50 +208,50 @@ export const LoyaltyRecords = () => {
         >
           <Column
             field="customer.email"
-            header="Email"
+            header={translate('loyalty.view.table.fields.email')}
             // sortable
             filter
-            filterPlaceholder="Search"
+            filterPlaceholder={translate('loyalty.view.table.search.search')}
             body={(rowData)=>{return rowData.customer?.email}}
             headerStyle={{ minWidth: '12rem' }}
           />
           <Column
             field="customer.firstName"
-            header="First Name"
+            header={translate('loyalty.view.table.fields.firstName')}
             body={(rowData)=>{return rowData.customer?.firstName}}
             // sortable
             filter
-            filterPlaceholder="Search"
+            filterPlaceholder={translate('loyalty.view.table.search.search')}
             headerStyle={{ minWidth: '12rem' }}
           />
           <Column
             field="customer.lastName"
-            header="Last Name"
+            header={translate('loyalty.view.table.fields.lastName')}
             body={(rowData)=>{return rowData.customer?.lastName}}
             // sortable
             filter
-            filterPlaceholder="Search"
+            filterPlaceholder={translate('loyalty.view.table.search.search')}
             headerStyle={{ minWidth: '12rem' }}
           />
           <Column
             field="customer.phone"
-            header="Phone Number"
+            header={translate('loyalty.view.table.fields.phone')}
             filter
-            filterPlaceholder="Search"
+            filterPlaceholder={translate('loyalty.view.table.search.search')}
             body={(rowData)=>{return rowData.customer?.phone}}
             // sortable
             headerStyle={{ minWidth: '12rem' }}
           />
           <Column
             field="points"
-            header="Points"
+            header={translate('loyalty.view.table.fields.points')}
             // sortable
             filter
-            filterPlaceholder="Search"
+            filterPlaceholder={translate('loyalty.view.table.search.search')}
             showFilterMenu={false}
             headerStyle={{ minWidth: '12rem' }}
           />
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('loyalty.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
         </DataTable>
       </div>

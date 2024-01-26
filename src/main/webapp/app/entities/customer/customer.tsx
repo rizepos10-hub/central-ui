@@ -199,13 +199,13 @@ export const Customer = () => {
   console.log(customerList, 'customerList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Customers</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'customers.view.table.title'}>Customers</Translate></span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate('customers.view.table.buttons.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Customer" raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate('customers.view.table.buttons.createNewCustomer')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -217,8 +217,7 @@ export const Customer = () => {
   return (
     <div>
       <h2 >
-    Customers View
-
+        <Translate contentKey={'customers.view.title'}>Customers View</Translate>
       </h2>
 
       <div >
@@ -226,18 +225,18 @@ export const Customer = () => {
                    filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
 
           <Column
-            field="name" header="Name" filter
-            filterElement={ <InputText  placeholder="Search by name" onChange={handleNameFilterChange}/> }
+            field="name" header={translate('customers.view.table.fields.name')} filter
+            filterElement={ <InputText  placeholder={translate('customers.view.table.search.name')} onChange={handleNameFilterChange}/> }
             filterField="name" body={nameColumnTemplate} sortable
           />
 
-          <Column field="email" header="Email" filter filterPlaceholder="Search by email"  sortable   />
-          <Column field="phone" header="Phone Number"  filter filterPlaceholder="Search by phone number"  sortable  />
+          <Column field="email" header={translate('customers.view.table.fields.email')} filter filterPlaceholder={translate('customers.view.table.search.email')}  sortable   />
+          <Column field="phone" header={translate('customers.view.table.fields.phone')}  filter filterPlaceholder={translate('customers.view.table.search.phone')}  sortable  />
 
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('customers.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('customers.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 

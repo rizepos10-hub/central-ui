@@ -3,7 +3,7 @@ import {InputNumber} from "primereact/inputnumber";
 import {Button} from "reactstrap";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {Translate} from "react-jhipster";
+import {translate, Translate} from "react-jhipster";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {getEntity, updateEntities} from "app/entities/loyalty/loyalty-records.reducer";
 
@@ -43,25 +43,25 @@ export const LoyaltyUpdate = () => {
     <>
       <form onSubmit={onSave}>
         <div className="flex flex-column gap-5">
-          <h2>Edit Loyalty Points</h2>
+          <h2><Translate contentKey={'loyalty.update.title'}>Edit Loyalty Points</Translate></h2>
           {loading? (
             <p>Loading...</p>
           ) : (
             <>
               <div>
                 <div>
-                  <label className="font-bold block mb-2">Name</label>
+                  <label className="font-bold block mb-2"><Translate contentKey={'loyalty.update.name'}>Name</Translate></label>
                   <p>{record.customer?.firstName} {record.customer?.lastName}</p>
                 </div>
                 &nbsp;
                 <div>
-                  <label className="font-bold block mb-2">Email</label>
+                  <label className="font-bold block mb-2"><Translate contentKey={'loyalty.update.email'}>Email</Translate></label>
                   <p>{record.customer?.email}</p>
                 </div>
               </div>
               <div>
-                <label htmlFor="points" className="font-bold block mb-2">Points</label>
-                <InputNumber inputId='points' placeholder="Points" minFractionDigits={2} maxFractionDigits={5} showButtons onChange={handlePointsChange} value={points}/>
+                <label htmlFor="points" className="font-bold block mb-2"><Translate contentKey={'loyalty.update.points'}>Points</Translate></label>
+                <InputNumber inputId='points' placeholder={translate('loyalty.update.points')} minFractionDigits={2} maxFractionDigits={5} showButtons onChange={handlePointsChange} value={points}/>
               </div>
 
               <div>
