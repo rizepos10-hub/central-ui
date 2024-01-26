@@ -138,7 +138,7 @@ export const User = () => {
       <div >
         <DataTable value={modifiedUserList} editMode="row" header={header}  paginator
                    globalFilterFields={['firstName', 'lastName' ]} loading={loading}
-                   filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
+                   filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
             field="name" header={translate("backOfficeUsers.user.table.fields.name")} filter
             filterElement={ <InputText  placeholder={translate("backOfficeUsers.user.table.search.name")} onChange={handleNameFilterChange}/> }

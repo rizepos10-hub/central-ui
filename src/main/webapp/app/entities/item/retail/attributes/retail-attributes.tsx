@@ -148,7 +148,8 @@ export const RetailAttributes = () => {
       <Row>
 
         <Col md={"12"}>
-        <DataTable value={retailAttributeList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
+        <DataTable value={retailAttributeList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
+                   rows={20}>
           <Column field="name" header={translate('retailAttributes.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('retailAttributes.view.table.search.name')}  sortable  />
 
 

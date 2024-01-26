@@ -159,7 +159,7 @@ export const Tax = () => {
       </h2>
 
       <div >
-        <DataTable value={taxList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
+        <DataTable value={taxList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
             field="code" header="Code" filter
             body={codeColumnTemplate}

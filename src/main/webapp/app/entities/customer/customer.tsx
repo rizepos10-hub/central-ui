@@ -223,7 +223,7 @@ export const Customer = () => {
 
       <div >
         <DataTable value={modifiedCustomerList} editMode="row" header={header}  paginator
-                   filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
+                   filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
 
           <Column
             field="name" header="Name" filter
