@@ -2,7 +2,7 @@ import {ICurrency} from "app/shared/model/currency.model";
 import {IBranch} from "app/shared/model/branch.model";
 
 interface exchangeRate {
-  currency?: string;
+  currency?: ICurrency;
   rate?: number;
 }
 

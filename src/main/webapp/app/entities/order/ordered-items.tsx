@@ -68,7 +68,6 @@ console.log(totalPayments, 'totalPayments')
   console.log(items, 'items')
     return (
       <div >
-         <h4> <strong>Items</strong></h4>
 
           <div>
             {list && list.length > 0 ? (

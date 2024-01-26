@@ -468,7 +468,7 @@ export const VariableItemUpdate = () => {
                                 Add Single Variant
                               </Button>
                             </Col>
-                            <Col md={"8"} className={"mt-2"}>
+                            <Col md={"12"} className={"mt-2"}>
                               <Accordion multiple activeIndex={[0]}>
                                 {variableItem?.attributes?.map((attribute, index) => (
                                   <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
@@ -491,6 +491,7 @@ export const VariableItemUpdate = () => {
                                   </AccordionTab>
                                 ))}
                               </Accordion>
+
                               <Col md={"12"} className={"mt-2"}>
                                 <Row className={"mt-2"}>
                                   {variableItem?.variants?.map((variant, variantIndex) => (

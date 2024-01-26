@@ -39,6 +39,7 @@ export const Order = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState(null);
 
+  const navigate = useNavigate();
 
   const [dates, setDates] = useState<string | Date | Date[] | null>(null);
 
@@ -277,10 +278,8 @@ console.log(orderList.length, 'len')
               removableSort
               loading={loading}
               tableStyle={{ minWidth: '75rem' , alignContent: 'center'}}
-              selection={selectedOrders}
-              onSelectionChange={onSelectionChange}
-              // selectAll={selectAll}
-              // onSelectAllChange={onSelectAllChange}
+              selectionMode="single"
+              onSelectionChange={(e:any) => navigate(`/order/${e.value.id}`)}
             >
               {/* <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} /> */}
               <Column

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import {Button, Row, Col, Card} from 'reactstrap';
+import {Button, Row, Col, Card, Spinner} from 'reactstrap';
 import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -17,6 +17,7 @@ export const OrderDetail = () => {
 
   const { id } = useParams<'id'>();
   const orderEntity = useAppSelector(state => state.order.entity);
+  const loading = useAppSelector(state => state.order.loading);
   const filteredOrderEntity = {
     ...orderEntity,
     items: orderEntity.items && Array.isArray(orderEntity.items)
@@ -42,45 +43,38 @@ export const OrderDetail = () => {
   }, 0);
 
   const totalItemsPrice = subtotal - totalDiscounts;
-
   const totalPaymentAmount = filteredOrderEntity?.bills?.reduce((total, bill) => {
     const billPaymentTotal = bill.paymentTransactions.filter((payment) => payment.returnType !== "refund").reduce(
       (acc, transaction) => {
         const transactionAmount = transaction.amount ? transaction.amount : 0;
-        console.log(`Transaction amount: ${transactionAmount}`);
         return acc + transactionAmount;
       },
       0
     );
 
-    console.log(`Bill payment total: ${billPaymentTotal}`);
+
 
     return total + billPaymentTotal;
   }, 0);
 
-  console.log(`Total payment amount: ${totalPaymentAmount}`);
-
-
-
-  console.log(orderEntity.bills, 'orderEntityorderEntity')
-  console.log(totalItemsPrice, 'totalItemsPrice')
-
-  console.log(totalPaymentAmount, 'totalPaymentAmount')
-
+  if(loading){
+    return <Spinner />;
+  }
 
   return (
     <Row>
-      <h2 className="mb-3">
+      <h3 className="mb-3">
         Order <span className="text-primary">#{filteredOrderEntity.sequenceNumber}</span>
-      </h2>
+      </h3>
       <Col md="12" className="d-flex flex-wrap ">
-        <Card>
+        <Card className={"w-full"}>
 
               <div className="d-flex flex-grow-1 gap-2">
 
-                <Col md="9">
+                <Col md="9" >
+                  <h3> <strong>Items</strong></h3>
 
-                    <div>{orderEntity?.items ? <OrderedItems list={filteredOrderEntity.items} totalPayments={totalPaymentAmount} /> : ''}</div>
+                    <div >{orderEntity?.items ? <OrderedItems list={filteredOrderEntity.items} totalPayments={totalPaymentAmount} /> : null}</div>
                 </Col>
 
                 <Col md="3" className="mt-3">
@@ -108,14 +102,15 @@ export const OrderDetail = () => {
                     )}
                 </Col>
 
-</div>
+          </div>
         </Card>
-        <div className="">
+        <div className="w-full">
 
         <Col md="12" className="mt-lg-5">
-
-
+          <Card className="mb-3">
+            <h3> <strong>Bills</strong></h3>
           {filteredOrderEntity.bills && <OrderBill orderedItems={filteredOrderEntity?.items} list={filteredOrderEntity?.bills}></OrderBill> }
+          </Card>
         </Col>
         </div>
       </Col>

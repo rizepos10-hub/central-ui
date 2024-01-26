@@ -33,7 +33,7 @@ interface LazyTableState {
 
 export const Order = () => {
   const dispatch = useAppDispatch();
-
+  const navigate = useNavigate();
   const today = new Date();
 
   const from = startOfDay(today);
@@ -101,12 +101,6 @@ export const Order = () => {
 
 
 
-  const onSelectionChange = (event) => {
-    const value = event.value;
-
-    setSelectedOrders(value);
-    setSelectAll(value.length === orderList.length);
-  };
 
 
   const onFilter = (event) => {
@@ -200,8 +194,9 @@ export const Order = () => {
             removableSort
             emptyMessage="No Orders Found"
             tableStyle={{ minWidth: '75rem' , alignContent: 'center'}}
-            selection={selectedOrders}
-            onSelectionChange={onSelectionChange}
+            selectionMode="single"
+            onSelectionChange={(e:any) => navigate(`/order/${e.value.id}`)}
+
           >
             <Column
               field="id"

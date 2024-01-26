@@ -12,12 +12,12 @@ import {Dropdown, DropdownChangeEvent} from "primereact/dropdown";
 import {ICurrencySettings} from "app/shared/model/currencySettings.model";
 import {ICurrency} from "app/shared/model/currency.model";
 import {InputNumber} from "primereact/inputnumber";
-import {Col, Row, Table} from "reactstrap";
+import {Alert, Col, Row, Table} from "reactstrap";
 import {Button} from "primereact/button";
 import Select from "react-select";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {IBranch} from "app/shared/model/branch.model";
-import {getEntity, updateEntity} from "app/entities/settings/currencySettings/currency-settings.reducer";
+import {getEntity, updateEntity} from "app/entities/settings/currency-settings/currency-settings.reducer";
 
 
 export const CurrencySettings = () => {
@@ -35,22 +35,28 @@ export const CurrencySettings = () => {
   const loading = useAppSelector(state => state.currencySettings.loading);
 
 
+  const [defaultCurrency, setDefaultCurrency] = useState<ICurrency>(null)
   const [currencySettings, setCurrencySettings] = useState<ICurrencySettings>({
     exchangeRates: [],
   });
 
-  const currencyMap: Map<string, ICurrency> = new Map((currencies || []).map(currency => [currency.code, currency]));
 
   const exchangeRatesArray = currencySettings?.exchangeRates || [];
   const currenciesSet = new Set(exchangeRatesArray.map(option => option.currency));
 
-  const filteredExchangeCurrencies = currencies?.filter(option => !currenciesSet.has(option.code));
-
-  const filteredDisplayCurrencies = currencies?.filter(option => currenciesSet.has(option.code));
+  const filteredExchangeCurrencies =  currencies?.filter(currency => !currenciesSet.has(currency));
 
 
+  console.log(currencySettings, 'currencySettings')
 
+  const handleSetDefaultCurrency = () => {
+    const isConfirmed = window.confirm("Attention! Default Currency Cannot Be Changed After Now!");
 
+    if (isConfirmed) {
+      handleCurrencyChange(defaultCurrency, "defaultCurrency");
+    }
+
+  }
 
   const handleAddExchangeRate = () => {
     setCurrencySettings((prevSettings) => {
@@ -66,7 +72,7 @@ export const CurrencySettings = () => {
     });
   };
 
-  const handleExchangeRateChange = (index: number, field: string, value: string | number) => {
+  const handleExchangeRateChange = (index: number, field: string, value: ICurrency | number) => {
     setCurrencySettings((prevSettings) => {
       const updatedExchangeRates = [...prevSettings.exchangeRates];
       updatedExchangeRates[index] = { ...updatedExchangeRates[index], [field]: value };
@@ -164,22 +170,31 @@ export const CurrencySettings = () => {
       </Row>
   <Row>
     <Col md="8"  className="d-flex flex-column p-3 gap-5  bg-white">
+      <Alert className={"alert-warning"}>Kindly be advised that after the implementation of the default currency, any alterations or modifications become permanent and cannot be reversed.</Alert>
       <div className={"d-flex gap-2 w-auto"}>
         <label className={"text-xl mt-2 font-bold"}>
           Default Currency:
         </label>
       <Select
-        value={currencySettings?.defaultCurrency}
-        onChange={(currency) => handleCurrencyChange(currency, "defaultCurrency")}
+        value={currencySettings?.defaultCurrency ?? defaultCurrency}
         options={currencies}
         placeholder="Select a Currency"
         isDisabled={currencySettings?.defaultCurrency !== null}
+        onChange={(currency) => setDefaultCurrency(currency)}
         getOptionLabel={option => option.name}
         getOptionValue={option => option.code}
       />
+        {currencySettings?.defaultCurrency === null ?
+          <Button
+            raised
+            disabled={defaultCurrency === null}
+            onClick={handleSetDefaultCurrency}>
+            Set Default Currency
+          </Button>: null}
+
     </div>
 
-    <div className={"d-flex gap-2 w-auto"}>
+    <div className={"d-flex gap-2 w-auto"} >
         <label className={"text-xl mt-2 font-bold"}>
         Display Currency:
       </label>
@@ -187,8 +202,14 @@ export const CurrencySettings = () => {
       <Select
         value={currencySettings?.displayCurrency}
         onChange={(currency) => handleCurrencyChange(currency, "displayCurrency")}
-        options={filteredDisplayCurrencies}
+        options={currencies}
         isClearable
+        styles={{
+          control: (baseStyles, state) => ({
+            ...baseStyles,
+           minWidth: '10rem',
+          }),
+        }}
         getOptionLabel={option => option.name}
         getOptionValue={option => option.code}
         placeholder="Select a Currency"
@@ -212,13 +233,14 @@ export const CurrencySettings = () => {
           </thead>
           <tbody>
           {currencySettings?.exchangeRates?.map((exchangeRate, index) => {
-              const currency = currencyMap.get(exchangeRate.currency);
+              const  { currency} = exchangeRate
+              console.log(currency, 'currency')
             return (
             <tr key={index}>
               <td>
                 <Select
                   value={currency}
-                  onChange={(selectedCurrency) => handleExchangeRateChange(index, 'currency',selectedCurrency.code)}
+                  onChange={(selectedCurrency) => handleExchangeRateChange(index, 'currency',selectedCurrency)}
                   options={filteredExchangeCurrencies}
                   placeholder="Select a Currency"
                   getOptionLabel={option => option.name}
@@ -261,13 +283,7 @@ export const CurrencySettings = () => {
             return (
               <tr key={index}>
                 <td>
-                  <Select
-                    value={branchCurrency?.branch}
-                    onChange={(selectedBranch) => handleBranchCurrencyChange(index, 'branch',selectedBranch)}
-                    options={filteredExchangeCurrencies}
-                    getOptionLabel={option => option.name}
-                    getOptionValue={option => option.id}
-                  />
+                  {branchCurrency?.branch?.name}
                 </td>
                 <td>
                   <Dropdown
