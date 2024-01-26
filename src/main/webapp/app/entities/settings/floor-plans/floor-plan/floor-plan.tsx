@@ -293,7 +293,7 @@ console.log("floorPlanList", floorPlanList)
           paginator
           header={header}
           first={lazyState.first}
-          rows={10}
+          rows={20}
           totalRecords={totalItems}
           onPage={onPage}
           onSort={onSort}

@@ -114,7 +114,8 @@ export const FloorPlanTv = () => {
       </h2>
 
       <div >
-        <DataTable value={tvsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
+        <DataTable value={tvsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
+                   rows={20}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
           <Column field="branch" header="Branch"  body={(rowData) => rowData?.branch?.name}   sortable  />
           <Column field="width" header="Width"  body={(rowData) => rowData.dimensions?.width}  sortable  />

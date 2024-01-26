@@ -148,7 +148,7 @@ export const RetailAttributeValuesUpdate = () => {
             filterDisplay="row"
             paginator
             totalRecords={totalItems}
-            rows={5}
+            rows={20}
           >
             <Column field="name" header={translate('retailAttributes.update.edit.table.fields.name')} editor={(options) => textEditor(options)} style={{ width: '20%' }}></Column>
 

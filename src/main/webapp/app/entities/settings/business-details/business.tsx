@@ -134,7 +134,7 @@ export const Business = () => {
           filters={filters}
           filterDisplay="row"
           totalRecords={totalItems}
-          rows={5}
+          rows={20}
         >
           <Column field="businessName" header="Name" />
 

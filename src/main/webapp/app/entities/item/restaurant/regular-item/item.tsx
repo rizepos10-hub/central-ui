@@ -315,7 +315,7 @@ console.log(errorMessage, 'errorMessage')
       </h2>
 
       <div >
-        <DataTable value={processedItemList} header={header} paginator rows={10}
+        <DataTable value={processedItemList} header={header} paginator rows={20}
                    removableSort
                    loading={loading}
                    totalRecords={totalItems}

@@ -186,7 +186,7 @@ console.log(menuList, 'menu list')
 
         <DataTable value={menuList} header={header} editMode="row"
                    loading={loading} filters={filters} filterDisplay="row"
-                   paginator totalRecords={totalItems} rows={5}>
+                   paginator totalRecords={totalItems} rows={20}>
 
           <Column
             header="Name"

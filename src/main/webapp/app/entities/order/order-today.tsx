@@ -188,7 +188,7 @@ export const Order = () => {
             dataKey="id"
             paginator
             first={lazyState.first}
-            rows={10}
+            rows={20}
             totalRecords={totalOrders}
             onPage={onPage}
             onSort={onSort}

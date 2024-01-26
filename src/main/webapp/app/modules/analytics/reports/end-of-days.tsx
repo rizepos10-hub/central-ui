@@ -97,7 +97,7 @@ export const EndOfDays = () => {
       </div>
       <div className="card my-3">
       <DataTable  value={endOfDaysData} lazy filterDisplay="row" dataKey="id" paginator
-                 first={lazyState.first} rows={10} totalRecords={totalRecords} onPage={onPage}
+                 first={lazyState.first} rows={20} totalRecords={totalRecords} onPage={onPage}
                  onSort={onSort} sortField={lazyState.sortField} sortOrder={lazyState.sortOrder}
                  onFilter={onFilter} loading={loading} tableStyle={{ minWidth: '75rem' }}
                   selectionMode="single" onSelectionChange={(e) => navigate(`/analytics/endofday/${e.value.id}`)}

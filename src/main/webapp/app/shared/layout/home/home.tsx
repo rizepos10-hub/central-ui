@@ -535,12 +535,11 @@ export default function Home() {
             </div>
           </div>
           <DataTable ref={dt} value={recentSales}
-                     paginator  rows={5}
+                     paginator  rows={20}
                      className="datatable-responsive"
                      globalFilter={globalFilterValue}
                      emptyMessage={<Translate  contentKey={'home.table.emptyMessage'}/>}
-                     loading={loading.recentSalesData}
-                     responsiveLayout="scroll">
+                     loading={loading.recentSalesData}>
             <Column  field="itemName" header={<Translate  contentKey={'home.table.name'}/>} sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
             <Column field="category[0].name" header={<Translate  contentKey={'home.table.category'}/>} sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
             <Column field="currentPrice" header={<Translate  contentKey={'home.table.price'}/>} body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />

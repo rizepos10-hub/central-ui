@@ -174,7 +174,7 @@
         <div >
           <DataTable value={modifiedUserList} editMode="row" header={header}  paginator
                      globalFilterFields={['firstName', 'lastName' ]} loading={loading}
-                     filters={filters} filterDisplay="row" totalRecords={totalItems} rows={5}>
+                     filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
             <Column
               field="name" header={translate("posUsers.user.table.fields.name")} filter
               filterElement={ <InputText  placeholder={translate("posUsers.user.table.search.name")} onChange={handleNameFilterChange}/> }

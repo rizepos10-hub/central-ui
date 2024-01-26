@@ -142,7 +142,8 @@ export const ProductionCenter = () => {
       </h2>
 
       <div >
-        <DataTable value={productionCenterList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
+        <DataTable value={productionCenterList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
+                   rows={20}>
           <Column field="name" header="Name" filter  filterPlaceholder={"Search by name"} body={nameColumnTemplate}  sortable  />
           <Column field="orderMethod" header="Order Method" sortable  />
           <Column field="printingProfile" header="Printing Profile" body={(rowData) => rowData.printingProfile?.name} sortable  />

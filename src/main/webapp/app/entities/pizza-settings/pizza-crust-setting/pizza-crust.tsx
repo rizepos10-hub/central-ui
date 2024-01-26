@@ -171,7 +171,8 @@ export const PizzaCrust = () => {
       </h2>
 
       <div className={"card"} >
-      <DataTable  value={crustThicknessList} editMode="row" header={thicknessHeader} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={crustThicknessTotalItems} rows={5}>
+      <DataTable  value={crustThicknessList} editMode="row" header={thicknessHeader} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={crustThicknessTotalItems}
+                  rows={20}>
           <Column field="name" header="Name" filter body={thicknessNameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
 
           <Column field="hiddenOnSizes" header="Hidden On Sizes"  body={(rowData) => rowData?.hiddenOnSizes?.map(size => size.name).join(" | ")}  sortable  />
@@ -184,7 +185,8 @@ export const PizzaCrust = () => {
         </DataTable>
       </div>
       <div className={"card mt-3"} >
-        <DataTable  value={crustTypeList} editMode="row" header={crustTypeHeader} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={crustTypeTotalItems} rows={5}>
+        <DataTable  value={crustTypeList} editMode="row" header={crustTypeHeader} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={crustTypeTotalItems}
+                    rows={20}>
           <Column field="name" header="Name" filter body={crustTypeNameTemplate} filterPlaceholder={"Search by name"}  sortable  />
           <Column field="hiddenOnSizes" header="Hidden On Sizes" body={(rowData) => rowData?.hiddenOnSizes?.map(size => size.name).join(" | ")}  sortable  />
 

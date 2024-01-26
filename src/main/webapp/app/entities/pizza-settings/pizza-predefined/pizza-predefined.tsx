@@ -117,7 +117,8 @@ export const PredefinedPizza = () => {
       </h2>
 
       <div >
-        <DataTable value={predefinedPizzaList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={5}>
+        <DataTable value={predefinedPizzaList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
+                   rows={20}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
 
           <Column field="toppings" header="Toppings" filter body={(rowData)=> rowData?.toppings?.map(topping => topping?.name).join(" | ")}   sortable  />

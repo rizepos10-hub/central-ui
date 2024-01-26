@@ -265,7 +265,7 @@ console.log(orderList.length, 'len')
               dataKey="id"
               paginator
               first={lazyState.first}
-              rows={10}
+              rows={20}
               totalRecords={totalOrders}
               emptyMessage="No Orders Found"
               onPage={onPage}
