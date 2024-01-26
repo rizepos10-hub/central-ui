@@ -47,7 +47,7 @@ import RetailAttributes from "app/entities/item/retail/attributes";
 import VariableItem from "app/entities/item/retail/variable-item";
 import Loyalty from "app/entities/loyalty";
 
-import CurrencySettings from "app/entities/settings/currencySettings";
+import CurrencySettings from "app/entities/settings/currency-settings";
 import TvRoutes from "app/entities/settings/tv-config/tv";
 import TvDisplayRoutes from "app/entities/settings/tv-config/tv-display";
 

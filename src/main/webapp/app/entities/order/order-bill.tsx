@@ -186,21 +186,21 @@ console.log(bill.billItems, 'bill.billItems')
 
 
             return   (
-              <Card key={`bill-${bill.sequenceNumber}`} className="mb-3">
+              <>
                 <div className="d-flex gap-2 ">
-                  <div className="flex-grow-1 flex-shrink-1-l" style={{ marginBottom: '20px',  width: '80%' }}>
+                  <div className="flex-grow-1 flex-shrink-1-l" style={{marginBottom: '20px', width: '80%'}}>
                     {/* maxHeight: '300px', overflowY: 'auto', */}
                     <h4>Order Bill {bill.sequenceNumber}</h4>
 
-                  <TreeTable value={transformedTreeData} className="mt-4" >
-                        <Column field="id" header="ID" />
-                        <Column field="name" header="Name" expander style={{width: '30%'}} />
-                        <Column field="amount" header="Amount" />
-                        <Column field="price" header="Price" />
-                        <Column field="discount" header="Discount" />
-                        <Column field="total" header="Total" />
-                        <Column field="date" header="Date" />
-                      </TreeTable>
+                    <TreeTable value={transformedTreeData} className="mt-4">
+                      <Column field="id" header="ID"/>
+                      <Column field="name" header="Name" expander style={{width: '30%'}}/>
+                      <Column field="amount" header="Amount"/>
+                      <Column field="price" header="Price"/>
+                      <Column field="discount" header="Discount"/>
+                      <Column field="total" header="Total"/>
+                      <Column field="date" header="Date"/>
+                    </TreeTable>
 
                   </div>
 
@@ -210,8 +210,8 @@ console.log(bill.billItems, 'bill.billItems')
                       <div key={`payment-${billIndex}-${index}`}>
                         <strong>Payment Method:</strong> {item.method}
                         <span className="ml-3">
-                      <strong>Amount:</strong> ${item.amount.toFixed(2)}
-                    </span>
+                                    <strong>Amount:</strong> ${item.amount.toFixed(2)}
+                                </span>
                       </div>
                     ))}
                   </Card>
@@ -242,13 +242,13 @@ console.log(bill.billItems, 'bill.billItems')
                     <div className="text-center">$ {remainingAmount.toFixed(2)}</div>
                   </div>
                 </Card>
+              </>
 
-              </Card>
 
 
             )})
         ) : (
-          <div>No items available.</div>
+          <div>No Bills available.</div>
         )}
 
         {/* {billList.length > 0 && ( */}

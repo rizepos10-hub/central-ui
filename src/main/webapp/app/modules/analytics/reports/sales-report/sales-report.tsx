@@ -18,8 +18,8 @@ import {fetchSalesReportRedux} from "app/modules/analytics/reports/sales-report/
 import {Spinner} from "reactstrap";
 import Select from "react-select";
 import {ICurrency} from "app/shared/model/currency.model";
-import {getEntities as getCurrencies} from "app/entities/settings/currencySettings/currencies.reducer";
-import {getEntity} from "app/entities/settings/currencySettings/currency-settings.reducer";
+import {getEntities as getCurrencies} from "app/entities/settings/currency-settings/currencies.reducer";
+import {getEntity} from "app/entities/settings/currency-settings/currency-settings.reducer";
 import {formatPrice} from "app/shared/util/price-utils";
 
 

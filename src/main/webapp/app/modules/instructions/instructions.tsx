@@ -83,20 +83,12 @@ export default function Instructions()
 
   return (
     <div className="welcome-container">
-        <div className="welcome-content">
-          {showWelcome &&
+      {showWelcome && <div className="welcome-content">
           <div>
-            <span className="color-cycle">W</span>
-            <span className="color-cycle">e</span>
-            <span className="color-cycle">l</span>
-            <span className="color-cycle">c</span>
-            <span className="color-cycle">o</span>
-            <span className="color-cycle">m</span>
-            <span className="color-cycle">e</span>
-            <span className="color-cycle">!</span>
-          </div>   }
-          <h2 className={`${showWelcome ? "welcome-instructions" : "instructions"}`}>Instructions</h2>
-        </div>
+            <span className="welcome-rize">Welcome to Rize POS!</span>
+          </div>
+          <h2 className={"instructions"}>Please Follow the bellow instruction </h2>
+        </div> }
 
           <div className="steps-column">
 

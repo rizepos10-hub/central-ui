@@ -4,8 +4,7 @@ import React from 'react';
 import { Translate } from 'react-jhipster';
 import { Col, Row } from 'reactstrap';
 
-const commitId = DEVELOPMENT ? process.env.REACT_APP_COMMIT_ID : null;
-console.log(`Current commit ID: ${commitId}`);
+const commitId = DEVELOPMENT ? `Commit ID: ${process.env.REACT_APP_COMMIT_ID}` : null;
 const Footer = () => (
   <div className="footer ">
     <Row>
@@ -13,7 +12,7 @@ const Footer = () => (
         <Translate contentKey="footer" interpolate={commitId}>
           RIZE POS
         </Translate>
-        Commit ID: {commitId}
+       {commitId}
       </Col>
     </Row>
   </div>
