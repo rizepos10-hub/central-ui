@@ -38,10 +38,129 @@
       }
     },
     "pos": {
-
+      "view": {
+        "title": "POS Menus View",
+        "table": {
+          "title": "POS Menus"
+        }
+      },
+      "update": {
+        "mainScreens": "Main Screens",
+        "buttonsLabel": "Buttons",
+        "buttons": {
+          "add": "Add",
+          "remove": "Remove",
+          "addButton": "Add Button",
+          "item": "Item",
+          "subScreen": "Sub-screen",
+          "preview": "Preview"
+        },
+        "modals": {
+          "preview": {
+            "title": "Screen Preview"
+          },
+          "mainScreen": {
+            "title": "Add New Main Screen",
+            "name": "Main Screen Name",
+            "color": "Select Color Theme",
+            "add": "Add Main Screen"
+          },
+          "subScreen": {
+            "title": "Add New Sub-Screen",
+            "name": "Sub-screen Name",
+            "color": "Select Color Theme",
+            "add": "Add Sub-Screen"
+          },
+          "item": {
+            "title": "Add Existing Items",
+            "search": "Search Items",
+            "filter": "Filter by Category",
+            "table": {
+              "id": "Id",
+              "name": "Name",
+              "action": "Action"
+            },
+            "buttons": {
+              "select": "Select",
+              "unselect": "Unselect",
+              "previous": "Previous",
+              "next": "Next"
+            }
+          },
+          "editScreen": {
+            "title": "Edit Screen",
+            "name": "Name",
+            "color": "Select Color Theme"
+          }
+        }
+      }
     },
     "online": {
-
+      "view": {
+        "title": "Online Ordering Menus View",
+        "table": {
+          "title": "Online Ordering Menus"
+        }
+      },
+      "update": {
+        "title": "Menu Items View",
+        "addItemModal": {
+          "title": "Add New Item",
+          "message": "Please select a term to view its items.",
+          "addItem": "Add Item"
+        }
+      }
+    },
+    "shared": {
+      "view": {
+        "table": {
+          "fields": {
+            "name": "Name",
+            "branch": "Branch",
+            "category": "Category",
+            "updatedAt": "Updated At",
+            "edit": "Edit",
+            "delete": "Delete"
+          },
+          "buttons": {
+            "refreshList": "Refresh List",
+            "createNewMenu": "Create New Menu"
+          },
+          "search": {
+            "name": "Search by Name"
+          },
+          "select": {
+            "category": "Select a Category",
+            "branch": "Select a Branch"
+          }
+        }
+      },
+      "delete": {
+        "title": "Confirm Delete Menu",
+        "question": "Are you sure you want to delete menu {{ menu }}"
+      },
+      "update": {
+        "create": {
+          "title": "Create New Menu"
+        },
+        "edit": {
+          "title": "Edit Menu",
+          "buttons": {
+            "edit": "Edit",
+            "trigger": "Trigger",
+            "duplicate": "Duplicate Menu"
+          },
+          "createdAt": "Created At",
+          "updatedAt": "Updated At",
+          "url": "Menu URL",
+          "branch": "Branch"
+        },
+        "name": "Name",
+        "url": "Menu URL",
+        "branches": "Branches",
+        "type": "Type",
+        "category": "Category"
+      }
     }
   }
 }

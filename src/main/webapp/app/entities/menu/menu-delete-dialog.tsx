@@ -45,10 +45,10 @@ export const MenuDeleteDialog = () => {
   return (
     <Modal isOpen toggle={handleClose}>
       <ModalHeader toggle={handleClose} data-cy="menuDeleteDialogHeading">
-        <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
+        <Translate contentKey="menus.shared.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.menu.delete.question">
-        <Translate contentKey="tempApp.menu.delete.question" interpolate={{ id: menuEntity.id }}>
+        <Translate contentKey="menus.shared.delete.question" interpolate={{ menu: menuEntity.id }}>
           Are you sure you want to delete this Menu?
         </Translate>
       </ModalBody>

@@ -123,7 +123,7 @@ console.log(menuList, 'menu list')
         };
         setFilters(updatedFilters);
       }}
-      placeholder="Select a category"
+      placeholder={translate('menus.shared.view.table.select.category')}
     />
 
   );
@@ -138,7 +138,7 @@ console.log(menuList, 'menu list')
         };
         setFilters(updatedFilters);
       }}
-      placeholder="Select a branch"
+      placeholder={translate('menus.shared.view.table.select.branch')}
     />
   )
 
@@ -162,13 +162,15 @@ console.log(menuList, 'menu list')
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">{menuType} Menus</span>
+      <span className="text-xl text-900 font-bold">{menuType === "ONLINE_ORDERING" ?
+        translate('menus.online.view.table.title') :
+        translate('menus.pos.view.table.title')}</span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate("menus.shared.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Menu" raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("menus.shared.view.table.buttons.createNewMenu")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -180,8 +182,7 @@ console.log(menuList, 'menu list')
   return (
     <div>
       <h2 id="menu-heading" data-cy="MenuHeading">
-        {menuType === "ONLINE_ORDERING" ? "Online Ordering" : menuType === "POS" && "Pos"} Menus View
-
+        {menuType === "ONLINE_ORDERING" ?  translate('menus.online.view.title') :  translate('menus.pos.view.title')}
       </h2>
 
         <DataTable value={menuList} header={header} editMode="row"
@@ -189,17 +190,17 @@ console.log(menuList, 'menu list')
                    paginator totalRecords={totalItems} rows={20}>
 
           <Column
-            header="Name"
+            header={translate('menus.shared.view.table.fields.name')}
             field="name"
             sortable
-            filterPlaceholder={"Search by name"}  filter
+            filterPlaceholder={translate('menus.shared.view.table.search.name')}  filter
             body={(rowData) => (
               <Link to={`/menu/${rowData.id}/${menuType}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>{rowData.name}</Link>)}
             style={{ width: '20%' }}
           />
           <Column
             field="branch.name"
-            header="Branch"
+            header={translate('menus.shared.view.table.fields.branch')}
             sortable
             filter
             filterElement={branchFilter}
@@ -207,13 +208,13 @@ console.log(menuList, 'menu list')
           />
           <Column
             field="lastModifiedDate"
-            header="Updated At"
+            header={translate('menus.shared.view.table.fields.updatedAt')}
             sortable
             body={(rowData) => format(new Date(rowData.lastModifiedDate), 'yyyy-MM-dd HH:mm:ss')}
           />
           <Column
             field="category.name"
-            header="Category"
+            header={translate('menus.shared.view.table.fields.category')}
             sortable
             filter
             filterElement={categoryFilter}
