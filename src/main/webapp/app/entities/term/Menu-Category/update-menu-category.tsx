@@ -176,7 +176,9 @@ console.log(termEntity)
       <Row>
         <Col md="8">
           <h2  data-cy="TermCreateUpdateHeading">
-            {isNew ? "Create a Menu Category" : "Edit Menu Category"}
+            {isNew ?
+              <Translate contentKey={'menus.category.update.create.title'}>Create a Menu Category</Translate> :
+              <Translate contentKey={'menus.category.update.edit.title'}>Edit Menu Category</Translate>}
           </h2>
         </Col>
       </Row>
@@ -197,7 +199,7 @@ console.log(termEntity)
               {/*   /> */}
               {/* ) : null} */}
               <ValidatedField
-                label={translate('tempApp.term.name')}
+                label={translate('menus.category.update.name')}
                 id="term-name"
                 name="name"
                 data-cy="name"
@@ -210,7 +212,7 @@ console.log(termEntity)
 
               <div className="mb-3">
                 <ValidatedField
-                  label={'Item Image'}
+                  label={translate('menus.category.update.image')}
                   id="item-image"
                   name="image"
                   data-cy="image"
@@ -269,7 +271,7 @@ console.log(termEntity)
               </div>
 
               <div className="my-4 p-1">
-                <label>Parents</label>
+                <label><Translate contentKey={'menus.category.update.parents'}>Parents</Translate></label>
                 <Select options={termOptions} value={selectedParent} onChange={handleParentChange} />
               </div>
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/category/menus" replace color="info">

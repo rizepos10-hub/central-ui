@@ -1,0 +1,47 @@
+{
+  "menus": {
+    "category": {
+      "view": {
+        "title": "Menu Categories View",
+        "table": {
+          "title": "Categories",
+          "buttons": {
+            "refreshList": "Refresh List",
+            "createNewCategory": "Create New Menu Category"
+          },
+          "fields": {
+            "name": "Name",
+            "image": "Image",
+            "edit": "Edit",
+            "delete": "Delete"
+          },
+          "search": {
+            "name": "Search by Name"
+          },
+          "emptyMessage": "No Menus Found"
+        }
+      },
+      "delete": {
+        "title": "Confirm Delete Menu Category",
+        "question": "Are you sure you want to delete menu category {{ category }}"
+      },
+      "update": {
+        "create": {
+          "title": "Create New Menu Category"
+        },
+        "edit": {
+          "title": "Edit Menu Category"
+        },
+        "name": "Name",
+        "image": "Category Image",
+        "parents": "Parents"
+      }
+    },
+    "pos": {
+
+    },
+    "online": {
+
+    }
+  }
+}
