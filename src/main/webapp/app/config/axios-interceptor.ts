@@ -7,12 +7,9 @@ axios.defaults.timeout = TIMEOUT;
 axios.defaults.baseURL = SERVER_API_URL;
 
 const setupAxiosInterceptors = onUnauthenticated => {
-  let isRefreshing = false;
   let refreshPromise = null;
 
   const refreshAccessToken = async () => {
-    if (!isRefreshing) {
-      isRefreshing = true;
       clearAccessToken();
       const localStorageToken = Storage.local.get(REFRESH_TOKEN_KEY) || null;
       const sessionStorageToken = Storage.session.get(REFRESH_TOKEN_KEY) || null;
@@ -27,6 +24,8 @@ const setupAxiosInterceptors = onUnauthenticated => {
         };
 
           const response = await axios.post(SERVER_ADMIN_API_URL + '/api/auth/refresh', requestBody);
+           console.log('isRefreshing1 response', response)
+
           const newAccessToken = response?.data?.access_token;
           const newRefreshToken = response?.data?.refresh_token;
 
@@ -38,11 +37,9 @@ const setupAxiosInterceptors = onUnauthenticated => {
               Storage.session.set(AUTH_TOKEN_KEY, newAccessToken);
               Storage.session.set(REFRESH_TOKEN_KEY, newRefreshToken);
             }
-
             return newAccessToken;
-          }
       }
-      isRefreshing = false;
+
     }
     return null;
   };
@@ -57,31 +54,10 @@ const setupAxiosInterceptors = onUnauthenticated => {
 
   const onResponseSuccess = response => response;
 
-  // const onResponseError = async err => {
-  //   const status = err.status || (err.response ? err.response.status : 0);
-  //
-  //   if (status === 403 || status === 401) {
-  //     if (!refreshPromise) {
-  //       refreshPromise = refreshAccessToken();
-  //     }
-  //       const newAccessToken = await refreshPromise;
-  //       if (newAccessToken) {
-  //         err.config.headers.Authorization = `Bearer ${newAccessToken}`;
-  //         return axios(err.config);
-  //       }else{
-  //         onUnauthenticated();
-  //       }
-  //       refreshPromise = null;
-  //   }
-  //   return Promise.reject(err);
-  // };
-
   const onResponseError = async err => {
     const status = err.status || (err.response ? err.response.status : 0);
-
     if ((status === 403 || status === 401) && !refreshPromise) {
       refreshPromise = refreshAccessToken();
-
       if (refreshPromise) {
         try {
           const newAccessToken = await refreshPromise;
@@ -98,7 +74,6 @@ const setupAxiosInterceptors = onUnauthenticated => {
     }
     return Promise.reject(err);
   };
-
 
   axios.interceptors.request.use(onRequestSuccess);
   axios.interceptors.response.use(onResponseSuccess, onResponseError);

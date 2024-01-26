@@ -72,10 +72,11 @@ export const login: (username: string, password: string, tenant: string, remembe
     const bearerToken = response?.data?.access_token;
     const refreshToken = response?.data?.refresh_token;
     if (bearerToken && refreshToken) {
-      Storage.session.set(TENANT_KEY, tenant);
+      // Storage.session.set(TENANT_KEY, tenant);
       // if (rememberMe) {
         Storage.local.set(AUTH_TOKEN_KEY, bearerToken);
         Storage.local.set(REFRESH_TOKEN_KEY, refreshToken);
+        Storage.local.set(TENANT_KEY, tenant);
       // } else {
       //   Storage.session.set(AUTH_TOKEN_KEY, bearerToken);
       //   Storage.session.set(REFRESH_TOKEN_KEY, refreshToken);
