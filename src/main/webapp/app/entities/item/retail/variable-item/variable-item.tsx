@@ -17,6 +17,7 @@ import {Dropdown} from "primereact/dropdown";
 import {IVariableItem} from "app/shared/model/variable-item.model";
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
 import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
+import {SummarizeText} from "app/shared/util/SummarizeText";
 
 export const VariableItem = () => {
   const dispatch = useAppDispatch();
@@ -180,7 +181,7 @@ export const VariableItem = () => {
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
           <Column header="Image"  body={(rowData) =>
             <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
-          <Column field="desc" header="Description" />
+          <Column field="desc" header="Description" body={(rowData)=> <SummarizeText>{rowData.desc}</SummarizeText>}/>
 
           <Column field="stock" sortable header="In Stock" />
 
