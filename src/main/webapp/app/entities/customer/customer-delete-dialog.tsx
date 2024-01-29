@@ -42,10 +42,10 @@ export const CustomerDeleteDialog = () => {
   return (
     <Modal isOpen toggle={handleClose}>
       <ModalHeader toggle={handleClose} data-cy="customerDeleteDialogHeading">
-        <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
+        <Translate contentKey="customers.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.customer.delete.question">
-        <Translate contentKey="tempApp.customer.delete.question" interpolate={{ id: customerEntity.id }}>
+        <Translate contentKey="customers.delete.question" interpolate={{ customer: customerEntity.id }}>
           Are you sure you want to delete this Customer?
         </Translate>
       </ModalBody>

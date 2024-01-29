@@ -560,31 +560,31 @@ export const OnlineOrderingMenuUpdate = () => {
             <Button color="primary" onClick={toggleEditModal}>
               <FontAwesomeIcon icon="pencil-alt" />{' '}
               <span className="d-none d-md-inline">
-            <Translate contentKey="entity.action.edit">Edit</Translate>
+            <Translate contentKey="menus.shared.update.edit.buttons.edit">Edit</Translate>
           </span>
             </Button>
             <Button onClick={() => dispatch(sendEvent(id))} className="btn-success ms-2" style={{ fontFamily: 'fantasy' }}>
-              Trigger
+              <Translate contentKey="menus.shared.update.edit.buttons.trigger">Trigger</Translate>
             </Button>
             <Button onClick={handleDuplicateAction} className="btn-success ms-2" style={{ fontFamily: 'fantasy' }}>
-              Duplicate Menu
+              <Translate contentKey="menus.shared.update.edit.buttons.duplicate">Duplicate Menu</Translate>
             </Button>
           </div>
         </div>
         <CardBody>
           <p>
-            <Translate contentKey="tempApp.menu.createdAt">Created At</Translate>:{' '}
+            <Translate contentKey="menus.shared.update.edit.createdAt">Created At</Translate>:{' '}
             {menuEntity.createdDate ? <TextFormat value={menuEntity.createdDate} type="date" format={APP_DATE_FORMAT} /> : null}
           </p>
           <p>
-            <Translate contentKey="tempApp.menu.updatedAt">Updated At</Translate>:{' '}
+            <Translate contentKey="menus.shared.update.edit.updatedAt">Updated At</Translate>:{' '}
             {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
           </p>
           <p>
-            <Translate contentKey="tempApp.menu.menuUrl">Menu URl</Translate>: {menuEntity.menuUrl ? menuEntity.menuUrl : ''}
+            <Translate contentKey="menus.shared.update.edit.url">Menu URl</Translate>: {menuEntity.menuUrl ? menuEntity.menuUrl : ''}
           </p>
           <p>
-            <Translate contentKey="tempApp.menu.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
+            <Translate contentKey="menus.shared.update.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
           </p>
         </CardBody>
       </Card>
@@ -598,13 +598,13 @@ export const OnlineOrderingMenuUpdate = () => {
           ) : (
             <Modal isOpen={isEditModalOpen} toggle={toggleEditModal} className="modal-lg">
               <ModalHeader toggle={toggleEditModal}>
-                <Translate contentKey="tempApp.menu.home.createOrEditLabel">Create or edit a Menu</Translate>
+                <Translate contentKey="menus.shared.update.edit.title">Edit Menu</Translate>
               </ModalHeader>
               <ModalBody>
                 <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
 
                   <ValidatedField
-                    label={translate('tempApp.menu.name')}
+                    label={translate('menus.shared.update.name')}
                     id="menu-name"
                     name="name"
                     data-cy="name"
@@ -615,7 +615,7 @@ export const OnlineOrderingMenuUpdate = () => {
                     }}
                   />
                   <ValidatedField
-                    label={translate('tempApp.menu.menuUrl')}
+                    label={translate('menus.shared.update.url')}
                     id="menu-menuUrl"
                     name="menuUrl"
                     data-cy="menuUrl"
@@ -623,7 +623,7 @@ export const OnlineOrderingMenuUpdate = () => {
 
                   />
                   <div className="mb-3">
-                    Branches
+                    {translate('menus.shared.update.branches')}
                     <Select defaultValue={initialBranches}
                             onChange={handleBranchChange} options={branchList} />
                   </div>
@@ -631,7 +631,7 @@ export const OnlineOrderingMenuUpdate = () => {
                     id="menu-category"
                     name="category"
                     data-cy="category"
-                    label={translate('tempApp.menu.category')}
+                    label={translate('menus.shared.update.category')}
                     type="select"
                     required
                     value={selectedCategory}
@@ -676,7 +676,7 @@ export const OnlineOrderingMenuUpdate = () => {
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
 
               <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
-                <ModalHeader toggle={toggleModal}>Add New Item</ModalHeader>
+                <ModalHeader toggle={toggleModal}><Translate contentKey={'menus.online.update.addItemModal.title'}>Add New Item</Translate></ModalHeader>
                 <ModalBody>
                   <Row>
                     <Col md="3">
@@ -728,24 +728,24 @@ export const OnlineOrderingMenuUpdate = () => {
                           </Row>
                         </>
                       ) : (
-                        <p>Please select a term to view its items.</p>
+                        <p><Translate contentKey={'menus.online.update.addItemModal.message'}>Please select a term to view its items.</Translate></p>
                       )}
                     </Col>
                   </Row>
                 </ModalBody>
                 <ModalFooter>
                   <Button color="secondary" onClick={toggleModal}>
-                    Cancel
+                    <Translate contentKey={'entity.action.cancel'}>Cancel</Translate>
                   </Button>
                   <Button color="primary" onClick={handleAddItem}>
-                    Add Item
+                    <Translate contentKey={'menus.online.update.addItemModal.addItem'}>Add Item</Translate>
                   </Button>
                 </ModalFooter>
               </Modal>
 
               <div className="col-12">
                 <div className="card">
-                  <h5>Menu Items View</h5>
+                  <h5><Translate contentKey={'menus.online.update.title'}>Menu Items View</Translate></h5>
                   <DataView
                     value={filteredValue ?? menuItems}
                     layout={layout}

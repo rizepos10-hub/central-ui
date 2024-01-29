@@ -170,7 +170,7 @@ export const CustomerUpdate = () => {
       <Row >
         <Col md="8">
           <h2 id="tempApp.customer.home.createOrEditLabel" data-cy="CustomerCreateUpdateHeading">
-            <Translate contentKey="tempApp.customer.home.createOrEditLabel">Create or edit a Customer</Translate>
+            {isNew? <Translate contentKey="customers.update.create.title">Create New Customer</Translate> : <Translate contentKey="customers.update.edit.title">Edit Customer</Translate>}
           </h2>
         </Col>
       </Row>
@@ -182,7 +182,7 @@ export const CustomerUpdate = () => {
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
 
               <ValidatedField
-                label={translate('tempApp.customer.firstName')}
+                label={translate('customers.update.firstName')}
                 id="customer-firstName"
                 name="firstName"
                 data-cy="firstName"
@@ -192,7 +192,7 @@ export const CustomerUpdate = () => {
                 }}
               />
               <ValidatedField
-                label={translate('tempApp.customer.lastName')}
+                label={translate('customers.update.lastName')}
                 id="customer-lastName"
                 name="lastName"
                 data-cy="lastName"
@@ -202,7 +202,7 @@ export const CustomerUpdate = () => {
                 }}
               />
               <ValidatedField
-                label={translate('tempApp.customer.phone')}
+                label={translate('customers.update.phone')}
                 id="customer-phone"
                 name="phone"
                 data-cy="phone"
@@ -212,7 +212,7 @@ export const CustomerUpdate = () => {
                 }}
               />
               <ValidatedField
-                label={translate('tempApp.customer.email')}
+                label={translate('customers.update.email')}
                 id="customer-email"
                 name="email"
                 data-cy="email"

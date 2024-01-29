@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {Modal, ModalHeader, ModalBody, Input, Label, FormGroup, Button, ModalFooter, Spinner} from 'reactstrap';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { getSortState } from 'react-jhipster';
+import {getSortState, translate, Translate} from 'react-jhipster';
 import { ITEMS_PER_PAGE_Summary } from 'app/shared/util/pagination.constants';
 import { getEntities, searchEntities,reset } from 'app/entities/item/all-items.reducer';
 import Select from "react-select";
@@ -139,15 +139,21 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   console.log(selectedItems, 'selected items')
   return (
     <Modal size="lg" isOpen={isOpen} toggle={toggle} backdrop="static">
-      <ModalHeader toggle={toggle}>Add Existing Items</ModalHeader>
+      <ModalHeader toggle={toggle}>
+        <Translate contentKey={'menus.pos.update.modals.item.title'}>Add Existing Items</Translate>
+      </ModalHeader>
       <ModalBody>
 
         <FormGroup>
-          <Label for="searchItem">Search Item</Label>
+          <Label for="searchItem">
+            <Translate contentKey={'menus.pos.update.modals.item.search'}>Search Item</Translate>
+          </Label>
           <Input type="text" id="searchItem" value={searchTerm} onChange={handleSearchInputChange} />
         </FormGroup>
         <FormGroup>
-          <Label for="searchCategory">Filter By Category</Label>
+          <Label for="searchCategory">
+            <Translate contentKey={'menus.pos.update.modals.item.filter'}>Filter By Category</Translate>
+          </Label>
           <div>
           <Select
             id="searchCategory"
@@ -161,9 +167,9 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
         <table className="table">
           <thead>
           <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Action</th>
+            <th><Translate contentKey={'menus.pos.update.modals.item.table.id'}>ID</Translate></th>
+            <th><Translate contentKey={'menus.pos.update.modals.item.table.name'}>Name</Translate></th>
+            <th><Translate contentKey={'menus.pos.update.modals.item.table.action'}>Action</Translate></th>
           </tr>
           </thead>
           <tbody>
@@ -180,7 +186,9 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                   color={isItemSelected(item.id) ? 'danger' : 'primary'}
                   onClick={() => handleToggleSelect(item)}
                 >
-                  {isItemSelected(item.id) ? 'Unselect' : 'Select'}
+                  {isItemSelected(item.id) ?
+                    translate('menus.pos.update.modals.item.buttons.unselect') :
+                    translate('menus.pos.update.modals.item.buttons.select')}
                 </Button>
               </td>
             </tr>
@@ -194,7 +202,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
             color="primary"
             className="mr-2"
           >
-            Previous
+            <Translate contentKey={'menus.pos.update.modals.item.buttons.previous'}>Previous</Translate>
           </Button>
           <span>Page {currentPage}</span>
           <Button
@@ -203,13 +211,13 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
             color="primary"
             className="ml-2"
           >
-            Next
+            <Translate contentKey={'menus.pos.update.modals.item.buttons.next'}>Next</Translate>
           </Button>
         </div>
       </ModalBody>
       <ModalFooter>
         <Button color="primary" onClick={handleSave}>
-          Save
+          <Translate contentKey={'entity.action.save'}>Save</Translate>
         </Button>
       </ModalFooter>
     </Modal>

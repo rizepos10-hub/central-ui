@@ -1177,34 +1177,34 @@ function MenuUpdate() {
             <Button color="primary" onClick={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: true })}>
               <FontAwesomeIcon icon="pencil-alt" />{' '}
               <span className="d-none d-md-inline">
-            <Translate contentKey="entity.action.edit">Edit</Translate>
+            <Translate contentKey="menus.shared.update.edit.buttons.edit">Edit</Translate>
           </span>
             </Button>
             <Button onClick={() => dispatch(sendEvent(id))} className="btn-success ms-2" style={{ fontFamily: 'fantasy' }}>
-              Trigger
+              <Translate contentKey="menus.shared.update.edit.buttons.trigger">Trigger</Translate>
             </Button>
             <Button onClick={handleDuplicateAction} className="btn-success ms-2" style={{ fontFamily: 'fantasy' }}>
-              Duplicate Menu
+              <Translate contentKey="menus.shared.update.edit.buttons.duplicate">Duplicate Menu</Translate>
             </Button>
           </div>
         </div>
         <CardBody>
           <p>
-            <Translate contentKey="tempApp.menu.branch">Branch</Translate>: {menuEntity.branch? menuEntity.branch?.name : ''}
+            <Translate contentKey="menus.shared.update.edit.branch">Branch</Translate>: {menuEntity.branch? menuEntity.branch?.name : ''}
           </p>
           <p>
-            <Translate contentKey="tempApp.menu.createdAt">Created At</Translate>:{' '}
+            <Translate contentKey="menus.shared.update.edit.createdAt">Created At</Translate>:{' '}
             {menuEntity.createdDate ? <TextFormat value={menuEntity.createdDate} type="date" format={APP_DATE_FORMAT} /> : null}
           </p>
           <p>
-            <Translate contentKey="tempApp.menu.updatedAt">Updated At</Translate>:{' '}
+            <Translate contentKey="menus.shared.update.edit.updatedAt">Updated At</Translate>:{' '}
             {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
           </p>
           <p>
-            <Translate contentKey="tempApp.menu.menuUrl">Menu URl</Translate>:  {menuEntity.menuUrl? menuEntity.menuUrl : ''}
+            <Translate contentKey="menus.shared.update.edit.url">Menu URl</Translate>:  {menuEntity.menuUrl? menuEntity.menuUrl : ''}
           </p>
           <p>
-            <Translate contentKey="tempApp.menu.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
+            <Translate contentKey="menus.shared.update.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
           </p>
         </CardBody>
       </Card>
@@ -1213,8 +1213,8 @@ function MenuUpdate() {
           <Col md="4" className="border-right-1">
             <div className="d-flex justify-content-between align-items-center">
               <div>
-                <h2 className="border- border-dark pb-3">Main Screens</h2>
-                <Button color="primary" onClick={handleMainScreenAdd}>Add</Button>
+                <h2 className="border- border-dark pb-3"><Translate contentKey={'menus.pos.update.mainScreens'}>Main Screens</Translate></h2>
+                <Button color="primary" onClick={handleMainScreenAdd}><Translate contentKey={'menus.pos.update.buttons.add'}>Add</Translate></Button>
               </div>
               <hr />
             </div>
@@ -1246,13 +1246,13 @@ function MenuUpdate() {
                       <Button
                         style={{ backgroundColor: mainScreen.backgroundColor, width: '55px', height: '30px' }}
                       />
-                      <div>{`Buttons - ${mainScreen.subScreens?.length ?? 0}`}</div>
+                      <div>{`${translate('menus.pos.update.buttonsLabel')} - ${mainScreen.subScreens?.length ?? 0}`}</div>
                     </div>
 
                     </div>
                     <div className="d-flex justify-content-end">
                       <Button color="danger" size="sm" onClick={() => handleRemoveMainScreen(index, mainScreen.name)}>
-                        Remove
+                        <Translate contentKey={'menus.pos.update.buttons.remove'}>Remove</Translate>
                       </Button>
                     </div>
                   </Card>
@@ -1282,30 +1282,30 @@ function MenuUpdate() {
               <Col>
               <div>
                 <Button color="primary" id="addButton" onClick={() => setPopoverOpen(!popoverOpen)} className="ml-2">
-                  Add Button
+                  <Translate contentKey={'menus.pos.update.buttons.addButton'}>Add Button</Translate>
                 </Button>
                 <Popover isOpen={popoverOpen} target="addButton" toggle={() => setPopoverOpen(!popoverOpen)}>
-                  <PopoverHeader>Add Button</PopoverHeader>
+                  <PopoverHeader><Translate contentKey={'menus.pos.update.buttons.addButton'}>Add Button</Translate></PopoverHeader>
                   <PopoverBody>
                     <p onClick={() => {
                       handleButtonAdd('Sub-screen')
                       setPopoverOpen(false)
                     }} className="p-2" style={{ cursor: 'pointer' }}>
-                      Sub-screen
+                      <Translate contentKey={'menus.pos.update.buttons.subScreen'}>Sub-screen</Translate>
                     </p>
                     <p onClick={() => {
                       handleButtonAdd('Item')
                       setPopoverOpen(false)
                     }} className="p-2" style={{ cursor: 'pointer' }}>
-                      Item
+                      <Translate contentKey={'menus.pos.update.buttons.item'}>Item</Translate>
                     </p>
                   </PopoverBody>
                 </Popover>
                 <Button onClick={togglePreviewModal} className="mx-2 btn btn-info">
-                  Preview
+                  <Translate contentKey={'menus.pos.update.buttons.preview'}>Preview</Translate>
                 </Button>
                 <Button color="primary" disabled={updating} onClick={handleSaveClick} className="">
-                  Save
+                  <Translate contentKey={'entity.action.save'}>Save</Translate>
                 </Button>
               </div>
               </Col>
@@ -1322,7 +1322,7 @@ function MenuUpdate() {
 
                toggle={() => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: !isModalOpen.isPreviewModalOpen })}>
           <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: !isModalOpen.isPreviewModalOpen })}>
-            Preview Modal
+            <Translate contentKey={'menus.pos.update.modals.preview.title'}>Screen Preview</Translate>
           </ModalHeader>
           <ModalBody  style={{ minWidth: '100%', minHeight: '60vh' }}>
             <MenuPosPreview data={data} />
@@ -1333,11 +1333,13 @@ function MenuUpdate() {
       <Modal isOpen={isModalOpen.isMainScreenModalOpen}
              toggle={() => setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: !isModalOpen.isMainScreenModalOpen })}>
         <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: !isModalOpen.isMainScreenModalOpen })}>
-          Add new main screen
+          <Translate contentKey={'menus.pos.update.modals.mainScreen.title'}>Add new main screen</Translate>
         </ModalHeader>
         <ModalBody>
           <FormGroup>
-            <Label for="mainScreenName">Main screen name</Label>
+            <Label for="mainScreenName">
+              <Translate contentKey={'menus.pos.update.modals.mainScreen.name'}>Main screen name</Translate>
+            </Label>
             <Input
               type="text"
               id="mainScreenName"
@@ -1347,7 +1349,9 @@ function MenuUpdate() {
             />
           </FormGroup>
           <FormGroup>
-            <Label for="colorTheme">Select color theme</Label>
+            <Label for="colorTheme">
+              <Translate contentKey={'menus.pos.update.modals.mainScreen.color'}>Select color theme</Translate>
+            </Label>
             <div className="d-flex flex-wrap mt-3">
               {colorThemes.map((color, index) => (
                 <Button
@@ -1359,18 +1363,22 @@ function MenuUpdate() {
               ))}
             </div>
           </FormGroup>
-          <Button color="primary" onClick={handleModalSubmit}>Add Main Screen</Button>
+          <Button color="primary" onClick={handleModalSubmit}>
+            <Translate contentKey={'menus.pos.update.modals.mainScreen.add'}>Add Main Screen</Translate>
+          </Button>
         </ModalBody>
       </Modal>
 
       <Modal isOpen={isModalOpen.isSubScreenModalOpen}
              toggle={() => setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: !isModalOpen.isSubScreenModalOpen })}>
         <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: !isModalOpen.isSubScreenModalOpen })}>
-          Add new sub-screen
+          <Translate contentKey={'menus.pos.update.modals.subScreen.title'}>Add new sub-screen</Translate>
         </ModalHeader>
         <ModalBody>
           <FormGroup>
-            <Label for="subScreenName">Sub-screen name</Label>
+            <Label for="subScreenName">
+              <Translate contentKey={'menus.pos.update.modals.subScreen.name'}>Sub-screen name</Translate>
+            </Label>
             <Input
               type="text"
               id="subScreenName"
@@ -1379,7 +1387,9 @@ function MenuUpdate() {
             />
           </FormGroup>
           <FormGroup>
-            <Label for="subScreenColor">Select color theme</Label>
+            <Label for="subScreenColor">
+              <Translate contentKey={'menus.pos.update.modals.subScreen.color'}>Select color theme</Translate>
+            </Label>
             <div className="d-flex flex-wrap mt-3">
               {colorThemes.map((color, index) => (
                 <Button
@@ -1391,7 +1401,9 @@ function MenuUpdate() {
               ))}
             </div>
           </FormGroup>
-          <Button color="primary" onClick={handleSubScreenModalSubmit}>Add Sub-Screen</Button>
+          <Button color="primary" onClick={handleSubScreenModalSubmit}>
+            <Translate contentKey={'menus.pos.update.modals.subScreen.add'}>Add Sub-Screen</Translate>
+          </Button>
         </ModalBody>
       </Modal>
 
@@ -1407,11 +1419,13 @@ function MenuUpdate() {
 
       <Modal isOpen={isModalOpen.isEditModalOpen} toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: false })}>
         <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: false })}>
-          Edit
+          <Translate contentKey={'menus.pos.update.modals.editScreen.title'}>Edit</Translate>
         </ModalHeader>
         <ModalBody>
           <FormGroup>
-            <Label for="subScreenName">Name</Label>
+            <Label for="subScreenName">
+              <Translate contentKey={'menus.pos.update.modals.editScreen.name'}>Name</Translate>
+            </Label>
             <Input
               type="text"
               id="subScreenName"
@@ -1420,7 +1434,9 @@ function MenuUpdate() {
             />
           </FormGroup>
           <FormGroup>
-            <Label for="subScreenColor">Select color theme</Label>
+            <Label for="subScreenColor">
+              <Translate contentKey={'menus.pos.update.modals.editScreen.color'}>Select color theme</Translate>
+            </Label>
             <div className="d-flex flex-wrap mt-3">
               {colorThemes.map((color, index) => (
                 <Button
@@ -1432,7 +1448,9 @@ function MenuUpdate() {
               ))}
             </div>
           </FormGroup>
-          <Button color="primary" onClick={handleEditScreen}>Save</Button>
+          <Button color="primary" onClick={handleEditScreen}>
+            <Translate contentKey={'entity.action.save'}>Save</Translate>
+          </Button>
         </ModalBody>
       </Modal>
 
@@ -1440,13 +1458,13 @@ function MenuUpdate() {
         <Modal isOpen={isModalOpen.isMenuModalOpen} className="modal-lg"
             >
         <ModalHeader  toggle={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} >
-          <Translate contentKey="tempApp.menu.home.createOrEditLabel">Create or edit a Menu</Translate>
+          <Translate contentKey="menus.shared.update.edit.title">Create or edit a Menu</Translate>
         </ModalHeader>
         <ModalBody>
           <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
             <div className={"d-flex flex-column gap-2"}>
               <label>
-                <Translate contentKey={"tempApp.menu.name"}>Name</Translate>
+                <Translate contentKey={"menus.shared.update.name"}>Name</Translate>
               </label>
               <InputText
                 type="text"
@@ -1459,7 +1477,7 @@ function MenuUpdate() {
               />
             </div>
             <ValidatedField
-              label={translate('tempApp.menu.menuUrl')}
+              label={translate('menus.shared.update.url')}
               id="menu-menuUrl"
               name="menuUrl"
               data-cy="menuUrl"
@@ -1467,13 +1485,13 @@ function MenuUpdate() {
 
             />
             <div className="mb-3">
-              Branches
+              {translate('menus.shared.update.branches')}
               <Select defaultValue={initialBranches}
                       onChange={handleBranchChange} options={branchList} />
             </div>
 
             <div className="mb-3">
-              Category
+              {translate('menus.shared.update.category')}
               <Select
                 value={selectedCategory}
                 onChange={handleCategoryChange}
