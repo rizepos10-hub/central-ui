@@ -6,7 +6,14 @@
         "variable": "Variable Items View",
         "regular": "Regular Items View",
         "combo": "Combo Items View",
-        "pizza": "Pizza Items View"
+        "pizza": "Pizza Items View",
+        "tableTitle": {
+          "simple": "Simple Items",
+          "variable": "Variables Items",
+          "regular": "Regular Items",
+          "combo": "Combo Items",
+          "pizza": "Pizza Items"
+        }
       },
       "fields": {
         "id": "Id",
@@ -59,13 +66,26 @@
             }
           }
         },
-        "visibility": "Visibility"
+        "visibility": {
+          "label": "Visibility",
+          "titles": {
+            "simple": "Visibility for Simple Item"
+          }
+        }
+      },
+      "placeholders": {
+        "itemName": "Item Name",
+        "itemDescription": "Item Description",
+        "itemSku": "Item SKU",
+        "itemPrice": "Item Price",
+        "itemSalePrice": "Item Sale Price",
+        "itemBranchPrice": "Enter price for {{ branchName }}"
       },
       "name": "Name",
       "description": "Description",
       "productionCenter": "Production Center",
       "categories": "Categories",
-      "accoutingGroup": "Accounting Group",
+      "accountingGroups": "Accounting Groups",
       "excludedFromLoyalty": "Excluded From Loyalty Points",
       "image": "Image",
       "sku": "SKU",

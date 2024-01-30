@@ -40,10 +40,10 @@ const AddonImportModal = (props: IAddonImportProps) => {
         <ModalBody>
           <div className="col md-6">
             <h2>
-              <Translate contentKey="tempApp.item.import-addon"></Translate>
+              <Translate contentKey="items.update.importAddonsModal.title"></Translate>
             </h2>
             <h4>
-              <Translate contentKey="tempApp.item.home.search"></Translate>
+              <Translate contentKey="items.update.importAddonsModal.search"></Translate>
             </h4>
             <Select
               isMulti={false}
@@ -59,7 +59,7 @@ const AddonImportModal = (props: IAddonImportProps) => {
               <Translate contentKey="entity.action.cancel">Cancel</Translate>
             </Button>{' '}
             <Button color="primary" onClick={handleSaveImportAddons}>
-              Import Addons
+              <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
             </Button>
           </ModalFooter>
         </ModalBody>
