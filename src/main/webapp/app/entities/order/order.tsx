@@ -269,7 +269,7 @@ console.log(orderList.length, 'len')
               first={lazyState.first}
               rows={20}
               totalRecords={totalOrders}
-              emptyMessage="No Orders Found"
+              emptyMessage={translate('orders.view.table.emptyMessage')}
               onPage={onPage}
               onSort={onSort}
               sortOrder={lazyState.sortOrder}

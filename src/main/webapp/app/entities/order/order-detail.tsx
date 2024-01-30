@@ -64,7 +64,7 @@ export const OrderDetail = () => {
   return (
     <Row>
       <h3 className="mb-3">
-        Order <span className="text-primary">#{filteredOrderEntity.sequenceNumber}</span>
+        <Translate contentKey={'orders.details.title'}>Order</Translate> <span className="text-primary">#{filteredOrderEntity.sequenceNumber}</span>
       </h3>
       <Col md="12" className="d-flex flex-wrap ">
         <Card className={"w-full"}>
@@ -72,7 +72,7 @@ export const OrderDetail = () => {
               <div className="d-flex flex-grow-1 gap-2">
 
                 <Col md="9" >
-                  <h3> <strong>Items</strong></h3>
+                  <h3> <strong><Translate contentKey={'orders.details.itemsCard.title'}>Items</Translate></strong></h3>
 
                     <div >{orderEntity?.items ? <OrderedItems list={filteredOrderEntity.items} totalPayments={totalPaymentAmount} /> : null}</div>
                 </Col>
@@ -108,7 +108,7 @@ export const OrderDetail = () => {
 
         <Col md="12" className="mt-lg-5">
           <Card className="mb-3">
-            <h3> <strong>Bills</strong></h3>
+            <h3> <strong><Translate contentKey={'orders.details.billsCard.title'}>Bills</Translate></strong></h3>
           {filteredOrderEntity.bills && <OrderBill orderedItems={filteredOrderEntity?.items} list={filteredOrderEntity?.bills}></OrderBill> }
           </Card>
         </Col>

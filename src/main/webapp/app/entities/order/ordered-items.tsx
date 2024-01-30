@@ -1,7 +1,7 @@
   import { IBill } from 'app/shared/model/bill.model';
   import { IBilledItem } from 'app/shared/model/billed-items.model';
   import {Button, Card, Col, ListGroup, ListGroupItem, Row, Table} from 'reactstrap';
-  import { Translate } from 'react-jhipster';
+  import {translate, Translate} from 'react-jhipster';
   import React from 'react';
   import { IOrderedItem } from 'app/shared/model/ordered-item.model';
   import { IOrderedAddon } from 'app/shared/model/ordered-addon.model';
@@ -72,49 +72,49 @@ console.log(totalPayments, 'totalPayments')
           <div>
             {list && list.length > 0 ? (
               <TreeTable value={treeData} className="mt-4">
-                <Column field="name" header="Name" expander style={{ width: '40%' }} />
-                <Column field="variant" header="Variant" style={{ width: '15%' }} />
-                <Column field="amount" header="Amount" style={{ width: '15%' }} />
-                <Column field="returnedAmount" header="Returned Amount" style={{ width: '20%' }} />
-                <Column field="totalAmount" header="Total Amount" style={{ width: '20%' }} />
-                <Column field="discount" header="Discount" style={{ width: '15%' }} />
-                <Column field="price" header="Price" style={{ width: '15%' }} />
-                <Column field="total" header="Total" style={{ width: '15%' }} />
+                <Column field="name" header={translate('orders.details.itemsCard.table.name')} expander style={{ width: '40%' }} />
+                <Column field="variant" header={translate('orders.details.itemsCard.table.variant')} style={{ width: '15%' }} />
+                <Column field="amount" header={translate('orders.details.common.amount')} style={{ width: '15%' }} />
+                <Column field="returnedAmount" header={translate('orders.details.itemsCard.table.returnedAmount')} style={{ width: '20%' }} />
+                <Column field="totalAmount" header={translate('orders.details.itemsCard.table.totalAmount')} style={{ width: '20%' }} />
+                <Column field="discount" header={translate('orders.details.common.discount')} style={{ width: '15%' }} />
+                <Column field="price" header={translate('orders.details.common.price')} style={{ width: '15%' }} />
+                <Column field="total" header={translate('orders.details.common.total')} style={{ width: '15%' }} />
               </TreeTable>
 
             ) : (
-              <div>No items available.</div>
+              <div><Translate contentKey={'orders.details.itemsCard.emptyMessage'}>No items available.</Translate></div>
             )}
           </div>
 
         { list.length > 0 && <Card className="mt-3 p-3">
           <div className="d-flex justify-content-between my-2">
             <div>
-              <strong>Subtotal</strong>
+              <strong>{translate('orders.details.common.subtotal')}</strong>
             </div>
             <div className="text-center">$ {subtotal.toFixed(2)}</div>
           </div>
           <div className="d-flex justify-content-between my-2">
             <div>
-              <strong>Total Discounts</strong>
+              <strong>{translate('orders.details.common.totalDiscounts')}</strong>
             </div>
             <div className="text-center">$ {totalDiscounts.toFixed(2)}</div>
           </div>
           <div className="d-flex justify-content-between my-2">
             <div>
-              <strong>Total Price</strong>
+              <strong>{translate('orders.details.common.totalPrice')}</strong>
             </div>
             <div className="text-center">$ {totalPrice.toFixed(2)}</div>
           </div>
           <div className="d-flex justify-content-between my-2">
             <div>
-              <strong>Paid</strong>
+              <strong>{translate('orders.details.common.paid')}</strong>
             </div>
             <div className="text-center">$ {totalPayments.toFixed(2)}</div>
           </div>
           <div className="d-flex justify-content-between my-2">
             <div>
-              <strong>Remaining</strong>
+              <strong>{translate('orders.details.common.remaining')}</strong>
             </div>
             <div className="text-center">$ {(totalPrice - totalPayments).toFixed(2) }</div>
           </div>

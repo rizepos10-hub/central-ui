@@ -2,7 +2,7 @@ import { IBill } from 'app/shared/model/bill.model';
 import { IBilledItem } from 'app/shared/model/billed-items.model';
 import { IPaymentTransaction } from 'app/shared/model/payment-transaction.model';
 import {Button, Card, Col, ListGroup, ListGroupItem, Row, Table} from 'reactstrap';
-import { Translate } from 'react-jhipster';
+import {translate, Translate} from 'react-jhipster';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
@@ -190,27 +190,27 @@ console.log(bill.billItems, 'bill.billItems')
                 <div className="d-flex gap-2 ">
                   <div className="flex-grow-1 flex-shrink-1-l" style={{marginBottom: '20px', width: '80%'}}>
                     {/* maxHeight: '300px', overflowY: 'auto', */}
-                    <h4>Order Bill {bill.sequenceNumber}</h4>
+                    <h4><Translate contentKey={'orders.details.billsCard.subTitle'} interpolate={{billId: bill.sequenceNumber}}>Order Bill {bill.sequenceNumber}</Translate></h4>
 
                     <TreeTable value={transformedTreeData} className="mt-4">
-                      <Column field="id" header="ID"/>
-                      <Column field="name" header="Name" expander style={{width: '30%'}}/>
-                      <Column field="amount" header="Amount"/>
-                      <Column field="price" header="Price"/>
-                      <Column field="discount" header="Discount"/>
-                      <Column field="total" header="Total"/>
-                      <Column field="date" header="Date"/>
+                      <Column field="id" header={translate('orders.details.billsCard.table.id')}/>
+                      <Column field="name" header={translate('orders.details.billsCard.table.name')} expander style={{width: '30%'}}/>
+                      <Column field="amount" header={translate('orders.details.common.amount')}/>
+                      <Column field="price" header={translate('orders.details.common.price')}/>
+                      <Column field="discount" header={translate('orders.details.common.discount')}/>
+                      <Column field="total" header={translate('orders.details.common.total')}/>
+                      <Column field="date" header={translate('orders.details.billsCard.table.date')}/>
                     </TreeTable>
 
                   </div>
 
                   <Card className="p-3  ml-auto">
-                    <h4>Payment Transactions for Order Bill {billIndex + 1}</h4>
+                    <h4><Translate contentKey={'orders.details.billsCard.payment.title'} interpolate={{billId: billIndex + 1}}>Payment Transactions for Order Bill {billIndex + 1}</Translate></h4>
                     {bill.paymentTransactions.map((item, index) => (
                       <div key={`payment-${billIndex}-${index}`}>
-                        <strong>Payment Method:</strong> {item.method}
+                        <strong><Translate contentKey={'orders.details.billsCard.payment.method'}>Payment Method:</Translate></strong> {item.method}
                         <span className="ml-3">
-                                    <strong>Amount:</strong> ${item.amount.toFixed(2)}
+                          <strong><Translate contentKey={'orders.details.billsCard.payment.amount'}>Amount:</Translate></strong> ${item.amount.toFixed(2)}
                                 </span>
                       </div>
                     ))}
@@ -219,25 +219,25 @@ console.log(bill.billItems, 'bill.billItems')
                 <Card className="mt-3 p-3">
                   <div className="d-flex justify-content-between my-2">
                     <div>
-                      <strong>Subtotal</strong>
+                      <strong><Translate contentKey={'orders.details.common.subtotal'}>Subtotal</Translate></strong>
                     </div>
                     <div className="text-center">$ {subtotal.toFixed(2)}</div>
                   </div>
                   <div className="d-flex justify-content-between my-2">
                     <div>
-                      <strong>Total Discounts</strong>
+                      <strong><Translate contentKey={'orders.details.common.totalDiscounts'}>Total Discounts</Translate></strong>
                     </div>
                     <div className="text-center">$ {totalDiscounts.toFixed(2)}</div>
                   </div>
                   <div className="d-flex justify-content-between my-2">
                     <div>
-                      <strong>Total Price</strong>
+                      <strong><Translate contentKey={'orders.details.common.totalPrice'}>Total Price</Translate></strong>
                     </div>
                     <div className="text-center">$ {totalPrice.toFixed(2)}</div>
                   </div>
                   <div className="d-flex justify-content-between my-2">
                     <div>
-                      <strong>Remaining Amount</strong>
+                      <strong><Translate contentKey={'orders.details.common.remaining'}>Remaining Amount</Translate></strong>
                     </div>
                     <div className="text-center">$ {remainingAmount.toFixed(2)}</div>
                   </div>
@@ -248,7 +248,7 @@ console.log(bill.billItems, 'bill.billItems')
 
             )})
         ) : (
-          <div>No Bills available.</div>
+          <div><Translate contentKey={'orders.details.billsCard.emptyMessage'}>No Bills available.</Translate></div>
         )}
 
         {/* {billList.length > 0 && ( */}

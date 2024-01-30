@@ -1,6 +1,7 @@
 {
   "orders": {
     "view": {
+      "title": "Orders View",
       "table": {
         "fields": {
           "id": "Order Id",
@@ -13,6 +14,7 @@
           "customerPhone": "Customer Phone",
           "status": "Order Status"
         },
+        "emptyMessage": "No Orders Found",
         "filters": {
           "id": "Enter Id",
           "branch": "Select a Branch",
@@ -26,7 +28,7 @@
       }
     },
     "details": {
-      "title": "Order #{{ id }}",
+      "title": "Order",
       "common": {
         "subtotal": "Subtotal",
         "totalDiscounts": "Total Discounts",
@@ -40,17 +42,24 @@
       },
       "itemsCard": {
         "title": "Items",
+        "emptyMessage": "No items available",
         "table": {
           "name": "Name",
           "variant": "Variant",
           "returnedAmount": "Returned Amount",
           "totalAmount": "Total Amount"
         },
-        "customer": "Customer"
+        "customer": {
+          "title": "Customer",
+          "name": "Name",
+          "email": "Email",
+          "phone": "Phone"
+        }
       },
       "billsCard": {
         "title": "Bills",
         "subTitle": "Order Bill {{ billId }}",
+        "emptyMessage": "No bills available",
         "table": {
           "id": "Id",
           "name": "Name",
@@ -58,7 +67,8 @@
         },
         "payment": {
           "title": "Payment Transactions for Order Bill {{ billId }}",
-          "method": "Payment Method"
+          "method": "Payment Method:",
+          "amount": "Amount:"
         }
       }
     }
