@@ -1,0 +1,66 @@
+{
+  "orders": {
+    "view": {
+      "table": {
+        "fields": {
+          "id": "Order Id",
+          "branch": "Order Branch",
+          "date": "Order Date",
+          "discount": "Order Discount",
+          "source": "Order Source",
+          "tables": "Order Tables",
+          "customerEmail": "Customer Email",
+          "customerPhone": "Customer Phone",
+          "status": "Order Status"
+        },
+        "filters": {
+          "id": "Enter Id",
+          "branch": "Select a Branch",
+          "date": "Enter Date Range",
+          "source": "Select a Source",
+          "tables": "Enter Table",
+          "customerEmail": "Enter Customer Email",
+          "customerPhone": "Enter Customer Phone",
+          "status": "Select a Status"
+        }
+      }
+    },
+    "details": {
+      "title": "Order #{{ id }}",
+      "common": {
+        "subtotal": "Subtotal",
+        "totalDiscounts": "Total Discounts",
+        "totalPrice": "Total Price",
+        "paid": "Paid",
+        "remaining": "Remaining",
+        "amount": "Amount",
+        "price": "Price",
+        "discount": "Discount",
+        "total": "Total"
+      },
+      "itemsCard": {
+        "title": "Items",
+        "table": {
+          "name": "Name",
+          "variant": "Variant",
+          "returnedAmount": "Returned Amount",
+          "totalAmount": "Total Amount"
+        },
+        "customer": "Customer"
+      },
+      "billsCard": {
+        "title": "Bills",
+        "subTitle": "Order Bill {{ billId }}",
+        "table": {
+          "id": "Id",
+          "name": "Name",
+          "date": "Date"
+        },
+        "payment": {
+          "title": "Payment Transactions for Order Bill {{ billId }}",
+          "method": "Payment Method"
+        }
+      }
+    }
+  }
+}
