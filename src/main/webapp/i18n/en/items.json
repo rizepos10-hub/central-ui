@@ -1,0 +1,145 @@
+{
+  "items": {
+    "view": {
+      "titles": {
+        "simple": "Simple Items View",
+        "variable": "Variable Items View",
+        "regular": "Regular Items View",
+        "combo": "Combo Items View",
+        "pizza": "Pizza Items View"
+      },
+      "fields": {
+        "id": "Id",
+        "name": "Name",
+        "image": "Image",
+        "description": "Description",
+        "inStock": "In Stock",
+        "edit": "Edit",
+        "delete": "Delete",
+        "regular": {
+          "variant": "Variant",
+          "category": "Category",
+          "reviews": "Reviews",
+          "orderCount": "Order Count",
+          "status": "Status",
+          "showVariants": "Show Variants"
+        }
+      },
+      "filters": {
+        "name": "Search by Name",
+        "category": "Select a Category"
+      },
+      "actions": {
+        "refreshList": "Refresh List",
+        "createSimple": "Create New Simple Item",
+        "createVariable": "Create New Variable Item",
+        "createRegular": "Create New Regular Item",
+        "createCombo": "Create New Combo Item",
+        "createPizza": "Create New Pizza Item"
+      }
+    },
+    "update": {
+      "tabs": {
+        "details": {
+          "label": "Details",
+          "titles": {
+            "create": {
+              "simple": "Create New Simple Item",
+              "variable": "Create New Variable Item",
+              "regular": "Create New Regular Item",
+              "combo": "Create New Combo Item",
+              "pizza": "Create New Pizza Item"
+            },
+            "edit": {
+              "simple": "Edit Simple Item",
+              "variable": "Edit Variable Item",
+              "regular": "Edit Regular Item",
+              "combo": "Edit Combo Item",
+              "pizza": "Edit Pizza Item"
+            }
+          }
+        },
+        "visibility": "Visibility"
+      },
+      "name": "Name",
+      "description": "Description",
+      "productionCenter": "Production Center",
+      "categories": "Categories",
+      "accoutingGroup": "Accounting Group",
+      "excludedFromLoyalty": "Excluded From Loyalty Points",
+      "image": "Image",
+      "sku": "SKU",
+      "price": "Price",
+      "salePrice": "Sale Price",
+      "branchPrices": "Branch Prices",
+      "branch": "Branch",
+      "selectAttribute": "Select Attribute",
+      "addAttribute": "Add Attribute",
+      "generateVariants": "Generate Variants",
+      "addSingleVariant": "Add Single Variant",
+      "removeAttribute": "Remove Attribute",
+      "deleteVariant": "Delete Variant",
+      "addons": "Addons",
+      "importAddons": "Import Addons",
+      "importAddonsModal": {
+        "title": "Import Addons From Item",
+        "search": "Search for Item"
+      },
+      "addonGroups": "Addon Groups",
+      "required": "Required",
+      "combo": {
+        "itemName": "Item Name",
+        "itemVariants": "Item Variants",
+        "quantity": "Quantity",
+        "addons": "Addons",
+        "delete": "Delete",
+        "addItem": "Add Item",
+        "addAddons": "Add Addons",
+        "addItemModal": {
+          "title": "Add New Item",
+          "message": "Please select a Category to view its items",
+          "addItems": "Add Items"
+        }
+      },
+      "pizza": {
+        "predefined": "Predefined Pizza",
+        "itemPricing": "Item Pricing",
+        "toppings": "Toppings",
+        "addToppings": "Add Toppings",
+        "topping": "Topping",
+        "crustType": "Crust Type",
+        "addCrustTypes": "Add Crust Types",
+        "crustThickness": "Crust Thickness",
+        "addCrustThickness": "Add Crust Thickness",
+        "pricingClass": "Pricing Class",
+        "numberOfPizzas": "Number of Pizzas",
+        "freeToppingsNumber": "Free Toppings Number",
+        "remove": "Remove",
+        "add": "Add",
+        "createNewPizzaSteps": {
+          "choosePizzaType": "Choose Pizza Type",
+          "createYourPizza": "Create Your Pizza",
+          "pizzaItemType": "Pizza Item Type",
+          "single": "Single",
+          "multiple": "Multiple",
+          "next": "Next"
+        }
+      },
+      "regular": {
+        "variants": "Variants",
+        "discounts": "Discounts",
+        "addVariant": "Add Variant",
+        "variantModal": {
+          "title": "Variant",
+          "name": "Variant Name",
+          "addons": "Addons",
+          "discount": "Variant Discount",
+          "prices": "Prices",
+          "originalPrice": "Original Price",
+          "specialPrices": "Special Prices",
+          "save": "Save Variant"
+        }
+      }
+    }
+  }
+}
