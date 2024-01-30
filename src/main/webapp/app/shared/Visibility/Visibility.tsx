@@ -10,11 +10,13 @@ import {InputText} from "primereact/inputtext";
 import {Nullable} from "primereact/ts-helpers";
 import {Calendar} from "primereact/calendar";
 import {Message} from "primereact/message";
+import {Translate, translate} from "react-jhipster";
 
 
 interface Props {
   initialState: IVisibility[];
   onStateChanged: (state: IVisibility[]) => void;
+  title?: string;
 }
 function convertStringToNullableDate (date: string) : Nullable<Date> {
   const [hours, minutes, seconds] = date ? date.split(':').map(Number) : [undefined, undefined, undefined];
@@ -32,7 +34,7 @@ function convertNullableDateToString (date: Nullable<Date> | Date[] | string) : 
     return `${hours}:${minutes}:${seconds}`;
   }
 }
-const Visibility = ({ initialState, onStateChanged }:Props) => {
+const Visibility = ({ initialState, onStateChanged, title = "Visibility" }:Props) => {
 
   const applications = Object.values(SourceType);
   const allDays = Object.values(DayOfWeek);
@@ -115,7 +117,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
       <>
         <div className="d-flex justify-content-end">
           <PrimeButton type="button" className="" onClick={() => handleAddHourRange(day)}>
-            Add Visibility Hours
+            <Translate contentKey={'visibility.add'}>Add Visibility Hours</Translate>
           </PrimeButton>
         </div>
         { getHourRangesForDay(day) && getHourRangesForDay(day).map((hourRange, rangeIndex) => {
@@ -124,7 +126,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
               <div className="d-flex flex-row">
                 <div>
                   <label htmlFor="fromPicker" className="font-bold block mb-2">
-                    From
+                    <Translate contentKey={'visibility.from'}>From</Translate>
                   </label>
                   <Calendar
                     id="fromPicker"
@@ -138,7 +140,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
 
                 <div className="ml-2">
                   <label htmlFor="toPicker" className="font-bold block mb-2">
-                    To
+                    <Translate contentKey={'visibility.to'}>To</Translate>
                   </label>
                   <Calendar
                     id="toPicker"
@@ -152,7 +154,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
               </div>
 
               <div className="ml-2">
-                <label className="font-bold block mb-2">Remove</label>
+                <label className="font-bold block mb-2"><Translate contentKey={'visibility.remove'}>Remove</Translate></label>
                 <Button
                   type={'button'}
                   icon="pi pi-times"
@@ -179,13 +181,13 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
   }
   return (
     <>
-      <h2>Item Visibility</h2>
+      <h2>{title}</h2>
       <div className="d-flex justify-content-between flex-wrap mb-4">
         <Dropdown value={selectedApplication} onChange={(e) => setSelectedApplication(e.value)} options={applications}
-                  placeholder="Select an Application" className="w-full md:w-14rem mb-4" />
+                  className="w-full md:w-14rem mb-4" />
         {selectedApplication && (
           <div className='d-flex mb-4'>
-            <label htmlFor="isVisible" className="font-bold mr-2">Visible</label>
+            <label htmlFor="isVisible" className="font-bold mr-2"><Translate contentKey={'visibility.visible'}>Visible</Translate></label>
             <Checkbox inputId="isVisible" onChange={e => handleChangeIsVisible(e.checked)}
                       checked={getIsVisible()}/>
           </div>
@@ -196,7 +198,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
         <Accordion>
           {allDays.map((day, dayIndex)=>{
             return (
-              <AccordionTab key={dayIndex} header={day}>
+              <AccordionTab key={dayIndex} header={translate(`daysOfWeek.${day}`)}>
                 {accordionTabContent(day)}
               </AccordionTab>
             )
