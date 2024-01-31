@@ -298,7 +298,6 @@ export const LoyaltyRecords = () => {
             field="customer.firstName"
             header={translate('loyalty.view.table.fields.firstName')}
             body={(rowData)=>{return rowData.customer?.firstName}}
-            // sortable
             filter
             filterPlaceholder={translate('loyalty.view.table.search.search')}
             headerStyle={{ minWidth: '12rem' }}
