@@ -288,7 +288,6 @@ export const LoyaltyRecords = () => {
           <Column
             field="customer.email"
             header={translate('loyalty.view.table.fields.email')}
-            // sortable
             filter
             filterPlaceholder={translate('loyalty.view.table.search.search')}
             body={(rowData)=>{return rowData.customer?.email}}
