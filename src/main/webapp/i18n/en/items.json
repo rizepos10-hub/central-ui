@@ -73,7 +73,8 @@
           "titles": {
             "simple": "Simple Item Visibility",
             "variable": "Variable Item Visibility",
-            "regular": "Regular Item Visibility"
+            "regular": "Regular Item Visibility",
+            "combo": "Combo Item Visibility"
           }
         }
       },
@@ -115,6 +116,7 @@
       "addonGroups": "Addon Groups",
       "required": "Required",
       "combo": {
+        "title": "Combo",
         "itemName": "Item Name",
         "itemVariants": "Item Variants",
         "quantity": "Quantity",
@@ -122,6 +124,7 @@
         "delete": "Delete",
         "addItem": "Add Item",
         "addAddons": "Add Addons",
+        "quantityPlaceholder": "Enter quantity for {{ variantName }}",
         "addItemModal": {
           "title": "Add New Item",
           "message": "Please select a Category to view its items",

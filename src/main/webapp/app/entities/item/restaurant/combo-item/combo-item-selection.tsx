@@ -23,6 +23,7 @@ import {getEntities as getCrustTypes} from "app/entities/pizza-settings/pizza-cr
 import {getEntities as getCrustThicknesses} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness.reducer";
 import {getEntities as getSizes} from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
 import {IPizzaSize} from "app/shared/model/pizza-size.model";
+import {translate, Translate} from "react-jhipster";
 
 const ComboItemSelection = ({isOpen,onAddItems,toggleModal, comboPackages}) => {
 
@@ -139,7 +140,7 @@ const ComboItemSelection = ({isOpen,onAddItems,toggleModal, comboPackages}) => {
 
   return (
           <Modal isOpen={isOpen} toggle={toggleModal} className=" modal-lg">
-            <ModalHeader toggle={toggleModal}>Add New Item</ModalHeader>
+            <ModalHeader toggle={toggleModal}><Translate contentKey={'items.update.combo.addItemModal.title'}>Add New Item</Translate></ModalHeader>
             <ModalBody>
               {loading ? (
                 <Spinner />
@@ -251,7 +252,7 @@ const ComboItemSelection = ({isOpen,onAddItems,toggleModal, comboPackages}) => {
                                 :
                                 (
                                   <>
-                                    <h6>Variants:</h6>
+                                    <h6>{translate('items.update.regular.variants')}:</h6>
                                     {item?.variants?.map(variant => {
                                       return (
                                         <div key={variant.id} className="form-check">
@@ -277,7 +278,7 @@ const ComboItemSelection = ({isOpen,onAddItems,toggleModal, comboPackages}) => {
                       </Row>
                     </>
                   ) : (
-                    <p>Please select a Category to view its items.</p>
+                    <p><Translate contentKey={'items.update.combo.addItemModal.message'}>Please select a Category to view its items.</Translate></p>
                   )}
                 </Col>
               </Row>
@@ -285,10 +286,10 @@ const ComboItemSelection = ({isOpen,onAddItems,toggleModal, comboPackages}) => {
             </ModalBody>
             <ModalFooter>
               <Button color="secondary" onClick={toggleModal}>
-                Cancel
+                <Translate contentKey={'entity.action.cancel'}>Cancel</Translate>
               </Button>
               <Button color="primary" onClick={handleAddItems}>
-                Add Items
+                <Translate contentKey={'items.update.combo.addItemModal.addItems'}>Add Items</Translate>
               </Button>
             </ModalFooter>
           </Modal>

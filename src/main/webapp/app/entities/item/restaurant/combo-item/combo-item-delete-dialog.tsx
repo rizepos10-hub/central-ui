@@ -45,7 +45,7 @@ export const ComboDeleteDialog = () => {
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.restaurant-combo.delete.question">
-        <Translate contentKey="tempApp.restaurant-combo.delete.question" interpolate={{ id: comboItemEntity.id }}>
+        <Translate contentKey="items.delete.question" interpolate={{ id: comboItemEntity.id }}>
           Are you sure you want to delete this Combo?
         </Translate>
       </ModalBody>

@@ -304,11 +304,11 @@ export const ComboItemUpdate = () => {
           <Row>
             <Col md={10}>
               <TabView>
-                <TabPanel header={'Details'}>
+                <TabPanel header={translate('items.update.tabs.details.label')}>
                   <Row>
                     <Col md="8">
                       <h2>
-                        {isNew ? "Create New Combo Item" : `Edit Combo Item`}
+                        {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.combo'}>Create New Combo Item</Translate> : <Translate contentKey={'items.update.tabs.details.titles.edit.combo'}>Edit Combo Item</Translate>}
                       </h2>
                     </Col>
                   </Row>
@@ -332,14 +332,14 @@ export const ComboItemUpdate = () => {
                         <Col md="4">
                           <div className={"d-flex flex-column gap-2"}>
                             <label className={"text-xl font-bold"}>
-                              Price
+                              <Translate contentKey={'items.update.price'}>Price</Translate>
                             </label>
                             <InputNumber
                               name="price"
                               id="price"
                               required={true}
                               maxFractionDigits={2}
-                              placeholder="Item Price"
+                              placeholder={translate('items.update.placeholders.itemPrice')}
                               value={comboItem?.variants?.[0]?.price}
                               onChange={(e) => handlePriceChange(e.value)}
                             />
@@ -347,12 +347,12 @@ export const ComboItemUpdate = () => {
                         </Col>
 
                         <Col md="8" className={"mt-3"}>
-                          <h4>Branch Prices</h4>
+                          <h4><Translate contentKey={'items.update.branchPrices'}>Branch Prices</Translate></h4>
                           <Table>
                             <thead>
                             <tr>
-                              <th>Branch</th>
-                              <th>Price</th>
+                              <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
+                              <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -362,7 +362,7 @@ export const ComboItemUpdate = () => {
                                 <td>
                                   <InputNumber
                                     name={`branchPrice_${branch.id}`}
-                                    placeholder={`Enter price for ${branch.name}`}
+                                    placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                     onWheel={(e: any) => e.target.blur()}
                                     size={60}
                                     value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
@@ -377,20 +377,20 @@ export const ComboItemUpdate = () => {
 
                         <Row>
                           <FormGroup>
-                            <h3>Combo</h3>
+                            <h3><Translate contentKey={'items.update.combo.title'}>Combo</Translate></h3>
                             <div className="d-flex justify-content-end mr-4">
                               <Button color="primary" onClick={toggleModal}>
-                                Add Item
+                                <Translate contentKey={'items.update.combo.addItem'}>Add Item</Translate>
                               </Button>
                             </div>
                             <Table>
                               <thead>
                               <tr>
-                                <th>Item Name</th>
-                                <th>Item Variants</th>
-                                <th>Quantity</th>
-                                <th>Addons</th>
-                                <th>Delete</th>
+                                <th><Translate contentKey={'items.update.combo.itemName'}>Item Name</Translate></th>
+                                <th><Translate contentKey={'items.update.combo.itemVariants'}>Item Variants</Translate></th>
+                                <th><Translate contentKey={'items.update.combo.quantity'}>Quantity</Translate></th>
+                                <th><Translate contentKey={'items.update.combo.addons'}>Addons</Translate></th>
+                                <th><Translate contentKey={'items.update.combo.delete'}>Delete</Translate></th>
                               </tr>
                               </thead>
                               <tbody>
@@ -411,7 +411,7 @@ export const ComboItemUpdate = () => {
                                     <td>
                                       <InputNumber
                                         name={`quantity_${comboPackage?.variant?.id}`}
-                                        placeholder={`Enter quantity for ${comboPackage?.variant.name}`}
+                                        placeholder={translate('items.update.combo.quantityPlaceholder', {variantName: comboPackage?.variant.name})}
                                         value={comboPackage.amount}
                                         onChange={(e) => handleComboAmountChange(index, e.value)}
                                       />
@@ -434,7 +434,7 @@ export const ComboItemUpdate = () => {
                                         color="danger"
                                         onClick={() => handleDeleteComboPackage(index)}
                                       >
-                                        Delete
+                                        <Translate contentKey={'items.update.combo.delete'}>Delete</Translate>
                                       </Button>
                                     </td>
                                   </tr>
@@ -448,9 +448,10 @@ export const ComboItemUpdate = () => {
                     </FormGroup>
                   </Row>
                 </TabPanel>
-                <TabPanel header={'Visibility'}>
+                <TabPanel header={translate('items.update.tabs.visibility.label')}>
                   <Visibility
                     initialState={comboItem.visibility}
+                    title={translate('items.update.tabs.visibility.titles.combo')}
                     onStateChanged={(visibility)=>setComboItem(prev => {
                       return {...prev, visibility}
                     })}
