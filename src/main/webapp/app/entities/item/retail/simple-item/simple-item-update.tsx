@@ -292,6 +292,7 @@ export const SimpleItemUpdate = () => {
                                 id="price"
                                 required={true}
                                 maxFractionDigits={2}
+                                inputClassName={"w-1"}
                                 placeholder="Item Price"
                                 value={simpleItem?.variants?.[0]?.price}
                                 onChange={(e) => handleSimpleItemChange('price', e.value)}

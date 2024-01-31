@@ -6,27 +6,38 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import {Link} from "react-router-dom";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {Card, CardBody, CardHeader, Col, FormGroup, Row} from "reactstrap";
+import {InputText} from "primereact/inputtext";
+import {InputNumber} from "primereact/inputnumber";
+import {Button} from "primereact/button";
+import {ILoyaltyExChange} from "app/shared/model/loyalty.model";
+import  {updateEntity as updateExchange, getEntity as getLoyaltyExchange} from "app/entities/loyalty/loyalty-exchange.reducer";
 import {translate, Translate} from "react-jhipster";
 
+interface LazyTableState {
+  first: number;
+  rows: number;
+  page: number;
+  sortField?: string;
+  sortOrder?: any;
+  filters: any;
+}
 
 export const LoyaltyRecords = () => {
   const ROWS_PER_PAGE = 5;
   const dispatch = useAppDispatch();
 
+  const loyaltyExchangeEntity :ILoyaltyExChange= useAppSelector(state => state.loyaltyExchange.entity)
   const records = useAppSelector(state => state.loyalty.entities);
   const loading = useAppSelector(state => state.loyalty.loading);
   const totalItems = useAppSelector(state => state.loyalty.totalItems);
   const errorMessage = useAppSelector(state => state.loyalty.errorMessage);
 
 
-  interface LazyTableState {
-    first: number;
-    rows: number;
-    page: number;
-    sortField?: string;
-    sortOrder?: any;
-    filters: any;
-  }
+
+
+  const [loyaltyPointExchange, setLoyaltyPointExchange] = useState<ILoyaltyExChange>();
+
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
     rows: ROWS_PER_PAGE,
@@ -42,6 +53,13 @@ export const LoyaltyRecords = () => {
       points: {value: '', matchMode: 'EQUALS'}
     },
   });
+
+  const handleLoyaltyExchangeChange = (field,value) => {
+    setLoyaltyPointExchange((prevState) => ({
+      ...prevState,
+        [field]: value
+    }))
+  }
 
   const handleOnFilter = (e) => {
     setLazyState(prev => {
@@ -167,6 +185,15 @@ export const LoyaltyRecords = () => {
   }, [lazyState]);
 
 
+  useEffect(() => {
+    dispatch(getLoyaltyExchange());
+
+    if(loyaltyExchangeEntity) {
+      setLoyaltyPointExchange(loyaltyExchangeEntity)
+    }
+  },[loyaltyExchangeEntity?.cashToPointExchange])
+
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold"><Translate contentKey={'loyalty.view.table.title'}>Loyalty Records</Translate></span>
@@ -181,9 +208,61 @@ export const LoyaltyRecords = () => {
       </Link>
     );
   };
+
+  const handleSave = () => {
+    dispatch(updateExchange(loyaltyPointExchange));
+  }
+
   return (
     <>
-      <div className="col-12">
+      <h1>Loyalty Points View</h1>
+      <div className={"my-3 w-6 d-flex gap-3"} >
+      <Card>
+        <FormGroup>
+
+        <CardHeader>
+          Loyalty Points Exchange
+        </CardHeader>
+        <CardBody  className={" d-flex gap-3"}>
+            <div className={"d-flex flex-column gap-2"}>
+              <label className={"text-xl font-bold"}>
+                Cash To Point Exchange
+              </label>
+              <InputNumber
+                name="cashToPointExchange"
+                id="cashToPointExchange"
+                required={true}
+                maxFractionDigits={5}
+                placeholder="Cash To Point "
+                value={loyaltyPointExchange?.cashToPointExchange}
+                onChange={(e) => handleLoyaltyExchangeChange('cashToPointExchange', e.value)}
+              />
+            </div>
+
+            <div className={"d-flex flex-column gap-2"}>
+              <label className={"text-xl font-bold"}>
+                Point To Cash Exchange
+              </label>
+              <InputNumber
+                name="pointToCashExchange"
+                id="pointToCashExchange"
+                required={true}
+                maxFractionDigits={5}
+                placeholder="Point To Cash"
+                value={loyaltyPointExchange?.pointToCashExchange}
+                onChange={(e) => handleLoyaltyExchangeChange('pointToCashExchange', e.value)}
+              />
+            </div>
+
+            <div className={"d-flex flex-column gap-2 mt-1"}>
+             <Button label={"Save"} className={"mt-5 .3rem"} raised onClick={handleSave} />
+            </div>
+        </CardBody>
+        </FormGroup>
+      </Card>
+      </div>
+
+      <div className="col-12 mt-3">
         <DataTable
           lazy
           value={records.filter(record => record.customer !== null)}

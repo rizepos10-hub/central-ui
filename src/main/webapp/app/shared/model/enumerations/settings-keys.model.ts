@@ -1,0 +1,7 @@
+export enum SettingKey {
+
+  CURRENCY_SETTINGS = "CURRENCY_SETTINGS",
+  LOYALTY_POINT = "LOYALTY_POINT"
+}
+
+
