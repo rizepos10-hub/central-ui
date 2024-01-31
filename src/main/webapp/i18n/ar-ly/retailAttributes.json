@@ -1,0 +1,43 @@
+{
+  "retailAttributes": {
+    "view": {
+      "title": "Retail Attributes View",
+      "table": {
+        "title": "Retail Attributes",
+        "fields": {
+          "name": "Name",
+          "configure": "Configure",
+          "delete": "Delete"
+        },
+        "search": {
+          "name": "Search by Name"
+        }
+      }
+    },
+    "delete": {
+      "title": "Confirm Delete Operation",
+      "question": "Are you sure you want to delete attribute {{ id }}"
+    },
+    "update": {
+      "create": {
+        "title": "",
+        "label": "Name",
+        "placeholder": "Attribute Name",
+        "action": "Add Attribute"
+      },
+      "edit": {
+        "title": "Edit {{ attribute }} Values",
+        "label": "Name",
+        "placeholder": "Attribute Value Name",
+        "action": "Add Value",
+        "confirmDelete": "Are  you sure you want to delete {{ value }}",
+        "table": {
+          "title": "{{ attribute }} Values",
+          "fields": {
+            "name": "Name"
+          }
+        }
+      }
+    }
+  }
+}

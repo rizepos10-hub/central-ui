@@ -1,12 +1,12 @@
 {
   "global": {
     "title": "Business UI",
-    "browsehappy": "أنت تستخدم متصفح <strong>قديم</strong> . من فضلك <a href=\"http://browsehappy.com/?locale=en\">قم بتحديث متصفحك</a> لتحسين تجربتك.",
+    "browsehappy": "You are using an <strong>outdated</strong> browser. Please <a href=\"http://browsehappy.com/?locale=en\">upgrade your browser</a> to improve your experience.",
     "menu": {
-      "home": "الصفحة الرئيسية",
+      "home": "Home",
       "jhipster-needle-menu-add-element": "JHipster will add additional menu entries here (do not translate!)",
       "entities": {
-        "main": "الكيانات",
+        "main": "Entities",
         "menu": "Menu",
         "branch": "Branch",
         "discount": "Discount",
@@ -20,72 +20,72 @@
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)"
       },
       "account": {
-        "main": "الحساب",
-        "settings": "الإعدادات",
-        "password": "كلمه السر",
-        "sessions": "جلسات",
-        "login": "تسجيل الدخول",
-        "logout": "تسجيل الخروج",
-        "register": "التسجيل"
+        "main": "Account",
+        "settings": "Settings",
+        "password": "Password",
+        "sessions": "Sessions",
+        "login": "Sign in",
+        "logout": "Sign out",
+        "register": "Register"
       },
       "admin": {
-        "main": "الادارة",
-        "userManagement": "إدارة المستخدم",
-        "tracker": "تعقب المستخدمين",
-        "metrics": "مقاييس",
-        "health": "الصحة",
-        "configuration": "الإعدادات",
-        "logs": "السجلات",
+        "main": "Administration",
+        "userManagement": "User management",
+        "tracker": "User tracker",
+        "metrics": "Metrics",
+        "health": "Health",
+        "configuration": "Configuration",
+        "logs": "Logs",
         "apidocs": "API",
-        "database": "قاعدة البيانات",
+        "database": "Database",
         "jhipster-needle-menu-add-admin-element": "JHipster will add additional menu entries here (do not translate!)"
       },
-      "language": "اللغة"
+      "language": "Language"
     },
     "form": {
-      "username.label": "اسم المستخدم",
-      "username.placeholder": "إسم المستخدم الخاص بك",
+      "username.label": "Username",
+      "username.placeholder": "Your username",
       "currentpassword.label": "Current password",
       "currentpassword.placeholder": "Current password",
-      "newpassword.label": "كلمة السر الجديدة",
-      "newpassword.placeholder": "كلمة السر الجديدة",
-      "confirmpassword.label": "تأكيد كلمة السر الجديدة",
-      "confirmpassword.placeholder": "تأكيد كلمة السر الجديدة",
-      "email.label": "البريد الإلكتروني",
-      "email.placeholder": "بريدك الالكتروني"
+      "newpassword.label": "New password",
+      "newpassword.placeholder": "New password",
+      "confirmpassword.label": "New password confirmation",
+      "confirmpassword.placeholder": "Confirm the new password",
+      "email.label": "Email",
+      "email.placeholder": "Your email"
     },
     "messages": {
       "info": {
         "authenticated": {
-          "prefix": "إذا اردت أن ",
-          "link": "تسجل دخولك",
-          "suffix": ", يمكنك تجربة الحسابات التجريبية:<br/>- المدير (login=\"admin\" و كلمة المرور=\"admin\") <br/>- المستخدم (login=\"user\" و كلمة المرور=\"user\")."
+          "prefix": "If you want to ",
+          "link": "sign in",
+          "suffix": ", you can try the default accounts:<br/>- Administrator (login=\"admin\" and password=\"admin\") <br/>- User (login=\"user\" and password=\"user\")."
         },
         "register": {
-          "noaccount": "لا تملك حسابا حتى الآن؟",
-          "link": "تسجيل حساب جديد"
+          "noaccount": "You don't have an account yet?",
+          "link": "Register a new account"
         }
       },
       "error": {
-        "dontmatch": "كلمة السر وتأكيدها لا تتطابق!"
+        "dontmatch": "The password and its confirmation do not match!"
       },
       "validate": {
         "newpassword": {
-          "required": "كلمة المرور الخاصة بك مطلوبة.",
-          "minlength": "كلمة السر لا يمكن أن تكون اقل 4 احرف.",
-          "maxlength": "كلمة السر لا يمكن أن تكون اكثر من 50 حرفا.",
-          "strength": "قوة كلمة المرور:"
+          "required": "Your password is required.",
+          "minlength": "Your password is required to be at least 4 characters.",
+          "maxlength": "Your password cannot be longer than 50 characters.",
+          "strength": "Password strength:"
         },
         "confirmpassword": {
-          "required": "تأكيد كلمة المرور الخاصة بك مطلوب.",
-          "minlength": "تأكيد كلمة السر لا يمكن أن يكون اقل 4 احرف.",
-          "maxlength": "تأكيد كلمة السر لا يمكن أن يكون اكثر من 50 حرفا."
+          "required": "Your confirmation password is required.",
+          "minlength": "Your confirmation password is required to be at least 4 characters.",
+          "maxlength": "Your confirmation password cannot be longer than 50 characters."
         },
         "email": {
-          "required": "البريد الإلكتروني الخاصة بك مطلوب.",
-          "invalid": "بريدك الالكتروني خاطئ.",
-          "minlength": "البريد اﻹلكتروني لا يمكن أن يكون اقل 4 احرف.",
-          "maxlength": "البريد اﻹلكتروني لا يمكن أن يكون اكثر من 50 حرفا."
+          "required": "Your email is required.",
+          "invalid": "Your email is invalid.",
+          "minlength": "Your email is required to be at least 5 characters.",
+          "maxlength": "Your email cannot be longer than 50 characters."
         }
       }
     },
@@ -93,41 +93,43 @@
       "id": "ID"
     },
     "ribbon": {
-      "dev": "تطوير"
+      "dev": "Development"
     },
-    "item-count": "يعرض {{first}} - {{second}} من {{total}} البيانات."
+    "item-count": "Showing {{first}} - {{second}} of {{total}} items."
   },
   "entity": {
     "action": {
-      "addblob": "اضف ملف",
-      "addimage": "اضف صورة",
-      "back": "رجوع",
-      "cancel": "الغاء",
-      "delete": "حذف",
-      "edit": "تعديل",
-      "open": "فتح",
-      "save": "حفظ",
-      "view": "عرض",
+      "addblob": "Add blob",
+      "addimage": "Add image",
+      "back": "Back",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "open": "Open",
+      "save": "Save",
+      "view": "View",
       "show": "Show {{otherEntity}}"
     },
     "detail": {
-      "field": "حقل",
-      "value": "قيمة"
+      "field": "Field",
+      "value": "Value"
     },
     "delete": {
-      "title": "تأكيد عملية الحذف"
+      "title": "Confirm delete operation"
     },
     "validation": {
-      "required": "هذا الحقل مطلوب.",
-      "minlength": "هذا الحقل مطلوب أن يكون على الأقل {{ min }} احرف.",
-      "maxlength": "هذا الحقل لا يمكن أن يكون أطول من {{ max }} احرف.",
-      "min": "هذا الحقل ينبغي أن يكون اقل من {{ min }}.",
-      "max": "هذا الحقل لا يمكن أن يكون أكثر من {{ max }}.",
-      "minbytes": "هذا الحقل ينبغي أن يكون اقل من {{ min }} بايت.",
-      "maxbytes": "هذا الحقل لا يمكن أن يكون أكثر من {{ max }} بايت.",
-      "pattern": "هذا الحقل يجب أن يتبع نمط {{ pattern }}.",
-      "number": "هذا الحقل يجب أن يكون رقم.",
-      "datetimelocal": "هذا الحقل يجب أن يكون تاريخ ووقت."
+      "required": "This field is required.",
+      "minlength": "This field is required to be at least {{ min }} characters.",
+      "maxlength": "This field cannot be longer than {{ max }} characters.",
+      "min": "This field should be at least {{ min }}.",
+      "max": "This field cannot be more than {{ max }}.",
+      "minbytes": "This field should be at least {{ min }} bytes.",
+      "maxbytes": "This field cannot be more than {{ max }} bytes.",
+      "pattern": "This field should follow pattern for {{ pattern }}.",
+      "number": "This field should be a number.",
+      "datetimelocal": "This field should be a date and time.",
+      "patternLogin": "This field can only contain letters, digits and e-mail addresses.",
+      "discountPriceExceeds": "Discount price can't exceed the current price"
     },
     "filters": {
       "set": "Following filters are set",
@@ -136,21 +138,21 @@
     }
   },
   "error": {
-    "internalServerError": "حدث خطأ في الخادم",
-    "server.not.reachable": "الخادم لا يمكن الوصول إليه",
-    "url.not.found": "غير موجود",
-    "NotNull": "الحقل {{ fieldName }} لا يمكن ان يكون فارغ",
-    "Size": "الحقل {{ fieldName }} لا يلبي  متطلبات الحد الأدنى / الحد الأقصى!",
-    "userexists": "اسم الدخول سبق استخدامه!",
-    "emailexists": "البريد الالكتروني قيد الاستخدام بالفعل!",
-    "idexists": "{{ entityName }} جديد لا يمكن أن يكون له معرف بالفعل",
+    "internalServerError": "Internal server error",
+    "server.not.reachable": "Server not reachable",
+    "url.not.found": "Not found",
+    "NotNull": "Field {{ fieldName }} cannot be empty!",
+    "Size": "Field {{ fieldName }} does not meet min/max size requirements!",
+    "userexists": "Login name already used!",
+    "emailexists": "Email is already in use!",
+    "idexists": "A new {{ entityName }} cannot already have an ID",
     "idnull": "Invalid ID",
-    "idinvalid": "Invalid Id",
+    "idinvalid": "Invalid ID",
     "idnotfound": "ID cannot be found",
     "file": {
       "could.not.extract": "Could not extract file",
       "not.image": "File was expected to be an image but was found to be \"{{ fileType }}\""
     }
   },
-  "footer": "هنا يضع الفووتر"
+  "footer": "RIZE POS "
 }

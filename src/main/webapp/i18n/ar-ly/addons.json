@@ -1,0 +1,41 @@
+{
+  "addons": {
+    "view": {
+      "title": "Addons View",
+      "table": {
+        "title": "Addons",
+        "fields": {
+          "name": "Name",
+          "price": "Price",
+          "discounts": "Discounts",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "buttons": {
+          "refreshList": "Refresh List",
+          "createNewAddon": "Create New Addon"
+        },
+        "search": {
+          "name": "Search by Name"
+        }
+      }
+    },
+    "delete": {
+      "title": "Confirm Delete Operation",
+      "question": "Are you sure you want to delete Addon {{ id }}"
+    },
+    "update": {
+      "id": "ID",
+      "name": "Name",
+      "description": "Description",
+      "price": "Price",
+      "discount": "Addon Discount",
+      "create": {
+        "title": "Create Addon"
+      },
+      "edit": {
+        "title": "Edit Addon"
+      }
+    }
+  }
+}

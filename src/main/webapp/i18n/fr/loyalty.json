@@ -1,0 +1,26 @@
+{
+  "loyalty": {
+    "view": {
+      "table": {
+        "title": "Loyalty Records",
+        "fields": {
+          "firstName": "First Name",
+          "lastName": "Last Name",
+          "email": "Email",
+          "phone": "Phone Number",
+          "points": "Points",
+          "edit": "Edit"
+        },
+        "search": {
+          "search": "Search"
+        }
+      }
+    },
+    "update": {
+      "title": "Edit Loyalty Points",
+      "name": "Name",
+      "email": "Email",
+      "points": "Points"
+    }
+  }
+}
