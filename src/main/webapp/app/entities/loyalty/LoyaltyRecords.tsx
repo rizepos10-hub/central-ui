@@ -6,7 +6,7 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import {Link} from "react-router-dom";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {Card, CardBody, CardHeader, Col, FormGroup, Row} from "reactstrap";
+import {Card, CardBody, CardHeader, FormGroup} from "reactstrap";
 import {InputText} from "primereact/inputtext";
 import {InputNumber} from "primereact/inputnumber";
 import {Button} from "primereact/button";
