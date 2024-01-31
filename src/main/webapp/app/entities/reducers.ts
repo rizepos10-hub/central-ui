@@ -55,6 +55,7 @@ import tv from "app/entities/settings/tv-config/tv/tv.reducer"
 import tvDisplay from "app/entities/settings/tv-config/tv-display/tv-display.reducer"
 
 import loyalty from "app/entities/loyalty/loyalty-records.reducer";
+import loyaltyExchange from "app/entities/loyalty/loyalty-exchange.reducer";
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
@@ -106,6 +107,7 @@ const entitiesReducers = {
   itemsForCombo,
   allItems,
   loyalty,
+  loyaltyExchange,
   currencies,
   currencySettings,
   tv,

@@ -525,7 +525,7 @@ export const VariableItemUpdate = () => {
                                                   name="sku"
                                                   id="sku"
                                                   required={true}
-                                                  placeholder="Item Sku"
+                                                  placeholder="Variant Sku"
                                                   value={variant?.sku}
                                                   onChange={(e) => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
                                                 />
@@ -533,15 +533,17 @@ export const VariableItemUpdate = () => {
                                             </Col>
 
                                             <Col md="4">
-                                              <div className={"d-flex flex-column gap-2 mt-2"}>
-                                                <label className={"text-xl font-bold"}>
+                                              <div  className={"d-flex flex-column gap-2 mt-2"}>
+                                                <label htmlFor="price" className={"text-xl font-bold"}>
                                                   Price
                                                 </label>
                                                 <InputNumber
                                                   name="price"
                                                   id="price"
+                                                  inputId={"price"}
+                                                  inputClassName={"w-1"}
                                                   required={true}
-                                                  placeholder="Item Price"
+                                                  placeholder="Variant Price"
                                                   value={variant?.price}
                                                   maxFractionDigits={2}
                                                   onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
@@ -557,7 +559,7 @@ export const VariableItemUpdate = () => {
                                                 <InputNumber
                                                   name="sale-price"
                                                   id="sale-price"
-                                                  placeholder="Item Sale Price"
+                                                  placeholder="Variant Sale Price"
                                                   maxFractionDigits={2}
                                                   value={variant?.salePrice}
                                                   onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
