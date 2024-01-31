@@ -74,7 +74,8 @@
             "simple": "Simple Item Visibility",
             "variable": "Variable Item Visibility",
             "regular": "Regular Item Visibility",
-            "combo": "Combo Item Visibility"
+            "combo": "Combo Item Visibility",
+            "pizza": "Pizza Item Visibility"
           }
         }
       },
@@ -143,9 +144,11 @@
         "addCrustThickness": "Add Crust Thickness",
         "pricingClass": "Pricing Class",
         "numberOfPizzas": "Number of Pizzas",
+        "numberOfToppings": "Number of Toppings",
         "freeToppingsNumber": "Free Toppings Number",
         "remove": "Remove",
         "add": "Add",
+        "makeYourOwnPizzaSettings": "Make Your Own Pizza Settings",
         "createNewPizzaSteps": {
           "choosePizzaType": "Choose Pizza Type",
           "createYourPizza": "Create Your Pizza",
@@ -173,7 +176,8 @@
       }
     },
     "delete": {
-      "question": "Are you sure you want to delete item {{ id }}"
+      "question": "Are you sure you want to delete item {{ id }}",
+      "pizzaQuestion": "Are you sure you want to delete this Pizza {{ id }}"
     }
   }
 }
