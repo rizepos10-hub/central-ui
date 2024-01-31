@@ -69,7 +69,8 @@
         "visibility": {
           "label": "Visibility",
           "titles": {
-            "simple": "Visibility for Simple Item"
+            "simple": "Simple Item Visibility",
+            "variable": "Variable Item Visibility"
           }
         }
       },
@@ -79,7 +80,8 @@
         "itemSku": "Item SKU",
         "itemPrice": "Item Price",
         "itemSalePrice": "Item Sale Price",
-        "itemBranchPrice": "Enter price for {{ branchName }}"
+        "itemBranchPrice": "Enter price for {{ branchName }}",
+        "variantName": "Variant Name"
       },
       "name": "Name",
       "description": "Description",
@@ -99,6 +101,7 @@
       "addSingleVariant": "Add Single Variant",
       "removeAttribute": "Remove Attribute",
       "deleteVariant": "Delete Variant",
+      "deleteVariantMessage": "Are you sure you want to delete this variant?",
       "addons": "Addons",
       "importAddons": "Import Addons",
       "importAddonsModal": {
@@ -160,6 +163,9 @@
           "save": "Save Variant"
         }
       }
+    },
+    "delete": {
+      "question": "Are you sure you want to delete item {{ id }}"
     }
   }
 }
