@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
-import { IAddon } from 'app/shared/model/addon.model';
+import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import {
   getEntity as getRetailAttribute,
   updateEntity as updateRetailAttribute,

@@ -1,5 +1,5 @@
 import {IBranch} from "app/shared/model/branch.model";
-import {IPrinter} from "app/shared/model/printer.model";
+import {IPrinter} from "app/shared/model/PRINTER/printer.model";
 
 
 

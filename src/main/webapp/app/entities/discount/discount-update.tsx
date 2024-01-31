@@ -9,7 +9,7 @@ import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateT
 import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IAddon } from 'app/shared/model/addon.model';
+import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { IDiscount } from 'app/shared/model/discount.model';
 import { DiscountType } from 'app/shared/model/ENUMS/discount-type.model';

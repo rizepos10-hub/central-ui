@@ -1,4 +1,4 @@
-import {IDimension} from "app/shared/model/tv.model";
+import {IDimension} from "app/shared/model/TV/tv.model";
 
 
 interface IPosition {

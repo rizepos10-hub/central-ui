@@ -1,4 +1,4 @@
-import {ICustomer} from "app/shared/model/customer.model";
+import {ICustomer} from "app/shared/model/CUSTOMER/customer.model";
 
 export interface ILoyalty {
   id?: string;

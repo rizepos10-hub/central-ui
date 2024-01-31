@@ -1,4 +1,4 @@
-import {IPrintingProfile} from "app/shared/model/printing-profile.model";
+import {IPrintingProfile} from "app/shared/model/PRINTER/printing-profile.model";
 
 
 export interface IProductionCenter {

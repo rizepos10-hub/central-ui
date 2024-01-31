@@ -3,7 +3,7 @@ import {IAttachment} from "app/shared/model/attachment.model";
 import {IDiscount} from "app/shared/model/discount.model";
 import {IBranch} from "app/shared/model/branch.model";
 import {ITerm} from "app/shared/model/term.model";
-import {IAccountingGroups} from "app/shared/model/accounting-groups.model";
+import {IAccountingGroups} from "app/shared/model/TAX/accounting-groups.model";
 import {ITaxonomy} from "app/shared/model/taxonomy.model";
 
 interface IBranchVariantDetails {

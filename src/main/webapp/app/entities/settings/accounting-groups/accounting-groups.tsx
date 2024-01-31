@@ -8,7 +8,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntities, getEntities } from './accounting-groups.reducer';
 
- import { IAccountingGroups } from 'app/shared/model/accounting-groups.model';
+ import { IAccountingGroups } from 'app/shared/model/TAX/accounting-groups.model';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Button} from "primereact/button";

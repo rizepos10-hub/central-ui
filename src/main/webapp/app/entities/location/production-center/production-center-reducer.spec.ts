@@ -15,7 +15,7 @@ import reducer, {
   reset,
 } from './production-center.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { IPrinter, defaultValue } from 'app/shared/model/printer.model';
+import { IPrinter, defaultValue } from 'app/shared/model/PRINTER/printer.model';
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {

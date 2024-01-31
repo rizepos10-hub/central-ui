@@ -1,5 +1,5 @@
 import {IBranch} from "app/shared/model/branch.model";
-import {ITvDisplay} from "app/shared/model/tv-display.model";
+import {ITvDisplay} from "app/shared/model/TV/tv-display.model";
 
 export interface IDimension {
   height: number;

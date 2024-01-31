@@ -17,7 +17,7 @@ import Select, {ActionMeta, MultiValue} from "react-select";
 import {IItem} from "app/shared/model/ITEM/item.model";
 import Attachment from "app/shared/layout/attachment/attachment";
 import {Checkbox} from "primereact/checkbox";
-import {IAddonGroups} from "app/shared/model/addon-groups.model";
+import {IAddonGroups} from "app/shared/model/ADDON/addon-groups.model";
 import {cloneDeep} from "lodash";
 import AddonImportModal from "app/entities/item/restaurant/regular-item/addon-import-modal";
 import { getEntities as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';

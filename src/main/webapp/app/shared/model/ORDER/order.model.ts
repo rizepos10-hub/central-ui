@@ -1,5 +1,5 @@
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
-import { ICustomer } from 'app/shared/model/customer.model';
+import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import { IOrderedItem } from 'app/shared/model/ORDER/ordered-item.model';
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 import { IOrderAudit } from 'app/shared/model/ORDER/order-audit.model';

@@ -17,7 +17,7 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {fetchSalesReportRedux} from "app/modules/analytics/reports/sales-report/sales-report.reducer";
 import {Spinner} from "reactstrap";
 import Select from "react-select";
-import {ICurrency} from "app/shared/model/currency.model";
+import {ICurrency} from "app/shared/model/CURRENCY/currency.model";
 import {getEntities as getCurrencies} from "app/entities/settings/currency/currencies.reducer";
 import {getEntity} from "app/entities/settings/currency/currency-settings.reducer";
 import {formatPrice} from "app/shared/util/price-utils";

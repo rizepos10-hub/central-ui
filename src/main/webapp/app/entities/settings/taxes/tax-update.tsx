@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
-import { ITax } from 'app/shared/model/tax.model';
+import { ITax } from 'app/shared/model/TAX/tax.model';
 import { getEntity, updateEntity, createEntity, reset } from './tax.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import Select from "react-select";

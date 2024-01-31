@@ -9,8 +9,8 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntities as getCurrencies } from './currencies.reducer';
 import {Dropdown, DropdownChangeEvent} from "primereact/dropdown";
-import {ICurrencySettings} from "app/shared/model/currency-settings.model";
-import {ICurrency} from "app/shared/model/currency.model";
+import {ICurrencySettings} from "app/shared/model/CURRENCY/currency-settings.model";
+import {ICurrency} from "app/shared/model/CURRENCY/currency.model";
 import {InputNumber} from "primereact/inputnumber";
 import {Alert, Col, Row, Table} from "reactstrap";
 import {Button} from "primereact/button";

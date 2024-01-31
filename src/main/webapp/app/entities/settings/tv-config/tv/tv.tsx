@@ -12,7 +12,7 @@ import {  getEntities } from './tv.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
-import {ITv} from "app/shared/model/tv.model";
+import {ITv} from "app/shared/model/TV/tv.model";
 
 export const FloorPlanTv = () => {
   const dispatch = useAppDispatch();

@@ -19,7 +19,7 @@ import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedF
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
-import { ITax } from 'app/shared/model/tax.model';
+import { ITax } from 'app/shared/model/TAX/tax.model';
 import { getEntity, updateEntity, createEntity, reset } from './tax-profile.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import Select from "react-select";

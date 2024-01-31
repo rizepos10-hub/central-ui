@@ -1,4 +1,4 @@
-import {IAddon} from "app/shared/model/addon.model";
+import {IAddon} from "app/shared/model/ADDON/addon.model";
 
 export interface IAddonGroups {
   id?: string;

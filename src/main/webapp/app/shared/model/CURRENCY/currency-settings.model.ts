@@ -1,4 +1,4 @@
-import {ICurrency} from "app/shared/model/currency.model";
+import {ICurrency} from "app/shared/model/CURRENCY/currency.model";
 import {IBranch} from "app/shared/model/branch.model";
 
 interface exchangeRate {

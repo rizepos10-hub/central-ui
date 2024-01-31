@@ -15,7 +15,7 @@ import reducer, {
   reset,
 } from './simple-item.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { IAddon, defaultValue } from 'app/shared/model/addon.model';
+import { IAddon, defaultValue } from 'app/shared/model/ADDON/addon.model';
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {
