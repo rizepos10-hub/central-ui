@@ -1,10 +1,10 @@
-  import { IBill } from 'app/shared/model/bill.model';
-  import { IBilledItem } from 'app/shared/model/billed-items.model';
+  import { IBill } from 'app/shared/model/ORDER/bill.model';
+  import { IBilledItem } from 'app/shared/model/ORDER/billed-items.model';
   import {Button, Card, Col, ListGroup, ListGroupItem, Row, Table} from 'reactstrap';
   import {translate, Translate} from 'react-jhipster';
   import React from 'react';
-  import { IOrderedItem } from 'app/shared/model/ordered-item.model';
-  import { IOrderedAddon } from 'app/shared/model/ordered-addon.model';
+  import { IOrderedItem } from 'app/shared/model/ORDER/ordered-item.model';
+  import { IOrderedAddon } from 'app/shared/model/ORDER/ordered-addon.model';
   import {TreeTable} from "primereact/treetable";
   import {Column} from "primereact/column";
 

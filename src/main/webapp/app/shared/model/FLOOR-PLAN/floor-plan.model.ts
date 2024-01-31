@@ -1,6 +1,6 @@
 import { IBranch } from 'app/shared/model/branch.model';
 import {IAttachment} from "app/shared/model/attachment.model";
-import {IFloorPlanTable} from "app/shared/model/floor-plan-table.model";
+import {IFloorPlanTable} from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
 
 interface ITablePosition {
   x?: number;

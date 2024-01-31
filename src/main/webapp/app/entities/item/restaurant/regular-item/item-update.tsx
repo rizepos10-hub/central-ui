@@ -16,7 +16,7 @@ import { getEntities as getProductionCenters } from 'app/entities/location/produ
 
 import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 
-import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
+import { ItemStatus } from 'app/shared/model/ENUMS/item-status.model';
 import { getEntity, updateEntity, createEntity, reset, getEntities as getItems, importAddons } from './item.reducer';
 import Select from 'react-select';
 import ItemVariantModal from 'app/entities/item/restaurant/regular-item/item-variant-modal';
@@ -32,7 +32,7 @@ import {Checkbox} from "primereact/checkbox";
 import * as url from "url";
 import _default from "chart.js/dist/plugins/plugin.tooltip";
 import type = _default.defaults.animations.numbers.type;
-import {IItem} from "app/shared/model/item.model";
+import {IItem} from "app/shared/model/ITEM/item.model";
 import {getEntities as getSharedItemEntities} from "app/entities/item/restaurant/restaurant-item.reducer";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";

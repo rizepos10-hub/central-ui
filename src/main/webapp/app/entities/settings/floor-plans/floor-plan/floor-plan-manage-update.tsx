@@ -14,9 +14,9 @@ import {getEntities as getTables} from "app/entities/settings/floor-plans/tables
 import {getEntity as getDeffaultSettings} from "app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer"
 import {Button} from "primereact/button";
 import {InputNumber} from "primereact/inputnumber";
-import {IFloorPlan} from "app/shared/model/floor-plan.model";
+import {IFloorPlan} from "app/shared/model/FLOOR-PLAN/floor-plan.model";
 import {Checkbox} from "primereact/checkbox";
-import {IFloorPlanTable} from "app/shared/model/floor-plan-table.model";
+import {IFloorPlanTable} from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";

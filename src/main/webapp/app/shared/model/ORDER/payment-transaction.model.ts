@@ -1,6 +1,6 @@
-import { TransactionType } from 'app/shared/model/enumerations/transaction-type.model';
-import { TransactionMethod } from 'app/shared/model/enumerations/transaction-method.model';
-import { IOrderAudit } from 'app/shared/model/order-audit.model';
+import { TransactionType } from 'app/shared/model/ENUMS/transaction-type.model';
+import { TransactionMethod } from 'app/shared/model/ENUMS/transaction-method.model';
+import { IOrderAudit } from 'app/shared/model/ORDER/order-audit.model';
 
 export interface IPaymentTransaction extends IOrderAudit {
   id?: string;

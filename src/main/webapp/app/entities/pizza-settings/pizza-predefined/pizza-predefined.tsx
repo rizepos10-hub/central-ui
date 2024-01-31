@@ -12,7 +12,7 @@ import {getEntities, reset as resetPredefined} from './pizza-predefined.reducer'
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
-import {IPredefinedPizza} from "app/shared/model/predefined-pizza.model";
+import {IPredefinedPizza} from "app/shared/model/PIZZA/predefined-pizza.model";
 
 export const PredefinedPizza = () => {
   const dispatch = useAppDispatch();

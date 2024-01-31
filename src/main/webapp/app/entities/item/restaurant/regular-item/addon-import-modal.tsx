@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import Select from 'react-select';
-import { IItem } from 'app/shared/model/item.model';
+import { IItem } from 'app/shared/model/ITEM/item.model';
 
 interface IAddonImportProps {
   showModal: boolean;

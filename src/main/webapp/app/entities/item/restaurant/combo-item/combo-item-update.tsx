@@ -9,7 +9,7 @@ import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './combo-item.reducer';
 import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
-import {IComboItem} from "app/shared/model/combo-item.model";
+import {IComboItem} from "app/shared/model/ITEM/restaurant/combo-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
 import Select from "react-select";

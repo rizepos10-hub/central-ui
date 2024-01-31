@@ -1,4 +1,4 @@
-import {PizzaPricingClassType} from "app/shared/model/enumerations/pizza-pricing-class-type.model";
+import {PizzaPricingClassType} from "app/shared/model/ENUMS/pizza-pricing-class-type.model";
 
 export interface IPizzaPricingClass {
   id?: string;

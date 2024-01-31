@@ -3,7 +3,7 @@ import {Dropdown} from "primereact/dropdown";
 import {
   SalesReportsMeasures,
   SalesReportsTypes
-} from "app/shared/model/enumerations/sales-reports.models";
+} from "app/shared/model/ENUMS/sales-reports.models";
 
 import {fetchSalesReport} from "app/modules/analytics/api";
 import DateCustomComponent from "app/modules/analytics/reports/sales-report/custom-date-range";
@@ -18,8 +18,8 @@ import {fetchSalesReportRedux} from "app/modules/analytics/reports/sales-report/
 import {Spinner} from "reactstrap";
 import Select from "react-select";
 import {ICurrency} from "app/shared/model/currency.model";
-import {getEntities as getCurrencies} from "app/entities/settings/currency-settings/currencies.reducer";
-import {getEntity} from "app/entities/settings/currency-settings/currency-settings.reducer";
+import {getEntities as getCurrencies} from "app/entities/settings/currency/currencies.reducer";
+import {getEntity} from "app/entities/settings/currency/currency-settings.reducer";
 import {formatPrice} from "app/shared/util/price-utils";
 
 

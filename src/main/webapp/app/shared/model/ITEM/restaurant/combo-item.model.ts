@@ -1,9 +1,9 @@
-import {IItem} from "app/shared/model/item.model";
+import {IItem} from "app/shared/model/ITEM/item.model";
 import {IAttachment} from "app/shared/model/attachment.model";
 import {IDiscount} from "app/shared/model/discount.model";
 import {IBranch} from "app/shared/model/branch.model";
 import {IAddon} from "app/shared/model/addon.model";
-import {ISimpleItem} from "app/shared/model/simple-item.model";
+import {ISimpleItem} from "app/shared/model/ITEM/retail/simple-item.model";
 
 interface IBranchVariantDetails {
   [key: string]: {

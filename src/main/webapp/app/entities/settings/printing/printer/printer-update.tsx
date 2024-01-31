@@ -8,7 +8,7 @@ import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateT
 import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IItem } from 'app/shared/model/item.model';
+import { IItem } from 'app/shared/model/ITEM/item.model';
 import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
 import { IPrinter } from 'app/shared/model/printer.model';
 import { getEntity, updateEntity, createEntity, reset } from './printer.reducer';

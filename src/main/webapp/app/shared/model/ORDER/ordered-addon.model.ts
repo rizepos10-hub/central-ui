@@ -1,4 +1,4 @@
-import { IOrderAudit } from 'app/shared/model/order-audit.model';
+import { IOrderAudit } from 'app/shared/model/ORDER/order-audit.model';
 
 export interface IOrderedAddon extends IOrderAudit {
   name?: string;

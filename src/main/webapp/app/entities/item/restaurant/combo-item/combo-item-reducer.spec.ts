@@ -15,7 +15,7 @@ import reducer, {
   reset,
 } from './combo-item.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { IComboItem, defaultValue } from 'app/shared/model/combo-item.model';
+import { IComboItem, defaultValue } from 'app/shared/model/ITEM/restaurant/combo-item.model';
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {

@@ -1,4 +1,4 @@
-import {DayOfWeek} from "app/shared/model/enumerations/day-of-week.model";
+import {DayOfWeek} from "app/shared/model/ENUMS/day-of-week.model";
 import {IVisibility} from "app/shared/model/visibility.model";
 
 export interface IPizzaSize {

@@ -10,7 +10,7 @@ import { getEntity, updateEntity, createEntity, reset } from './pizza-predefined
 import {getEntities as getToppings} from "app/entities/pizza-settings/pizza-topping/pizza-topping.reducer";
 
 import {InputText} from "primereact/inputtext";
-import {IPredefinedPizza} from "app/shared/model/predefined-pizza.model";
+import {IPredefinedPizza} from "app/shared/model/PIZZA/predefined-pizza.model";
 import Select from "react-select";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getSortState} from "react-jhipster";

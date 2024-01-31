@@ -3,7 +3,7 @@ import { Steps } from 'primereact/steps';
 import { MenuItem } from 'primereact/menuitem';
 import {InputText} from "primereact/inputtext";
 import {Button} from "primereact/button";
-import {IFloorPlan} from "app/shared/model/floor-plan.model";
+import {IFloorPlan} from "app/shared/model/FLOOR-PLAN/floor-plan.model";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";

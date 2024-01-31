@@ -13,18 +13,17 @@ import {
 import React, {useEffect, useMemo, useState} from "react";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {getEntities} from "app/entities/item/restaurant/combo-item/items-for-combo.reducer";
-import {IItem} from "app/shared/model/item.model";
-import {IComboPackage} from "app/shared/model/combo-item.model";
+import {IItem} from "app/shared/model/ITEM/item.model";
+import {IComboPackage} from "app/shared/model/ITEM/restaurant/combo-item.model";
 import Select from "react-select";
-import {ICrustThicknessPricingItem, ICrustTypePricingItem} from "app/shared/model/pizza-item.model";
-import {ICrustThickness} from "app/shared/model/crust-thickness.model";
-import {ICrustType} from "app/shared/model/crust-type.model";
+import {ICrustThicknessPricingItem, ICrustTypePricingItem} from "app/shared/model/ITEM/restaurant/pizza-item.model";
+import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
+import {ICrustType} from "app/shared/model/PIZZA/crust-type.model";
 import {getEntities as getCrustTypes} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer";
 import {getEntities as getCrustThicknesses} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness.reducer";
 import {getEntities as getSizes} from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
-import {IPizzaSize} from "app/shared/model/pizza-size.model";
+import {IPizzaSize} from "app/shared/model/PIZZA/pizza-size.model";
 import {translate, Translate} from "react-jhipster";
-
 const ComboItemSelection = ({isOpen,onAddItems,toggleModal, comboPackages}) => {
 
   const dispatch = useAppDispatch();

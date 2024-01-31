@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {SalesReportsPeriods} from "app/shared/model/enumerations/sales-reports.models";
+import {SalesReportsPeriods} from "app/shared/model/ENUMS/sales-reports.models";
 import {
   endOfDay,
   endOfMonth, endOfWeek, endOfYear,

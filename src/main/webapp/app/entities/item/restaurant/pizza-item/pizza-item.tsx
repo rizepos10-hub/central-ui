@@ -13,7 +13,7 @@ import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
-import {IPizzaItem} from "app/shared/model/pizza-item.model";
+import {IPizzaItem} from "app/shared/model/ITEM/restaurant/pizza-item.model";
 import {Dropdown} from "primereact/dropdown";
 import ImageDisplay from "app/shared/layout/image/image-display";
 

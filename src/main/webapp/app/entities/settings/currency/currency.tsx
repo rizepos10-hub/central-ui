@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntities as getCurrencies } from './currencies.reducer';
 import {Dropdown, DropdownChangeEvent} from "primereact/dropdown";
-import {ICurrencySettings} from "app/shared/model/currencySettings.model";
+import {ICurrencySettings} from "app/shared/model/currency-settings.model";
 import {ICurrency} from "app/shared/model/currency.model";
 import {InputNumber} from "primereact/inputnumber";
 import {Alert, Col, Row, Table} from "reactstrap";
@@ -17,10 +17,10 @@ import {Button} from "primereact/button";
 import Select from "react-select";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {IBranch} from "app/shared/model/branch.model";
-import {getEntity, updateEntity} from "app/entities/settings/currency-settings/currency-settings.reducer";
+import {getEntity, updateEntity} from "app/entities/settings/currency/currency-settings.reducer";
 
 
-export const CurrencySettings = () => {
+export const Currency = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -313,4 +313,4 @@ export const CurrencySettings = () => {
   );
 };
 
-export default CurrencySettings;
+export default Currency;

@@ -12,10 +12,10 @@ import {getEntities, reset} from './pizza-pricing-class.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
-import {IPredefinedPizza} from "app/shared/model/predefined-pizza.model";
-import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
+import {IPredefinedPizza} from "app/shared/model/PIZZA/predefined-pizza.model";
+import {IPizzaPricingClass} from "app/shared/model/PIZZA/pizza-pricing-class.model";
 import {TabPanel, TabView} from "primereact/tabview";
-import {PizzaPricingClassType} from "app/shared/model/enumerations/pizza-pricing-class-type.model";
+import {PizzaPricingClassType} from "app/shared/model/ENUMS/pizza-pricing-class-type.model";
 import {TabMenu} from "primereact/tabmenu";
 
 const tabItems = Object.keys(PizzaPricingClassType).map(priceType => ({ label: priceType, value: PizzaPricingClassType[priceType]}));

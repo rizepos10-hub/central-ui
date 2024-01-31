@@ -12,7 +12,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IAddon } from 'app/shared/model/addon.model';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { IDiscount } from 'app/shared/model/discount.model';
-import { DiscountType } from 'app/shared/model/enumerations/discount-type.model';
+import { DiscountType } from 'app/shared/model/ENUMS/discount-type.model';
 import { getEntity, updateEntity, createEntity, reset } from './discount.reducer';
 
 export const DiscountUpdate = () => {

@@ -11,7 +11,7 @@ import {getEntities as getTerms, getMenuCategories} from "app/entities/term/term
 import {getEntities as getItems} from "app/entities/item/restaurant/regular-item/item.reducer";
 import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime} from "app/shared/util/date-utils";
 import {result} from "lodash";
-import {MenuTypeModel} from "app/shared/model/enumerations/menu-type.model";
+import {MenuTypeModel} from "app/shared/model/ENUMS/menu-type.model";
 
 
 const NewMenuPopup = () => {

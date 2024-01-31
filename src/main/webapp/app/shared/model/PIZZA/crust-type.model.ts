@@ -1,5 +1,5 @@
-import {IPizzaSize} from "app/shared/model/pizza-size.model";
-import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
+import {IPizzaSize} from "app/shared/model/PIZZA/pizza-size.model";
+import {IPizzaPricingClass} from "app/shared/model/PIZZA/pizza-pricing-class.model";
 
 export interface ICrustType {
   id?: string;

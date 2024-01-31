@@ -11,7 +11,7 @@ import {InputText} from "primereact/inputtext";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {ITopping} from "app/shared/model/topping.model";
+import {ITopping} from "app/shared/model/PIZZA/topping.model";
 import CreatableSelect from "react-select/creatable";
 import {getEntities as getToppingGroups, createEntity as createToppingGroup} from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
 import Attachment from "app/shared/layout/attachment/attachment";

@@ -1,6 +1,6 @@
 import {ITerm} from "app/shared/model/term.model";
 import {IAttachment} from "app/shared/model/attachment.model";
-import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
+import {IPizzaPricingClass} from "app/shared/model/PIZZA/pizza-pricing-class.model";
 
 export interface ITopping {
   id?: string;

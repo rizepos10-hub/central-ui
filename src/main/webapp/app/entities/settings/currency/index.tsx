@@ -3,12 +3,12 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import CurrencySettings from './currency-settings';
+import Currency from './currency';
 
 
 const CurrencySettingsRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<CurrencySettings />} />
+    <Route index element={<Currency />} />
   </ErrorBoundaryRoutes>
 );
 

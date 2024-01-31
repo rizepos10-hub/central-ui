@@ -9,7 +9,7 @@ import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './variable-item.reducer';
 import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
-import {IVariableItem} from "app/shared/model/variable-item.model";
+import {IVariableItem} from "app/shared/model/ITEM/retail/variable-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
@@ -25,7 +25,7 @@ import {ITerm} from "app/shared/model/term.model";
 import {getEntities as getAttributeValues, reset as resetAttributeValues} from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import {AccordionTab, Accordion} from "primereact/accordion";
 import AsyncSelect from "react-select/async";
-import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
+import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
 import {isEqual} from "lodash";
 import Visibility from 'app/shared/Visibility/Visibility';

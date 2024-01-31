@@ -1,13 +1,13 @@
-import {IItem} from "app/shared/model/item.model";
+import {IItem} from "app/shared/model/ITEM/item.model";
 import {IAddon} from "app/shared/model/addon.model";
 import {IAddonGroups} from "app/shared/model/addon-groups.model";
 import {IAttachment} from "app/shared/model/attachment.model";
 import {IDiscount} from "app/shared/model/discount.model";
-import {IPredefinedPizza} from "app/shared/model/predefined-pizza.model";
-import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
-import {ITopping} from "app/shared/model/topping.model";
-import {ICrustType} from "app/shared/model/crust-type.model";
-import {ICrustThickness} from "app/shared/model/crust-thickness.model";
+import {IPredefinedPizza} from "app/shared/model/PIZZA/predefined-pizza.model";
+import {IPizzaPricingClass} from "app/shared/model/PIZZA/pizza-pricing-class.model";
+import {ITopping} from "app/shared/model/PIZZA/topping.model";
+import {ICrustType} from "app/shared/model/PIZZA/crust-type.model";
+import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
 
 interface IMultiplePizzaDetails{
   numberOfPizza?: number;
