@@ -9,7 +9,7 @@ import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-item.reducer';
 import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
-import {IBasePizzaDetail, IPizzaItem} from "app/shared/model/pizza-item.model";
+import {IBasePizzaDetail, IPizzaItem} from "app/shared/model/ITEM/restaurant/pizza-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
 import Select from "react-select";
@@ -20,13 +20,13 @@ import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
 import {Accordion, AccordionTab} from "primereact/accordion";
 import AsyncSelect from "react-select/async";
-import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
+import {IPizzaPricingClass} from "app/shared/model/PIZZA/pizza-pricing-class.model";
 import {getEntities as getToppings} from "app/entities/pizza-settings/pizza-topping/pizza-topping.reducer";
-import {ITopping} from "app/shared/model/topping.model";
-import {ICrustType} from "app/shared/model/crust-type.model";
+import {ITopping} from "app/shared/model/PIZZA/topping.model";
+import {ICrustType} from "app/shared/model/PIZZA/crust-type.model";
 import {getEntities as getCrustTypes} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer";
 import {getEntities as getCrustThicknesses} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness.reducer";
-import {ICrustThickness} from "app/shared/model/crust-thickness.model";
+import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
 import {TabPanel, TabView} from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
 

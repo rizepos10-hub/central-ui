@@ -45,8 +45,8 @@ import {Skeleton} from "primereact/skeleton";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {toast} from "react-toastify";
 import {OrderList} from "primereact/orderlist";
-import {ItemRoute} from "app/shared/model/enumerations/item-route.model";
-import {IItem} from "app/shared/model/item.model";
+import {ItemRoute} from "app/shared/model/ENUMS/item-route.model";
+import {IItem} from "app/shared/model/ITEM/item.model";
 import ImageDisplay from "app/shared/layout/image/image-display";
 
 

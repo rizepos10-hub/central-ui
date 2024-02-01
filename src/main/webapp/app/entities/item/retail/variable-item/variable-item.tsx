@@ -14,9 +14,9 @@ import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
 import {Dropdown} from "primereact/dropdown";
-import {IVariableItem} from "app/shared/model/variable-item.model";
+import {IVariableItem} from "app/shared/model/ITEM/retail/variable-item.model";
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
-import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
+import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {SummarizeText} from "app/shared/util/SummarizeText";
 
 export const VariableItem = () => {

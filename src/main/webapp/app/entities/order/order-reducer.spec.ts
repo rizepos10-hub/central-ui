@@ -15,7 +15,7 @@ import reducer, {
   reset,
 } from './order.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { IOrder, defaultValue } from 'app/shared/model/order.model';
+import { IOrder, defaultValue } from 'app/shared/model/ORDER/order.model';
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {

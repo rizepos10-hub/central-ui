@@ -3,8 +3,8 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IFloorPlan, defaultValue } from 'app/shared/model/floor-plan.model';
-import {IOrder} from "app/shared/model/order.model";
+import { IFloorPlan, defaultValue } from 'app/shared/model/FLOOR-PLAN/floor-plan.model';
+import {IOrder} from "app/shared/model/ORDER/order.model";
 
 const initialState: EntityState<IFloorPlan> = {
   loading: false,

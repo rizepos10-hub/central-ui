@@ -12,7 +12,7 @@ import {getEntities} from "app/entities/pizza-settings/pizza-size/pizza-size.red
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {ICrustThickness} from "app/shared/model/crust-thickness.model";
+import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
 import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
 import {Checkbox} from "primereact/checkbox";
 

@@ -1,12 +1,12 @@
-import { IBill } from 'app/shared/model/bill.model';
-import { IBilledItem } from 'app/shared/model/billed-items.model';
-import { IPaymentTransaction } from 'app/shared/model/payment-transaction.model';
+import { IBill } from 'app/shared/model/ORDER/bill.model';
+import { IBilledItem } from 'app/shared/model/ORDER/billed-items.model';
+import { IPaymentTransaction } from 'app/shared/model/ORDER/payment-transaction.model';
 import {Button, Card, Col, ListGroup, ListGroupItem, Row, Table} from 'reactstrap';
 import {translate, Translate} from 'react-jhipster';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {IOrderedAddon} from "app/shared/model/ordered-addon.model";
+import {IOrderedAddon} from "app/shared/model/ORDER/ordered-addon.model";
 import { format } from 'date-fns';
 import { TreeTable } from 'primereact/treetable';
 import {Column} from "primereact/column";

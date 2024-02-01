@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-size.reducer';
 import {InputText} from "primereact/inputtext";
-import {IPizzaSize} from "app/shared/model/pizza-size.model";
+import {IPizzaSize} from "app/shared/model/PIZZA/pizza-size.model";
 
 export const PizzaSizeUpdate = () => {
   const dispatch = useAppDispatch();

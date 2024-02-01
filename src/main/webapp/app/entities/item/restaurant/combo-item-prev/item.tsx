@@ -8,7 +8,7 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IItem } from 'app/shared/model/item.model';
+import { IItem } from 'app/shared/model/ITEM/item.model';
 import {searchEntities, getEntities, importData} from './item.reducer';
 import {DataTable} from "primereact/datatable";
 import { Column } from 'primereact/column';

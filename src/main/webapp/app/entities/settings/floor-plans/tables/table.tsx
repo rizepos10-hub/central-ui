@@ -12,7 +12,7 @@ import {  getEntities } from './table.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
-import {IFloorPlanTable} from "app/shared/model/floor-plan-table.model";
+import {IFloorPlanTable} from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
 
 export const FloorPlanTable = () => {
   const dispatch = useAppDispatch();

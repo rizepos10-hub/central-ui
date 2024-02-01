@@ -3,7 +3,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IFloorPlanSettings, defaultValue } from 'app/shared/model/floor-plan-settings.model';
+import { IFloorPlanSettings, defaultValue } from 'app/shared/model/FLOOR-PLAN/floor-plan-settings.model';
 
 const initialState: EntityState<IFloorPlanSettings> = {
   loading: false,

@@ -9,7 +9,7 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IPrinter } from 'app/shared/model/printer.model';
+import { IPrinter } from 'app/shared/model/PRINTER/printer.model';
 import { searchEntities, getEntities } from './printer.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";

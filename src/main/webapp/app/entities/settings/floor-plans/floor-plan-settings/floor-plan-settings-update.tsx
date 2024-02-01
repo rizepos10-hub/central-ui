@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, reset } from './floor-plan-settings.reducer';
 import {InputText} from "primereact/inputtext";
-import {IFloorPlanSettings} from "app/shared/model/floor-plan-settings.model";
+import {IFloorPlanSettings} from "app/shared/model/FLOOR-PLAN/floor-plan-settings.model";
 import {InputNumber} from "primereact/inputnumber";
 import {Translate} from "react-jhipster";
 import Attachment from "app/shared/layout/attachment/attachment";

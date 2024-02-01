@@ -1,6 +1,6 @@
 import { IAttachment } from 'app/shared/model/attachment.model';
 import { IAddress } from 'app/shared/model/address.model';
-import {DayOfWeek} from "app/shared/model/enumerations/day-of-week.model";
+import {DayOfWeek} from "app/shared/model/ENUMS/day-of-week.model";
 export interface IBusinessDayDetail {
   day: DayOfWeek;
   openingHours: { from: string; to: string }[];

@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getPrintingProfiles } from 'app/entities/settings/printing/printing-profiles/printing-profile.reducer';
 import { getEntity, updateEntity, createEntity, reset } from './production-center.reducer';
 import Select from "react-select";
-import {OrderMethod} from "app/shared/model/enumerations/order-method.model";
+import {OrderMethod} from "app/shared/model/ENUMS/order-method.model";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 

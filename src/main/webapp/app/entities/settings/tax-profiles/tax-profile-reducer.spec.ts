@@ -15,7 +15,7 @@ import reducer, {
   reset,
 } from './tax-profile.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { ITax, defaultValue } from 'app/shared/model/tax.model';
+import { ITax, defaultValue } from 'app/shared/model/TAX/tax.model';
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {

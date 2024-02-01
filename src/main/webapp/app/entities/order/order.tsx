@@ -8,7 +8,7 @@ import {Calendar, CalendarChangeEvent} from 'primereact/calendar';
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IOrder } from 'app/shared/model/order.model';
+import { IOrder } from 'app/shared/model/ORDER/order.model';
 import {searchEntities, getEntities, filterOrders, getOrderSources, getOrderStatuses} from './order.reducer';
 import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.constants";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";

@@ -13,7 +13,7 @@ import {InputText} from "primereact/inputtext";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getSortState, isNumber} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
+import {IPizzaPricingClass} from "app/shared/model/PIZZA/pizza-pricing-class.model";
 import {InputNumber} from "primereact/inputnumber";
 
 export const PizzaPricingClassTypeUpdate = () => {

@@ -14,9 +14,9 @@ import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
 import {Dropdown} from "primereact/dropdown";
-import {ISimpleItem} from "app/shared/model/simple-item.model";
+import {ISimpleItem} from "app/shared/model/ITEM/retail/simple-item.model";
 import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
-import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
+import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {SummarizeText} from "app/shared/util/SummarizeText";
 
 export const SimpleItem = () => {

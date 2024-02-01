@@ -15,7 +15,7 @@ import {TabPanel, TabView } from 'primereact/tabview';
 import {Button as PrimeButton} from 'primereact/button'
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTrash} from "@fortawesome/free-solid-svg-icons/faTrash";
-import {AttachmentType} from "app/shared/model/enumerations/attachment-type.model";
+import {AttachmentType} from "app/shared/model/ENUMS/attachment-type.model";
 import {IAttachment} from "app/shared/model/attachment.model";
 import Attachment from "app/shared/layout/attachment/attachment";
 

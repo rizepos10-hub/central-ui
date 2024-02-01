@@ -3,7 +3,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IAddonGroups, defaultValue } from 'app/shared/model/addon-groups.model';
+import { IAddonGroups, defaultValue } from 'app/shared/model/ADDON/addon-groups.model';
 
 const initialState: EntityState<IAddonGroups> = {
   loading: false,

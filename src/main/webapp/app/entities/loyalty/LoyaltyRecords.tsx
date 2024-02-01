@@ -10,7 +10,7 @@ import {Card, CardBody, CardHeader, FormGroup} from "reactstrap";
 import {InputText} from "primereact/inputtext";
 import {InputNumber} from "primereact/inputnumber";
 import {Button} from "primereact/button";
-import {ILoyaltyExChange} from "app/shared/model/loyalty.model";
+import {ILoyaltyExChange} from "app/shared/model/CUSTOMER/loyalty.model";
 import  {updateEntity as updateExchange, getEntity as getLoyaltyExchange} from "app/entities/loyalty/loyalty-exchange.reducer";
 import {translate, Translate} from "react-jhipster";
 

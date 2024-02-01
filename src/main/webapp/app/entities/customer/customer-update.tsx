@@ -8,7 +8,7 @@ import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateT
 import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { ICustomer } from 'app/shared/model/customer.model';
+import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import {getEntity, updateEntity, createEntity, reset, updatePrices, getPricesForCustomer} from './customer.reducer';
 import ItemSelectionModal from "app/entities/customer/item-selection-modal";
 import Select from "react-select";

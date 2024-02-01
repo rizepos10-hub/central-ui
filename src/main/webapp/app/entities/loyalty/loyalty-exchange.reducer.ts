@@ -3,7 +3,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { ILoyaltyExChange, defaultValue } from 'app/shared/model/loyalty.model';
+import { ILoyaltyExChange, defaultValue } from 'app/shared/model/CUSTOMER/loyalty.model';
 
 const initialState: EntityState<ILoyaltyExChange> = {
   loading: false,

@@ -15,7 +15,7 @@ import Select from "react-select";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
-import {ITv} from "app/shared/model/tv.model";
+import {ITv} from "app/shared/model/TV/tv.model";
 
 export const FloorPlanTvUpdate = () => {
   const dispatch = useAppDispatch();

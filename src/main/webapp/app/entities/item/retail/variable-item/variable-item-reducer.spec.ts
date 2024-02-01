@@ -15,7 +15,7 @@ import reducer, {
   reset,
 } from './variable-item.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { IVariableItem, defaultValue } from 'app/shared/model/variable-item.model';
+import { IVariableItem, defaultValue } from 'app/shared/model/ITEM/retail/variable-item.model';
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {

@@ -13,7 +13,7 @@ import Select from "react-select";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
-import {ITvDisplay} from "app/shared/model/tv-display.model";
+import {ITvDisplay} from "app/shared/model/TV/tv-display.model";
 
 export const TvDisplayUpdate = () => {
   const dispatch = useAppDispatch();

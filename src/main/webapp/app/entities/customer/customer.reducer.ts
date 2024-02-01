@@ -3,7 +3,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { ICustomer, defaultValue } from 'app/shared/model/customer.model';
+import { ICustomer, defaultValue } from 'app/shared/model/CUSTOMER/customer.model';
 
 const initialState: EntityState<ICustomer> = {
   loading: false,
