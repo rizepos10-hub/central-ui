@@ -8,24 +8,24 @@ export const OrderCustomerDetail = (props: ICustomer) => {
   return (
     <div style={{ height: '150px'}}>
       <h4 data-cy="customerDetailsHeading">
-        <Translate contentKey="tempApp.customer.detail.title">Customer</Translate>
+        <Translate contentKey="orders.details.itemsCard.customer.title">Customer</Translate>
       </h4>
       <dl className="jh-entity-details">
         <dt>
           <span id="name">
-          <strong>  <Translate contentKey="tempApp.customer.name">Name</Translate></strong>
+          <strong>  <Translate contentKey="orders.details.itemsCard.customer.name">Name</Translate></strong>
           </span>
         </dt>
         <dd>{customerEntity.firstName + ' ' +  customerEntity.lastName }</dd>
         <dt>
           <span id="orderCount">
-            <Translate contentKey="tempApp.customer.email">Email</Translate>
+            <Translate contentKey="orders.details.itemsCard.customer.email">Email</Translate>
           </span>
         </dt>
         <dd>{customerEntity.email}</dd>
         <dt>
           <span id="phone">
-            <Translate contentKey="tempApp.customer.phone">Phone</Translate>
+            <Translate contentKey="orders.details.itemsCard.customer.phone">Phone</Translate>
           </span>
         </dt>
         <dd>{customerEntity.phone}</dd>

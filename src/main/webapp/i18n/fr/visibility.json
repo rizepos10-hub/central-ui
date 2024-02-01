@@ -1,0 +1,9 @@
+{
+  "visibility": {
+    "visible": "Visible",
+    "add": "Add Visibility Hours",
+    "from": "From",
+    "to": "To",
+    "remove": "Remove"
+  }
+}

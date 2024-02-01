@@ -45,7 +45,7 @@ export const PizzaDeleteDialog = () => {
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.restaurant-pizza.delete.question">
-        <Translate contentKey="tempApp.restaurant-pizza.delete.question" interpolate={{ id: pizzaItemEntity.id }}>
+        <Translate contentKey="items.delete.pizzaQuestion" interpolate={{ id: pizzaItemEntity.id }}>
           Are you sure you want to delete this Pizza?
         </Translate>
       </ModalBody>

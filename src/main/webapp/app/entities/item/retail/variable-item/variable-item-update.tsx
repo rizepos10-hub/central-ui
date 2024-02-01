@@ -335,7 +335,7 @@ export const VariableItemUpdate = () => {
 
 
   const handleDeleteVariant = (variantIndex) => {
-    const isConfirmed = window.confirm("Are you sure?");
+    const isConfirmed = window.confirm(translate('items.update.deleteVariantMessage'));
     if(isConfirmed){
       setVariableItem((prev) => {
         const updatedVariants = [...prev.variants];
@@ -369,7 +369,7 @@ export const VariableItemUpdate = () => {
       <label className={"mt-2"}><strong>{variableItem?.attributes?.[attributeIndex]?.attributeTax?.name}</strong></label>
 
       <Button className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
-        Remove Attribute
+        <Translate contentKey={'items.update.removeAttribute'}>Remove Attribute</Translate>
       </Button>
     </div>
   )
@@ -398,7 +398,7 @@ export const VariableItemUpdate = () => {
         )
       })}
       <Button className={"ml-auto"} color="danger" onClick={() => handleDeleteVariant(variantIndex)}>
-        Delete Variant
+        <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
       </Button>
     </div>
   )
@@ -417,11 +417,11 @@ export const VariableItemUpdate = () => {
           <Row>
             <Col md={10}>
               <TabView>
-                <TabPanel header={'Details'}>
+                <TabPanel header={translate('items.update.tabs.details.label')}>
                   <Row>
                     <Col md="8">
                       <h2>
-                        {isNew ? "Create New Variable Item" : `Edit Variable Item`}
+                        {isNew ? translate('items.update.tabs.details.titles.create.variable') : translate('items.update.tabs.details.titles.edit.variable')}
                       </h2>
                     </Col>
                   </Row>
@@ -440,7 +440,7 @@ export const VariableItemUpdate = () => {
                             <Col md="4">
                               <div className={"d-flex flex-column gap-2"}>
                                 <label className={"text-xl font-bold"}>
-                                  Select Attribute
+                                  <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
                                 </label>
                                 <Select
                                   value={itemAttribute?.attributeTax || null}
@@ -455,17 +455,17 @@ export const VariableItemUpdate = () => {
 
                             <Col md="3" >
                               <Button color="primary" disabled={filteredAvailableAttributes().length === 0} className={"mt-5"} onClick={handleAddAttribute}>
-                                Add Attribute
+                                <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
                               </Button>
                             </Col>
                             <Col md="5" className={"d-flex gap-3"}>
 
                               <Button color="primary" className={"mt-5"} onClick={generateCombinations}>
-                                Generate Variants
+                                <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
                               </Button>
 
                               <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
-                                Add Single Variant
+                                <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
                               </Button>
                             </Col>
                             <Col md={"12"} className={"mt-2"}>
@@ -473,7 +473,7 @@ export const VariableItemUpdate = () => {
                                 {variableItem?.attributes?.map((attribute, index) => (
                                   <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
                                     <div className={"d-flex gap-3"}>
-                                      <label className={"mt-2"}>Name: {attribute?.attributeTax?.name}</label>
+                                      <label className={"mt-2"}>{translate('items.update.name')}: {attribute?.attributeTax?.name}</label>
                                       <Col md={"9"}>
                                         <AsyncSelect
                                           value={attribute?.attributeTerms}
@@ -503,13 +503,13 @@ export const VariableItemUpdate = () => {
                                             <Col md="4">
                                               <div className={"d-flex flex-column gap-2 mt-2"}>
                                                 <label className={"text-xl font-bold"}>
-                                                  Name
+                                                  <Translate contentKey={'items.update.name'}>Name</Translate>
                                                 </label>
                                                 <InputText
                                                   name="variant-name"
                                                   id="name"
                                                   required={true}
-                                                  placeholder="Variant Name"
+                                                  placeholder={translate('items.update.placeholders.variantName')}
                                                   value={variant?.name}
                                                   onChange={(e) => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
                                                 />
@@ -519,7 +519,7 @@ export const VariableItemUpdate = () => {
                                             <Col md="4">
                                               <div className={"d-flex flex-column gap-2 mt-2"}>
                                                 <label className={"text-xl font-bold"}>
-                                                  SKU
+                                                  <Translate contentKey={'items.update.sku'}>SKU</Translate>
                                                 </label>
                                                 <InputText
                                                   name="sku"
@@ -533,9 +533,9 @@ export const VariableItemUpdate = () => {
                                             </Col>
 
                                             <Col md="4">
-                                              <div  className={"d-flex flex-column gap-2 mt-2"}>
+                                              <div className={"d-flex flex-column gap-2 mt-2"}>
                                                 <label htmlFor="price" className={"text-xl font-bold"}>
-                                                  Price
+                                                  <Translate contentKey={'items.update.price'}>Price</Translate>
                                                 </label>
                                                 <InputNumber
                                                   name="price"
@@ -554,7 +554,7 @@ export const VariableItemUpdate = () => {
                                             <Col md="4">
                                               <div className={"d-flex flex-column gap-2 mt-2"}>
                                                 <label className={"text-xl font-bold"}>
-                                                  Sale Price
+                                                  <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
                                                 </label>
                                                 <InputNumber
                                                   name="sale-price"
@@ -568,12 +568,16 @@ export const VariableItemUpdate = () => {
                                             </Col>
                                           </Row>
                                           <Col md="12" className={"mt-3"}>
-                                            <h4>Branch Prices</h4>
+                                            <h4>
+                                              <Translate contentKey={'items.update.branchPrices'}>
+                                                Branch Prices
+                                              </Translate>
+                                            </h4>
                                             <Table>
                                               <thead>
                                               <tr>
-                                                <th>Branch</th>
-                                                <th>Price</th>
+                                                <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
+                                                <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
                                               </tr>
                                               </thead>
                                               <tbody>
@@ -584,7 +588,7 @@ export const VariableItemUpdate = () => {
                                                     <InputNumber
                                                       type="number"
                                                       name={`branchPrice_${branch.id}`}
-                                                      placeholder={`Enter price for ${branch.name}`}
+                                                      placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                                       onWheel={(e: any) => e.target.blur()}
                                                       size={60}
                                                       value={variant?.branchVariantDetails?.[branch.id]?.price}
@@ -610,9 +614,10 @@ export const VariableItemUpdate = () => {
                     </FormGroup>
                   </Row>
                 </TabPanel>
-                <TabPanel header={'Visibility'}>
+                <TabPanel header={translate('items.update.tabs.visibility.label')}>
                   <Visibility
                     initialState={variableItem.visibility}
+                    title={translate('items.update.tabs.visibility.titles.variable')}
                     onStateChanged={(visibility)=>setVariableItem(prev => {
                       return {...prev, visibility}
                     })}/>

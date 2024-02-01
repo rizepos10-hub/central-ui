@@ -247,11 +247,11 @@ export const SimpleItemUpdate = () => {
           <Row>
             <Col md={10}>
               <TabView>
-                <TabPanel header={'Details'}>
+                <TabPanel header={translate('items.update.tabs.details.label')}>
                   <Row>
                     <Col md="8">
                       <h2>
-                        {isNew ? "Create New Simple Item" : `Edit Simple Item`}
+                        {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.simple'}>Create New Simple Item</Translate> : <Translate contentKey={'items.update.tabs.details.titles.edit.simple'}>Edit Simple Item</Translate>}
                       </h2>
                     </Col>
                   </Row>
@@ -269,13 +269,13 @@ export const SimpleItemUpdate = () => {
                           <Col md="4">
                             <div className={"d-flex flex-column gap-2"}>
                               <label className={"text-xl font-bold"}>
-                                SKU
+                                <Translate contentKey={'items.update.sku'}>SKU</Translate>
                               </label>
                               <InputText
                                 name="sku"
                                 id="sku"
                                 required={true}
-                                placeholder="Item Sku"
+                                placeholder={translate('items.update.placeholders.itemSku')}
                                 value={simpleItem?.variants?.[0]?.sku}
                                 onChange={(e) => handleSimpleItemChange('sku', e.target.value)}
                               />
@@ -285,7 +285,7 @@ export const SimpleItemUpdate = () => {
                           <Col md="4">
                             <div className={"d-flex flex-column gap-2"}>
                               <label className={"text-xl font-bold"}>
-                                Price
+                                <Translate contentKey={'items.update.price'}>Price</Translate>
                               </label>
                               <InputNumber
                                 name="price"
@@ -293,7 +293,7 @@ export const SimpleItemUpdate = () => {
                                 required={true}
                                 maxFractionDigits={2}
                                 inputClassName={"w-1"}
-                                placeholder="Item Price"
+                                placeholder={translate('items.update.placeholders.itemPrice')}
                                 value={simpleItem?.variants?.[0]?.price}
                                 onChange={(e) => handleSimpleItemChange('price', e.value)}
                               />
@@ -303,13 +303,13 @@ export const SimpleItemUpdate = () => {
                           <Col md="4">
                             <div className={"d-flex flex-column gap-2"}>
                               <label className={"text-xl font-bold"}>
-                                Sale Price
+                                <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
                               </label>
                               <InputNumber
                                 name="sale-price"
                                 id="sale-price"
                                 maxFractionDigits={2}
-                                placeholder="Item Sale Price"
+                                placeholder={translate('items.update.placeholders.itemSalePrice')}
                                 value={simpleItem?.variants?.[0]?.salePrice}
                                 onChange={(e) => handleSimpleItemChange('salePrice', e.value)}
                               />
@@ -318,12 +318,12 @@ export const SimpleItemUpdate = () => {
 
 
                           <Col md="8" className={"mt-3"}>
-                            <h4>Branch Prices</h4>
+                            <h4><Translate contentKey={'items.update.branchPrices'}>Branch Prices</Translate></h4>
                             <Table>
                               <thead>
                               <tr>
-                                <th>Branch</th>
-                                <th>Price</th>
+                                <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
+                                <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
                               </tr>
                               </thead>
                               <tbody>
@@ -333,7 +333,7 @@ export const SimpleItemUpdate = () => {
                                   <td>
                                     <InputNumber
                                       name={`branchPrice_${branch.id}`}
-                                      placeholder={`Enter price for ${branch.name}`}
+                                      placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                       onWheel={(e: any) => e.target.blur()}
                                       size={60}
                                       value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
@@ -350,7 +350,7 @@ export const SimpleItemUpdate = () => {
                             <Col md="4">
                               <div className={"d-flex flex-column gap-2"}>
                                 <label className={"text-xl font-bold"}>
-                                  Select Attribute
+                                  <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
                                 </label>
                                 <Select
                                   value={itemAttribute?.attributeTax}
@@ -366,7 +366,7 @@ export const SimpleItemUpdate = () => {
 
                             <Col md="4" >
                               <Button color="primary" disabled={filteredAvailableAttributes().length === 0} className={"mt-5"} onClick={handleAddAttribute}>
-                                Add Attribute
+                                <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
                               </Button>
                             </Col>
                             <Col md={"8"} className={"mt-2"}>
@@ -374,7 +374,7 @@ export const SimpleItemUpdate = () => {
                                 {simpleItem?.attributes?.map((attribute, index) => (
                                   <AccordionTab key={index} header={attribute?.attributeTax?.key}>
                                     <div className={"d-flex gap-3"}>
-                                      <label className={"mt-2"}>Name: {attribute?.attributeTax?.key}</label>
+                                      <label className={"mt-2"}>{translate('items.update.name')}: {attribute?.attributeTax?.key}</label>
                                       <Col md={"9"}>
                                         <AsyncSelect
                                           value={attribute?.attributeTerms}
@@ -402,9 +402,10 @@ export const SimpleItemUpdate = () => {
 
                   </Row>
                 </TabPanel>
-                <TabPanel header={'Visibility'}>
+                <TabPanel header={translate('items.update.tabs.visibility.label')}>
                   <Visibility
                     initialState={simpleItem.visibility}
+                    title={translate('items.update.tabs.visibility.titles.simple')}
                     onStateChanged={(state) => setSimpleItem(prev => {
                       return { ...prev, visibility: state }
                   })} />

@@ -20,6 +20,7 @@ import {Column} from "primereact/column";
 import {fromPairs} from "lodash";
 import {Dropdown} from "primereact/dropdown";
 import {InputText} from "primereact/inputtext";
+import {translate} from "react-jhipster";
 
 interface LazyTableState {
   first?: number;
@@ -268,7 +269,7 @@ console.log(orderList.length, 'len')
               first={lazyState.first}
               rows={20}
               totalRecords={totalOrders}
-              emptyMessage="No Orders Found"
+              emptyMessage={translate('orders.view.table.emptyMessage')}
               onPage={onPage}
               onSort={onSort}
               sortOrder={lazyState.sortOrder}
@@ -284,7 +285,7 @@ console.log(orderList.length, 'len')
               {/* <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} /> */}
               <Column
                 field="id"
-                header="Order ID"
+                header={translate('orders.view.table.fields.id')}
                 sortable
                 filter
                 body={(rowData): any => (
@@ -304,7 +305,7 @@ console.log(orderList.length, 'len')
                         },
                       }))
                     }
-                    placeholder="Enter id"
+                    placeholder={translate('orders.view.table.filters.id')}
                   />
                 }
               />
@@ -312,7 +313,7 @@ console.log(orderList.length, 'len')
                 field="branchId"
                 sortable
                 filter
-                header="Order Branch"
+                header={translate('orders.view.table.fields.branch')}
                 body={(data) => getBranchName(data.branchId)}
                 filterElement={
                   <Dropdown
@@ -327,7 +328,7 @@ console.log(orderList.length, 'len')
                         },
                       }))
                     }
-                    placeholder="Select a branch"
+                    placeholder={translate('orders.view.table.filters.branch')}
                   />
                 }
               />
@@ -336,7 +337,7 @@ console.log(orderList.length, 'len')
                 filter
                 sortable
 
-                header="Order Date"
+                header={translate('orders.view.table.fields.date')}
                 body={(rowData) => (
                   <span>
       {rowData.createdDate &&
@@ -349,14 +350,14 @@ console.log(orderList.length, 'len')
                     value={dates}
                     onChange={(e: CalendarChangeEvent) => setDates(e.value)}
                     selectionMode="range"
-                    placeholder={"Enter date range"}
+                    placeholder={translate('orders.view.table.filters.date')}
                   />
                 }
               />
 
 
               <Column field="discount" sortable
-                header="Order Discount" body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
+                header={translate('orders.view.table.fields.discount')} body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
                 <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
               />
 
@@ -374,13 +375,13 @@ console.log(orderList.length, 'len')
                               },
                             }))
                           }
-                          placeholder="Select a source"
+                          placeholder={translate('orders.view.table.filters.source')}
                         />
                       }
-                      header="Order Source"  />
+                      header={translate('orders.view.table.fields.source')}  />
 
 
-              <Column field="tables" sortable  filter  header="Order Tables"  filterElement={
+              <Column field="tables" sortable  filter  header={translate('orders.view.table.fields.tables')}  filterElement={
                 <InputText
                   style={{width: '6rem'}}
                   onChange={(e) =>
@@ -392,7 +393,7 @@ console.log(orderList.length, 'len')
                       },
                     }))
                   }
-                  placeholder="Enter table"
+                  placeholder={translate('orders.view.table.filters.tables')}
                 />
               }
               />
@@ -401,7 +402,7 @@ console.log(orderList.length, 'len')
                 filter
                 filterField="customer.email"
                 sortable
-                header="Customer Email "
+                header={translate('orders.view.table.fields.customerEmail')}
                 filterElement={
                   <InputText
                     style={{width: '11rem'}}
@@ -414,7 +415,7 @@ console.log(orderList.length, 'len')
                         },
                       }))
                     }
-                    placeholder="Enter customer email"
+                    placeholder={translate('orders.view.table.filters.customerEmail')}
                   />
                 }
               />
@@ -424,7 +425,7 @@ console.log(orderList.length, 'len')
                 filter
                 sortable
                 filterField="customer.phone"
-                header="Customer Phone"
+                header={translate('orders.view.table.fields.customerPhone')}
                 filterElement={
                   <InputText
                     style={{width: '11rem'}}
@@ -437,12 +438,12 @@ console.log(orderList.length, 'len')
                         },
                       }))
                     }
-                    placeholder="Enter customer phone"
+                    placeholder={translate('orders.view.table.filters.customerPhone')}
                   />
                 }
               />
 
-              <Column field="status" sortable filter header="Order Status"
+              <Column field="status" sortable filter header={translate('orders.view.table.fields.status')}
                       filterElement={
                         <Dropdown
                           value={lazyState.filters.status?.value || ''}
@@ -456,7 +457,7 @@ console.log(orderList.length, 'len')
                               },
                             }))
                           }
-                          placeholder="Select a status"
+                          placeholder={translate('orders.view.table.filters.status')}
                         />
                       }
               />

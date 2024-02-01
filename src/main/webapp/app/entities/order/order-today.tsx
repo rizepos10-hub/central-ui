@@ -18,6 +18,7 @@ import {fromPairs} from "lodash";
 import {Dropdown} from "primereact/dropdown";
 import { startOfDay, endOfDay } from 'date-fns';
 import {InputText} from "primereact/inputtext";
+import {translate, Translate} from "react-jhipster";
 
 interface LazyTableState {
   first: number;
@@ -170,7 +171,7 @@ export const Order = () => {
   console.log(orderList.length, 'len')
   return (
     <div>
-      <h1>Order View</h1>
+      <h1><Translate contentKey={'orders.view.title'}>Orders View</Translate></h1>
 
       <div>
 
@@ -192,7 +193,7 @@ export const Order = () => {
             onFilter={onFilter}
             loading={loading}
             removableSort
-            emptyMessage="No Orders Found"
+            emptyMessage={translate('orders.view.table.emptyMessage')}
             tableStyle={{ minWidth: '75rem' , alignContent: 'center'}}
             selectionMode="single"
             onSelectionChange={(e:any) => navigate(`/order/${e.value.id}`)}
@@ -200,7 +201,7 @@ export const Order = () => {
           >
             <Column
               field="id"
-              header="Order ID"
+              header={translate('orders.view.table.fields.id')}
               filter
               sortable
               body={(rowData): any => (
@@ -220,7 +221,7 @@ export const Order = () => {
                       },
                     }))
                   }
-                  placeholder="Enter id"
+                  placeholder={translate('orders.view.table.filters.id')}
                 />
               }
             />
@@ -228,7 +229,7 @@ export const Order = () => {
               field="branchId"
               sortable
               filter
-              header="Order Branch"
+              header={translate('orders.view.table.fields.branch')}
               body={(data) => getBranchName(data.branchId)}
               filterElement={
                 <Dropdown
@@ -243,19 +244,19 @@ export const Order = () => {
                       },
                     }))
                   }
-                  placeholder="Select a branch"
+                  placeholder={translate('orders.view.table.filters.branch')}
                 />
               }
             />
             <Column
               body={(rowData) => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
               field="createdDate"
-              header="Order Date"
+              header={translate('orders.view.table.fields.date')}
               sortable
 
             />
 
-            <Column field="discount" sortable  header="Order Discount" body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
+            <Column field="discount" sortable  header={translate('orders.view.table.fields.discount')} body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
               <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
 
             />
@@ -274,12 +275,12 @@ export const Order = () => {
                             },
                           }))
                         }
-                        placeholder="Select a source"
+                        placeholder={translate('orders.view.table.filters.source')}
                       />
                     }
-                    header="Order Source"   />
+                    header={translate('orders.view.table.fields.source')}   />
 
-            <Column field="tables" sortable  filter header="Order Tables"
+            <Column field="tables" sortable  filter header={translate('orders.view.table.fields.tables')}
                     filterElement={
                       <InputText
                         style={{width: '6rem'}}
@@ -292,7 +293,7 @@ export const Order = () => {
                             },
                           }))
                         }
-                        placeholder="Enter table"
+                        placeholder={translate('orders.view.table.filters.tables')}
                       />
                     }
             />
@@ -301,7 +302,7 @@ export const Order = () => {
               filter
               filterField="customer.email"
               sortable
-              header="Customer Email "
+              header={translate('orders.view.table.fields.customerEmail')}
               filterElement={
                 <InputText
                   style={{width: '11rem'}}
@@ -314,7 +315,7 @@ export const Order = () => {
                       },
                     }))
                   }
-                  placeholder="Enter customer email"
+                  placeholder={translate('orders.view.table.filters.customerEmail')}
                 />
               }
             />
@@ -324,7 +325,7 @@ export const Order = () => {
               filter
               sortable
               filterField="customer.phone"
-              header="Customer Phone"
+              header={translate('orders.view.table.fields.customerPhone')}
               filterElement={
                 <InputText
                   style={{width: '11rem'}}
@@ -337,12 +338,12 @@ export const Order = () => {
                       },
                     }))
                   }
-                  placeholder="Enter customer phone"
+                  placeholder={translate('orders.view.table.filters.customerPhone')}
                 />
               }
 
             />
-            <Column field="status" sortable filter header="Order Status"
+            <Column field="status" sortable filter header={translate('orders.view.table.fields.status')}
                     filterElement={
                       <Dropdown
                         value={lazyState.filters.status?.value || ''}
@@ -356,7 +357,7 @@ export const Order = () => {
                             },
                           }))
                         }
-                        placeholder="Select a status"
+                        placeholder={translate('orders.view.table.filters.status')}
                       />
                     }
             />

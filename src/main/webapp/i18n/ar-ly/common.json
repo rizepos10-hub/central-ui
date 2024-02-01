@@ -2,7 +2,14 @@
   "common": {
     "buttons": {
       "save": "Save",
-      "back": "Back"
+      "back": "Back",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "validation": {
+      "required": "This field is required"
     }
   }
 }

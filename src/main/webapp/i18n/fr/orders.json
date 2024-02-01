@@ -1,0 +1,76 @@
+{
+  "orders": {
+    "view": {
+      "title": "Orders View",
+      "table": {
+        "fields": {
+          "id": "Order Id",
+          "branch": "Order Branch",
+          "date": "Order Date",
+          "discount": "Order Discount",
+          "source": "Order Source",
+          "tables": "Order Tables",
+          "customerEmail": "Customer Email",
+          "customerPhone": "Customer Phone",
+          "status": "Order Status"
+        },
+        "emptyMessage": "No Orders Found",
+        "filters": {
+          "id": "Enter Id",
+          "branch": "Select a Branch",
+          "date": "Enter Date Range",
+          "source": "Select a Source",
+          "tables": "Enter Table",
+          "customerEmail": "Enter Customer Email",
+          "customerPhone": "Enter Customer Phone",
+          "status": "Select a Status"
+        }
+      }
+    },
+    "details": {
+      "title": "Order",
+      "common": {
+        "subtotal": "Subtotal",
+        "totalDiscounts": "Total Discounts",
+        "totalPrice": "Total Price",
+        "paid": "Paid",
+        "remaining": "Remaining",
+        "amount": "Amount",
+        "price": "Price",
+        "discount": "Discount",
+        "total": "Total"
+      },
+      "itemsCard": {
+        "title": "Items",
+        "emptyMessage": "No items available",
+        "table": {
+          "name": "Name",
+          "variant": "Variant",
+          "returnedAmount": "Returned Amount",
+          "totalAmount": "Total Amount"
+        },
+        "customer": {
+          "title": "Customer",
+          "name": "Name",
+          "email": "Email",
+          "phone": "Phone"
+        }
+      },
+      "billsCard": {
+        "title": "Bills",
+        "subTitle": "Order Bill {{ billId }}",
+        "emptyMessage": "No bills available",
+        "table": {
+          "id": "Id",
+          "name": "Name",
+          "date": "Date"
+        },
+        "payment": {
+          "title": "Payment Transactions for Order Bill {{ billId }}",
+          "method": "Payment Method:",
+          "amount": "Amount:"
+        }
+      }
+    }
+  }
+}

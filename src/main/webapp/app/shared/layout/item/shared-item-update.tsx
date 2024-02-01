@@ -154,14 +154,14 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                 {!isSimplePizza ? <Col md="6">
                   <div className={"d-flex flex-column gap-2"}>
                     <label className={"text-xl font-bold"}>
-                    <Translate contentKey={"tempApp.item.name"}>Name</Translate>
+                    <Translate contentKey={"items.update.name"}>Name</Translate>
                     </label>
                     <InputText
                       type="text"
                       name="name"
                       id="name"
                       required={true}
-                      placeholder="Item Name"
+                      placeholder={translate('items.update.placeholders.itemName')}
                       value={item.name || ''}
                       onChange={(e) => onFieldChange('name', e.target.value)}
                     />
@@ -171,13 +171,13 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                 <Col md="6">
                   <div className={"d-flex flex-column gap-2"}>
                     <label className={"text-xl font-bold"}>
-                    <Translate contentKey={"tempApp.item.desc"}>Description</Translate>
+                    <Translate contentKey={"items.update.description"}>Description</Translate>
                     </label>
                     <InputText
                       type="text"
                       name="desc"
                       id="desc"
-                      placeholder="Item Description"
+                      placeholder={translate('items.update.placeholders.itemDescription')}
                       value={item.desc || ''}
                       onChange={(e) => onFieldChange('desc', e.target.value)}
                     />
@@ -189,7 +189,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                 <Col md="4">
                     <div className={"d-flex flex-column gap-2"}>
                       <label className={"text-xl font-bold"}>
-                      <Translate contentKey="tempApp.item.productionCenter">Production Center</Translate>
+                      <Translate contentKey="items.update.productionCenter">Production Center</Translate>
                       </label>
                       <Select
                         value={item?.productionCenter}
@@ -204,7 +204,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                   <Col md="4">
                     <div className={"d-flex flex-column gap-2"}>
                       <label className={"text-xl font-bold"}>
-                      <Translate contentKey="tempApp.item.terms">Category</Translate>
+                      <Translate contentKey="items.update.categories">Categories</Translate>
                       </label>
                       <Select
                         value={item?.categories}
@@ -220,7 +220,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                   <Col md="4">
                     <div className={"d-flex flex-column gap-2"}>
                       <label className={"text-xl font-bold"}>
-                      <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
+                      <Translate contentKey="items.update.accountingGroups">Accounting Groups</Translate>
                       </label>
                       <Select
                         value={item?.accountingGroups}
@@ -236,7 +236,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                   <Col md={"4"}>
                 <div className={"d-flex my-3 gap-2"}>
                   <label className={"text-xl font-bold"}>
-                    Excluded From Loyalty Points
+                    <Translate contentKey="items.update.excludedFromLoyalty">Excluded From Loyalty Points</Translate>
                   </label>
                   <Checkbox
                     checked={item?.excludedFromLoyaltyPoints}
@@ -250,7 +250,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                 <div className={"d-flex flex-column"}>
                   <label className={"text-xl mt-2 font-bold"}>
 
-                  <Translate contentKey={"tempApp.table.image"}>Image</Translate>
+                  <Translate contentKey={"items.update.image"}>Image</Translate>
                     </label>
                     <Attachment
                       image={item?.attachments?.[0]}
@@ -275,7 +275,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                     <Col md="6">
                       <div className={"d-flex flex-column gap-2"}>
                         <label className={"text-xl font-bold"}>
-                        <Translate contentKey={"tempApp.item.addons"}>Addons</Translate>
+                        <Translate contentKey={"items.update.addons"}>Addons</Translate>
                         </label>
                         <Select
                           value={item?.addons}
@@ -290,10 +290,10 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                     <Col md={'6'}>
                       <div className={'d-flex flex-column gap-2 flex-start'}>
                         <label className={"text-xl font-bold"}>
-                          <Translate contentKey={'tempApp.item.importAddons'}>Addons</Translate>
+                          <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
                         </label>
                         <div>
-                          <Button onClick={openImportAddonModal}> Import Addons</Button>
+                          <Button onClick={openImportAddonModal}><Translate contentKey={'items.update.importAddons'}>Import Addons</Translate></Button>
                         </div>
                       </div>
                     </Col>
@@ -302,7 +302,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       <div className="mt-2">
 
                         <label className={"text-xl font-bold"}>
-                          Addon Groups
+                          <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
                         </label>
                         <div className="col-md-6">
                           <Select
@@ -320,8 +320,8 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                         <Table>
                           <thead>
                           <tr>
-                            <th>Name</th>
-                            <th>Required</th>
+                            <th><Translate contentKey={'items.update.name'}>Name</Translate></th>
+                            <th><Translate contentKey={'items.update.required'}>Required</Translate></th>
                           </tr>
                           </thead>
                           <tbody>

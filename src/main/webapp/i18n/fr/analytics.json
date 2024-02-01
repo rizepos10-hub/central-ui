@@ -1,0 +1,82 @@
+{
+  "analytics": {
+    "topItems": {
+      "title": "Best Sellers",
+      "name": "Name",
+      "variant": "Variant",
+      "count": "Order Count",
+      "image": "Image"
+    },
+    "bestCustomers": {
+      "title": "Best Customers",
+      "name": "Customer Name",
+      "orders": "Orders",
+      "phone": "Phone Number"
+    },
+    "endOfDay": {
+      "title": "End Of Day Reports",
+      "select": "Select a branch",
+      "table": {
+        "toDate": "To Date",
+        "fromDate": "From Date",
+        "createdDate": "Created Date",
+        "actionBy": "Action Taken By",
+        "branchName": "Branch Name",
+        "appName": "App Name",
+        "appType": "App Type"
+      },
+      "report": {
+        "title": "End Of Day Report"
+      }
+    },
+    "salesReport": {
+
+    },
+    "summary": {
+      "toDate": "To Date",
+      "fromDate": "From Date",
+      "buttons": {
+        "getReport": "Get Report",
+        "lastWeek": "Last Week",
+        "lastTwoWeeks": "Last Two Weeks",
+        "lastMonth": "Last Month",
+        "lastThreeMonths": "Last Three Months"
+      },
+      "select": {
+        "source": "Select a source",
+        "branch": "Select a branch"
+
+      },
+      "report": {
+        "title": "Sales Summary Report"
+      }
+    },
+    "report": {
+      "location": "Location: {{ location }}",
+      "totalSales": "Total Sales",
+      "totalReceived": "Total Received",
+      "dineIn": "DineIn",
+      "pickUp": "PickUp",
+      "delivery": "Delivery",
+      "orders": "Orders",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "coupon": "Applied Coupon",
+      "d-charge": "Delivery Charge",
+      "d-tax": "Delivery TAX",
+      "refunds": "Refunds",
+      "gst": "Gst",
+      "hst": "Hst",
+      "netSales": "NET SALES",
+      "totalTax": "TOTAL TAX",
+      "grossSales": "GROSS SALES",
+      "totalTip": "TOTAL TIP",
+      "payment": "PAYMENT",
+      "tip": "TIP",
+      "amount": "AMOUNT",
+      "refund": "REFUND",
+      "received": "RECEIVED",
+      "total": "TOTAL"
+    }
+  }
+}

@@ -1,12 +1,12 @@
 {
   "global": {
     "title": "Business UI",
-    "browsehappy": "Vous utilisez un <strong>ancien</strong> navigateur. Veuillez <a href=\"http://browsehappy.com/?locale=fr\">mettre à jour votre navigateur</a> pour une meilleure expérience.",
+    "browsehappy": "You are using an <strong>outdated</strong> browser. Please <a href=\"http://browsehappy.com/?locale=en\">upgrade your browser</a> to improve your experience.",
     "menu": {
-      "home": "Accueil",
+      "home": "Home",
       "jhipster-needle-menu-add-element": "JHipster will add additional menu entries here (do not translate!)",
       "entities": {
-        "main": "Entités",
+        "main": "Entities",
         "menu": "Menu",
         "branch": "Branch",
         "discount": "Discount",
@@ -20,72 +20,72 @@
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)"
       },
       "account": {
-        "main": "Compte",
-        "settings": "Profil",
-        "password": "Mot de passe",
+        "main": "Account",
+        "settings": "Settings",
+        "password": "Password",
         "sessions": "Sessions",
-        "login": "S'authentifier",
-        "logout": "Déconnexion",
-        "register": "Créer un compte"
+        "login": "Sign in",
+        "logout": "Sign out",
+        "register": "Register"
       },
       "admin": {
         "main": "Administration",
-        "userManagement": "Gestion des utilisateurs",
-        "tracker": "Suivi des utilisateurs",
-        "metrics": "Métriques",
-        "health": "Diagnostics",
+        "userManagement": "User management",
+        "tracker": "User tracker",
+        "metrics": "Metrics",
+        "health": "Health",
         "configuration": "Configuration",
         "logs": "Logs",
         "apidocs": "API",
-        "database": "Base de données",
+        "database": "Database",
         "jhipster-needle-menu-add-admin-element": "JHipster will add additional menu entries here (do not translate!)"
       },
-      "language": "Langue"
+      "language": "Language"
     },
     "form": {
-      "username.label": "Nom d'utilisateur",
-      "username.placeholder": "Votre nom d'utilisateur",
-      "currentpassword.label": "Mot de passe actuel",
-      "currentpassword.placeholder": "Mot de passe actuel",
-      "newpassword.label": "Nouveau mot de passe",
-      "newpassword.placeholder": "Nouveau mot de passe",
-      "confirmpassword.label": "Confirmation du nouveau mot de passe",
-      "confirmpassword.placeholder": "Confirmation du nouveau mot de passe",
+      "username.label": "Username",
+      "username.placeholder": "Your username",
+      "currentpassword.label": "Current password",
+      "currentpassword.placeholder": "Current password",
+      "newpassword.label": "New password",
+      "newpassword.placeholder": "New password",
+      "confirmpassword.label": "New password confirmation",
+      "confirmpassword.placeholder": "Confirm the new password",
       "email.label": "Email",
-      "email.placeholder": "Votre email"
+      "email.placeholder": "Your email"
     },
     "messages": {
       "info": {
         "authenticated": {
-          "prefix": "Si vous voulez vous ",
-          "link": "connecter",
-          "suffix": ", vous pouvez utiliser les comptes par défaut : <br/> - Administrateur (nom d'utilisateur=\"admin\" et mot de passe =\"admin\") <br/> - Utilisateur (nom d'utilisateur=\"user\" et mot de passe =\"user\")."
+          "prefix": "If you want to ",
+          "link": "sign in",
+          "suffix": ", you can try the default accounts:<br/>- Administrator (login=\"admin\" and password=\"admin\") <br/>- User (login=\"user\" and password=\"user\")."
         },
         "register": {
-          "noaccount": "Vous n'avez pas encore de compte ?",
-          "link": "Créer un compte"
+          "noaccount": "You don't have an account yet?",
+          "link": "Register a new account"
         }
       },
       "error": {
-        "dontmatch": "Le nouveau mot de passe et sa confirmation ne sont pas égaux !"
+        "dontmatch": "The password and its confirmation do not match!"
       },
       "validate": {
         "newpassword": {
-          "required": "Votre mot de passe est requis.",
-          "minlength": "Votre mot de passe doit comporter au moins 4 caractères.",
-          "maxlength": "Votre mot de passe ne doit pas comporter plus de 50 caractères.",
-          "strength": "Robustesse du mot de passe :"
+          "required": "Your password is required.",
+          "minlength": "Your password is required to be at least 4 characters.",
+          "maxlength": "Your password cannot be longer than 50 characters.",
+          "strength": "Password strength:"
         },
         "confirmpassword": {
-          "required": "Votre confirmation du mot de passe est requise.",
-          "minlength": "Votre confirmation du mot de passe doit comporter au moins 4 caractères.",
-          "maxlength": "Votre confirmation du mot de passe ne doit pas comporter plus de 50 caractères."
+          "required": "Your confirmation password is required.",
+          "minlength": "Your confirmation password is required to be at least 4 characters.",
+          "maxlength": "Your confirmation password cannot be longer than 50 characters."
         },
         "email": {
-          "required": "Votre email est requis.",
-          "minlength": "Votre email doit comporter au moins 5 caractères.",
-          "maxlength": "Votre email ne doit pas comporter plus de 50 caractères.",
-          "invalid": "Votre email n'est pas valide."
+          "required": "Your email is required.",
+          "invalid": "Your email is invalid.",
+          "minlength": "Your email is required to be at least 5 characters.",
+          "maxlength": "Your email cannot be longer than 50 characters."
         }
       }
     },
@@ -93,42 +93,43 @@
       "id": "ID"
     },
     "ribbon": {
-      "dev": "Développement"
+      "dev": "Development"
     },
-    "item-count": "Affichage {{first}} - {{second}} de {{total}} items."
+    "item-count": "Showing {{first}} - {{second}} of {{total}} items."
   },
   "entity": {
     "action": {
-      "addblob": "Ajouter blob",
-      "addimage": "Ajouter image",
-      "back": "Retour",
-      "cancel": "Annuler",
-      "edit": "Editer",
-      "delete": "Supprimer",
-      "open": "Ouvrir",
-      "save": "Sauvegarder",
-      "view": "Voir",
+      "addblob": "Add blob",
+      "addimage": "Add image",
+      "back": "Back",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "open": "Open",
+      "save": "Save",
+      "view": "View",
       "show": "Show {{otherEntity}}"
     },
     "detail": {
-      "field": "Champs",
-      "value": "Valeur"
+      "field": "Field",
+      "value": "Value"
     },
     "delete": {
-      "title": "Confirmation de suppression"
+      "title": "Confirm delete operation"
     },
     "validation": {
-      "required": "Ce champ est obligatoire.",
-      "minlength": "Ce champ doit faire au minimum {{min}} caractères.",
-      "maxlength": "Ce champ doit faire moins de {{max}} caractères.",
-      "min": "Ce champ doit être supérieur à {{min}}.",
-      "max": "Ce champ doit être inférieur à {{max}}.",
-      "minbytes": "Ce champ doit être supérieur à {{min}} bytes.",
-      "maxbytes": "Ce champ doit être inférieur à {{max}} bytes.",
-      "pattern": "Ce champ doit suivre l'expression régulière {{pattern}}.",
-      "number": "Ce champ doit être un nombre.",
-      "datetimelocal": "Ce champ doit être une date et une heure.",
-      "patternLogin": "Ce champ ne peut contenir que des lettres, des chiffres ou des adresses e-mail."
+      "required": "This field is required.",
+      "minlength": "This field is required to be at least {{ min }} characters.",
+      "maxlength": "This field cannot be longer than {{ max }} characters.",
+      "min": "This field should be at least {{ min }}.",
+      "max": "This field cannot be more than {{ max }}.",
+      "minbytes": "This field should be at least {{ min }} bytes.",
+      "maxbytes": "This field cannot be more than {{ max }} bytes.",
+      "pattern": "This field should follow pattern for {{ pattern }}.",
+      "number": "This field should be a number.",
+      "datetimelocal": "This field should be a date and time.",
+      "patternLogin": "This field can only contain letters, digits and e-mail addresses.",
+      "discountPriceExceeds": "Discount price can't exceed the current price"
     },
     "filters": {
       "set": "Following filters are set",
@@ -137,21 +138,21 @@
     }
   },
   "error": {
-    "internalServerError": "Erreur interne du serveur",
-    "server.not.reachable": "Serveur inaccessible",
-    "url.not.found": "Non trouvé",
-    "NotNull": "Le champ {{fieldName}} ne peut pas être vide !",
-    "Size": "Le champ {{fieldName}} ne respecte pas les critères minimum et maximum !",
-    "userexists": "Login déjà utilisé !",
-    "emailexists": "Email déjà utilisé !",
-    "idexists": "Une nouvelle entité {{entityName}} ne peut pas avoir d'identifiant !",
-    "idnull": "Identifiant invalide",
-    "idinvalid": "Invalid Id",
+    "internalServerError": "Internal server error",
+    "server.not.reachable": "Server not reachable",
+    "url.not.found": "Not found",
+    "NotNull": "Field {{ fieldName }} cannot be empty!",
+    "Size": "Field {{ fieldName }} does not meet min/max size requirements!",
+    "userexists": "Login name already used!",
+    "emailexists": "Email is already in use!",
+    "idexists": "A new {{ entityName }} cannot already have an ID",
+    "idnull": "Invalid ID",
+    "idinvalid": "Invalid ID",
     "idnotfound": "ID cannot be found",
     "file": {
-      "could.not.extract": "Impossible d'extraire le fichier",
-      "not.image": "Le fichier doit être une image et non du type \"{{ fileType }}\""
+      "could.not.extract": "Could not extract file",
+      "not.image": "File was expected to be an image but was found to be \"{{ fileType }}\""
     }
   },
-  "footer": "Ceci est votre pied de page"
+  "footer": "RIZE POS "
 }

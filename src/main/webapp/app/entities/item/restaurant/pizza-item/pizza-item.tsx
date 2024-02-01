@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import { getSortState } from 'react-jhipster';
+import {getSortState, translate, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import {  ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
@@ -137,13 +137,13 @@ export const PizzaItem = () => {
   console.log(pizzaItemsList, 'pizzaItemsList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Pizza Items</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'items.view.titles.tableTitle.pizza'}>Pizza Items</Translate></span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Pizza Item" raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate('items.view.actions.createPizza')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -168,29 +168,28 @@ export const PizzaItem = () => {
   return (
     <div>
       <h2 >
-        Pizza Items View
-
+        <Translate contentKey={'items.view.titles.pizza'}>Pizza Items View</Translate>
       </h2>
 
       <div >
         <DataTable loading={loading} value={pizzaItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
-          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
-          <Column header="Image"  body={(rowData) =>
+          <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
+          <Column header={translate('items.view.fields.image')}  body={(rowData) =>
             <ImageDisplay
               imageType={"product"}
               imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url }
               height={50}
               width={50}
             />} />
-          <Column field="desc" header="Description" />
+          <Column field="desc" header={translate('items.view.fields.description')} />
 
-          <Column field="stock" sortable header="In Stock" />
+          <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
 
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('items.view.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('items.view.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 
