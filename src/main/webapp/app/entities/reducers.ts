@@ -56,6 +56,9 @@ import tvDisplay from "app/entities/settings/tv-config/tv-display/tv-display.red
 
 import loyalty from "app/entities/loyalty/loyalty-records.reducer";
 import loyaltyExchange from "app/entities/loyalty/loyalty-exchange.reducer";
+import supplier from "app/entities/inventory/supplier/supplier.reducer"
+import salesLocation from "app/entities/inventory/sales-location/sales-location.reducer"
+import warehouse from "app/entities/inventory/warehouse/warehouse.reducer"
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
@@ -111,7 +114,10 @@ const entitiesReducers = {
   currencies,
   currencySettings,
   tv,
-  tvDisplay
+  tvDisplay,
+  supplier,
+  salesLocation,
+  warehouse
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };

@@ -1,11 +1,11 @@
-import {IWareHouse} from "app/shared/model/STOCK/warehouse.model";
+import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
 import {IStockItem} from "app/shared/model/STOCK/stock-item.model";
 import {IRawItem} from "app/shared/model/STOCK/raw-item.model";
 
 export interface ITransferRequest {
   id?: string;
-  source?: IWareHouse;
-  destination?: IWareHouse;
+  source?: IWarehouse;
+  destination?: IWarehouse;
   stockItems?: ITransferRequestStockItem[];
   rawItems?: ITransferRequestRawItem[];
 }

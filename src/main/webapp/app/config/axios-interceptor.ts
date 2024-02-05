@@ -57,6 +57,7 @@ const setupAxiosInterceptors = onUnauthenticated => {
   const onResponseError = async err => {
     const status = err.status || (err.response ? err.response.status : 0);
     if ((status === 403 || status === 401) && !refreshPromise) {
+      console.log(err, 'hass erorr')
       refreshPromise = refreshAccessToken();
       if (refreshPromise) {
         try {
