@@ -202,17 +202,32 @@ const AppMenu = () => {
                             ]
                           },
 
-                          {
-                            label: 'Stock',
-                            role: ['ROLE_ADMIN'],
-                            icon: ' pi pi-th-large',
-                            to: '/stock'
-                          },
+
                           {
                             label: 'Inventory',
                             role: ['ROLE_ADMIN'],
                             icon: 'pi pi-box',
-                            to: '/inventory'
+                            items: [
+                              {
+                                label: 'Suppliers',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/supplier'
+                              },
+                              {
+                                label: 'Warehouses',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/warehouse'
+                              },
+                              {
+                                label: 'Sales Locations',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/sales-location'
+                              },
+
+                            ]
                           },
 
                           {

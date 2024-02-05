@@ -5,19 +5,10 @@ import {IMeasurementUnit} from "app/shared/model/STOCK/measurement-unit.model";
 export interface ISupplier {
   id?: string;
   name?: string;
-  rawItems?: ISupplierRawItem[];
-  stockItems?: ISupplierStockItem[];
-}
-interface ISupplierRawItem {
-  item?: IRawItem;
-  defaultPrice?: number;
-  unit?: IMeasurementUnit;
+  address?: string;
+  phoneNumber?: string;
+  email?: string;
 }
 
-interface ISupplierStockItem {
-  item?: IStockItem;
-  defaultPrice?: number;
-  unit?: IMeasurementUnit;
-}
 
 export const defaultValue: Readonly<ISupplier> = {};

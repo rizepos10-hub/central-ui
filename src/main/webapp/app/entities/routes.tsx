@@ -47,6 +47,10 @@ import CurrencySettings from "app/entities/settings/currency";
 import Tv from "app/entities/settings/tv-config/tv";
 import TvDisplay from "app/entities/settings/tv-config/tv-display";
 
+import Supplier from "app/entities/inventory/supplier"
+import SalesLocation from "app/entities/inventory/sales-location"
+import Warehouse from "app/entities/inventory/warehouse"
+
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
 export default () => {
@@ -115,6 +119,9 @@ export default () => {
         <Route path="tv-display/*" element={<TvDisplay />} />
 
 
+        <Route path="inventory/supplier/*" element={<Supplier />} />
+        <Route path="inventory/sales-location/*" element={<SalesLocation />} />
+        <Route path="inventory/warehouse/*" element={<Warehouse />} />
 
 
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}

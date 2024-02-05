@@ -1,9 +1,8 @@
-export interface IWareHouse {
+export interface IWarehouse {
   id?: string;
   name?: string;
   main?: boolean;
   location?: string;
-  branchId?: string;
 }
 
-export const defaultValue: Readonly<IWareHouse> = {};
+export const defaultValue: Readonly<IWarehouse> = {};

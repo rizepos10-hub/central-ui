@@ -1,0 +1,46 @@
+{
+  "tempApp": {
+    "salesLocation": {
+      "view": {
+        "title": "Sales Locations View",
+        "table": {
+          "title": "Sales Locations",
+          "buttons": {
+            "refreshList": "Refresh List",
+            "createNewSalesLocation": "Create New Sales Location"
+          },
+          "fields": {
+            "name": "Name",
+            "branch": "Branch",
+            "location": "Location",
+            "edit": "Edit",
+            "delete": "Delete"
+          },
+          "search": {
+            "name": "Search by Name",
+            "location": "Search by Location"
+          }
+        }
+      },
+      "created": "A new Sales Location is created with identifier {{ param }}",
+      "updated": "A Sales Location is updated with identifier {{ param }}",
+      "deleted": "A Sales Location is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Sales Location",
+        "question": "Are you sure you want to delete sales location {{ id }}"
+      },
+      "update": {
+        "create": {
+          "title": "Create New Sales Location"
+        },
+        "edit": {
+          "title": "Edit Sales Location"
+        },
+        "id": "Id",
+        "name": "Name",
+        "branch": "Branch",
+        "location": "Location"
+      }
+    }
+  }
+}
