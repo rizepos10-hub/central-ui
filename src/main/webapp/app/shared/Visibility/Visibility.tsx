@@ -102,7 +102,7 @@ const Visibility = ({ initialState, onStateChanged, title = "Visibility" }:Props
     else
     {
       setVisibility(prev => {
-        return [...visibility, {application: selectedApplication, visible: true, schedule: null}];
+        return [...visibility, {application: selectedApplication, visible: true, schedule: {}}];
       })
     }
   }
