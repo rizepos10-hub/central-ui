@@ -184,7 +184,6 @@ const AppMenu = () => {
                             label: 'Customers',
                             role: ['ROLE_ADMIN'],
                             icon: ' pi pi-users',
-
                             items: [
                               {
                                 label: 'All Customers',
@@ -201,7 +200,6 @@ const AppMenu = () => {
                               },
                             ]
                           },
-
 
                           {
                             label: 'Inventory',
@@ -226,7 +224,12 @@ const AppMenu = () => {
                                 icon: ' pi pi-users',
                                 to: '/inventory/sales-location'
                               },
-
+                              {
+                                label: 'Purchase Orders',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/purchase-order'
+                              },
                             ]
                           },
 

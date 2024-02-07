@@ -70,7 +70,6 @@ export const SalesLocationUpdate = () => {
     e.preventDefault()
     const entity = {
       ...salesLocation,
-      branch: (salesLocation.branch as IBranch).id
     };
 
     if (isNew) {

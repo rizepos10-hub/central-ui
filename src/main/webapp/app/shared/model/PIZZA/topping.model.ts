@@ -8,7 +8,7 @@ export interface ITopping {
   group?: ITerm;
   image?: IAttachment;
   icon?:IAttachment;
-  pricingClass?: IPizzaPricingClass
+  pricingClass?: IPizzaPricingClass;
 }
 
 export const defaultValue: Readonly<ITopping> = {};
