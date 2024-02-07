@@ -1,5 +1,6 @@
 import {ISupplier} from "app/shared/model/STOCK/supplier.model";
 import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
+import {IStockConfig} from "app/shared/model/STOCK/stock-config.model";
 
 export interface IPurchaseOrder {
   id?: string;
@@ -8,12 +9,12 @@ export interface IPurchaseOrder {
   datePlaced?: Date;
   dateDelivered?: Date;
   warehouse?: IWarehouse;
-  orderLines?: OrderLines[];
+  orderLines?: OrderLine[];
   relatedPurchaseOrder?: IPurchaseOrder;
 }
 
-type OrderLines = {
-  item?: any;
+export type OrderLine = {
+  item?: IStockConfig;
   quantity?: number;
   receivedQuantity?: number;
   price?: number;

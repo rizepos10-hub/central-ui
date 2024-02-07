@@ -1,6 +1,6 @@
-import {IStockItem} from "app/shared/model/STOCK/stock-item.model";
 import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
 import {IMeasurementUnit} from "app/shared/model/STOCK/measurement-unit.model";
+import {IStockConfig} from "app/shared/model/STOCK/stock-config.model";
 
 export interface IQuantity {
   value?: number;
@@ -8,7 +8,7 @@ export interface IQuantity {
 }
 export interface IStockQuantity {
   id?: string;
-  item?: IStockItem;
+  item?: IStockConfig;
   warehouse?: IWarehouse;
   quantity?: IQuantity;
   threshold?: any
