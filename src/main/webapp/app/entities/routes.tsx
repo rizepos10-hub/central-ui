@@ -51,6 +51,7 @@ import Supplier from "app/entities/inventory/supplier"
 import SalesLocation from "app/entities/inventory/sales-location"
 import Warehouse from "app/entities/inventory/warehouse"
 import PurchaseOrder from "app/entities/inventory/purchase-order";
+import StockConfig from "app/entities/inventory/stock-config";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -124,6 +125,7 @@ export default () => {
         <Route path="inventory/sales-location/*" element={<SalesLocation />} />
         <Route path="inventory/warehouse/*" element={<Warehouse />} />
         <Route path="inventory/purchase-order/*" element={<PurchaseOrder />} />
+        <Route path="inventory/stock-config/*" element={<StockConfig />} />
 
 
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}

@@ -207,6 +207,12 @@ const AppMenu = () => {
                             icon: 'pi pi-box',
                             items: [
                               {
+                                label: 'Stock Config',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/stock-config'
+                              },
+                              {
                                 label: 'Suppliers',
                                 role: ['ROLE_ADMIN'],
                                 icon: ' pi pi-users',
