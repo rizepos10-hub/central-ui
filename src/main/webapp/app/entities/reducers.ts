@@ -59,6 +59,7 @@ import loyaltyExchange from "app/entities/loyalty/loyalty-exchange.reducer";
 import supplier from "app/entities/inventory/supplier/supplier.reducer"
 import salesLocation from "app/entities/inventory/sales-location/sales-location.reducer"
 import warehouse from "app/entities/inventory/warehouse/warehouse.reducer"
+import purchaseOrder from "app/entities/inventory/purchase-order/purchase-order.reducer"
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
@@ -117,7 +118,8 @@ const entitiesReducers = {
   tvDisplay,
   supplier,
   salesLocation,
-  warehouse
+  warehouse,
+  purchaseOrder
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };
