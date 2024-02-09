@@ -121,6 +121,7 @@ export const Warehouse = () => {
       </Link>
     );
   };
+
   const editColumnTemplate = (rowData) => {
     const editUrl = `/inventory/warehouse/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (

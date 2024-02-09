@@ -2,13 +2,14 @@ import {ISupplier} from "app/shared/model/STOCK/supplier.model";
 
 export interface IStockConfig {
   id?: string;
-  description?: string;
+  name?: string;
   item?: IStockConfigItem;
   itemId?: string;
   variantId?: string;
   minOrderQuantity?: number;
   supplierConfigurations?: ISupplierConfiguration[];
   defaultPrice?: number;
+  description?: string;
 }
 
 

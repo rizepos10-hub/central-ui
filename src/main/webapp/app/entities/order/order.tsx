@@ -4,7 +4,7 @@ import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'rea
 
 
 
-import {Calendar, CalendarChangeEvent} from 'primereact/calendar';
+import {Calendar} from 'primereact/calendar';
 import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -344,21 +344,22 @@ console.log(orderList.length, 'len')
         `${new Date(rowData.createdDate).toLocaleString()} `}
     </span>
                 )}
-                filterElement={
-                  <Calendar
-                    style={{width: '12rem'}}
-                    value={dates}
-                    onChange={(e: CalendarChangeEvent) => setDates(e.value)}
-                    selectionMode="range"
-                    placeholder={translate('orders.view.table.filters.date')}
-                  />
-                }
+                // todo
+                // filterElement={
+                //   <Calendar
+                //     style={{width: '12rem'}}
+                //     value={dates}
+                //     onChange={(e: CalendarChangeEvent) => setDates(e.value)}
+                //     selectionMode="range"
+                //     placeholder={translate('orders.view.table.filters.date')}
+                //   />
+                // }
               />
 
 
               <Column field="discount" sortable
                 header={translate('orders.view.table.fields.discount')} body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
-                <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
+                <p className="text-danger text-center ">&#10006;</p> }
               />
 
               <Column field="orderSource" body={(rowData) => rowData.sourceApp.type} sortable filter

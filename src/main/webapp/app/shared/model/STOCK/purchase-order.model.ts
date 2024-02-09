@@ -6,11 +6,14 @@ export interface IPurchaseOrder {
   id?: string;
   supplier?: ISupplier;
   status?: "PLACED" | "COMPLETED";
-  datePlaced?: Date;
-  dateDelivered?: Date;
+  datePlaced?: Date | string;
+  dateDelivered?: Date | string;
   warehouse?: IWarehouse;
   orderLines?: OrderLine[];
   relatedPurchaseOrder?: IPurchaseOrder;
+  costLines?:CostLine[];
+  delivery?: string;
+  address?: string;
 }
 
 export type OrderLine = {
@@ -18,5 +21,12 @@ export type OrderLine = {
   quantity?: number;
   receivedQuantity?: number;
   price?: number;
+}
+
+export type CostLine = {
+  supplier?: ISupplier;
+  cost?: number;
+  costDate?: Date | string;
+  comment?: string;
 }
 export const defaultValue: Readonly<IPurchaseOrder> = {};

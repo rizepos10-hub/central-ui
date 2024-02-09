@@ -288,7 +288,7 @@ type dateRange = {
                 <div className="d-flex flex-column m-3 relative">
                   <label>From: {(dateRange.from.toString().substring(0 , 10))}</label>
                   <Calendar inline={true}
-                            value={primeDateValue.from}
+                            value={new Date(primeDateValue.from)}
                             onSelect={(e: any) => {
                               console.log(e.value, 'e.valuee.value');
                               const formattedDate = format(e.value, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
@@ -298,7 +298,7 @@ type dateRange = {
                 </div>
                 <div className="d-flex flex-column m-3 relative">
                   <label>To: {dateRange.to.toString().substring(0, 10)}</label>
-                  <Calendar inline={true} value={primeDateValue.to}
+                  <Calendar inline={true} value={new Date(primeDateValue.to)}
                     onChange={(e: any) => {
                     const formattedDate = format(e.value, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
                     setDateRange((prev: any) => ({ ...prev, to: formattedDate }));

@@ -19,7 +19,7 @@ import {Spinner} from "reactstrap";
 import Select from "react-select";
 import {ICurrency} from "app/shared/model/CURRENCY/currency.model";
 import {getEntities as getCurrencies} from "app/entities/settings/currency/currencies.reducer";
-import {getEntity} from "app/entities/settings/currency/currency-settings.reducer";
+import {getEntity as getCurrencySettings} from "app/entities/settings/currency/currency-settings.reducer";
 import {formatPrice} from "app/shared/util/price-utils";
 
 
@@ -100,14 +100,15 @@ export const SalesReport = () => {
   const currencySettingsLoading = useAppSelector(state => state.currencySettings.loading);
   const currencies =  useAppSelector(state => state.currencies.entities);
   const exchangeRatesArray = currencySettingsEntity?.exchangeRates || [];
-  const currenciesSet = new Set(exchangeRatesArray.map(option => option.currency));
+  const currenciesSet = new Set(exchangeRatesArray.map(option => option?.currency?.code));
   const filteredDisplayCurrencies :ICurrency[]= currencies?.filter(option => currenciesSet.has(option?.code));
+
   const exchange = exchangeRatesArray?.find((exRate) => {
-    return exRate.currency === (displayCurrency?.code || currencySettingsEntity?.displayCurrency?.code || currencySettingsEntity?.defaultCurrency?.code);
-  });
+    return exRate?.currency?.code === displayCurrency?.code;
+  }) || currencySettingsEntity.defaultCurrency;
+
 
   console.log(exchange, 'exchange')
-
 
 
 
@@ -143,8 +144,15 @@ export const SalesReport = () => {
       size: 500,
       sort: 'asc',
     }));
-    dispatch(getEntity());
-  },[]);
+    dispatch(getCurrencySettings());
+
+    if(currencySettingsEntity?.displayCurrency){
+      setDisplayCurrency(currencySettingsEntity?.displayCurrency);
+    }else{
+      setDisplayCurrency(currencySettingsEntity?.defaultCurrency);
+    }
+
+  },[currencySettingsEntity?.defaultCurrency?.code]);
 
   useEffect(() => {
 
@@ -363,7 +371,7 @@ export const SalesReport = () => {
           <div className="d-flex flex-column gap-1">
             <label>Display Currency</label>
             <Dropdown
-              value={displayCurrency ?? currencySettingsEntity.displayCurrency ?? currencySettingsEntity?.defaultCurrency}
+              value={displayCurrency}
               onChange={(e) => setDisplayCurrency(e.value)}
               options={filteredDisplayCurrencies}
               filter

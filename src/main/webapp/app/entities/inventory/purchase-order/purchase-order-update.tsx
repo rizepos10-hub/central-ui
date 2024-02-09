@@ -1,13 +1,13 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label, Input, Table} from 'reactstrap';
+import {Button, Row, Col, FormGroup, Label, Input, Table, Spinner} from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './purchase-order.reducer';
 import {InputText} from "primereact/inputtext";
-import {IPurchaseOrder, OrderLine} from "app/shared/model/STOCK/purchase-order.model";
+import {CostLine, IPurchaseOrder, OrderLine} from "app/shared/model/STOCK/purchase-order.model";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {translate, Translate} from "react-jhipster";
 import Select from "react-select";
@@ -24,6 +24,8 @@ import {InputNumber} from "primereact/inputnumber";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {SummarizeText} from "app/shared/util/SummarizeText";
+import {InputTextarea} from "primereact/inputtextarea";
+import {convertDateTimeToServer, toLocalISOString} from "app/shared/util/date-utils";
 
 
 export const PurchaseOrderUpdate = () => {
@@ -35,7 +37,8 @@ export const PurchaseOrderUpdate = () => {
   const [purchaseOrder, setPurchaseOrder] = useState<IPurchaseOrder>({
   });
 
-  const [selectedItemForOrderLine, setSelectedItemForOrderLine] = useState<OrderLine | null>()
+  const [purchaseOrderLine, setPurchaseOrderLine] = useState<OrderLine | null>()
+  const [purchaseCostLine, setPurchaseCostLine] = useState<CostLine | null>()
   const supplierList = useAppSelector(state => state.supplier.entities);
   const warehouseList = useAppSelector(state => state.warehouse.entities);
   const stockConfigList = useAppSelector(state => state.stockConfig.entities);
@@ -99,10 +102,9 @@ export const PurchaseOrderUpdate = () => {
     if(purchaseOrderEntity){
       setPurchaseOrder(purchaseOrderEntity)
     }
-  }, [updateSuccess, purchaseOrderEntity?.name]);
+  }, [updateSuccess, purchaseOrderEntity?.id]);
 
   const filterItems = (inputValue: string) => {
-
     return filteredStockItems.filter((i) => {
         return (
           i.description.toLowerCase().includes(inputValue.toLowerCase())
@@ -125,13 +127,54 @@ export const PurchaseOrderUpdate = () => {
     }, 1000);
   };
 
+
+  const filterSuppliers = (inputValue: string) => {
+    return supplierList.filter((sup) => {
+        return (
+          sup.name.toLowerCase().includes(inputValue.toLowerCase())
+        )
+      }
+    );
+  };
+
+  const handleDateChange = (field, e) => {
+    const date = new Date(e.value);
+    const isoDateString = toLocalISOString(date);
+    if(field === "costDate"){
+      setPurchaseCostLine((prevState) => ({...prevState, costDate: isoDateString}))
+    }else if(field === "dateDelivered" || field === "datePlaced"){
+      setPurchaseOrder(prevState => ({ ...prevState, [field]: date }));
+    }
+  };
+
+
+  const loadSuppliers = (
+    inputValue: string,
+    callback: (options: ISupplier[]) => void
+  ) => {
+    setTimeout(() => {
+      try {
+        const filteredOptions = filterSuppliers(inputValue);
+        callback(filteredOptions);
+      } catch (error) {
+        console.error('Error loading suppliers:', error);
+      }
+    }, 1000);
+  };
+
+
   const handleChange = e => {
     const { name, value } = e.target;
     setPurchaseOrder(prevState => ({ ...prevState, [name]: value }));
   };
 
-  const handleSelectedItemForOrderLineValuesChange = (field, value) => {
-    setSelectedItemForOrderLine(prevState => ({ ...prevState, [field]: value }));
+  const handleCostLineChange = e => {
+    const { name, value } = e.target;
+    setPurchaseCostLine(prevState => ({ ...prevState, [name]: value }));
+  };
+
+  const handleOrderLineChange = (field, value) => {
+    setPurchaseOrderLine(prevState => ({ ...prevState, [field]: value }));
   };
 
   const handleSelectItem = (stockItemConfig: IStockConfig) => {
@@ -144,16 +187,25 @@ export const PurchaseOrderUpdate = () => {
       price,
       quantity: stockItemConfig?.minOrderQuantity || 1,
     }
-    setSelectedItemForOrderLine(newItem)
+    setPurchaseOrderLine(newItem)
   }
 
-  const handleAddToOrderLine = () => {
-    setPurchaseOrder((prevState) => ({
-      ...prevState,
-      orderLines: [...(prevState.orderLines || []), selectedItemForOrderLine]
-    }))
-    setSelectedItemForOrderLine(null)
-  }
+  const handleAdd = (type) => {
+    if(type === "orderLine"){
+      setPurchaseOrder((prevState) => ({
+        ...prevState,
+        orderLines: [...(prevState.orderLines || []), purchaseOrderLine]
+      }))
+      setPurchaseOrderLine(null)
+    }else{
+      setPurchaseOrder((prevState) => ({
+        ...prevState,
+        costLines: [...(prevState.costLines || []), purchaseCostLine]
+      }))
+      setPurchaseCostLine({});
+    }
+  };
+
   const saveEntity = (e) => {
     e.preventDefault()
     const entity = {
@@ -183,6 +235,10 @@ export const PurchaseOrderUpdate = () => {
     );
   };
 
+  if(loading){
+    return <Spinner />
+  }
+
   return (
     <div>
       <Row>
@@ -206,6 +262,7 @@ export const PurchaseOrderUpdate = () => {
                  name="supplier"
                  id="supplier"
                  placeholder={"Select supplier"}
+                 value={purchaseOrder?.supplier}
                  getOptionLabel={(option: ISupplier) => option.name}
                  getOptionValue={option => option.id}
                  onChange={(selectedSupplier) => setPurchaseOrder((prev) => ({...prev, supplier: selectedSupplier}))}
@@ -219,6 +276,7 @@ export const PurchaseOrderUpdate = () => {
                    id="warehouse"
                    placeholder={"Select warehouse"}
                    options={warehouseList}
+                   value={purchaseOrder?.warehouse}
                    isDisabled={!purchaseOrder.supplier}
                    getOptionLabel={(option: IWarehouse) => option.name}
                    getOptionValue={option => option.id}
@@ -233,6 +291,7 @@ export const PurchaseOrderUpdate = () => {
                   <InputText
                     name="delivery"
                     id="delivery"
+                    value={purchaseOrder?.delivery}
                     disabled={!purchaseOrder.supplier}
                     onChange={handleChange}
                   />
@@ -243,6 +302,7 @@ export const PurchaseOrderUpdate = () => {
                   <InputText
                     name="address"
                     id="address"
+                    value={purchaseOrder?.address}
                     disabled={!purchaseOrder.supplier}
                     onChange={handleChange}
                   />
@@ -255,8 +315,9 @@ export const PurchaseOrderUpdate = () => {
                     <Calendar
                       name="datePlaced"
                       id="datePlaced"
+                      value={new Date(purchaseOrder.datePlaced)}
                       disabled={!purchaseOrder.supplier}
-                      onChange={handleChange}
+                      onChange={(e) =>handleDateChange("datePlaced", e)}
                     />
                   </div>
 
@@ -265,8 +326,9 @@ export const PurchaseOrderUpdate = () => {
                     <Calendar
                       name="dateDelivered"
                       id="dateDelivered"
+                      value={new Date(purchaseOrder.dateDelivered)}
                       disabled={!purchaseOrder.supplier}
-                      onChange={handleChange}
+                      onChange={(e) =>handleDateChange("dateDelivered", e)}
                     />
                   </div>
                 </Col>
@@ -290,28 +352,28 @@ export const PurchaseOrderUpdate = () => {
                             loadOptions={loadItems}
                             defaultOptions={filteredStockItems}
                             getOptionValue={option => option.id}
-                            getOptionLabel={option => option.description}
+                            getOptionLabel={option => option.name}
                             onChange={handleSelectItem}
-                            value={selectedItemForOrderLine?.item || null}
+                            value={purchaseOrderLine?.item || null}
                             isDisabled={!purchaseOrder.supplier}
 
                           />
                           </td>
                           <td className={'w-1'}>
-                            <InputNumber value={selectedItemForOrderLine?.quantity} disabled={!purchaseOrder.supplier}
-                                         onChange={(e) => handleSelectedItemForOrderLineValuesChange("quantity", e.value )} />
+                            <InputNumber value={purchaseOrderLine?.quantity} disabled={!purchaseOrder.supplier}
+                                         onChange={(e) => handleOrderLineChange("quantity", e.value )} />
 
                           </td>
                           <td className={'w-1'}>
-                            <InputNumber value={selectedItemForOrderLine?.price} disabled={!purchaseOrder.supplier}
-                                         onChange={(e) => handleSelectedItemForOrderLineValuesChange("price", e.value )}  />
+                            <InputNumber value={purchaseOrderLine?.price} disabled={!purchaseOrder.supplier}
+                                         onChange={(e) => handleOrderLineChange("price", e.value )}  />
                           </td>
 
                           <td className={'w-1'}>
-                            <InputNumber disabled={true} value={(selectedItemForOrderLine?.price * selectedItemForOrderLine?.quantity) || null}/>
+                            <InputNumber disabled={true} value={(purchaseOrderLine?.price * purchaseOrderLine?.quantity) || null}/>
                           </td>
                       <td className={'w-2'}>
-                        <Button disabled={!selectedItemForOrderLine} color={"success"} onClick={handleAddToOrderLine}>Add</Button>
+                        <Button disabled={!purchaseOrderLine} color={"success"}  onClick={() => handleAdd("orderLine")}>Add</Button>
                       </td>
 
                     </tr>
@@ -320,37 +382,6 @@ export const PurchaseOrderUpdate = () => {
                 </Row>
 
                 <Row>
-                  {/* <Table> */}
-                  {/*   <tbody> */}
-                  {/*   <tr> */}
-                  {/*     <td>Item</td> */}
-                  {/*     <td>Quantity</td> */}
-                  {/*     <td>Price</td> */}
-                  {/*     <td>Sub Total</td> */}
-                  {/*   </tr> */}
-
-                  {/*     {purchaseOrder?.orderLines?.map((orderLine) => ( */}
-                  {/*       <> */}
-                  {/*       <tr> */}
-                  {/*         <td> */}
-                  {/*           {orderLine?.item?.item?.name} */}
-                  {/*         </td> */}
-                  {/*         <td> */}
-                  {/*           {orderLine?.quantity} */}
-                  {/*         </td> */}
-                  {/*         <td> */}
-                  {/*           {orderLine?.price} */}
-                  {/*         </td> */}
-                  {/*         <td> */}
-                  {/*           {(orderLine?.price * orderLine?.quantity) || null} */}
-                  {/*         </td> */}
-                  {/*       </tr> */}
-                  {/*       </> */}
-                  {/*     ))} */}
-
-                  {/*   </tbody> */}
-
-                  {/* </Table> */}
 
                   <DataTable
                     value={purchaseOrder?.orderLines}
@@ -361,14 +392,83 @@ export const PurchaseOrderUpdate = () => {
                     totalRecords={purchaseOrder?.orderLines?.length}
                     rows={20}
                   >
-
-                    <Column field="item.item.name" header={"Item"} />
-
+                    <Column field="item.name" header={"Item"} />
                     <Column field="quantity" header={"Quantity"} />
-
                     <Column field="price" header={"Price"} />
-
                     <Column  header={"Sub Total"} body={(rowData) => rowData.price * rowData.quantity} />
+                    <Column  header={"Delete"} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+                             bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+                  </DataTable>
+                </Row>
+
+                <Row className={"mt-3"}>
+                  <h3>Cost Lines</h3>
+                  <Table>
+                    <tbody>
+                    <tr>
+                      <td>Supplier</td>
+                      <td>Cost</td>
+                      <td>Cost Date</td>
+                      <td>Comments</td>
+                    </tr>
+                    <tr>
+                      <td className={'w-2'}>
+                        <AsyncSelect
+                          cacheOptions
+                          loadOptions={loadSuppliers}
+                          defaultOptions={supplierList}
+                          getOptionValue={(option:ISupplier) => option.id}
+                          getOptionLabel={option => option.name}
+                          name={"supplier"}
+                          onChange={(supplier) => setPurchaseCostLine((prevState => ({...prevState, supplier})))}
+                          value={purchaseCostLine?.supplier || null}
+                          isDisabled={!purchaseOrder.supplier}
+
+                        />
+                      </td>
+                      <td className={'w-1'}>
+                        <InputNumber value={purchaseCostLine?.cost} disabled={!purchaseOrder.supplier}
+                                     onChange={(e) => setPurchaseCostLine((prevState) => ({...prevState, cost: e.value}))} />
+
+                      </td>
+                      <td className={'w-1'}>
+                        <Calendar
+                          name="costDate"
+                          id="costDate"
+                          disabled={!purchaseOrder.supplier}
+                          onSelect={(e) => handleDateChange("costDate", e)}
+                          value={new Date(purchaseCostLine?.costDate)}
+                        />
+                      </td>
+
+                      <td className={'w-1'}>
+                        <InputTextarea name={"comment"}  disabled={!purchaseOrder.supplier} value={purchaseCostLine?.comment || ''} onChange={handleCostLineChange}/>
+                      </td>
+                      <td className={'w-2'}>
+                        <Button disabled={!purchaseCostLine} color={"success"} onClick={() => handleAdd("costLine")}>Add</Button>
+                      </td>
+
+                    </tr>
+                    </tbody>
+                  </Table>
+
+                  <DataTable
+                    value={purchaseOrder?.costLines}
+                    editMode="row"
+                    header={"Cost Lines"}
+                    removableSort
+                    paginator
+                    totalRecords={purchaseOrder?.costLines?.length}
+                    rows={20}
+                  >
+
+                    <Column field="supplier.name" header={"Supplier"} />
+
+                    <Column field="cost" header={"Cost"} />
+
+                    <Column field="costDate" header={"Cost Date"}  />
+
+                    <Column field="comment" header={"Comment"}  />
 
                     <Column  header={"Delete"} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                              bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
@@ -382,10 +482,10 @@ export const PurchaseOrderUpdate = () => {
                 &nbsp;Back
               </Button>
               &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
+              {purchaseOrder?.status !== "COMPLETED" ? <Button color="primary" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save"/>
                 &nbsp;Save
-              </Button>
+              </Button> : null}
             </form>
           )}
         </Col>

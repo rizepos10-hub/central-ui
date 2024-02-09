@@ -204,7 +204,7 @@ export const OpenedOrders = ({openedOrders}) => {
             />
 
             <Column field="discount" sortable  header="Order Discount" body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
-              <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
+              <p className="text-danger text-center ">&#10006;</p> }
 
             />
 

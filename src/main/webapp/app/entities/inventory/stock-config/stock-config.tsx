@@ -145,9 +145,10 @@ export const StockConfig = () => {
           totalRecords={totalItems}
           rows={20}
         >
-          <Column field="item.name" header={translate('tempApp.stockConfig.view.table.fields.item')} filter body={nameColumnTemplate} filterPlaceholder={translate('tempApp.stockConfig.view.table.search.name')}  sortable  />
-          <Column field="item.variant.name" header={translate('tempApp.stockConfig.view.table.fields.variant')}
-                  filter filterPlaceholder={translate('tempApp.stockConfig.view.table.search.variant')} sortable />
+          <Column  header={translate('tempApp.stockConfig.view.table.fields.item')} filter body={nameColumnTemplate} filterPlaceholder={translate('tempApp.stockConfig.view.table.search.name')}  sortable  />
+
+          <Column field="description" header={translate('tempApp.stockConfig.view.table.fields.description')}
+                  filter filterPlaceholder={translate('tempApp.stockConfig.view.table.search.description')}  sortable  />
 
           <Column field="defaultPrice" header={translate('tempApp.stockConfig.view.table.fields.defaultPrice')}
                   filter filterPlaceholder={translate('tempApp.stockConfig.view.table.search.defaultPrice')}  sortable  />
