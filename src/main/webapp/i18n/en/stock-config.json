@@ -12,6 +12,7 @@
           "fields": {
             "id": "ID",
             "item": "Item",
+            "description": "Description",
             "variant": "Variant",
             "defaultPrice": "Default Price",
             "minOrderQuantity": "Min Quantity",
@@ -23,6 +24,7 @@
             "location": "Search by Location",
             "item": "Search by Item",
             "variant": "Search by Variant",
+            "description": "Search By Description",
             "defaultPrice": "Search by Default Price",
             "minOrderQuantity": "Search by Min Quantity"
           }
@@ -47,6 +49,7 @@
       "name": "Name",
       "item": "Item",
       "variant": "Variant",
+      "description": "Description",
       "defaultPrice": "Default Price",
       "minOrderQuantity": "Min Quantity"
     }

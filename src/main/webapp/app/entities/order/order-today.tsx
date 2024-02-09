@@ -257,7 +257,7 @@ export const Order = () => {
             />
 
             <Column field="discount" sortable  header={translate('orders.view.table.fields.discount')} body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
-              <p className="text-danger text-center ">&#10006;</p> } filterMatchMode="custom"
+              <p className="text-danger text-center ">&#10006;</p> }
 
             />
 

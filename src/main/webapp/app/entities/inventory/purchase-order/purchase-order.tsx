@@ -186,9 +186,11 @@ export const PurchaseOrder = () => {
                   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.id')}  sortable  />
 
           <Column field="datePlaced" header={translate('tempApp.purchaseOrder.view.table.fields.datePlaced')} filter
+                  body={(rowData) => rowData?.datePlaced?.split("T")?.[0]}
                   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.datePlaced')}  sortable  />
 
           <Column field="dateDelivered" header={translate('tempApp.purchaseOrder.view.table.fields.dateDelivered')} filter
+                  body={(rowData) => rowData?.datePlaced?.split("T")?.[0]}
                   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.dateDelivered')}  sortable  />
 
           <Column field="warehouse.name" header={translate('tempApp.purchaseOrder.view.table.fields.warehouse')} filter

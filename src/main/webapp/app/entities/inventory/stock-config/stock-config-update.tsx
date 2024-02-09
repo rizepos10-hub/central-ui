@@ -1,12 +1,12 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label, Input, Table} from 'reactstrap';
+import {Button, Row, Col, FormGroup, Label, Input, Table, Spinner} from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './stock-config.reducer';
-import {getEntities as getItemsForStock} from './items-stock-config.reducer';
+import {getEntities as getItemsForStock, searchEntities as searchItems} from './items-stock-config.reducer';
 import {getEntities as getSuppliers} from '../supplier/supplier.reducer';
 import {InputText} from "primereact/inputtext";
 import {IStockConfig} from "app/shared/model/STOCK/stock-config.model";
@@ -19,6 +19,7 @@ import {CascadeSelect} from "primereact/cascadeselect";
 import {InputNumber} from "primereact/inputnumber";
 import {Dropdown} from "primereact/dropdown";
 import {ISupplier} from "app/shared/model/STOCK/supplier.model";
+import VariantSelectionModal from "app/entities/inventory/stock-config/variant-selection-modal";
 
 export const StockConfigUpdate = () => {
   const dispatch = useAppDispatch();
@@ -31,19 +32,32 @@ export const StockConfigUpdate = () => {
   const [stockConfig, setStockConfig] = useState<IStockConfig>({
     supplierConfigurations: []
   });
-  const [showInput, setShowInput] = useState(false)
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showInput, setShowInput] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const stockConfigEntity = useAppSelector(state => state.stockConfig.entity);
   const itemsForStock = useAppSelector(state => state.itemForStock.entities);
+  const loadingItems = useAppSelector(state => state.itemForStock.loading);
   const suppliers = useAppSelector(state => state.supplier.entities);
 
   const loading = useAppSelector(state => state.stockConfig.loading);
   const updating = useAppSelector(state => state.stockConfig.updating);
   const updateSuccess = useAppSelector(state => state.stockConfig.updateSuccess);
-  const filteredSuppliers = useMemo(() => {
 
+
+  const filteredSuppliers = useMemo(() => {
     return suppliers.filter(supplier => !stockConfig.supplierConfigurations?.some(config => config.supplier.id === supplier.id))
   }, [stockConfig?.supplierConfigurations?.length, suppliers]);
 
+  const filterItems = (e) => {
+    if(!searchTerm) return;
+    if(e.key !== "Enter") return;
+    e.preventDefault();
+    dispatch(searchItems({
+      query: searchTerm
+    }));
+  };
 
 
   const handleClose = () => {
@@ -83,6 +97,10 @@ export const StockConfigUpdate = () => {
     const { name, value } = e.target ;
     setStockConfig(prevState => ({ ...prevState, [name]: value }));
   };
+
+  const handleNumberChange = (filed, num) => {
+    setStockConfig(prevState => ({ ...prevState, [filed]: num }));
+  }
 
   const handleSearchClick = () => {
     if(!showInput) {
@@ -132,6 +150,9 @@ export const StockConfigUpdate = () => {
   };
 
 
+  const toggleModal = () => {
+  setIsModalOpen(prevState => !prevState)
+}
 
 
   const saveEntity = (e) => {
@@ -169,25 +190,34 @@ export const StockConfigUpdate = () => {
                    </strong>
                   </label>
                   <div className={"d-flex gap-1"}>
-                  <CascadeSelect value={stockConfig.item?.variant} onChange={handleVariantSelect} onGroupChange={handleItemSelect} options={itemsForStock}
-                                 optionLabel="name" optionGroupLabel="name" optionGroupChildren={['variants']}
-                                 className="w-full md:w-20rem" breakpoint="767px" placeholder="Select an Item" style={{ minWidth: '16rem' }}  />
-                    {showInput ? <InputText/> : null}
-                  <i
-                    className="pi pi-search mt-2 cursor-pointer"
-                    style={{ fontSize: '1.8rem' }}
-                    onClick={handleSearchClick}
-                  />
+                  <InputText value={stockConfig?.item?.name || null} onClick={toggleModal} />
+                    <VariantSelectionModal isOpen={isModalOpen} toggle={toggleModal} onSelectItem={() => {}} />
+
+
                   </div>
                 </div>
 
                 <div className={"d-flex flex-column mt-2"}>
                   <strong>
-                  <Label for="description">Description</Label>
+                  <Label for="name">Name</Label>
                   </strong>
                   <InputText
                     type="text"
                     required
+                    name="name"
+                    id="name"
+                    value={stockConfig.name}
+                    onChange={handleChange}
+                    className={"w-full md:w-20rem"}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mt-2"}>
+                  <strong>
+                    <Label for="description">Description</Label>
+                  </strong>
+                  <InputText
+                    type="text"
                     name="description"
                     id="description"
                     value={stockConfig.description}
@@ -196,8 +226,6 @@ export const StockConfigUpdate = () => {
                   />
                 </div>
 
-
-
                 <div className={"d-flex flex-column mt-2"}>
                   <strong>
                     <Label for="defaultPrice">Default Price</Label>
@@ -205,10 +233,10 @@ export const StockConfigUpdate = () => {
                   <InputNumber
                     name="defaultPrice"
                     id="defaultPrice"
-                    value={stockConfig.defaultPrice}
-                    onValueChange={handleChange}
+                    value={stockConfig?.defaultPrice}
+                    onChange={(e) => handleNumberChange("defaultPrice", e.value)}
                     className={"w-full md:w-20rem"}
-
+                    required
                   />
                 </div>
 
@@ -220,9 +248,8 @@ export const StockConfigUpdate = () => {
                     name="minOrderQuantity"
                     id="minOrderQuantity"
                     value={stockConfig.minOrderQuantity}
-                    onValueChange={handleChange}
+                    onChange={(e) => handleNumberChange("minOrderQuantity", e.value)}
                     className={"w-full md:w-20rem"}
-
                   />
                 </div>
 
@@ -232,7 +259,7 @@ export const StockConfigUpdate = () => {
                     <Label>Supplier Configuration</Label>
                   </strong>
                   <div className={"d-flex flex-column border p-3"}>
-
+                    <Label>Select Supplier</Label>
                     <Dropdown
                       options={filteredSuppliers}
                       placeholder="Select a Supplier"
@@ -269,7 +296,7 @@ export const StockConfigUpdate = () => {
               </div>
 
               </FormGroup>
-              <Button tag={Link} to="/inventory/stockConfig" replace color="info">
+              <Button tag={Link} to="/inventory/stock-config" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;Back
               </Button>
