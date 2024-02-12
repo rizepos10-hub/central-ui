@@ -189,13 +189,17 @@ export const StockConfigUpdate = () => {
                      <Translate contentKey={"tempApp.stockConfig.item"}>Item</Translate>
                    </strong>
                   </label>
-                  <div className={"d-flex gap-1"}>
-                  <InputText value={stockConfig?.item?.name || null} onClick={toggleModal} />
-                    <VariantSelectionModal isOpen={isModalOpen} toggle={toggleModal} onSelectItem={() => {}} />
+                {/*   <div className={"d-flex gap-1"}> */}
+                {/*   <InputText value={stockConfig?.item?.name || null} onClick={toggleModal} /> */}
+                {/*     <VariantSelectionModal isOpen={isModalOpen} toggle={toggleModal} onSelectItem={() => {}} /> */}
 
 
-                  </div>
+                {/*   </div> */}
+                  <CascadeSelect value={stockConfig.item?.variant} onChange={handleVariantSelect} onGroupChange={handleItemSelect} options={itemsForStock}
+                                 optionLabel="name" optionGroupLabel="name" optionGroupChildren={['variants']}
+                                 className="w-full md:w-20rem" breakpoint="767px" placeholder="Select an Item" style={{ minWidth: '16rem' }}  />
                 </div>
+
 
                 <div className={"d-flex flex-column mt-2"}>
                   <strong>
