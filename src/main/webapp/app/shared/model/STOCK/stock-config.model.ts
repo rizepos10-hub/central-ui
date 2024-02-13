@@ -1,4 +1,6 @@
 import {ISupplier} from "app/shared/model/STOCK/supplier.model";
+import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
+import {ISalesLocation} from "app/shared/model/STOCK/sales-location.model";
 
 export interface IStockConfig {
   id?: string;
@@ -10,9 +12,17 @@ export interface IStockConfig {
   supplierConfigurations?: ISupplierConfiguration[];
   defaultPrice?: number;
   description?: string;
+  stockQuantities?: IStockQuantity[];
 }
 
-
+export interface IStockQuantity {
+  id?: string;
+  itemId?: string;
+  itemName?: string;
+  variantId?: string;
+  location?: IWarehouse | ISalesLocation;
+  quantity?:number
+}
 
 export interface ISupplierConfiguration {
   supplier: ISupplier;

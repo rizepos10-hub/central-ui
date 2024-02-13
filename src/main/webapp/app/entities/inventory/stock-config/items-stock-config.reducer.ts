@@ -52,7 +52,6 @@ export const ItemForStockConfigSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-
   },
 });
 

@@ -1,0 +1,51 @@
+{
+  "tempApp": {
+    "supplierReturn": {
+      "view": {
+        "title": "Supplier Returns View",
+        "table": {
+          "title": "Supplier Returns",
+          "buttons": {
+            "refreshList": "Refresh List",
+            "createNewSupplierReturn": "Create New Supplier Return"
+          },
+          "fields": {
+            "id": "ID",
+            "source": "Source",
+            "destination": "Destination",
+            "supplier": "Supplier",
+            "purchaseOrder": "Purchase Order",
+            "status": "Status",
+            "edit": "Edit",
+            "delete": "Delete"
+          },
+          "search": {
+            "id": "Filter by id",
+            "status": "Filter by Status",
+            "purchaseOrder": "Filter by Purchase Order",
+            "supplier": "Filter by Supplier"
+          }
+        }
+      },
+      "created": "A new Supplier Return is created with identifier {{ param }}",
+      "updated": "A Supplier Return is updated with identifier {{ param }}",
+      "deleted": "A Supplier Return is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Supplier Return",
+        "question": "Are you sure you want to delete supplier return {{ id }}"
+      },
+      "update": {
+        "create": {
+          "title": "Create New Supplier Return"
+        },
+        "edit": {
+          "title": "Edit Supplier Return"
+        },
+        "id": "Id",
+        "supplier": "Supplier",
+        "purchaseOrder": "Purchase Order",
+        "status": "Status"
+      }
+    }
+  }
+}

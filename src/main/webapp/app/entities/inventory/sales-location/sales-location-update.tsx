@@ -21,6 +21,7 @@ export const SalesLocationUpdate = () => {
 
   const [salesLocation, setSalesLocation] = useState<ISalesLocation>({
     name: '',
+
   });
   const branchList = useAppSelector(state => state.branch.entities);
   const salesLocationEntity = useAppSelector(state => state.salesLocation.entity);
@@ -68,8 +69,9 @@ export const SalesLocationUpdate = () => {
 
   const saveEntity = (e) => {
     e.preventDefault()
-    const entity = {
+    const entity: ISalesLocation = {
       ...salesLocation,
+      type: "SALES_LOCATION"
     };
 
     if (isNew) {

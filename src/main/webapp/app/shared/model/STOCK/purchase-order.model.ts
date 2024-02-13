@@ -17,9 +17,10 @@ export interface IPurchaseOrder {
 }
 
 export type OrderLine = {
+  id?: string
   item?: IStockConfig;
   quantity?: number;
-  receivedQuantity?: number;
+  received?: number;
   price?: number;
 }
 

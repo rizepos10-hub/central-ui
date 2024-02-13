@@ -26,7 +26,13 @@ import {Column} from "primereact/column";
 import {SummarizeText} from "app/shared/util/SummarizeText";
 import {InputTextarea} from "primereact/inputtextarea";
 import {convertDateTimeToServer, toLocalISOString} from "app/shared/util/date-utils";
+import {SelectButton} from "primereact/selectbutton";
 
+
+const statusOptions = [
+  "PLACED",
+  "COMPLETED"
+]
 
 export const PurchaseOrderUpdate = () => {
   const dispatch = useAppDispatch();
@@ -48,10 +54,7 @@ export const PurchaseOrderUpdate = () => {
   const updating = useAppSelector(state => state.purchaseOrder.updating);
   const updateSuccess = useAppSelector(state => state.purchaseOrder.updateSuccess);
 
-  const filteredStockItems = useMemo(() => {
 
-    return stockConfigList.filter(stockConfig => !purchaseOrder.orderLines?.some(orderLine => orderLine.item.id === stockConfig.id))
-  }, [purchaseOrder.orderLines?.length, stockConfigList]);
 
 
   const handleClose = () => {
@@ -61,6 +64,8 @@ export const PurchaseOrderUpdate = () => {
   const handleBranchChange = (selectedBranch: IBranch) => {
     setPurchaseOrder(prevState => ({...prevState, branch: selectedBranch}))
   }
+
+  const isDisabled = !purchaseOrder.supplier || purchaseOrderEntity?.status === "COMPLETED"
 
   useEffect(() => {
     if (isNew) {
@@ -105,7 +110,7 @@ export const PurchaseOrderUpdate = () => {
   }, [updateSuccess, purchaseOrderEntity?.id]);
 
   const filterItems = (inputValue: string) => {
-    return filteredStockItems.filter((i) => {
+    return stockConfigList.filter((i) => {
         return (
           i.description.toLowerCase().includes(inputValue.toLowerCase())
         )
@@ -263,6 +268,7 @@ export const PurchaseOrderUpdate = () => {
                  id="supplier"
                  placeholder={"Select supplier"}
                  value={purchaseOrder?.supplier}
+                 isDisabled={purchaseOrderEntity?.status === "COMPLETED"}
                  getOptionLabel={(option: ISupplier) => option.name}
                  getOptionValue={option => option.id}
                  onChange={(selectedSupplier) => setPurchaseOrder((prev) => ({...prev, supplier: selectedSupplier}))}
@@ -277,7 +283,7 @@ export const PurchaseOrderUpdate = () => {
                    placeholder={"Select warehouse"}
                    options={warehouseList}
                    value={purchaseOrder?.warehouse}
-                   isDisabled={!purchaseOrder.supplier}
+                   isDisabled={isDisabled}
                    getOptionLabel={(option: IWarehouse) => option.name}
                    getOptionValue={option => option.id}
                    onChange={(selectedWarehouse) => setPurchaseOrder((prev) => ({...prev, warehouse: selectedWarehouse}))}
@@ -292,7 +298,7 @@ export const PurchaseOrderUpdate = () => {
                     name="delivery"
                     id="delivery"
                     value={purchaseOrder?.delivery}
-                    disabled={!purchaseOrder.supplier}
+                    disabled={isDisabled}
                     onChange={handleChange}
                   />
                 </div>
@@ -303,8 +309,19 @@ export const PurchaseOrderUpdate = () => {
                     name="address"
                     id="address"
                     value={purchaseOrder?.address}
-                    disabled={!purchaseOrder.supplier}
+                    disabled={isDisabled}
                     onChange={handleChange}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mt-2"}>
+                  <Label for="status">Status</Label>
+                  <SelectButton
+                    value={purchaseOrder?.status}
+                    options={statusOptions}
+                    id="status"
+                    disabled={purchaseOrderEntity?.status === "COMPLETED"}
+                    onChange={(e) => setPurchaseOrder((prv) => ({...prv, status: e.value}))}
                   />
                 </div>
               </Col>
@@ -316,7 +333,7 @@ export const PurchaseOrderUpdate = () => {
                       name="datePlaced"
                       id="datePlaced"
                       value={new Date(purchaseOrder.datePlaced)}
-                      disabled={!purchaseOrder.supplier}
+                      disabled={isDisabled}
                       onChange={(e) =>handleDateChange("datePlaced", e)}
                     />
                   </div>
@@ -327,7 +344,7 @@ export const PurchaseOrderUpdate = () => {
                       name="dateDelivered"
                       id="dateDelivered"
                       value={new Date(purchaseOrder.dateDelivered)}
-                      disabled={!purchaseOrder.supplier}
+                      disabled={isDisabled}
                       onChange={(e) =>handleDateChange("dateDelivered", e)}
                     />
                   </div>
@@ -342,6 +359,7 @@ export const PurchaseOrderUpdate = () => {
                     <tr>
                       <td>Item</td>
                       <td>Quantity</td>
+                      <td>Received Quantity</td>
                       <td>Price</td>
                       <td>Sub Total</td>
                     </tr>
@@ -350,22 +368,27 @@ export const PurchaseOrderUpdate = () => {
                             <AsyncSelect
                             cacheOptions
                             loadOptions={loadItems}
-                            defaultOptions={filteredStockItems}
+                            defaultOptions={stockConfigList}
                             getOptionValue={option => option.id}
                             getOptionLabel={option => option.name}
                             onChange={handleSelectItem}
                             value={purchaseOrderLine?.item || null}
-                            isDisabled={!purchaseOrder.supplier}
+                            isDisabled={isDisabled}
 
                           />
                           </td>
                           <td className={'w-1'}>
-                            <InputNumber value={purchaseOrderLine?.quantity} disabled={!purchaseOrder.supplier}
+                            <InputNumber value={purchaseOrderLine?.quantity} disabled={isDisabled}
                                          onChange={(e) => handleOrderLineChange("quantity", e.value )} />
 
                           </td>
                           <td className={'w-1'}>
-                            <InputNumber value={purchaseOrderLine?.price} disabled={!purchaseOrder.supplier}
+                            <InputNumber value={purchaseOrderLine?.received} disabled={isDisabled}
+                                         onChange={(e) => handleOrderLineChange("received", e.value )} />
+
+                          </td>
+                          <td className={'w-1'}>
+                            <InputNumber value={purchaseOrderLine?.price} disabled={isDisabled}
                                          onChange={(e) => handleOrderLineChange("price", e.value )}  />
                           </td>
 
@@ -382,7 +405,6 @@ export const PurchaseOrderUpdate = () => {
                 </Row>
 
                 <Row>
-
                   <DataTable
                     value={purchaseOrder?.orderLines}
                     editMode="row"
@@ -394,10 +416,11 @@ export const PurchaseOrderUpdate = () => {
                   >
                     <Column field="item.name" header={"Item"} />
                     <Column field="quantity" header={"Quantity"} />
+                    <Column field="received" header={"Received Quantity"} />
                     <Column field="price" header={"Price"} />
                     <Column  header={"Sub Total"} body={(rowData) => rowData.price * rowData.quantity} />
-                    <Column  header={"Delete"} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                             bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+                    {!isDisabled ? <Column header={"Delete"} body={deleteColumnTemplate} headerStyle={{width: '1%',}}
+                             bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/> : null}
                   </DataTable>
                 </Row>
 
@@ -422,12 +445,12 @@ export const PurchaseOrderUpdate = () => {
                           name={"supplier"}
                           onChange={(supplier) => setPurchaseCostLine((prevState => ({...prevState, supplier})))}
                           value={purchaseCostLine?.supplier || null}
-                          isDisabled={!purchaseOrder.supplier}
+                          isDisabled={isDisabled}
 
                         />
                       </td>
                       <td className={'w-1'}>
-                        <InputNumber value={purchaseCostLine?.cost} disabled={!purchaseOrder.supplier}
+                        <InputNumber value={purchaseCostLine?.cost} disabled={isDisabled}
                                      onChange={(e) => setPurchaseCostLine((prevState) => ({...prevState, cost: e.value}))} />
 
                       </td>
@@ -435,14 +458,14 @@ export const PurchaseOrderUpdate = () => {
                         <Calendar
                           name="costDate"
                           id="costDate"
-                          disabled={!purchaseOrder.supplier}
+                          disabled={isDisabled}
                           onSelect={(e) => handleDateChange("costDate", e)}
                           value={new Date(purchaseCostLine?.costDate)}
                         />
                       </td>
 
                       <td className={'w-1'}>
-                        <InputTextarea name={"comment"}  disabled={!purchaseOrder.supplier} value={purchaseCostLine?.comment || ''} onChange={handleCostLineChange}/>
+                        <InputTextarea name={"comment"}  disabled={isDisabled} value={purchaseCostLine?.comment || ''} onChange={handleCostLineChange}/>
                       </td>
                       <td className={'w-2'}>
                         <Button disabled={!purchaseCostLine} color={"success"} onClick={() => handleAdd("costLine")}>Add</Button>
@@ -470,8 +493,8 @@ export const PurchaseOrderUpdate = () => {
 
                     <Column field="comment" header={"Comment"}  />
 
-                    <Column  header={"Delete"} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                             bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+                    {!isDisabled ? <Column header={"Delete"} body={deleteColumnTemplate} headerStyle={{width: '1%',}}
+                             bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/> : null}
 
                   </DataTable>
                 </Row>
@@ -482,7 +505,7 @@ export const PurchaseOrderUpdate = () => {
                 &nbsp;Back
               </Button>
               &nbsp;
-              {purchaseOrder?.status !== "COMPLETED" ? <Button color="primary" type="submit" disabled={updating}>
+              {purchaseOrderEntity?.status !== "COMPLETED" ? <Button color="primary" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save"/>
                 &nbsp;Save
               </Button> : null}
