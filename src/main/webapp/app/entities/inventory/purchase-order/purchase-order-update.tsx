@@ -252,7 +252,7 @@ export const PurchaseOrderUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Sales Location" : "Edit Sales Location"}</h2>
+          <h2>{isNew ?  "Add New Purchase Order" : isDisabled ? "View Purchase Order" :"Edit Purchase Order"}</h2>
         </Col>
       </Row>
       <Row>
