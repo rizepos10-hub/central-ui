@@ -30,8 +30,9 @@ export const SupplierReturn = () => {
   const loading = useAppSelector(state => state.supplierReturn.loading);
   const totalItems = useAppSelector(state => state.supplierReturn.totalItems);
   const [filters, setFilters] = useState({
-    "source.name": { value: null, matchMode: FilterMatchMode.CONTAINS },
-    "destination.name": { value: null, matchMode: FilterMatchMode.CONTAINS },
+    id: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    "purchaseOrder.id": { value: null, matchMode: FilterMatchMode.CONTAINS },
+    "purchaseOrder.supplier.name": { value: null, matchMode: FilterMatchMode.CONTAINS },
     status: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
@@ -173,7 +174,7 @@ export const SupplierReturn = () => {
   return (
     <div>
       <h2 >
-        <Translate contentKey={'tempApp.supplierReturn.view.title'}>SupplierReturns View</Translate>
+        <Translate contentKey={'tempApp.supplierReturn.view.title'}>Supplier Returns View</Translate>
 
       </h2>
 
@@ -195,7 +196,7 @@ export const SupplierReturn = () => {
           <Column field="purchaseOrder.id" header={translate('tempApp.supplierReturn.view.table.fields.purchaseOrder')}
                   filter filterPlaceholder={translate('tempApp.supplierReturn.view.table.search.purchaseOrder')} sortable />
 
-          <Column field="supplier.name" header={translate('tempApp.supplierReturn.view.table.fields.supplier')}
+          <Column field="purchaseOrder.supplier.name" header={translate('tempApp.supplierReturn.view.table.fields.supplier')}
                   filter filterPlaceholder={translate('tempApp.supplierReturn.view.table.search.supplier')} sortable />
 
           <Column field="status" header={translate('tempApp.supplierReturn.view.table.fields.status')} filter

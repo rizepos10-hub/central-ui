@@ -49,7 +49,7 @@ export const TransferRequestUpdate = () => {
   const warehousesAndSalesLocations = [...(warehouseList || []),...(salesLocationList || [])];
 
   const filteredStockItems = useMemo(() => {
-    return stockItemsList.filter(stockConfig => !transferRequest.transferItems?.some(TRItem => TRItem.item.id === stockConfig.id))
+    return stockItemsList.filter(stockConfig => !transferRequest.transferItems?.some(TRItem => TRItem.item.variantId === stockConfig.variantId))
   }, [transferRequest.transferItems?.length, stockItemsList]);
 
   // filtering the destination if the selected source if from type sales location because we cant transfer from sales location to a sales location
@@ -64,8 +64,6 @@ export const TransferRequestUpdate = () => {
     navigate('/inventory/transfer-request' + location.search);
   };
 
-  console.log(transferRequestItem, 'transferRequestItem')
-
   const handleAdd = () => {
     setTransferRequest((prevState) => ({
       ...prevState,
@@ -74,6 +72,16 @@ export const TransferRequestUpdate = () => {
     setTransferRequestItem(null);
   };
 
+
+  const handleSelectItem = (selectedItem) => {
+    const itemToTransfer = {
+      ...selectedItem,
+      name: selectedItem.itemName
+    }
+    setTransferRequestItem(prevState => ({...prevState, item: itemToTransfer}))
+  }
+
+  console.log(transferRequestItem, 'transferRequestItem')
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
@@ -225,9 +233,9 @@ export const TransferRequestUpdate = () => {
                           cacheOptions
                           loadOptions={loadItems}
                           defaultOptions={filteredStockItems}
-                          getOptionValue={option => option.id}
+                          getOptionValue={option => option.variantId}
                           getOptionLabel={option => option.itemName}
-                          onChange={(item) => setTransferRequestItem(prevState => ({...prevState, item}))}
+                          onChange={handleSelectItem}
                           value={transferRequestItem?.item || null}
                           isDisabled={!transferRequest.source}
 
@@ -237,16 +245,18 @@ export const TransferRequestUpdate = () => {
                      <InputNumber value={transferRequestItem?.item?.quantity} disabled />
                       </td>
                       <td className={'w-1'}>
-                        <InputNumber value={transferRequestItem?.quantity} disabled={!transferRequest.source}
-                                     onChange={(e) => setTransferRequestItem((prevState => ({
-                                       ...prevState,
-                                       quantity: e.value
-                                     })))}/>
+                        <InputNumber
+                          value={transferRequestItem?.quantity} disabled={!transferRequest.source || transferRequestItem?.item?.quantity <= 0}
+                          onChange={(e) => setTransferRequestItem((prevState => ({
+                            ...prevState,
+                            quantity: e.value
+                          })))}
+                        />
 
                       </td>
 
                       <td className={'w-2'}>
-                        <Button disabled={!transferRequestItem} color={"success"} onClick={handleAdd}>Add</Button>
+                        <Button disabled={!transferRequestItem || transferRequestItem?.item?.quantity <= 0} color={"success"} onClick={handleAdd}>Add</Button>
                       </td>
 
                     </tr>
@@ -257,13 +267,13 @@ export const TransferRequestUpdate = () => {
                   <DataTable
                     value={transferRequest?.transferItems}
                     editMode="row"
-                    header={"Order Lines"}
+                    header={"Transferred Items"}
                     removableSort
                     paginator
                     totalRecords={transferRequest?.transferItems?.length}
-                    rows={20}
+                    rows={10}
                   >
-                    <Column field="item.itemName" header={"Item"} />
+                    <Column field="item.name" header={"Item"} />
                     <Column field="quantity" header={"Transferred Quantity"} />
 
                     {isNew ? <Column header={"Delete"} body={deleteColumnTemplate} headerStyle={{width: '1%',}}

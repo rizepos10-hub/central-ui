@@ -75,31 +75,32 @@ export const SupplierReturnUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getWarehouses({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`}));
 
-    dispatch(getSalesLocations({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+    if(!isDisabled){
+      dispatch(getWarehouses({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`}));
 
-    dispatch(getStockItems({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+      dispatch(getSalesLocations({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      }));
 
-    dispatch(getPurchaseOrders({
-      query: "status=COMPLETED",
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+      dispatch(getStockItems({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      }));
 
-
+      dispatch(getPurchaseOrders({
+        query: "status=COMPLETED",
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      }));
+    }
 
   }, []);
 
@@ -191,7 +192,7 @@ export const SupplierReturnUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Transfer Request" : "View Transfer Request"}</h2>
+          <h2>{isNew ?  "Add New Supplier Return" : isDisabled ? "View Supplier Return" : "Edit Supplier Return"}</h2>
         </Col>
       </Row>
       <Row>
@@ -241,7 +242,7 @@ export const SupplierReturnUpdate = () => {
                   />
                 </div>
 
-                <Row className={"mt-3"}>
+                {!isDisabled ? <Row className={"mt-3"}>
                   <DataTable
                     value={filteredOrderLines}
                     selectionMode="multiple"
@@ -253,13 +254,13 @@ export const SupplierReturnUpdate = () => {
                     selection={selectedReturnLines}
                     onSelectionChange={(e) => setSelectedReturnLines(e.value)}
                   >
-                    <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
-                    <Column field="item.name" header="Item" />
-                    <Column field="lineTotal" header="Line Total" />
-                    <Column field="price" header="Price" />
-                    <Column field="received" header="Received Quantity" />
+                    <Column selectionMode="multiple" headerStyle={{width: '3rem'}}/>
+                    <Column field="item.name" header="Item"/>
+                    <Column field="lineTotal" header="Line Total"/>
+                    <Column field="price" header="Price"/>
+                    <Column field="received" header="Received Quantity"/>
                   </DataTable>
-                </Row>
+                </Row> : null}
 
 
                 <Row className={"mt-3"}>
@@ -267,14 +268,18 @@ export const SupplierReturnUpdate = () => {
                   <Table>
                     <tbody>
                     <tr>
+                      <td className={"font-bold"}>Order Line ID</td>
                       <td className={"font-bold"}>Item</td>
                       <td className={"font-bold"}>Quantity</td>
                       <td className={"font-bold"}>Return Price</td>
                       <td></td>
-                      <td className={"font-bold"}>Action</td>
+                      {!isDisabled ?<td className={"font-bold"}>Action</td> : null}
                     </tr>
                     {supplierReturn?.returnLines?.map((returnLine, index) => (
                       <tr key={index}>
+                        <td className={'w-4'}>
+                          {returnLine?.orderLineId}
+                        </td>
                         <td className={'w-2'}>
                           {returnLine?.itemName}
                         </td>
@@ -292,9 +297,10 @@ export const SupplierReturnUpdate = () => {
                         </td>
                         <td>
                         </td>
-                        <td>
-                          <PrimeButton label={"Remove"} severity={"danger"} raised onClick={() => handleRemoveClick(index)} />
-                        </td>
+                        {!isDisabled ?<td>
+                          <PrimeButton label={"Remove"} severity={"danger"} raised
+                                       onClick={() => handleRemoveClick(index)}/>
+                        </td> : null}
                       </tr>
                     ))}
                     </tbody>

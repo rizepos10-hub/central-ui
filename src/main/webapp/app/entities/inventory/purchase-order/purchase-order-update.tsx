@@ -41,6 +41,7 @@ export const PurchaseOrderUpdate = () => {
   const isNew = id === undefined;
 
   const [purchaseOrder, setPurchaseOrder] = useState<IPurchaseOrder>({
+    status: "PLACED"
   });
 
   const [purchaseOrderLine, setPurchaseOrderLine] = useState<OrderLine | null>()
@@ -192,7 +193,10 @@ export const PurchaseOrderUpdate = () => {
       price,
       quantity: stockItemConfig?.minOrderQuantity || 1,
     }
-    setPurchaseOrderLine(newItem)
+    setPurchaseOrderLine(prevState => ({
+      ...prevState,
+      ...newItem
+    }))
   }
 
   const handleAdd = (type) => {
@@ -317,7 +321,7 @@ export const PurchaseOrderUpdate = () => {
                 <div className={"d-flex flex-column mt-2"}>
                   <Label for="status">Status</Label>
                   <SelectButton
-                    value={purchaseOrder?.status}
+                    value={purchaseOrder?.status ?? "PLACED"}
                     options={statusOptions}
                     id="status"
                     disabled={purchaseOrderEntity?.status === "COMPLETED"}
@@ -354,57 +358,80 @@ export const PurchaseOrderUpdate = () => {
                 {/* Order Lines */}
                 <Row className={"mt-3"}>
                   <h3>Order Lines</h3>
-                  <Table>
+                  {!isDisabled ? <Table>
                     <tbody>
                     <tr>
                       <td>Item</td>
+                      <td>Description</td>
                       <td>Quantity</td>
                       <td>Received Quantity</td>
                       <td>Price</td>
+                      <td>Delivery Date</td>
                       <td>Sub Total</td>
                     </tr>
                     <tr>
-                          <td className={'w-2'}>
-                            <AsyncSelect
-                            cacheOptions
-                            loadOptions={loadItems}
-                            defaultOptions={stockConfigList}
-                            getOptionValue={option => option.id}
-                            getOptionLabel={option => option.name}
-                            onChange={handleSelectItem}
-                            value={purchaseOrderLine?.item || null}
-                            isDisabled={isDisabled}
-
-                          />
-                          </td>
-                          <td className={'w-1'}>
-                            <InputNumber value={purchaseOrderLine?.quantity} disabled={isDisabled}
-                                         onChange={(e) => handleOrderLineChange("quantity", e.value )} />
-
-                          </td>
-                          <td className={'w-1'}>
-                            <InputNumber value={purchaseOrderLine?.received} disabled={isDisabled}
-                                         onChange={(e) => handleOrderLineChange("received", e.value )} />
-
-                          </td>
-                          <td className={'w-1'}>
-                            <InputNumber value={purchaseOrderLine?.price} disabled={isDisabled}
-                                         onChange={(e) => handleOrderLineChange("price", e.value )}  />
-                          </td>
-
-                          <td className={'w-1'}>
-                            <InputNumber disabled={true} value={(purchaseOrderLine?.price * purchaseOrderLine?.quantity) || null}/>
-                          </td>
                       <td className={'w-2'}>
-                        <Button disabled={!purchaseOrderLine} color={"success"}  onClick={() => handleAdd("orderLine")}>Add</Button>
+                        <AsyncSelect
+                          cacheOptions
+                          loadOptions={loadItems}
+                          defaultOptions={stockConfigList}
+                          getOptionValue={option => option.id}
+                          getOptionLabel={option => option.name}
+                          onChange={handleSelectItem}
+                          value={purchaseOrderLine?.item || null}
+                          isDisabled={isDisabled}
+
+                        />
+                      </td>
+
+                      <td className={'w-1'}>
+                        <InputText
+                          value={purchaseOrderLine?.description} disabled={isDisabled}
+                          onChange={(e) => handleOrderLineChange("description", e.target.value)}/>
+
+                      </td>
+
+                      <td className={'w-1'}>
+                        <InputNumber
+                          value={purchaseOrderLine?.quantity} disabled={isDisabled}
+                          onChange={(e) => handleOrderLineChange("quantity", e.value)}/>
+
+                      </td>
+                      <td className={'w-1'}>
+                        <InputNumber
+                          value={purchaseOrderLine?.received} disabled={isDisabled}
+                          onChange={(e) => handleOrderLineChange("received", e.value)}/>
+
+                      </td>
+                      <td className={'w-1'}>
+                        <InputNumber
+                          value={purchaseOrderLine?.price} disabled={isDisabled}
+                          onChange={(e) => handleOrderLineChange("price", e.value)}/>
+                      </td>
+
+                      <td className={'w-1'}>
+                        <Calendar
+                          name="deliveryDate"
+                          id="deliveryDate"
+                          disabled={isDisabled}
+                          onSelect={(e) => handleOrderLineChange("deliveryDate", e.value)}
+                          value={new Date(purchaseOrderLine?.deliveryDate)}
+                        />
+                      </td>
+
+                      <td className={'w-1'}>
+                        <InputNumber disabled={true}
+                                     value={(purchaseOrderLine?.price * purchaseOrderLine?.quantity) || null}/>
+                      </td>
+                      <td className={'w-2'}>
+                        <Button disabled={!purchaseOrderLine?.item} color={"success"}
+                                onClick={() => handleAdd("orderLine")}>Add</Button>
                       </td>
 
                     </tr>
                     </tbody>
-                  </Table>
-                </Row>
+                  </Table> : null}
 
-                <Row>
                   <DataTable
                     value={purchaseOrder?.orderLines}
                     editMode="row"
@@ -415,9 +442,11 @@ export const PurchaseOrderUpdate = () => {
                     rows={20}
                   >
                     <Column field="item.name" header={"Item"} />
+                    <Column field="description" header={"Description"} />
                     <Column field="quantity" header={"Quantity"} />
                     <Column field="received" header={"Received Quantity"} />
                     <Column field="price" header={"Price"} />
+                    <Column field="deliveryDate" header={"Delivery Date"} body={(rowData) => new Date(rowData.deliveryDate).toDateString()} />
                     <Column  header={"Sub Total"} body={(rowData) => rowData.price * rowData.quantity} />
                     {!isDisabled ? <Column header={"Delete"} body={deleteColumnTemplate} headerStyle={{width: '1%',}}
                              bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/> : null}
@@ -426,7 +455,7 @@ export const PurchaseOrderUpdate = () => {
 
                 <Row className={"mt-3"}>
                   <h3>Cost Lines</h3>
-                  <Table>
+                  {!isDisabled ? <Table>
                     <tbody>
                     <tr>
                       <td>Supplier</td>
@@ -440,7 +469,7 @@ export const PurchaseOrderUpdate = () => {
                           cacheOptions
                           loadOptions={loadSuppliers}
                           defaultOptions={supplierList}
-                          getOptionValue={(option:ISupplier) => option.id}
+                          getOptionValue={(option: ISupplier) => option.id}
                           getOptionLabel={option => option.name}
                           name={"supplier"}
                           onChange={(supplier) => setPurchaseCostLine((prevState => ({...prevState, supplier})))}
@@ -451,7 +480,10 @@ export const PurchaseOrderUpdate = () => {
                       </td>
                       <td className={'w-1'}>
                         <InputNumber value={purchaseCostLine?.cost} disabled={isDisabled}
-                                     onChange={(e) => setPurchaseCostLine((prevState) => ({...prevState, cost: e.value}))} />
+                                     onChange={(e) => setPurchaseCostLine((prevState) => ({
+                                       ...prevState,
+                                       cost: e.value
+                                     }))}/>
 
                       </td>
                       <td className={'w-1'}>
@@ -465,15 +497,17 @@ export const PurchaseOrderUpdate = () => {
                       </td>
 
                       <td className={'w-1'}>
-                        <InputTextarea name={"comment"}  disabled={isDisabled} value={purchaseCostLine?.comment || ''} onChange={handleCostLineChange}/>
+                        <InputTextarea name={"comment"} disabled={isDisabled} value={purchaseCostLine?.comment || ''}
+                                       onChange={handleCostLineChange}/>
                       </td>
                       <td className={'w-2'}>
-                        <Button disabled={!purchaseCostLine} color={"success"} onClick={() => handleAdd("costLine")}>Add</Button>
+                        <Button disabled={!purchaseCostLine} color={"success"}
+                                onClick={() => handleAdd("costLine")}>Add</Button>
                       </td>
 
                     </tr>
                     </tbody>
-                  </Table>
+                  </Table> : null}
 
                   <DataTable
                     value={purchaseOrder?.costLines}
