@@ -62,6 +62,7 @@ import warehouse from "app/entities/inventory/warehouse/warehouse.reducer"
 import purchaseOrder from "app/entities/inventory/purchase-order/purchase-order.reducer"
 import itemForStock from "app/entities/inventory/stock-config/items-stock-config.reducer"
 import stockConfig from "app/entities/inventory/stock-config/stock-config.reducer"
+import inventoryItem from "app/entities/inventory/stock-config/inventory-items.reducer"
 import stockQuantity from "app/entities/inventory/stock-config/stock-quantity.reducer"
 import transferRequest from "app/entities/inventory/transfer-request/transfer-request.reducer"
 import supplierReturn from "app/entities/inventory/supplier-return/supplier-return.reducer"
@@ -130,6 +131,7 @@ const entitiesReducers = {
   stockQuantity,
   transferRequest,
   supplierReturn,
+  inventoryItem
 
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */

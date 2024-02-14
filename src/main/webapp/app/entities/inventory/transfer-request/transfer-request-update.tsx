@@ -247,6 +247,7 @@ export const TransferRequestUpdate = () => {
                       <td className={'w-1'}>
                         <InputNumber
                           value={transferRequestItem?.quantity} disabled={!transferRequest.source || transferRequestItem?.item?.quantity <= 0}
+                          max={transferRequestItem?.item?.quantity}
                           onChange={(e) => setTransferRequestItem((prevState => ({
                             ...prevState,
                             quantity: e.value

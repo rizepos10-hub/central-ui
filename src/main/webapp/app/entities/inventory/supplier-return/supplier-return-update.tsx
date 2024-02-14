@@ -13,7 +13,7 @@ import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import { getEntities as getStockItems } from "app/entities/inventory/stock-config/stock-config.reducer";
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
-import { getEntities as getPurchaseOrders } from "app/entities/inventory/purchase-order/purchase-order.reducer";
+import { getEntities as getPurchaseOrders, reset as resetPO } from "app/entities/inventory/purchase-order/purchase-order.reducer";
 import Select from "react-select";
 import {InputNumber} from "primereact/inputnumber";
 import {DataTable} from "primereact/datatable";
@@ -95,11 +95,15 @@ export const SupplierReturnUpdate = () => {
       }));
 
       dispatch(getPurchaseOrders({
-        query: "status=COMPLETED",
+        query: `status=COMPLETED&filterReturned=${true}`,
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
+    }
+
+    return () => {
+      dispatch(resetPO());
     }
 
   }, []);
@@ -118,8 +122,8 @@ export const SupplierReturnUpdate = () => {
 
   const handleAdd = (e) => {
     e.preventDefault();
-    console.log(selectedReturnLines, 'selectedReturnLines')
-    const updatedReturnLines :IReturnLine[] = selectedReturnLines?.map((orderLine) => ({
+    const updatedReturnLines :IReturnLine[] = selectedReturnLines?.filter((orderLine) => orderLine.received - orderLine.returedQuantity > 0)
+      ?.map((orderLine) => ({
       orderLineId: orderLine?.id,
       itemName: orderLine?.item?.name,
       quantity: orderLine?.received,
@@ -259,6 +263,8 @@ export const SupplierReturnUpdate = () => {
                     <Column field="lineTotal" header="Line Total"/>
                     <Column field="price" header="Price"/>
                     <Column field="received" header="Received Quantity"/>
+                    <Column field="returnedQuantity" header="Returned Quantity"/>
+                    <Column  body={(rowData) => rowData.received - rowData.returnedQuantity} header="Available Quantity" />
                   </DataTable>
                 </Row> : null}
 
@@ -270,7 +276,7 @@ export const SupplierReturnUpdate = () => {
                     <tr>
                       <td className={"font-bold"}>Order Line ID</td>
                       <td className={"font-bold"}>Item</td>
-                      <td className={"font-bold"}>Quantity</td>
+                      <td className={"font-bold"}>Return Quantity</td>
                       <td className={"font-bold"}>Return Price</td>
                       <td></td>
                       {!isDisabled ?<td className={"font-bold"}>Action</td> : null}
@@ -285,13 +291,13 @@ export const SupplierReturnUpdate = () => {
                         </td>
                         <td className={'w-1'}>
                           <InputNumber
-                            value={returnLine.quantity}
+                            value={returnLine.quantity} disabled={isDisabled}
                             onChange={(e) => handleReturnQuantityChange(index,e.value)}
                           />
                         </td>
                         <td className={'w-2'}>
                           <InputNumber
-                            value={returnLine.returnPrice}
+                            value={returnLine.returnPrice} disabled={isDisabled}
                             onChange={(e) => handleReturnPriceChange(index,e.value)}
                           />
                         </td>

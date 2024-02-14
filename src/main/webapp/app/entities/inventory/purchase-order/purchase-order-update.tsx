@@ -19,7 +19,7 @@ import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
 import {Calendar} from "primereact/calendar";
 import AsyncSelect from "react-select/async";
 import {IStockConfig} from "app/shared/model/STOCK/stock-config.model";
-import {getEntities as getStockItems} from "app/entities/inventory/stock-config/stock-config.reducer";
+import {getEntities as getInventoryItems, searchEntities as searchInventoryItems} from "app/entities/inventory/stock-config/inventory-items.reducer";
 import {InputNumber} from "primereact/inputnumber";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
@@ -27,6 +27,8 @@ import {SummarizeText} from "app/shared/util/SummarizeText";
 import {InputTextarea} from "primereact/inputtextarea";
 import {convertDateTimeToServer, toLocalISOString} from "app/shared/util/date-utils";
 import {SelectButton} from "primereact/selectbutton";
+import {IInventoryItem, IInventoryItemVariant} from "app/shared/model/STOCK/inventory-item.model";
+import _ from "lodash";
 
 
 const statusOptions = [
@@ -44,18 +46,24 @@ export const PurchaseOrderUpdate = () => {
     status: "PLACED"
   });
 
+  const [selectedItem, setSelectedItem] = useState<IInventoryItem>();
+  const [selectedVariant, setSelectedVariant] = useState<IInventoryItemVariant>();
+
   const [purchaseOrderLine, setPurchaseOrderLine] = useState<OrderLine | null>()
   const [purchaseCostLine, setPurchaseCostLine] = useState<CostLine | null>()
   const supplierList = useAppSelector(state => state.supplier.entities);
   const warehouseList = useAppSelector(state => state.warehouse.entities);
-  const stockConfigList = useAppSelector(state => state.stockConfig.entities);
+  const inventoryItemList :IInventoryItem[] = useAppSelector(state => state.inventoryItem.entities);
+  const loadingItems  = useAppSelector(state => state.inventoryItem.loading);
+
+
 
   const purchaseOrderEntity = useAppSelector(state => state.purchaseOrder.entity);
   const loading = useAppSelector(state => state.purchaseOrder.loading);
   const updating = useAppSelector(state => state.purchaseOrder.updating);
   const updateSuccess = useAppSelector(state => state.purchaseOrder.updateSuccess);
 
-
+  console.log(loadingItems, 'loadingItems')
 
 
   const handleClose = () => {
@@ -64,7 +72,9 @@ export const PurchaseOrderUpdate = () => {
 
   const handleBranchChange = (selectedBranch: IBranch) => {
     setPurchaseOrder(prevState => ({...prevState, branch: selectedBranch}))
-  }
+  };
+
+
 
   const isDisabled = !purchaseOrder.supplier || purchaseOrderEntity?.status === "COMPLETED"
 
@@ -93,7 +103,7 @@ export const PurchaseOrderUpdate = () => {
       sort: 'asc',
     }));
 
-    dispatch(getStockItems({
+    dispatch(getInventoryItems({
       page: 0,
       size: 500,
       sort: 'asc',
@@ -110,29 +120,20 @@ export const PurchaseOrderUpdate = () => {
     }
   }, [updateSuccess, purchaseOrderEntity?.id]);
 
+
   const filterItems = (inputValue: string) => {
-    return stockConfigList.filter((i) => {
+    return inventoryItemList.filter((i) => {
         return (
-          i.description.toLowerCase().includes(inputValue.toLowerCase())
+          i.name.toLowerCase().includes(inputValue.toLowerCase())
         )
       }
     );
   };
 
-  const loadItems = (
-    inputValue: string,
-    callback: (options: IStockConfig[]) => void
-  ) => {
-    setTimeout(() => {
-      try {
-        const filteredOptions = filterItems(inputValue);
-        callback(filteredOptions);
-      } catch (error) {
-        console.error('Error loading items:', error);
-      }
-    }, 1000);
-  };
-
+  const loadItems = _.debounce((inputValue: string, e) => {
+    if(e.action !== 'input-change') return;
+    dispatch(searchInventoryItems({query: `name=${inputValue}`}));
+  }, 300);
 
   const filterSuppliers = (inputValue: string) => {
     return supplierList.filter((sup) => {
@@ -183,15 +184,20 @@ export const PurchaseOrderUpdate = () => {
     setPurchaseOrderLine(prevState => ({ ...prevState, [field]: value }));
   };
 
-  const handleSelectItem = (stockItemConfig: IStockConfig) => {
+  const handleSelectVariant = (variant: IInventoryItemVariant) => {
+    setSelectedVariant(variant);
+
+    const {itemStockPurchasingConfig: stockItemConfig } = variant;
     const itemSupplierConfig = stockItemConfig?.supplierConfigurations?.find((supConfig) =>
     supConfig.supplier?.id === purchaseOrder?.supplier?.id);
 
     const price = itemSupplierConfig ? itemSupplierConfig?.defaultPrice : stockItemConfig.defaultPrice;
+
     const newItem = {
-      item: stockItemConfig,
+      item: {...stockItemConfig, name: variant.name},
       price,
       quantity: stockItemConfig?.minOrderQuantity || 1,
+      returnedQuantity: 0
     }
     setPurchaseOrderLine(prevState => ({
       ...prevState,
@@ -205,7 +211,9 @@ export const PurchaseOrderUpdate = () => {
         ...prevState,
         orderLines: [...(prevState.orderLines || []), purchaseOrderLine]
       }))
-      setPurchaseOrderLine(null)
+      setPurchaseOrderLine(null);
+      setSelectedItem(null);
+      setSelectedVariant(null);
     }else{
       setPurchaseOrder((prevState) => ({
         ...prevState,
@@ -362,6 +370,7 @@ export const PurchaseOrderUpdate = () => {
                     <tbody>
                     <tr>
                       <td>Item</td>
+                      <td>Variant</td>
                       <td>Description</td>
                       <td>Quantity</td>
                       <td>Received Quantity</td>
@@ -371,22 +380,41 @@ export const PurchaseOrderUpdate = () => {
                     </tr>
                     <tr>
                       <td className={'w-2'}>
-                        <AsyncSelect
-                          cacheOptions
-                          loadOptions={loadItems}
-                          defaultOptions={stockConfigList}
+                        <Select
+                          onInputChange={loadItems}
+                          options={inventoryItemList}
+
                           getOptionValue={option => option.id}
                           getOptionLabel={option => option.name}
-                          onChange={handleSelectItem}
-                          value={purchaseOrderLine?.item || null}
+                          onChange={(item) => setSelectedItem(item)}
+                          value={selectedItem || null}
+                          onFocus={(e: any) => {
+                           e.preventDefault()
+                          }}
+                          onBlur={(e: any) => {
+                            console.log(e, 'eee')
+                            e.preventDefault();
+                          }}
                           isDisabled={isDisabled}
+                          isLoading={loadingItems}
+                        />
+                      </td>
+
+                      <td className={'w-2'}>
+                        <Select
+                          options={selectedItem?.variants}
+                          getOptionValue={(option) => option.id}
+                          getOptionLabel={option => option.name}
+                          onChange={handleSelectVariant}
+                          isDisabled={isDisabled || !selectedItem}
+                          value={selectedVariant}
 
                         />
                       </td>
 
                       <td className={'w-1'}>
                         <InputText
-                          value={purchaseOrderLine?.description} disabled={isDisabled}
+                          value={purchaseOrderLine?.description || ''} disabled={isDisabled}
                           onChange={(e) => handleOrderLineChange("description", e.target.value)}/>
 
                       </td>
@@ -445,8 +473,11 @@ export const PurchaseOrderUpdate = () => {
                     <Column field="description" header={"Description"} />
                     <Column field="quantity" header={"Quantity"} />
                     <Column field="received" header={"Received Quantity"} />
+                    <Column field="returnedQuantity" header={"Returned Quantity"} />
                     <Column field="price" header={"Price"} />
-                    <Column field="deliveryDate" header={"Delivery Date"} body={(rowData) => new Date(rowData.deliveryDate).toDateString()} />
+                    <Column field="deliveryDate" header={"Delivery Date"}
+                            body={(rowData) => rowData.deliveryDate ? new Date(rowData.deliveryDate).toDateString() : ''}
+                    />
                     <Column  header={"Sub Total"} body={(rowData) => rowData.price * rowData.quantity} />
                     {!isDisabled ? <Column header={"Delete"} body={deleteColumnTemplate} headerStyle={{width: '1%',}}
                              bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/> : null}
