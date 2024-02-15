@@ -1,7 +1,7 @@
 import {Button, FormGroup, Label, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
 import React, {useState} from "react";
 import {InputTextarea} from "primereact/inputtextarea";
-import {IStockQuantity} from "app/shared/model/STOCK/stock-config.model";
+import {IStockQuantity} from "app/shared/model/STOCK/stock-quantity.model";
 import {InputText} from "primereact/inputtext";
 import {InputNumber} from "primereact/inputnumber";
 import {Translate} from "react-jhipster";
@@ -48,14 +48,14 @@ const StockQuantityModal = ({toggle, isOpen, stockQuantity} :modalProps) => {
 
       <ModalBody>
 
-          <div className={"d-flex flex-column mt-2 "}>
-            <strong>
-              <Label for="item">Item</Label>
-            </strong>
-            <p id="item">
-              {stockQuantity?.itemName}
-            </p>
-          </div>
+          {/* <div className={"d-flex flex-column mt-2 "}> */}
+          {/*   <strong> */}
+          {/*     <Label for="item">Item</Label> */}
+          {/*   </strong> */}
+          {/*   <p id="item"> */}
+          {/*     {stockQuantity?.itemName} */}
+          {/*   </p> */}
+          {/* </div> */}
 
           <div className={"d-flex flex-column mt-2 "}>
             <strong>

@@ -18,7 +18,8 @@
             "datePlaced": "Placed Date ",
             "location": "Location",
             "edit": "Edit",
-            "delete": "Delete"
+            "delete": "Delete",
+            "actions": "Actions"
           },
           "search": {
             "id": "Filter by id",

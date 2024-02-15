@@ -2,7 +2,7 @@
   "tempApp": {
     "stockConfig": {
       "view": {
-        "title": "Stock Configs View",
+        "title": "Stock Configuration",
         "table": {
           "title": "Stock Configs",
           "buttons": {

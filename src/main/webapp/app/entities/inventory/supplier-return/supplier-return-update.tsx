@@ -11,7 +11,6 @@ import {getEntities as getWarehouses} from "app/entities/inventory/warehouse/war
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import { getEntities as getStockItems } from "app/entities/inventory/stock-config/stock-config.reducer";
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
 import { getEntities as getPurchaseOrders, reset as resetPO } from "app/entities/inventory/purchase-order/purchase-order.reducer";
 import Select from "react-select";
@@ -88,11 +87,6 @@ export const SupplierReturnUpdate = () => {
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
 
-      dispatch(getStockItems({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }));
 
       dispatch(getPurchaseOrders({
         query: `status=COMPLETED&filterReturned=${true}`,
@@ -122,13 +116,14 @@ export const SupplierReturnUpdate = () => {
 
   const handleAdd = (e) => {
     e.preventDefault();
-    const updatedReturnLines :IReturnLine[] = selectedReturnLines?.filter((orderLine) => orderLine.received - orderLine.returedQuantity > 0)
+    const updatedReturnLines :IReturnLine[] = selectedReturnLines?.filter((orderLine) => orderLine.received - orderLine.returnedQuantity > 0)
       ?.map((orderLine) => ({
       orderLineId: orderLine?.id,
       itemName: orderLine?.item?.name,
       quantity: orderLine?.received,
       returnPrice: orderLine?.price
     }));
+    console.log(selectedReturnLines, 'selectedReturnLines')
     setSupplierReturn((prevState) => ({
       ...prevState,
       returnLines: [...(prevState.returnLines || []), ...updatedReturnLines]

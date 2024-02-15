@@ -61,7 +61,7 @@ import salesLocation from "app/entities/inventory/sales-location/sales-location.
 import warehouse from "app/entities/inventory/warehouse/warehouse.reducer"
 import purchaseOrder from "app/entities/inventory/purchase-order/purchase-order.reducer"
 import itemForStock from "app/entities/inventory/stock-config/items-stock-config.reducer"
-import stockConfig from "app/entities/inventory/stock-config/stock-config.reducer"
+import purchaseConfig from "app/entities/inventory/stock-config/purchase-config.reducer"
 import inventoryItem from "app/entities/inventory/stock-config/inventory-items.reducer"
 import stockQuantity from "app/entities/inventory/stock-config/stock-quantity.reducer"
 import transferRequest from "app/entities/inventory/transfer-request/transfer-request.reducer"
@@ -127,7 +127,7 @@ const entitiesReducers = {
   warehouse,
   purchaseOrder,
   itemForStock,
-  stockConfig,
+  purchaseConfig,
   stockQuantity,
   transferRequest,
   supplierReturn,
