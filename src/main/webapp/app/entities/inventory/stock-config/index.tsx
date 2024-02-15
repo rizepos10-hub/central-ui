@@ -4,18 +4,31 @@ import { Route } from 'react-router-dom';
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
 import StockConfig from './stock-config';
-import StockConfigUpdate from './stock-config-update';
-import StockConfigDeleteDialog from './stock-config-delete-dialog';
+import PurchaseConfigUpdate from './purchase-config-update';
+import PurchaseConfigDeleteDialog from './purchase-config-delete-dialog';
+import StockQuantityUpdate from "app/entities/inventory/stock-config/stock-quantity-update";
 
-const AddonRoutes = () => (
+const StockConfigRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<StockConfig />} />
-    <Route path="new" element={<StockConfigUpdate />} />
+
+    {/* For Purchase Config */}
+    <Route path="purchase-config">
+    <Route path="new" element={<PurchaseConfigUpdate />} />
     <Route path=":id">
-      <Route path="edit" element={<StockConfigUpdate />} />
-      <Route path="delete" element={<StockConfigDeleteDialog />} />
+      <Route path="edit" element={<PurchaseConfigUpdate />} />
+      <Route path="delete" element={<PurchaseConfigDeleteDialog />} />
+    </Route>
+
+    </Route>
+
+    {/* For Stock Quantity */}
+    <Route path="stock-quantity">
+      <Route path=":id">
+        <Route path="edit" element={<StockQuantityUpdate />} />
+      </Route>
     </Route>
   </ErrorBoundaryRoutes>
 );
 
-export default AddonRoutes;
+export default StockConfigRoutes;

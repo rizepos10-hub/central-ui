@@ -1,6 +1,6 @@
 import {IAttachment} from "app/shared/model/attachment.model";
 import {IStockOrderedItem} from "app/shared/model/STOCK/order-Item.model";
-import {IStockConfig} from "app/shared/model/STOCK/stock-config.model";
+import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 
 export interface IInventoryItem {
   id?: string;
@@ -18,7 +18,7 @@ export interface IInventoryItemVariant {
   price?: number;
   attributeValues?: any;
   attachments?: IAttachment[];
-  itemStockPurchasingConfig?: IStockConfig;
+  itemPurchasingConfig?: IPurchaseConfig;
 
 }
 

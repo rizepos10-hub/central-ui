@@ -18,7 +18,7 @@ import {ISupplier} from "app/shared/model/STOCK/supplier.model";
 import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
 import {Calendar} from "primereact/calendar";
 import AsyncSelect from "react-select/async";
-import {IStockConfig} from "app/shared/model/STOCK/stock-config.model";
+import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {getEntities as getInventoryItems, searchEntities as searchInventoryItems} from "app/entities/inventory/stock-config/inventory-items.reducer";
 import {InputNumber} from "primereact/inputnumber";
 import {DataTable} from "primereact/datatable";
@@ -63,7 +63,6 @@ export const PurchaseOrderUpdate = () => {
   const updating = useAppSelector(state => state.purchaseOrder.updating);
   const updateSuccess = useAppSelector(state => state.purchaseOrder.updateSuccess);
 
-  console.log(loadingItems, 'loadingItems')
 
 
   const handleClose = () => {
@@ -187,18 +186,18 @@ export const PurchaseOrderUpdate = () => {
   const handleSelectVariant = (variant: IInventoryItemVariant) => {
     setSelectedVariant(variant);
 
-    const {itemStockPurchasingConfig: stockItemConfig } = variant;
-    const itemSupplierConfig = stockItemConfig?.supplierConfigurations?.find((supConfig) =>
+    const {itemPurchasingConfig: purchasingConfig } = variant;
+    const itemSupplierConfig = purchasingConfig?.supplierConfigurations?.find((supConfig) =>
     supConfig.supplier?.id === purchaseOrder?.supplier?.id);
 
-    const price = itemSupplierConfig ? itemSupplierConfig?.defaultPrice : stockItemConfig.defaultPrice;
-
+    const price = itemSupplierConfig ? itemSupplierConfig?.defaultPrice : purchasingConfig?.defaultPrice ?  purchasingConfig?.defaultPrice  : 0;
     const newItem = {
-      item: {...stockItemConfig, name: variant.name},
+      item: {...variant, itemId: selectedItem.id, variantId: variant.id},
       price,
-      quantity: stockItemConfig?.minOrderQuantity || 1,
+      quantity: purchasingConfig?.minOrderQuantity || 1,
       returnedQuantity: 0
     }
+
     setPurchaseOrderLine(prevState => ({
       ...prevState,
       ...newItem
@@ -332,7 +331,7 @@ export const PurchaseOrderUpdate = () => {
                     value={purchaseOrder?.status ?? "PLACED"}
                     options={statusOptions}
                     id="status"
-                    disabled={purchaseOrderEntity?.status === "COMPLETED"}
+                    disabled={purchaseOrderEntity?.status === "COMPLETED" || isNew}
                     onChange={(e) => setPurchaseOrder((prv) => ({...prv, status: e.value}))}
                   />
                 </div>

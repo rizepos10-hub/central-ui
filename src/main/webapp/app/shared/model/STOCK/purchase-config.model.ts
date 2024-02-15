@@ -1,28 +1,19 @@
 import {ISupplier} from "app/shared/model/STOCK/supplier.model";
 import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
 import {ISalesLocation} from "app/shared/model/STOCK/sales-location.model";
+import {IStockQuantity} from "app/shared/model/STOCK/stock-quantity.model";
 
-export interface IStockConfig {
+export interface IPurchaseConfig {
   id?: string;
-  name?: string;
+  itemId?: string; // initial model for creation
+  variantId?: string; // initial model for creation
+  defaultPrice?: number; // initial model for creation
+  minOrderQuantity?: number; // initial model for creation
+  supplierConfigurations?: ISupplierConfiguration[]; // initial model for creation
   item?: IStockConfigItem;
-  itemId?: string;
-  variantId?: string;
-  minOrderQuantity?: number;
-  supplierConfigurations?: ISupplierConfiguration[];
-  defaultPrice?: number;
-  description?: string;
   stockQuantities?: IStockQuantity[];
 }
 
-export interface IStockQuantity {
-  id?: string;
-  itemId?: string;
-  itemName?: string;
-  variantId?: string;
-  location?: IWarehouse | ISalesLocation;
-  quantity?:number
-}
 
 export interface ISupplierConfiguration {
   supplier: ISupplier;
@@ -43,4 +34,4 @@ export interface IStockConfigItem {
 
 
 
-export const defaultValue: Readonly<IStockConfig> = {};
+export const defaultValue: Readonly<IPurchaseConfig> = {};

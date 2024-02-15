@@ -3,7 +3,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import {IStockQuantity, defaultValue, IStockConfig} from 'app/shared/model/STOCK/stock-config.model';
+import {IStockQuantity, defaultValue} from 'app/shared/model/STOCK/stock-quantity.model';
 import {is} from "date-fns/locale";
 
 const initialState: EntityState<IStockQuantity> = {
@@ -41,12 +41,20 @@ export const getEntity = createAsyncThunk(
   },
   { serializeError: serializeAxiosError }
 );
-
 export const partialUpdateEntity = createAsyncThunk(
   'stock-quantity/partial_update_entity',
   async (entity: IStockQuantity, thunkAPI) => {
     return await axios.patch<IStockQuantity>(patchUrl, cleanEntity(entity));
 
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const getStockQuantitiesForVariant = createAsyncThunk(
+  'stock-quantity/fetch_variant_stock_quantities',
+  async (query :string ) => {
+    const requestUrl = `${apiUrl}?${query ? query : ''}`;
+    return axios.get<IStockQuantity[]>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
@@ -69,7 +77,7 @@ export const StockQuantitySlice = createEntitySlice({
         state.loading = false;
         state.entity = action.payload.data;
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities, getStockQuantitiesForVariant), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -79,7 +87,7 @@ export const StockQuantitySlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, getStockQuantitiesForVariant), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

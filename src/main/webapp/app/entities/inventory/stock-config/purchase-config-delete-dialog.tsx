@@ -5,9 +5,9 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './stock-config.reducer';
+import { getEntity, deleteEntity } from './purchase-config.reducer';
 
-export const StockConfigDeleteDialog = () => {
+export const PurchaseConfigDeleteDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -21,11 +21,11 @@ export const StockConfigDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const supplierEntity = useAppSelector(state => state.supplier.entity);
-  const updateSuccess = useAppSelector(state => state.supplier.updateSuccess);
+  const stockConfigEntity = useAppSelector(state => state.stockConfig.entity);
+  const updateSuccess = useAppSelector(state => state.stockConfig.updateSuccess);
 
   const handleClose = () => {
-    navigate('/inventory/supplier' + location.search);
+    navigate('/inventory/stock-config' + location.search);
   };
 
   useEffect(() => {
@@ -36,16 +36,16 @@ export const StockConfigDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(supplierEntity.id));
+    dispatch(deleteEntity(stockConfigEntity.id));
   };
 
   return (
     <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="supplierDeleteDialogHeading">
-        <Translate contentKey="tempApp.supplier.delete.title">Confirm delete operation</Translate>
+      <ModalHeader toggle={handleClose} data-cy="stockConfigDeleteDialogHeading">
+        <Translate contentKey="tempApp.stockConfig.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="suppliers.delete.question">
-        <Translate contentKey="tempApp.supplier.delete.question" interpolate={{ id: supplierEntity.id }}>
+      <ModalBody id="stockConfigs.delete.question">
+        <Translate contentKey="tempApp.stockConfig.delete.question" interpolate={{ id: stockConfigEntity.id }}>
           Are you sure you want to delete this Supplier?
         </Translate>
       </ModalBody>
@@ -55,7 +55,7 @@ export const StockConfigDeleteDialog = () => {
           &nbsp;
           <Translate contentKey="common.buttons.cancel">Cancel</Translate>
         </Button>
-        <Button id="jhi-confirm-delete-supplier" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+        <Button id="jhi-confirm-delete-stockConfig" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
           <FontAwesomeIcon icon="trash" />
           &nbsp;
           <Translate contentKey="common.buttons.delete">Delete</Translate>
@@ -65,4 +65,4 @@ export const StockConfigDeleteDialog = () => {
   );
 };
 
-export default StockConfigDeleteDialog;
+export default PurchaseConfigDeleteDialog;

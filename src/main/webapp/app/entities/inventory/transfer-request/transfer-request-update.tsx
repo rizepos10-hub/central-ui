@@ -16,7 +16,7 @@ import { getEntities as getSalesLocations } from "app/entities/inventory/sales-l
 import Select from "react-select";
 import AsyncSelect from "react-select/async";
 import {InputNumber} from "primereact/inputnumber";
-import {IStockConfig} from "app/shared/model/STOCK/stock-config.model";
+import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 
@@ -136,7 +136,7 @@ export const TransferRequestUpdate = () => {
 
   const loadItems = (
     inputValue: string,
-    callback: (options: IStockConfig[]) => void
+    callback: (options: IPurchaseConfig[]) => void
   ) => {
     setTimeout(() => {
       try {

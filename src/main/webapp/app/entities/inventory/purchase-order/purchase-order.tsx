@@ -8,13 +8,14 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getEntities } from './purchase-order.reducer';
-import {DataTable} from "primereact/datatable";
+import {DataTable, DataTablePageEvent} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
 import {IPurchaseOrder} from "app/shared/model/STOCK/purchase-order.model";
 import {Tag} from "primereact/tag";
 import {Dropdown} from "primereact/dropdown";
+import _ from "lodash";
 
 export const PurchaseOrder = () => {
   const dispatch = useAppDispatch();
@@ -23,13 +24,19 @@ export const PurchaseOrder = () => {
   const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
+
+  const [queryParams, setQueryParams] = useState({
+    size: 20,
+    page: 0,
+    sort: 'asc',
+    first: 0,
+    query: null
+  })
 
   const purchaseOrderList :IPurchaseOrder[]= useAppSelector(state => state.purchaseOrder.entities);
   const loading = useAppSelector(state => state.purchaseOrder.loading);
   const totalItems = useAppSelector(state => state.purchaseOrder.totalItems);
+
   const [filters, setFilters] = useState({
     "warehouse.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
    'supplier.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -40,45 +47,47 @@ export const PurchaseOrder = () => {
   });
 
   const getAllEntities = () => {
-    if (search) {
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    } else {
-      dispatch(
-        getEntities({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
+      dispatch(getEntities({
+          page: queryParams.page,
+          size: queryParams.size,
+          sort: queryParams.sort,
+        }));
   };
 
 
 
 
 
-  const sortEntities = () => {
-    getAllEntities();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
-  };
+  // const sortEntities = () => {
+  //   getAllEntities();
+  //   const endURL = `?page=${queryParams.page}&sort=${queryParams.sort},${paginationState.order}`;
+  //   if (location.search !== endURL) {
+  //     navigate(`${location.pathname}${endURL}`);
+  //   }
+  // };
 
   useEffect(() => {
-    sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
+    getAllEntities();
+  }, [queryParams.page, queryParams.size, queryParams.sort]);
 
 
   const handleSyncList = () => {
-    sortEntities();
+    getAllEntities();
+  };
+
+  const onFilter = _.debounce((event) => {
+
+    console.log(event, 'event')
+  });
+
+  const onPage = (event: DataTablePageEvent) => {
+    const {page, first} = event;
+
+    setQueryParams(prevState => ({
+      ...prevState,
+      first,
+      page
+    }));
   };
 
   const statusBodyTemplate = (item) => {
@@ -125,16 +134,19 @@ export const PurchaseOrder = () => {
 
 
   const idColumnTemplate = rowData => {
-    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?page=${queryParams.page}&sort=${queryParams.sort}`;
     return (
       <Link to={editUrl}>
         {rowData.id}
       </Link>
     );
   };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+  const actionsColumnTemplate = (rowData) => {
+    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?page=${queryParams.page}&sort=${queryParams.sort}`;
     return (
+      rowData?.status === "COMPLETED" ?
+      <i className={"pi pi-eye"} onClick={() => navigate(editUrl)} style={{ cursor: 'pointer' , fontSize: '1.25rem' , marginLeft: '0.3rem'}} />
+        :
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
       </Link>
@@ -142,7 +154,7 @@ export const PurchaseOrder = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/inventory/purchase-order/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/inventory/purchase-order/${rowData.id}/delete?page=${queryParams.page}&sort=${queryParams.sort}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -180,8 +192,10 @@ export const PurchaseOrder = () => {
       </h2>
 
       <div >
-        <DataTable value={purchaseOrderList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20}>
+        <DataTable
+          value={purchaseOrderList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"
+          paginator totalRecords={totalItems} rows={20} lazy  first={queryParams.first}  onPage={onPage} onFilter={onFilter}
+                 >
           <Column field="id" header={translate('tempApp.purchaseOrder.view.table.fields.id')} body={idColumnTemplate} filter
                   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.id')}  sortable  />
 
@@ -202,7 +216,7 @@ export const PurchaseOrder = () => {
           <Column field="status" header={translate('tempApp.purchaseOrder.view.table.fields.status')} filter
                   filterElement={statusFilterTemplate}  body={statusBodyTemplate}  sortable  />
 
-          <Column header={translate('tempApp.purchaseOrder.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('tempApp.purchaseOrder.view.table.fields.actions')}  body={actionsColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
           <Column  header={translate('tempApp.purchaseOrder.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}

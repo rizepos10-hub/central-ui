@@ -3,9 +3,9 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IStockConfig, defaultValue } from 'app/shared/model/STOCK/stock-config.model';
+import { IPurchaseConfig, defaultValue } from 'app/shared/model/STOCK/purchase-config.model';
 
-const initialState: EntityState<IStockConfig> = {
+const initialState: EntityState<IPurchaseConfig> = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -15,35 +15,35 @@ const initialState: EntityState<IStockConfig> = {
   updateSuccess: false,
 };
 
-const apiUrl = 'api/inventory/stock-configs';
+const apiUrl = 'api/inventory/purchase-configs';
 
-const apiSearchUrl = 'api/_search/inventory/stock-configs';
+const apiSearchUrl = 'api/_search/inventory/purchase-configs';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('stock-config/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
+export const searchEntities = createAsyncThunk('purchase-config/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IStockConfig[]>(requestUrl);
+  return axios.get<IPurchaseConfig[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('stock-config/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+export const getEntities = createAsyncThunk('purchase-config/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
-  return axios.get<IStockConfig[]>(requestUrl);
+  return axios.get<IPurchaseConfig[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
-  'stock-config/fetch_entity',
+  'purchase-config/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-    return axios.get<IStockConfig>(requestUrl);
+    return axios.get<IPurchaseConfig>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
 
 export const createEntity = createAsyncThunk(
-  'stock-config/create_entity',
-  async (entity: IStockConfig, thunkAPI) => {
-    const result = await axios.post<IStockConfig>(apiUrl, cleanEntity(entity));
+  'purchase-config/create_entity',
+  async (entity: IPurchaseConfig, thunkAPI) => {
+    const result = await axios.post<IPurchaseConfig>(apiUrl, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -51,9 +51,9 @@ export const createEntity = createAsyncThunk(
 );
 
 export const updateEntity = createAsyncThunk(
-  'stock-config/update_entity',
-  async (entity: IStockConfig, thunkAPI) => {
-    const result = await axios.put<IStockConfig>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  'purchase-config/update_entity',
+  async (entity: IPurchaseConfig, thunkAPI) => {
+    const result = await axios.put<IPurchaseConfig>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -61,9 +61,9 @@ export const updateEntity = createAsyncThunk(
 );
 
 export const partialUpdateEntity = createAsyncThunk(
-  'stock-config/partial_update_entity',
-  async (entity: IStockConfig, thunkAPI) => {
-    const result = await axios.patch<IStockConfig>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  'purchase-config/partial_update_entity',
+  async (entity: IPurchaseConfig, thunkAPI) => {
+    const result = await axios.patch<IPurchaseConfig>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -71,10 +71,10 @@ export const partialUpdateEntity = createAsyncThunk(
 );
 
 export const deleteEntity = createAsyncThunk(
-  'stock-config/delete_entity',
+  'purchase-config/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IStockConfig>(requestUrl);
+    const result = await axios.delete<IPurchaseConfig>(requestUrl);
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -84,7 +84,7 @@ export const deleteEntity = createAsyncThunk(
 // slice
 
 export const StockConfigSlice = createEntitySlice({
-  name: 'stock-config',
+  name: 'purchase-config',
   initialState,
   extraReducers(builder) {
     builder
