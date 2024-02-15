@@ -61,7 +61,7 @@ export const SimpleItemUpdate = () => {
     itemType: "RETAIL",
     itemVariantType: ItemVariantType.RETAIL_SIMPLE,
     variants: [{
-      branchVariantDetails: {}
+      branchVariantDetails: {},
     }]
   });
 
@@ -211,8 +211,13 @@ export const SimpleItemUpdate = () => {
     e.preventDefault();
     const entity = {
       ...simpleItem,
+      variants: [
+        {
+          ...(simpleItem.variants && simpleItem.variants[0] && simpleItem.variants[0]),
+          name: simpleItem.name
+        },
+      ],
     };
-    console.table(entity)
     if (isNew) {
       dispatch(createEntity(entity));
     } else {

@@ -280,6 +280,12 @@ export const ComboItemUpdate = () => {
     e.preventDefault();
     const entity = {
       ...comboItem,
+      variants: [
+        {
+          ...(comboItem.variants && comboItem.variants[0] && comboItem.variants[0]),
+          name: comboItem.name
+        },
+      ],
     };
     if (isNew) {
       dispatch(createEntity(entity));
