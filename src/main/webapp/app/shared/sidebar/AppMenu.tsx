@@ -4,22 +4,24 @@ import React from "react";
 const AppMenu = () => {
 
     const model: any = [
-                          // {
-                          //   label: 'Control Panel',
-                          //   icon: 'pi pi-home',
-                          //   items: [
-                          //     {
-                          //       label: 'Dashboard',
-                          //       icon: 'pi pi-home',
-                          //       to: '/'
-                          //     },
-                          //   ]
-                          // },
+
+      // {
+      //   label: 'Dashboard',
+      //   icon: 'pi pi-home',
+      //   to: '/'
+      // },
                           {
-                            label: 'Dashboard',
+                            label: 'Control Panel',
                             icon: 'pi pi-home',
-                            to: '/'
+                            items: [
+                              {
+                                label: 'Dashboard',
+                                icon: 'pi pi-home',
+                                to: '/'
+                              },
+                            ]
                           },
+
                           {
                             label: 'Users',
                             role: ['ROLE_ADMIN'],
