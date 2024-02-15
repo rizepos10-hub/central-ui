@@ -5,6 +5,7 @@ export interface ISalesLocation {
   name?: string;
   location?: string;
   branch?: IBranch;
+  type?: "SALES_LOCATION"
 }
 
 export const defaultValue: Readonly<ISalesLocation> = {};

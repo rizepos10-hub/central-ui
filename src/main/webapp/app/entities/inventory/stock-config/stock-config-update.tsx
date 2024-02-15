@@ -20,6 +20,10 @@ import {InputNumber} from "primereact/inputnumber";
 import {Dropdown} from "primereact/dropdown";
 import {ISupplier} from "app/shared/model/STOCK/supplier.model";
 import VariantSelectionModal from "app/entities/inventory/stock-config/variant-selection-modal";
+import {DataTable} from "primereact/datatable";
+import {Column} from "primereact/column";
+import {Button as PrimeButton} from "primereact/button"
+import StockQuantityModal from "app/entities/inventory/stock-config/stock-quantity-modal";
 
 export const StockConfigUpdate = () => {
   const dispatch = useAppDispatch();
@@ -36,6 +40,7 @@ export const StockConfigUpdate = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showInput, setShowInput] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editedStock, setEditedStock] = useState();
   const stockConfigEntity = useAppSelector(state => state.stockConfig.entity);
   const itemsForStock = useAppSelector(state => state.itemForStock.entities);
   const loadingItems = useAppSelector(state => state.itemForStock.loading);
@@ -44,6 +49,9 @@ export const StockConfigUpdate = () => {
   const loading = useAppSelector(state => state.stockConfig.loading);
   const updating = useAppSelector(state => state.stockConfig.updating);
   const updateSuccess = useAppSelector(state => state.stockConfig.updateSuccess);
+  const quantityUpdateSuccess = useAppSelector(state => state.stockQuantity.updateSuccess);
+
+  console.log(quantityUpdateSuccess, 'quantityUpdateSuccess')
 
 
   const filteredSuppliers = useMemo(() => {
@@ -82,7 +90,11 @@ export const StockConfigUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-  }, []);
+    return () => {
+      dispatch(reset())
+    }
+
+  }, [quantityUpdateSuccess]);
 
   useEffect(() => {
     if (updateSuccess) {
@@ -91,7 +103,7 @@ export const StockConfigUpdate = () => {
     if(stockConfigEntity){
       setStockConfig(stockConfigEntity)
     }
-  }, [updateSuccess, stockConfigEntity?.id]);
+  }, [updateSuccess, stockConfigEntity?.id, quantityUpdateSuccess]);
 
   const handleChange = e => {
     const { name, value } = e.target ;
@@ -151,8 +163,20 @@ export const StockConfigUpdate = () => {
 
 
   const toggleModal = () => {
-  setIsModalOpen(prevState => !prevState)
-}
+   setIsModalOpen(prevState => !prevState)
+  }
+
+  const actionBodyTemplate = (rowData) => {
+
+    const handleClick = () => {
+      setEditedStock(rowData);
+      toggleModal();
+    }
+
+    return (
+      <PrimeButton type="button" icon="pi pi-cog" rounded onClick={handleClick}></PrimeButton>
+    )
+  };
 
 
   const saveEntity = (e) => {
@@ -177,12 +201,9 @@ export const StockConfigUpdate = () => {
       </Row>
       <Row>
         <Col md="8" className="d-flex flex-column p-3 bg-white">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
+
             <form onSubmit={saveEntity}>
               <FormGroup>
-
                 <div className={"d-flex flex-column"}>
                   <label className={"mt-2"}>
                    <strong>
@@ -257,21 +278,44 @@ export const StockConfigUpdate = () => {
                   />
                 </div>
 
-                <div className={"d-flex flex-column mt-2 "}>
+                <Row>
+                  <DataTable
+                    value={stockConfig?.stockQuantities}
+                    editMode="row"
+                    header={"Stock Config"}
+                    removableSort
+                    paginator
+                    key={"id"}
+                    totalRecords={stockConfig?.stockQuantities?.length}
+                    rows={20}
+                  >
 
-                  <strong>
-                    <Label>Supplier Configuration</Label>
-                  </strong>
-                  <div className={"d-flex flex-column border p-3"}>
-                    <Label>Select Supplier</Label>
-                    <Dropdown
-                      options={filteredSuppliers}
-                      placeholder="Select a Supplier"
-                      className="w-full md:w-14rem"
-                      optionLabel={"name"}
-                      filter
-                      onChange={handleAddSupplier}
-                    />
+                    <Column field="itemName" header={"Item"} />
+
+                    <Column field="location.name" header={"Location"} />
+
+                    <Column field="quantity" header={"Quantity"}  />
+
+                    <Column bodyStyle={{ textAlign: 'center', overflow: 'visible' }} body={actionBodyTemplate} />
+
+
+                  </DataTable>
+                </Row>
+
+                <div className={"d-flex flex-column mt-2 "}>
+                <strong>
+                  <Label>Supplier Configuration</Label>
+                </strong>
+                <div className={"d-flex flex-column border p-3"}>
+                  <Label>Select Supplier</Label>
+                  <Dropdown
+                    options={filteredSuppliers}
+                    placeholder="Select a Supplier"
+                    className="w-full md:w-14rem"
+                    optionLabel={"name"}
+                    filter
+                    onChange={handleAddSupplier}
+                  />
                 <Table bordered className={"mt-2"}>
                   <thead>
                   <tr>
@@ -310,9 +354,9 @@ export const StockConfigUpdate = () => {
                 &nbsp;Save
               </Button>
             </form>
-          )}
         </Col>
       </Row>
+      <StockQuantityModal isOpen={isModalOpen} stockQuantity={editedStock} toggle={toggleModal} />
     </div>
   );
 };

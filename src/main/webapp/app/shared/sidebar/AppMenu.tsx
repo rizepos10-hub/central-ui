@@ -231,6 +231,18 @@ const AppMenu = () => {
                                 to: '/inventory/sales-location'
                               },
                               {
+                                label: 'Transfer Requests',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/transfer-request'
+                              },
+                              {
+                                label: 'Supplier Returns',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/supplier-return'
+                              },
+                              {
                                 label: 'Purchase Orders',
                                 role: ['ROLE_ADMIN'],
                                 icon: ' pi pi-users',

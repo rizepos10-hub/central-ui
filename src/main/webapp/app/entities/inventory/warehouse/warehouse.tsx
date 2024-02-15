@@ -47,8 +47,7 @@ export const Warehouse = () => {
         })
       );
     } else {
-      dispatch(
-        getEntities({
+      dispatch(getEntities({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,

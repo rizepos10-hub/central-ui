@@ -1,0 +1,52 @@
+{
+  "tempApp": {
+    "transferRequest": {
+      "view": {
+        "title": "Transfer Requests View",
+        "table": {
+          "title": "Transfer Requests",
+          "buttons": {
+            "refreshList": "Refresh List",
+            "createNewTransferRequest": "Create New Transfer Request"
+          },
+          "fields": {
+            "id": "ID",
+            "source": "Source",
+            "destination": "Destination",
+            "location": "Location",
+            "dateDelivered": "Delivered Date",
+            "datePlaced": "Placed Date ",
+            "edit": "Edit",
+            "delete": "Delete"
+          },
+          "search": {
+            "id": "Filter by id",
+            "source": "Filter by source name",
+            "destination": "Filter by destination name",
+            "dateDelivered": "Filter by date delivered",
+            "datePlaced": "Filter by date placed"
+          }
+        }
+      },
+      "created": "A new Transfer Request is created with identifier {{ param }}",
+      "updated": "A Transfer Request is updated with identifier {{ param }}",
+      "deleted": "A Transfer Request is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Transfer Request",
+        "question": "Are you sure you want to delete transfer request {{ id }}"
+      },
+      "update": {
+        "create": {
+          "title": "Create New Transfer Request"
+        },
+        "edit": {
+          "title": "Edit Transfer Request"
+        },
+        "id": "Id",
+        "source": "Source",
+        "destination": "Destination",
+        "location": "Location"
+      }
+    }
+  }
+}

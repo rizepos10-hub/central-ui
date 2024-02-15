@@ -16,6 +16,7 @@ const initialState: EntityState<IStockConfig> = {
 };
 
 const apiUrl = 'api/inventory/stock-configs';
+
 const apiSearchUrl = 'api/_search/inventory/stock-configs';
 
 // Actions
