@@ -1,27 +1,34 @@
 import AppSubMenu from './AppSubMenu';
-import React from "react";
+import React, {useContext} from "react";
+import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
+
+
+
+
+
 
 const AppMenu = () => {
+  const { isDesktop } = useContext(LayoutContext);
+  const isDesktopEnvironment = isDesktop();
+  const dashboardObject = isDesktopEnvironment ? {
+    label: 'Dashboard',
+    icon: 'pi pi-home',
+    to: '/'
+  } :
+  {
+    label: 'Control Panel',
+      icon: 'pi pi-home',
+    items: [
+    {
+      label: 'Dashboard',
+      icon: 'pi pi-home',
+      to: '/'
+    },
+  ]
+  }
+  const model: any = [
 
-    const model: any = [
-
-      // {
-      //   label: 'Dashboard',
-      //   icon: 'pi pi-home',
-      //   to: '/'
-      // },
-                          {
-                            label: 'Control Panel',
-                            icon: 'pi pi-home',
-                            items: [
-                              {
-                                label: 'Dashboard',
-                                icon: 'pi pi-home',
-                                to: '/'
-                              },
-                            ]
-                          },
-
+                          dashboardObject,
                           {
                             label: 'Users',
                             role: ['ROLE_ADMIN'],

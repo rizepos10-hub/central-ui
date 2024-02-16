@@ -417,7 +417,7 @@ export const ComboItemUpdate = () => {
                                     <td>
                                       <InputNumber
                                         name={`quantity_${comboPackage?.variant?.id}`}
-                                        placeholder={translate('items.update.combo.quantityPlaceholder', {variantName: comboPackage?.variant.name})}
+                                        placeholder={translate('items.update.combo.quantityPlaceholder', {variantName: comboPackage?.variant?.name})}
                                         value={comboPackage.amount}
                                         onChange={(e) => handleComboAmountChange(index, e.value)}
                                       />

@@ -75,7 +75,7 @@ export const PurchaseOrderUpdate = () => {
 
 
 
-  const isDisabled = !purchaseOrder.supplier || purchaseOrderEntity?.status === "COMPLETED"
+  const isDisabled = !purchaseOrder.supplier || !purchaseOrder.warehouse || purchaseOrderEntity?.status === "COMPLETED";
 
   useEffect(() => {
     if (isNew) {
@@ -294,7 +294,7 @@ export const PurchaseOrderUpdate = () => {
                    placeholder={"Select warehouse"}
                    options={warehouseList}
                    value={purchaseOrder?.warehouse}
-                   isDisabled={isDisabled}
+                   isDisabled={purchaseOrderEntity?.status === "COMPLETED" || !purchaseOrder?.supplier}
                    getOptionLabel={(option: IWarehouse) => option.name}
                    getOptionValue={option => option.id}
                    onChange={(selectedWarehouse) => setPurchaseOrder((prev) => ({...prev, warehouse: selectedWarehouse}))}
@@ -569,7 +569,7 @@ export const PurchaseOrderUpdate = () => {
                 &nbsp;Back
               </Button>
               &nbsp;
-              {purchaseOrderEntity?.status !== "COMPLETED" ? <Button color="primary" type="submit" disabled={updating}>
+              {purchaseOrderEntity?.status !== "COMPLETED" ? <Button color="primary" type="submit" disabled={updating || isDisabled}>
                 <FontAwesomeIcon icon="save"/>
                 &nbsp;Save
               </Button> : null}

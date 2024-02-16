@@ -99,7 +99,6 @@ export const WarehouseUpdate = () => {
                   <InputText
                     type="text"
                     name="location"
-                    required={true}
                     id="location"
                     value={warehouse.location}
                     onChange={handleChange}

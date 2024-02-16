@@ -657,16 +657,16 @@ export const ItemUpdate = () => {
                           <p>Loading...</p>
                         ) : (
                           <>
-                            {!isNew ? (
-                              <ValidatedField
-                                name="id"
-                                required
-                                readOnly
-                                id="item-id"
-                                label={translate('global.field.id')}
-                                validate={{ required: true }}
-                              />
-                            ) : null}
+                            {/* {!isNew ? ( */}
+                            {/*   <ValidatedField */}
+                            {/*     name="id" */}
+                            {/*     required */}
+                            {/*     readOnly */}
+                            {/*     id="item-id" */}
+                            {/*     label={translate('global.field.id')} */}
+                            {/*     validate={{ required: true }} */}
+                            {/*   /> */}
+                            {/* ) : null} */}
                             <div className="d-flex justify-content-between mb-1 gap-3">
                               <div style={{ width: '33%' }}>
                                 <ValidatedField

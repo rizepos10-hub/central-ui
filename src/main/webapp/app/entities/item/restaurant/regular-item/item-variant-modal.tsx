@@ -1308,7 +1308,7 @@ const ItemVariantModal = (props: IVariantProps) => {
               <Button color="secondary" onClick={props.handleClose} tabIndex={1}>
                 <Translate contentKey="entity.action.cancel">Cancel</Translate>
               </Button>{' '}
-              <Button color="primary" type="submit" data-cy="submit">
+              <Button color="primary" type="button" data-cy="button" onClick={handleVariantSave}>
                 <Translate contentKey={'items.update.regular.variantModal.save'}>Save Variant</Translate>
               </Button>
             </ModalFooter>

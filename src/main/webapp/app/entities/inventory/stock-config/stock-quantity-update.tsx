@@ -51,6 +51,7 @@ const StockQuantityUpdate = () => {
           <h2>Stock Quantity</h2>
         </Col>
       </Row>
+      <Col md="8">
       <DataTable
         value={stockQuantities}
         editMode="row"
@@ -66,10 +67,11 @@ const StockQuantityUpdate = () => {
 
         <Column field="quantity" header={"Quantity"}  />
 
-        <Column bodyStyle={{ textAlign: 'center', overflow: 'visible' }} body={actionBodyTemplate} />
+        <Column headerStyle={{width: '10rem'}} header={"Adjust Quantity"} bodyStyle={{ textAlign: 'center', overflow: 'visible' }} body={actionBodyTemplate} />
 
       </DataTable>
       {isModalOpen ? <StockQuantityModal isOpen={isModalOpen} stockQuantity={editedStock} toggle={toggleModal}/> : null}
+      </Col>
     </Row>
   </div>
   )
