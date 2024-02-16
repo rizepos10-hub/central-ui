@@ -99,7 +99,6 @@ export const SupplierUpdate = () => {
                   <InputText
                     type="text"
                     name="address"
-                    required={true}
                     id="address"
                     value={supplier.address}
                     onChange={handleChange}
@@ -114,7 +113,6 @@ export const SupplierUpdate = () => {
                   <InputText
                     type="email"
                     name="email"
-                    required={true}
                     id="email"
                     value={supplier?.email}
                     onChange={handleChange}
@@ -125,7 +123,6 @@ export const SupplierUpdate = () => {
                     <Label for="phoneNumber">Phone Number</Label>
                     <InputText
                       name="phoneNumber"
-                      required={true}
                       id="phoneNumber"
                       value={supplier?.phoneNumber}
                       onChange={handleChange}
