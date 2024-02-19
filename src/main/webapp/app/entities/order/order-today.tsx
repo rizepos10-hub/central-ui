@@ -170,11 +170,6 @@ export const Order = () => {
 
   console.log(orderList.length, 'len')
   return (
-    <div>
-      <h1><Translate contentKey={'orders.view.title'}>Orders View</Translate></h1>
-
-      <div>
-
         <div className="p-3 mb-2" style={{ background: 'var(--surface-card)', borderRadius: '10px'}}>
         <DataTable
             value={orderList}
@@ -187,6 +182,7 @@ export const Order = () => {
             totalRecords={totalOrders}
             onPage={onPage}
             onSort={onSort}
+            header={"Today's Orders"}
             sortOrder={lazyState.sortOrder}
             sortField={lazyState.sortField}
             filters={lazyState.filters}
@@ -362,9 +358,7 @@ export const Order = () => {
                     }
             />
           </DataTable>
-        </div>
 
-      </div>
     </div>
   );
 };

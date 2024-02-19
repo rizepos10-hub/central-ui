@@ -30,6 +30,7 @@ import variableRetailItem from "app/entities/item/retail/variable-item/variable-
 import {isEqual} from "lodash";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
+import ItemStockTab from "app/shared/layout/item/item-stock-tab";
 
 
 
@@ -67,10 +68,11 @@ export const VariableItemUpdate = () => {
     variants: []
   });
 
+  const hasStock = variableItem?.variants?.some(v => v.stockQuantities?.length > 0 || v.purchaseConfig !== null);
+
+
   const filteredAvailableAttributes = () => {
-
     const existingAttributeIds = variableItem?.attributes?.map(attr => attr.attributeTax.id);
-
     return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
   };
 
@@ -622,6 +624,12 @@ export const VariableItemUpdate = () => {
                       return {...prev, visibility}
                     })}/>
                 </TabPanel>
+
+                {hasStock ?
+                  <TabPanel header={translate('items.update.tabs.stock.label')}>
+                  <ItemStockTab variants={variableItem?.variants} itemId={variableItem.id}/>
+                </TabPanel> : null}
+
               </TabView>
             </Col>
             <Col md={2}>

@@ -133,12 +133,6 @@ export const PrintingProfiles = () => {
   );
   return (
     <div>
-      <h2 >
-        Printing Profiles View
-
-      </h2>
-
-      <div >
         <DataTable value={printingProfilesList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
             field="name" header="Name" filter body={nameColumnTemplate}
@@ -167,7 +161,6 @@ export const PrintingProfiles = () => {
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
         </DataTable>
-      </div>
     </div>
   );
 };

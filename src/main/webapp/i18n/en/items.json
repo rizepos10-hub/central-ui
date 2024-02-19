@@ -77,6 +77,16 @@
             "combo": "Combo Item Visibility",
             "pizza": "Pizza Item Visibility"
           }
+        },
+        "stock": {
+          "label": "Stock",
+          "titles": {
+            "simple": "Simple Item Stock",
+            "variable": "Variable Item Stock",
+            "regular": "Regular Item Stock",
+            "combo": "Combo Item Stock",
+            "pizza": "Pizza Item Stock"
+          }
         }
       },
       "placeholders": {

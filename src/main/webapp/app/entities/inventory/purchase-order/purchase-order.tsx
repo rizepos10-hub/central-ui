@@ -186,12 +186,6 @@ export const PurchaseOrder = () => {
 
   return (
     <div>
-      <h2 >
-        <Translate contentKey={'tempApp.purchaseOrder.view.title'}>PurchaseOrders View</Translate>
-
-      </h2>
-
-      <div >
         <DataTable
           value={purchaseOrderList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"
           paginator totalRecords={totalItems} rows={20} lazy  first={queryParams.first}  onPage={onPage} onFilter={onFilter}
@@ -222,9 +216,7 @@ export const PurchaseOrder = () => {
           <Column  header={translate('tempApp.purchaseOrder.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-
         </DataTable>
-      </div>
     </div>
   );
 };

@@ -5,6 +5,8 @@ import {IBranch} from "app/shared/model/branch.model";
 import {ITerm} from "app/shared/model/term.model";
 import {IAccountingGroups} from "app/shared/model/TAX/accounting-groups.model";
 import {ITaxonomy} from "app/shared/model/taxonomy.model";
+import {IStockQuantity} from "app/shared/model/STOCK/stock-quantity.model";
+import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -28,6 +30,8 @@ interface ISimpleItemVariant {
   salePrice?: number;
   branchVariantDetails?: IBranchVariantDetails;
   archived?: boolean;
+  stockQuantities?: IStockQuantity[];
+  purchaseConfig?: IPurchaseConfig
 }
 
 export interface ISimpleItem extends IItem{

@@ -112,11 +112,7 @@ export const PredefinedPizza = () => {
 
   return (
     <div>
-      <h2 >
-        Predefined Pizza View
-      </h2>
 
-      <div >
         <DataTable value={predefinedPizzaList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
@@ -131,7 +127,6 @@ export const PredefinedPizza = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

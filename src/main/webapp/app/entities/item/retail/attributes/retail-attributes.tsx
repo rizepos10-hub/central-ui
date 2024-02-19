@@ -138,10 +138,6 @@ export const RetailAttributes = () => {
 
   return (
     <div>
-      <h2 >
-        <Translate contentKey={'retailAttributes.view.title'}>Retail Attributes View</Translate>
-
-      </h2>
       <Col md={"3"}>
         <RetailAttributeAdd type={"Attribute"}  />
       </Col>

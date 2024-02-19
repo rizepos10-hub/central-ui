@@ -2,9 +2,9 @@
   "tempApp": {
     "stockConfig": {
       "view": {
-        "title": "Stock Configuration",
+        "title": "Stock",
         "table": {
-          "title": "Stock Configs",
+          "title": "Stock",
           "buttons": {
             "refreshList": "Refresh List",
             "createNewStockConfig": "Create New Stock Config"

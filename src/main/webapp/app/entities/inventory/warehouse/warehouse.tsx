@@ -162,11 +162,6 @@ export const Warehouse = () => {
 
 
   return (
-    <div>
-      <h2 >
-        <Translate contentKey={'tempApp.warehouse.view.title'}>Warehouses View</Translate>
-
-      </h2>
 
       <div >
         <DataTable value={warehouseList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
@@ -182,10 +177,8 @@ export const Warehouse = () => {
           <Column  header={translate('tempApp.warehouse.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-
         </DataTable>
       </div>
-    </div>
   );
 };
 

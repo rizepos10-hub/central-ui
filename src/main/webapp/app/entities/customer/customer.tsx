@@ -216,11 +216,7 @@ export const Customer = () => {
 
   return (
     <div>
-      <h2 >
-        <Translate contentKey={'customers.view.title'}>Customers View</Translate>
-      </h2>
 
-      <div >
         <DataTable value={modifiedCustomerList} editMode="row" header={header}  paginator
                    filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
 
@@ -241,7 +237,6 @@ export const Customer = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

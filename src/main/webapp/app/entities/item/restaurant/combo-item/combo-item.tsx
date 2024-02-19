@@ -167,11 +167,6 @@ export const ComboItem = () => {
 
   return (
     <div>
-      <h2 >
-        <Translate contentKey={'items.view.titles.combo'}>Combo Items View</Translate>
-      </h2>
-
-      <div >
         <DataTable loading={loading} value={comboItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
@@ -195,7 +190,6 @@ export const ComboItem = () => {
 
         </DataTable>
       </div>
-    </div>
   );
 };
 

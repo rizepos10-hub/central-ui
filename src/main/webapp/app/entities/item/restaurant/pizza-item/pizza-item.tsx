@@ -166,10 +166,6 @@ export const PizzaItem = () => {
 
 
   return (
-    <div>
-      <h2 >
-        <Translate contentKey={'items.view.titles.pizza'}>Pizza Items View</Translate>
-      </h2>
 
       <div >
         <DataTable loading={loading} value={pizzaItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
@@ -195,7 +191,6 @@ export const PizzaItem = () => {
 
         </DataTable>
       </div>
-    </div>
   );
 };
 

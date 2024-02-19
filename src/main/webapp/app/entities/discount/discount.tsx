@@ -167,11 +167,6 @@ export const Discount = () => {
     </div>
   );
   return (
-    <div>
-      <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
-        Discounts View
-
-      </h2>
 
       <div className="table-responsive">
         <DataTable value={discountList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={20}>
@@ -189,7 +184,6 @@ export const Discount = () => {
 
         </DataTable>
       </div>
-    </div>
   );
 };
 

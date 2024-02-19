@@ -153,12 +153,7 @@ export const Tax = () => {
   );
   return (
     <div>
-      <h2 >
-        Taxes View
 
-      </h2>
-
-      <div >
         <DataTable value={taxList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
             field="code" header="Code" filter
@@ -181,7 +176,6 @@ export const Tax = () => {
         </DataTable>
         {isModalVisible && <AddTaxModal visible={isModalVisible} onHide={handleCloseModal} taxId={selectedTaxId}/>}
       </div>
-    </div>
   );
 };
 

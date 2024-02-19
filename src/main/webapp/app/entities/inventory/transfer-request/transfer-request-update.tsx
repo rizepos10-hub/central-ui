@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntity, createEntity, reset } from './transfer-request.reducer';
+import {getEntity, createEntity, reset, updateEntity} from './transfer-request.reducer';
 import {ITransferRequest, ITRItem} from "app/shared/model/STOCK/transfer-request.model";
 import {getEntities as getWarehouses} from "app/entities/inventory/warehouse/warehouse.reducer";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
@@ -19,6 +19,12 @@ import {InputNumber} from "primereact/inputnumber";
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
+import {SelectButton} from "primereact/selectbutton";
+
+const statusOptions = [
+  "PLACED",
+  "CONFIRMED"
+]
 
 export const TransferRequestUpdate = () => {
   const dispatch = useAppDispatch();
@@ -58,7 +64,9 @@ export const TransferRequestUpdate = () => {
     :
     warehousesAndSalesLocations?.filter((opt) => opt.id !== transferRequest?.source?.id);
 
-  const query = transferRequest?.source?.id ? `location=${transferRequest?.source?.id}&` : null
+  const query = transferRequest?.source?.id ? `location=${transferRequest?.source?.id}&` : null;
+
+  const isDisabled = !transferRequest.source || transferRequestEntity?.status === "CONFIRMED";
 
   const handleClose = () => {
     navigate('/inventory/transfer-request' + location.search);
@@ -174,6 +182,8 @@ export const TransferRequestUpdate = () => {
 
     if (isNew) {
       dispatch(createEntity(entity));
+    }else{
+      dispatch(updateEntity(entity))
     }
   };
 
@@ -199,8 +209,9 @@ export const TransferRequestUpdate = () => {
                   getOptionLabel={option => option?.name}
                   getOptionValue={option => option.id}
                   id="source"
-                  isDisabled={!isNew}
-                  onChange={(source) => setTransferRequest((prv) => ({...prv, source}))}
+                  isDisabled={transferRequestEntity.status === "CONFIRMED"}
+                  onChange={(source) => setTransferRequest((prv) => ({...prv, source, transferItems: []}))}
+
                />
                 </div>
 
@@ -212,13 +223,24 @@ export const TransferRequestUpdate = () => {
                     getOptionLabel={option => option?.name}
                     getOptionValue={option => option.id}
                     id="destination"
-                    isDisabled={!transferRequest.source || !isNew}
+                    isDisabled={isDisabled}
                     onChange={(destination) => setTransferRequest((prv) => ({...prv, destination}))}
                   />
                 </div>
 
+                <div className={"d-flex flex-column mt-2"}>
+                  <Label for="status">Status</Label>
+                  <SelectButton
+                    value={transferRequest?.status ?? "PLACED"}
+                    options={statusOptions}
+                    id="status"
+                    disabled={isDisabled}
+                    onChange={(e) => setTransferRequest((prv) => ({...prv, status: e.value}))}
+                  />
+                </div>
 
-                {isNew ? <Row className={"mt-3"}>
+
+                {!isDisabled ? <Row className={"mt-3"}>
                   <h3>Transfer Items</h3>
                   <Table>
                     <tbody>
@@ -226,6 +248,7 @@ export const TransferRequestUpdate = () => {
                       <td>Item</td>
                       <td>Quantity in Source</td>
                       <td>Quantity To Transfer</td>
+                      <td>Received Quantity</td>
                     </tr>
                     <tr>
                       <td className={'w-2'}>
@@ -237,7 +260,7 @@ export const TransferRequestUpdate = () => {
                           getOptionLabel={option => option.itemName}
                           onChange={handleSelectItem}
                           value={transferRequestItem?.item || null}
-                          isDisabled={!transferRequest.source}
+                          isDisabled={isDisabled}
 
                         />
                       </td>
@@ -246,18 +269,33 @@ export const TransferRequestUpdate = () => {
                       </td>
                       <td className={'w-1'}>
                         <InputNumber
-                          value={transferRequestItem?.quantity} disabled={!transferRequest.source || transferRequestItem?.item?.quantity <= 0}
+                          value={transferRequestItem?.quantity}
+                          disabled={isDisabled || transferRequestItem?.item?.quantity <= 0}
                           max={transferRequestItem?.item?.quantity}
-                          onChange={(e) => setTransferRequestItem((prevState => ({
+                          onValueChange={(e) => setTransferRequestItem((prevState => ({
                             ...prevState,
                             quantity: e.value
+                          })))}
+                        />
+                      </td>
+
+                      <td className={'w-1'}>
+                        <InputNumber
+                          value={transferRequestItem?.receivedQuantity}
+                          disabled={ transferRequestItem?.item?.quantity <= 0 ||isDisabled}
+                          max={transferRequestItem?.quantity}
+                          onValueChange={(e) => setTransferRequestItem((prevState => ({
+                            ...prevState,
+                            receivedQuantity: e.value
                           })))}
                         />
 
                       </td>
 
                       <td className={'w-2'}>
-                        <Button disabled={!transferRequestItem || transferRequestItem?.item?.quantity <= 0} color={"success"} onClick={handleAdd}>Add</Button>
+                        <Button
+                          disabled={isDisabled || transferRequestItem?.item?.quantity <= 0 }
+                          color={"success"} onClick={handleAdd}>Add</Button>
                       </td>
 
                     </tr>
@@ -276,8 +314,9 @@ export const TransferRequestUpdate = () => {
                   >
                     <Column field="item.name" header={"Item"} />
                     <Column field="quantity" header={"Transferred Quantity"} />
+                    <Column field="receivedQuantity" header={"Received Quantity"} />
 
-                    {isNew ? <Column header={"Delete"} body={deleteColumnTemplate} headerStyle={{width: '1%',}}
+                    {transferRequestEntity.status !== "CONFIRMED" ? <Column header={"Delete"} body={deleteColumnTemplate} headerStyle={{width: '1%',}}
                              bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/> : null}
                   </DataTable>
                 </Row>
@@ -288,7 +327,7 @@ export const TransferRequestUpdate = () => {
                 &nbsp;Back
               </Button>
               &nbsp;
-              {isNew ?<Button color="primary" type="submit" disabled={updating}>
+              {transferRequestEntity.status !== "CONFIRMED" ?<Button color="primary" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save"/>
                 &nbsp;Save
               </Button> : null}

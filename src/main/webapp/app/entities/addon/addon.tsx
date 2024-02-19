@@ -163,12 +163,7 @@ export const Addon = () => {
 
   return (
     <div>
-      <h2 >
-        <Translate contentKey={'addons.view.title'}>Addons View</Translate>
 
-      </h2>
-
-      <div >
         <DataTable value={addonList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header={translate('addons.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('addons.view.table.search.name')}  sortable  />
@@ -188,7 +183,6 @@ export const Addon = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

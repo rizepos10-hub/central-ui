@@ -132,8 +132,6 @@ export const User = () => {
     </div>
   );
   return (
-    <div>
-      <h2 ><Translate contentKey={'backOfficeUsers.user.title'} /></h2>
 
       <div >
         <DataTable value={modifiedUserList} editMode="row" header={header}  paginator
@@ -158,7 +156,6 @@ export const User = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

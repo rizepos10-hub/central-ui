@@ -134,10 +134,6 @@ export const MenuCategories = () => {
     </div>
   );
   return (
-    <div>
-      <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
-        <Translate contentKey={'menus.category.view.title'}>Menu Categories View</Translate>
-      </h2>
 
       <div className="table-responsive">
         <DataTable value={menuCategoryList} editMode="row" header={header}
@@ -157,7 +153,6 @@ export const MenuCategories = () => {
 
         </DataTable>
       </div>
-    </div>
   );
 };
 

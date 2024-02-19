@@ -280,11 +280,7 @@ console.log("floorPlanList", floorPlanList)
 
   return (
     <div>
-      <h2 >
-        Floor Plans View
-      </h2>
 
-      <div >
         <DataTable
           value={floorPlanList}
           lazy
@@ -324,7 +320,6 @@ console.log("floorPlanList", floorPlanList)
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

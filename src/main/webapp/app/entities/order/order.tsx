@@ -276,6 +276,7 @@ console.log(orderList.length, 'len')
               sortField={lazyState.sortField}
               filters={lazyState.filters}
               onFilter={onFilter}
+              header={"Order History"}
               removableSort
               loading={loading}
               tableStyle={{ minWidth: '75rem' , alignContent: 'center'}}

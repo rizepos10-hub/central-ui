@@ -151,12 +151,7 @@ export const Printer = () => {
 
   return (
     <div>
-      <h2 >
-        Printers View
 
-      </h2>
-
-      <div >
         <DataTable value={printerList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header="Name" body={nameColumnTemplate} filter  filterPlaceholder={"Search by name"}  sortable  />
@@ -177,7 +172,6 @@ export const Printer = () => {
 
         </DataTable>
       </div>
-    </div>
   );
 };
 

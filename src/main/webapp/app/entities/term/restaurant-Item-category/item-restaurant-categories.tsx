@@ -158,11 +158,6 @@ export const ItemRestaurantCategories = () => {
   console.log(categoryList, 'categorylist')
 
   return (
-    <div>
-      <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
-        <Translate contentKey={'itemCategories.categories.restaurant.title'}/>
-
-      </h2>
 
       <div className="table-responsive">
         <DataTable value={categoryList} editMode="row" paginator header={header}
@@ -183,7 +178,6 @@ export const ItemRestaurantCategories = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

@@ -172,12 +172,6 @@ export const SupplierReturn = () => {
 
 
   return (
-    <div>
-      <h2 >
-        <Translate contentKey={'tempApp.supplierReturn.view.title'}>Supplier Returns View</Translate>
-
-      </h2>
-
       <div >
         <DataTable
           value={supplierReturnList}
@@ -208,9 +202,7 @@ export const SupplierReturn = () => {
           <Column  header={translate('tempApp.supplierReturn.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-
         </DataTable>
-      </div>
     </div>
   );
 };
