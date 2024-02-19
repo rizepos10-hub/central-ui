@@ -169,11 +169,6 @@ export const SimpleItem = () => {
 
 
   return (
-    <div>
-      <h2 >
-        <Translate contentKey={'items.view.titles.simple'}>Simple Items View</Translate>
-      </h2>
-
       <div >
         <DataTable loading={loading} value={simpleItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
@@ -192,7 +187,6 @@ export const SimpleItem = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

@@ -50,7 +50,7 @@ export const PurchaseConfigUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/inventory/stock-config/purchase-config' + location.search);
+    navigate('/inventory/stock/purchase-config' + location.search);
   };
 
   useEffect(() => {
@@ -222,7 +222,7 @@ export const PurchaseConfigUpdate = () => {
               </div>
 
               </FormGroup>
-              <Button tag={Link} to="/inventory/stock-config" replace color="info">
+              <Button tag={Link} to="/inventory/stock" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;Back
               </Button>

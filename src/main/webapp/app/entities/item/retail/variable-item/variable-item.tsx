@@ -171,12 +171,7 @@ export const VariableItem = () => {
 
 
   return (
-    <div>
-      <h2 >
-        <Translate contentKey={'items.view.titles.variable'}>Variable Items View</Translate>
-      </h2>
-
-      <div >
+      <div>
         <DataTable loading={loading} value={variableItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
@@ -194,7 +189,6 @@ export const VariableItem = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

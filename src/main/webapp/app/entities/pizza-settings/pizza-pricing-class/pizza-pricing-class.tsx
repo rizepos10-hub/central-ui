@@ -146,11 +146,6 @@ export const PizzaPricingClass = () => {
 
   return (
     <div>
-      <h2 >
-        Pizza Pricing Class view
-      </h2>
-
-      <div>
 
         <DataTable loading={loading} value={filteredPizzaPricingClassList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
@@ -167,7 +162,6 @@ export const PizzaPricingClass = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

@@ -108,11 +108,6 @@ export const PizzaTopping = () => {
 
   return (
     <div>
-      <h2 >
-        Pizza Toppings View
-      </h2>
-
-      <div >
         <DataTable value={pizzaToppingList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
@@ -135,7 +130,6 @@ export const PizzaTopping = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

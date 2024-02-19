@@ -140,12 +140,6 @@ export const Supplier = () => {
 
 
   return (
-    <div>
-      <h2 >
-        <Translate contentKey={'tempApp.supplier.view.title'}>Suppliers View</Translate>
-
-      </h2>
-
       <div >
         <DataTable
           value={supplierList}
@@ -177,7 +171,6 @@ export const Supplier = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

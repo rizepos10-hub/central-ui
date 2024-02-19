@@ -109,7 +109,7 @@ export const StockConfig = () => {
 
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/inventory/stock-config/${rowData.id}/delete?page=${queryParams.page}&sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
+    const deleteUrl = `/inventory/stock/${rowData.id}/delete?page=${queryParams.page}&sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -117,13 +117,13 @@ export const StockConfig = () => {
     );
   };
   const handleCreate = () => {
-    navigate('/inventory/stock-config/new')
+    navigate('/inventory/stock/new')
   };
 
   const quantityConfigBodyTemplate = (rowData) => {
     const {stockQuantities: quantity} = rowData;
 
-    const editUrl = `/inventory/stock-config/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&itemId=${rowData.itemId}&page=${queryParams.page}
+    const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&itemId=${rowData.itemId}&page=${queryParams.page}
     &sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
 
     const icon = quantity?.length > 0 ? "pi pi-wallet" : "pi pi-ban";
@@ -140,8 +140,8 @@ export const StockConfig = () => {
   const purchaseConfigBodyTemplate = (rowData) => {
     const {itemPurchasingConfig: config} = rowData;
 
-    const createUrl = `/inventory/stock-config/purchase-config/new?variantId=${rowData.id}&itemId=${rowData.itemId}`
-    const editUrl = `/inventory/stock-config/purchase-config/${config?.id}/edit?page=${queryParams.page}&sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
+    const createUrl = `/inventory/stock/purchase-config/new?variantId=${rowData.id}&itemId=${rowData.itemId}`
+    const editUrl = `/inventory/stock/purchase-config/${config?.id}/edit?page=${queryParams.page}&sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
 
     const icon = config ? "pi pi-spin pi-cog" : "pi pi-plus";
 
@@ -199,11 +199,6 @@ export const StockConfig = () => {
 
 
   return (
-    <div>
-      <h2 >
-        <Translate contentKey={'tempApp.stockConfig.view.title'}>Stock Configuration</Translate>
-
-      </h2>
 
       <div >
         <DataTable value={inventoryItemList} lazy filterDisplay="row" dataKey="id" paginator
@@ -216,7 +211,6 @@ export const StockConfig = () => {
           {/* <Column field="desc" header="Description"  /> */}
 
         </DataTable>
-      </div>
     </div>
   );
 };

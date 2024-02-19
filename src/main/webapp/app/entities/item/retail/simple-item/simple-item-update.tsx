@@ -29,6 +29,7 @@ import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
+import ItemStockTab from "app/shared/layout/item/item-stock-tab";
 
 
 
@@ -51,11 +52,9 @@ export const SimpleItemUpdate = () => {
   const attributeValuesList = useAppSelector(state => state.retailAttributeValue.entities);
   const loadingAttributesValues = useAppSelector(state => state.retailAttributeValue.loading);
 
-
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-
 
   const [simpleItem, setSimpleItem] = useState<ISimpleItem>({
     itemType: "RETAIL",
@@ -65,10 +64,11 @@ export const SimpleItemUpdate = () => {
     }]
   });
 
+  const hasStock = simpleItem?.variants?.some(v => v.stockQuantities?.length > 0 || v.purchaseConfig !== null);
+
+
   const filteredAvailableAttributes = () => {
-
     const existingAttributeIds = simpleItem?.attributes?.map(attr => attr.attributeTax.id);
-
     return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
   };
 
@@ -415,6 +415,12 @@ export const SimpleItemUpdate = () => {
                       return { ...prev, visibility: state }
                   })} />
                 </TabPanel>
+
+                {hasStock ?
+                <TabPanel header={translate('items.update.tabs.stock.label')}>
+                  <ItemStockTab variants={simpleItem?.variants} itemId={simpleItem.id} />
+                </TabPanel> : null}
+
               </TabView>
             </Col>
             <Col md={2}>

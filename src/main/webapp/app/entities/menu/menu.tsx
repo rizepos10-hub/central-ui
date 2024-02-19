@@ -181,9 +181,6 @@ console.log(menuList, 'menu list')
 
   return (
     <div>
-      <h2 id="menu-heading" data-cy="MenuHeading">
-        {menuType === "ONLINE_ORDERING" ?  translate('menus.online.view.title') :  translate('menus.pos.view.title')}
-      </h2>
 
         <DataTable value={menuList} header={header} editMode="row"
                    loading={loading} filters={filters} filterDisplay="row"

@@ -145,10 +145,7 @@ export const AddonGroups = () => {
 
   return (
     <div>
-      <h2 >
-        Addon Groups View
-      </h2>
-      <div >
+
         <DataTable value={addonGroupsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={20}>
           <Column field="name" header={translate('addonGroups.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('addonGroups.view.table.search.name')}  sortable  />
 
@@ -162,7 +159,6 @@ export const AddonGroups = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

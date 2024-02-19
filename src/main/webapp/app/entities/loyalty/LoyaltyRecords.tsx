@@ -215,7 +215,6 @@ export const LoyaltyRecords = () => {
 
   return (
     <>
-      <h1>Loyalty Points View</h1>
       <div className={"my-3 w-6 d-flex gap-3"} >
       <Card>
         <FormGroup>

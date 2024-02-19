@@ -120,8 +120,6 @@ export const Business = () => {
     </div>
   );
   return (
-    <div>
-      <h2>Business Settings</h2>
 
       <div>
         <DataTable
@@ -151,7 +149,6 @@ export const Business = () => {
           {/*          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} /> */}
         </DataTable>
       </div>
-    </div>
   );
 };
 
