@@ -283,7 +283,7 @@ export const TransferRequestUpdate = () => {
                         <InputNumber
                           value={transferRequestItem?.receivedQuantity}
                           disabled={ transferRequestItem?.item?.quantity <= 0 ||isDisabled}
-                          max={transferRequestItem?.quantity}
+                          max={transferRequestItem?.item?.quantity}
                           onValueChange={(e) => setTransferRequestItem((prevState => ({
                             ...prevState,
                             receivedQuantity: e.value
@@ -294,7 +294,8 @@ export const TransferRequestUpdate = () => {
 
                       <td className={'w-2'}>
                         <Button
-                          disabled={isDisabled || transferRequestItem?.item?.quantity <= 0 }
+                          disabled={isDisabled || transferRequestItem?.item?.quantity <= 0 ||
+                            !transferRequestItem?.item || !transferRequestItem?.receivedQuantity}
                           color={"success"} onClick={handleAdd}>Add</Button>
                       </td>
 

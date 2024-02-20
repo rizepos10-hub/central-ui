@@ -68,7 +68,7 @@ export const VariableItemUpdate = () => {
     variants: []
   });
 
-  const hasStock = variableItem?.variants?.some(v => v.stockQuantities?.length > 0 || v.purchaseConfig !== null);
+  const hasStock = !isNew && variableItem?.variants?.some(v => v.stockQuantities?.length > 0 || v.purchaseConfig !== null) ;
 
 
   const filteredAvailableAttributes = () => {

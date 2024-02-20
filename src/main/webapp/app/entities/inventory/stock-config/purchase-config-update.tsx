@@ -30,9 +30,6 @@ export const PurchaseConfigUpdate = () => {
     supplierConfigurations: []
   });
 
-  console.log(purchaseConfig, 'purchaseConfig')
-
-  const [showInput, setShowInput] = useState(false);
   const purchaseConfigEntity = useAppSelector(state => state.purchaseConfig.entity);
   const suppliers = useAppSelector(state => state.supplier.entities);
 
@@ -48,9 +45,8 @@ export const PurchaseConfigUpdate = () => {
 
 
 
-
   const handleClose = () => {
-    navigate('/inventory/stock/purchase-config' + location.search);
+    navigate(`/inventory/stock/purchase-config/${purchaseConfigEntity.id}/edit` + location.search);
   };
 
   useEffect(() => {
@@ -87,13 +83,6 @@ export const PurchaseConfigUpdate = () => {
     setStockConfig(prevState => ({ ...prevState, [filed]: num }));
   }
 
-  const handleSearchClick = () => {
-    if(!showInput) {
-      setShowInput(true)
-      return
-    }
-  };
-
 
 
   const handleAddSupplier = (selectedSupplier) => {
@@ -112,10 +101,8 @@ export const PurchaseConfigUpdate = () => {
   const handleSupplierConfigChange = (configIndex, price) => {
       setStockConfig((prevState) => {
         const updatedConfigurations = prevState?.supplierConfigurations?.map((supConfig, index) => {
-          if(configIndex === index){
-            supConfig.defaultPrice = price
-          }
-          return supConfig
+
+          return {...supConfig, defaultPrice: configIndex === index ? price : supConfig.defaultPrice}
         })
         return {...prevState, supplierConfigurations: updatedConfigurations}
       })
@@ -128,8 +115,7 @@ export const PurchaseConfigUpdate = () => {
     e.preventDefault()
     const entity = {
       ...purchaseConfig,
-      variantId,
-      itemId
+      ...(isNew && { variantId, itemId }),
     };
 
     if (isNew) {
