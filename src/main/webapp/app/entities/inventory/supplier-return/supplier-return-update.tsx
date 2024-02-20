@@ -120,7 +120,7 @@ export const SupplierReturnUpdate = () => {
       ?.map((orderLine) => ({
       orderLineId: orderLine?.id,
       itemName: orderLine?.item?.name,
-      quantity: orderLine?.received,
+      quantity:  orderLine.received - orderLine.returnedQuantity,
       returnPrice: orderLine?.price
     }));
     console.log(selectedReturnLines, 'selectedReturnLines')
@@ -211,7 +211,7 @@ export const SupplierReturnUpdate = () => {
                   getOptionLabel={(option: IPurchaseOrder) => option?.id}
                   getOptionValue={option => option.id}
                   id="purchaseOrder"
-                  isDisabled={isDisabled}
+                  isDisabled={!isNew}
                   onChange={(purchaseOrder) => setSupplierReturn((prv) => ({...prv, purchaseOrder}))}
                />
                 </div>
