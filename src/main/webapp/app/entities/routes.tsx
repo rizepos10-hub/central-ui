@@ -54,6 +54,7 @@ import PurchaseOrder from "app/entities/inventory/purchase-order";
 import StockConfig from "app/entities/inventory/stock-config";
 import TransferRequest from "app/entities/inventory/transfer-request";
 import SupplierReturn from "app/entities/inventory/supplier-return";
+import ItemMeasure from "app/entities/item-measure";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -115,6 +116,8 @@ export default () => {
         <Route path="retail/attributes/*" element={<RetailAttributes />} />
         <Route path="retail/simple/*" element={<SimpleItem />} />
         <Route path="retail/variable/*" element={<VariableItem />} />
+
+        <Route path="item-measure/*" element={<ItemMeasure />} />
 
 
         <Route path="currencies/*" element={<CurrencySettings />} />

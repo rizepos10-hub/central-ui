@@ -7,6 +7,7 @@ import {IAccountingGroups} from "app/shared/model/TAX/accounting-groups.model";
 import {ITaxonomy} from "app/shared/model/taxonomy.model";
 import {IStockQuantity} from "app/shared/model/STOCK/stock-quantity.model";
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
+import {IItemMeasure} from "app/shared/model/item-measure.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -37,6 +38,13 @@ interface ISimpleItemVariant {
 export interface ISimpleItem extends IItem{
   variants?: ISimpleItemVariant[];
   attributes?: IAttributes[];
+  baseMeasure?: IItemMeasure;
+  measures?: IExchangeMeasure[];
+}
+
+export interface IExchangeMeasure {
+  itemMeasure?: IItemMeasure;
+  exchangeRate?: number;
 }
 
 export const defaultValue: Readonly<ISimpleItem> = {};
