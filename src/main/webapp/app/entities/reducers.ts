@@ -50,6 +50,7 @@ import currencies from "app/entities/settings/currency/currencies.reducer"
 import currencySettings from "app/entities/settings/currency/currency-settings.reducer"
 import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
 import allItems from 'app/entities/item/all-items.reducer';
+import itemMeasure from 'app/entities/item-measure/item-measure.reducer'
 
 import tv from "app/entities/settings/tv-config/tv/tv.reducer"
 import tvDisplay from "app/entities/settings/tv-config/tv-display/tv-display.reducer"
@@ -131,7 +132,8 @@ const entitiesReducers = {
   stockQuantity,
   transferRequest,
   supplierReturn,
-  inventoryItem
+  inventoryItem,
+  itemMeasure
 
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */

@@ -6,6 +6,8 @@ import {ITerm} from "app/shared/model/term.model";
 import {ITaxonomy} from "app/shared/model/taxonomy.model";
 import {IStockQuantity} from "app/shared/model/STOCK/stock-quantity.model";
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
+import {IItemMeasure} from "app/shared/model/item-measure.model";
+import {IExchangeMeasure} from "app/shared/model/ITEM/retail/simple-item.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -31,12 +33,15 @@ interface IVariableItemVariant {
   archived?: boolean;
   attributeValues?: any;
   stockQuantities?: IStockQuantity[];
-  purchaseConfig?: IPurchaseConfig
+  purchaseConfig?: IPurchaseConfig;
+
 }
 
 export interface IVariableItem extends IItem{
   variants?: IVariableItemVariant[];
   attributes?: IAttributes[];
+  baseMeasure?: IItemMeasure;
+  measures?: IExchangeMeasure[];
 }
 
 export const defaultValue: Readonly<IVariableItem> = {};

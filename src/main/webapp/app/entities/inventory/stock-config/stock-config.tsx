@@ -162,14 +162,14 @@ export const StockConfig = () => {
       itemId: data.id
     }));
     return (
-      <div className="p-3">
+      <div className="p-3 bg-light" >
         <h4>{data.name} Variants</h4>
         <DataTable value={variantsWithItemId}>
-          <Column field="name" header="Variant Name" sortable />
-          <Column field="price" header="Price" sortable />
-          <Column field="sku" header="Sku" sortable />
-          <Column headerStyle={{ width: '9rem' }} header={"Quantity"} body={quantityConfigBodyTemplate} />
-          <Column headerStyle={{ width: '9rem' }} header={"Purchase Config"} body={purchaseConfigBodyTemplate} />
+          <Column className={"bg-light"} field="name" header="Variant Name" sortable  />
+          <Column className={"bg-light"} field="price" header="Price" sortable />
+          <Column className={"bg-light"} field="sku" header="Sku" sortable />
+          <Column className={"bg-light"} headerStyle={{ width: '9rem' }} header={"Quantity"} body={quantityConfigBodyTemplate} />
+          <Column className={"bg-light"} headerStyle={{ width: '9rem' }} header={"Purchase Config"} body={purchaseConfigBodyTemplate} />
         </DataTable>
       </div>
     );

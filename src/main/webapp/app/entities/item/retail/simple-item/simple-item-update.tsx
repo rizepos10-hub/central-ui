@@ -9,7 +9,7 @@ import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './simple-item.reducer';
 import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
-import {ISimpleItem} from "app/shared/model/ITEM/retail/simple-item.model";
+import {IExchangeMeasure, ISimpleItem} from "app/shared/model/ITEM/retail/simple-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
@@ -17,6 +17,7 @@ import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
 import {InputText} from "primereact/inputtext";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
+import {getEntities as getMeasures} from "app/entities/item-measure/item-measure.reducer";
 import {CascadeSelect} from "primereact/cascadeselect";
 import Select from "react-select";
 import {getEntities as getAttributes} from "app/entities/item/retail/attributes/retail-attribute.reducer";
@@ -30,6 +31,7 @@ import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.r
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
 import ItemStockTab from "app/shared/layout/item/item-stock-tab";
+import {IItemMeasure} from "app/shared/model/item-measure.model";
 
 
 
@@ -45,6 +47,7 @@ export const SimpleItemUpdate = () => {
   const updating = useAppSelector(state => state.simpleRetailItem.updating);
   const updateSuccess = useAppSelector(state => state.simpleRetailItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
+  const measureList = useAppSelector(state => state.itemMeasure.entities);
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
   const location = useLocation();
 
@@ -64,13 +67,8 @@ export const SimpleItemUpdate = () => {
     }]
   });
 
-  const hasStock = simpleItem?.variants?.some(v => v.stockQuantities?.length > 0 || v.purchaseConfig !== null);
+  const [measureToAdd, setMeasureToAdd] = useState<IExchangeMeasure>();
 
-
-  const filteredAvailableAttributes = () => {
-    const existingAttributeIds = simpleItem?.attributes?.map(attr => attr.attributeTax.id);
-    return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
-  };
 
   const [itemAttribute, setItemAttribute] = useState<{
     attributeTax: ITaxonomy;
@@ -80,6 +78,17 @@ export const SimpleItemUpdate = () => {
     attributeTerms: []
   })
 
+  const hasStock = simpleItem?.variants?.some(v => v.stockQuantities?.length > 0 || v.purchaseConfig !== null);
+
+  const filteredMeasures = useMemo(() => {
+    const exchangeMeasuresIds = simpleItem?.measures?.map((exMeasure) => exMeasure.itemMeasure.id);
+    return measureList.filter(m => m.id !== simpleItem?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id) )
+  }, [measureList?.length, simpleItem?.baseMeasure?.id, simpleItem?.measures?.length]) ;
+
+  const filteredAvailableAttributes = () => {
+    const existingAttributeIds = simpleItem?.attributes?.map(attr => attr.attributeTax.id);
+    return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
+  };
 
   const handleBackClick = () => {
     const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
@@ -88,7 +97,7 @@ export const SimpleItemUpdate = () => {
     } else {
       navigate("/retail/simple");
     }
-  }
+  };
 
   const handleFieldChange = useCallback((fieldName, value) => {
     setSimpleItem((prevState) => ({
@@ -132,8 +141,59 @@ export const SimpleItemUpdate = () => {
     }));
   };
 
-  const handleAddAttribute = () => {
+  const handleBaseMeasureChange = (baseMeasure) => {
+    if(!simpleItem?.measures || simpleItem?.measures?.length === 0){
+      setSimpleItem(prev => ({...prev, baseMeasure}))
+    }else{
+      setSimpleItem(prevState => {
+        const updatedMeasures = prevState.measures.filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
+          .map((exMeasure) => ({...exMeasure, exchangeRate: null}));
+          return {
+            ...prevState,
+            baseMeasure,
+            measures: updatedMeasures
+          };
+        });
+    }
+    setMeasureToAdd({})
+  };
 
+  const handleAddMeasure = () => {
+    setSimpleItem((prevState) => ({
+      ...prevState,
+      measures: [measureToAdd, ...(prevState.measures || [])]
+    }));
+    setMeasureToAdd({})
+  };
+
+  const handleMeasuresChange = (measureIndex, newRate) => {
+    setSimpleItem((prevState) => {
+      const updatedMeasures = prevState.measures.map((exMeasure, index) => {
+        if (measureIndex === index) {
+          return { ...exMeasure, exchangeRate: newRate };
+        }
+        return exMeasure;
+      });
+
+      return {
+        ...prevState,
+        measures: updatedMeasures
+      };
+    });
+  };
+
+  const handleRemoveMeasure = (measureIndex) => {
+    setSimpleItem((prevState) => {
+      const updatedMeasures = prevState.measures.filter((_, index) => index !== measureIndex);
+      return {
+        ...prevState,
+        measures: updatedMeasures
+      };
+    });
+  };
+
+
+  const handleAddAttribute = () => {
     setSimpleItem((prev) => ({
       ...prev,
       attributes: [
@@ -151,8 +211,7 @@ export const SimpleItemUpdate = () => {
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
       setItemAttribute((prevState) => ({...prevState, attributeTax: selectedOption}))
-
-  }
+  };
 
   const handleAttributeTermChange = (index, selectedTerms) => {
     setSimpleItem((prev) => ({
@@ -184,12 +243,20 @@ export const SimpleItemUpdate = () => {
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    }));
+
     dispatch(getAttributes({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getMeasures({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
     }))
+
 
 
   },[id, isNew]);
@@ -268,6 +335,95 @@ export const SimpleItemUpdate = () => {
                       <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
 
                         <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange}/>
+
+                        <Row className={"mb-3 d-flex flex-column gap-3"} >
+                          <Accordion multiple  activeIndex={[0]}>
+                            <AccordionTab headerTemplate={translate("items.update.measures")}>
+                              <Col md="12" className={"d-flex gap-3 mb-3"}>
+                                <div className={"d-flex flex-column gap-2 w-6 mt-3"}>
+                                  <label className={"text-xl font-bold"}>
+                                    <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
+                                  </label>
+                                  <Select
+                                    value={simpleItem?.baseMeasure}
+                                    options={measureList}
+                                    name="baseMeasure"
+                                    getOptionValue={option => option.id}
+                                    getOptionLabel={option => option.name}
+                                    onChange={handleBaseMeasureChange}
+                                  />
+                                </div>
+
+                                <Table>
+                                  <thead>
+                                  <tr>
+                                    <th >Measure</th>
+                                    <th className="w-1">Exchange Rate</th>
+                                  </tr>
+                                  </thead>
+                                  <thead>
+                                  <tr>
+                                    <td>
+                                      <Select
+                                        value={measureToAdd?.itemMeasure || null}
+                                        isDisabled={!simpleItem?.baseMeasure}
+                                        options={filteredMeasures}
+                                        getOptionValue={option => option.id}
+                                        getOptionLabel={option => option.name}
+                                        onChange={(itemMeasure) => setMeasureToAdd(prev => ({...prev, itemMeasure}))}
+                                      />
+                                    </td>
+                                    <td>
+                                      <InputNumber
+                                        value={measureToAdd?.exchangeRate}
+                                        disabled={!measureToAdd?.itemMeasure}
+                                        onChange={(e) => setMeasureToAdd(prev => ({...prev, exchangeRate: e.value}))}
+                                      />
+                                    </td>
+                                    <td>
+                                      <Button
+                                        disabled={!measureToAdd?.exchangeRate} onClick={handleAddMeasure} color="primary"  className={"mb-2"} >Add</Button>
+                                    </td>
+                                  </tr>
+                                  </thead>
+                                </Table>
+                              </Col>
+
+                              <Col md="8">
+                                <Table>
+                                  <thead>
+                                  <tr>
+                                    <th><Translate contentKey={'items.update.measure'}>Measure</Translate></th>
+                                    <th><Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate></th>
+                                    <th>Remove</th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  {simpleItem?.measures?.map((exMeasure, index) => (
+                                    <tr key={index}>
+                                      <td>
+                                        {exMeasure?.itemMeasure?.name}
+                                      </td>
+                                      <td>
+                                        <InputNumber
+                                          value={exMeasure?.exchangeRate}
+                                          required
+                                          onChange={(e) => handleMeasuresChange(index, e.value)}
+                                        />
+                                      </td>
+                                      <td>
+                                        <PrimeButton type={"button"} onClick={() => handleRemoveMeasure(index)} severity={"danger"} >
+                                          <Translate contentKey={'items.update.remove'}>Remove</Translate>
+                                        </PrimeButton>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                  </tbody>
+                                </Table>
+                              </Col>
+                            </AccordionTab>
+                          </Accordion>
+                        </Row>
 
                         <Row className={"mb-3"} >
 

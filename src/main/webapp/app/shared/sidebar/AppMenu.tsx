@@ -2,11 +2,6 @@ import AppSubMenu from './AppSubMenu';
 import React, {useContext} from "react";
 import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
 
-
-
-
-
-
 const AppMenu = () => {
   const { isDesktop } = useContext(LayoutContext);
   const isDesktopEnvironment = isDesktop();
@@ -120,7 +115,12 @@ const AppMenu = () => {
                                   },
                                 ]
                               },
-
+                              {
+                                label: 'Measures',
+                                role: ['ROLE_ADMIN'],
+                                icon: 'pi pi-folder-open',
+                                to: '/item-measure'
+                              }
 
                             ]
                           },
