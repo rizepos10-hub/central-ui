@@ -12,7 +12,7 @@ import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-uti
 import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
-import { getEntities as getPurchaseOrders, reset as resetPO } from "app/entities/inventory/purchase-order/purchase-order.reducer";
+import { getEntities as getPurchaseOrders, reset as resetPO, getEntity as getPurchaseOrder } from "app/entities/inventory/purchase-order/purchase-order.reducer";
 import Select from "react-select";
 import {InputNumber} from "primereact/inputnumber";
 import {DataTable} from "primereact/datatable";
@@ -32,13 +32,16 @@ const statusOptions: any = [
 export const SupplierReturnUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const poId = searchParams.get('poId');
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
 
   const supplierReturnEntity = useAppSelector(state => state.supplierReturn.entity);
-  const warehouseList = useAppSelector(state => state.warehouse.entities);
-  const salesLocationList = useAppSelector(state => state.salesLocation.entities);
+  const purchaseOrderEntity = useAppSelector(state => state.purchaseOrder.entity);
+
   const purchaseOrderList = useAppSelector(state => state.purchaseOrder.entities);
 
   const loading = useAppSelector(state => state.supplierReturn.loading);
@@ -46,7 +49,7 @@ export const SupplierReturnUpdate = () => {
   const updateSuccess = useAppSelector(state => state.supplierReturn.updateSuccess);
 
   const [supplierReturn, setSupplierReturn] = useState<ISupplierReturn>({
-
+      purchaseOrder: {id: poId},
   });
 
   const [selectedReturnLines, setSelectedReturnLines] = useState([])
@@ -69,6 +72,9 @@ export const SupplierReturnUpdate = () => {
 
 
   useEffect(() => {
+    if(isNew && poId){
+      dispatch(getPurchaseOrder(poId));
+    }
     if (isNew) {
       dispatch(reset());
     } else {
@@ -76,17 +82,6 @@ export const SupplierReturnUpdate = () => {
     }
 
     if(!isDisabled){
-      dispatch(getWarehouses({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`}));
-
-      dispatch(getSalesLocations({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }));
-
 
       dispatch(getPurchaseOrders({
         query: `status=COMPLETED&filterReturned=${true}`,
@@ -111,7 +106,10 @@ export const SupplierReturnUpdate = () => {
     if(supplierReturnEntity){
       setSupplierReturn(supplierReturnEntity)
     }
-  }, [updateSuccess, supplierReturnEntity?.id]);
+    if(isNew && purchaseOrderEntity){
+      setSupplierReturn((prevState) => ({...prevState, purchaseOrder: purchaseOrderEntity}))
+    }
+  }, [updateSuccess, supplierReturnEntity?.id, purchaseOrderEntity.id]);
 
 
   const handleAdd = (e) => {

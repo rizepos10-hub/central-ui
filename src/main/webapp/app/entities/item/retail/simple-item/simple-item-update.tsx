@@ -76,9 +76,7 @@ export const SimpleItemUpdate = () => {
   }>({
     attributeTax: {},
     attributeTerms: []
-  })
-
-  const hasStock = simpleItem?.variants?.some(v => v.stockQuantities?.length > 0 || v.purchaseConfig !== null);
+  });
 
   const filteredMeasures = useMemo(() => {
     const exchangeMeasuresIds = simpleItem?.measures?.map((exMeasure) => exMeasure.itemMeasure.id);
@@ -89,6 +87,12 @@ export const SimpleItemUpdate = () => {
     const existingAttributeIds = simpleItem?.attributes?.map(attr => attr.attributeTax.id);
     return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
   };
+
+  const isAttributeAddButtonDisabled =
+    filteredAvailableAttributes().length === 0 ||
+    Object.keys(itemAttribute.attributeTax).length === 0 &&
+    itemAttribute.attributeTerms.length === 0;
+
 
   const handleBackClick = () => {
     const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
@@ -145,15 +149,18 @@ export const SimpleItemUpdate = () => {
     if(!simpleItem?.measures || simpleItem?.measures?.length === 0){
       setSimpleItem(prev => ({...prev, baseMeasure}))
     }else{
-      setSimpleItem(prevState => {
-        const updatedMeasures = prevState.measures.filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
-          .map((exMeasure) => ({...exMeasure, exchangeRate: null}));
+      const isConfirmed = window.confirm("Changing base measure will reset the exchange rates");
+      if(isConfirmed){
+        setSimpleItem(prevState => {
+          const updatedMeasures = prevState.measures.filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
+            .map((exMeasure) => ({...exMeasure, exchangeRate: null}));
           return {
             ...prevState,
             baseMeasure,
             measures: updatedMeasures
           };
         });
+      }
     }
     setMeasureToAdd({})
   };
@@ -526,7 +533,10 @@ export const SimpleItemUpdate = () => {
 
 
                             <Col md="4" >
-                              <Button color="primary" disabled={filteredAvailableAttributes().length === 0} className={"mt-5"} onClick={handleAddAttribute}>
+                              <Button
+                                color="primary" className={"mt-5"} onClick={handleAddAttribute}
+                                disabled={isAttributeAddButtonDisabled}
+                              >
                                 <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
                               </Button>
                             </Col>
@@ -572,10 +582,10 @@ export const SimpleItemUpdate = () => {
                   })} />
                 </TabPanel>
 
-                {hasStock ?
+
                 <TabPanel header={translate('items.update.tabs.stock.label')}>
                   <ItemStockTab variants={simpleItem?.variants} itemId={simpleItem.id} />
-                </TabPanel> : null}
+                </TabPanel>
 
               </TabView>
             </Col>

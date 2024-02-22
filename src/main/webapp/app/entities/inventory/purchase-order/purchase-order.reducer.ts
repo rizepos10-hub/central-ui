@@ -17,7 +17,6 @@ const initialState: EntityState<IPurchaseOrder> = {
 
 const apiUrl = 'api/inventory/purchase-orders';
 const apiSearchUrl = 'api/_search/inventory/purchase-orders';
-
 // Actions
 
 export const searchEntities = createAsyncThunk('purchase-order/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
@@ -44,6 +43,16 @@ export const createEntity = createAsyncThunk(
   async (entity: IPurchaseOrder, thunkAPI) => {
     const result = await axios.post<IPurchaseOrder>(apiUrl, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const splitOrder = createAsyncThunk(
+  'purchase-order/split_order',
+  async (id: string | number) => {
+    const requestUrl = `${apiUrl}/split-complete/${id}`;
+    const result = await axios.post(requestUrl);
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -106,7 +115,7 @@ export const SalesLocationSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity,splitOrder), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -117,7 +126,7 @@ export const SalesLocationSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity,splitOrder), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

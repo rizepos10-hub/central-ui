@@ -71,7 +71,7 @@ const StockQuantityModal = ({toggle, isOpen, stockQuantity} :modalProps) => {
               <Label for="quantity">Quantity</Label>
             </strong>
             <p id="Quantity">
-              {stockQuantity?.quantity}
+              {stockQuantity?.quantity + modifiedStockQuantity}
             </p>
 
           </div>
@@ -82,7 +82,7 @@ const StockQuantityModal = ({toggle, isOpen, stockQuantity} :modalProps) => {
         <InputNumber
           value={modifiedStockQuantity}
           id="adjusted"
-          onValueChange={handleQuantityChange}
+          onChange={handleQuantityChange}
           showButtons buttonLayout="horizontal" style={{ width: '4rem' }} size={1}
           decrementButtonClassName="p-button-secondary" incrementButtonClassName="p-button-secondary"
           incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus"

@@ -15,7 +15,7 @@ const ItemStockTab = ({variants, itemId}) => {
 
   const quantityConfigBodyTemplate = (rowData) => {
     const {stockQuantities: quantity} = rowData;
-    const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&itemId=${rowData.itemId}`;
+    const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&variantName=${rowData.name}&itemId=${rowData.itemId}`;
     const icon = quantity?.length > 0 ? "pi pi-wallet" : "pi pi-ban";
     const handleClick = () => {
       navigate(editUrl)
@@ -25,9 +25,9 @@ const ItemStockTab = ({variants, itemId}) => {
 
 
   const purchaseConfigBodyTemplate = (rowData) => {
-    const {itemPurchasingConfig: config} = rowData;
-    const createUrl = `/inventory/stock/purchase-config/new?variantId=${rowData.id}&itemId=${rowData.itemId}`
-    const editUrl = `/inventory/stock/purchase-config/${config?.id}/edit?`;
+    const {purchaseConfig: config} = rowData;
+    const createUrl = `/inventory/stock/purchase-config/new?variantId=${rowData.id}&variantName=${rowData.name}&itemId=${rowData.itemId}`
+    const editUrl = `/inventory/stock/purchase-config/${rowData?.id}/edit?`;
     const icon = config ? "pi pi-spin pi-cog" : "pi pi-plus";
     const handleClick = () => {
       if(!config){
