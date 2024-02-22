@@ -15,6 +15,7 @@ const StockQuantityUpdate = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const variantId = searchParams.get('variantId');
+  const variantName = searchParams.get('variantName');
   const itemId = searchParams.get('itemId');
   const [editedStock, setEditedStock] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,7 +56,7 @@ const StockQuantityUpdate = () => {
       <DataTable
         value={stockQuantities}
         editMode="row"
-        header={"Stock Config"}
+        header={`${variantName} Stock Config`}
         removableSort
         paginator
         key={"id"}

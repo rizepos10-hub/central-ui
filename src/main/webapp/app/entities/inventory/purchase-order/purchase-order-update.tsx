@@ -1,11 +1,24 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label, Input, Table, Spinner} from 'reactstrap';
+import {
+  Button,
+  Row,
+  Col,
+  FormGroup,
+  Label,
+  Input,
+  Table,
+  Spinner,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter
+} from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntity, updateEntity, createEntity, reset } from './purchase-order.reducer';
+import {getEntity, updateEntity, createEntity, reset, splitOrder} from './purchase-order.reducer';
 import {InputText} from "primereact/inputtext";
 import {CostLine, IPurchaseOrder, OrderLine} from "app/shared/model/STOCK/purchase-order.model";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
@@ -20,9 +33,9 @@ import {Calendar} from "primereact/calendar";
 import AsyncSelect from "react-select/async";
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {getEntities as getInventoryItems, searchEntities as searchInventoryItems} from "app/entities/inventory/stock-config/inventory-items.reducer";
-import {InputNumber} from "primereact/inputnumber";
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
+import {InputNumber, InputNumberValueChangeEvent} from "primereact/inputnumber";
+import {DataTable, DataTableRowEditCompleteEvent} from "primereact/datatable";
+import {Column, ColumnEditorOptions} from "primereact/column";
 import {SummarizeText} from "app/shared/util/SummarizeText";
 import {InputTextarea} from "primereact/inputtextarea";
 import {convertDateTimeToServer, toLocalISOString} from "app/shared/util/date-utils";
@@ -66,7 +79,7 @@ export const PurchaseOrderUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/inventory/purchase-order' + location.search);
+    navigate(`/inventory/purchase-order/${purchaseOrderEntity?.id}/edit` + location.search);
   };
 
   const handleBranchChange = (selectedBranch: IBranch) => {
@@ -74,8 +87,13 @@ export const PurchaseOrderUpdate = () => {
   };
 
 
+  const isOrderCompleted = purchaseOrderEntity?.status === "COMPLETED";
+  const canSplit = !isOrderCompleted && purchaseOrderEntity?.id;
+  const isDisabled = !purchaseOrder.supplier || !purchaseOrder.warehouse || isOrderCompleted;
 
-  const isDisabled = !purchaseOrder.supplier || !purchaseOrder.warehouse || purchaseOrderEntity?.status === "COMPLETED";
+  console.log(isDisabled, 'isDisabled')
+
+
 
   useEffect(() => {
     if (isNew) {
@@ -168,6 +186,19 @@ export const PurchaseOrderUpdate = () => {
     }, 1000);
   };
 
+  const handleSupplierReturn = () => {
+    const supplierReturnLink = `/inventory/supplier-return/new?poId=${purchaseOrderEntity?.id}`;
+    navigate(supplierReturnLink);
+  };
+
+  const handleOrderSplit = () => {
+    const hasQuantityToSplit = purchaseOrder?.orderLines?.some((orderLine) => orderLine.received < orderLine.quantity);
+    if(hasQuantityToSplit) {
+      dispatch(splitOrder(purchaseOrderEntity?.id));
+    }else{
+      alert("All items in this order have already been received, so splitting isn't possible.")
+    }
+  };
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -195,6 +226,7 @@ export const PurchaseOrderUpdate = () => {
       item: {...variant, itemId: selectedItem.id, variantId: variant.id},
       price,
       quantity: purchasingConfig?.minOrderQuantity || 1,
+      received: 0,
       returnedQuantity: 0
     }
 
@@ -222,8 +254,25 @@ export const PurchaseOrderUpdate = () => {
     }
   };
 
+  const validateQuantity = () => {
+    const isValid = purchaseOrder?.orderLines?.every((orderLine) => orderLine.received >= 0 && orderLine.received <= orderLine.quantity);
+    if (!isValid) {
+      alert("Received quantity must be greater than 1 and less than or equal to the ordered quantity for all order lines.");
+      return false;
+    }
+    return true;
+  };
+
   const saveEntity = (e) => {
-    e.preventDefault()
+    e.preventDefault();
+
+    if (purchaseOrder?.status === "COMPLETED") {
+      const isValid = validateQuantity();
+      if (!isValid) {
+        return;
+      }
+    }
+
     const entity = {
       ...purchaseOrder,
     };
@@ -235,14 +284,60 @@ export const PurchaseOrderUpdate = () => {
     }
   };
 
-  const deleteColumnTemplate = (rowData, index) => {
+  const handleKeyDown = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+  };
+
+  const textEditor = (options: ColumnEditorOptions) => {
+    return <InputText type="text" value={options.value} onKeyDown={handleKeyDown} onChange={(e: React.ChangeEvent<HTMLInputElement>) => options?.editorCallback(e.target.value)} />;
+  };
+
+  const numberEditor = (options: ColumnEditorOptions) => {
+    return <InputNumber value={options.value} onKeyDown={handleKeyDown}  onValueChange={(e: InputNumberValueChangeEvent) => options.editorCallback(e.value)} />;
+  };
+
+  const receivedEditor = (options: ColumnEditorOptions) => {
+    const {rowData} = options;
+    const {quantity} = rowData;
+    return <InputNumber value={options.value} onKeyDown={handleKeyDown} max={quantity} onChange={(e) => options.editorCallback(e.value)} />
+
+  };
+
+
+  const onRowEditComplete = (e: DataTableRowEditCompleteEvent, field) => {
+    const { newData, index } = e;
+    if(newData.received < 0 || newData.received > newData.quantity){
+      alert("Received quantity must be greater than or equal to 0 and less than or equal to the ordered quantity for all order lines.");
+      return
+    }
+    setPurchaseOrder((prevState) => {
+      const updatedField = prevState?.[field]?.map((row, i) => {
+        if (i === index) {
+          return newData
+        }
+        return row
+      });
+
+      return {
+        ...prevState,
+        [field]: updatedField
+      }
+    })
+  };
+
+
+  const deleteColumnTemplate = (rowData, index, field) => {
+    console.log(rowData, index, field, 'dsds')
     const {rowIndex} = index
     const handleClick = () =>  {
       setPurchaseOrder((prevState) => {
-        const updatedOrderLines = prevState?.orderLines?.filter((_, i) => i !== rowIndex);
+        const updatedField = prevState?.[field]?.filter((_, i) => i !== rowIndex);
         return {
           ...prevState,
-          orderLines: updatedOrderLines
+          [field]: updatedField
         }
       })
     }
@@ -262,12 +357,13 @@ export const PurchaseOrderUpdate = () => {
           <h2>{isNew ?  "Add New Purchase Order" : isDisabled ? "View Purchase Order" :"Edit Purchase Order"}</h2>
         </Col>
       </Row>
-      <Row>
-        <Col md="12" className="d-flex flex-column p-3 bg-white">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form onSubmit={saveEntity}>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <Row>
+      <form onSubmit={saveEntity} className={'d-flex'}>
+
+        <Col md="9" className="d-flex flex-column p-3 bg-white">
               <FormGroup>
                 <Row>
              <Col md={4} className={"d-flex flex-column gap-2"}>
@@ -279,7 +375,7 @@ export const PurchaseOrderUpdate = () => {
                  id="supplier"
                  placeholder={"Select supplier"}
                  value={purchaseOrder?.supplier}
-                 isDisabled={purchaseOrderEntity?.status === "COMPLETED"}
+                 isDisabled={isOrderCompleted}
                  getOptionLabel={(option: ISupplier) => option.name}
                  getOptionValue={option => option.id}
                  onChange={(selectedSupplier) => setPurchaseOrder((prev) => ({...prev, supplier: selectedSupplier}))}
@@ -294,7 +390,7 @@ export const PurchaseOrderUpdate = () => {
                    placeholder={"Select warehouse"}
                    options={warehouseList}
                    value={purchaseOrder?.warehouse}
-                   isDisabled={purchaseOrderEntity?.status === "COMPLETED" || !purchaseOrder?.supplier}
+                   isDisabled={isOrderCompleted || !purchaseOrder?.supplier}
                    getOptionLabel={(option: IWarehouse) => option.name}
                    getOptionValue={option => option.id}
                    onChange={(selectedWarehouse) => setPurchaseOrder((prev) => ({...prev, warehouse: selectedWarehouse}))}
@@ -325,16 +421,6 @@ export const PurchaseOrderUpdate = () => {
                   />
                 </div>
 
-                <div className={"d-flex flex-column mt-2"}>
-                  <Label for="status">Status</Label>
-                  <SelectButton
-                    value={purchaseOrder?.status ?? "PLACED"}
-                    options={statusOptions}
-                    id="status"
-                    disabled={purchaseOrderEntity?.status === "COMPLETED" || isNew}
-                    onChange={(e) => setPurchaseOrder((prv) => ({...prv, status: e.value}))}
-                  />
-                </div>
               </Col>
 
                 <Col md={4} className={"d-flex flex-column gap-2"}>
@@ -372,13 +458,12 @@ export const PurchaseOrderUpdate = () => {
                       <td>Variant</td>
                       <td>Description</td>
                       <td>Quantity</td>
-                      <td>Received Quantity</td>
                       <td>Price</td>
                       <td>Delivery Date</td>
                       <td>Sub Total</td>
                     </tr>
                     <tr>
-                      <td className={'w-2'}>
+                      <td className={'col-md-3'}>
                         <Select
                           onInputChange={loadItems}
                           options={inventoryItemList}
@@ -399,7 +484,7 @@ export const PurchaseOrderUpdate = () => {
                         />
                       </td>
 
-                      <td className={'w-2'}>
+                      <td className={'col-md-3'}>
                         <Select
                           options={selectedItem?.variants}
                           getOptionValue={(option) => option.id}
@@ -411,32 +496,26 @@ export const PurchaseOrderUpdate = () => {
                         />
                       </td>
 
-                      <td className={'w-1'}>
+                      <td className={'col-md-2'}>
                         <InputText
                           value={purchaseOrderLine?.description || ''} disabled={isDisabled}
                           onChange={(e) => handleOrderLineChange("description", e.target.value)}/>
 
                       </td>
+                      <td className={'col-md-1'}>
 
-                      <td className={'w-1'}>
-                        <InputNumber
-                          value={purchaseOrderLine?.quantity} disabled={isDisabled}
+                      <InputNumber
+                          value={purchaseOrderLine?.quantity} disabled={isDisabled}  size={4}
                           onChange={(e) => handleOrderLineChange("quantity", e.value)}/>
-
                       </td>
-                      <td className={'w-1'}>
-                        <InputNumber
-                          value={purchaseOrderLine?.received} disabled={isDisabled}
-                          onChange={(e) => handleOrderLineChange("received", e.value)}/>
 
-                      </td>
-                      <td className={'w-1'}>
-                        <InputNumber
+                      <td className={'col-md-1'}>
+                      <InputNumber
+                          size={4}
                           value={purchaseOrderLine?.price} disabled={isDisabled}
                           onChange={(e) => handleOrderLineChange("price", e.value)}/>
                       </td>
-
-                      <td className={'w-1'}>
+                      <td className={'col-md-2'}>
                         <Calendar
                           name="deliveryDate"
                           id="deliveryDate"
@@ -445,16 +524,14 @@ export const PurchaseOrderUpdate = () => {
                           value={new Date(purchaseOrderLine?.deliveryDate)}
                         />
                       </td>
-
-                      <td className={'w-1'}>
+                      <td className={'col-md-2'}>
                         <InputNumber disabled={true}
                                      value={(purchaseOrderLine?.price * purchaseOrderLine?.quantity) || null}/>
                       </td>
-                      <td className={'w-2'}>
+                      <td className={'col-md-1'}>
                         <Button disabled={!purchaseOrderLine?.item} color={"success"}
                                 onClick={() => handleAdd("orderLine")}>Add</Button>
                       </td>
-
                     </tr>
                     </tbody>
                   </Table> : null}
@@ -467,19 +544,28 @@ export const PurchaseOrderUpdate = () => {
                     paginator
                     totalRecords={purchaseOrder?.orderLines?.length}
                     rows={20}
+                    onRowEditComplete={(e) => onRowEditComplete(e,"orderLines")}
                   >
                     <Column field="item.name" header={"Item"} />
-                    <Column field="description" header={"Description"} />
-                    <Column field="quantity" header={"Quantity"} />
-                    <Column field="received" header={"Received Quantity"} />
+                    <Column field="description" editor={(options) => textEditor(options)} header={"Description"} />
+                    <Column field="quantity" editor={(options) => numberEditor(options)} header={"Quantity"} />
+                    <Column field="received" editor={(options) => receivedEditor(options)} header={"Received Quantity"} />
                     <Column field="returnedQuantity" header={"Returned Quantity"} />
-                    <Column field="price" header={"Price"} />
+                    <Column field="price" editor={(options) => numberEditor(options)} header={"Price"} />
                     <Column field="deliveryDate" header={"Delivery Date"}
                             body={(rowData) => rowData.deliveryDate ? new Date(rowData.deliveryDate).toDateString() : ''}
                     />
                     <Column  header={"Sub Total"} body={(rowData) => rowData.price * rowData.quantity} />
-                    {!isDisabled ? <Column header={"Delete"} body={deleteColumnTemplate} headerStyle={{width: '1%',}}
-                             bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/> : null}
+                    {!isDisabled ?
+                        <Column rowEditor headerStyle={{width: '10%', minWidth: '8rem'}}
+                                bodyStyle={{textAlign: 'center'}} />
+                    : null}
+
+                    {!isDisabled ?
+                        <Column header={"Delete"}
+                                body={(rowData, index) => deleteColumnTemplate(rowData, index, 'orderLines')}
+                                headerStyle={{width: '1%',}} bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/>
+                      : null}
                   </DataTable>
                 </Row>
 
@@ -514,7 +600,6 @@ export const PurchaseOrderUpdate = () => {
                                        ...prevState,
                                        cost: e.value
                                      }))}/>
-
                       </td>
                       <td className={'w-1'}>
                         <Calendar
@@ -525,7 +610,6 @@ export const PurchaseOrderUpdate = () => {
                           value={new Date(purchaseCostLine?.costDate)}
                         />
                       </td>
-
                       <td className={'w-1'}>
                         <InputTextarea name={"comment"} disabled={isDisabled} value={purchaseCostLine?.comment || ''}
                                        onChange={handleCostLineChange}/>
@@ -534,7 +618,6 @@ export const PurchaseOrderUpdate = () => {
                         <Button disabled={!purchaseCostLine} color={"success"}
                                 onClick={() => handleAdd("costLine")}>Add</Button>
                       </td>
-
                     </tr>
                     </tbody>
                   </Table> : null}
@@ -548,35 +631,59 @@ export const PurchaseOrderUpdate = () => {
                     totalRecords={purchaseOrder?.costLines?.length}
                     rows={20}
                   >
-
                     <Column field="supplier.name" header={"Supplier"} />
-
                     <Column field="cost" header={"Cost"} />
-
                     <Column field="costDate" header={"Cost Date"}  />
-
                     <Column field="comment" header={"Comment"}  />
-
-                    {!isDisabled ? <Column header={"Delete"} body={deleteColumnTemplate} headerStyle={{width: '1%',}}
-                             bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/> : null}
-
+                    {!isDisabled ?
+                      <Column
+                        header={"Delete"}
+                        body={(rowData, index) => deleteColumnTemplate(rowData,index,'costLines')}
+                        headerStyle={{width: '1%',}}  bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/> : null}
                   </DataTable>
                 </Row>
-
               </FormGroup>
-              <Button tag={Link} to="/inventory/purchase-order" replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
-              </Button>
-              &nbsp;
-              {purchaseOrderEntity?.status !== "COMPLETED" ? <Button color="primary" type="submit" disabled={updating || isDisabled}>
-                <FontAwesomeIcon icon="save"/>
-                &nbsp;Save
-              </Button> : null}
-            </form>
-          )}
-        </Col>
-      </Row>
+              </Col>
+              <Col md='3'>
+                <Card>
+                  <CardHeader>
+                    Actions
+                  </CardHeader>
+                  <CardBody>
+                    <div className={"d-flex flex-column mt-2"}>
+                      <Label for="status">Status</Label>
+                      <SelectButton
+                        value={purchaseOrder?.status ?? "PLACED"}
+                        options={statusOptions}
+                        id="status"
+                        disabled={isOrderCompleted || isNew}
+                        onChange={(e) => setPurchaseOrder((prv) => ({...prv, status: e.value}))}
+                      />
+                    </div>
+
+                  </CardBody>
+                    <div className={"d-flex gap-3 mt-2"}>
+                      <Button tag={Link} to="/inventory/purchase-order" replace color="info">
+                        <FontAwesomeIcon icon="arrow-left" />
+                        &nbsp;Back
+                      </Button>
+                      {isOrderCompleted ?
+                          <Button color={'primary'} id="returnItems" onClick={handleSupplierReturn}>Return Items</Button>
+                         : null}
+                      {canSplit ?
+                        <Button color={'primary'} id="splitOrder" onClick={handleOrderSplit}>Split & Complete Order</Button>
+                        : null}
+                      {purchaseOrderEntity?.status !== "COMPLETED" ? <Button color="primary" type="submit" disabled={updating || isDisabled}>
+                        <FontAwesomeIcon icon="save"/>
+                        &nbsp;Save
+                      </Button> : null}
+                    </div>
+                </Card>
+            </Col>
+
+      </form>
+    </Row>
+      )}
     </div>
   );
 };

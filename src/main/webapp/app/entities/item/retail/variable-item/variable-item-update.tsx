@@ -76,9 +76,6 @@ export const VariableItemUpdate = () => {
   } | null>(null);
 
 
-  const hasStock = !isNew && variableItem?.variants?.some(v => v.stockQuantities?.length > 0 || v.purchaseConfig !== null) ;
-
-
   const filteredAvailableAttributes = () => {
     const existingAttributeIds = variableItem?.attributes?.map(attr => attr.attributeTax.id);
     return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
@@ -89,6 +86,10 @@ export const VariableItemUpdate = () => {
     return measureList.filter(m => m.id !== variableItem?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id) )
   }, [measureList?.length, variableItem?.baseMeasure?.id, variableItem?.measures?.length]) ;
 
+  const isAttributeAddButtonDisabled =
+    filteredAvailableAttributes().length === 0 ||
+    Object.keys(itemAttribute.attributeTax).length === 0 &&
+    itemAttribute.attributeTerms.length === 0;
 
 
 
@@ -605,7 +606,7 @@ export const VariableItemUpdate = () => {
 
 
                             <Col md="3" >
-                              <Button color="primary" disabled={filteredAvailableAttributes().length === 0} className={"mt-5"} onClick={handleAddAttribute}>
+                              <Button color="primary" disabled={isAttributeAddButtonDisabled} className={"mt-5"} onClick={handleAddAttribute}>
                                 <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
                               </Button>
                             </Col>
@@ -774,10 +775,9 @@ export const VariableItemUpdate = () => {
                     })}/>
                 </TabPanel>
 
-                {hasStock ?
                   <TabPanel header={translate('items.update.tabs.stock.label')}>
                   <ItemStockTab variants={variableItem?.variants} itemId={variableItem.id}/>
-                </TabPanel> : null}
+                </TabPanel>
 
               </TabView>
             </Col>
