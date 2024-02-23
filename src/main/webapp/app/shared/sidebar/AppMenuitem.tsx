@@ -17,7 +17,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
     const menuitemRef = useRef<HTMLLIElement>(null);
     const item = props.item;
     const key = props.parentKey ? props.parentKey + '-' + props.index : String(props.index);
-    console.log(key, 'keyyyyy')
+    // console.log(key, 'keyyyyy')
     const path = location.pathname;
     const parts = path.split('/');
     const lastPath = parts[parts.length - 1];

@@ -26,9 +26,7 @@ export const PizzaSizeUpdate = () => {
   const loading = useAppSelector(state => state.pizzaSize.loading);
   const updating = useAppSelector(state => state.pizzaSize.updating);
   const updateSuccess = useAppSelector(state => state.pizzaSize.updateSuccess);
-  const pizzaSizesList = useAppSelector(state => state.pizzaSize.entities);
 
-  console.log(pizzaSizesList, 'pizzaSizesList2')
 
   const handleClose = () => {
     navigate('/pizza-size' + location.search);

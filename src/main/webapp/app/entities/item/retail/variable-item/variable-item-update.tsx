@@ -87,9 +87,10 @@ export const VariableItemUpdate = () => {
   }, [measureList?.length, variableItem?.baseMeasure?.id, variableItem?.measures?.length]) ;
 
   const isAttributeAddButtonDisabled =
-    filteredAvailableAttributes().length === 0 ||
-    Object.keys(itemAttribute.attributeTax).length === 0 &&
-    itemAttribute.attributeTerms.length === 0;
+    filteredAvailableAttributes()?.length === 0 ||
+    itemAttribute?.attributeTax &&
+    Object.keys(itemAttribute?.attributeTax)?.length === 0 &&
+    itemAttribute?.attributeTerms?.length === 0;
 
 
 
