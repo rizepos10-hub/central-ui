@@ -1,21 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {Link, useLocation, useNavigate, useSearchParams} from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getEntities } from './purchase-order.reducer';
 import {DataTable, DataTablePageEvent} from "primereact/datatable";
 import {Column} from "primereact/column";
-import {Chip} from "primereact/chip";
-import {FilterMatchMode} from "primereact/api";
+
 import {IPurchaseOrder} from "app/shared/model/STOCK/purchase-order.model";
 import {Tag} from "primereact/tag";
 import {Dropdown} from "primereact/dropdown";
-import _ from "lodash";
+import {FilterMatchMode} from "primereact/api";
+import {stringify} from "ts-jest";
+
+const initialState = {
+  first: 0,
+  rows: 20,
+  page: 0,
+  sortField: null,
+  sortOrder: null,
+  query: '',
+  filters: {
+    "warehouse.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    'supplier.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    status: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    id: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    dateDelivered: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    datePlaced: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  }
+};
 
 export const PurchaseOrder = () => {
   const dispatch = useAppDispatch();
@@ -23,71 +39,55 @@ export const PurchaseOrder = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [search, setSearch] = useState('');
+  const [searchParam, setSearchParams]=  useSearchParams();
 
-  const [queryParams, setQueryParams] = useState({
-    size: 20,
-    page: 0,
-    sort: 'asc',
-    first: 0,
-    query: null
-  })
+  const query = JSON.parse(searchParam.get("query")) || initialState;
 
   const purchaseOrderList :IPurchaseOrder[]= useAppSelector(state => state.purchaseOrder.entities);
   const loading = useAppSelector(state => state.purchaseOrder.loading);
   const totalItems = useAppSelector(state => state.purchaseOrder.totalItems);
 
-  const [filters, setFilters] = useState({
-    "warehouse.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-   'supplier.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    status: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    id: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    dateDelivered: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    datePlaced: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  });
+
 
   const getAllEntities = () => {
       dispatch(getEntities({
-          page: queryParams.page,
-          size: queryParams.size,
-          sort: queryParams.sort,
+          query
         }));
   };
 
 
-
-
-
-  // const sortEntities = () => {
-  //   getAllEntities();
-  //   const endURL = `?page=${queryParams.page}&sort=${queryParams.sort},${paginationState.order}`;
-  //   if (location.search !== endURL) {
-  //     navigate(`${location.pathname}${endURL}`);
-  //   }
-  // };
-
   useEffect(() => {
     getAllEntities();
-  }, [queryParams.page, queryParams.size, queryParams.sort]);
+  }, [searchParam]);
 
 
   const handleSyncList = () => {
     getAllEntities();
   };
 
-  const onFilter = _.debounce((event) => {
+  const onSort = (event) => {
+    console.log(event,'event')
+    const queryParams = JSON.stringify(event);
 
-    console.log(event, 'event')
-  });
+    setSearchParams({query: queryParams}, {replace: true})
+  };
 
-  const onPage = (event: DataTablePageEvent) => {
-    const {page, first} = event;
+  const onFilter = (event: any) => {
+    event['first'] = 0;
+    event['page'] = 0;
 
-    setQueryParams(prevState => ({
-      ...prevState,
-      first,
-      page
-    }));
+    const queryParams = JSON.stringify(event);
+    console.log(queryParams, 'queryParams')
+    setSearchParams({query: queryParams}, {replace: true})
+
+  };
+
+
+
+  const onPage = (event) => {
+    const queryParams = JSON.stringify(event);
+
+    setSearchParams({query: queryParams}, {replace: true})
   };
 
   const statusBodyTemplate = (item) => {
@@ -116,16 +116,23 @@ export const PurchaseOrder = () => {
     ];
 
     const handleDropdownChange = (e) => {
-      setFilters((prev :any) => ({
-        ...prev,
-        status: { value: e.value, matchMode: 'equals' }
-      }));
+      const newQueryWithStatus = JSON.stringify(  {
+        ...query,
+        filters: {
+          ...query.filters,
+          status: {value: e.target.value, matchMode: 'equals'}
+        }
+      });
+      setSearchParams({query: newQueryWithStatus}, {replace: true})
     };
+
+
+    console.log(query, 'vquery')
 
     return (
       <Dropdown
         options={dropdownItems}
-        value={filters?.status?.value}
+        value={query?.filters?.status?.value}
         onChange={handleDropdownChange}
         placeholder={translate("tempApp.purchaseOrder.view.table.search.status")}
       />
@@ -134,7 +141,7 @@ export const PurchaseOrder = () => {
 
 
   const idColumnTemplate = rowData => {
-    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?page=${queryParams.page}&sort=${queryParams.sort}`;
+    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${query}`;
     return (
       <Link to={editUrl}>
         {rowData.id}
@@ -142,7 +149,7 @@ export const PurchaseOrder = () => {
     );
   };
   const actionsColumnTemplate = (rowData) => {
-    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?page=${queryParams.page}&sort=${queryParams.sort}`;
+    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${query}`;
     return (
       rowData?.status === "COMPLETED" ?
       <i className={"pi pi-eye"} onClick={() => navigate(editUrl)} style={{ cursor: 'pointer' , fontSize: '1.25rem' , marginLeft: '0.3rem'}} />
@@ -154,7 +161,7 @@ export const PurchaseOrder = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/inventory/purchase-order/${rowData.id}/delete?page=${queryParams.page}&sort=${queryParams.sort}`;
+    const deleteUrl = `/inventory/purchase-order/${rowData.id}/delete?&query=${query}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -163,7 +170,7 @@ export const PurchaseOrder = () => {
   };
 
   const handleCreate = () => {
-    navigate('/inventory/purchase-order/new')
+    navigate(`/inventory/purchase-order/new?query=${query}`)
   }
 
   const header = (
@@ -187,8 +194,9 @@ export const PurchaseOrder = () => {
   return (
     <div>
         <DataTable
-          value={purchaseOrderList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"
-          paginator totalRecords={totalItems} rows={20} lazy  first={queryParams.first}  onPage={onPage} onFilter={onFilter}
+          value={purchaseOrderList} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
+          paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
+          onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder}
                  >
           <Column field="id" header={translate('tempApp.purchaseOrder.view.table.fields.id')} body={idColumnTemplate} filter
                   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.id')}  sortable  />
