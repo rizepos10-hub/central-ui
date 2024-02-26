@@ -14,6 +14,6 @@ export function getLocalTimeZone(): string {
 }
 
 export function toLocalISOString(date: Date): string {
-  const timezone = 'America/Toronto';
+  const timezone = getLocalTimeZone();
   return format(date, "yyyy-MM-dd'T'HH:mm:ssxxx", { timeZone: timezone } as any);
 }

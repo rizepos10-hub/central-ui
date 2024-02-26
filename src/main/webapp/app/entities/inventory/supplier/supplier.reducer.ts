@@ -16,7 +16,7 @@ const initialState: EntityState<ISupplier> = {
 };
 
 const apiUrl = 'api/inventory/suppliers';
-const apiSearchUrl = 'api/_search/inventory/suppliers';
+const apiSearchUrl = 'api/inventory/_search/suppliers';
 
 // Actions
 

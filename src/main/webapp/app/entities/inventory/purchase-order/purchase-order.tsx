@@ -7,6 +7,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getEntities } from './purchase-order.reducer';
+import { searchEntities as searchSuppliers, getEntities as getSuppliers } from '../supplier/supplier.reducer';
+import { searchEntities as searchWarehouses, getEntities as getWarehouses } from '../warehouse/warehouse.reducer';
 import {DataTable, DataTablePageEvent} from "primereact/datatable";
 import {Column} from "primereact/column";
 
@@ -15,6 +17,11 @@ import {Tag} from "primereact/tag";
 import {Dropdown} from "primereact/dropdown";
 import {FilterMatchMode} from "primereact/api";
 import {stringify} from "ts-jest";
+import _ from "lodash";
+import {InputText} from "primereact/inputtext";
+import Select from "react-select";
+import {Calendar} from "primereact/calendar";
+import {toLocalISOString} from "app/shared/util/date-utils";
 
 const initialState = {
   first: 0,
@@ -24,8 +31,8 @@ const initialState = {
   sortOrder: null,
   query: '',
   filters: {
-    "warehouse.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    'supplier.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    "warehouse.id": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    'supplier.id': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     status: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     id: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     dateDelivered: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -39,20 +46,47 @@ export const PurchaseOrder = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [searchTermSupplier, setSearchTermSupplier] = useState('');
+  const [searchTermWarehouse, setSearchTermWarehouse] = useState('');
   const [searchParam, setSearchParams]=  useSearchParams();
 
   const query = JSON.parse(searchParam.get("query")) || initialState;
 
   const purchaseOrderList :IPurchaseOrder[]= useAppSelector(state => state.purchaseOrder.entities);
+  const supplierList = useAppSelector(state => state.supplier.entities);
+  const warehouseList = useAppSelector(state => state.warehouse.entities);
+
   const loading = useAppSelector(state => state.purchaseOrder.loading);
   const totalItems = useAppSelector(state => state.purchaseOrder.totalItems);
 
 
 
   const getAllEntities = () => {
-      dispatch(getEntities({
-          query
-        }));
+    const matchModeMap = {
+      contains: 'CONTAINS',
+      startsWith: 'STARTS_WITH',
+      endsWith: 'ENDS_WITH',
+      equals: 'EQUALS',
+      notEquals: 'NOT_EQUALS',
+    };
+
+    const updatedFilters = {...query.filters};
+    console.log(updatedFilters, 'updatedFilters')
+    Object.keys(updatedFilters).forEach(key => {
+      const { value, matchMode } = updatedFilters[key];
+      const updatedMatchMode = matchModeMap[matchMode];
+      updatedFilters[key] = { value, matchMode: updatedMatchMode };
+    });
+
+    const updatedQuery = {
+      ...query,
+      filters: updatedFilters
+    };
+
+
+    dispatch(getEntities({
+     query: updatedQuery
+    }));
   };
 
 
@@ -68,25 +102,20 @@ export const PurchaseOrder = () => {
   const onSort = (event) => {
     console.log(event,'event')
     const queryParams = JSON.stringify(event);
-
     setSearchParams({query: queryParams}, {replace: true})
   };
 
   const onFilter = (event: any) => {
     event['first'] = 0;
     event['page'] = 0;
-
     const queryParams = JSON.stringify(event);
-    console.log(queryParams, 'queryParams')
     setSearchParams({query: queryParams}, {replace: true})
-
   };
 
 
 
   const onPage = (event) => {
     const queryParams = JSON.stringify(event);
-
     setSearchParams({query: queryParams}, {replace: true})
   };
 
@@ -95,10 +124,8 @@ export const PurchaseOrder = () => {
       switch (order.status) {
         case 'PLACED':
           return 'warning';
-
         case 'COMPLETED':
           return 'success';
-
         default:
           return null;
       }
@@ -106,38 +133,99 @@ export const PurchaseOrder = () => {
     return <Tag value={item.status} severity={getSeverity(item)}></Tag>;
   };
 
+  const handleFilterDateChange = (e, field) => {
+
+    const newQueryWithStatus = JSON.stringify(  {
+      ...query,
+      filters: {
+        ...query.filters,
+        [field]: {value: toLocalISOString(e.value) , matchMode: 'startsWith'}
+      }
+    });
+    setSearchParams({query: newQueryWithStatus}, {replace: true});
+  }
 
 
-  const statusFilterTemplate = () => {
-    const dropdownItems = [
-      { label: 'All', value: null },
-      { label: 'Placed', value: "PLACED" },
-      { label: 'Completed', value: "COMPLETED" },
+
+  const filterTemplate = (field) => {
+    const statusDropdownItems = [
+      { name: 'All', id: null },
+      { name: 'Placed', id: "PLACED" },
+      { name: 'Completed', id: "COMPLETED" },
     ];
 
+    const dropDownOptions = {
+      "status": statusDropdownItems,
+      "supplier": supplierList,
+      "warehouse": warehouseList
+    };
+
+    useEffect(() => {
+      const searchAction = () => {
+          if (searchTermSupplier) {
+            dispatch(searchSuppliers({
+              query: searchTermSupplier
+            }));
+          } else {
+            dispatch(getSuppliers({}));
+          }
+
+          if (searchTermWarehouse) {
+            dispatch(searchWarehouses({
+              query: searchTermWarehouse
+            }));
+          } else {
+            dispatch(getWarehouses({}));
+          }
+
+      };
+
+      const debouncedSearchAction = _.debounce(searchAction, 500);
+      debouncedSearchAction();
+
+      return () => {
+        debouncedSearchAction.cancel();
+      };
+    }, [ searchTermSupplier,searchTermWarehouse]);
+
     const handleDropdownChange = (e) => {
+
       const newQueryWithStatus = JSON.stringify(  {
         ...query,
         filters: {
           ...query.filters,
-          status: {value: e.target.value, matchMode: 'equals'}
+          [field !== 'status' ? `${field}.id` : field]: {value: e.target.value, matchMode: 'equals'}
         }
       });
-      setSearchParams({query: newQueryWithStatus}, {replace: true})
+      setSearchParams({query: newQueryWithStatus}, {replace: true});
     };
 
 
-    console.log(query, 'vquery')
+    const filterElement = () => (
+      <span className="p-input-icon-right">
+           <InputText
+             placeholder="Search" value={field === 'supplier' ? searchTermSupplier : searchTermWarehouse}
+             onChange={e => field === 'supplier' ? setSearchTermSupplier(e.target.value) : setSearchTermWarehouse(e.target.value)} />
+          <i className="pi pi-search" />
+      </span>
+    );
 
     return (
       <Dropdown
-        options={dropdownItems}
-        value={query?.filters?.status?.value}
+        options={dropDownOptions[field]}
+        filter={field !== 'status'}
+        showFilterClear={true}
+        showClear
+        filterTemplate={filterElement}
+        optionLabel={"name"}
+        optionValue={"id"}
+        value={query?.filters?.[field !== 'status' ? `${field}.id` : field]?.value}
         onChange={handleDropdownChange}
         placeholder={translate("tempApp.purchaseOrder.view.table.search.status")}
       />
     );
   };
+
 
 
   const idColumnTemplate = rowData => {
@@ -152,11 +240,11 @@ export const PurchaseOrder = () => {
     const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${query}`;
     return (
       rowData?.status === "COMPLETED" ?
-      <i className={"pi pi-eye"} onClick={() => navigate(editUrl)} style={{ cursor: 'pointer' , fontSize: '1.25rem' , marginLeft: '0.3rem'}} />
+        <i className={"pi pi-eye"} onClick={() => navigate(editUrl)} style={{ cursor: 'pointer' , fontSize: '1.25rem' , marginLeft: '0.3rem'}} />
         :
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
+        <Link to={editUrl}>
+          <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+        </Link>
     );
   };
 
@@ -193,38 +281,40 @@ export const PurchaseOrder = () => {
 
   return (
     <div>
-        <DataTable
-          value={purchaseOrderList} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
-          paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
-          onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder}
-                 >
-          <Column field="id" header={translate('tempApp.purchaseOrder.view.table.fields.id')} body={idColumnTemplate} filter
-                  filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.id')}  sortable  />
+      <DataTable
+        value={purchaseOrderList} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
+        paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
+        onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder}
+      >
+        <Column field="id" header={translate('tempApp.purchaseOrder.view.table.fields.id')} body={idColumnTemplate} filter
+                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.id')}  sortable  />
 
-          <Column field="datePlaced" header={translate('tempApp.purchaseOrder.view.table.fields.datePlaced')} filter
-                  body={(rowData) => rowData?.datePlaced?.split("T")?.[0]}
-                  filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.datePlaced')}  sortable  />
+        <Column field="datePlaced" header={translate('tempApp.purchaseOrder.view.table.fields.datePlaced')} filter
+                body={(rowData) => rowData?.datePlaced?.split("T")?.[0]}  showFilterMenu={false}
+                filterElement={<Calendar  value={query?.filters?.datePlaced?.value} onChange={(e) => handleFilterDateChange(e, 'datePlaced')}  />}
+                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.datePlaced')}  sortable  />
 
-          <Column field="dateDelivered" header={translate('tempApp.purchaseOrder.view.table.fields.dateDelivered')} filter
-                  body={(rowData) => rowData?.datePlaced?.split("T")?.[0]}
-                  filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.dateDelivered')}  sortable  />
+        <Column field="dateDelivered" header={translate('tempApp.purchaseOrder.view.table.fields.dateDelivered')}
+                body={(rowData) => rowData?.dateDelivered?.split("T")?.[0]} filter showFilterMenu={false}
+                filterElement={<Calendar  value={query?.filters?.dateDelivered?.value} onChange={(e) => handleFilterDateChange(e, 'dateDelivered')}  />}
+                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.dateDelivered')}  sortable  />
 
-          <Column field="warehouse.name" header={translate('tempApp.purchaseOrder.view.table.fields.warehouse')} filter
-                  filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.warehouse')}  sortable  />
+        <Column field="warehouse.name" header={translate('tempApp.purchaseOrder.view.table.fields.warehouse')} filter showFilterMenu={false}
+                filterElement={() => filterTemplate("warehouse")}   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.warehouse')}  sortable  />
 
-          <Column field="supplier.name" header={translate('tempApp.purchaseOrder.view.table.fields.supplier')} filter
-                  filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.supplier')}  sortable  />
+        <Column field="supplier.name" header={translate('tempApp.purchaseOrder.view.table.fields.supplier')} filter showFilterMenu={false}
+                filterElement={() => filterTemplate("supplier")}   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.supplier')}  sortable  />
 
-          <Column field="status" header={translate('tempApp.purchaseOrder.view.table.fields.status')} filter
-                  filterElement={statusFilterTemplate}  body={statusBodyTemplate}  sortable  />
+        <Column field="status" header={translate('tempApp.purchaseOrder.view.table.fields.status')} filter showFilterMenu={false}
+                filterElement={() => filterTemplate("status")}  body={statusBodyTemplate}  sortable  />
 
-          <Column header={translate('tempApp.purchaseOrder.view.table.fields.actions')}  body={actionsColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+        <Column header={translate('tempApp.purchaseOrder.view.table.fields.actions')}  body={actionsColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+                bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header={translate('tempApp.purchaseOrder.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+        <Column  header={translate('tempApp.purchaseOrder.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+                 bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-        </DataTable>
+      </DataTable>
     </div>
   );
 };
