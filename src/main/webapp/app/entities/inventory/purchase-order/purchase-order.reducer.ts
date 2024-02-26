@@ -16,7 +16,7 @@ const initialState: EntityState<IPurchaseOrder> = {
 };
 
 const apiUrl = 'api/inventory/purchase-orders';
-const apiSearchUrl = 'api/_search/inventory/purchase-orders';
+const apiSearchUrl = 'api/inventory/_search/purchase-orders';
 // Actions
 
 export const searchEntities = createAsyncThunk('purchase-order/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
@@ -25,8 +25,7 @@ export const searchEntities = createAsyncThunk('purchase-order/search_entity', a
 });
 
 export const getEntities = createAsyncThunk('purchase-order/fetch_entity_list', async ({ page, size, sort, query }: IQueryParams) => {
-  const requestUrl = `${apiUrl}?${query ? `query=${query}&` : ""}cacheBuster=${new Date().getTime()}`;
-  return axios.get<IPurchaseOrder[]>(requestUrl);
+  return axios.post<IPurchaseOrder[]>(apiSearchUrl, query);
 });
 
 export const getEntity = createAsyncThunk(
