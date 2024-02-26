@@ -19,6 +19,7 @@ import { sendActivity } from 'app/config/websocket-middleware';
 import Instructions from "app/modules/instructions/instructions";
 import BusinessDetailRoutes from "app/entities/settings/business-details";
 import {useAppSelector} from "app/config/store";
+import AppConfig from "app/shared/sidebar/AppConfig";
 
 const loading = <div>loading ...</div>;
 
@@ -116,6 +117,17 @@ const AppRoutes = () => {
             </PrivateRoute>
           }
         />
+
+        <Route
+          path="theme/*"
+          element={
+            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER, AUTHORITIES.BUSINESS_SETTING]}>
+              { <AppConfig />}
+            </PrivateRoute>
+          }
+        />
+
+
         {/* <Route */}
         {/*   path="settings/*" */}
         {/*   element={ */}

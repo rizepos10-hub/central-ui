@@ -13,6 +13,7 @@ import {getSortState, translate, Translate} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
 import {Dropdown} from "primereact/dropdown";
+import {Card as PrimeCard} from 'primereact/card'
 
 export const PurchaseConfigUpdate = () => {
   const dispatch = useAppDispatch();
@@ -133,8 +134,8 @@ export const PurchaseConfigUpdate = () => {
         </Col>
       </Row>
       <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
-
+        <Col md="8" className="d-flex flex-column p-3">
+          <PrimeCard>
             <form onSubmit={saveEntity}>
               <FormGroup>
 
@@ -218,6 +219,7 @@ export const PurchaseConfigUpdate = () => {
                 &nbsp;Save
               </Button>
             </form>
+          </PrimeCard>
         </Col>
       </Row>
     </div>

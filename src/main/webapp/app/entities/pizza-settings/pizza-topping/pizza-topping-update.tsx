@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import {getEntity, updateEntity, createEntity, reset} from './pizza-topping.reducer';
+import {Card as PrimeCard} from 'primereact/card'
 
 import {InputText} from "primereact/inputtext";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
@@ -134,7 +135,8 @@ export const PizzaToppingUpdate = () => {
         </Col>
       </Row>
       <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+        <Col md="8" className="d-flex flex-column p-3">
+          <PrimeCard>
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -210,6 +212,7 @@ export const PizzaToppingUpdate = () => {
               </Button>
             </form>
           )}
+          </PrimeCard>
         </Col>
       </Row>
     </div>

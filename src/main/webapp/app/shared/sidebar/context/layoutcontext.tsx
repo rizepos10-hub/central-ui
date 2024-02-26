@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import type { ChildContainerProps, LayoutContextProps, LayoutConfig, LayoutState, Breadcrumb } from '../types/types';
+import {PrimeReactContext} from "primereact/api";
 
 export const LayoutContext = React.createContext({} as LayoutContextProps);
 
 export const LayoutProvider = (props: ChildContainerProps) => {
+    const { changeTheme } = useContext(PrimeReactContext);
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
     const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>({
+
         ripple: false,
         inputStyle: 'outlined',
-        menuMode: 'slim-plus',
-        menuTheme: 'colorScheme',
-        colorScheme: 'light',
+        menuMode: 'reveal',
+        menuTheme: 'primaryColor',
+        colorScheme: 'dark',
         theme: 'indigo',
         scale: 14
     });
@@ -27,6 +30,37 @@ export const LayoutProvider = (props: ChildContainerProps) => {
         sidebarActive: false,
         anchored: false
     });
+
+  useEffect(() => {
+    const storedLayoutConfig = localStorage.getItem('layoutConfig');
+    if (storedLayoutConfig) {
+      const parsedLayoutConfig = JSON.parse(storedLayoutConfig);
+      const { colorScheme , theme} = parsedLayoutConfig;
+
+      changeTheme?.(layoutConfig.theme, theme, "theme-link",
+        () => {
+          changeTheme?.(layoutConfig.colorScheme, colorScheme, "theme-link", () => {
+            setLayoutConfig({...parsedLayoutConfig})
+          })
+        }
+      );
+
+    }
+
+    const storedLayoutState = localStorage.getItem('layoutState');
+    if (storedLayoutState) {
+      setLayoutState(JSON.parse(storedLayoutState));
+    }
+  }, []);
+
+  useEffect(() => {
+
+    localStorage.setItem('layoutConfig', JSON.stringify(layoutConfig));
+  }, [layoutConfig]);
+
+  useEffect(() => {
+    localStorage.setItem('layoutState', JSON.stringify(layoutState));
+  }, [layoutState]);
 
     const onMenuToggle = () => {
         if (isOverlay()) {

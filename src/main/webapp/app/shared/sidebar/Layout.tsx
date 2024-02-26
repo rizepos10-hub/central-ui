@@ -159,6 +159,36 @@ export const Layout =  (props: ChildContainerProps) => {
   }
   const dispatch = useAppDispatch();
 
+  const onMouseEnter = () => {
+    if (!layoutState.anchored) {
+      if (timeout) {
+        clearTimeout(timeout);
+        timeout = null;
+      }
+      setLayoutState((prevLayoutState) => ({
+        ...prevLayoutState,
+        sidebarActive: true,
+      }));
+    }
+  };
+
+  const onMouseLeave = () => {
+    if (!layoutState.anchored) {
+      if (!timeout) {
+        timeout = setTimeout(
+          () =>
+            setLayoutState((prevLayoutState) => ({
+              ...prevLayoutState,
+              sidebarActive: false,
+            })),
+          300
+        );
+      }
+    }
+  };
+
+
+
   useEffect(() => {
     dispatch(getSession());
     dispatch(getProfile());
@@ -173,20 +203,20 @@ export const Layout =  (props: ChildContainerProps) => {
 
 
 
+
 console.log(isAdmin, 'hello admin')
 
   return (
     <React.Fragment>
 
       <div className={classNames('layout-container', containerClass)}>
-        {isAuthenticated &&   <div ref={sidebarRef} className="layout-sidebar" >
+        {isAuthenticated &&
+          <div ref={sidebarRef} className="layout-sidebar" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
           {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
           <AppSidebar />
         </div> }
-        {isAuthenticated && <AppTopbar ref={topbarRef}/>}
-
         <div className={isAuthenticated ? 'layout-content-wrapper' : ''}>
-
+        {isAuthenticated && <AppTopbar ref={topbarRef}/>}
         <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" />
           <ErrorBoundary>
             {/* <Header */}
@@ -205,7 +235,7 @@ console.log(isAdmin, 'hello admin')
             </ErrorBoundary>
           </div>
         {isAuthenticated && <AppProfileSidebar/>}
-        {/* {isAuthenticated && <AppConfig />} */}
+
         <div className="layout-mask"></div>
       </div>
       {isAuthenticated &&  <Footer /> }

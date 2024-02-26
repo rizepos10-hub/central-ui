@@ -1,4 +1,6 @@
 import PrimeReact from 'primereact/api';
+import { PrimeReactContext } from 'primereact/api';
+
 import { Button } from 'primereact/button';
 import { InputSwitch, InputSwitchChangeEvent } from 'primereact/inputswitch';
 import { RadioButton, RadioButtonChangeEvent } from 'primereact/radiobutton';
@@ -7,10 +9,14 @@ import { classNames } from 'primereact/utils';
 import React, { useContext, useEffect } from 'react';
 import { LayoutContext } from './context/layoutcontext';
 import type { AppConfigProps, ColorScheme } from './types/types';
+import {Col, Container, Row} from "reactstrap";
+import {Card} from "primereact/card";
 
 const AppConfig = (props: AppConfigProps) => {
     const { layoutConfig, setLayoutConfig, layoutState, setLayoutState, isSlim, isSlimPlus, isHorizontal } = useContext(LayoutContext);
+    const { changeTheme } = useContext(PrimeReactContext);
     const scales = [12, 13, 14, 15, 16];
+
     const componentThemes = [
         { name: 'indigo', color: '#6366F1' },
         { name: 'blue', color: '#3B82F6' },
@@ -26,21 +32,21 @@ const AppConfig = (props: AppConfigProps) => {
         if (isSlim() || isSlimPlus() || isHorizontal()) {
             setLayoutState((prevState) => ({ ...prevState, resetMenu: true }));
         }
-    }, [isHorizontal, isSlim, isSlimPlus, layoutConfig.menuMode, setLayoutState]);
+    }, [ layoutConfig.menuMode, setLayoutState]);
 
-    const onConfigButtonClick = () => {
-        setLayoutState((prevState) => ({
-            ...prevState,
-            configSidebarVisible: true
-        }));
-    };
-
-    const onConfigSidebarHide = () => {
-        setLayoutState((prevState) => ({
-            ...prevState,
-            configSidebarVisible: false
-        }));
-    };
+    // const onConfigButtonClick = () => {
+    //     setLayoutState((prevState) => ({
+    //         ...prevState,
+    //         configSidebarVisible: true
+    //     }));
+    // };
+    //
+    // const onConfigSidebarHide = () => {
+    //     setLayoutState((prevState) => ({
+    //         ...prevState,
+    //         configSidebarVisible: false
+    //     }));
+    // };
 
     const changeInputStyle = (e: RadioButtonChangeEvent) => {
         setLayoutConfig((prevState) => ({ ...prevState, inputStyle: e.value }));
@@ -59,27 +65,26 @@ const AppConfig = (props: AppConfigProps) => {
     };
 
     const changeMenuTheme = (e: RadioButtonChangeEvent) => {
-        setLayoutConfig((prevState) => ({ ...prevState, menuTheme: e.value }));
+      setLayoutConfig((prevState) => ({ ...prevState, menuTheme: e.value }));
     };
 
-  const changeColorScheme = (colorScheme: ColorScheme) => {
-    console.log('Changing color scheme:', colorScheme);
+    const changeColorScheme = (colorScheme: ColorScheme) => {
+    changeTheme?.(
+      layoutConfig.colorScheme,
+      colorScheme,
+      "theme-link",
+      () => {
+        setLayoutConfig((prevState) => ({ ...prevState, colorScheme }));
+      }
+      );
+    };
 
-    const themeLink = document.getElementById('theme-link');
-    console.log('Theme link element:', themeLink);
-
-    PrimeReact.changeTheme?.(layoutConfig.colorScheme, colorScheme, 'theme-link', () => {
-      setLayoutConfig((prevState) => ({ ...prevState, colorScheme }));
+  const _changeTheme = (theme: string) => {
+     changeTheme?.(layoutConfig.theme, theme, "theme-link", () => {
+      setLayoutConfig((prevState) => ({ ...prevState, theme }));
     });
   };
 
-    const changeTheme = (theme: string) => {
-      console.log('Changing  theme:', theme);
-
-      PrimeReact.changeTheme?.(layoutConfig.theme, theme, 'theme-link', () => {
-            setLayoutConfig((prevState) => ({ ...prevState, theme }));
-        });
-    };
 
     const decrementScale = () => {
         setLayoutConfig((prevState) => ({
@@ -104,13 +109,18 @@ const AppConfig = (props: AppConfigProps) => {
     }, [layoutConfig.scale]);
 
     return (
-        <>
-            <button className="layout-config-button p-link" type="button" onClick={onConfigButtonClick}>
-                <i className="pi pi-cog"></i>
-            </button>
 
-            <Sidebar visible={layoutState.configSidebarVisible} onHide={onConfigSidebarHide} position="right" className="layout-config-sidebar w-18rem">
-                <h5>Themes</h5>
+          <div>
+            <Row>
+              <Col md="8">
+                <h2>
+                 Themes
+                </h2>
+              </Col>
+            </Row>
+            <Row>
+              <Col md="8"  className="d-flex flex-column p-3">
+                <Card>
                 <div className="flex flex-wrap row-gap-3">
                     {componentThemes.map((theme, i) => {
                         return (
@@ -119,7 +129,7 @@ const AppConfig = (props: AppConfigProps) => {
                                     autoFocus={layoutConfig.theme === theme.name}
                                     type="button"
                                     className="cursor-pointer p-link w-2rem h-2rem border-circle flex-shrink-0"
-                                    onClick={() => changeTheme(theme.name)}
+                                    onClick={() => _changeTheme(theme.name)}
                                     style={{ backgroundColor: theme.color }}
                                 ></Button>
                             </div>
@@ -227,9 +237,18 @@ const AppConfig = (props: AppConfigProps) => {
                         <InputSwitch checked={layoutConfig.ripple} onChange={changeRipple}></InputSwitch>
                     </>
                 )}
-            </Sidebar>
-        </>
+                </Card>
+              </Col>
+            </Row>
+          </div>
+
     );
 };
 
 export default AppConfig;
+
+{/* <Sidebar visible={layoutState.configSidebarVisible} onHide={onConfigSidebarHide} position="right" className="layout-config-sidebar w-18rem"> */}
+{/* <button className="layout-config-button p-link" type="button" onClick={onConfigButtonClick}> */}
+{/*     <i className="pi pi-cog"></i> */}
+{/* </button> */}
+{/* </Sidebar> */}
