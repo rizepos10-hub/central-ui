@@ -70,7 +70,7 @@ export const App = () => {
         {/*     isOpenAPIEnabled={isOpenAPIEnabled} */}
         {/*   /> */}
         {/* </ErrorBoundary> */}
-        {/* <div className="container-fluid view-container row" id="app-view-container"> */}\
+        {/* <div className="container-fluid view-container row" id="app-view-container"> */}
       <PrimeReactProvider>
         <LayoutProvider>
         <Layout isAuthenticated={isAuthenticated}>

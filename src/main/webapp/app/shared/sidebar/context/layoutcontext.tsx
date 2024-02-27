@@ -13,7 +13,7 @@ export const LayoutProvider = (props: ChildContainerProps) => {
         inputStyle: 'outlined',
         menuMode: 'reveal',
         menuTheme: 'primaryColor',
-        colorScheme: 'dark',
+        colorScheme: 'light',
         theme: 'indigo',
         scale: 14
     });
@@ -37,14 +37,11 @@ export const LayoutProvider = (props: ChildContainerProps) => {
       const parsedLayoutConfig = JSON.parse(storedLayoutConfig);
       const { colorScheme , theme} = parsedLayoutConfig;
 
-      changeTheme?.(layoutConfig.theme, theme, "theme-link",
-        () => {
-          changeTheme?.(layoutConfig.colorScheme, colorScheme, "theme-link", () => {
-            setLayoutConfig({...parsedLayoutConfig})
-          })
-        }
-      );
-
+      changeTheme?.(layoutConfig.colorScheme, colorScheme, "theme-link", () => {
+        changeTheme?.(layoutConfig.theme, theme, "theme-link", () => {
+          setLayoutConfig(() => ({...parsedLayoutConfig}));
+        })
+      })
     }
 
     const storedLayoutState = localStorage.getItem('layoutState');

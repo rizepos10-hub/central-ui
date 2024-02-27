@@ -68,7 +68,7 @@ const AppConfig = (props: AppConfigProps) => {
       setLayoutConfig((prevState) => ({ ...prevState, menuTheme: e.value }));
     };
 
-    const changeColorScheme = (colorScheme: ColorScheme) => {
+   const changeColorScheme = (colorScheme: ColorScheme) => {
     changeTheme?.(
       layoutConfig.colorScheme,
       colorScheme,
@@ -78,6 +78,7 @@ const AppConfig = (props: AppConfigProps) => {
       }
       );
     };
+
 
   const _changeTheme = (theme: string) => {
      changeTheme?.(layoutConfig.theme, theme, "theme-link", () => {
