@@ -22,6 +22,7 @@ import {InputTextarea} from "primereact/inputtextarea";
 import {ColumnGroup} from "primereact/columngroup";
 import {Button as PrimeButton} from "primereact/button";
 import {SelectButton} from "primereact/selectbutton";
+import {Card} from "primereact/card";
 
 
 const statusOptions: any = [
@@ -193,7 +194,8 @@ export const SupplierReturnUpdate = () => {
         </Col>
       </Row>
       <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+        <Col md="8" className="d-flex flex-column p-3">
+          <Card>
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -319,6 +321,7 @@ export const SupplierReturnUpdate = () => {
               </Button> : null}
             </form>
           )}
+          </Card>
         </Col>
       </Row>
     </div>

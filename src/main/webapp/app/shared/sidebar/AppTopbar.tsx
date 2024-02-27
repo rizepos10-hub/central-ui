@@ -2,6 +2,7 @@ import { InputText } from 'primereact/inputtext';
 import React, { forwardRef, useContext, useImperativeHandle, useRef } from 'react';
 import AppBreadcrumb from './AppBreadCrumb';
 import { LayoutContext } from './context/layoutcontext';
+import {Card as PrimeCard} from "primereact/card"
 
 import { Button } from 'primereact/button';
 import {AppTopbarRef} from "app/shared/sidebar/types/layout";
@@ -25,7 +26,8 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
       // <div className="layout-topbar bg-white p-3" style={{ marginLeft: isDesktopEnvironment &&  giveMargin ? '18rem' : '0' }}>
 
 
-      <div className="layout-topbar bg-white p-3" style={{ marginLeft: isDesktopEnvironment &&  giveMargin ? '7.1rem' : '0' }}>
+      <div className="layout-topbar">
+
 
       <div className="topbar-start">
                 <button ref={menubuttonRef} type="button" className="topbar-menubutton p-link p-trigger" onClick={onMenuToggle}>

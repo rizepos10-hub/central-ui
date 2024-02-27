@@ -20,6 +20,7 @@ import AppRoutes from 'app/routes';
 import Sidebar, { Layout } from 'app/shared/sidebar/Layout';
 import { LayoutProvider } from 'app/shared/sidebar/context/layoutcontext';
 import { getState, setTenant } from 'app/shared/tenant/TenantContext';
+import {PrimeReactProvider} from "primereact/api";
 
 // const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
@@ -57,7 +58,6 @@ export const App = () => {
   return (
     // <Provider store={getStore()}>
     <BrowserRouter basename={baseHref}>
-      <LayoutProvider>
         {/* <div className="app-container" style={{ paddingTop }}> */}
         {/* <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" /> */}
         {/* <ErrorBoundary> */}
@@ -71,6 +71,8 @@ export const App = () => {
         {/*   /> */}
         {/* </ErrorBoundary> */}
         {/* <div className="container-fluid view-container row" id="app-view-container"> */}
+      <PrimeReactProvider>
+        <LayoutProvider>
         <Layout isAuthenticated={isAuthenticated}>
           <ErrorBoundary>
             <AppRoutes />
@@ -79,6 +81,7 @@ export const App = () => {
           {/* </div> */}
         </Layout>
       </LayoutProvider>
+      </PrimeReactProvider>
     </BrowserRouter>
 
     // </Provider>

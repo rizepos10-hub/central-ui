@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {Card as PrimeCard} from 'primereact/card'
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -73,7 +74,8 @@ export const ItemMeasureUpdate = () => {
         </Col>
       </Row>
       <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+        <Col md="8" className="d-flex flex-column p-3">
+          <PrimeCard>
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -114,6 +116,7 @@ export const ItemMeasureUpdate = () => {
               </Button>
             </form>
           )}
+          </PrimeCard>
         </Col>
       </Row>
     </div>
