@@ -32,6 +32,7 @@ import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
 import ItemStockTab from "app/shared/layout/item/item-stock-tab";
 import {IItemMeasure} from "app/shared/model/item-measure.model";
+import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
 
 
 
@@ -343,95 +344,6 @@ export const SimpleItemUpdate = () => {
 
                         <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange}/>
 
-                        <Row className={"mb-3 d-flex flex-column gap-3"} >
-                          <Accordion multiple  activeIndex={[0]}>
-                            <AccordionTab headerTemplate={translate("items.update.measures")}>
-                              <Col md="12" className={"d-flex gap-3 mb-3"}>
-                                <div className={"d-flex flex-column gap-2 w-6 mt-3"}>
-                                  <label className={"text-xl font-bold"}>
-                                    <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
-                                  </label>
-                                  <Select
-                                    value={simpleItem?.baseMeasure}
-                                    options={measureList}
-                                    name="baseMeasure"
-                                    getOptionValue={option => option.id}
-                                    getOptionLabel={option => option.name}
-                                    onChange={handleBaseMeasureChange}
-                                  />
-                                </div>
-
-                                <Table>
-                                  <thead>
-                                  <tr>
-                                    <th >Measure</th>
-                                    <th className="w-1">Exchange Rate</th>
-                                  </tr>
-                                  </thead>
-                                  <thead>
-                                  <tr>
-                                    <td>
-                                      <Select
-                                        value={measureToAdd?.itemMeasure || null}
-                                        isDisabled={!simpleItem?.baseMeasure}
-                                        options={filteredMeasures}
-                                        getOptionValue={option => option.id}
-                                        getOptionLabel={option => option.name}
-                                        onChange={(itemMeasure) => setMeasureToAdd(prev => ({...prev, itemMeasure}))}
-                                      />
-                                    </td>
-                                    <td>
-                                      <InputNumber
-                                        value={measureToAdd?.exchangeRate}
-                                        disabled={!measureToAdd?.itemMeasure}
-                                        onChange={(e) => setMeasureToAdd(prev => ({...prev, exchangeRate: e.value}))}
-                                      />
-                                    </td>
-                                    <td>
-                                      <Button
-                                        disabled={!measureToAdd?.exchangeRate} onClick={handleAddMeasure} color="primary"  className={"mb-2"} >Add</Button>
-                                    </td>
-                                  </tr>
-                                  </thead>
-                                </Table>
-                              </Col>
-
-                              <Col md="8">
-                                <Table>
-                                  <thead>
-                                  <tr>
-                                    <th><Translate contentKey={'items.update.measure'}>Measure</Translate></th>
-                                    <th><Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate></th>
-                                    <th>Remove</th>
-                                  </tr>
-                                  </thead>
-                                  <tbody>
-                                  {simpleItem?.measures?.map((exMeasure, index) => (
-                                    <tr key={index}>
-                                      <td>
-                                        {exMeasure?.itemMeasure?.name}
-                                      </td>
-                                      <td>
-                                        <InputNumber
-                                          value={exMeasure?.exchangeRate}
-                                          required
-                                          onChange={(e) => handleMeasuresChange(index, e.value)}
-                                        />
-                                      </td>
-                                      <td>
-                                        <PrimeButton type={"button"} onClick={() => handleRemoveMeasure(index)} severity={"danger"} >
-                                          <Translate contentKey={'items.update.remove'}>Remove</Translate>
-                                        </PrimeButton>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                  </tbody>
-                                </Table>
-                              </Col>
-                            </AccordionTab>
-                          </Accordion>
-                        </Row>
-
                         <Row className={"mb-3"} >
 
                           <Col md="4">
@@ -582,9 +494,99 @@ export const SimpleItemUpdate = () => {
                   })} />
                 </TabPanel>
 
+                <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                  <ItemLoyaltyTab excludedFromLoyaltyPoints={simpleItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
+                </TabPanel>
 
-                <TabPanel header={translate('items.update.tabs.stock.label')}>
+                <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
                   <ItemStockTab variants={simpleItem?.variants} itemId={simpleItem.id} />
+                </TabPanel>
+
+                <TabPanel header={translate('items.update.measures')}>
+                  <Row className={"mb-3 d-flex flex-column gap-3"} >
+                    <Col md="12" className={"d-flex gap-3 mb-3"}>
+                      <div className={"d-flex flex-column gap-2 w-6 mt-3"}>
+                        <label className={"text-xl font-bold"}>
+                          <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
+                        </label>
+                        <Select
+                          value={simpleItem?.baseMeasure}
+                          options={measureList}
+                          name="baseMeasure"
+                          getOptionValue={option => option.id}
+                          getOptionLabel={option => option.name}
+                          onChange={handleBaseMeasureChange}
+                        />
+                      </div>
+
+                      <Table>
+                        <thead>
+                        <tr>
+                          <th >Measure</th>
+                          <th className="w-1">Exchange Rate</th>
+                        </tr>
+                        </thead>
+                        <thead>
+                        <tr>
+                          <td>
+                            <Select
+                              value={measureToAdd?.itemMeasure || null}
+                              isDisabled={!simpleItem?.baseMeasure}
+                              options={filteredMeasures}
+                              getOptionValue={option => option.id}
+                              getOptionLabel={option => option.name}
+                              onChange={(itemMeasure) => setMeasureToAdd(prev => ({...prev, itemMeasure}))}
+                            />
+                          </td>
+                          <td>
+                            <InputNumber
+                              value={measureToAdd?.exchangeRate}
+                              disabled={!measureToAdd?.itemMeasure}
+                              onChange={(e) => setMeasureToAdd(prev => ({...prev, exchangeRate: e.value}))}
+                            />
+                          </td>
+                          <td>
+                            <Button
+                              disabled={!measureToAdd?.exchangeRate} onClick={handleAddMeasure} color="primary"  className={"mb-2"} >Add</Button>
+                          </td>
+                        </tr>
+                        </thead>
+                      </Table>
+                    </Col>
+
+                    <Col md="8">
+                      <Table>
+                        <thead>
+                        <tr>
+                          <th><Translate contentKey={'items.update.measure'}>Measure</Translate></th>
+                          <th><Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate></th>
+                          <th>Remove</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {simpleItem?.measures?.map((exMeasure, index) => (
+                          <tr key={index}>
+                            <td>
+                              {exMeasure?.itemMeasure?.name}
+                            </td>
+                            <td>
+                              <InputNumber
+                                value={exMeasure?.exchangeRate}
+                                required
+                                onChange={(e) => handleMeasuresChange(index, e.value)}
+                              />
+                            </td>
+                            <td>
+                              <PrimeButton type={"button"} onClick={() => handleRemoveMeasure(index)} severity={"danger"} >
+                                <Translate contentKey={'items.update.remove'}>Remove</Translate>
+                              </PrimeButton>
+                            </td>
+                          </tr>
+                        ))}
+                        </tbody>
+                      </Table>
+                    </Col>
+                  </Row>
                 </TabPanel>
 
               </TabView>

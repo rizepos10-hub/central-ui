@@ -12,6 +12,7 @@ import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
 import {getEntity, updateEntity, createEntity, reset, updatePrices, getPricesForCustomer} from './customer.reducer';
 import ItemSelectionModal from "app/entities/customer/item-selection-modal";
 import Select from "react-select";
+import {Card as PrimeCard} from 'primereact/card'
 
 export const CustomerUpdate = () => {
   const dispatch = useAppDispatch();
@@ -175,7 +176,8 @@ export const CustomerUpdate = () => {
         </Col>
       </Row>
       <Row >
-        <Col md="8"  className="d-flex flex-column p-3  bg-white">
+        <Col md="8"  className="d-flex flex-column p-3">
+          <PrimeCard>
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -329,6 +331,7 @@ export const CustomerUpdate = () => {
               </Button>
             </ValidatedForm>
           )}
+          </PrimeCard>
         </Col>
       </Row>
 

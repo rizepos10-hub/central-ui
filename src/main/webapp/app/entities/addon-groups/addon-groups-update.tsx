@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormText } from 'reactstrap';
+import {Button, Row, Col, FormText, Modal} from 'reactstrap';
 import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -9,9 +9,12 @@ import { getEntity, updateEntity, createEntity, reset } from './addon-groups.red
 import Select from "react-select";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import {Card as PrimeCard} from 'primereact/card'
+import {Button as PrimeButton} from 'primereact/button'
+import AddonUpdate from "app/entities/addon/addon-update";
+import AddAddonModal, {CreateAddonModal} from "app/entities/addon-groups/add-addon-modal";
 
-
-export const AddonUpdate = () => {
+export const AddonGroupUpdate = () => {
   const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
@@ -30,12 +33,17 @@ export const AddonUpdate = () => {
   );
 
   const [selectedAddons, setSelectedAddons] = useState([]);
+  const [showModal, setShowModal] = useState(false);
 
   const  handleAddonChange = selectedAddon => {
     setSelectedAddons(selectedAddon);
   };
   const handleClose = () => {
     navigate('/addon-groups' + location.search);
+  };
+
+  const handleShowModal = () => {
+    setShowModal(prev => !prev)
   };
 
   useEffect(() => {
@@ -102,10 +110,18 @@ export const AddonUpdate = () => {
         </Col>
       </Row>
       <Row>
-        <Col md="8"  className="d-flex flex-column p-3  bg-white">
+        <Col md="8"  className="d-flex flex-column p-3">
+          <PrimeCard>
           {loading ? (
             <p>Loading...</p>
           ) : (
+            <>
+              <div className={'d-flex justify-content-end'}>
+              <PrimeButton onClick={handleShowModal}>Create Addon</PrimeButton>
+              </div>
+
+                <CreateAddonModal  isOpen={showModal} toggle={handleShowModal}/>
+
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
               {!isNew ? (
                 <ValidatedField
@@ -148,11 +164,13 @@ export const AddonUpdate = () => {
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
             </ValidatedForm>
+            </>
           )}
+          </PrimeCard>
         </Col>
       </Row>
     </div>
   );
 };
 
-export default AddonUpdate;
+export default AddonGroupUpdate;

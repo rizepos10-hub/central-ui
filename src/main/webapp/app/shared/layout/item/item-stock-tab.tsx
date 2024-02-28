@@ -20,7 +20,7 @@ const ItemStockTab = ({variants, itemId}) => {
     const handleClick = () => {
       navigate(editUrl)
     }
-    return quantity.length > 0 ?  <Button icon={icon} onClick={handleClick} /> : <i className={icon} style={{ fontSize: '1.5rem'}} />;
+    return quantity?.length > 0 ?  <Button icon={icon} onClick={handleClick} /> : <i className={icon} style={{ fontSize: '1.5rem'}} />;
   };
 
 

@@ -16,6 +16,7 @@ import { getEntities as getDiscounts } from 'app/entities/discount/discount.redu
 import Select from "react-select";
 import value from "*.json";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import {Card as PrimeCard} from 'primereact/card'
 
 
 export const AddonUpdate = () => {
@@ -144,8 +145,8 @@ export const AddonUpdate = () => {
             </h2>
           </Col>
         </Row>
-        <Col md="8"  className="d-flex flex-column p-3  bg-white">
-
+        <Col md="8"  className="d-flex flex-column p-3">
+          <PrimeCard>
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
               {!isNew ? (
                 <ValidatedField
@@ -201,6 +202,7 @@ export const AddonUpdate = () => {
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
             </ValidatedForm>
+          </PrimeCard>
         </Col>
       </Row>
     </div>

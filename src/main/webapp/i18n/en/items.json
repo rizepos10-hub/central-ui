@@ -78,6 +78,9 @@
             "pizza": "Pizza Item Visibility"
           }
         },
+        "excludedFromLoyaltyPoints": {
+          "label": "Excluded From Loyalty Points"
+        },
         "stock": {
           "label": "Stock",
           "titles": {
@@ -101,6 +104,7 @@
       },
       "name": "Name",
       "description": "Description",
+      "variants": "Variants",
       "productionCenter": "Production Center",
       "categories": "Categories",
       "accountingGroups": "Accounting Groups",
