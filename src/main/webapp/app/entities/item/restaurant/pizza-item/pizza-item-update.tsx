@@ -29,6 +29,7 @@ import {getEntities as getCrustThicknesses} from "app/entities/pizza-settings/pi
 import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
 import {TabPanel, TabView} from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
+import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
 
 const items: MenuItem[] = [
   {
@@ -786,6 +787,10 @@ export const PizzaItemUpdate = () => {
                           onStateChanged={(visibility)=> setPizzaItem((prev => {
                           return {...prev, visibility}
                         }))}/>
+                      </TabPanel>
+
+                      <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                        <ItemLoyaltyTab excludedFromLoyaltyPoints={pizzaItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
                       </TabPanel>
                     </TabView>
 

@@ -27,8 +27,6 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
 
 
       <div className="layout-topbar">
-
-
       <div className="topbar-start">
                 <button ref={menubuttonRef} type="button" className="topbar-menubutton p-link p-trigger" onClick={onMenuToggle}>
                     <i className="pi pi-bars"></i>

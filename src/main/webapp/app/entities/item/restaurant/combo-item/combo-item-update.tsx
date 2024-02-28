@@ -21,6 +21,7 @@ import ComboItemSelection from "app/entities/item/restaurant/combo-item/combo-it
 import ComboItemAddonDropDown from "app/entities/item/restaurant/combo-item/combo-item-addon";
 import {TabPanel, TabView} from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
+import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
 
 
 export const ComboItemUpdate = () => {
@@ -462,6 +463,10 @@ export const ComboItemUpdate = () => {
                       return {...prev, visibility}
                     })}
                   />
+                </TabPanel>
+
+                <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                  <ItemLoyaltyTab excludedFromLoyaltyPoints={comboItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
                 </TabPanel>
               </TabView>
             </Col>

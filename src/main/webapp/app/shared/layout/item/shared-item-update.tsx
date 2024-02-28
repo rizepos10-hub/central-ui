@@ -233,19 +233,6 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                   </Col>
                 </Row>
                 <Row className={"my-3"} >
-                  <Col md={"4"}>
-                <div className={"d-flex my-3 gap-2"}>
-                  <label className={"text-xl font-bold"}>
-                    <Translate contentKey="items.update.excludedFromLoyalty">Excluded From Loyalty Points</Translate>
-                  </label>
-                  <Checkbox
-                    checked={item?.excludedFromLoyaltyPoints}
-                    onChange={(e) => onFieldChange('excludedFromLoyaltyPoints', e.checked)}
-                  />
-                </div>
-                  </Col>
-                </Row>
-                <Row className={"my-3"} >
                   <Col md={"6"}>
                 <div className={"d-flex flex-column"}>
                   <label className={"text-xl mt-2 font-bold"}>

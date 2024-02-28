@@ -37,6 +37,7 @@ import {getEntities as getSharedItemEntities} from "app/entities/item/restaurant
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
 import {IVisibility} from "app/shared/model/visibility.model";
+import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -109,14 +110,8 @@ export const ItemUpdate = () => {
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [itemStatus, setItemStatus] = useState('ENABLED');
-
-
   const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
-
-
-
   const [selectedAttachments, setSelectedAttachments] = useState([]);
-
   const [variants, setVariants] = useState([]);
 
   const newItem = useAppSelector(state => state.regularItem.entity);
@@ -755,16 +750,7 @@ export const ItemUpdate = () => {
                                   />
                                 </div>
                               </div>
-                              <div className={"d-flex my-3 gap-2"}>
-                                <label >
-                                  <Translate contentKey={'items.update.excludedFromLoyalty'}>Excluded From Loyalty Points</Translate>
 
-                                </label>
-                                <Checkbox
-                                  checked={excludedFromLoyaltyPoints}
-                                  onChange={(e) => setExcludedFromLoyaltyPoints(e.checked)}
-                                />
-                              </div>
                               <div className="d-flex justify-content-between mb-1">
                                 <div className="mb-3">
                                   <ValidatedField
@@ -943,6 +929,18 @@ export const ItemUpdate = () => {
                 </TabPanel>
                 <TabPanel header={translate('items.update.tabs.visibility.label')}>
                   <Visibility initialState={visibility} title={translate('items.update.tabs.visibility.titles.regular')} onStateChanged={(state)=> setVisibility(state)}/>
+                </TabPanel>
+
+                <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                  <div className={"d-flex my-3 gap-2"}>
+                    <label >
+                      <Translate contentKey={'items.update.excludedFromLoyalty'}>Excluded From Loyalty Points</Translate>
+                    </label>
+                    <Checkbox
+                      checked={excludedFromLoyaltyPoints}
+                      onChange={(e) => setExcludedFromLoyaltyPoints(e.checked)}
+                    />
+                  </div>
                 </TabPanel>
               </TabView>
             </Col>

@@ -12,6 +12,7 @@ import {DataTable, DataTableFilterEvent, DataTablePageEvent, DataTableSortEvent}
 import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
+import {Card as PrimeCard} from 'primereact/card'
 import {IQueryParams} from "app/shared/reducers/reducer.utils";
 import _ from "lodash";
 
@@ -122,17 +123,14 @@ export const StockConfig = () => {
 
   const quantityConfigBodyTemplate = (rowData) => {
     const {stockQuantities: quantity} = rowData;
-
     const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&itemId=${rowData.itemId}&page=${queryParams.page}
     &sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
 
     const icon = quantity?.length > 0 ? "pi pi-wallet" : "pi pi-ban";
-
     const handleClick = () => {
         navigate(editUrl)
     }
-
-    return quantity.length > 0 ?  <Button icon={icon} onClick={handleClick} /> : <i className={icon} style={{ fontSize: '1.5rem'}} />;
+    return quantity?.length > 0 ?  <Button icon={icon} onClick={handleClick} /> : <i className={icon} style={{ fontSize: '1.5rem'}} />;
   };
 
 
