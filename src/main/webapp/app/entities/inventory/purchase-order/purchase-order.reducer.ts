@@ -24,8 +24,13 @@ export const searchEntities = createAsyncThunk('purchase-order/search_entity', a
   return axios.get<IPurchaseOrder[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('purchase-order/fetch_entity_list', async ({ page, size, sort, query }: IQueryParams) => {
+export const filterEntities = createAsyncThunk('purchase-order/filter_entity_list', async ({ page, size, sort, query }: IQueryParams) => {
   return axios.post<IPurchaseOrder[]>(apiSearchUrl, query);
+});
+
+export const getEntities = createAsyncThunk('purchase-order/fetch_entity_list', async ({ page, size, sort, query }: IQueryParams) => {
+  const requestUrl = `${apiUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+  return axios.get<IPurchaseOrder[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
@@ -39,9 +44,9 @@ export const getEntity = createAsyncThunk(
 
 export const createEntity = createAsyncThunk(
   'purchase-order/create_entity',
-  async (entity: IPurchaseOrder, thunkAPI) => {
-    const result = await axios.post<IPurchaseOrder>(apiUrl, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+  async (entity: { purchaseOrder: IPurchaseOrder, query?: any }, thunkAPI) => {
+    const result = await axios.post<IPurchaseOrder>(apiUrl, cleanEntity(entity.purchaseOrder));
+    thunkAPI.dispatch(getEntities({query: entity?.query}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -59,9 +64,9 @@ export const splitOrder = createAsyncThunk(
 
 export const updateEntity = createAsyncThunk(
   'purchase-order/update_entity',
-  async (entity: IPurchaseOrder, thunkAPI) => {
-    const result = await axios.put<IPurchaseOrder>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+  async (entity: { purchaseOrder: IPurchaseOrder, query?: any }, thunkAPI) => {
+    const result = await axios.put<IPurchaseOrder>(`${apiUrl}/${entity?.purchaseOrder?.id}`, cleanEntity(entity?.purchaseOrder));
+    thunkAPI.dispatch(getEntities({query: entity?.query}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -104,7 +109,7 @@ export const SalesLocationSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities,filterEntities), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -120,7 +125,7 @@ export const SalesLocationSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities,filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

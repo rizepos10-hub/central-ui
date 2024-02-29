@@ -87,7 +87,7 @@ export const SupplierReturn = () => {
         case 'PLACED':
           return 'warning';
 
-        case 'COMPLETED':
+        case 'RECEIVED':
           return 'success';
 
         default:

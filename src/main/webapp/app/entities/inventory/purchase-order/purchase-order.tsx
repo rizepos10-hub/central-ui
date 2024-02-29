@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { searchEntities, getEntities } from './purchase-order.reducer';
+import { searchEntities, filterEntities } from './purchase-order.reducer';
 import { searchEntities as searchSuppliers, getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import { searchEntities as searchWarehouses, getEntities as getWarehouses } from '../warehouse/warehouse.reducer';
 import {DataTable, DataTablePageEvent} from "primereact/datatable";
@@ -22,6 +22,7 @@ import {InputText} from "primereact/inputtext";
 import Select from "react-select";
 import {Calendar} from "primereact/calendar";
 import {toLocalISOString} from "app/shared/util/date-utils";
+import {applyMatchModeMap} from "app/shared/util/util-func";
 
 const initialState = {
   first: 0,
@@ -62,29 +63,9 @@ export const PurchaseOrder = () => {
 
 
   const getAllEntities = () => {
-    const matchModeMap = {
-      contains: 'CONTAINS',
-      startsWith: 'STARTS_WITH',
-      endsWith: 'ENDS_WITH',
-      equals: 'EQUALS',
-      notEquals: 'NOT_EQUALS',
-    };
 
-    const updatedFilters = {...query.filters};
-    console.log(updatedFilters, 'updatedFilters')
-    Object.keys(updatedFilters).forEach(key => {
-      const { value, matchMode } = updatedFilters[key];
-      const updatedMatchMode = matchModeMap[matchMode];
-      updatedFilters[key] = { value, matchMode: updatedMatchMode };
-    });
-
-    const updatedQuery = {
-      ...query,
-      filters: updatedFilters
-    };
-
-
-    dispatch(getEntities({
+    const updatedQuery = applyMatchModeMap(query);
+    dispatch(filterEntities({
      query: updatedQuery
     }));
   };
@@ -124,7 +105,7 @@ export const PurchaseOrder = () => {
       switch (order.status) {
         case 'PLACED':
           return 'warning';
-        case 'COMPLETED':
+        case 'RECEIVED':
           return 'success';
         default:
           return null;
@@ -134,7 +115,6 @@ export const PurchaseOrder = () => {
   };
 
   const handleFilterDateChange = (e, field) => {
-
     const newQueryWithStatus = JSON.stringify(  {
       ...query,
       filters: {
@@ -151,7 +131,7 @@ export const PurchaseOrder = () => {
     const statusDropdownItems = [
       { name: 'All', id: null },
       { name: 'Placed', id: "PLACED" },
-      { name: 'Completed', id: "COMPLETED" },
+      { name: 'Received', id: "RECEIVED" },
     ];
 
     const dropDownOptions = {
@@ -229,7 +209,7 @@ export const PurchaseOrder = () => {
 
 
   const idColumnTemplate = rowData => {
-    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${query}`;
+    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${JSON.stringify(query)}`;
     return (
       <Link to={editUrl}>
         {rowData.id}
@@ -237,9 +217,9 @@ export const PurchaseOrder = () => {
     );
   };
   const actionsColumnTemplate = (rowData) => {
-    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${query}`;
+    const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${JSON.stringify(query)}`;
     return (
-      rowData?.status === "COMPLETED" ?
+      rowData?.status === "RECEIVED" ?
         <i className={"pi pi-eye"} onClick={() => navigate(editUrl)} style={{ cursor: 'pointer' , fontSize: '1.25rem' , marginLeft: '0.3rem'}} />
         :
         <Link to={editUrl}>
@@ -249,7 +229,7 @@ export const PurchaseOrder = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/inventory/purchase-order/${rowData.id}/delete?&query=${query}`;
+    const deleteUrl = `/inventory/purchase-order/${rowData.id}/delete?&query=${JSON.stringify(query)}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -258,7 +238,7 @@ export const PurchaseOrder = () => {
   };
 
   const handleCreate = () => {
-    navigate(`/inventory/purchase-order/new?query=${query}`)
+    navigate(`/inventory/purchase-order/new?query=${JSON.stringify(query)}`)
   }
 
   const header = (
@@ -291,7 +271,7 @@ export const PurchaseOrder = () => {
 
         <Column field="datePlaced" header={translate('tempApp.purchaseOrder.view.table.fields.datePlaced')} filter
                 body={(rowData) => rowData?.datePlaced?.split("T")?.[0]}  showFilterMenu={false}
-                filterElement={<Calendar  value={query?.filters?.datePlaced?.value} onChange={(e) => handleFilterDateChange(e, 'datePlaced')}  />}
+                filterElement={<Calendar  value={new Date(query?.filters?.datePlaced?.value)} onChange={(e) => handleFilterDateChange(e, 'datePlaced')}  />}
                 filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.datePlaced')}  sortable  />
 
         <Column field="dateDelivered" header={translate('tempApp.purchaseOrder.view.table.fields.dateDelivered')}

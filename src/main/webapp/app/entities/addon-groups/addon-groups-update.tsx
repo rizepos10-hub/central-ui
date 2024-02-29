@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import {Button, Row, Col, FormText, Modal} from 'reactstrap';
-import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import {Button, Row, Col} from 'reactstrap';
+import {getSortState,  Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
@@ -11,8 +11,7 @@ import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-uti
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {Card as PrimeCard} from 'primereact/card'
 import {Button as PrimeButton} from 'primereact/button'
-import AddonUpdate from "app/entities/addon/addon-update";
-import AddAddonModal, {CreateAddonModal} from "app/entities/addon-groups/add-addon-modal";
+import  {CreateAddonModal} from "app/entities/addon-groups/add-addon-modal";
 
 export const AddonGroupUpdate = () => {
   const dispatch = useAppDispatch();
@@ -27,6 +26,7 @@ export const AddonGroupUpdate = () => {
   const loading = useAppSelector(state => state.addonGroups.loading);
   const updating = useAppSelector(state => state.addonGroups.updating);
   const updateSuccess = useAppSelector(state => state.addonGroups.updateSuccess);
+  const addonUpdateSuccess = useAppSelector(state => state.addon.updateSuccess);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -52,13 +52,17 @@ export const AddonGroupUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
+
+  }, []);
+
+
+  useEffect(() => {
     dispatch(getAddons({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-
-  }, []);
+  }, [addonUpdateSuccess])
 
   useEffect(() => {
     if(addonGroupsEntity.addons){
@@ -71,7 +75,7 @@ export const AddonGroupUpdate = () => {
       setSelectedAddons([])
       reset()
     }
-  }, [updateSuccess,addonGroupsEntity]);
+  }, [updateSuccess,addonGroupsEntity.id]);
 
   const saveEntity = values => {
     console.log(values, 'values')
@@ -88,6 +92,7 @@ export const AddonGroupUpdate = () => {
       dispatch(updateEntity(entity));
     }
   };
+
 
   const defaultValues = () =>
     isNew

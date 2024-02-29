@@ -21,6 +21,7 @@ import {fromPairs} from "lodash";
 import {Dropdown} from "primereact/dropdown";
 import {InputText} from "primereact/inputtext";
 import {translate} from "react-jhipster";
+import {toLocalISOString} from "app/shared/util/date-utils";
 
 interface LazyTableState {
   first?: number;
@@ -35,20 +36,9 @@ interface LazyTableState {
 
 export const Order = () => {
   const dispatch = useAppDispatch();
-
-
-  const [selectAll, setSelectAll] = useState(false);
-  const [selectedOrders, setSelectedOrders] = useState(null);
-
   const navigate = useNavigate();
-
   const [dates, setDates] = useState<string | Date | Date[] | null>(null);
-
-
   const [orderStatuses, setOrderStatuses]:any = useState([]);
-
-
-
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
     rows: 10,
@@ -70,24 +60,15 @@ export const Order = () => {
     }
   });
 
-  console.log(dates, 'dates')
-
   const orderList = useAppSelector(state => state.order.entities);
   const totalOrders = useAppSelector(state => state.order.totalOrders);
-
   const loading = useAppSelector(state => state.order.loading);
   const branchList = useAppSelector(state => state.branch.entities);
-
   const orderSources = useAppSelector(state => state.order.orderSources);
 
 
-  console.log(orderList, 'orderList')
-
   const getBranchName = (branchId) => {
-    console.log(branchId, 'branchID')
     const branch = branchList.find(branch => branch.id === branchId);
-    console.log(branch, 'branch')
-
     return branch ? branch.name : 'Unknown Branch';
   };
 
@@ -97,56 +78,9 @@ export const Order = () => {
       value: branch.id,
     }));
 
-  const statusOptions = [
-    { label: 'DRAFT', value: 'DRAFT' },
-    { label: 'PROCESSING', value: 'PROCESSING' },
-    { label: 'Delivered', value: 'DELIVERED' },
-    { label: 'Done', value: 'DONE' }
-  ];
-  // const handleFromDateChange = event => {
-  //   setLazyState(prevState => ({
-  //     ...prevState,
-  //     filters: {
-  //       ...prevState.filters,
-  //       fromDate: `${event.target.value}T00:00:00.000Z`,
-  //     },
-  //   }));
-  // };
-  //
-  // const handleToDateChange = event => {
-  //   setLazyState(prevState => ({
-  //     ...prevState,
-  //     filters: {
-  //       ...prevState.filters,
-  //       toDate: `${event.target.value}T00:00:00.000Z`,
-  //     },
-  //   }));
-  // };
 
 
-  const onSelectionChange = (event) => {
-    const value = event.value;
-
-    setSelectedOrders(value);
-    setSelectAll(value.length === orderList.length);
-  };
-
-  // const onSelectAllChange = (event) => {
-  //   const selectAll = event.checked;
-  //
-  //   if (selectAll) {
-  //     CustomerService.getCustomers().then((data) => {
-  //       setSelectAll(true);
-  //       setSelectedCustomers(data.customers);
-  //     });
-  //   } else {
-  //     setSelectAll(false);
-  //     setSelectedCustomers([]);
-  //   }
-  // };
     const onFilter = (event) => {
-      console.log(event, 'event');
-
       const newDates = event.filters.createdDate || null;
       setDates(newDates);
 
@@ -155,17 +89,13 @@ export const Order = () => {
     };
 
 
-
-
-
   const onSort = (event) => {
-    console.log(event, 'event');
     const sortField = event.sortField;
     const sortOrder = event.sortOrder;
     setLazyState((prev) => ({
       ...prev,
-      sortField: sortField,
-      sortOrder: sortOrder,
+      sortField,
+      sortOrder,
     }));
   };
   const onPage = (event) => {
@@ -203,15 +133,10 @@ export const Order = () => {
         branch: lazyState.filters.branchId?.value || '',
         tables: lazyState.filters.tables?.value || '',
         size: lazyState.rows ,
-        fromDate: dates && dates[0] ?  startOfDay(new Date(dates[0])).toISOString() : '',
-        toDate: dates && dates[1] ? endOfDay(new Date(dates[1])).toISOString() : '',
+        fromDate: dates && dates[0] ?  toLocalISOString(startOfDay(new Date(dates[0]))) : '',
+        toDate: dates && dates[1] ? toLocalISOString(endOfDay(new Date(dates[1]))) : '',
         sort: `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}`
-
-
       };
-      console.log(lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '', 'hellolog')
-      console.log(lazyState.filters.customer?.phone, 'hellologs')
-
       dispatch(filterOrders(queryParams));
     } else {
       dispatch(getEntities({}));
@@ -227,38 +152,8 @@ export const Order = () => {
   }, [lazyState,dates]);
 
 
-
-  // useEffect(() => {
-  //   dispatch(filterOrders({ lazyState }));
-  //   dispatch(getBranches({}))
-  //
-  // }, [lazyState]);
-
-console.log(orderList.length, 'len')
   return (
     <div>
-      <Row>
-        <Col sm="12">
-
-          {/* <form onSubmit={event => { event.preventDefault(); }}> */}
-          {/*   <div className="row mb-3"> */}
-          {/*     <div className="col-md-6"> */}
-          {/*       <label htmlFor="fromDate" className="form-label">From Date:</label> */}
-          {/*       <input type="date" id="fromDate" className="form-control" value={lazyState.filters.fromDate} onChange={handleFromDateChange} /> */}
-          {/*     </div> */}
-          {/*     <div className="col-md-6"> */}
-          {/*       <label htmlFor="toDate" className="form-label">To Date:</label> */}
-          {/*       <input type="date" id="toDate" className="form-control" value={lazyState.filters.toDate} onChange={handleToDateChange} /> */}
-          {/*     </div> */}
-          {/*   </div> */}
-          {/*   <div className="text-center"> */}
-          {/*     <button type="submit" className="btn btn-primary">{loading ? 'Loading...' : 'Get Orders'}</button> */}
-          {/*   </div> */}
-          {/* </form> */}
-        </Col>
-      </Row>
-      <div>
-
           <div className="p-3 mb-2" style={{ background: 'var(--surface-card)', borderRadius: '10px'}}>
             <DataTable
               value={orderList}
@@ -283,7 +178,6 @@ console.log(orderList.length, 'len')
               selectionMode="single"
               onSelectionChange={(e:any) => navigate(`/order/${e.value.id}`)}
             >
-              {/* <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} /> */}
               <Column
                 field="id"
                 header={translate('orders.view.table.fields.id')}
@@ -337,26 +231,24 @@ console.log(orderList.length, 'len')
                 field="createdDate"
                 filter
                 sortable
-
                 header={translate('orders.view.table.fields.date')}
                 body={(rowData) => (
                   <span>
-      {rowData.createdDate &&
-        `${new Date(rowData.createdDate).toLocaleString()} `}
-    </span>
+              {rowData.createdDate &&
+                `${new Date(rowData.createdDate).toLocaleString()} `}
+                </span>
                 )}
-                // todo
-                // filterElement={
-                //   <Calendar
-                //     style={{width: '12rem'}}
-                //     value={dates}
-                //     onChange={(e: CalendarChangeEvent) => setDates(e.value)}
-                //     selectionMode="range"
-                //     placeholder={translate('orders.view.table.filters.date')}
-                //   />
-                // }
-              />
 
+                filterElement={
+                  <Calendar
+                    style={{width: '12rem'}}
+                    value={dates as any}
+                    onChange={(e: any) => setDates(e.value)}
+                    selectionMode="range"
+                    placeholder={translate('orders.view.table.filters.date')}
+                  />
+                }
+              />
 
               <Column field="discount" sortable
                 header={translate('orders.view.table.fields.discount')} body={rowData => rowData.discount? <p className="text-success text-center ">&#10004;</p>:
@@ -465,8 +357,6 @@ console.log(orderList.length, 'len')
               />
             </DataTable>
           </div>
-
-      </div>
     </div>
   );
 };

@@ -65,39 +65,13 @@ export const SupplierReturnUpdate = () => {
 
   const filteredOrderLines = supplierReturn?.purchaseOrder?.orderLines?.filter((ordrLine) => !returnedIds?.includes(ordrLine?.id));
 
-  const isDisabled = supplierReturnEntity?.status === "COMPLETED";
 
+  const isDisabled = supplierReturnEntity?.status === "COMPLETED";
+  console.log(isDisabled, 'isDisabled');
+  console.log(supplierReturnEntity, 'supplierReturnEntity')
   const handleClose = () => {
     navigate('/inventory/supplier-return' + location.search);
   };
-
-
-  useEffect(() => {
-    if(isNew && poId){
-      dispatch(getPurchaseOrder(poId));
-    }
-    if (isNew) {
-      dispatch(reset());
-    } else {
-      dispatch(getEntity(id));
-    }
-
-    if(!isDisabled){
-
-      dispatch(getPurchaseOrders({
-        query: `status=COMPLETED&filterReturned=${true}`,
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }));
-    }
-
-    return () => {
-      dispatch(resetPO());
-    }
-
-  }, []);
-
 
 
   useEffect(() => {
@@ -111,6 +85,39 @@ export const SupplierReturnUpdate = () => {
       setSupplierReturn((prevState) => ({...prevState, purchaseOrder: purchaseOrderEntity}))
     }
   }, [updateSuccess, supplierReturnEntity?.id, purchaseOrderEntity.id]);
+
+
+  useEffect(() => {
+    if(isNew && poId){
+      dispatch(getPurchaseOrder(poId));
+    }
+    if (isNew) {
+      dispatch(reset());
+    } else {
+      dispatch(getEntity(id));
+    }
+    const timer = setTimeout(() => {
+      if(!isDisabled){
+        console.log(isDisabled, 'isDisabled')
+        dispatch(getPurchaseOrders({
+          query: `status=COMPLETED&filterReturned=${true}`,
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        }));
+      }
+    }, 2000);
+
+    return () => {
+      clearTimeout(timer);
+      dispatch(resetPO());
+    }
+
+  }, []);
+
+
+
+
 
 
   const handleAdd = (e) => {
@@ -256,7 +263,7 @@ export const SupplierReturnUpdate = () => {
                     <Column selectionMode="multiple" headerStyle={{width: '3rem'}}/>
                     <Column field="item.name" header="Item"/>
                     <Column field="lineTotal" header="Line Total"/>
-                    <Column field="price" header="Price"/>
+                    <Column field="price" header="Cost Price"/>
                     <Column field="received" header="Received Quantity"/>
                     <Column field="returnedQuantity" header="Returned Quantity"/>
                     <Column  body={(rowData) => rowData.received - rowData.returnedQuantity} header="Available Quantity" />
