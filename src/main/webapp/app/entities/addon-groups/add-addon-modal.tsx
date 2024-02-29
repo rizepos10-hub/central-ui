@@ -18,8 +18,6 @@ import {InputNumber} from "primereact/inputnumber";
 export const CreateAddonModal = ({isOpen, toggle}) => {
   const dispatch = useAppDispatch();
 
-  const updating = useAppSelector(state => state.addon.updating);
-  const updateSuccess = useAppSelector(state => state.addon.updateSuccess);
   const discounts = useAppSelector(state => state.discount.entities);
 
   const [paginationState, setPaginationState] = useState(

@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {Link, useNavigate, useParams} from 'react-router-dom';
+import {Link, useLocation, useNavigate, useParams, useSearchParams} from 'react-router-dom';
 import {
   Button,
   Row,
@@ -42,19 +42,24 @@ import {convertDateTimeToServer, toLocalISOString} from "app/shared/util/date-ut
 import {SelectButton} from "primereact/selectbutton";
 import {IInventoryItem, IInventoryItemVariant} from "app/shared/model/STOCK/inventory-item.model";
 import _ from "lodash";
+import {applyMatchModeMap} from "app/shared/util/util-func";
 
 
 const statusOptions = [
   "PLACED",
-  "COMPLETED"
+  "RECEIVED"
 ]
 
 export const PurchaseOrderUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchLocation = new URLSearchParams(location.search)
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
+  const [searchParam]=  useSearchParams();
 
+  const query = JSON.parse(searchLocation.get("query")) ;
   const [purchaseOrder, setPurchaseOrder] = useState<IPurchaseOrder>({
     status: "PLACED"
   });
@@ -87,9 +92,9 @@ export const PurchaseOrderUpdate = () => {
   };
 
 
-  const isOrderCompleted = purchaseOrderEntity?.status === "COMPLETED";
-  const canSplit = !isOrderCompleted && purchaseOrderEntity?.id;
-  const isDisabled = !purchaseOrder.supplier || !purchaseOrder.warehouse || isOrderCompleted;
+  const isOrderReceived = purchaseOrderEntity?.status === "RECEIVED";
+  const canSplit = !isOrderReceived && purchaseOrderEntity?.id;
+  const isDisabled = !purchaseOrder.supplier || !purchaseOrder.warehouse || isOrderReceived;
 
   console.log(isDisabled, 'isDisabled')
 
@@ -266,15 +271,19 @@ export const PurchaseOrderUpdate = () => {
   const saveEntity = (e) => {
     e.preventDefault();
 
-    if (purchaseOrder?.status === "COMPLETED") {
+    if (purchaseOrder?.status === "RECEIVED") {
       const isValid = validateQuantity();
       if (!isValid) {
         return;
       }
     }
+    const updatedQuery = applyMatchModeMap(query);
 
     const entity = {
-      ...purchaseOrder,
+      purchaseOrder: {
+        ...purchaseOrder,
+      },
+      query: updatedQuery
     };
 
     if (isNew) {
@@ -375,7 +384,7 @@ export const PurchaseOrderUpdate = () => {
                  id="supplier"
                  placeholder={"Select supplier"}
                  value={purchaseOrder?.supplier}
-                 isDisabled={isOrderCompleted}
+                 isDisabled={isOrderReceived}
                  getOptionLabel={(option: ISupplier) => option.name}
                  getOptionValue={option => option.id}
                  onChange={(selectedSupplier) => setPurchaseOrder((prev) => ({...prev, supplier: selectedSupplier}))}
@@ -390,7 +399,7 @@ export const PurchaseOrderUpdate = () => {
                    placeholder={"Select warehouse"}
                    options={warehouseList}
                    value={purchaseOrder?.warehouse}
-                   isDisabled={isOrderCompleted || !purchaseOrder?.supplier}
+                   isDisabled={isOrderReceived || !purchaseOrder?.supplier}
                    getOptionLabel={(option: IWarehouse) => option.name}
                    getOptionValue={option => option.id}
                    onChange={(selectedWarehouse) => setPurchaseOrder((prev) => ({...prev, warehouse: selectedWarehouse}))}
@@ -458,7 +467,7 @@ export const PurchaseOrderUpdate = () => {
                       <td>Variant</td>
                       <td>Description</td>
                       <td>Quantity</td>
-                      <td>Price</td>
+                      <td>Cost Price</td>
                       <td>Delivery Date</td>
                       <td>Sub Total</td>
                     </tr>
@@ -551,7 +560,7 @@ export const PurchaseOrderUpdate = () => {
                     <Column field="quantity" editor={(options) => numberEditor(options)} header={"Quantity"} />
                     <Column field="received" editor={(options) => receivedEditor(options)} header={"Received Quantity"} />
                     <Column field="returnedQuantity" header={"Returned Quantity"} />
-                    <Column field="price" editor={(options) => numberEditor(options)} header={"Price"} />
+                    <Column field="price" editor={(options) => numberEditor(options)} header={"Cost Price"} />
                     <Column field="deliveryDate" header={"Delivery Date"}
                             body={(rowData) => rowData.deliveryDate ? new Date(rowData.deliveryDate).toDateString() : ''}
                     />
@@ -656,7 +665,7 @@ export const PurchaseOrderUpdate = () => {
                         value={purchaseOrder?.status ?? "PLACED"}
                         options={statusOptions}
                         id="status"
-                        disabled={isOrderCompleted || isNew}
+                        disabled={isOrderReceived || isNew}
                         onChange={(e) => setPurchaseOrder((prv) => ({...prv, status: e.value}))}
                       />
                     </div>
@@ -667,13 +676,13 @@ export const PurchaseOrderUpdate = () => {
                         <FontAwesomeIcon icon="arrow-left" />
                         &nbsp;Back
                       </Button>
-                      {isOrderCompleted ?
+                      {isOrderReceived ?
                           <Button color={'primary'} id="returnItems" onClick={handleSupplierReturn}>Return Items</Button>
                          : null}
                       {canSplit ?
                         <Button color={'primary'} id="splitOrder" onClick={handleOrderSplit}>Split & Complete Order</Button>
                         : null}
-                      {purchaseOrderEntity?.status !== "COMPLETED" ? <Button color="primary" type="submit" disabled={updating || isDisabled}>
+                      {purchaseOrderEntity?.status !== "RECEIVED" ? <Button color="primary" type="submit" disabled={updating || isDisabled}>
                         <FontAwesomeIcon icon="save"/>
                         &nbsp;Save
                       </Button> : null}

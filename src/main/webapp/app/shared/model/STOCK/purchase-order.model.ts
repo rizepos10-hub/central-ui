@@ -5,7 +5,7 @@ import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 export interface IPurchaseOrder {
   id?: string;
   supplier?: ISupplier;
-  status?: "PLACED" | "COMPLETED";
+  status?: "PLACED" | "RECEIVED";
   datePlaced?: Date | string;
   dateDelivered?: Date | string;
   warehouse?: IWarehouse;
