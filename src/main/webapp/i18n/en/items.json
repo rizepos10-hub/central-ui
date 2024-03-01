@@ -79,7 +79,7 @@
           }
         },
         "excludedFromLoyaltyPoints": {
-          "label": "Excluded From Loyalty Points"
+          "label": "Loyalty"
         },
         "stock": {
           "label": "Stock",

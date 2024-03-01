@@ -6,7 +6,7 @@ import {IProductionCenter} from "app/shared/model/PRINTER/production-center.mode
 import {IVisibility} from "app/shared/model/visibility.model";
 import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {IAddon} from "app/shared/model/ADDON/addon.model";
-import {IAddonGroups} from "app/shared/model/ADDON/addon-groups.model";
+import {IAddonGroup} from "app/shared/model/ADDON/addon-groups.model";
 
 export interface IItem {
   id?: string;
@@ -19,7 +19,7 @@ export interface IItem {
   addons?: IAddon[];
   addonGroups?: {
     required?: boolean,
-    addonGroup?: IAddonGroups
+    addonGroup?: IAddonGroup
   }[];
   excludedFromLoyaltyPoints?: boolean;
   status?: ItemStatus | null;

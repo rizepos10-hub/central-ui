@@ -65,10 +65,8 @@ export const getOrderStatuses = createAsyncThunk('order/fetch_orderStatus_list',
 export const filterOrders = createAsyncThunk(
   'order/filter_orders',
   async (queryParams: any) => {
-    console.log(queryParams, 'hello from filter');
     try {
       const formData = new URLSearchParams(queryParams).toString();
-
       const response = await axios.post<IOrder[]>('api/orders/filtered', formData);
       return response;
     } catch (error) {

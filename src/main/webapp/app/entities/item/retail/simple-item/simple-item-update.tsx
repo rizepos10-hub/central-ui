@@ -338,31 +338,29 @@ export const SimpleItemUpdate = () => {
 
                   <Row>
 
-                    <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
+                    <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
-                      <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                      <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
+
+                        <Col md="7">
+                          <div className={"d-flex flex-column gap-2"}>
+                            <label className={"text-xl font-bold"}>
+                              <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                            </label>
+                            <InputText
+                              name="sku"
+                              id="sku"
+                              required={true}
+                              placeholder={translate('items.update.placeholders.itemSku')}
+                              value={simpleItem?.variants?.[0]?.sku}
+                              onChange={(e) => handleSimpleItemChange('sku', e.target.value)}
+                            />
+                          </div>
+                        </Col>
 
                         <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange}/>
 
-                        <Row className={"mb-3"} >
-
-                          <Col md="4">
-                            <div className={"d-flex flex-column gap-2"}>
-                              <label className={"text-xl font-bold"}>
-                                <Translate contentKey={'items.update.sku'}>SKU</Translate>
-                              </label>
-                              <InputText
-                                name="sku"
-                                id="sku"
-                                required={true}
-                                placeholder={translate('items.update.placeholders.itemSku')}
-                                value={simpleItem?.variants?.[0]?.sku}
-                                onChange={(e) => handleSimpleItemChange('sku', e.target.value)}
-                              />
-                            </div>
-                          </Col>
-
-                          <Col md="4">
+                          <Col md="7">
                             <div className={"d-flex flex-column gap-2"}>
                               <label className={"text-xl font-bold"}>
                                 <Translate contentKey={'items.update.price'}>Price</Translate>
@@ -380,7 +378,7 @@ export const SimpleItemUpdate = () => {
                             </div>
                           </Col>
 
-                          <Col md="4">
+                          <Col md="7">
                             <div className={"d-flex flex-column gap-2"}>
                               <label className={"text-xl font-bold"}>
                                 <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
@@ -397,7 +395,7 @@ export const SimpleItemUpdate = () => {
                           </Col>
 
 
-                          <Col md="8" className={"mt-3"}>
+                          <Col md="7" className={"mt-3"}>
                             <h4><Translate contentKey={'items.update.branchPrices'}>Branch Prices</Translate></h4>
                             <Table>
                               <thead>
@@ -427,7 +425,7 @@ export const SimpleItemUpdate = () => {
                           </Col>
 
                           <Row>
-                            <Col md="4">
+                            <Col md="7">
                               <div className={"d-flex flex-column gap-2"}>
                                 <label className={"text-xl font-bold"}>
                                   <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
@@ -444,7 +442,7 @@ export const SimpleItemUpdate = () => {
 
 
 
-                            <Col md="4" >
+                            <Col md="7" >
                               <Button
                                 color="primary" className={"mt-5"} onClick={handleAddAttribute}
                                 disabled={isAttributeAddButtonDisabled}
@@ -452,7 +450,7 @@ export const SimpleItemUpdate = () => {
                                 <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
                               </Button>
                             </Col>
-                            <Col md={"8"} className={"mt-2"}>
+                            <Col md={"7"} className={"mt-2"}>
                               <Accordion multiple activeIndex={[0]}>
                                 {simpleItem?.attributes?.map((attribute, index) => (
                                   <AccordionTab key={index} header={attribute?.attributeTax?.key}>
@@ -477,7 +475,6 @@ export const SimpleItemUpdate = () => {
 
                               </Accordion>
                             </Col>
-                          </Row>
                         </Row>
                       </Col>
                     </FormGroup>

@@ -17,10 +17,10 @@ import Select, {ActionMeta, MultiValue} from "react-select";
 import {IItem} from "app/shared/model/ITEM/item.model";
 import Attachment from "app/shared/layout/attachment/attachment";
 import {Checkbox} from "primereact/checkbox";
-import {IAddonGroups} from "app/shared/model/ADDON/addon-groups.model";
 import {cloneDeep} from "lodash";
 import AddonImportModal from "app/entities/item/restaurant/regular-item/addon-import-modal";
 import { getEntities as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
+import {InputTextarea} from "primereact/inputtextarea";
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -149,9 +149,8 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
   return (
     <div>
       <Row >
-              <FormGroup>
-              <Row className={"my-3"} >
-                {!isSimplePizza ? <Col md="6">
+              <FormGroup className={"d-flex flex-column gap-3"}>
+                {!isSimplePizza ? <Col md="7">
                   <div className={"d-flex flex-column gap-2"}>
                     <label className={"text-xl font-bold"}>
                     <Translate contentKey={"items.update.name"}>Name</Translate>
@@ -168,13 +167,12 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                   </div>
                 </Col> : null}
 
-                <Col md="6">
+                <Col md="7">
                   <div className={"d-flex flex-column gap-2"}>
                     <label className={"text-xl font-bold"}>
                     <Translate contentKey={"items.update.description"}>Description</Translate>
                     </label>
-                    <InputText
-                      type="text"
+                    <InputTextarea
                       name="desc"
                       id="desc"
                       placeholder={translate('items.update.placeholders.itemDescription')}
@@ -183,10 +181,8 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                     />
                   </div>
                 </Col>
-              </Row>
 
-                <Row className={"my-3"} >
-                <Col md="4">
+                <Col md="7">
                     <div className={"d-flex flex-column gap-2"}>
                       <label className={"text-xl font-bold"}>
                       <Translate contentKey="items.update.productionCenter">Production Center</Translate>
@@ -201,7 +197,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                     </div>
                   </Col>
 
-                  <Col md="4">
+                  <Col md="7">
                     <div className={"d-flex flex-column gap-2"}>
                       <label className={"text-xl font-bold"}>
                       <Translate contentKey="items.update.categories">Categories</Translate>
@@ -217,7 +213,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                     </div>
                   </Col>
 
-                  <Col md="4">
+                  <Col md="7">
                     <div className={"d-flex flex-column gap-2"}>
                       <label className={"text-xl font-bold"}>
                       <Translate contentKey="items.update.accountingGroups">Accounting Groups</Translate>
@@ -231,9 +227,8 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       />
                     </div>
                   </Col>
-                </Row>
                 <Row className={"my-3"} >
-                  <Col md={"6"}>
+                  <Col md={"7"}>
                 <div className={"d-flex flex-column"}>
                   <label className={"text-xl mt-2 font-bold"}>
 
@@ -259,7 +254,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       />
                     )}
                     <Row className={"my-3"}>
-                    <Col md="6">
+                    <Col md="7">
                       <div className={"d-flex flex-column gap-2"}>
                         <label className={"text-xl font-bold"}>
                         <Translate contentKey={"items.update.addons"}>Addons</Translate>
@@ -274,7 +269,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                         />
                       </div>
                     </Col>
-                    <Col md={'6'}>
+                    <Col md={'7'}>
                       <div className={'d-flex flex-column gap-2 flex-start'}>
                         <label className={"text-xl font-bold"}>
                           <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
