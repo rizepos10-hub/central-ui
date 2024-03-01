@@ -1,27 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
+import React, {useState, useEffect, useRef} from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 
 
 import {Calendar} from 'primereact/calendar';
-import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IOrder } from 'app/shared/model/ORDER/order.model';
-import {searchEntities, getEntities, filterOrders, getOrderSources, getOrderStatuses} from './order.reducer';
-import {ASC, DESC, ITEMS_PER_PAGE, SORT} from "app/shared/util/pagination.constants";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import { getEntities, filterOrders, getOrderSources, getOrderStatuses, reset} from './order.reducer';
 
-import { searchEntities as searchBranches, getEntities as getBranches } from '../branch/branch.reducer';
-import {endOfDay, format, formatISO, startOfDay} from "date-fns";
-import {DataTable, DataTableFilterMeta} from "primereact/datatable";
+import { getEntities as getBranches } from '../branch/branch.reducer';
+import {endOfDay,  startOfDay} from "date-fns";
+import {DataTable, } from "primereact/datatable";
 import {Column} from "primereact/column";
-import {fromPairs} from "lodash";
+import {debounce} from "lodash";
 import {Dropdown} from "primereact/dropdown";
 import {InputText} from "primereact/inputtext";
 import {translate} from "react-jhipster";
 import {toLocalISOString} from "app/shared/util/date-utils";
+import {Toast} from "primereact/toast";
 
 interface LazyTableState {
   first?: number;
@@ -34,9 +30,11 @@ interface LazyTableState {
 
 
 
-export const Order = () => {
+export const Order = ({customer = ''} : {customer?: string}) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const toast = useRef(null);
+
   const [dates, setDates] = useState<string | Date | Date[] | null>(null);
   const [orderStatuses, setOrderStatuses]:any = useState([]);
   const [lazyState, setLazyState] = useState<LazyTableState>({
@@ -53,7 +51,7 @@ export const Order = () => {
       id:{value: '', matchMode: 'contains'},
       byClient: { value: '', matchMode: 'contains' },
       status: { value: '', matchMode: 'contains' },
-        "customer.email": { value: '', matchMode: 'contains' },
+        "customer.email": { value: customer, matchMode: 'contains' },
         "customer.phone": { value: '', matchMode: 'contains' },
       branchId: { value: '', matchMode: 'equals' },
       tables: {value: '', matchMode: 'contains'}
@@ -102,46 +100,68 @@ export const Order = () => {
     setLazyState(event);
   };
 
+  const handleSelect = (e) => {
+    if(e?.value?.items?.length > 0){
+      navigate(`/order/${e.value.id}`)
+    }else{
+      console.log(toast?.current, 'fsf')
+      toast.current.show({ severity: 'warn', summary: 'No Order Items', detail: `Order ID: ${e.value.sequenceNumber}`, life: 3000 });
+    }
+  }
+
 
 
   useEffect(() => {
-    if (
-      lazyState.first ||
-      lazyState.sortOrder ||
-      lazyState.sortField ||
-      lazyState.filters.createdDate?.from ||
-      lazyState.filters.createdDate?.to ||
-      lazyState.filters.byClient?.value ||
-      lazyState.filters.status?.value ||
-      lazyState.filters.customer?.phone?.value ||
-      lazyState.filters.customer?.email?.value ||
-      lazyState.filters.branchId?.value ||
-      lazyState.filters.id?.value ||
-      lazyState.filters.tables?.value ||
-      lazyState.filters.orderSource?.value ||
-      lazyState.filters.status?.value ||
-      dates
-    ) {
-      const queryParams = {
-        orderSource: lazyState.filters.orderSource?.value || '',
-        orderStatus: lazyState.filters.status?.value || '',
-        first: lazyState.first,
-        sequenceId:lazyState.filters.id?.value || '',
-        page: lazyState.page ,
-        customerPhone:lazyState.filters['customer.phone']?.value || '',
-        customerEmail: lazyState.filters['customer.email']?.value || '',
-        branch: lazyState.filters.branchId?.value || '',
-        tables: lazyState.filters.tables?.value || '',
-        size: lazyState.rows ,
-        fromDate: dates && dates[0] ?  toLocalISOString(startOfDay(new Date(dates[0]))) : '',
-        toDate: dates && dates[1] ? toLocalISOString(endOfDay(new Date(dates[1]))) : '',
-        sort: `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}`
-      };
-      dispatch(filterOrders(queryParams));
-    } else {
-      dispatch(getEntities({}));
-    }
+    const handleFilterOrders = debounce(() => {
+      if (
+        lazyState.first ||
+        lazyState.sortOrder ||
+        lazyState.sortField ||
+        lazyState.filters.createdDate?.from ||
+        lazyState.filters.createdDate?.to ||
+        lazyState.filters.byClient?.value ||
+        lazyState.filters.status?.value ||
+        lazyState.filters.customer?.phone?.value ||
+        lazyState.filters.customer?.email?.value ||
+        lazyState.filters.branchId?.value ||
+        lazyState.filters.id?.value ||
+        lazyState.filters.tables?.value ||
+        lazyState.filters.orderSource?.value ||
+        lazyState.filters.status?.value ||
+        dates
+      ) {
+        const queryParams = {
+          orderSource: lazyState.filters.orderSource?.value || '',
+          orderStatus: lazyState.filters.status?.value || '',
+          first: lazyState.first,
+          sequenceId: lazyState.filters.id?.value || '',
+          page: lazyState.page,
+          customerPhone: lazyState.filters['customer.phone']?.value || '',
+          customerEmail: lazyState.filters['customer.email']?.value || '',
+          branch: lazyState.filters.branchId?.value || '',
+          tables: lazyState.filters.tables?.value || '',
+          size: lazyState.rows,
+          fromDate: dates && dates[0] ? toLocalISOString(startOfDay(new Date(dates[0]))) : '',
+          toDate: dates && dates[1] ? toLocalISOString(endOfDay(new Date(dates[1]))) : '',
+          sort: `${lazyState.sortField},${lazyState.sortOrder === 1 ? 'asc' : 'desc'}`
+        };
+        dispatch(filterOrders(queryParams));
+      } else {
+        dispatch(getEntities({}));
+      }
+    }, 300);
 
+    handleFilterOrders();
+
+    return () => {
+      handleFilterOrders.cancel();
+      dispatch(reset())
+    };
+  }, [lazyState, dates]);
+
+
+
+  useEffect(() => {
     dispatch(getBranches({}))
     dispatch(getOrderSources())
 
@@ -149,12 +169,14 @@ export const Order = () => {
       .then((response :any) => {
         setOrderStatuses(response.payload?.map((status) => ({label: status, value: status})));
       })
-  }, [lazyState,dates]);
+  }, []);
 
 
   return (
     <div>
           <div className="p-3 mb-2" style={{ background: 'var(--surface-card)', borderRadius: '10px'}}>
+            <Toast ref={toast} />
+
             <DataTable
               value={orderList}
               lazy
@@ -176,7 +198,7 @@ export const Order = () => {
               loading={loading}
               tableStyle={{ minWidth: '75rem' , alignContent: 'center'}}
               selectionMode="single"
-              onSelectionChange={(e:any) => navigate(`/order/${e.value.id}`)}
+              onSelectionChange={handleSelect}
             >
               <Column
                 field="id"
@@ -291,7 +313,7 @@ export const Order = () => {
                 />
               }
               />
-              <Column
+              {!customer ? <Column
                 field="customer.email"
                 filter
                 filterField="customer.email"
@@ -305,7 +327,7 @@ export const Order = () => {
                         ...prevState,
                         filters: {
                           ...prevState.filters,
-                          "customer.email": { value: e.target.value, matchMode: 'equals' },
+                          "customer.email": {value: e.target.value, matchMode: 'equals'},
                         },
                       }))
                     }
@@ -313,29 +335,30 @@ export const Order = () => {
                   />
                 }
               />
+              :null}
 
-              <Column
+              {!customer ?  <Column
                 field="customer.phone"
                 filter
                 sortable
                 filterField="customer.phone"
                 header={translate('orders.view.table.fields.customerPhone')}
-                filterElement={
-                  <InputText
-                    style={{width: '11rem'}}
-                    onChange={(e) =>
-                      setLazyState((prevState) => ({
-                        ...prevState,
-                        filters: {
-                          ...prevState.filters,
-                          "customer.phone": { value: e.target.value, matchMode: 'equals' },
-                        },
-                      }))
-                    }
-                    placeholder={translate('orders.view.table.filters.customerPhone')}
-                  />
-                }
-              />
+              filterElement={
+                <InputText
+                  style={{width: '11rem'}}
+                  onChange={(e) =>
+                    setLazyState((prevState) => ({
+                      ...prevState,
+                      filters: {
+                        ...prevState.filters,
+                        "customer.phone": {value: e.target.value, matchMode: 'equals'},
+                      },
+                    }))
+                  }
+                  placeholder={translate('orders.view.table.filters.customerPhone')}
+                />
+              }
+            /> : null}
 
               <Column field="status" sortable filter header={translate('orders.view.table.fields.status')}
                       filterElement={

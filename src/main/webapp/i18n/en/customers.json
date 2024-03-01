@@ -37,7 +37,8 @@
       "firstName": "First Name",
       "lastName": "Last Name",
       "phone": "Phone Number",
-      "email": "Email"
+      "email": "Email",
+      "loyaltyRecord": "Loyalty Record"
     }
   }
 }

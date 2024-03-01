@@ -1,6 +1,5 @@
 import {IItem} from "app/shared/model/ITEM/item.model";
 import {IAddon} from "app/shared/model/ADDON/addon.model";
-import {IAddonGroups} from "app/shared/model/ADDON/addon-groups.model";
 import {IAttachment} from "app/shared/model/attachment.model";
 import {IDiscount} from "app/shared/model/discount.model";
 import {IPredefinedPizza} from "app/shared/model/PIZZA/predefined-pizza.model";

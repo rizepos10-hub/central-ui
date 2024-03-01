@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import {Button, Row, Col} from 'reactstrap';
+import {Button, Row, Col, FormGroup, Label} from 'reactstrap';
 import {getSortState,  Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -12,6 +12,8 @@ import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {Card as PrimeCard} from 'primereact/card'
 import {Button as PrimeButton} from 'primereact/button'
 import  {CreateAddonModal} from "app/entities/addon-groups/add-addon-modal";
+import {InputText} from "primereact/inputtext";
+import {IAddonGroup} from "app/shared/model/ADDON/addon-groups.model";
 
 export const AddonGroupUpdate = () => {
   const dispatch = useAppDispatch();
@@ -22,6 +24,8 @@ export const AddonGroupUpdate = () => {
   const isNew = id === undefined;
 
   const addons = useAppSelector(state => state.addon.entities);
+  const newAddon = useAppSelector(state => state.addon.entity);
+
   const addonGroupsEntity = useAppSelector(state => state.addonGroups.entity);
   const loading = useAppSelector(state => state.addonGroups.loading);
   const updating = useAppSelector(state => state.addonGroups.updating);
@@ -32,12 +36,21 @@ export const AddonGroupUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [selectedAddons, setSelectedAddons] = useState([]);
+  const [addonGroup, setAddonGroup] = useState<IAddonGroup>();
   const [showModal, setShowModal] = useState(false);
 
-  const  handleAddonChange = selectedAddon => {
-    setSelectedAddons(selectedAddon);
+  const  handleAddonChange = selectedAddons => {
+    setAddonGroup(prev => ({
+    ...prev,
+    addons: selectedAddons
+  }));
   };
+
+  const handleChange = e => {
+    const { name, value } = e.target;
+    setAddonGroup(prevState => ({ ...prevState, [name]: value }));
+  };
+
   const handleClose = () => {
     navigate('/addon-groups' + location.search);
   };
@@ -62,28 +75,32 @@ export const AddonGroupUpdate = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
+
+    if(addonUpdateSuccess && newAddon?.id){
+     setAddonGroup((prevState) => ({
+       ...prevState,
+       addons: [...(prevState?.addons || []), newAddon]
+     }))
+    }
+
   }, [addonUpdateSuccess])
 
   useEffect(() => {
-    if(addonGroupsEntity.addons){
-      setSelectedAddons(addonGroupsEntity?.addons?.map(addon => ({ id: addon.id, label: addon.name, value: addon.id })));
+    if(addonGroupsEntity.id){
+      setAddonGroup(addonGroupsEntity);
     }
     if (updateSuccess) {
       handleClose();
     }
     return () => {
-      setSelectedAddons([])
       reset()
     }
   }, [updateSuccess,addonGroupsEntity.id]);
 
-  const saveEntity = values => {
-    console.log(values, 'values')
-    console.log(addonGroupsEntity, 'addonGroupsEntity')
+  const saveEntity = (e) => {
+    e.preventDefault();
     const entity = {
-      ...addonGroupsEntity,
-      ...values,
-      addons: selectedAddons,
+      ...addonGroup,
     };
 
     if (isNew) {
@@ -94,15 +111,8 @@ export const AddonGroupUpdate = () => {
   };
 
 
-  const defaultValues = () =>
-    isNew
-      ? {}
-      : {
-          ...addonGroupsEntity,
-        };
 
 
-  const addonsOptions = addons?.map(addon => ({ value: addon.id, label: addon.name, id: addon.id }));
 
 
   return (
@@ -122,36 +132,38 @@ export const AddonGroupUpdate = () => {
           ) : (
             <>
               <div className={'d-flex justify-content-end'}>
-              <PrimeButton onClick={handleShowModal}>Create Addon</PrimeButton>
+              <PrimeButton onClick={handleShowModal}>Create And Add Addon</PrimeButton>
               </div>
 
                 <CreateAddonModal  isOpen={showModal} toggle={handleShowModal}/>
 
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {!isNew ? (
-                <ValidatedField
-                  name="id"
-                  required
-                  readOnly
-                  id="addon-groups-id"
-                  label={translate('addonGroups.update.id')}
-                  validate={{ required: true }}
-                />
-              ) : null}
-              <ValidatedField
-                label={translate('addonGroups.update.name')}
-                id="addon-groups-name"
-                name="name"
-                data-cy="name"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                }}
-              />
+              <form onSubmit={saveEntity}>
+                <FormGroup>
+
+                    <div className={"d-flex flex-column"}>
+                      <Label for="addon-group-name">
+                        <Translate contentKey={'addons.update.name'}>Addon Name</Translate>
+                      </Label>
+                      <InputText
+                        type="text"
+                        name="name"
+                        required={true}
+                        id="addon-group-name"
+                        value={addonGroup?.name}
+                        onChange={handleChange}
+                      />
+                    </div>
 
               <div className="mb-3">
                 <Translate contentKey="addonGroups.update.addons">Addons</Translate>
-                <Select isMulti={true} value={selectedAddons} onChange={handleAddonChange} options={addonsOptions} />
+                <Select
+                  isMulti={true}
+                  value={addonGroup?.addons}
+                  onChange={handleAddonChange}
+                  options={addons}
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                />
 
               </div>
 
@@ -168,7 +180,8 @@ export const AddonGroupUpdate = () => {
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
-            </ValidatedForm>
+            </FormGroup>
+            </form>
             </>
           )}
           </PrimeCard>
