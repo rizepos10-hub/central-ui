@@ -54,6 +54,7 @@ const StockQuantityUpdate = () => {
       </Row>
       <Col md="8">
       <DataTable
+        showGridlines
         value={stockQuantities}
         editMode="row"
         header={`${variantName} Stock Config`}

@@ -123,7 +123,7 @@ export const StockConfig = () => {
 
   const quantityConfigBodyTemplate = (rowData) => {
     const {stockQuantities: quantity} = rowData;
-    const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&itemId=${rowData.itemId}&page=${queryParams.page}
+    const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&itemId=${rowData.itemId}&variantName=${rowData?.name}&page=${queryParams.page}
     &sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
 
     const icon = quantity?.length > 0 ? "pi pi-wallet" : "pi pi-ban";
@@ -162,7 +162,7 @@ export const StockConfig = () => {
     return (
       <div className="p-3 bg-light" >
         <h4>{data.name} Variants</h4>
-        <DataTable value={variantsWithItemId}>
+        <DataTable value={variantsWithItemId} showGridlines>
           <Column className={"bg-light"} field="name" header="Variant Name" sortable  />
           <Column className={"bg-light"} field="price" header="Price" sortable />
           <Column className={"bg-light"} field="sku" header="Sku" sortable />
@@ -199,7 +199,7 @@ export const StockConfig = () => {
   return (
 
       <div >
-        <DataTable value={inventoryItemList} lazy filterDisplay="row" dataKey="id" paginator
+        <DataTable value={inventoryItemList} lazy filterDisplay="row" dataKey="id" paginator showGridlines
                    rowExpansionTemplate={rowExpansionTemplate} onRowToggle={(e) => setExpandedRows(e.data)}
                    expandedRows={expandedRows} onSort={onSort} header={header}
                    first={queryParams.first} rows={10} totalRecords={totalItems} onPage={onPage}

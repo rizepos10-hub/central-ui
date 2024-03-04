@@ -126,7 +126,7 @@ export const SalesLocation = () => {
     <div>
 
         <DataTable value={salesLocationList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20}>
+                   rows={20} showGridlines>
           <Column field="name" header={translate('tempApp.salesLocation.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('tempApp.salesLocation.view.table.search.name')}  sortable  />
 
 

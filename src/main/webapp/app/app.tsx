@@ -72,7 +72,6 @@ export const App = () => {
         {/*   /> */}
         {/* </ErrorBoundary> */}
         {/* <div className="container-fluid view-container row" id="app-view-container"> */}
-      <PrimeReactProvider>
         <LayoutProvider>
         <Layout isAuthenticated={isAuthenticated}>
           <ErrorBoundary>
@@ -83,7 +82,6 @@ export const App = () => {
           {/* </div> */}
         </Layout>
       </LayoutProvider>
-      </PrimeReactProvider>
     </BrowserRouter>
 
   );

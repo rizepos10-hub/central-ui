@@ -13,6 +13,8 @@ import { loadIcons } from 'app/config/icon-loader';
 import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
 import 'primereact/resources/primereact.css';
+import 'primereact/resources/primereact.min.css';
+import {PrimeReactProvider} from "primereact/api";
 
 const store = getStore();
 registerLocale(store);
@@ -28,11 +30,13 @@ const root = createRoot(rootEl);
 const render = Component =>
   root.render(
     <ErrorBoundary>
+      <PrimeReactProvider>
       <Provider store={store}>
         <div>
           <Component />
         </div>
       </Provider>
+      </PrimeReactProvider>
     </ErrorBoundary>
   );
 

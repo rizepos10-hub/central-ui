@@ -178,6 +178,7 @@ export const Order = ({customer = ''} : {customer?: string}) => {
             <Toast ref={toast} />
 
             <DataTable
+              showGridlines
               value={orderList}
               lazy
               filterDisplay="row"

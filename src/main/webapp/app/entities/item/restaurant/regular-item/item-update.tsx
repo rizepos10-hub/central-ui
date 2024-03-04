@@ -647,7 +647,7 @@ export const ItemUpdate = () => {
                       </Col>
                     </Row>
                     <Row >
-                      <Col md="8" className="d-flex flex-column p-3  bg-white">
+                      <Col md="8" className="d-flex flex-column p-3 gap-3 bg-white">
                         {loading ? (
                           <p>Loading...</p>
                         ) : (
@@ -662,8 +662,8 @@ export const ItemUpdate = () => {
                             {/*     validate={{ required: true }} */}
                             {/*   /> */}
                             {/* ) : null} */}
-                            <div className="d-flex justify-content-between mb-1 gap-3">
-                              <div style={{ width: '33%' }}>
+
+                              <div>
                                 <ValidatedField
                                   label={translate('items.update.name')}
                                   id="item-name"
@@ -677,19 +677,18 @@ export const ItemUpdate = () => {
                                   }}
                                 />
                               </div>
-                              <div style={{ width: '22%' }}>
+                              <div>
                                 <Translate contentKey="items.update.categories">Category</Translate>
                                 <Select  isMulti={true} value={selectedTerms} onChange={handleTermChange} options={categoriesOptions} />
                               </div>
-                              <div style={{ width: '22%' }}>
+                              <div >
                                 <Translate contentKey="items.update.accountingGroups">Accounting Groups</Translate>
                                 <Select value={selectedAccountingGroups} onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
                               </div>
-                              <div style={{ width: '21%' }}>
+                              <div >
                                 <Translate contentKey="items.update.productionCenter">Production Center</Translate>
                                 <Select value={selectedProductionCenter} onChange={handleProductionCenterChange} options={productionCenterOptions} />
                               </div>
-                            </div>
                             <Col md={12}>
                               {/* <ValidatedField */}
                               {/*   label={translate('tempApp.item.orderCount')} */}
@@ -723,8 +722,7 @@ export const ItemUpdate = () => {
                               {/*     validate: v => isNumber(v) || translate('entity.validation.number'), */}
                               {/*   }} */}
                               {/* /> */}
-                              <div className="d-flex  mb-1 gap-4">
-                                <div style={{ width: '34' }}>
+                                <div >
                                   <ValidatedField label={translate('items.view.fields.regular.status')}
                                                   value={itemStatus} id="item-status" name="status"
                                                   data-cy="status" type="select"
@@ -738,18 +736,17 @@ export const ItemUpdate = () => {
                                   </ValidatedField>
                                 </div>
 
-                                <div style={{ width: '35%' }}>
+                                <div >
                                   <ValidatedField
                                     label={translate('items.update.description')}
                                     id="item-desc"
                                     name="desc"
                                     data-cy="desc"
-                                    type="text"
+                                    type="textarea"
                                     value={desc}
                                     onChange={e => setDesc(e.target.value)}
                                   />
                                 </div>
-                              </div>
 
                               <div className="d-flex justify-content-between mb-1">
                                 <div className="mb-3">

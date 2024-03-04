@@ -1,4 +1,3 @@
-// SectionModal.js
 import React, { useState } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { InputText } from 'primereact/inputtext';
@@ -8,12 +7,12 @@ import { Checkbox } from 'primereact/checkbox';
 import { Button } from 'primereact/button';
 import {Translate} from "react-jhipster";
 
-const SectionModal = ({ isOpen, onClose, onAddSection }) => {
+const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions}) => {
+  console.log(initialDimensions, 'initialDimensions')
   const [newSection, setNewSection] = useState({
     name: '',
     dimensions: {
-      width: null,
-      height: null,
+     ...initialDimensions
     },
     visible: false,
     backgroundImage: null,
@@ -55,16 +54,14 @@ const SectionModal = ({ isOpen, onClose, onAddSection }) => {
       <ModalHeader toggle={onClose}>Add New Section</ModalHeader>
       <ModalBody>
         <ModalBody>
-          <div className="d-flex flex-column justify-content-center align-items-center mt-5" style={{minWidth: "50%"}}>
+          <div className="d-flex flex-column" style={{minWidth: "50%"}}>
             <div className={"d-flex flex-column w-75"}>
-              <div className={"d-flex  justify-content-between"}>
+              <div className={"d-flex flex-column justify-content-between"}>
                 <label  className={"mt-5"}>
                   Section Name
                 </label>
                 <InputText
                   type="text"
-                  size={35}
-                  className={"mt-4"}
                   name="name"
                   required={true}
                   id="floor-plan-name"
@@ -76,7 +73,7 @@ const SectionModal = ({ isOpen, onClose, onAddSection }) => {
                     }))}
                 />
               </div>
-              <div className={"d-flex  justify-content-between mt-5"}>
+              <div className={"d-flex flex-column justify-content-between mt-5"}>
                 <label>
                   Dimensions
                 </label>
@@ -128,11 +125,11 @@ const SectionModal = ({ isOpen, onClose, onAddSection }) => {
                   onAddImage={addImage}
                 />
               </div>
-              <div className={"d-flex gap-8"}>
+              <div className={"d-flex flex-column"}>
                 <label className={"mt-2"}>
                   Visible
                 </label>
-                <div className={"ml-7 mt-1"}>
+                <div className={"mt-1"}>
                   <Checkbox
                     checked={newSection?.visible}
                     className={"mt-1"}

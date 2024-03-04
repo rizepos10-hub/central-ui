@@ -174,6 +174,7 @@ export const TransferRequest = () => {
 
       <div >
         <DataTable
+          showGridlines
           value={transferRequestList}
           editMode="row"
           header={header}
