@@ -217,7 +217,7 @@ export const Customer = () => {
   return (
     <div>
 
-        <DataTable value={modifiedCustomerList} editMode="row" header={header}  paginator
+        <DataTable value={modifiedCustomerList} editMode="row" header={header}  paginator showGridlines
                    filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
 
           <Column

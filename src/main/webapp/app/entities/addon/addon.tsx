@@ -165,7 +165,7 @@ export const Addon = () => {
     <div>
 
         <DataTable value={addonList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20}>
+                   rows={20} showGridlines>
           <Column field="name" header={translate('addons.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('addons.view.table.search.name')}  sortable  />
           <Column field="price" header={translate('addons.view.table.fields.price')} sortable body={priceBodyTemplate} />
           <Column

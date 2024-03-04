@@ -491,7 +491,7 @@ export const VariableItemUpdate = () => {
 
                   <Row>
 
-                    <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
+                    <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
                       <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
 

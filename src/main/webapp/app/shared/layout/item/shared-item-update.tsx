@@ -270,7 +270,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       </div>
                     </Col>
                     <Col md={'7'}>
-                      <div className={'d-flex flex-column gap-2 flex-start'}>
+                      <div className={'d-flex flex-column gap-2 flex-start mt-3'}>
                         <label className={"text-xl font-bold"}>
                           <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
                         </label>

@@ -32,6 +32,7 @@ import MenuPosPreview from "app/entities/menu/menu-pos-preview";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getEntities as getMenuCategories} from "app/entities/term/Menu-Category/menu-category.reducer";
 import {InputText} from "primereact/inputtext";
+import {isEqual} from "lodash";
 
 function MenuUpdate() {
 
@@ -87,7 +88,7 @@ function MenuUpdate() {
   const [editScreenName, setEditScreenName] = useState('');
   const [editScreenColor, setEditScreenColor] = useState('');
   const [breadcrumb, setBreadcrumb] = useState([]);
-
+  const [isFormDirty, setIsFormDirty] = useState(false);
 
   const [subScreenStack, setSubScreenStack] = useState([]);
 
@@ -359,7 +360,7 @@ function MenuUpdate() {
   };
 
   const findAndRemoveItem = (subScreens, targetSubScreen, itemId) => {
-    console.log("im here1")
+
     return subScreens.map((subScreen) => {
       if (areObjectsEqual(subScreen,targetSubScreen)) {
         console.log("im here11", subScreen.name, targetSubScreen.name)
@@ -722,7 +723,9 @@ function MenuUpdate() {
 
 
 
-  const handleRemoveCard = (mainScreenIndex, subScreenIndex) => {
+  const handleRemoveCard = (mainScreenIndex, subScreenIndex, item) => {
+    const isConfirmed = window.confirm(`Are you sure you want to remove ${item?.name}`);
+    if(!isConfirmed) return;
     setData((prevData) => {
       const updatedMenuScreens = prevData.menuScreens.map((mainScreen, i) => {
         if (i === mainScreenIndex) {
@@ -828,7 +831,7 @@ function MenuUpdate() {
                     <Button
                       color="danger"
                       size="sm"
-                      onClick={() => handleRemoveCard(mainScreenIndex, index)}
+                      onClick={() => handleRemoveCard(mainScreenIndex, index, item)}
                     >
                       Remove
                     </Button>
@@ -1021,7 +1024,6 @@ function MenuUpdate() {
   }, [id,updateSuccess]);
 
   useEffect(() => {
-    console.log("rendered12")
     if (menuEntity && menuEntity.id) {
       let newData = {
         name: menuEntity.name,
@@ -1040,6 +1042,32 @@ function MenuUpdate() {
 
     }
   }, [menuEntity,updateSuccess]);
+
+  useEffect(() => {
+    const initialFormData = {
+      name: menuEntity.name,
+      branch: menuEntity.branch,
+      menuScreens: menuEntity.menuScreens ,
+    };
+    setIsFormDirty(!isEqual(data, initialFormData));
+  }, [data, menuEntity?.name, menuEntity?.menuScreens, menuEntity?.branch?.id]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isFormDirty) {
+
+        const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+        e.returnValue = confirmationMessage;
+        return confirmationMessage;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isFormDirty]);
 
 
 
@@ -1064,6 +1092,8 @@ function MenuUpdate() {
   console.log(data, 'hello')
 
   const handleRemoveMainScreen = (mainScreenIndex, mainScreenName) => {
+    const isConfirmed = window.confirm(`Are you sure you want to remove ${mainScreenName}`);
+    if(!isConfirmed) return;
     const updatedMenuScreens = [...data.menuScreens];
     updatedMenuScreens.splice(mainScreenIndex, 1);
     console.log(mainScreenName, 'kamel')
@@ -1279,35 +1309,22 @@ function MenuUpdate() {
               </h2>
               </Col>
 
-              <Col>
-              <div>
-                <Button color="primary" id="addButton" onClick={() => setPopoverOpen(!popoverOpen)} className="ml-2">
-                  <Translate contentKey={'menus.pos.update.buttons.addButton'}>Add Button</Translate>
+              <Col md={4} className={'d-flex gap-3'}>
+
+                <Button color="primary" onClick={() => handleButtonAdd('Item')}  className="ml-2" >
+                  <Translate contentKey={'menus.pos.update.buttons.addItem'}>Add Item</Translate>
                 </Button>
-                <Popover isOpen={popoverOpen} target="addButton" toggle={() => setPopoverOpen(!popoverOpen)}>
-                  <PopoverHeader><Translate contentKey={'menus.pos.update.buttons.addButton'}>Add Button</Translate></PopoverHeader>
-                  <PopoverBody>
-                    <p onClick={() => {
-                      handleButtonAdd('Sub-screen')
-                      setPopoverOpen(false)
-                    }} className="p-2" style={{ cursor: 'pointer' }}>
-                      <Translate contentKey={'menus.pos.update.buttons.subScreen'}>Sub-screen</Translate>
-                    </p>
-                    <p onClick={() => {
-                      handleButtonAdd('Item')
-                      setPopoverOpen(false)
-                    }} className="p-2" style={{ cursor: 'pointer' }}>
-                      <Translate contentKey={'menus.pos.update.buttons.item'}>Item</Translate>
-                    </p>
-                  </PopoverBody>
-                </Popover>
+                <Button color="primary" onClick={() => handleButtonAdd('Sub-screen')}  className="ml-2" >
+                  <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>
+                </Button>
+
+
                 <Button onClick={togglePreviewModal} className="mx-2 btn btn-info">
                   <Translate contentKey={'menus.pos.update.buttons.preview'}>Preview</Translate>
                 </Button>
                 <Button color="primary" disabled={updating} onClick={handleSaveClick} className="">
                   <Translate contentKey={'entity.action.save'}>Save</Translate>
                 </Button>
-              </div>
               </Col>
             </div>
             <ListGroup className="mt-3">{renderCurrentSubScreen()}</ListGroup>

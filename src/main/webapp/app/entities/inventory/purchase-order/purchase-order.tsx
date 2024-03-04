@@ -264,7 +264,7 @@ export const PurchaseOrder = () => {
       <DataTable
         value={purchaseOrderList} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
         paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
-        onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder}
+        onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
       >
         <Column field="id" header={translate('tempApp.purchaseOrder.view.table.fields.id')} body={idColumnTemplate} filter
                 filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.id')}  sortable  />

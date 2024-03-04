@@ -174,6 +174,7 @@ export const SupplierReturn = () => {
   return (
       <div >
         <DataTable
+          showGridlines
           value={supplierReturnList}
           editMode="row"
           header={header}

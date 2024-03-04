@@ -482,7 +482,7 @@ export const PizzaItemUpdate = () => {
                       <TabPanel header={translate('items.update.tabs.details.label')}>
                         <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
 
-                          <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                          <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
                             {!pizzaItem?.variants?.[0]?.multiple ?
                               <Row>
                                 <Col md="6">
@@ -506,7 +506,8 @@ export const PizzaItemUpdate = () => {
 
                             <Row className={"my-6"} >
                               <Row className={"mt-2"}>
-                                {!pizzaItem?.variants?.[0]?.multiple ? <Col md="3">
+                                {!pizzaItem?.variants?.[0]?.multiple ?
+                                  <Col md="5">
                                   <div className={"d-flex flex-column gap-2"}>
                                     <label className={"text-xl font-bold"}>
                                       <Translate contentKey={"items.update.pizza.itemPricing"}>Item Pricing</Translate> Item Pricing

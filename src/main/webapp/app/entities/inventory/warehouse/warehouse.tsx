@@ -165,7 +165,7 @@ export const Warehouse = () => {
 
       <div >
         <DataTable value={warehouseList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20} loading={loading}>
+                   rows={20} loading={loading} showGridlines>
           <Column field="name" header={translate('tempApp.warehouse.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('tempApp.warehouse.view.table.search.name')}  sortable  />
           <Column field="location" header={translate('tempApp.warehouse.view.table.fields.location')} filter  filterPlaceholder={translate('tempApp.warehouse.view.table.search.location')}  sortable  />
           <Column header="Main" field={"main"} body={verifiedBodyTemplate} showFilterMatchModes={false}

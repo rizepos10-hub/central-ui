@@ -53,7 +53,9 @@
           "addButton": "Add Button",
           "item": "Item",
           "subScreen": "Sub-screen",
-          "preview": "Preview"
+          "preview": "Preview",
+          "addSubScreen": "Add Subscreen",
+          "addItem": "Add Item"
         },
         "modals": {
           "preview": {

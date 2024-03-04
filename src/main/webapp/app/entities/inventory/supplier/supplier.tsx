@@ -142,6 +142,7 @@ export const Supplier = () => {
   return (
       <div >
         <DataTable
+          showGridlines
           value={supplierList}
           editMode="row"
           header={header}

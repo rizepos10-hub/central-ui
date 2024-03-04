@@ -169,7 +169,7 @@ export const Discount = () => {
   return (
 
       <div className="table-responsive">
-        <DataTable value={discountList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={20}>
+        <DataTable value={discountList} editMode="row" showGridlines header={header}  paginator totalRecords={totalItems} rows={20}>
 
           <Column field="value" header="Value" body={valueColumnTemplate} sortable  />
           <Column field="type" sortable header="Type" body={(rowData) => rowData.type === "PERCENTAGE" ? "%" : rowData.type} />

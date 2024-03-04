@@ -3,7 +3,7 @@
     "user": {
       "title": "POS Users",
       "table": {
-        "title": "Users",
+        "title": "POS Users",
         "fields": {
           "name": "Name",
           "email": "Email",
@@ -19,7 +19,7 @@
         },
         "buttons": {
           "refreshList": "Refresh List",
-          "createNewUser": "Create New User"
+          "createNewUser": "Create New POS User"
         }
       }
     },
@@ -28,10 +28,10 @@
     },
     "update": {
       "create": {
-        "title": "Create New User"
+        "title": "Create New POS User"
       },
       "edit": {
-        "title": "Edit User"
+        "title": "Edit POS User"
       },
       "placeholders": {
         "firstName": "Enter First Name",
