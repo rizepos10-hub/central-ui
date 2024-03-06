@@ -538,6 +538,7 @@ export default function Home() {
                      paginator  rows={20}
                      className="datatable-responsive"
                      globalFilter={globalFilterValue}
+                     showGridlines
                      emptyMessage={<Translate  contentKey={'home.table.emptyMessage'}/>}
                      loading={loading.recentSalesData}>
             <Column  field="itemName" header={<Translate  contentKey={'home.table.name'}/>} sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
