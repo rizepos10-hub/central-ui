@@ -136,12 +136,7 @@ export const ProductionCenter = () => {
 
   return (
     <div>
-      <h2 >
-        Production Centers View
 
-      </h2>
-
-      <div >
         <DataTable value={productionCenterList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header="Name" filter  filterPlaceholder={"Search by name"} body={nameColumnTemplate}  sortable  />
@@ -159,7 +154,6 @@ export const ProductionCenter = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

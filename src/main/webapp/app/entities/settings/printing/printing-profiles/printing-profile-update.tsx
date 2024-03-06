@@ -17,7 +17,7 @@ import {
 } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { IPrintingProfile } from 'app/shared/model/printing-profile.model';
+import { IPrintingProfile } from 'app/shared/model/PRINTER/printing-profile.model';
 import { getEntity, updateEntity, createEntity, reset } from './printing-profile.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { getEntities as getPrinters } from 'app/entities/settings/printing/printer/printer.reducer';

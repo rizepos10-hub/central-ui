@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {  useNavigate } from 'react-router-dom';
 import {Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert, Card} from 'reactstrap';
+import {Card as PrimeCard} from 'primereact/card'
 import {  Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -245,7 +246,8 @@ export const BusinessDetailUpdate = () => {
         </Col>
       </Row>
       <Row>
-        <Col md="8"  className="d-flex flex-column p-3  bg-white">
+        <Col md="8"  className="d-flex flex-column p-3 ">
+          <PrimeCard>
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -600,6 +602,7 @@ export const BusinessDetailUpdate = () => {
               </Button>
             </ValidatedForm>
           )}
+          </PrimeCard>
         </Col>
       </Row>
     </div>

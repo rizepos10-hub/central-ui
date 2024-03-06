@@ -14,7 +14,7 @@ import reducer, {
   reset,
 } from './pizza-size.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { IPizzaSize, defaultValue } from 'app/shared/model/pizza-size.model';
+import { IPizzaSize, defaultValue } from 'app/shared/model/PIZZA/pizza-size.model';
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {

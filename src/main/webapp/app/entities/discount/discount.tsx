@@ -167,14 +167,9 @@ export const Discount = () => {
     </div>
   );
   return (
-    <div>
-      <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
-        Discounts View
-
-      </h2>
 
       <div className="table-responsive">
-        <DataTable value={discountList} editMode="row" header={header}  paginator totalRecords={totalItems} rows={20}>
+        <DataTable value={discountList} editMode="row" showGridlines header={header}  paginator totalRecords={totalItems} rows={20}>
 
           <Column field="value" header="Value" body={valueColumnTemplate} sortable  />
           <Column field="type" sortable header="Type" body={(rowData) => rowData.type === "PERCENTAGE" ? "%" : rowData.type} />
@@ -189,7 +184,6 @@ export const Discount = () => {
 
         </DataTable>
       </div>
-    </div>
   );
 };
 

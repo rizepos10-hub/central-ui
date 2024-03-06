@@ -3,16 +3,20 @@ import {IVisibility} from "app/shared/model/visibility.model";
 import {Dropdown} from "primereact/dropdown";
 import {Checkbox} from "primereact/checkbox";
 import {Accordion, AccordionTab} from "primereact/accordion";
-import {SourceType} from "app/shared/model/enumerations/source-type.model";
-import {DayOfWeek} from "app/shared/model/enumerations/day-of-week.model";
-import {Button as PrimeButton} from "primereact/button";
+import {SourceType} from "app/shared/model/ENUMS/source-type.model";
+import {DayOfWeek} from "app/shared/model/ENUMS/day-of-week.model";
+import {Button, Button as PrimeButton} from "primereact/button";
 import {InputText} from "primereact/inputtext";
 import {Nullable} from "primereact/ts-helpers";
 import {Calendar} from "primereact/calendar";
+import {Message} from "primereact/message";
+import {Translate, translate} from "react-jhipster";
+
 
 interface Props {
   initialState: IVisibility[];
   onStateChanged: (state: IVisibility[]) => void;
+  title?: string;
 }
 function convertStringToNullableDate (date: string) : Nullable<Date> {
   const [hours, minutes, seconds] = date ? date.split(':').map(Number) : [undefined, undefined, undefined];
@@ -28,11 +32,9 @@ function convertNullableDateToString (date: Nullable<Date> | Date[] | string) : 
     const seconds = date.getSeconds().toString().padStart(2, '0');
 
     return `${hours}:${minutes}:${seconds}`;
-  } else {
-    return '';
   }
 }
-const Visibility = ({ initialState, onStateChanged }:Props) => {
+const Visibility = ({ initialState, onStateChanged, title = "Visibility" }:Props) => {
 
   const applications = Object.values(SourceType);
   const allDays = Object.values(DayOfWeek);
@@ -100,7 +102,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
     else
     {
       setVisibility(prev => {
-        return [...visibility, {application: selectedApplication, visible: true, schedule: null}];
+        return [...visibility, {application: selectedApplication, visible: true, schedule: {}}];
       })
     }
   }
@@ -113,52 +115,79 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
   const accordionTabContent = (day: DayOfWeek) => {
     return (
       <>
-        <div className="d-flex justify-content-end mt-3">
-          <PrimeButton type="button" className="my-3" onClick={() => handleAddHourRange(day)}>
-            Add Visibility Hours
+        <div className="d-flex justify-content-end">
+          <PrimeButton type="button" className="" onClick={() => handleAddHourRange(day)}>
+            <Translate contentKey={'visibility.add'}>Add Visibility Hours</Translate>
           </PrimeButton>
         </div>
         { getHourRangesForDay(day) && getHourRangesForDay(day).map((hourRange, rangeIndex) => {
-          return (
-            <div key={rangeIndex} className="d-flex flex-row align-items-center mb-3">
-              <label className="mr-2">From:</label>
-              <Calendar
-                value={convertStringToNullableDate(hourRange.from)}
-                onChange={(e) =>
-                  handleChangeHourRange(day, rangeIndex, 'from', convertNullableDateToString(e.value))}
-                timeOnly
-                className={hourRange.from ? '' : 'p-invalid'}
-              />
+          const content = (
+            <div className="w-full d-flex flex-row align-items-center justify-content-between">
+              <div className="d-flex flex-row">
+                <div>
+                  <label htmlFor="fromPicker" className="font-bold block mb-2">
+                    <Translate contentKey={'visibility.from'}>From</Translate>
+                  </label>
+                  <Calendar
+                    id="fromPicker"
+                    value={convertStringToNullableDate(hourRange.from)}
+                    onChange={(e) =>
+                      handleChangeHourRange(day, rangeIndex, 'from', convertNullableDateToString(e.value))}
+                    timeOnly
+                    className={hourRange.from ? '' : 'p-invalid'}
+                  />
+                </div>
 
-              <label className="ml-2 mr-2">To:</label>
-              <Calendar
-                value={convertStringToNullableDate(hourRange.to)}
-                onChange={(e) =>
-                  handleChangeHourRange(day, rangeIndex, 'to', convertNullableDateToString(e.value))}
-                timeOnly
-                className={hourRange.to ? '' : 'p-invalid'}
-              />
+                <div className="ml-2">
+                  <label htmlFor="toPicker" className="font-bold block mb-2">
+                    <Translate contentKey={'visibility.to'}>To</Translate>
+                  </label>
+                  <Calendar
+                    id="toPicker"
+                    value={convertStringToNullableDate(hourRange.to)}
+                    onChange={(e) =>
+                      handleChangeHourRange(day, rangeIndex, 'to', convertNullableDateToString(e.value))}
+                    timeOnly
+                    className={hourRange.to ? '' : 'p-invalid'}
+                  />
+                </div>
+              </div>
 
-              <button
-                type="button"
-                className="btn btn-danger btn-sm ml-2"
-                onClick={() => handleRemoveHourRange(day, rangeIndex)}
-              >
-                X
-              </button>
+              <div className="ml-2">
+                <label className="font-bold block mb-2"><Translate contentKey={'visibility.remove'}>Remove</Translate></label>
+                <Button
+                  type={'button'}
+                  icon="pi pi-times"
+                  rounded
+                  severity="danger"
+                  onClick={() => handleRemoveHourRange(day, rangeIndex)}
+                />
+              </div>
+
             </div>);
+          return (<Message
+            key={rangeIndex}
+            style={{
+              border: 'solid #696cff',
+              borderWidth: '0 0 0 6px',
+              color: '#696cff'
+            }}
+            className="border-primary w-full mt-3 justify-content-start"
+            severity="info"
+            content={content}
+          />)
         })}
       </>);
   }
   return (
     <>
-      <h2>Item Visibility</h2>
-      <div className="d-flex justify-content-between">
+      <h2>{title}</h2>
+      <div className="d-flex justify-content-between flex-wrap mb-4">
         <Dropdown value={selectedApplication} onChange={(e) => setSelectedApplication(e.value)} options={applications}
-                  placeholder="Select an Application" className="w-full md:w-14rem mb-4" />
+                  className="w-full md:w-14rem mb-4" />
         {selectedApplication && (
-          <div className='d-flex'>
-            <label htmlFor="isVisible" className="mr-2">Visible</label>
+          <div className='d-flex mb-4'>
+            <label htmlFor="isVisible" className="font-bold mr-2"><Translate contentKey={'visibility.visible'}>Visible</Translate></label>
             <Checkbox inputId="isVisible" onChange={e => handleChangeIsVisible(e.checked)}
                       checked={getIsVisible()}/>
           </div>
@@ -169,7 +198,7 @@ const Visibility = ({ initialState, onStateChanged }:Props) => {
         <Accordion>
           {allDays.map((day, dayIndex)=>{
             return (
-              <AccordionTab key={dayIndex} header={day}>
+              <AccordionTab key={dayIndex} header={translate(`daysOfWeek.${day}`)}>
                 {accordionTabContent(day)}
               </AccordionTab>
             )

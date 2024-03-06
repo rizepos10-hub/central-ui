@@ -6,7 +6,7 @@ import axios from "axios";
 import {format, addDays, addMonths} from 'date-fns';
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {Dropdown} from "primereact/dropdown";
-import {SourceType} from "app/shared/model/enumerations/source-type.model";
+import {SourceType} from "app/shared/model/ENUMS/source-type.model";
 import {translate, Translate} from "react-jhipster";
 const SalesSummaryReport = () => {
 

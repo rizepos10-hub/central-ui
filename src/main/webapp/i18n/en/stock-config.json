@@ -1,0 +1,57 @@
+{
+  "tempApp": {
+    "stockConfig": {
+      "view": {
+        "title": "Stock",
+        "table": {
+          "title": "Stock",
+          "buttons": {
+            "refreshList": "Refresh List",
+            "createNewStockConfig": "Create New Stock Config"
+          },
+          "fields": {
+            "id": "ID",
+            "item": "Item",
+            "description": "Description",
+            "variant": "Variant",
+            "defaultPrice": "Default Price",
+            "minOrderQuantity": "Min Quantity",
+            "edit": "Edit",
+            "delete": "Delete"
+          },
+          "search": {
+            "name": "Search by Name",
+            "location": "Search by Location",
+            "item": "Search by Item",
+            "variant": "Search by Variant",
+            "description": "Search By Description",
+            "defaultPrice": "Search by Default Price",
+            "minOrderQuantity": "Search by Min Quantity"
+          }
+        }
+      },
+      "created": "A new Stock Config is created with identifier {{ param }}",
+      "updated": "A Stock Config is updated with identifier {{ param }}",
+      "deleted": "A Stock Config is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Stock Config",
+        "question": "Are you sure you want to delete sales location {{ id }}"
+      },
+      "update": {
+        "create": {
+          "title": "Create New Stock Config"
+        },
+        "edit": {
+          "title": "Edit Stock Config"
+        }
+      },
+      "id": "Id",
+      "name": "Name",
+      "item": "Item",
+      "variant": "Variant",
+      "description": "Description",
+      "defaultPrice": "Default Price",
+      "minOrderQuantity": "Min Quantity"
+    }
+  }
+}

@@ -20,6 +20,8 @@ import AppRoutes from 'app/routes';
 import Sidebar, { Layout } from 'app/shared/sidebar/Layout';
 import { LayoutProvider } from 'app/shared/sidebar/context/layoutcontext';
 import { getState, setTenant } from 'app/shared/tenant/TenantContext';
+import {PrimeReactProvider} from "primereact/api";
+import VersionUpdateChecker from "app/version/version-checker";
 
 // const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
@@ -45,6 +47,8 @@ export const App = () => {
     dispatch(setTenant({ tenant: tenant }));
   }, []);
 
+
+
   const currentLocale = useAppSelector(state => state.locale.currentLocale);
   const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
   const isAdmin = useAppSelector(state => hasAnyAuthority(state.authentication.account.authorities, [AUTHORITIES.ADMIN]));
@@ -52,12 +56,9 @@ export const App = () => {
   const isInProduction = useAppSelector(state => state.applicationProfile.inProduction);
   const isOpenAPIEnabled = useAppSelector(state => state.applicationProfile.isOpenAPIEnabled);
 
-  const paddingTop = '60px';
 
   return (
-    // <Provider store={getStore()}>
     <BrowserRouter basename={baseHref}>
-      <LayoutProvider>
         {/* <div className="app-container" style={{ paddingTop }}> */}
         {/* <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" /> */}
         {/* <ErrorBoundary> */}
@@ -71,8 +72,10 @@ export const App = () => {
         {/*   /> */}
         {/* </ErrorBoundary> */}
         {/* <div className="container-fluid view-container row" id="app-view-container"> */}
+        <LayoutProvider>
         <Layout isAuthenticated={isAuthenticated}>
           <ErrorBoundary>
+            <VersionUpdateChecker />
             <AppRoutes />
           </ErrorBoundary>
           {/* </div> */}
@@ -81,7 +84,6 @@ export const App = () => {
       </LayoutProvider>
     </BrowserRouter>
 
-    // </Provider>
   );
 };
 

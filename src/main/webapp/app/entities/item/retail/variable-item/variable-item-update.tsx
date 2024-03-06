@@ -9,7 +9,7 @@ import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './variable-item.reducer';
 import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
-import {IVariableItem} from "app/shared/model/variable-item.model";
+import {IVariableItem} from "app/shared/model/ITEM/retail/variable-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
@@ -25,11 +25,15 @@ import {ITerm} from "app/shared/model/term.model";
 import {getEntities as getAttributeValues, reset as resetAttributeValues} from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import {AccordionTab, Accordion} from "primereact/accordion";
 import AsyncSelect from "react-select/async";
-import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
+import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
 import {isEqual} from "lodash";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
+import ItemStockTab from "app/shared/layout/item/item-stock-tab";
+import {IExchangeMeasure} from "app/shared/model/ITEM/retail/simple-item.model";
+import {getEntities as getMeasures} from "app/entities/item-measure/item-measure.reducer";
+import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
 
 
 
@@ -47,37 +51,48 @@ export const VariableItemUpdate = () => {
   const updateSuccess = useAppSelector(state => state.variableRetailItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
+  const measureList = useAppSelector(state => state.itemMeasure.entities);
+
   const location = useLocation();
 
 
   const attributeValuesList = useAppSelector(state => state.retailAttributeValue.entities);
   const loadingAttributesValues = useAppSelector(state => state.retailAttributeValue.loading);
 
-  console.log(attributeValuesList, 'attributeValuesListattributeValuesList')
-
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-
 
   const [variableItem, setVariableItem] = useState<IVariableItem>({
     itemType: "RETAIL",
     itemVariantType: ItemVariantType.RETAIL_VARIABLE,
     variants: []
   });
-
-  const filteredAvailableAttributes = () => {
-
-    const existingAttributeIds = variableItem?.attributes?.map(attr => attr.attributeTax.id);
-
-    return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
-  };
+  const [measureToAdd, setMeasureToAdd] = useState<IExchangeMeasure>();
 
   const [itemAttribute, setItemAttribute] = useState<{
     attributeTax: ITaxonomy;
     attributeTerms: ITerm[];
-  } | null>(null)
+  } | null>(null);
+
+
+  const filteredAvailableAttributes = () => {
+    const existingAttributeIds = variableItem?.attributes?.map(attr => attr.attributeTax.id);
+    return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
+  };
+
+  const filteredMeasures = useMemo(() => {
+    const exchangeMeasuresIds = variableItem?.measures?.map((exMeasure) => exMeasure.itemMeasure.id);
+    return measureList.filter(m => m.id !== variableItem?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id) )
+  }, [measureList?.length, variableItem?.baseMeasure?.id, variableItem?.measures?.length]) ;
+
+  const isAttributeAddButtonDisabled =
+    filteredAvailableAttributes()?.length === 0 ||
+    itemAttribute?.attributeTax &&
+    Object.keys(itemAttribute?.attributeTax)?.length === 0 &&
+    itemAttribute?.attributeTerms?.length === 0;
+
 
 
   const handleBackClick = () => {
@@ -106,6 +121,57 @@ export const VariableItemUpdate = () => {
       return {
         ...prev,
         variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleBaseMeasureChange = (baseMeasure) => {
+    if(!variableItem?.measures || variableItem?.measures?.length === 0){
+      setVariableItem(prev => ({...prev, baseMeasure}))
+    }else{
+      setVariableItem(prevState => {
+        const updatedMeasures = prevState.measures.filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
+          .map((exMeasure) => ({...exMeasure, exchangeRate: null}));
+        return {
+          ...prevState,
+          baseMeasure,
+          measures: updatedMeasures
+        };
+      });
+    }
+    setMeasureToAdd({})
+  };
+
+  const handleAddMeasure = () => {
+    setVariableItem((prevState) => ({
+      ...prevState,
+      measures: [measureToAdd, ...(prevState.measures || [])]
+    }));
+    setMeasureToAdd({})
+  };
+
+  const handleMeasuresChange = (measureIndex, newRate) => {
+    setVariableItem((prevState) => {
+      const updatedMeasures = prevState.measures.map((exMeasure, index) => {
+        if (measureIndex === index) {
+          return { ...exMeasure, exchangeRate: newRate };
+        }
+        return exMeasure;
+      });
+
+      return {
+        ...prevState,
+        measures: updatedMeasures
+      };
+    });
+  };
+
+  const handleRemoveMeasure = (measureIndex) => {
+    setVariableItem((prevState) => {
+      const updatedMeasures = prevState.measures.filter((_, index) => index !== measureIndex);
+      return {
+        ...prevState,
+        measures: updatedMeasures
       };
     });
   };
@@ -190,19 +256,12 @@ export const VariableItemUpdate = () => {
           attributeValues: { ...currentCombination },
         };
 
-
-        const isDuplicate = variableItem?.variants.some((variant) =>{
-
-            console.log(variant.attributeValues, 'variant.attributeValues')
-            console.log( newVariant.attributeValues, 'variant.attributeValues123')
+        const isDuplicate = variableItem?.variants.some((variant) => {
             return isEqual(variant.attributeValues, newVariant.attributeValues)
-        }
-        );
-
+        });
         if (!isDuplicate) {
           combinations.push(newVariant);
         }
-
         return;
       }
 
@@ -216,9 +275,7 @@ export const VariableItemUpdate = () => {
         });
       }
     };
-
     generate(0, {});
-
     console.log(combinations, 'combinationscombinations')
     setVariableItem((prevState) => ({
       ...prevState,
@@ -266,12 +323,20 @@ export const VariableItemUpdate = () => {
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    }));
+
     dispatch(getAttributes({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    }));
+
+    dispatch(getMeasures({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
 
 
   },[id, isNew]);
@@ -335,7 +400,7 @@ export const VariableItemUpdate = () => {
 
 
   const handleDeleteVariant = (variantIndex) => {
-    const isConfirmed = window.confirm("Are you sure?");
+    const isConfirmed = window.confirm(translate('items.update.deleteVariantMessage'));
     if(isConfirmed){
       setVariableItem((prev) => {
         const updatedVariants = [...prev.variants];
@@ -369,7 +434,7 @@ export const VariableItemUpdate = () => {
       <label className={"mt-2"}><strong>{variableItem?.attributes?.[attributeIndex]?.attributeTax?.name}</strong></label>
 
       <Button className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
-        Remove Attribute
+        <Translate contentKey={'items.update.removeAttribute'}>Remove Attribute</Translate>
       </Button>
     </div>
   )
@@ -381,8 +446,6 @@ export const VariableItemUpdate = () => {
       e.stopPropagation()
     }} className={"d-flex gap-3 ml-2"}>
       <label className={"mt-2"}><strong>{variableItem?.variants?.[variantIndex]?.name}</strong></label>
-
-
       {variableItem?.attributes?.map((attribute, index) => {
         return (
           <AsyncSelect
@@ -398,7 +461,7 @@ export const VariableItemUpdate = () => {
         )
       })}
       <Button className={"ml-auto"} color="danger" onClick={() => handleDeleteVariant(variantIndex)}>
-        Delete Variant
+        <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
       </Button>
     </div>
   )
@@ -417,18 +480,18 @@ export const VariableItemUpdate = () => {
           <Row>
             <Col md={10}>
               <TabView>
-                <TabPanel header={'Details'}>
+                <TabPanel header={translate('items.update.tabs.details.label')}>
                   <Row>
                     <Col md="8">
                       <h2>
-                        {isNew ? "Create New Variable Item" : `Edit Variable Item`}
+                        {isNew ? translate('items.update.tabs.details.titles.create.variable') : translate('items.update.tabs.details.titles.edit.variable')}
                       </h2>
                     </Col>
                   </Row>
 
                   <Row>
 
-                    <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
+                    <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
                       <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
 
@@ -440,7 +503,7 @@ export const VariableItemUpdate = () => {
                             <Col md="4">
                               <div className={"d-flex flex-column gap-2"}>
                                 <label className={"text-xl font-bold"}>
-                                  Select Attribute
+                                  <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
                                 </label>
                                 <Select
                                   value={itemAttribute?.attributeTax || null}
@@ -454,26 +517,16 @@ export const VariableItemUpdate = () => {
 
 
                             <Col md="3" >
-                              <Button color="primary" disabled={filteredAvailableAttributes().length === 0} className={"mt-5"} onClick={handleAddAttribute}>
-                                Add Attribute
+                              <Button color="primary" disabled={isAttributeAddButtonDisabled} className={"mt-5"} onClick={handleAddAttribute}>
+                                <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
                               </Button>
                             </Col>
-                            <Col md="5" className={"d-flex gap-3"}>
-
-                              <Button color="primary" className={"mt-5"} onClick={generateCombinations}>
-                                Generate Variants
-                              </Button>
-
-                              <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
-                                Add Single Variant
-                              </Button>
-                            </Col>
-                            <Col md={"8"} className={"mt-2"}>
+                            <Col md={"12"} className={"mt-2"}>
                               <Accordion multiple activeIndex={[0]}>
                                 {variableItem?.attributes?.map((attribute, index) => (
                                   <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
                                     <div className={"d-flex gap-3"}>
-                                      <label className={"mt-2"}>Name: {attribute?.attributeTax?.name}</label>
+                                      <label className={"mt-2"}>{translate('items.update.name')}: {attribute?.attributeTax?.name}</label>
                                       <Col md={"9"}>
                                         <AsyncSelect
                                           value={attribute?.attributeTerms}
@@ -491,115 +544,8 @@ export const VariableItemUpdate = () => {
                                   </AccordionTab>
                                 ))}
                               </Accordion>
-                              <Col md={"12"} className={"mt-2"}>
-                                <Row className={"mt-2"}>
-                                  {variableItem?.variants?.map((variant, variantIndex) => (
-                                    <Col md={"12"} key={variantIndex} className={"mt-2"}>
-                                      <Accordion multiple  activeIndex={[0]}>
-                                        <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
-                                          <Row>
 
-                                            <Col md="4">
-                                              <div className={"d-flex flex-column gap-2 mt-2"}>
-                                                <label className={"text-xl font-bold"}>
-                                                  Name
-                                                </label>
-                                                <InputText
-                                                  name="variant-name"
-                                                  id="name"
-                                                  required={true}
-                                                  placeholder="Variant Name"
-                                                  value={variant?.name}
-                                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
-                                                />
-                                              </div>
-                                            </Col>
 
-                                            <Col md="4">
-                                              <div className={"d-flex flex-column gap-2 mt-2"}>
-                                                <label className={"text-xl font-bold"}>
-                                                  SKU
-                                                </label>
-                                                <InputText
-                                                  name="sku"
-                                                  id="sku"
-                                                  required={true}
-                                                  placeholder="Item Sku"
-                                                  value={variant?.sku}
-                                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
-                                                />
-                                              </div>
-                                            </Col>
-
-                                            <Col md="4">
-                                              <div className={"d-flex flex-column gap-2 mt-2"}>
-                                                <label className={"text-xl font-bold"}>
-                                                  Price
-                                                </label>
-                                                <InputNumber
-                                                  name="price"
-                                                  id="price"
-                                                  required={true}
-                                                  placeholder="Item Price"
-                                                  value={variant?.price}
-                                                  maxFractionDigits={2}
-                                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
-                                                />
-                                              </div>
-                                            </Col>
-
-                                            <Col md="4">
-                                              <div className={"d-flex flex-column gap-2 mt-2"}>
-                                                <label className={"text-xl font-bold"}>
-                                                  Sale Price
-                                                </label>
-                                                <InputNumber
-                                                  name="sale-price"
-                                                  id="sale-price"
-                                                  placeholder="Item Sale Price"
-                                                  maxFractionDigits={2}
-                                                  value={variant?.salePrice}
-                                                  onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
-                                                />
-                                              </div>
-                                            </Col>
-                                          </Row>
-                                          <Col md="12" className={"mt-3"}>
-                                            <h4>Branch Prices</h4>
-                                            <Table>
-                                              <thead>
-                                              <tr>
-                                                <th>Branch</th>
-                                                <th>Price</th>
-                                              </tr>
-                                              </thead>
-                                              <tbody>
-                                              {branchList.map(branch => (
-                                                <tr key={branch.id}>
-                                                  <td>{branch.name}</td>
-                                                  <td>
-                                                    <InputNumber
-                                                      type="number"
-                                                      name={`branchPrice_${branch.id}`}
-                                                      placeholder={`Enter price for ${branch.name}`}
-                                                      onWheel={(e: any) => e.target.blur()}
-                                                      size={60}
-                                                      value={variant?.branchVariantDetails?.[branch.id]?.price}
-                                                      onChange={e => handleBranchPriceChange(variantIndex,branch.id, e.value)}
-                                                    />
-                                                  </td>
-                                                </tr>
-                                              ))}
-                                              </tbody>
-                                            </Table>
-                                          </Col>
-
-                                        </AccordionTab>
-                                      </Accordion>
-                                    </Col>
-                                  ))}
-                                </Row>
-                              </Col>
                             </Col>
                           </Row>
                         </Row>
@@ -607,13 +553,233 @@ export const VariableItemUpdate = () => {
                     </FormGroup>
                   </Row>
                 </TabPanel>
-                <TabPanel header={'Visibility'}>
+                <TabPanel header={translate('items.update.variants')} >
+                  <Col md="5" className={"d-flex gap-3"}>
+
+                    <Button color="primary" className={"mt-5"} onClick={generateCombinations}>
+                      <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
+                    </Button>
+
+                    <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
+                      <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
+                    </Button>
+                  </Col>
+                  <Col md={"12"} className={"mt-2"}>
+                    <Row className={"mt-2"}>
+                      {variableItem?.variants?.map((variant, variantIndex) => (
+                        <Col md={"12"} key={variantIndex} className={"mt-2"}>
+                          <Accordion multiple  activeIndex={[0]}>
+                            <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
+                              <Row>
+                                <Col md="4">
+                                  <div className={"d-flex flex-column gap-2 mt-2"}>
+                                    <label className={"text-xl font-bold"}>
+                                      <Translate contentKey={'items.update.name'}>Name</Translate>
+                                    </label>
+                                    <InputText
+                                      name="variant-name"
+                                      id="name"
+                                      required={true}
+                                      placeholder={translate('items.update.placeholders.variantName')}
+                                      value={variant?.name}
+                                      onChange={(e) => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                                    />
+                                  </div>
+                                </Col>
+
+                                <Col md="4">
+                                  <div className={"d-flex flex-column gap-2 mt-2"}>
+                                    <label className={"text-xl font-bold"}>
+                                      <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                                    </label>
+                                    <InputText
+                                      name="sku"
+                                      id="sku"
+                                      required={true}
+                                      placeholder="Variant Sku"
+                                      value={variant?.sku}
+                                      onChange={(e) => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
+                                    />
+                                  </div>
+                                </Col>
+
+                                <Col md="4">
+                                  <div className={"d-flex flex-column gap-2 mt-2"}>
+                                    <label htmlFor="price" className={"text-xl font-bold"}>
+                                      <Translate contentKey={'items.update.price'}>Price</Translate>
+                                    </label>
+                                    <InputNumber
+                                      name="price"
+                                      id="price"
+                                      inputId={"price"}
+                                      inputClassName={"w-1"}
+                                      required={true}
+                                      placeholder="Variant Price"
+                                      value={variant?.price}
+                                      maxFractionDigits={2}
+                                      onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
+                                    />
+                                  </div>
+                                </Col>
+
+                                <Col md="4">
+                                  <div className={"d-flex flex-column gap-2 mt-2"}>
+                                    <label className={"text-xl font-bold"}>
+                                      <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                    </label>
+                                    <InputNumber
+                                      name="sale-price"
+                                      id="sale-price"
+                                      placeholder="Variant Sale Price"
+                                      maxFractionDigits={2}
+                                      value={variant?.salePrice}
+                                      onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
+                                    />
+                                  </div>
+                                </Col>
+                              </Row>
+                              <Col md="12" className={"mt-3"}>
+                                <h4>
+                                  <Translate contentKey={'items.update.branchPrices'}>
+                                    Branch Prices
+                                  </Translate>
+                                </h4>
+                                <Table>
+                                  <thead>
+                                  <tr>
+                                    <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
+                                    <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  {branchList.map(branch => (
+                                    <tr key={branch.id}>
+                                      <td>{branch.name}</td>
+                                      <td>
+                                        <InputNumber
+                                          type="number"
+                                          name={`branchPrice_${branch.id}`}
+                                          placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
+                                          onWheel={(e: any) => e.target.blur()}
+                                          size={60}
+                                          value={variant?.branchVariantDetails?.[branch.id]?.price}
+                                          onChange={e => handleBranchPriceChange(variantIndex,branch.id, e.value)}
+                                        />
+                                      </td>
+                                    </tr>
+                                  ))}
+                                  </tbody>
+                                </Table>
+                              </Col>
+
+                            </AccordionTab>
+                          </Accordion>
+                        </Col>
+                      ))}
+                    </Row>
+                  </Col>
+                </TabPanel>
+                <TabPanel header={translate('items.update.tabs.visibility.label')}>
                   <Visibility
                     initialState={variableItem.visibility}
+                    title={translate('items.update.tabs.visibility.titles.variable')}
                     onStateChanged={(visibility)=>setVariableItem(prev => {
                       return {...prev, visibility}
                     })}/>
                 </TabPanel>
+                <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                  <ItemLoyaltyTab excludedFromLoyaltyPoints={variableItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
+                </TabPanel>
+                <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
+                  <ItemStockTab variants={variableItem?.variants} itemId={variableItem.id}/>
+                </TabPanel>
+                <TabPanel header={translate('items.update.measures')}>
+                  <Row className={"mb-3 d-flex flex-column gap-3"} >
+                        <Col md="12" className={"d-flex gap-3 mb-3"}>
+                          <div className={"d-flex flex-column gap-2 w-6 mt-3"}>
+                            <label className={"text-xl font-bold"}>
+                              <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
+                            </label>
+                            <Select
+                              value={variableItem?.baseMeasure}
+                              options={measureList}
+                              name="baseMeasure"
+                              getOptionValue={option => option.id}
+                              getOptionLabel={option => option.name}
+                              onChange={handleBaseMeasureChange}
+                            />
+                          </div>
+
+                          <Table>
+                            <thead>
+                            <tr>
+                              <th >Measure</th>
+                              <th className="w-1">Exchange Rate</th>
+                            </tr>
+                            </thead>
+                            <thead>
+                            <tr>
+                              <td>
+                                <Select
+                                  value={measureToAdd?.itemMeasure || null}
+                                  isDisabled={!variableItem?.baseMeasure}
+                                  options={filteredMeasures}
+                                  getOptionValue={option => option.id}
+                                  getOptionLabel={option => option.name}
+                                  onChange={(itemMeasure) => setMeasureToAdd(prev => ({...prev, itemMeasure}))}
+                                />
+                              </td>
+                              <td>
+                                <InputNumber
+                                  value={measureToAdd?.exchangeRate}
+                                  disabled={!measureToAdd?.itemMeasure}
+                                  onChange={(e) => setMeasureToAdd(prev => ({...prev, exchangeRate: e.value}))}
+                                />
+                              </td>
+                              <td>
+                                <Button
+                                  disabled={!measureToAdd?.exchangeRate} onClick={handleAddMeasure} color="primary"  className={"mb-2"} >Add</Button>
+                              </td>
+                            </tr>
+                            </thead>
+                          </Table>
+                        </Col>
+
+                        <Col md="8">
+                          <Table>
+                            <thead>
+                            <tr>
+                              <th><Translate contentKey={'items.update.measure'}>Measure</Translate></th>
+                              <th><Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate></th>
+                              <th>Remove</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {variableItem?.measures?.map((exMeasure, index) => (
+                              <tr key={index}>
+                                <td>
+                                  {exMeasure?.itemMeasure?.name}
+                                </td>
+                                <td>
+                                  <InputNumber
+                                    value={exMeasure?.exchangeRate}
+                                    required
+                                    onChange={(e) => handleMeasuresChange(index, e.value)}
+                                  />
+                                </td>
+                                <td>
+                                  <PrimeButton type={"button"} onClick={() => handleRemoveMeasure(index)} severity={"danger"} >
+                                    <Translate contentKey={'items.update.remove'}>Remove</Translate>
+                                  </PrimeButton>
+                                </td>
+                              </tr>
+                            ))}
+                            </tbody>
+                          </Table>
+                        </Col>
+                  </Row>
+                </TabPanel>
+
               </TabView>
             </Col>
             <Col md={2}>

@@ -121,44 +121,38 @@ export const MenuCategories = () => {
   }
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Categories</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'menus.category.view.table.title'}>Categories</Translate></span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate('menus.category.view.table.buttons.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create new Menu Category" raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate('menus.category.view.table.buttons.createNewCategory')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
     </div>
   );
   return (
-    <div>
-      <h2 id="menu-heading" data-cy="MenuHeading" className="mb-5">
-        Menu Categories View
-
-      </h2>
 
       <div className="table-responsive">
         <DataTable value={menuCategoryList} editMode="row" header={header}
                    loading={loading} removableSort filters={filters} filterDisplay="row"
                    paginator totalRecords={totalItems} rows={20}>
-          <Column field="name" sortable header="Name" filterPlaceholder={"Search by name"}  filter body={nameColumnTemplate} style={{ width: '20%' }} />
+          <Column field="name" sortable header={translate('menus.category.view.table.fields.name')} filterPlaceholder={translate('menus.category.view.table.search.name')}  filter body={nameColumnTemplate} style={{ width: '20%' }} />
 
-          <Column header="Image"  body={(rowData) =>
+          <Column header={translate('menus.category.view.table.fields.image')}  body={(rowData) =>
             <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
 
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('menus.category.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('menus.category.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 
         </DataTable>
       </div>
-    </div>
   );
 };
 

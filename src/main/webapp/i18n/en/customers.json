@@ -1,0 +1,44 @@
+{
+  "customers": {
+    "view": {
+      "title": "Customers View",
+      "table": {
+        "title": "Customers",
+        "buttons": {
+          "refreshList": "Refresh List",
+          "createNewCustomer": "Create New Customer"
+        },
+        "fields": {
+          "name": "Name",
+          "email": "Email",
+          "phone": "Phone Number",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "search": {
+          "name": "Search by Name",
+          "email": "Search by Email",
+          "phone": "Search by Phone Number"
+        }
+      }
+    },
+    "delete": {
+      "title": "Confirm Delete Customer",
+      "question": "Are you sure you want to delete customer {{ customer }}"
+    },
+    "update": {
+      "create": {
+        "title": "Create New Customer"
+      },
+      "edit": {
+        "title": "Edit Customer"
+      },
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "loyaltyRecord": "Loyalty Record"
+    }
+  }
+}

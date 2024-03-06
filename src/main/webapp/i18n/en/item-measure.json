@@ -1,0 +1,46 @@
+{
+  "tempApp": {
+    "itemMeasure": {
+      "view": {
+        "title": "Item Measures View",
+        "table": {
+          "title": "Item Measures",
+          "buttons": {
+            "refreshList": "Refresh List",
+            "createNewItemMeasure": "Create New Item Measure"
+          },
+
+          "fields": {
+            "name": "Name",
+            "code": "Code",
+            "contactInformation": "Contact Information",
+            "edit": "Edit",
+            "delete": "Delete"
+          },
+          "search": {
+            "name": "Search by Name",
+            "code": "Search by code"
+          }
+        }
+      },
+      "created": "A new Item Measure is created with identifier {{ param }}",
+      "updated": "A Item Measure is updated with identifier {{ param }}",
+      "deleted": "A Item Measure is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Item Measure",
+        "question": "Are you sure you want to delete itemMeasure {{ id }}"
+      },
+      "update": {
+        "create": {
+          "title": "Create New Item Measure"
+        },
+        "edit": {
+          "title": "Edit Item Measure"
+        },
+        "id": "Id",
+        "code": "Code",
+        "name": "Name"
+      }
+    }
+  }
+}

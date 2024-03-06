@@ -15,7 +15,7 @@ import reducer, {
   reset,
 } from './accounting-groups.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { IAccountingGroups, defaultValue } from 'app/shared/model/accounting-groups.model';
+import { IAccountingGroups, defaultValue } from 'app/shared/model/TAX/accounting-groups.model';
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {

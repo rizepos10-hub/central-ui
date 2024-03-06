@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import Select from 'react-select';
-import { IItem } from 'app/shared/model/item.model';
+import { IItem } from 'app/shared/model/ITEM/item.model';
 
 interface IAddonImportProps {
   showModal: boolean;
@@ -40,10 +40,10 @@ const AddonImportModal = (props: IAddonImportProps) => {
         <ModalBody>
           <div className="col md-6">
             <h2>
-              <Translate contentKey="tempApp.item.import-addon"></Translate>
+              <Translate contentKey="items.update.importAddonsModal.title"></Translate>
             </h2>
             <h4>
-              <Translate contentKey="tempApp.item.home.search"></Translate>
+              <Translate contentKey="items.update.importAddonsModal.search"></Translate>
             </h4>
             <Select
               isMulti={false}
@@ -59,7 +59,7 @@ const AddonImportModal = (props: IAddonImportProps) => {
               <Translate contentKey="entity.action.cancel">Cancel</Translate>
             </Button>{' '}
             <Button color="primary" onClick={handleSaveImportAddons}>
-              Import Addons
+              <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
             </Button>
           </ModalFooter>
         </ModalBody>

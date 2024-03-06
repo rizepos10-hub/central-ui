@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset } from './pizza-crust-type.reducer';
 import {InputText} from "primereact/inputtext";
 import Select from "react-select";
-import {ICrustType} from "app/shared/model/crust-type.model";
+import {ICrustType} from "app/shared/model/PIZZA/crust-type.model";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";

@@ -12,7 +12,7 @@ import {  getEntities } from './tv.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
-import {ITv} from "app/shared/model/tv.model";
+import {ITv} from "app/shared/model/TV/tv.model";
 
 export const FloorPlanTv = () => {
   const dispatch = useAppDispatch();
@@ -109,11 +109,7 @@ export const FloorPlanTv = () => {
 
   return (
     <div>
-      <h2 >
-        Tvs View
-      </h2>
 
-      <div >
         <DataTable value={tvsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
@@ -130,7 +126,6 @@ export const FloorPlanTv = () => {
 
         </DataTable>
       </div>
-    </div>
   );
 };
 

@@ -1,0 +1,57 @@
+{
+  "itemCategories": {
+    "categories": {
+      "restaurant": {
+        "title": "Restaurant Categories View"
+      },
+      "retail": {
+        "title": "Retail Categories View"
+      },
+      "table": {
+        "title": "Categories",
+        "fields": {
+          "name": "Name",
+          "accountingGroups": "Accounting Groups",
+          "image": "Image",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "buttons": {
+          "refreshList": "Refresh List",
+          "createNewRestaurantCategory": "Create New Restaurant Category",
+          "createNewRetailCategory": "Create New Retail Category"
+        },
+        "search": {
+          "name": "Search by Name",
+          "accountingGroups": "Search by Acc. Groups"
+        }
+      }
+    },
+    "delete": {
+      "title": "Confirm Delete Operation",
+      "question": "Are you sure you want to delete Term {{ id }}"
+    },
+    "update": {
+      "restaurant": {
+        "create": {
+          "title": "Create Restaurant Category"
+        },
+        "edit": {
+          "title": "Edit Restaurant Category"
+        }
+      },
+      "retail": {
+        "create": {
+          "title": "Create Retail Category"
+        },
+        "edit": {
+          "title": "Edit Retail Category"
+        }
+      },
+      "name": "Name",
+      "accountingGroups": "Accounting Groups",
+      "parents": "Parents",
+      "image": "Item Image"
+    }
+  }
+}

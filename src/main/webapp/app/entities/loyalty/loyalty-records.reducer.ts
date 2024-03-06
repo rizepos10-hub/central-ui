@@ -1,7 +1,7 @@
 import { createEntitySlice, EntityState, IQueryParams } from 'app/shared/reducers/reducer.utils';
 import { createAsyncThunk, createSlice, isFulfilled, isPending } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { defaultValue, ILoyalty } from 'app/shared/model/loyalty.model';
+import { defaultValue, ILoyalty } from 'app/shared/model/CUSTOMER/loyalty.model';
 
 const apiUrl = 'api/customer-points';
 const updateUrl = 'api/loyalty-point';

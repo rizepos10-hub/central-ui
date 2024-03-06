@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import { getSortState } from 'react-jhipster';
+import {getSortState, translate, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import {  ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
@@ -14,9 +14,10 @@ import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
 import {Dropdown} from "primereact/dropdown";
-import {ISimpleItem} from "app/shared/model/simple-item.model";
+import {ISimpleItem} from "app/shared/model/ITEM/retail/simple-item.model";
 import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
-import {ItemVariantType} from "app/shared/model/enumerations/item-variant-type.model";
+import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
+import {SummarizeText} from "app/shared/util/SummarizeText";
 
 export const SimpleItem = () => {
   const dispatch = useAppDispatch();
@@ -139,13 +140,13 @@ export const SimpleItem = () => {
   console.log(simpleItemsList, 'simpleItemsList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Simple Items</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'items.view.titles.tableTitle.simple'}>Simple Items</Translate></span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create New Simple Item" raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate('items.view.actions.createSimple')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -168,31 +169,24 @@ export const SimpleItem = () => {
 
 
   return (
-    <div>
-      <h2 >
-        Simple Items View
-
-      </h2>
-
       <div >
         <DataTable loading={loading} value={simpleItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
-          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
-          <Column header="Image"  body={(rowData) =>
+          <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
+          <Column header={translate('items.view.fields.image')}  body={(rowData) =>
             <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
-          <Column field="desc" header="Description" />
+          <Column field="desc" header={translate('items.view.fields.description')} body={(rowData)=> <SummarizeText>{rowData.desc}</SummarizeText>}/>
 
-          <Column field="stock" sortable header="In Stock" />
+          <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
 
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('items.view.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('items.view.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

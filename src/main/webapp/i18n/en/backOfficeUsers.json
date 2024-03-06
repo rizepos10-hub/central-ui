@@ -1,9 +1,9 @@
 {
   "backOfficeUsers": {
     "user": {
-      "title": "Users View",
+      "title": "Back Office Users View",
       "table": {
-        "title": "Users",
+        "title": "Back Office Users",
         "fields": {
           "name": "Name",
           "username": "Username",
@@ -19,7 +19,7 @@
       },
       "buttons": {
         "refreshList": "Refresh List",
-        "createNewUser": "Create New User"
+        "createNewUser": "Create New Back Office User"
       }
     },
     "delete": {
@@ -27,10 +27,10 @@
     },
     "update": {
       "create": {
-        "title": "Create New User"
+        "title": "Create New Back Office User"
       },
       "edit": {
-        "title": "Edit User"
+        "title": "Edit Back Office User"
       },
       "username": "Username",
       "firstName": "First Name",

@@ -1,5 +1,5 @@
 .welcome-container {
-  background-image: url('welcome.jpg');
+  /*background-image: url('welcome.jpg');*/
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
@@ -8,7 +8,9 @@
   overflow: hidden;
 }
 
-
+.welcome-rize{
+  color: #093762;
+}
 
 .welcome-content {
   padding: 20px;
@@ -37,8 +39,8 @@
 .instructions {
   font-family: "Apple Color Emoji";
   font-style: italic;
-  font-size: 12em;
-  color: white;
+  font-size: 6em;
+  color: #3F72AF;
   margin-bottom: 10px;
 }
 

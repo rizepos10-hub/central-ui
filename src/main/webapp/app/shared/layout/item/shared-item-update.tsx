@@ -10,17 +10,17 @@ import {getEntities as getAddons} from "app/entities/addon/addon.reducer";
 import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
 import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 import {getEntities as getAddonGroups} from "app/entities/addon-groups/addon-groups.reducer";
-import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
+import { ItemStatus } from 'app/shared/model/ENUMS/item-status.model';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import {InputText} from "primereact/inputtext";
 import Select, {ActionMeta, MultiValue} from "react-select";
-import {IItem} from "app/shared/model/item.model";
+import {IItem} from "app/shared/model/ITEM/item.model";
 import Attachment from "app/shared/layout/attachment/attachment";
 import {Checkbox} from "primereact/checkbox";
-import {IAddonGroups} from "app/shared/model/addon-groups.model";
 import {cloneDeep} from "lodash";
 import AddonImportModal from "app/entities/item/restaurant/regular-item/addon-import-modal";
 import { getEntities as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
+import {InputTextarea} from "primereact/inputtextarea";
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -149,47 +149,43 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
   return (
     <div>
       <Row >
-              <FormGroup>
-              <Row className={"my-3"} >
-                {!isSimplePizza ? <Col md="6">
+              <FormGroup className={"d-flex flex-column gap-3"}>
+                {!isSimplePizza ? <Col md="7">
                   <div className={"d-flex flex-column gap-2"}>
                     <label className={"text-xl font-bold"}>
-                    <Translate contentKey={"tempApp.item.name"}>Name</Translate>
+                    <Translate contentKey={"items.update.name"}>Name</Translate>
                     </label>
                     <InputText
                       type="text"
                       name="name"
                       id="name"
                       required={true}
-                      placeholder="Item Name"
+                      placeholder={translate('items.update.placeholders.itemName')}
                       value={item.name || ''}
                       onChange={(e) => onFieldChange('name', e.target.value)}
                     />
                   </div>
                 </Col> : null}
 
-                <Col md="6">
+                <Col md="7">
                   <div className={"d-flex flex-column gap-2"}>
                     <label className={"text-xl font-bold"}>
-                    <Translate contentKey={"tempApp.item.desc"}>Description</Translate>
+                    <Translate contentKey={"items.update.description"}>Description</Translate>
                     </label>
-                    <InputText
-                      type="text"
+                    <InputTextarea
                       name="desc"
                       id="desc"
-                      placeholder="Item Description"
+                      placeholder={translate('items.update.placeholders.itemDescription')}
                       value={item.desc || ''}
                       onChange={(e) => onFieldChange('desc', e.target.value)}
                     />
                   </div>
                 </Col>
-              </Row>
 
-                <Row className={"my-3"} >
-                <Col md="4">
+                <Col md="7">
                     <div className={"d-flex flex-column gap-2"}>
                       <label className={"text-xl font-bold"}>
-                      <Translate contentKey="tempApp.item.productionCenter">Production Center</Translate>
+                      <Translate contentKey="items.update.productionCenter">Production Center</Translate>
                       </label>
                       <Select
                         value={item?.productionCenter}
@@ -201,10 +197,10 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                     </div>
                   </Col>
 
-                  <Col md="4">
+                  <Col md="7">
                     <div className={"d-flex flex-column gap-2"}>
                       <label className={"text-xl font-bold"}>
-                      <Translate contentKey="tempApp.item.terms">Category</Translate>
+                      <Translate contentKey="items.update.categories">Categories</Translate>
                       </label>
                       <Select
                         value={item?.categories}
@@ -217,10 +213,10 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                     </div>
                   </Col>
 
-                  <Col md="4">
+                  <Col md="7">
                     <div className={"d-flex flex-column gap-2"}>
                       <label className={"text-xl font-bold"}>
-                      <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
+                      <Translate contentKey="items.update.accountingGroups">Accounting Groups</Translate>
                       </label>
                       <Select
                         value={item?.accountingGroups}
@@ -231,26 +227,12 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       />
                     </div>
                   </Col>
-                </Row>
                 <Row className={"my-3"} >
-                  <Col md={"4"}>
-                <div className={"d-flex my-3 gap-2"}>
-                  <label className={"text-xl font-bold"}>
-                    Excluded From Loyalty Points
-                  </label>
-                  <Checkbox
-                    checked={item?.excludedFromLoyaltyPoints}
-                    onChange={(e) => onFieldChange('excludedFromLoyaltyPoints', e.checked)}
-                  />
-                </div>
-                  </Col>
-                </Row>
-                <Row className={"my-3"} >
-                  <Col md={"6"}>
+                  <Col md={"7"}>
                 <div className={"d-flex flex-column"}>
                   <label className={"text-xl mt-2 font-bold"}>
 
-                  <Translate contentKey={"tempApp.table.image"}>Image</Translate>
+                  <Translate contentKey={"items.update.image"}>Image</Translate>
                     </label>
                     <Attachment
                       image={item?.attachments?.[0]}
@@ -272,10 +254,10 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       />
                     )}
                     <Row className={"my-3"}>
-                    <Col md="6">
+                    <Col md="7">
                       <div className={"d-flex flex-column gap-2"}>
                         <label className={"text-xl font-bold"}>
-                        <Translate contentKey={"tempApp.item.addons"}>Addons</Translate>
+                        <Translate contentKey={"items.update.addons"}>Addons</Translate>
                         </label>
                         <Select
                           value={item?.addons}
@@ -287,13 +269,13 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                         />
                       </div>
                     </Col>
-                    <Col md={'6'}>
-                      <div className={'d-flex flex-column gap-2 flex-start'}>
+                    <Col md={'7'}>
+                      <div className={'d-flex flex-column gap-2 flex-start mt-3'}>
                         <label className={"text-xl font-bold"}>
-                          <Translate contentKey={'tempApp.item.importAddons'}>Addons</Translate>
+                          <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
                         </label>
                         <div>
-                          <Button onClick={openImportAddonModal}> Import Addons</Button>
+                          <Button onClick={openImportAddonModal}><Translate contentKey={'items.update.importAddons'}>Import Addons</Translate></Button>
                         </div>
                       </div>
                     </Col>
@@ -302,7 +284,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       <div className="mt-2">
 
                         <label className={"text-xl font-bold"}>
-                          Addon Groups
+                          <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
                         </label>
                         <div className="col-md-6">
                           <Select
@@ -320,8 +302,8 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                         <Table>
                           <thead>
                           <tr>
-                            <th>Name</th>
-                            <th>Required</th>
+                            <th><Translate contentKey={'items.update.name'}>Name</Translate></th>
+                            <th><Translate contentKey={'items.update.required'}>Required</Translate></th>
                           </tr>
                           </thead>
                           <tbody>

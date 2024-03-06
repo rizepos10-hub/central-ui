@@ -8,7 +8,7 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IItem } from 'app/shared/model/item.model';
+import { IItem } from 'app/shared/model/ITEM/item.model';
 import {searchEntities, getEntities, importData} from './item.reducer';
 import {DataTable} from "primereact/datatable";
 import { Column } from 'primereact/column';
@@ -200,7 +200,7 @@ console.log(errorMessage, 'errorMessage')
         };
         setFilters(updatedFilters);
       }}
-      placeholder="Select a category"
+      placeholder={translate('items.view.filters.category')}
     />
   );
   const formatCurrency = (value: number) => {
@@ -240,15 +240,15 @@ console.log(errorMessage, 'errorMessage')
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Items</span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'items.view.titles.tableTitle.regular'}>Items</Translate></span>
       <div className="ms-auto">
         <Button label="Import Data" severity="help" raised className="me-5" color="help"  onClick={handleImportButtonClick} disabled={loading} />
 
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label="Create New Regular Item" raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate('items.view.actions.createRegular')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -294,7 +294,7 @@ console.log(errorMessage, 'errorMessage')
           setItemProp(rowData)
           toggleModal();
         }}>
-          Show Variants
+          <Translate contentKey={'items.view.fields.regular.showVariants'}>Show Variants</Translate>
         </Button>
       </div>
     );
@@ -310,7 +310,7 @@ console.log(errorMessage, 'errorMessage')
   return (
     <div>
       <h2 id="item-heading" data-cy="ItemHeading">
-        <Translate contentKey="tempApp.item.home.title">Items View</Translate>
+        <Translate contentKey="items.view.titles.regular">Items View</Translate>
 
       </h2>
 
@@ -323,8 +323,8 @@ console.log(errorMessage, 'errorMessage')
                    filters={filters} filterDisplay="row"
                    tableStyle={{ minWidth: '60rem' }}>
 
-          <Column field="name"  sortable header="Name" filter filterPlaceholder="Search by name" body={nameColumnTemplate} />
-          <Column header="Image"  body={(rowData) =>
+          <Column field="name"  sortable header={translate('items.view.fields.name')} filter filterPlaceholder={translate('items.view.filters.name')} body={nameColumnTemplate} />
+          <Column header={translate('items.view.fields.image')}  body={(rowData) =>
             <ImageDisplay
               imageType={"product"}
               imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url }
@@ -332,23 +332,23 @@ console.log(errorMessage, 'errorMessage')
               width={50}
             />} />
           {/* <Column field="desc" header="Description" /> */}
-          <Column header="Variant"  body={variantColumnTemplate} />
+          <Column header={translate('items.view.fields.regular.variant')}  body={variantColumnTemplate} />
           {/* <Column field="price" header="Price" body={priceBodyTemplate} /> */}
           <Column
-            header="Category"
+            header={translate('items.view.fields.regular.category')}
             field="categoryForSorting"
             sortable
             filter
             filterElement={categoryFilter}
           />
-          <Column field="avgRating" header="Reviews" body={ratingBodyTemplate} />
-          <Column field="orderCount" header="Order Count" />
-          <Column field="stock" sortable header="In Stock" />
-          <Column header="Status"  sortable body={statusBodyTemplate}></Column>
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '5%', alignItems: 'center', alignSelf: 'center'}}
+          <Column field="avgRating" header={translate('items.view.fields.regular.reviews')} body={ratingBodyTemplate} />
+          <Column field="orderCount" header={translate('items.view.fields.regular.orderCount')} />
+          <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
+          <Column header={translate('items.view.fields.regular.status')}  sortable body={statusBodyTemplate}></Column>
+          <Column header={translate('items.view.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '5%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '5%',  }}
+          <Column  header={translate('items.view.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '5%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
         </DataTable>
         <Modal
@@ -358,7 +358,7 @@ console.log(errorMessage, 'errorMessage')
           size="lg"
         >
           <div className="modal-header">
-            <h5 className="modal-title">Variant Details</h5>
+            <h5 className="modal-title"><Translate contentKey={'items.view.fields.regular.modalTitle'}>Variant Details</Translate></h5>
               <i onClick={toggleModal} className="pi pi-times cursor-pointer  " style={{ fontSize: '1.5rem' }}></i>
           </div>
           <div className="modal-body">

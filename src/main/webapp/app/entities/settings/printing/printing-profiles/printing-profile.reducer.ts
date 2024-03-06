@@ -3,7 +3,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IPrintingProfile, defaultValue } from 'app/shared/model/printing-profile.model';
+import { IPrintingProfile, defaultValue } from 'app/shared/model/PRINTER/printing-profile.model';
 
 const initialState: EntityState<IPrintingProfile> = {
   loading: false,

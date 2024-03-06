@@ -126,12 +126,6 @@ export const VoidReasons = () => {
   );
   return (
     <div>
-      <h2 >
-        Void Reasons View
-
-      </h2>
-
-      <div >
         <DataTable value={voidReasonsList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
             field="code" header="Code" filter
@@ -148,7 +142,6 @@ export const VoidReasons = () => {
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
         </DataTable>
-      </div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import {SourceType} from "app/shared/model/enumerations/source-type.model";
+import {SourceType} from "app/shared/model/ENUMS/source-type.model";
 
 export interface ITimeRange {
   from: string;

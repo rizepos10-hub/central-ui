@@ -3,9 +3,9 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IAddonGroups, defaultValue } from 'app/shared/model/addon-groups.model';
+import { IAddonGroup, defaultValue } from 'app/shared/model/ADDON/addon-groups.model';
 
-const initialState: EntityState<IAddonGroups> = {
+const initialState: EntityState<IAddonGroup> = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -22,27 +22,27 @@ const apiSearchUrl = 'api/_search/addon-groups';
 
 export const searchEntities = createAsyncThunk('addon-groups/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IAddonGroups[]>(requestUrl);
+  return axios.get<IAddonGroup[]>(requestUrl);
 });
 
 export const getEntities = createAsyncThunk('addon-groups/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
-  return axios.get<IAddonGroups[]>(requestUrl);
+  return axios.get<IAddonGroup[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
   'addon-groups/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-    return axios.get<IAddonGroups>(requestUrl);
+    return axios.get<IAddonGroup>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
 
 export const createEntity = createAsyncThunk(
   'addon-groups/create_entity',
-  async (entity: IAddonGroups, thunkAPI) => {
-    const result = await axios.post<IAddonGroups>(apiUrl, cleanEntity(entity));
+  async (entity: IAddonGroup, thunkAPI) => {
+    const result = await axios.post<IAddonGroup>(apiUrl, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -51,8 +51,8 @@ export const createEntity = createAsyncThunk(
 
 export const updateEntity = createAsyncThunk(
   'addon-groups/update_entity',
-  async (entity: IAddonGroups, thunkAPI) => {
-    const result = await axios.put<IAddonGroups>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  async (entity: IAddonGroup, thunkAPI) => {
+    const result = await axios.put<IAddonGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -61,8 +61,8 @@ export const updateEntity = createAsyncThunk(
 
 export const partialUpdateEntity = createAsyncThunk(
   'addon-groups/partial_update_entity',
-  async (entity: IAddonGroups, thunkAPI) => {
-    const result = await axios.patch<IAddonGroups>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  async (entity: IAddonGroup, thunkAPI) => {
+    const result = await axios.patch<IAddonGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -73,7 +73,7 @@ export const deleteEntity = createAsyncThunk(
   'addon-groups/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IAddonGroups>(requestUrl);
+    const result = await axios.delete<IAddonGroup>(requestUrl);
     thunkAPI.dispatch(getEntities({}));
     return result;
   },

@@ -9,7 +9,7 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IAddon } from 'app/shared/model/addon.model';
+import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { searchEntities, getEntities } from './addon-groups.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
@@ -145,11 +145,9 @@ export const AddonGroups = () => {
 
   return (
     <div>
-      <h2 >
-        Addon Groups View
-      </h2>
-      <div >
-        <DataTable value={addonGroupsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems} rows={20}>
+
+        <DataTable value={addonGroupsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"
+                   paginator totalRecords={totalItems} rows={20} showGridlines>
           <Column field="name" header={translate('addonGroups.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('addonGroups.view.table.search.name')}  sortable  />
 
           <Column field="addons" header={translate('addonGroups.view.table.fields.addons')}  body={(rowData) => rowData.addons.map(addon => addon.name).join(" | ")}   sortable  />
@@ -162,7 +160,6 @@ export const AddonGroups = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

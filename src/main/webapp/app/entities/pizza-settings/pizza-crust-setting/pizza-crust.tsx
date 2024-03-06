@@ -166,10 +166,6 @@ export const PizzaCrust = () => {
 
   return (
     <div>
-      <h2 >
-        Pizza Crust View
-      </h2>
-
       <div className={"card"} >
       <DataTable  value={crustThicknessList} editMode="row" header={thicknessHeader} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={crustThicknessTotalItems}
                   rows={20}>

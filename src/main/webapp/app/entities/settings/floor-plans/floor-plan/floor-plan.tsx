@@ -12,12 +12,12 @@ import {  filterFloorPlans } from './floor-plan.reducer';
 import {DataTable, DataTableFilterMeta, DataTableFilterMetaData} from "primereact/datatable";
 import {Column, ColumnFilterElementTemplateOptions} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
-import {IFloorPlan} from "app/shared/model/floor-plan.model";
+import {IFloorPlan} from "app/shared/model/FLOOR-PLAN/floor-plan.model";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {InputText} from "primereact/inputtext";
 import {Dropdown} from "primereact/dropdown";
 import {format} from "date-fns";
-import {DataTableLazyModel} from "app/shared/model/enumerations/data-table-lazy.model";
+import {DataTableLazyModel} from "app/shared/model/ENUMS/data-table-lazy.model";
 import {TriStateCheckbox, TriStateCheckboxChangeEvent} from "primereact/tristatecheckbox";
 import {classNames} from "primereact/utils";
 import {DropdownItem} from "reactstrap";
@@ -280,11 +280,7 @@ console.log("floorPlanList", floorPlanList)
 
   return (
     <div>
-      <h2 >
-        Floor Plans View
-      </h2>
 
-      <div >
         <DataTable
           value={floorPlanList}
           lazy
@@ -324,7 +320,6 @@ console.log("floorPlanList", floorPlanList)
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

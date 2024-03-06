@@ -9,7 +9,7 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IPrinter } from 'app/shared/model/printer.model';
+import { IPrinter } from 'app/shared/model/PRINTER/printer.model';
 import { searchEntities, getEntities } from './printer.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
@@ -151,12 +151,7 @@ export const Printer = () => {
 
   return (
     <div>
-      <h2 >
-        Printers View
 
-      </h2>
-
-      <div >
         <DataTable value={printerList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header="Name" body={nameColumnTemplate} filter  filterPlaceholder={"Search by name"}  sortable  />
@@ -177,7 +172,6 @@ export const Printer = () => {
 
         </DataTable>
       </div>
-    </div>
   );
 };
 

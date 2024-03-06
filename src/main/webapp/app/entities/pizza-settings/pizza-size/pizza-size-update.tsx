@@ -7,7 +7,8 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-size.reducer';
 import {InputText} from "primereact/inputtext";
-import {IPizzaSize} from "app/shared/model/pizza-size.model";
+import {IPizzaSize} from "app/shared/model/PIZZA/pizza-size.model";
+import {Card as PrimeCard} from 'primereact/card'
 
 export const PizzaSizeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -26,9 +27,7 @@ export const PizzaSizeUpdate = () => {
   const loading = useAppSelector(state => state.pizzaSize.loading);
   const updating = useAppSelector(state => state.pizzaSize.updating);
   const updateSuccess = useAppSelector(state => state.pizzaSize.updateSuccess);
-  const pizzaSizesList = useAppSelector(state => state.pizzaSize.entities);
 
-  console.log(pizzaSizesList, 'pizzaSizesList2')
 
   const handleClose = () => {
     navigate('/pizza-size' + location.search);
@@ -78,7 +77,8 @@ export const PizzaSizeUpdate = () => {
         </Col>
       </Row>
       <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+        <Col md="8" className="d-flex flex-column p-3 ">
+          <PrimeCard>
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -107,6 +107,7 @@ export const PizzaSizeUpdate = () => {
               </Button>
             </form>
           )}
+          </PrimeCard>
         </Col>
       </Row>
     </div>

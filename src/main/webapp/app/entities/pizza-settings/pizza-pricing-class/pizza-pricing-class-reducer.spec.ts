@@ -14,7 +14,7 @@ import reducer, {
   reset,
 } from './pizza-pricing-class.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import {IPizzaPricingClass, defaultValue} from "app/shared/model/pizza-pricing-class.model";
+import {IPizzaPricingClass, defaultValue} from "app/shared/model/PIZZA/pizza-pricing-class.model";
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {

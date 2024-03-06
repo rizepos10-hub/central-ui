@@ -16,7 +16,7 @@ import { getEntities as getProductionCenters } from 'app/entities/location/produ
 
 import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
 
-import { ItemStatus } from 'app/shared/model/enumerations/item-status.model';
+import { ItemStatus } from 'app/shared/model/ENUMS/item-status.model';
 import { getEntity, updateEntity, createEntity, reset, getEntities as getItems, importAddons } from './item.reducer';
 import Select from 'react-select';
 import ItemVariantModal from 'app/entities/item/restaurant/regular-item/item-variant-modal';
@@ -32,11 +32,12 @@ import {Checkbox} from "primereact/checkbox";
 import * as url from "url";
 import _default from "chart.js/dist/plugins/plugin.tooltip";
 import type = _default.defaults.animations.numbers.type;
-import {IItem} from "app/shared/model/item.model";
+import {IItem} from "app/shared/model/ITEM/item.model";
 import {getEntities as getSharedItemEntities} from "app/entities/item/restaurant/restaurant-item.reducer";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
 import {IVisibility} from "app/shared/model/visibility.model";
+import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -109,14 +110,8 @@ export const ItemUpdate = () => {
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [itemStatus, setItemStatus] = useState('ENABLED');
-
-
   const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
-
-
-
   const [selectedAttachments, setSelectedAttachments] = useState([]);
-
   const [variants, setVariants] = useState([]);
 
   const newItem = useAppSelector(state => state.regularItem.entity);
@@ -153,10 +148,10 @@ export const ItemUpdate = () => {
     }
     toastId.current = toast.info(
       <div>
-        <span>Are you sure you want to delete this variant?</span>
+        <span><Translate contentKey={'items.update.deleteVariantMessage'}>Are you sure you want to delete this variant?</Translate></span>
         <div className="d-flex mt-2 h-2rem">
           <PrimeButton
-            label="Yes"
+            label={translate('common.buttons.yes')}
             onClick={() => {
               toast.dismiss(toastId.current);
               archiveVariant(index);
@@ -165,7 +160,7 @@ export const ItemUpdate = () => {
           />
 
           <PrimeButton
-            label="No"
+            label={translate('common.buttons.no')}
             className="p-button-secondary p-button-sm ms-2"
             onClick={() => {
               toast.dismiss(toastId.current);
@@ -616,7 +611,7 @@ export const ItemUpdate = () => {
           <Row>
             <Col md={10}>
               <TabView>
-                <TabPanel header={'Details'}>
+                <TabPanel header={translate('items.update.tabs.details.label')}>
                   <div>
                     {openedModal && (
                       <ItemVariantModal
@@ -647,30 +642,30 @@ export const ItemUpdate = () => {
                     <Row >
                       <Col md="8">
                         <h2 id="tempApp.item.home.createOrEditLabel" data-cy="ItemCreateUpdateHeading">
-                          <Translate contentKey="tempApp.item.home.createOrEditLabel">Create or edit a Item</Translate>
+                          {isNew? <Translate contentKey={'items.update.tabs.details.titles.create.regular'}></Translate> : <Translate contentKey={'items.update.tabs.details.titles.edit.regular'}></Translate>}
                         </h2>
                       </Col>
                     </Row>
                     <Row >
-                      <Col md="8" className="d-flex flex-column p-3  bg-white">
+                      <Col md="8" className="d-flex flex-column p-3 gap-3 bg-white">
                         {loading ? (
                           <p>Loading...</p>
                         ) : (
                           <>
-                            {!isNew ? (
-                              <ValidatedField
-                                name="id"
-                                required
-                                readOnly
-                                id="item-id"
-                                label={translate('global.field.id')}
-                                validate={{ required: true }}
-                              />
-                            ) : null}
-                            <div className="d-flex justify-content-between mb-1 gap-3">
-                              <div style={{ width: '33%' }}>
+                            {/* {!isNew ? ( */}
+                            {/*   <ValidatedField */}
+                            {/*     name="id" */}
+                            {/*     required */}
+                            {/*     readOnly */}
+                            {/*     id="item-id" */}
+                            {/*     label={translate('global.field.id')} */}
+                            {/*     validate={{ required: true }} */}
+                            {/*   /> */}
+                            {/* ) : null} */}
+
+                              <div>
                                 <ValidatedField
-                                  label={translate('tempApp.item.name')}
+                                  label={translate('items.update.name')}
                                   id="item-name"
                                   name="name"
                                   data-cy="name"
@@ -682,19 +677,18 @@ export const ItemUpdate = () => {
                                   }}
                                 />
                               </div>
-                              <div style={{ width: '22%' }}>
-                                <Translate contentKey="tempApp.item.terms">Category</Translate>
+                              <div>
+                                <Translate contentKey="items.update.categories">Category</Translate>
                                 <Select  isMulti={true} value={selectedTerms} onChange={handleTermChange} options={categoriesOptions} />
                               </div>
-                              <div style={{ width: '22%' }}>
-                                <Translate contentKey="tempApp.item.accountingGroups">Accounting Groups</Translate>
+                              <div >
+                                <Translate contentKey="items.update.accountingGroups">Accounting Groups</Translate>
                                 <Select value={selectedAccountingGroups} onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
                               </div>
-                              <div style={{ width: '21%' }}>
-                                <Translate contentKey="tempApp.item.productionCenter">Production Center</Translate>
+                              <div >
+                                <Translate contentKey="items.update.productionCenter">Production Center</Translate>
                                 <Select value={selectedProductionCenter} onChange={handleProductionCenterChange} options={productionCenterOptions} />
                               </div>
-                            </div>
                             <Col md={12}>
                               {/* <ValidatedField */}
                               {/*   label={translate('tempApp.item.orderCount')} */}
@@ -728,9 +722,8 @@ export const ItemUpdate = () => {
                               {/*     validate: v => isNumber(v) || translate('entity.validation.number'), */}
                               {/*   }} */}
                               {/* /> */}
-                              <div className="d-flex  mb-1 gap-4">
-                                <div style={{ width: '34' }}>
-                                  <ValidatedField label={translate('tempApp.item.status')}
+                                <div >
+                                  <ValidatedField label={translate('items.view.fields.regular.status')}
                                                   value={itemStatus} id="item-status" name="status"
                                                   data-cy="status" type="select"
                                                   onChange={(e) => setItemStatus(e.target.value)}
@@ -743,31 +736,22 @@ export const ItemUpdate = () => {
                                   </ValidatedField>
                                 </div>
 
-                                <div style={{ width: '35%' }}>
+                                <div >
                                   <ValidatedField
-                                    label={translate('tempApp.item.desc')}
+                                    label={translate('items.update.description')}
                                     id="item-desc"
                                     name="desc"
                                     data-cy="desc"
-                                    type="text"
+                                    type="textarea"
                                     value={desc}
                                     onChange={e => setDesc(e.target.value)}
                                   />
                                 </div>
-                              </div>
-                              <div className={"d-flex my-3 gap-2"}>
-                                <label >
-                                  Excluded From Loyalty Points
-                                </label>
-                                <Checkbox
-                                  checked={excludedFromLoyaltyPoints}
-                                  onChange={(e) => setExcludedFromLoyaltyPoints(e.checked)}
-                                />
-                              </div>
+
                               <div className="d-flex justify-content-between mb-1">
                                 <div className="mb-3">
                                   <ValidatedField
-                                    label={'Item Image'}
+                                    label={translate('items.update.image')}
                                     id="item-image"
                                     name="image"
                                     data-cy="image"
@@ -825,11 +809,11 @@ export const ItemUpdate = () => {
                             <Col>
                               <Row>
                                 <div className="col md-6">
-                                  <Translate contentKey="tempApp.item.addons">Addons</Translate>
+                                  <Translate contentKey="items.update.addons">Addons</Translate>
                                   <Select isMulti={true} value={selectedAddons} onChange={handleAddonChange} options={addonsOptions} />
                                 </div>
                                 <div className={'col md-2 mt-4 ml-3'} style={{ display: 'flex', alignItems: 'center' }}>
-                                  <Button onClick={openImportAddonModal}> Import Addons</Button>
+                                  <Button onClick={openImportAddonModal}><Translate contentKey={'items.update.importAddons'}>Import Addons</Translate></Button>
                                 </div>
                               </Row>
                             </Col>
@@ -838,7 +822,7 @@ export const ItemUpdate = () => {
 
 
                                 <div className="mt-2">
-                                  <h5>Addon Groups</h5>
+                                  <h5><Translate contentKey={'items.update.addonGroups'}> Addon Groups</Translate></h5>
 
                                   <div className="col-md-6">
                                     <Select isMulti={true} value={selectedAddonGroups.map(group => ({
@@ -850,8 +834,8 @@ export const ItemUpdate = () => {
                                   <Table>
                                     <thead>
                                     <tr>
-                                      <th>Name</th>
-                                      <th>Required</th>
+                                      <th><Translate contentKey={'items.update.name'}>Name</Translate></th>
+                                      <th><Translate contentKey={'items.update.required'}>Required</Translate></th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -874,14 +858,14 @@ export const ItemUpdate = () => {
 
                             {variants && (
                               <div className="mb-3">
-                                <h5> <Translate contentKey="tempApp.item.variants">Variants</Translate></h5>
+                                <h5> <Translate contentKey="items.update.regular.variants">Variants</Translate></h5>
                                 <table className="table table-striped">
                                   <thead>
                                   <tr>
-                                    <th>Name</th>
-                                    <th>Price</th>
-                                    <th>Image</th>
-                                    <th>Discounts</th>
+                                    <th><Translate contentKey="items.update.name">Name</Translate></th>
+                                    <th><Translate contentKey="items.update.price">Price</Translate></th>
+                                    <th><Translate contentKey="items.update.image">Image</Translate></th>
+                                    <th><Translate contentKey="items.update.regular.discounts">Discounts</Translate></th>
                                   </tr>
                                   </thead>
                                   <tbody>
@@ -932,7 +916,7 @@ export const ItemUpdate = () => {
                               </div>
                             )}
                             <div className="mt-4 mb-4">
-                              <Button onClick={openVariantModal}> Add Variant</Button>
+                              <Button onClick={openVariantModal}><Translate contentKey="items.update.regular.addVariant">Add Variant</Translate></Button>
                             </div>
                           </>
                         )}
@@ -940,8 +924,20 @@ export const ItemUpdate = () => {
                     </Row>
                   </div>
                 </TabPanel>
-                <TabPanel header={'Visibility'}>
-                  <Visibility initialState={visibility} onStateChanged={(state)=> setVisibility(state)}/>
+                <TabPanel header={translate('items.update.tabs.visibility.label')}>
+                  <Visibility initialState={visibility} title={translate('items.update.tabs.visibility.titles.regular')} onStateChanged={(state)=> setVisibility(state)}/>
+                </TabPanel>
+
+                <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                  <div className={"d-flex my-3 gap-2"}>
+                    <label >
+                      <Translate contentKey={'items.update.excludedFromLoyalty'}>Excluded From Loyalty Points</Translate>
+                    </label>
+                    <Checkbox
+                      checked={excludedFromLoyaltyPoints}
+                      onChange={(e) => setExcludedFromLoyaltyPoints(e.checked)}
+                    />
+                  </div>
                 </TabPanel>
               </TabView>
             </Col>

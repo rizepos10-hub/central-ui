@@ -83,20 +83,12 @@ export default function Instructions()
 
   return (
     <div className="welcome-container">
-        <div className="welcome-content">
-          {showWelcome &&
+      {showWelcome && <div className="welcome-content">
           <div>
-            <span className="color-cycle">W</span>
-            <span className="color-cycle">e</span>
-            <span className="color-cycle">l</span>
-            <span className="color-cycle">c</span>
-            <span className="color-cycle">o</span>
-            <span className="color-cycle">m</span>
-            <span className="color-cycle">e</span>
-            <span className="color-cycle">!</span>
-          </div>   }
-          <h2 className={`${showWelcome ? "welcome-instructions" : "instructions"}`}>Instructions</h2>
-        </div>
+            <span className="welcome-rize">Welcome to Rize POS!</span>
+          </div>
+          <h2 className={"instructions"}>Please Follow the bellow instruction </h2>
+        </div> }
 
           <div className="steps-column">
 
@@ -106,7 +98,7 @@ export default function Instructions()
             As initial step you need to run the POS  server so the pos clients can connect to the cloud.
             Please download the setup from the link and run it on  your local server.
           </p>
-          <a rel="noreferrer" href={`${SERVER_DOMAIN}/pos/pos-server-installer.exe`} target={"_blank"} >POS SERVER</a>
+          <a rel="noreferrer" href={`/pos-resources/pos-server-installer.exe`} target={"_blank"} >POS SERVER</a>
 
           <h4>Credentials</h4>
           <div className=" d-flex gap-5">

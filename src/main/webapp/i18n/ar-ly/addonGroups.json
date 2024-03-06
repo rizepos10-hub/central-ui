@@ -1,0 +1,38 @@
+{
+  "addonGroups": {
+    "view": {
+      "title": "Addon Groups View",
+      "table": {
+        "title": "Addon Groups",
+        "fields": {
+          "name": "Name",
+          "addons": "Addons",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "buttons": {
+          "refreshList": "Refresh List",
+          "createNewAddonGroup": "Create New Addon Group"
+        },
+        "search": {
+          "name": "Search by Name"
+        }
+      }
+    },
+    "delete" : {
+      "title": "Confirm Delete Operation",
+      "question": "Are you sure you want to delete Addon {{ id }}"
+    },
+    "update": {
+      "id": "ID",
+      "name": "Name",
+      "addons": "Addons",
+      "create": {
+        "title": "Create New Addon Group"
+      },
+      "edit": {
+        "title": "Edit Addon Group"
+      }
+    }
+  }
+}

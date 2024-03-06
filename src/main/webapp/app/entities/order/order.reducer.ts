@@ -3,7 +3,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IOrder, defaultValue } from 'app/shared/model/order.model';
+import { IOrder, defaultValue } from 'app/shared/model/ORDER/order.model';
 
 const initialState: EntityState<IOrder> = {
   loading: false,
@@ -65,10 +65,8 @@ export const getOrderStatuses = createAsyncThunk('order/fetch_orderStatus_list',
 export const filterOrders = createAsyncThunk(
   'order/filter_orders',
   async (queryParams: any) => {
-    console.log(queryParams, 'hello from filter');
     try {
       const formData = new URLSearchParams(queryParams).toString();
-
       const response = await axios.post<IOrder[]>('api/orders/filtered', formData);
       return response;
     } catch (error) {

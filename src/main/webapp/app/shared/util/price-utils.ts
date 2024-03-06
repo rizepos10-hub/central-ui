@@ -7,7 +7,7 @@ export const formatPrice = (number, exchange) => {
       maximumFractionDigits: 2,
     });
 
-    const currencySymbol = exchange?.currency;
+    const currencySymbol = exchange?.currency?.code || exchange?.code;
 
     return `${formattedNumber} ${currencySymbol}`;
   }

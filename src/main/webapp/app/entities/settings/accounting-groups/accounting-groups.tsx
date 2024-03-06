@@ -8,7 +8,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntities, getEntities } from './accounting-groups.reducer';
 
- import { IAccountingGroups } from 'app/shared/model/accounting-groups.model';
+ import { IAccountingGroups } from 'app/shared/model/TAX/accounting-groups.model';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Button} from "primereact/button";
@@ -128,12 +128,7 @@ export const AccountingGroups = () => {
   );
   return (
     <div>
-      <h2 >
-        Accounting Groups View
 
-      </h2>
-
-      <div >
         <DataTable value={accountingGroupsList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
             field="name" header="Name" filter
@@ -154,7 +149,6 @@ export const AccountingGroups = () => {
           {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}
           {/*          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} /> */}
         </DataTable>
-      </div>
     </div>
   );
 };

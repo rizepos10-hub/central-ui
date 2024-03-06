@@ -168,11 +168,9 @@
 
 
     return (
-      <div>
-        <h2><Translate contentKey={'posUsers.user.title'}/></h2>
 
         <div >
-          <DataTable value={modifiedUserList} editMode="row" header={header}  paginator
+          <DataTable value={modifiedUserList} editMode="row" header={header}  paginator showGridlines
                      globalFilterFields={['firstName', 'lastName' ]} loading={loading}
                      filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
             <Column
@@ -218,7 +216,6 @@
 
           </DataTable>
         </div>
-      </div>
     );
   };
 

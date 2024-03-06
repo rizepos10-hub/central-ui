@@ -11,7 +11,7 @@ import {getEntities as getTerms, getMenuCategories} from "app/entities/term/term
 import {getEntities as getItems} from "app/entities/item/restaurant/regular-item/item.reducer";
 import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime} from "app/shared/util/date-utils";
 import {result} from "lodash";
-import {MenuTypeModel} from "app/shared/model/enumerations/menu-type.model";
+import {MenuTypeModel} from "app/shared/model/ENUMS/menu-type.model";
 
 
 const NewMenuPopup = () => {
@@ -160,13 +160,13 @@ const NewMenuPopup = () => {
   return (
     <Modal isOpen={true} toggle={handleClose} className="modal-lg">
       <ModalHeader toggle={handleClose}>
-        <Translate contentKey="tempApp.menu.home.createOrEditLabel">Create or edit a Menu</Translate>
+          <Translate contentKey="menus.shared.update.create.title">Create New Menu</Translate>
       </ModalHeader>
       <ModalBody>
         <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
 
           <ValidatedField
-            label={translate('tempApp.menu.name')}
+            label={translate('menus.shared.update.name')}
             id="menu-name"
             name="name"
             data-cy="name"
@@ -177,7 +177,7 @@ const NewMenuPopup = () => {
             }}
           />
           <ValidatedField
-            label={translate('tempApp.menu.menuUrl')}
+            label={translate('menus.shared.update.url')}
             id="menu-menuUrl"
             name="menuUrl"
             data-cy="menuUrl"
@@ -185,12 +185,12 @@ const NewMenuPopup = () => {
 
           />
           <div className="mb-3">
-            Branches
+            {translate('menus.shared.update.branches')}
             <Select defaultValue={initialBranches}
                     onChange={handleBranchChange} options={branchList} />
           </div>
           <div className="mb-3">
-            Type
+            {translate('menus.shared.update.type')}
             <Select defaultValue={initialType}
                     onChange={handleTypeChange} options={menuTypeOptions} />
           </div>
@@ -198,7 +198,7 @@ const NewMenuPopup = () => {
             id="menu-category"
             name="category"
             data-cy="category"
-            label={translate("tempApp.menu.category")}
+            label={translate('menus.shared.update.category')}
             type="select"
             value={selectedCategory}
             onChange={handleCategoryChange}

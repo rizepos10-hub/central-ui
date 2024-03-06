@@ -1,0 +1,56 @@
+{
+  "tempApp": {
+    "purchaseOrder": {
+      "view": {
+        "title": "Purchase Orders View",
+        "table": {
+          "title": "Purchase Orders",
+          "buttons": {
+            "refreshList": "Refresh List",
+            "createNewPurchaseOrder": "Create New Purchase Order"
+          },
+          "fields": {
+            "id": "ID",
+            "warehouse": "Warehouse",
+            "supplier": "Supplier",
+            "status": "Status",
+            "dateDelivered": "Delivered Date",
+            "datePlaced": "Placed Date ",
+            "location": "Location",
+            "edit": "Edit",
+            "delete": "Delete",
+            "actions": "Actions"
+          },
+          "search": {
+            "id": "Filter by id",
+            "warehouse": "Filter by warehouse name",
+            "supplier": "Filter by supplier name",
+            "status": "Filter by status",
+            "dateDelivered": "Filter by date delivered",
+            "datePlaced": "Filter by date placed",
+            "location": "Search by location"
+          }
+        }
+      },
+      "created": "A new Purchase Order is created with identifier {{ param }}",
+      "updated": "A Purchase Order is updated with identifier {{ param }}",
+      "deleted": "A Purchase Order is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Purchase Order",
+        "question": "Are you sure you want to delete purchase order {{ id }}"
+      },
+      "update": {
+        "create": {
+          "title": "Create New Purchase Order"
+        },
+        "edit": {
+          "title": "Edit Purchase Order"
+        },
+        "id": "Id",
+        "name": "Name",
+        "branch": "Branch",
+        "location": "Location"
+      }
+    }
+  }
+}

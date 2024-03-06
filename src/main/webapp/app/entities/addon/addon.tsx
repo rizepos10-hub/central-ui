@@ -9,7 +9,7 @@ import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.cons
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IAddon } from 'app/shared/model/addon.model';
+import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { searchEntities, getEntities } from './addon.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
@@ -163,14 +163,9 @@ export const Addon = () => {
 
   return (
     <div>
-      <h2 >
-        <Translate contentKey={'addons.view.title'}>Addons View</Translate>
 
-      </h2>
-
-      <div >
         <DataTable value={addonList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20}>
+                   rows={20} showGridlines>
           <Column field="name" header={translate('addons.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('addons.view.table.search.name')}  sortable  />
           <Column field="price" header={translate('addons.view.table.fields.price')} sortable body={priceBodyTemplate} />
           <Column
@@ -188,7 +183,6 @@ export const Addon = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

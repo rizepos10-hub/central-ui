@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
 import {Button, Row, Col, Spinner, FormGroup, Table, Card, CardBody} from 'reactstrap';
-import {getSortState, Translate} from 'react-jhipster';
+import {getSortState, translate, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -9,7 +9,7 @@ import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-item.reducer';
 import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
-import {IBasePizzaDetail, IPizzaItem} from "app/shared/model/pizza-item.model";
+import {IBasePizzaDetail, IPizzaItem} from "app/shared/model/ITEM/restaurant/pizza-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
 import Select from "react-select";
@@ -20,22 +20,23 @@ import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
 import {Accordion, AccordionTab} from "primereact/accordion";
 import AsyncSelect from "react-select/async";
-import {IPizzaPricingClass} from "app/shared/model/pizza-pricing-class.model";
+import {IPizzaPricingClass} from "app/shared/model/PIZZA/pizza-pricing-class.model";
 import {getEntities as getToppings} from "app/entities/pizza-settings/pizza-topping/pizza-topping.reducer";
-import {ITopping} from "app/shared/model/topping.model";
-import {ICrustType} from "app/shared/model/crust-type.model";
+import {ITopping} from "app/shared/model/PIZZA/topping.model";
+import {ICrustType} from "app/shared/model/PIZZA/crust-type.model";
 import {getEntities as getCrustTypes} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer";
 import {getEntities as getCrustThicknesses} from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness.reducer";
-import {ICrustThickness} from "app/shared/model/crust-thickness.model";
+import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
 import {TabPanel, TabView} from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
+import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
 
 const items: MenuItem[] = [
   {
-    label: "Choose Pizza Type",
+    label: translate('items.update.pizza.createNewPizzaSteps.choosePizzaType'),
   },
   {
-    label: "Create Your Pizza",
+    label: translate('items.update.pizza.createNewPizzaSteps.createYourPizza'),
   },
 
 ];
@@ -428,7 +429,7 @@ export const PizzaItemUpdate = () => {
       <Row>
         <Col md="8">
           <h2>
-            {isNew ? "Create New Pizza Item" : `Edit Pizza Item`}
+            {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.pizza'}>Create New Pizza Item</Translate> : <Translate contentKey={'items.update.tabs.details.titles.edit.pizza'}>Edit Pizza Item</Translate>}
           </h2>
         </Col>
       </Row>
@@ -445,24 +446,28 @@ export const PizzaItemUpdate = () => {
             <div className={"d-flex justify-content-center"}>
               <div className={ "card d-flex flex-column w-7 h-40rem "}>
             <div className={"  p-6  d-flex flex-column justify-content-center align-items-center"}>
-              <h4>Pizza Item Type</h4>
+              <h4><Translate contentKey={'items.update.pizza.createNewPizzaSteps.pizzaItemType'}>Pizza Item Type</Translate></h4>
               <div className="p-selectbutton d-flex gap-8 p-buttonset p-component p-3" role="group" data-pc-name="selectbutton"
                    data-pc-section="root">
                 <div className={`p-button h-20rem w-20rem p-component ${!isMultiple ? "p-highlight" : "" }`} role="button" aria-label="Single" aria-pressed="true"
                      tabIndex={0} data-pc-section="button" onClick={() => handleMultipleClick("SINGLE")}>
-                  <span className="p-button-label p-c" data-pc-section="label">Single</span>
+                  <span className="p-button-label p-c" data-pc-section="label">
+                    <Translate contentKey={'items.update.pizza.createNewPizzaSteps.single'}>Single</Translate>
+                  </span>
                   <span role="presentation" className="p-ink" style={{height: "78.0256px", width:"78.0256px"}}></span>
                 </div>
                 <div className={`p-button  h-20rem w-20rem  p-component ${isMultiple ? "p-highlight" : "" }`} role="button" aria-label="Multiple" aria-pressed="false"
                      tabIndex={0} data-pc-section="button"  onClick={() => handleMultipleClick("MULTIPLE")}>
-                  <span className="p-button-label p-c" data-pc-section="label">Multiple</span>
+                  <span className="p-button-label p-c" data-pc-section="label">
+                    <Translate contentKey={'items.update.pizza.createNewPizzaSteps.multiple'}>Multiple</Translate>
+                  </span>
                   <span role="presentation" className="p-ink" style={{height: "78.0256px", width:"78.0256px"}}></span>
                 </div>
               </div>
               {/* <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Single'} onChange={handleMultipleClick} options={multipleOptions} /> */}
             </div>
               <div className={"ml-auto"}>
-                <Button onClick={handleNextClick}>Next</Button>
+                <Button onClick={handleNextClick}><Translate contentKey={'items.update.pizza.createNewPizzaSteps.next'}>Next</Translate></Button>
               </div>
             </div>
         </div>: null}
@@ -474,16 +479,16 @@ export const PizzaItemUpdate = () => {
                 <Row>
                   <Col md={10}>
                     <TabView>
-                      <TabPanel header={'Details'}>
+                      <TabPanel header={translate('items.update.tabs.details.label')}>
                         <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
 
-                          <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                          <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
                             {!pizzaItem?.variants?.[0]?.multiple ?
                               <Row>
                                 <Col md="6">
                                   <div className={"d-flex flex-column gap-2"}>
                                     <label className={"text-xl font-bold"}>
-                                      Predefined Pizza
+                                     <Translate contentKey={'items.update.pizza.predefined'}>Predefined Pizza</Translate>
                                     </label>
                                     <Select
                                       value={pizzaItem?.variants?.[0]?.predefinedPizza}
@@ -501,10 +506,11 @@ export const PizzaItemUpdate = () => {
 
                             <Row className={"my-6"} >
                               <Row className={"mt-2"}>
-                                {!pizzaItem?.variants?.[0]?.multiple ? <Col md="3">
+                                {!pizzaItem?.variants?.[0]?.multiple ?
+                                  <Col md="5">
                                   <div className={"d-flex flex-column gap-2"}>
                                     <label className={"text-xl font-bold"}>
-                                      Item Pricing
+                                      <Translate contentKey={"items.update.pizza.itemPricing"}>Item Pricing</Translate> Item Pricing
                                     </label>
                                     <Select
                                       value={pizzaItem?.variants?.[0]?.itemPricingClass}
@@ -523,15 +529,15 @@ export const PizzaItemUpdate = () => {
 
                             {!pizzaItem?.variants?.[0]?.multiple && pizzaItem?.variants?.[0]?.predefinedPizza?.base ?
                               <Accordion multiple activeIndex={[0]} className={"my-3"}>
-                                <AccordionTab  header={"Make Your Own Pizza Settings"}>
+                                <AccordionTab  header={translate('items.update.pizza.makeYourOwnPizzaSettings')}>
                                   <Row>
                                     <Col md="8">
                                       <Table>
                                         <thead>
                                         <tr>
-                                          <th>Number of Toppings</th>
-                                          <th>Pricing Class</th>
-                                          <th>Remove</th>
+                                          <th><Translate contentKey={'items.update.pizza.numberOfToppings'}>Number of Toppings</Translate></th>
+                                          <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
+                                          <th><Translate contentKey={'items.update.pizza.remove'}>Remove</Translate></th>
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -558,14 +564,16 @@ export const PizzaItemUpdate = () => {
                                               />
                                             </td>
                                             <td>
-                                              <PrimeButton type={"button"} onClick={() => handleRemoveBaseDetail(index)} severity={"danger"} >Remove</PrimeButton>
+                                              <PrimeButton type={"button"} onClick={() => handleRemoveBaseDetail(index)} severity={"danger"}>
+                                                <Translate contentKey={'items.update.pizza.remove'}>Remove</Translate>
+                                              </PrimeButton>
                                             </td>
                                           </tr>
                                         ))}
                                         <tr>
                                           <td colSpan={2}>
                                             <Button color="primary" onClick={addNewBaseDetail}>
-                                              Add
+                                              <Translate contentKey={'items.update.pizza.add'}>Add</Translate>
                                             </Button>
                                           </td>
                                         </tr>
@@ -579,7 +587,9 @@ export const PizzaItemUpdate = () => {
                               <Accordion multiple activeIndex={[0]} className={"my-3"}>
                                 <AccordionTab  header={"Toppings"}>
                                   <div className={"d-flex gap-3"}>
-                                    <label className={"mt-2"}>Add Toppings</label>
+                                    <label className={"mt-2"}>
+                                      <Translate contentKey={'items.update.pizza.addToppings'}>Add Toppings</Translate>
+                                    </label>
                                     <Col md={"6"}>
                                       <Select
                                         value={pizzaItem?.variants?.[0]?.toppingPricing?.map((toppingPrice) => toppingPrice.topping)}
@@ -592,8 +602,8 @@ export const PizzaItemUpdate = () => {
                                       <Table>
                                         <thead>
                                         <tr>
-                                          <th>Topping</th>
-                                          <th>Pricing Class</th>
+                                          <th><Translate contentKey={'items.update.pizza.toppings'}>Topping</Translate></th>
+                                          <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -621,9 +631,11 @@ export const PizzaItemUpdate = () => {
                               </Accordion>
 
                               <Accordion multiple activeIndex={[0]} className={"my-3"}>
-                                <AccordionTab  header={"Crust Type"}>
+                                <AccordionTab  header={translate('items.update.pizza.crustType')}>
                                   <div className={"d-flex gap-3"}>
-                                    <label className={"mt-2"}>Add Crust Types</label>
+                                    <label className={"mt-2"}>
+                                      <Translate contentKey={'items.update.pizza.addCrustTypes'}>Add Crust Types</Translate>
+                                    </label>
                                     <Col md={"6"}>
                                       <Select
                                         value={pizzaItem?.variants?.[0]?.crustTypePricing?.map((crustTypePricing) => crustTypePricing?.crustType)}
@@ -636,8 +648,8 @@ export const PizzaItemUpdate = () => {
                                       <Table>
                                         <thead>
                                         <tr>
-                                          <th>Crust Type</th>
-                                          <th>Pricing Class</th>
+                                          <th><Translate contentKey={'items.update.pizza.crustType'}>Crust Type</Translate></th>
+                                          <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -667,9 +679,11 @@ export const PizzaItemUpdate = () => {
                               </Accordion>
 
                               <Accordion multiple activeIndex={[0]} className={"my-3"}>
-                                <AccordionTab  header={"Crust Thickness"}>
+                                <AccordionTab  header={translate('items.update.pizza.crustThickness')}>
                                   <div className={"d-flex gap-3"}>
-                                    <label className={"mt-2"}>Add Crust Thicknesses</label>
+                                    <label className={"mt-2"}>
+                                      <Translate contentKey={'items.update.pizza.addCrustThickness'}>Add Crust Thicknesses</Translate>
+                                    </label>
                                     <Col md={"6"}>
                                       <Select
                                         value={pizzaItem?.variants?.[0]?.crustThicknessPricing?.map((crustThicknessPricing) => crustThicknessPricing.crustThickness)}
@@ -682,8 +696,8 @@ export const PizzaItemUpdate = () => {
                                       <Table>
                                         <thead>
                                         <tr>
-                                          <th>Crust Thickness</th>
-                                          <th>Pricing Class</th>
+                                          <th><Translate contentKey={'items.update.pizza.crustThickness'}>Crust Thickness</Translate></th>
+                                          <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -717,8 +731,8 @@ export const PizzaItemUpdate = () => {
                                   <Table>
                                     <thead>
                                     <tr>
-                                      <th>Number of Pizzas</th>
-                                      <th>Free Toppings Number</th>
+                                      <th><Translate contentKey={'items.update.pizza.numberOfPizzas'}>Number of Pizzas</Translate></th>
+                                      <th><Translate contentKey={'items.update.pizza.freeToppingsNumber'}>Free Toppings Number</Translate></th>
                                       <th>Remove</th>
                                     </tr>
                                     </thead>
@@ -744,14 +758,16 @@ export const PizzaItemUpdate = () => {
                                           />
                                         </td>
                                         <td>
-                                          <PrimeButton type={"button"} onClick={() => handleRemoveMultiplePizzaInput(index)} severity={"danger"} >Remove</PrimeButton>
+                                          <PrimeButton type={"button"} onClick={() => handleRemoveMultiplePizzaInput(index)} severity={"danger"} >
+                                            <Translate contentKey={'items.update.pizza.remove'}>Remove</Translate>
+                                          </PrimeButton>
                                         </td>
                                       </tr>
                                     ))}
                                     <tr>
                                       <td colSpan={2}>
                                         <Button color="primary" onClick={addNewMultiplePizzaDetail}>
-                                          Add
+                                          <Translate contentKey={'items.update.pizza.add'}>Add</Translate>
                                         </Button>
                                       </td>
                                     </tr>
@@ -765,10 +781,17 @@ export const PizzaItemUpdate = () => {
                           </Col>
                         </FormGroup>
                       </TabPanel>
-                      <TabPanel header={'Visibility'}>
-                        <Visibility initialState={pizzaItem.visibility} onStateChanged={(visibility)=> setPizzaItem((prev => {
+                      <TabPanel header={translate('items.update.tabs.visibility.label')}>
+                        <Visibility
+                          initialState={pizzaItem.visibility}
+                          title={translate('items.update.tabs.visibility.titles.pizza')}
+                          onStateChanged={(visibility)=> setPizzaItem((prev => {
                           return {...prev, visibility}
                         }))}/>
+                      </TabPanel>
+
+                      <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                        <ItemLoyaltyTab excludedFromLoyaltyPoints={pizzaItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
                       </TabPanel>
                     </TabView>
 

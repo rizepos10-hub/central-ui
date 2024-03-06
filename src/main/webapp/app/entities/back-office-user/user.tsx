@@ -132,12 +132,10 @@ export const User = () => {
     </div>
   );
   return (
-    <div>
-      <h2 ><Translate contentKey={'backOfficeUsers.user.title'} /></h2>
 
       <div >
-        <DataTable value={modifiedUserList} editMode="row" header={header}  paginator
-                   globalFilterFields={['firstName', 'lastName' ]} loading={loading}
+        <DataTable value={modifiedUserList} editMode="row" header={header}  paginator showGridlines
+                   globalFilterFields={['firstName', 'lastName' ]} loading={loading} className="datatable-responsive"
                    filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
             field="name" header={translate("backOfficeUsers.user.table.fields.name")} filter
@@ -158,7 +156,6 @@ export const User = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

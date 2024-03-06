@@ -131,11 +131,7 @@ export const PizzaSize = () => {
 
   return (
     <div>
-      <h2 >
-        Pizza Sizes View
-      </h2>
 
-      <div >
         <DataTable
           value={sizeList}
           editMode="row"
@@ -162,7 +158,6 @@ export const PizzaSize = () => {
 
         </DataTable>
       </div>
-    </div>
   );
 };
 

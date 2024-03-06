@@ -3,7 +3,7 @@ import React from "react";
 
 const AppMenu = () => {
 
-    const model: any = [
+  const model: any = [
                           {
                             label: 'Control Panel',
                             icon: 'pi pi-home',
@@ -106,7 +106,12 @@ const AppMenu = () => {
                                   },
                                 ]
                               },
-
+                              {
+                                label: 'Measures',
+                                role: ['ROLE_ADMIN'],
+                                icon: 'pi pi-folder-open',
+                                to: '/item-measure'
+                              }
 
                             ]
                           },
@@ -184,7 +189,6 @@ const AppMenu = () => {
                             label: 'Customers',
                             role: ['ROLE_ADMIN'],
                             icon: ' pi pi-users',
-
                             items: [
                               {
                                 label: 'All Customers',
@@ -203,16 +207,53 @@ const AppMenu = () => {
                           },
 
                           {
-                            label: 'Stock',
-                            role: ['ROLE_ADMIN'],
-                            icon: ' pi pi-th-large',
-                            to: '/stock'
-                          },
-                          {
                             label: 'Inventory',
                             role: ['ROLE_ADMIN'],
                             icon: 'pi pi-box',
-                            to: '/inventory'
+                            items: [
+                              {
+                                label: 'Stock',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/stock'
+                              },
+                              {
+                                label: 'Suppliers',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/supplier'
+                              },
+                              {
+                                label: 'Warehouses',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/warehouse'
+                              },
+                              {
+                                label: 'Sales Locations',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/sales-location'
+                              },
+                              {
+                                label: 'Transfer Requests',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/transfer-request'
+                              },
+                              {
+                                label: 'Supplier Returns',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/supplier-return'
+                              },
+                              {
+                                label: 'Purchase Orders',
+                                role: ['ROLE_ADMIN'],
+                                icon: ' pi pi-users',
+                                to: '/inventory/purchase-order'
+                              },
+                            ]
                           },
 
                           {
@@ -396,6 +437,12 @@ const AppMenu = () => {
                                 role: ['ROLE_ADMIN'],
                                 icon: 'pi pi-plus-circle',
                                 to: '/reporting-automations'
+                              },
+                              {
+                                label: 'Theme',
+                                role: ['ROLE_ADMIN'],
+                                icon: 'pi pi-percentage',
+                                to: '/theme'
                               },
                               {
                                 label: 'Item languages',

@@ -12,7 +12,7 @@ import {  getEntities } from './table.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
-import {IFloorPlanTable} from "app/shared/model/floor-plan-table.model";
+import {IFloorPlanTable} from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
 
 export const FloorPlanTable = () => {
   const dispatch = useAppDispatch();
@@ -111,11 +111,6 @@ export const FloorPlanTable = () => {
 
   return (
     <div>
-      <h2 >
-        Tables View
-      </h2>
-
-      <div >
         <DataTable value={floorPlanTablesList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
@@ -132,7 +127,6 @@ export const FloorPlanTable = () => {
 
 
         </DataTable>
-      </div>
     </div>
   );
 };

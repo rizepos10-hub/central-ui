@@ -46,15 +46,27 @@ import retailAttribute from "app/entities/item/retail/attributes/retail-attribut
 import retailAttributeValue from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import retailItems from "app/entities/item/retail/retail-items.reducer";
 import itemsForCombo from 'app/entities/item/restaurant/combo-item-prev/items-for-combo.reducer';
-import currencies from "app/entities/settings/currencySettings/currencies.reducer"
-import currencySettings from "app/entities/settings/currencySettings/currency-settings.reducer"
+import currencies from "app/entities/settings/currency/currencies.reducer"
+import currencySettings from "app/entities/settings/currency/currency-settings.reducer"
 import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
 import allItems from 'app/entities/item/all-items.reducer';
+import itemMeasure from 'app/entities/item-measure/item-measure.reducer'
 
 import tv from "app/entities/settings/tv-config/tv/tv.reducer"
 import tvDisplay from "app/entities/settings/tv-config/tv-display/tv-display.reducer"
 
 import loyalty from "app/entities/loyalty/loyalty-records.reducer";
+import loyaltyExchange from "app/entities/loyalty/loyalty-exchange.reducer";
+import supplier from "app/entities/inventory/supplier/supplier.reducer"
+import salesLocation from "app/entities/inventory/sales-location/sales-location.reducer"
+import warehouse from "app/entities/inventory/warehouse/warehouse.reducer"
+import purchaseOrder from "app/entities/inventory/purchase-order/purchase-order.reducer"
+import itemForStock from "app/entities/inventory/stock-config/items-stock-config.reducer"
+import purchaseConfig from "app/entities/inventory/stock-config/purchase-config.reducer"
+import inventoryItem from "app/entities/inventory/stock-config/inventory-items.reducer"
+import stockQuantity from "app/entities/inventory/stock-config/stock-quantity.reducer"
+import transferRequest from "app/entities/inventory/transfer-request/transfer-request.reducer"
+import supplierReturn from "app/entities/inventory/supplier-return/supplier-return.reducer"
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
@@ -106,10 +118,23 @@ const entitiesReducers = {
   itemsForCombo,
   allItems,
   loyalty,
+  loyaltyExchange,
   currencies,
   currencySettings,
   tv,
-  tvDisplay
+  tvDisplay,
+  supplier,
+  salesLocation,
+  warehouse,
+  purchaseOrder,
+  itemForStock,
+  purchaseConfig,
+  stockQuantity,
+  transferRequest,
+  supplierReturn,
+  inventoryItem,
+  itemMeasure
+
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };

@@ -883,14 +883,14 @@ const ItemVariantModal = (props: IVariantProps) => {
       <Modal isOpen={props.showModal} toggle={props.handleClose} backdrop="static" size="xl" autoFocus={false}>
         <ValidatedForm onSubmit={handleVariantSave}>
           <ModalHeader id="variant-title" data-cy="variantTitle" toggle={props.handleClose}>
-            <label>Variant</label>
+            <label><Translate contentKey={'items.update.regular.variantModal.title'}>Variant</Translate></label>
           </ModalHeader>
           <ModalBody>
             <Row>
-              <Translate contentKey="tempApp.item.variant.name"></Translate>
+              <Translate contentKey="items.update.regular.variantModal.name"></Translate>
               <ValidatedField
                 type="text"
-                placeholder="enter variant name"
+                placeholder={translate('items.update.placeholders.variantName')}
                 name="name"
                 value={name}
                 required
@@ -904,7 +904,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                 <Col xs="12" sm="6" className="mb-3">
                   <div className="custom-file">
                     <label htmlFor="image" className="custom-file-upload">
-                      Choose Image
+                      <Translate contentKey={'items.update.regular.variantModal.chooseImage'}> Choose Image</Translate>
                     </label>
                     <input type="file" name="image" id="image" onChange={handleFileChange} />
                   </div>
@@ -972,22 +972,22 @@ const ItemVariantModal = (props: IVariantProps) => {
               </div>
 
               <div className="mb-3">
-                <Translate contentKey="tempApp.item.addons"></Translate>
+                <Translate contentKey="items.update.regular.variantModal.addons"></Translate>
                 <Select isMulti={true} defaultValue={defaultAddons} onChange={handleAddonChange} options={props.addonsOptions} />
               </div>
 
               <div className="mb-3">
-                <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
+                <Translate contentKey="items.update.regular.variantModal.discount">Discount</Translate>
 
                 <Select isMulti={true} defaultValue={defaultDiscouts} onChange={handleDiscountsChange} options={formattedDiscountOptions} />
               </div>
               <FormGroup>
-                <h4>Prices</h4>
+                <h4><Translate contentKey={'items.update.regular.variantModal.prices'}>Prices</Translate> </h4>
                 <div>
-                  <label className="font-semibold">Original Price</label>
+                  <label className="font-semibold"><Translate contentKey={'items.update.regular.variantModal.originalPrice'}>Original Price</Translate></label>
                   <ValidatedField
                     type="number"
-                    placeholder="enter variant price"
+                    placeholder={translate('items.update.placeholders.variantPrice')}
                     name="price"
                     required
                     onWheel={(e:any) => e.target.blur()}
@@ -1001,7 +1001,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
                 </div>
 
-                <h4>Special Prices</h4>
+                <h4><Translate contentKey={'items.update.regular.variantModal.specialPrices'}>Special Prices</Translate></h4>
                 {/* {!isPizza ? <Row> */}
                 {/* <Col> */}
                 {/* <h5 className="font-semibold">Wholesale Prices</h5> */}
@@ -1042,8 +1042,8 @@ const ItemVariantModal = (props: IVariantProps) => {
                 <Table>
                   <thead>
                   <tr>
-                    <th>Branch</th>
-                    <th>Price</th>
+                    <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
+                    <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
                   </tr>
                   </thead>
                   <tbody>
@@ -1054,7 +1054,7 @@ const ItemVariantModal = (props: IVariantProps) => {
                         <ValidatedField
                           type="number"
                           name={`branchPrice_${branch.id}`}
-                          placeholder={`Enter price for ${branch.name}`}
+                          placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName:branch.name})}
                           onWheel={(e:any) => e.target.blur()}
                           value={branchPrices[branch.id] || ''}
                           onChange={e => handleBranchPriceChange(branch.id, e.target.value)}
@@ -1308,8 +1308,8 @@ const ItemVariantModal = (props: IVariantProps) => {
               <Button color="secondary" onClick={props.handleClose} tabIndex={1}>
                 <Translate contentKey="entity.action.cancel">Cancel</Translate>
               </Button>{' '}
-              <Button color="primary" type="submit" data-cy="submit">
-                Save Variant
+              <Button color="primary" type="button" data-cy="button" onClick={handleVariantSave}>
+                <Translate contentKey={'items.update.regular.variantModal.save'}>Save Variant</Translate>
               </Button>
             </ModalFooter>
           </ModalBody>

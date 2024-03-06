@@ -105,29 +105,30 @@ const TopItems = () => {
 
                     </Row>
                   </ListGroupItem>}
-                {bestCustomers.map((customer, index) => (
-                  <ListGroupItem key={`entity-${index}`} data-cy="entityTable">
-                    <Row>
-                      <Col xs="3">
+                {bestCustomers.map((customer, index) => {
+                  const customerName = `${customer?.firstName ?? ''} ${customer.lastName ?? ''}`
+                  return (
+                    <ListGroupItem key={`entity-${index}`} data-cy="entityTable">
+                      <Row>
+                        <Col xs="3">
               <span className="font-medium text-lg mb-1">
-                {customer.firstName} {customer.lastName}
+                {customerName.trim() !== '' ? customerName :  customer?.id}
               </span>
-                      </Col>
-                      <Col xs="3">
+                        </Col>
+                        <Col xs="3">
               <span className="font-medium text-lg mb-1">
                 {customer.count}
               </span>
-                      </Col>
-                      <Col xs="3">
+                        </Col>
+                        <Col xs="3">
               <span className="font-medium text-lg mb-1">
                 {customer.phone}
               </span>
-                      </Col>
+                        </Col>
 
-                    </Row>
-                  </ListGroupItem>
-
-                ))}
+                      </Row>
+                    </ListGroupItem>
+                  )})}
               </ListGroup>
             </div>
           </div>

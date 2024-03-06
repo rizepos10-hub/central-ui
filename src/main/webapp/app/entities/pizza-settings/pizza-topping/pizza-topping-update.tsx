@@ -6,12 +6,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import {getEntity, updateEntity, createEntity, reset} from './pizza-topping.reducer';
+import {Card as PrimeCard} from 'primereact/card'
 
 import {InputText} from "primereact/inputtext";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getSortState} from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {ITopping} from "app/shared/model/topping.model";
+import {ITopping} from "app/shared/model/PIZZA/topping.model";
 import CreatableSelect from "react-select/creatable";
 import {getEntities as getToppingGroups, createEntity as createToppingGroup} from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
 import Attachment from "app/shared/layout/attachment/attachment";
@@ -134,7 +135,8 @@ export const PizzaToppingUpdate = () => {
         </Col>
       </Row>
       <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
+        <Col md="8" className="d-flex flex-column p-3">
+          <PrimeCard>
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -210,6 +212,7 @@ export const PizzaToppingUpdate = () => {
               </Button>
             </form>
           )}
+          </PrimeCard>
         </Col>
       </Row>
     </div>

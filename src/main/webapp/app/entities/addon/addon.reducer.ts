@@ -3,7 +3,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IAddon, defaultValue } from 'app/shared/model/addon.model';
+import { IAddon, defaultValue } from 'app/shared/model/ADDON/addon.model';
 
 const initialState: EntityState<IAddon> = {
   loading: false,
@@ -43,7 +43,7 @@ export const createEntity = createAsyncThunk(
   'addon/create_entity',
   async (entity: IAddon, thunkAPI) => {
     const result = await axios.post<IAddon>(apiUrl, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }

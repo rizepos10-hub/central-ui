@@ -1,4 +1,4 @@
-import { DayOfWeek } from 'app/shared/model/enumerations/day-of-week.model';
+import { DayOfWeek } from 'app/shared/model/ENUMS/day-of-week.model';
 import { IOpeningHour } from 'app/shared/model/opening-hour.model';
 
 export interface IBusinessDayDetail {

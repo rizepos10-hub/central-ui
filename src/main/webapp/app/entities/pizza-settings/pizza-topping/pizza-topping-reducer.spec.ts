@@ -6,7 +6,7 @@ import sinon from 'sinon';
 
 import reducer, { createEntity, deleteEntity, getEntities, getEntity, updateEntity, partialUpdateEntity, reset } from './pizza-topping.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { ITopping, defaultValue } from 'app/shared/model/topping.model';
+import { ITopping, defaultValue } from 'app/shared/model/PIZZA/topping.model';
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {
