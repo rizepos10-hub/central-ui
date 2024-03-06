@@ -476,7 +476,6 @@ export const PurchaseOrderUpdate = () => {
                         <Select
                           onInputChange={loadItems}
                           options={inventoryItemList}
-
                           getOptionValue={option => option.id}
                           getOptionLabel={option => option.name}
                           onChange={(item) => setSelectedItem(item)}
@@ -485,7 +484,6 @@ export const PurchaseOrderUpdate = () => {
                            e.preventDefault()
                           }}
                           onBlur={(e: any) => {
-                            console.log(e, 'eee')
                             e.preventDefault();
                           }}
                           isDisabled={isDisabled}
@@ -506,7 +504,7 @@ export const PurchaseOrderUpdate = () => {
                       </td>
 
                       <td className={'col-md-2'}>
-                        <InputText
+                        <InputTextarea
                           value={purchaseOrderLine?.description || ''} disabled={isDisabled}
                           onChange={(e) => handleOrderLineChange("description", e.target.value)}/>
 
@@ -534,7 +532,7 @@ export const PurchaseOrderUpdate = () => {
                         />
                       </td>
                       <td className={'col-md-2'}>
-                        <InputNumber disabled={true}
+                        <InputNumber disabled={true} size={4}
                                      value={(purchaseOrderLine?.price * purchaseOrderLine?.quantity) || null}/>
                       </td>
                       <td className={'col-md-1'}>

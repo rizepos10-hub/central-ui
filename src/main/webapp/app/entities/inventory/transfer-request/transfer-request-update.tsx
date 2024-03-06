@@ -251,7 +251,7 @@ export const TransferRequestUpdate = () => {
                       <td>Received Quantity</td>
                     </tr>
                     <tr>
-                      <td className={'w-2'}>
+                      <td>
                         <AsyncSelect
                           cacheOptions
                           loadOptions={loadItems}
@@ -265,10 +265,11 @@ export const TransferRequestUpdate = () => {
                         />
                       </td>
                       <td className={"w-1 "}>
-                     <InputNumber value={transferRequestItem?.item?.quantity} disabled />
+                     <InputNumber value={transferRequestItem?.item?.quantity} size={8} disabled />
                       </td>
                       <td className={'w-1'}>
                         <InputNumber
+                          size={8}
                           value={transferRequestItem?.quantity}
                           disabled={isDisabled || transferRequestItem?.item?.quantity <= 0}
                           max={transferRequestItem?.item?.quantity}
@@ -281,6 +282,7 @@ export const TransferRequestUpdate = () => {
 
                       <td className={'w-1'}>
                         <InputNumber
+                          size={8}
                           value={transferRequestItem?.receivedQuantity}
                           disabled={ transferRequestItem?.item?.quantity <= 0 ||isDisabled}
                           max={transferRequestItem?.item?.quantity}
