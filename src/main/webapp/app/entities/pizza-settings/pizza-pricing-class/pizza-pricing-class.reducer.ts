@@ -15,7 +15,7 @@ const initialState: EntityState<IPredefinedPizza> = {
   updateSuccess: false,
 };
 
-const apiUrl = 'api/pizza/pricing-class';
+const apiUrl = 'api/pizza/pricing-classes';
 
 // Actions
 

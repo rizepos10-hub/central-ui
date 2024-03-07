@@ -1,84 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormText } from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import {Button, Row, Col, FormGroup, Label} from 'reactstrap';
+import { Translate, translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-
-import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IAddon } from 'app/shared/model/ADDON/addon.model';
-import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { IDiscount } from 'app/shared/model/discount.model';
-import { DiscountType } from 'app/shared/model/ENUMS/discount-type.model';
-import { getEntity, updateEntity, createEntity, reset } from './discount.reducer';
+import {getEntity, updateEntity, createEntity, reset, changeEntityField} from './discount.reducer';
+import Select from "react-select";
+import {InputNumber} from "primereact/inputnumber";
+import {DiscountType} from "app/shared/model/ENUMS/discount-type.model";
+import {InputText} from "primereact/inputtext";
+import {Dropdown} from "primereact/dropdown";
 
 export const DiscountUpdate = () => {
   const dispatch = useAppDispatch();
-
   const navigate = useNavigate();
-
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const addons = useAppSelector(state => state.addon.entities);
   const discountEntity = useAppSelector(state => state.discount.entity);
   const loading = useAppSelector(state => state.discount.loading);
   const updating = useAppSelector(state => state.discount.updating);
   const updateSuccess = useAppSelector(state => state.discount.updateSuccess);
-  const discountTypeValues = Object.keys(DiscountType);
+  const discountTypeValuesOptions = Object.keys(DiscountType).map(opt => ({label: opt, value: opt}));
 
-  const handleClose = () => {
-    navigate('/discount' + location.search);
-  };
 
   useEffect(() => {
-    if (isNew) {
-      dispatch(reset());
-    } else {
+    if (!isNew) {
       dispatch(getEntity(id));
     }
-
-
   }, []);
 
   useEffect(() => {
     if (updateSuccess) {
       handleClose();
     }
+    return () => {
+      dispatch(reset());
+    }
   }, [updateSuccess]);
 
-  const saveEntity = values => {
-    const entity = {
-      ...discountEntity,
-      ...values,
-      // addon: addons.find(it => it.id.toString() === values.addon.toString()),
-    };
 
-    if (isNew) {
-      dispatch(createEntity(entity));
-    } else {
-      dispatch(updateEntity(entity));
-    }
+
+  const handleClose = () => {
+    navigate('/discount' + location.search);
   };
 
-  const defaultValues = () =>
-    isNew
-      ? {}
-      : {
-          type: 'PERCENTAGE',
-          ...discountEntity,
-          addon: discountEntity?.addon?.id,
-        };
+  const saveEntity = (e) => {
+    e.preventDefault();
+    if (isNew) {
+      dispatch(createEntity(discountEntity));
+    } else {
+      dispatch(updateEntity(discountEntity));
+    }
+  };
 
   return (
     <div>
       <Row>
         <Col md="8">
           <h2 id="tempApp.discount.home.createOrEditLabel" data-cy="DiscountCreateUpdateHeading">
-            {isNew? "Create New Discount" : "Edit Discount"}
+            {isNew ? "Create New Discount" : "Edit Discount"}
           </h2>
         </Col>
       </Row>
@@ -87,45 +71,31 @@ export const DiscountUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {!isNew ? (
-                <ValidatedField
-                  name="id"
+            <form onSubmit={saveEntity}>
+              <FormGroup>
+              <div className={"d-flex flex-column mb-3"}>
+                <Label htmlFor="discount-value">{translate('tempApp.discount.value')}</Label>
+                <InputNumber
+                  id="discount-value"
+                  value={discountEntity.value || null}
+                  onChange={e => dispatch(changeEntityField({name: 'value',value: e.value}))}
                   required
-                  readOnly
-                  id="discount-id"
-                  label={translate('global.field.id')}
-                  validate={{ required: true }}
                 />
-              ) : null}
-              <ValidatedField
-                label={translate('tempApp.discount.value')}
-                id="discount-value"
-                name="value"
-                data-cy="value"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                  validate: v => isNumber(v) || translate('entity.validation.number'),
-                }}
-              />
-              <ValidatedField label={translate('tempApp.discount.type')} id="discount-type" name="type" data-cy="type" type="select">
-                {discountTypeValues.map(discountType => (
-                  <option value={discountType} key={discountType}>
-                    {translate('tempApp.DiscountType.' + discountType)}
-                  </option>
-                ))}
-              </ValidatedField>
-              {/* <ValidatedField id="discount-addon" name="addon" data-cy="addon" label={translate('tempApp.discount.addon')} type="select"> */}
-              {/*   <option value="" key="0" /> */}
-              {/*   {addons */}
-              {/*     ? addons.map(otherEntity => ( */}
-              {/*         <option value={otherEntity.id} key={otherEntity.id}> */}
-              {/*           {otherEntity.id} */}
-              {/*         </option> */}
-              {/*       )) */}
-              {/*     : null} */}
-              {/* </ValidatedField> */}
+              </div>
+
+              <div className="d-flex flex-column">
+                <Label htmlFor="discount-type">{translate('tempApp.discount.type')}</Label>
+                <Select
+                  id="discount-type"
+                  name={"type"}
+                  required
+                  options={discountTypeValuesOptions}
+                  value={discountEntity?.type ? {label: discountEntity?.type, value: discountEntity?.type} : null}
+                  onChange={(selectedType: {label: string, value: string}) => dispatch(changeEntityField({name: 'type', value: selectedType?.value}))}
+                />
+              </div>
+              </FormGroup>
+
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/discount" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
@@ -139,7 +109,7 @@ export const DiscountUpdate = () => {
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
-            </ValidatedForm>
+            </form>
           )}
         </Col>
       </Row>
