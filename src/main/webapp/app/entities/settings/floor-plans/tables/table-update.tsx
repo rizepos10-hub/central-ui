@@ -140,12 +140,12 @@ export const FloorPlanTableUpdate = () => {
                     <Translate contentKey={"tempApp.table.dimensions"}>Dimensions</Translate>
                   </label>
                   <div className={"d-flex flex-column gap-3 my-2"}>
-                    <div className="p-inputgroup w-full md:w-10rem">
+                    <div className="p-inputgroup w-full md:w-14rem">
                       <span className="p-inputgroup-addon">
                       <Translate contentKey={"tempApp.table.width"}>Width</Translate>
                     </span>
                       <InputNumber
-                      size={1}
+                      size={3}
                       maxFractionDigits={2}
                       name="dimension-width"
                       required={true}
@@ -155,12 +155,12 @@ export const FloorPlanTableUpdate = () => {
                       <span className="p-inputgroup-addon">px</span>
                     </div>
 
-                    <div className="p-inputgroup w-full md:w-10rem">
+                    <div className="p-inputgroup w-full md:w-14rem">
                       <span className="p-inputgroup-addon">
                         <Translate contentKey={"tempApp.table.height"}>Height</Translate>
                       </span>
                       <InputNumber
-                        size={1}
+                        size={3}
                         maxFractionDigits={2}
                         name="dimension-width"
                         required={true}
