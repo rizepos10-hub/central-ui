@@ -21,7 +21,6 @@ import BusinessDetailRoutes from "app/entities/settings/business-details";
 import {useAppSelector} from "app/config/store";
 import AppConfig from "app/shared/sidebar/AppConfig";
 
-
 const loading = <div>loading ...</div>;
 
 const Account = Loadable({
