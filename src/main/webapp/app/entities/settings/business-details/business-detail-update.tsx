@@ -13,6 +13,7 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import {InputText} from "primereact/inputtext";
 import {Button as PrimeButton} from "primereact/button"
 import {IBusinessDetail} from "app/shared/model/business-detail.model";
+import {Checkbox} from "primereact/checkbox";
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
@@ -54,6 +55,12 @@ export const BusinessDetailUpdate = () => {
   const handleBranchNameChange = (branchIndex, newName) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].name = newName;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
+  };
+
+  const handleWholesaleFlag = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].wholesale = checked;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
 
@@ -378,6 +385,7 @@ export const BusinessDetailUpdate = () => {
                 onChange={handleFieldChange}
 
               />
+
               {!isNew && <><h4>Opening Hours By Branch</h4><Alert color="warning">Please ensure that opening hours are
                 provided in the following format: HH:mm:ss</Alert>
                 <div>
@@ -392,11 +400,16 @@ export const BusinessDetailUpdate = () => {
                             value={branch.name}
                             onChange={(e) => handleBranchNameChange(branchIndex, e.target.value)}
                           />
-                          <label className="font-bold my-2">Branch Address</label>
 
+                          <label className="font-bold">Is Wholesale</label>
+                          <Checkbox
+                            checked={branch.wholesale}
+                            onChange={(e) => handleWholesaleFlag(branchIndex, e.checked)}
+                          />
+
+                          <label className="font-bold my-2">Branch Address</label>
                           <div className='d-flex flex-column'>
                             <label className="font-bold">Street</label>
-
                             <InputText
                               type="text"
                               placeholder="Enter Street"
@@ -425,6 +438,7 @@ export const BusinessDetailUpdate = () => {
                               value={branch.address?.postalCode}
                               onChange={(e) => handleAddressFieldChange(branchIndex, 'postalCode', e.target.value)}
                             />
+
                           </div>
                           <div className="ml-auto mt-2">
                           <Button
@@ -442,6 +456,7 @@ export const BusinessDetailUpdate = () => {
                             <h2>{branch.name}</h2>
                             <div className="d-flex flex-column">
                               <h4>Branch Address</h4>
+                              <strong>Is Wholesale:</strong><Checkbox checked={branch?.wholesale} disabled />
                               <p><strong>Street:</strong> {branch.address?.street}</p>
                               <p><strong>City:</strong> {branch.address?.city}</p>
                               <p><strong>State:</strong> {branch.address?.state}</p>

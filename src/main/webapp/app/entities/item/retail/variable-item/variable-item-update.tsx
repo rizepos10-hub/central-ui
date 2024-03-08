@@ -38,6 +38,20 @@ import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
 
 
 
+const defaultItemPriceNumber = {
+  "PRICE_1": null,
+  "PRICE_2": null,
+  "PRICE_3": null,
+  "PRICE_4": null,
+  "PRICE_5": null,
+};
+
+const defaultSpecialPrices = {
+  "WHOLE_SALE": { ...defaultItemPriceNumber },
+  "RETAIL": { ...defaultItemPriceNumber }
+};
+
+
 export const VariableItemUpdate = () => {
   const dispatch = useAppDispatch();
 
@@ -254,6 +268,7 @@ export const VariableItemUpdate = () => {
           salePrice: null,
           branchVariantDetails: {},
           attributeValues: { ...currentCombination },
+          specialPrices: { ...defaultSpecialPrices }
         };
 
         const isDuplicate = variableItem?.variants.some((variant) => {
@@ -298,6 +313,7 @@ export const VariableItemUpdate = () => {
           salePrice: null,
           branchVariantDetails: {},
           attributeValues: {},
+          specialPrices: { ...defaultSpecialPrices }
         },
       ],
     }));
