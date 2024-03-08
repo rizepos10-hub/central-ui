@@ -9,7 +9,7 @@ import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './simple-item.reducer';
 import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
-import {IExchangeMeasure, ISimpleItem} from "app/shared/model/ITEM/retail/simple-item.model";
+import {IExchangeMeasure, ISimpleItem, ISimpleItemVariant} from "app/shared/model/ITEM/retail/simple-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
@@ -33,6 +33,21 @@ import {TabPanel, TabView} from "primereact/tabview";
 import ItemStockTab from "app/shared/layout/item/item-stock-tab";
 import {IItemMeasure} from "app/shared/model/item-measure.model";
 import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
+import WholesalePrices from "app/shared/layout/item/wholsale-prices-modal";
+
+
+const defaultItemPriceNumber = {
+  "PRICE_1": null,
+  "PRICE_2": null,
+  "PRICE_3": null,
+  "PRICE_4": null,
+  "PRICE_5": null,
+};
+
+const defaultSpecialPrices = {
+  "WHOLE_SALE": { ...defaultItemPriceNumber },
+  "RETAIL": { ...defaultItemPriceNumber }
+};
 
 
 
@@ -60,6 +75,10 @@ export const SimpleItemUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
+  const [pricesModal, setPricesModal] = useState({
+    show: false,
+    branchId: '',
+  });
   const [simpleItem, setSimpleItem] = useState<ISimpleItem>({
     itemType: "RETAIL",
     itemVariantType: ItemVariantType.RETAIL_SIMPLE,
@@ -127,6 +146,14 @@ export const SimpleItemUpdate = () => {
     });
   };
 
+  const handleShowPricesModal = (branchId?) => {
+    setPricesModal(prev => ({
+      ...prev,
+      show: !prev.show,
+     branchId
+    }));
+  }
+
   const handleBranchPriceChange = (branchId, price) => {
     setSimpleItem(prev => ({
       ...prev,
@@ -145,6 +172,26 @@ export const SimpleItemUpdate = () => {
       ],
     }));
   };
+
+  const handleSaveWholesalePrices = (prices) => {
+    setSimpleItem(prev => ({
+      ...prev,
+      variants: [
+        {
+          ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
+          branchVariantDetails: {
+            ...prev.variants[0]?.branchVariantDetails,
+            [pricesModal?.branchId]: {
+            ...prev?.variants?.[0]?.branchVariantDetails?.[pricesModal?.branchId],
+              wholesalePrices: prices,
+            },
+          },
+        },
+      ],
+    }));
+  }
+
+
 
   const handleBaseMeasureChange = (baseMeasure) => {
     if(!simpleItem?.measures || simpleItem?.measures?.length === 0){
@@ -235,6 +282,22 @@ export const SimpleItemUpdate = () => {
     }));
   };
 
+  const handleSpecialPriceChange = ( priceKey, value) => {
+    setSimpleItem(prevSimpleItem => ({
+      ...prevSimpleItem,
+      variants: [{
+        ...prevSimpleItem.variants[0],
+        branchVariantDetails: {
+          ...prevSimpleItem.variants[0].branchVariantDetails,
+         wholesalePrices: {
+            ...prevSimpleItem.variants[0].branchVariantDetails["wholesalePrices"],
+            [priceKey]: value
+          }
+        }
+      }]
+    }));
+  };
+
 
   const handleNavigate = (simpleItemId) => {
     navigate(`/retail/simple/${simpleItemId}/edit` + location.search);
@@ -270,16 +333,15 @@ export const SimpleItemUpdate = () => {
   },[id, isNew]);
 
   useEffect(() => {
-
-    if(!isNew){
-      setSimpleItem(simpleItemEntity);
+    if (!isNew) {
+        setSimpleItem(simpleItemEntity);
     }
-    const simpleItemId = simpleItemEntity?.id
-    if(updateSuccess){
+
+    const simpleItemId = simpleItemEntity?.id;
+    if (updateSuccess) {
       handleNavigate(simpleItemId);
     }
-
-  }, [simpleItemEntity, updateSuccess]);
+  }, [simpleItemEntity?.id, updateSuccess]);
 
 
   const saveEntity = e => {
@@ -396,12 +458,21 @@ export const SimpleItemUpdate = () => {
 
 
                           <Col md="7" className={"mt-3"}>
+                            {pricesModal?.show &&
+                              <WholesalePrices
+                                toggle={handleShowPricesModal}
+                                isOpen={pricesModal?.show}
+                                branchWholesalePrices={simpleItem?.variants?.[0]?.branchVariantDetails?.[pricesModal?.branchId]?.wholesalePrices}
+                                savePrices={handleSaveWholesalePrices}
+                              />
+                            }
                             <h4><Translate contentKey={'items.update.branchPrices'}>Branch Prices</Translate></h4>
                             <Table>
                               <thead>
                               <tr>
                                 <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
                                 <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
+                                <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
                               </tr>
                               </thead>
                               <tbody>
@@ -417,6 +488,9 @@ export const SimpleItemUpdate = () => {
                                       value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
                                       onChange={e => handleBranchPriceChange(branch.id, e.value)}
                                     />
+                                  </td>
+                                  <td>
+                                    <Button onClick={() => handleShowPricesModal(branch.id)}>Wholesale Prices</Button>
                                   </td>
                                 </tr>
                               ))}
@@ -610,7 +684,6 @@ export const SimpleItemUpdate = () => {
           </Row>
         </CardBody>
       </Card>
-
     </form>
   );
 };

@@ -7,13 +7,15 @@ import {ITaxonomy} from "app/shared/model/taxonomy.model";
 import {IStockQuantity} from "app/shared/model/STOCK/stock-quantity.model";
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {IItemMeasure} from "app/shared/model/item-measure.model";
-import {IExchangeMeasure} from "app/shared/model/ITEM/retail/simple-item.model";
+import {IExchangeMeasure, IItemPriceNumber} from "app/shared/model/ITEM/retail/simple-item.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
     branch: IBranch;
     price: number;
     salePrice: number;
+    wholesalePrices: IItemPriceNumber;
+
   };
 }
 interface IAttributes {
@@ -34,7 +36,6 @@ interface IVariableItemVariant {
   attributeValues?: any;
   stockQuantities?: IStockQuantity[];
   purchaseConfig?: IPurchaseConfig;
-
 }
 
 export interface IVariableItem extends IItem{

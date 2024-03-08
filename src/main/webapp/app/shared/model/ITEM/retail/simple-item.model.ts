@@ -14,6 +14,7 @@ interface IBranchVariantDetails {
     branch: IBranch;
     price: number;
     salePrice: number;
+    wholesalePrices: IItemPriceNumber;
   };
 }
 interface IAttributes {
@@ -21,7 +22,18 @@ interface IAttributes {
   attributeTerms?: ITerm[];
   attachments?: IAttachment[];
 }
-interface ISimpleItemVariant {
+
+export interface IItemPriceNumber {
+  "PRICE_1": number,
+  "PRICE_2": number,
+  "PRICE_3": number,
+  "PRICE_4": number,
+  "PRICE_5": number,
+}
+
+
+
+export interface ISimpleItemVariant {
   id?: string | null;
   name?: string | null;
   attachments?: IAttachment[];
@@ -32,7 +44,7 @@ interface ISimpleItemVariant {
   branchVariantDetails?: IBranchVariantDetails;
   archived?: boolean;
   stockQuantities?: IStockQuantity[];
-  purchaseConfig?: IPurchaseConfig
+  purchaseConfig?: IPurchaseConfig;
 }
 
 export interface ISimpleItem extends IItem{
