@@ -17,6 +17,7 @@ interface IBranchVariantDetails {
     wholesalePrices: IItemPriceNumber;
   };
 }
+
 interface IAttributes {
   attributeTax?:ITaxonomy;
   attributeTerms?: ITerm[];

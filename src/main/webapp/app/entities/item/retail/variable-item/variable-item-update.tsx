@@ -1,32 +1,31 @@
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, Spinner, FormGroup, Table, FormText, Card, CardBody} from 'reactstrap';
-import {getSortState, translate, Translate, ValidatedField} from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useLocation, useNavigate, useParams} from 'react-router-dom';
+import {Button, Card, CardBody, Col, FormGroup, Row, Spinner, Table} from 'reactstrap';
+import {getSortState, translate, Translate} from 'react-jhipster';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
-import { useAppDispatch, useAppSelector } from 'app/config/store';
+import {useAppDispatch, useAppSelector} from 'app/config/store';
 import {Button as PrimeButton} from "primereact/button"
 
-import { getEntity, updateEntity, createEntity, reset } from './variable-item.reducer';
+import {createEntity, getEntity, reset, updateEntity} from './variable-item.reducer';
 import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
 import {IVariableItem} from "app/shared/model/ITEM/retail/variable-item.model";
-import {Steps} from "primereact/steps";
-import {MenuItem} from "primereact/menuitem";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
 import {InputText} from "primereact/inputtext";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {CascadeSelect} from "primereact/cascadeselect";
 import Select from "react-select";
 import {getEntities as getAttributes} from "app/entities/item/retail/attributes/retail-attribute.reducer";
 import {ITaxonomy} from "app/shared/model/taxonomy.model";
 import {ITerm} from "app/shared/model/term.model";
-import {getEntities as getAttributeValues, reset as resetAttributeValues} from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
-import {AccordionTab, Accordion} from "primereact/accordion";
+import {
+  getEntities as getAttributeValues,
+  reset as resetAttributeValues
+} from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
+import {Accordion, AccordionTab} from "primereact/accordion";
 import AsyncSelect from "react-select/async";
 import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
-import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
 import {isEqual} from "lodash";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
@@ -34,8 +33,7 @@ import ItemStockTab from "app/shared/layout/item/item-stock-tab";
 import {IExchangeMeasure} from "app/shared/model/ITEM/retail/simple-item.model";
 import {getEntities as getMeasures} from "app/entities/item-measure/item-measure.reducer";
 import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
-
-
+import WholesalePrices from "app/shared/layout/item/wholsale-prices-modal";
 
 
 const defaultItemPriceNumber = {
@@ -89,6 +87,12 @@ export const VariableItemUpdate = () => {
     attributeTax: ITaxonomy;
     attributeTerms: ITerm[];
   } | null>(null);
+
+  const [pricesModal, setPricesModal] = useState({
+    show: false,
+    branchId: '',
+    variantIndex: null
+  });
 
 
   const filteredAvailableAttributes = () => {
@@ -155,6 +159,44 @@ export const VariableItemUpdate = () => {
     }
     setMeasureToAdd({})
   };
+
+  const handleShowPricesModal = (branchId, variantIndex) => {
+    setPricesModal(prev => ({
+      ...prev,
+      show: !prev.show,
+      branchId,
+      variantIndex
+    }));
+  };
+
+  const handleSaveWholesalePrices = (prices) => {
+    const { variantIndex, branchId } = pricesModal;
+    setVariableItem((prev) => {
+      const updatedVariants = prev.variants.map((variant, index) => {
+        console.log(variantIndex, 'variantsds')
+        if (index !== variantIndex) return variant;
+
+        const updatedBranchVariantDetails = {
+          ...variant.branchVariantDetails,
+          [branchId]: {
+            ...variant.branchVariantDetails?.[branchId],
+            wholesalePrices: prices,
+          },
+        };
+
+        return {
+          ...variant,
+          branchVariantDetails: updatedBranchVariantDetails,
+        };
+      });
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
 
   const handleAddMeasure = () => {
     setVariableItem((prevState) => ({
@@ -582,6 +624,14 @@ export const VariableItemUpdate = () => {
                   </Col>
                   <Col md={"12"} className={"mt-2"}>
                     <Row className={"mt-2"}>
+                      {pricesModal?.show && pricesModal?.variantIndex !== null &&
+                        <WholesalePrices
+                          toggle={handleShowPricesModal}
+                          isOpen={pricesModal?.show}
+                          branchWholesalePrices={variableItem?.variants?.[pricesModal?.variantIndex]?.branchVariantDetails?.[pricesModal?.branchId]?.wholesalePrices}
+                          savePrices={handleSaveWholesalePrices}
+                        />
+                      }
                       {variableItem?.variants?.map((variant, variantIndex) => (
                         <Col md={"12"} key={variantIndex} className={"mt-2"}>
                           <Accordion multiple  activeIndex={[0]}>
@@ -665,6 +715,7 @@ export const VariableItemUpdate = () => {
                                   <tr>
                                     <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
                                     <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
+                                    <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
                                   </tr>
                                   </thead>
                                   <tbody>
@@ -682,6 +733,11 @@ export const VariableItemUpdate = () => {
                                           onChange={e => handleBranchPriceChange(variantIndex,branch.id, e.value)}
                                         />
                                       </td>
+                                      {branch.wholesale &&
+                                        <td>
+                                          <Button onClick={() => handleShowPricesModal(branch.id, variantIndex)}>Wholesale Prices</Button>
+                                        </td>
+                                      }
                                     </tr>
                                   ))}
                                   </tbody>

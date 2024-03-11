@@ -476,24 +476,30 @@ export const SimpleItemUpdate = () => {
                               </tr>
                               </thead>
                               <tbody>
-                              {branchList.map(branch => (
-                                <tr key={branch.id}>
-                                  <td>{branch.name}</td>
-                                  <td>
-                                    <InputNumber
-                                      name={`branchPrice_${branch.id}`}
-                                      placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
-                                      onWheel={(e: any) => e.target.blur()}
-                                      size={60}
-                                      value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
-                                      onChange={e => handleBranchPriceChange(branch.id, e.value)}
-                                    />
-                                  </td>
-                                  <td>
-                                    <Button onClick={() => handleShowPricesModal(branch.id)}>Wholesale Prices</Button>
-                                  </td>
-                                </tr>
-                              ))}
+                              {branchList.map(branch => {
+                                console.log(branch, 'vbranch')
+                                return (
+                                  <tr key={branch.id}>
+                                    <td>{branch.name}</td>
+                                    <td>
+                                      <InputNumber
+                                        name={`branchPrice_${branch.id}`}
+                                        placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
+                                        onWheel={(e: any) => e.target.blur()}
+                                        size={60}
+                                        value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
+                                        onChange={e => handleBranchPriceChange(branch.id, e.value)}
+                                      />
+                                    </td>
+                                    {branch.wholesale &&
+                                      <td>
+                                        <Button onClick={() => handleShowPricesModal(branch.id)}>Wholesale
+                                          Prices</Button>
+                                      </td>
+                                    }
+                                  </tr>
+                                )
+                              })}
                               </tbody>
                             </Table>
                           </Col>
