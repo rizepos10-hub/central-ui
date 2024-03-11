@@ -1,26 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormText, Table, DropdownToggle, Dropdown, DropdownItem, DropdownMenu} from 'reactstrap';
+import {
+  Button,
+  Row,
+  Col,
+  Table,
+  Label, FormGroup
+} from 'reactstrap';
 import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { ICustomer } from 'app/shared/model/CUSTOMER/customer.model';
+import {ICustomer, IWholesalePriceLine} from 'app/shared/model/CUSTOMER/customer.model';
 import {getEntity, updateEntity, createEntity, reset, updatePrices, getPricesForCustomer} from './customer.reducer';
-import Select from "react-select";
 import {Card as PrimeCard} from 'primereact/card'
 import {filterOrders} from "app/entities/order/order.reducer";
 import Order from "app/entities/order/order";
 import {getEntities} from "app/entities/loyalty/loyalty-records.reducer";
+import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
+import {InputNumber} from "primereact/inputnumber";
+import {changeEntityField} from "app/entities/discount/discount.reducer";
+import {InputText} from "primereact/inputtext";
+import {Dropdown} from "primereact/dropdown";
 
 export const CustomerUpdate = () => {
   const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
 
+  const priceLineOptions: (IWholesalePriceLine[keyof IWholesalePriceLine])[] = [
+    "PRICE_1", "PRICE_2", "PRICE_3", "PRICE_4", "PRICE_5"
+  ];
 
 
   const { id } = useParams<'id'>();
@@ -30,13 +41,24 @@ export const CustomerUpdate = () => {
   const fromLocation = new URLSearchParams(search).get('from');
 
 
-  const customerEntity = useAppSelector(state => state.customer.entity);
+  const customerEntity :ICustomer = useAppSelector(state => state.customer.entity);
   const loyaltyRecord = useAppSelector(state => state.loyalty.entities?.[0]);
-
+  const branchList = useAppSelector(state => state.branch.entities);
+  const wholeSaleBranches = branchList?.filter(branch => branch.wholesale);
   const loading = useAppSelector(state => state.customer.loading);
   const updating = useAppSelector(state => state.customer.updating);
   const updateSuccess = useAppSelector(state => state.customer.updateSuccess);
-  const orderList = useAppSelector(state => state.order.entities);
+
+  const handleBranchPriceChange = (branchId, priceLine) => {
+    dispatch(changeEntityField({
+      name: 'wholesalePriceLines',
+      value: {
+      ...customerEntity.wholesalePriceLines,
+        [branchId]: priceLine
+      }
+    }));
+  };
+
 
 
 
@@ -71,6 +93,12 @@ export const CustomerUpdate = () => {
       dispatch(filterOrders(queryParams));
     }
 
+    dispatch(getBranches({
+      page: 0,
+      size: 500,
+      sort: 'asc',
+    }));
+
   }, []);
 
 
@@ -84,12 +112,11 @@ export const CustomerUpdate = () => {
     }
   }, [updateSuccess]);
 
-  const saveEntity = async (values) => {
+  const saveEntity =  (e) => {
+    e.preventDefault();
     const entity = {
       ...customerEntity,
-      ...values,
     };
-    const customerId = customerEntity.id;
 
     if (isNew) {
       dispatch(createEntity(entity))
@@ -97,18 +124,6 @@ export const CustomerUpdate = () => {
       dispatch(updateEntity(entity));
     }
   };
-
-  console.log(customerEntity, 'customerEntity');
-
-  console.log(loyaltyRecord, 'loyaltyRecord')
-
-  const defaultValues = () =>
-    isNew
-      ? {}
-      : {
-          ...customerEntity,
-             loyaltyRecord: loyaltyRecord?.points
-        };
 
 
 
@@ -129,66 +144,92 @@ export const CustomerUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-
-              <ValidatedField
-                label={translate('customers.update.firstName')}
-                id="customer-firstName"
-                name="firstName"
-                data-cy="firstName"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                }}
-              />
-              <ValidatedField
-                label={translate('customers.update.lastName')}
-                id="customer-lastName"
-                name="lastName"
-                data-cy="lastName"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                }}
-              />
-              <ValidatedField
-                label={translate('customers.update.phone')}
-                id="customer-phone"
-                name="phone"
-                data-cy="phone"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                }}
-              />
-              <ValidatedField
-                label={translate('customers.update.email')}
-                id="customer-email"
-                name="email"
-                data-cy="email"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                }}
-              />
-
-              <ValidatedField
-                label={translate('customers.update.loyaltyRecord')}
-                id="loyalty-record"
-                name="loyaltyRecord"
-                data-cy="loyaltyRecord"
-                type="number"
-                disabled
-                validate={{
-                  disabled: true
-                }}
-              />
-
-              {customerEntity?.id && (
-                <div>
-                  <Order customer={customerEntity?.id} />
+            <form onSubmit={saveEntity}>
+              <FormGroup>
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="customer-firstName">{translate('customers.update.firstName')}</Label>
+                  <InputText
+                    id="customer-firstName"
+                    value={customerEntity?.firstName || null}
+                    onChange={e => dispatch(changeEntityField({name: 'firstName', value: e.target.value}))}
+                    required
+                  />
                 </div>
-              )}
+
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="customer-lastName">{translate('customers.update.lastName')}</Label>
+                  <InputText
+                    id="customer-lastName"
+                    value={customerEntity?.lastName || null}
+                    onChange={e => dispatch(changeEntityField({name: 'lastName', value: e.target.value}))}
+                    required
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="customer-phone">{translate('customers.update.phone')}</Label>
+                  <InputText
+                    id="customer-phone"
+                    value={customerEntity?.phone || null}
+                    onChange={e => dispatch(changeEntityField({name: 'phone', value: e.target.value}))}
+                    required
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="customer-phone">{translate('customers.update.email')}</Label>
+                  <InputText
+                    id="customer-email"
+                    value={customerEntity?.email || null}
+                    onChange={e => dispatch(changeEntityField({name: 'email', value: e.target.value}))}
+                    required
+                  />
+                </div>
+
+                {!isNew && <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="customer-phone">{translate('customers.update.loyaltyRecord')}</Label>
+                  <InputNumber
+                    id="customer-loyaltyRecord"
+                    value={loyaltyRecord?.points ?? null}
+                    disabled
+                  />
+                </div>}
+
+                <h4>Wholesale Price</h4>
+                <Table>
+                  <thead>
+                  <tr>
+                    <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
+                    <th>Price Line</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {wholeSaleBranches.map(branch => {
+                    return (
+                      <tr key={branch.id}>
+                        <td>{branch.name}</td>
+                        <td>
+                          <Dropdown
+                            placeholder={"Enter Price Line"}
+                            value={customerEntity?.wholesalePriceLines?.[branch.id]}
+                            options={priceLineOptions}
+                            style={{minWidth: '15rem'}}
+                            onChange={event => handleBranchPriceChange(branch.id, event.target.value)}
+                          />
+                        </td>
+                      </tr>
+                    )
+                  })}
+                  </tbody>
+                </Table>
+
+                <h4>Customer Orders</h4>
+                {customerEntity?.id && (
+                  <div>
+                    <Order customer={customerEntity?.id} />
+                  </div>
+                )}
+              </FormGroup>
 
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to={fromLocation ? fromLocation : "/customer"} replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
@@ -203,7 +244,7 @@ export const CustomerUpdate = () => {
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
-            </ValidatedForm>
+            </form>
           )}
           </PrimeCard>
         </Col>
