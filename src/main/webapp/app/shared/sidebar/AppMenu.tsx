@@ -256,6 +256,22 @@ const AppMenu = () => {
                             ]
                           },
 
+
+                            {
+                              label: 'Online Ordering',
+                              role: ['ROLE_ADMIN'],
+                              icon: 'pi pi-box',
+                              items: [
+                                {
+                                  label: 'UI Settings',
+                                  role: ['ROLE_ADMIN'],
+                                  icon: ' pi pi-users',
+                                  to: '/online-ordering/settings'
+                                },
+
+                              ]
+                            },
+
                           {
                             label: 'Settings',
                             icon: 'pi pi-book',
