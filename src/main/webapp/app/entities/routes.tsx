@@ -3,6 +3,8 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
+import OnlineOrderingRoutes from 'app/entities/online-ordering/routes'
+
 import Menu from './menu/index';
 import Discount from './discount';
 import Customer from './customer';
@@ -133,6 +135,8 @@ export default () => {
         <Route path="inventory/stock/*" element={<StockConfig />} />
         <Route path="inventory/transfer-request/*" element={<TransferRequest />} />
         <Route path="inventory/supplier-return/*" element={<SupplierReturn />} />
+
+        <Route path="online-ordering/*" element={<OnlineOrderingRoutes />} />
 
 
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}

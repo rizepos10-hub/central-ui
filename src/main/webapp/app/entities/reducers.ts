@@ -68,6 +68,7 @@ import stockQuantity from "app/entities/inventory/stock-config/stock-quantity.re
 import transferRequest from "app/entities/inventory/transfer-request/transfer-request.reducer"
 import supplierReturn from "app/entities/inventory/supplier-return/supplier-return.reducer"
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
+import onlineOrderingReducers from "app/entities/online-ordering/reducer";
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
@@ -133,7 +134,8 @@ const entitiesReducers = {
   transferRequest,
   supplierReturn,
   inventoryItem,
-  itemMeasure
+  itemMeasure,
+  ...onlineOrderingReducers
 
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
