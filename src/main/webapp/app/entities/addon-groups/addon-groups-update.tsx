@@ -137,7 +137,7 @@ export const AddonGroupUpdate = () => {
                 <CreateAddonModal isOpen={showModal} toggle={handleShowModal} />
 
                 <form onSubmit={saveEntity}>
-                  <FormGroup>
+                  <FormGroup className={"d-flex flex-column gap-3"}>
                     <div className={'d-flex flex-column'}>
                       <Label for="addon-group-name">
                         <Translate contentKey={'addons.update.name'}>Addon Name</Translate>
@@ -162,6 +162,8 @@ export const AddonGroupUpdate = () => {
                         getOptionValue={option => option.id}
                       />
                     </div>
+                  </FormGroup>
+
                     <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/addon-groups" replace color="info">
                       <FontAwesomeIcon icon="arrow-left" />
                       &nbsp;
@@ -175,7 +177,6 @@ export const AddonGroupUpdate = () => {
                       &nbsp;
                       <Translate contentKey="entity.action.save">Save</Translate>
                     </Button>
-                  </FormGroup>
                 </form>
               </>
             )}
