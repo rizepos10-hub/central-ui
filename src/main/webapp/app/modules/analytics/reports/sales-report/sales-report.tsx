@@ -21,6 +21,7 @@ import {ICurrency} from "app/shared/model/CURRENCY/currency.model";
 import {getEntities as getCurrencies} from "app/entities/settings/currency/currencies.reducer";
 import {getEntity as getCurrencySettings} from "app/entities/settings/currency/currency-settings.reducer";
 import {formatPrice} from "app/shared/util/price-utils";
+import {toLocalISOString} from "app/shared/util/date-utils";
 
 
 type Slot = {
@@ -119,8 +120,8 @@ export const SalesReport = () => {
 
       const currentDate = new Date();
       const defaultDateRange = {
-        from: format(startOfYear(currentDate), "yyyy-MM-dd'T'22:00:00.SSSxxx"),
-        to: format(currentDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
+        from: toLocalISOString(startOfYear(currentDate)),
+        to: toLocalISOString(currentDate),
         dateSlot: {
           period: 'YEAR',
           slots: 1,
@@ -181,7 +182,8 @@ export const SalesReport = () => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
-  const sortedHeaderSlots = salesReportData?.headerSlots?.sort((a, b) => a.order - b.order);
+  const sortedHeaderSlots = salesReportData?.headerSlots?.slice().sort((a, b) => a?.order - b?.order);
+
   const propertiesToDisplay = Object.keys(salesReportData?.rows[0] ?? {}).filter((property) =>
     property !== "rowRecord"
     && property !== "amount"
