@@ -1,3 +1,5 @@
+import {IAttachment} from "app/shared/model/attachment.model";
+
 export interface IUiSettings {
   key?: "ONLINE_ORDERING_UI",
   currencySymbolPosition?: "LEFT" | "RIGHT",
@@ -7,7 +9,8 @@ export interface IUiSettings {
   itemPerRow?: number,
   orderTaking?: "TAKE_AWAY" | "DELIVERY",
   showDeliveryTips?: boolean,
-  scheduleOrders?: boolean
+  scheduleOrders?: boolean,
+  logo?: IAttachment;
 }
 
 export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT"];

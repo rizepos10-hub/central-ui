@@ -26,7 +26,8 @@
       "hideModalDescription": "Hide Modal Description",
       "hideItemDescription": "Hide Item Description",
       "currencySymbolPosition": "Currency Symbol Position",
-      "orderTaking": "Order Taking"
+      "orderTaking": "Order Taking",
+      "logo": "Logo"
     }
   }
 }

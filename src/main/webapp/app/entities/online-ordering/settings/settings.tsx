@@ -15,6 +15,7 @@ import {
 } from "app/shared/model/ONLINE_ORDERING/ui-setting.model";
 import {SelectButton} from "primereact/selectbutton";
 import {Checkbox} from "primereact/checkbox";
+import Attachment from "app/shared/layout/attachment/attachment";
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -167,6 +168,19 @@ export const UiSettingsUpdate = () => {
                     id="UiSettings-showDeliveryTips"
                     checked={UiSettingsEntity.showDeliveryTips || null}
                     onChange={e => dispatch(changeEntityField({name: 'showDeliveryTips',value: e.checked}))}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="UiSettings-logo">
+                    <strong>
+                      {translate('tempApp.UiSettings.logo')}
+                    </strong>
+                  </Label>
+                  <Attachment
+                    image={UiSettingsEntity.logo}
+                    onRemoveImage={() => dispatch(changeEntityField({name: 'logo',value: null}))}
+                    onAddImage={(imageInfo) => dispatch(changeEntityField({name: 'logo',value: imageInfo}))}
                   />
                 </div>
 
