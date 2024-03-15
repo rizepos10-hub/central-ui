@@ -114,12 +114,12 @@ export const FloorPlanSettingsUpdate = () => {
                 <div className="d-flex flex-column">
                   <h5>Section Dimensions</h5>
                   <div className={"d-flex gap-3 mb-2"}>
-                    <div className="p-inputgroup w-full md:w-10rem">
+                    <div className="p-inputgroup w-full md:w-14rem">
                       <span className="p-inputgroup-addon">
                           width
                    </span>
                     <InputNumber
-                      size={1}
+                      size={3}
                       maxFractionDigits={2}
                       name="sectionDimensions-width"
                       required={true}
@@ -129,12 +129,12 @@ export const FloorPlanSettingsUpdate = () => {
                     />
                       <span className="p-inputgroup-addon">px</span>
                     </div>
-                    <div className="p-inputgroup w-full md:w-10rem">
+                    <div className="p-inputgroup w-full md:w-14rem">
                       <span className="p-inputgroup-addon">
                         height
                       </span>
                     <InputNumber
-                      size={1}
+                      size={3}
                       maxFractionDigits={2}
                       name="sectionDimensions-height"
                       required={true}
@@ -149,12 +149,12 @@ export const FloorPlanSettingsUpdate = () => {
                 <div className="d-flex flex-column mt-3">
                   <h5>Table Dimensions</h5>
                   <div className={"d-flex gap-3 mb-2"}>
-                    <div className="p-inputgroup w-full md:w-10rem">
+                    <div className="p-inputgroup w-full md:w-14rem">
                       <span className="p-inputgroup-addon">
                           width
                    </span>
                       <InputNumber
-                        size={1}
+                        size={3}
                         maxFractionDigits={2}
                         name="tableDimensions-width"
                         required={true}
@@ -164,12 +164,12 @@ export const FloorPlanSettingsUpdate = () => {
                       />
                       <span className="p-inputgroup-addon">px</span>
                     </div>
-                    <div className="p-inputgroup w-full md:w-10rem">
+                    <div className="p-inputgroup w-full md:w-14rem">
                       <span className="p-inputgroup-addon">
                         height
                       </span>
                       <InputNumber
-                        size={1}
+                        size={3}
                         maxFractionDigits={2}
                         name="tableDimensions-height"
                         required={true}

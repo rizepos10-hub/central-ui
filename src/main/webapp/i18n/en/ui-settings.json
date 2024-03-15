@@ -1,0 +1,33 @@
+{
+  "tempApp": {
+    "UiSettings": {
+      "home": {
+        "title": "Ui Settings",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Ui Setting",
+        "createOrEditLabel": "Create or edit a Ui Setting",
+        "search": "Search for Ui Setting",
+        "notFound": "No Ui Settings found"
+      },
+      "created": "A new Ui Setting is created with identifier {{ param }}",
+      "updated": "A Ui Setting is updated with identifier {{ param }}",
+      "deleted": "A Ui Setting is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Ui Setting {{ id }}?"
+      },
+      "detail": {
+        "title": "Ui Setting"
+      },
+      "id": "ID",
+      "digitsAfterDecimal": "Digits After Decimal",
+      "itemPerRow": "Item Per Row",
+      "showDeliveryTips": "Show Delivery Tips",
+      "scheduleOrders": "Schedule Orders",
+      "hideModalDescription": "Hide Modal Description",
+      "hideItemDescription": "Hide Item Description",
+      "currencySymbolPosition": "Currency Symbol Position",
+      "orderTaking": "Order Taking",
+      "logo": "Logo"
+    }
+  }
+}

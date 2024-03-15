@@ -111,6 +111,7 @@
       "excludedFromLoyalty": "Excluded From Loyalty Points",
       "image": "Image",
       "sku": "SKU",
+      "WholesalePrices": "Wholesale Prices",
       "baseMeasure": "Select Base Measure",
       "measures": "Measures",
       "measure": "Measure",

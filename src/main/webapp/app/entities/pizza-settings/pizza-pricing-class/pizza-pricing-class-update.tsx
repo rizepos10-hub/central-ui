@@ -156,9 +156,10 @@ export const PizzaPricingClassTypeUpdate = () => {
                       .sort(([sizeId1], [sizeId2]) => sizesMap[sizeId1]?.order - sizesMap[sizeId2]?.order)
                       .map(([sizeId, value], index) => {
                         return (
-                        <div key={index} className={"d-flex gap-4 my-3"}>
-                          <label className={"mt-2"}>{sizesMap[sizeId]?.name}</label>
+                        <div key={index} className={"d-flex flex-column my-3"}>
+                          <Label for={`${sizesMap[sizeId]?.name}`}>{sizesMap[sizeId]?.name}</Label>
                           <InputNumber
+                            id={sizesMap[sizeId]?.name}
                             value={value}
                             maxFractionDigits={2}
                             onChange={(e) => {

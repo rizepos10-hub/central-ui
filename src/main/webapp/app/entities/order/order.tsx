@@ -1,13 +1,8 @@
 import React, {useState, useEffect, useRef} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-
-
 import {Calendar} from 'primereact/calendar';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
 import { getEntities, filterOrders, getOrderSources, getOrderStatuses, reset} from './order.reducer';
-
 import { getEntities as getBranches } from '../branch/branch.reducer';
 import {endOfDay,  startOfDay} from "date-fns";
 import {DataTable, } from "primereact/datatable";
@@ -27,7 +22,6 @@ interface LazyTableState {
   sortOrder?: any;
   filters: any;
 }
-
 
 
 export const Order = ({customer = ''} : {customer?: string}) => {
@@ -155,7 +149,6 @@ export const Order = ({customer = ''} : {customer?: string}) => {
 
     return () => {
       handleFilterOrders.cancel();
-      dispatch(reset())
     };
   }, [lazyState, dates]);
 
