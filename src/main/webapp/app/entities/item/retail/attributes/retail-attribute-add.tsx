@@ -1,11 +1,11 @@
 import {FormGroup} from "reactstrap";
 import {translate, Translate} from "react-jhipster";
 import {InputText} from "primereact/inputtext";
-import React, {useState} from "react";
+import React, {useRef, useState} from "react";
 import {ITaxonomy} from "app/shared/model/taxonomy.model";
 import {useAppDispatch, useAppSelector} from "app/config/store";
-import {createEntity as CreateAttribute} from "app/entities/item/retail/attributes/retail-attribute.reducer";
-import {createEntity as CreateAttributeValue} from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
+import {createEntity as createAttribute} from "app/entities/item/retail/attributes/retail-attribute.reducer";
+import {createEntity as createAttributeValue} from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import {Button} from "primereact/button";
 import {ITerm} from "app/shared/model/term.model";
 
@@ -18,32 +18,27 @@ type RetailAttributeAddProps = {
 
 const RetailAttributeAdd: React.FC<RetailAttributeAddProps> = ({ type, attributeId = null }) => {
   const dispatch = useAppDispatch();
-  const [newAttribute, setNewAttribute] = useState<ITaxonomy | ITerm>({});
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const updating = useAppSelector(state => state.retailAttribute.updating);
 
 
-  const handleInputChange = (e) => {
-    const {name, value} = e.target;
-    setNewAttribute((prev) => ({
-      ...prev,
-      [name] : value
-    }))
-  }
   const handleSave = (e) => {
     e.preventDefault();
+    const inputValue = inputRef.current?.value;
+
     if (type === "Attribute"){
-      dispatch(CreateAttribute(newAttribute))
+      dispatch(createAttribute({ name: inputValue }));
     }
     else{
       const entity = {
-        ...newAttribute,
+        name: inputValue,
         taxonomy: { id :attributeId }
       }
-      dispatch(CreateAttributeValue(entity))
+      dispatch(createAttributeValue(entity))
     }
 
-    setNewAttribute({})
+    inputRef.current.value = ""
   }
   return (
     <>
@@ -56,15 +51,20 @@ const RetailAttributeAdd: React.FC<RetailAttributeAddProps> = ({ type, attribute
               <Translate contentKey={'retailAttributes.update.create.label'}>Name</Translate>
             </label>
             <div className={"d-flex gap-3 mt-1"}>
-            <InputText
-              required={true}
-              type="text"
-              name="name"
-              id="name"
-              placeholder={type === 'Attribute' ? translate('retailAttributes.update.create.placeholder') : translate('retailAttributes.update.edit.placeholder')}
-              value={newAttribute.name}
-              onChange={handleInputChange}
-            />
+              <div className={"d-flex gap-3 mt-1"}>
+                <InputText
+                  required={true}
+                  type="text"
+                  name="name"
+                  id="name"
+                  placeholder={
+                    type === "Attribute"
+                      ? translate("retailAttributes.update.create.placeholder")
+                      : translate("retailAttributes.update.edit.placeholder")
+                  }
+                  ref={inputRef}
+                />
+              </div>
 
             <Button  disabled={updating} label={type === 'Attribute' ? translate('retailAttributes.update.create.action'): translate('retailAttributes.update.edit.action')} type="submit" />
 

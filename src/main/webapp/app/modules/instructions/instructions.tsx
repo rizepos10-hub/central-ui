@@ -40,7 +40,7 @@ export default function Instructions()
 
 
   const data = [
-    {title: 'Apple', url: 'content/images/apple.jpeg', link: 'https://www.apple.com/store'},
+    {title: 'Apple', url: 'content/images/apple.jpeg', link: 'https://apps.apple.com/th/app/rize-pos-client/id6476973045'},
     {title: 'Android', url: 'content/images/android.png', link: 'https://play.google.com/'},
     {title: 'Windows', url: 'content/images/windows.png', link: 'https://www.apple.com/store'}
   ]

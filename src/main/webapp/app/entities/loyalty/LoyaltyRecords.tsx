@@ -215,14 +215,14 @@ export const LoyaltyRecords = () => {
 
   return (
     <>
-      <div className={"my-3 w-6 d-flex gap-3"} >
+      <div className={"my-3 w-8 d-flex gap-3"} >
       <Card>
         <FormGroup>
 
         <CardHeader>
           Loyalty Points Exchange
         </CardHeader>
-        <CardBody  className={" d-flex gap-3"}>
+          <CardBody className={"d-flex gap-3 flex-lg-row  flex-md-column flex-sm-column"}>
             <div className={"d-flex flex-column gap-2"}>
               <label className={"text-xl font-bold"}>
                 Cash To Point Exchange

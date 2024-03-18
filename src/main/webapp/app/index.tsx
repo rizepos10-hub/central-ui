@@ -14,6 +14,8 @@ import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
 import 'primereact/resources/primereact.css';
 import 'primereact/resources/primereact.min.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 import {PrimeReactProvider} from "primereact/api";
 
 const store = getStore();

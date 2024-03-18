@@ -138,7 +138,7 @@ export const RetailAttributes = () => {
 
   return (
     <div>
-      <Col md={"3"}>
+      <Col md={"6"}>
         <RetailAttributeAdd type={"Attribute"}  />
       </Col>
       <Row>

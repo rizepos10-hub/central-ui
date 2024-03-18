@@ -1,7 +1,6 @@
 import 'react-toastify/dist/ReactToastify.css';
 import './app.scss';
 import 'app/config/dayjs.ts';
-
 import React, { useEffect } from 'react';
 import { Card } from 'reactstrap';
 import { BrowserRouter } from 'react-router-dom';
