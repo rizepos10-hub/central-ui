@@ -165,7 +165,7 @@ export const SimpleItemUpdate = () => {
             [branchId]: {
               branch: branchList.find(branch => branch.id === branchId),
               price: price,
-              salePrice: prev.variants[0]?.branchVariantDetails?.[branchId]?.salePrice || 0,
+              salePrice: prev.variants[0]?.branchVariantDetails?.[branchId]?.salePrice || null,
             },
           },
         },
@@ -472,7 +472,9 @@ export const SimpleItemUpdate = () => {
                               <tr>
                                 <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
                                 <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
-                                <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
+                                {branchList.some(branch => branch.wholesale) ?
+                                  <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
+                                : null}
                               </tr>
                               </thead>
                               <tbody>
@@ -486,7 +488,6 @@ export const SimpleItemUpdate = () => {
                                         name={`branchPrice_${branch.id}`}
                                         placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                         onWheel={(e: any) => e.target.blur()}
-                                        size={60}
                                         value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
                                         onChange={e => handleBranchPriceChange(branch.id, e.value)}
                                       />

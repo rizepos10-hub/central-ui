@@ -242,7 +242,7 @@ export const VariableItemUpdate = () => {
           [branchId]: {
             branch: branchList.find((branch) => branch.id === branchId),
             price: price,
-            salePrice: prev.variants[variantIndex]?.branchVariantDetails?.[branchId]?.salePrice || 0,
+            salePrice: prev.variants[variantIndex]?.branchVariantDetails?.[branchId]?.salePrice || null,
           },
         },
       };
@@ -715,7 +715,9 @@ export const VariableItemUpdate = () => {
                                   <tr>
                                     <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
                                     <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
+                                    {branchList.some(branch => branch.wholesale) ?
                                     <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
+                                    : null}
                                   </tr>
                                   </thead>
                                   <tbody>
@@ -724,11 +726,9 @@ export const VariableItemUpdate = () => {
                                       <td>{branch.name}</td>
                                       <td>
                                         <InputNumber
-                                          type="number"
                                           name={`branchPrice_${branch.id}`}
                                           placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                           onWheel={(e: any) => e.target.blur()}
-                                          size={60}
                                           value={variant?.branchVariantDetails?.[branch.id]?.price}
                                           onChange={e => handleBranchPriceChange(variantIndex,branch.id, e.value)}
                                         />
