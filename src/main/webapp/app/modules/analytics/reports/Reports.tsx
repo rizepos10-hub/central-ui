@@ -299,6 +299,7 @@ const SalesSummaryReport = () => {
         <SalesSection title={translate('analytics.report.dineIn')} data={salesData.totalSalesByOrderOption?.DineIn}/>
         <SalesSection title={translate('analytics.report.pickUp')} data={salesData.totalSalesByOrderOption?.PickUp}/>
         <SalesSection title={translate('analytics.report.delivery')} data={salesData.totalSalesByOrderOption?.Delivery}/>
+        <SalesSection title={translate('analytics.report.walkIn')} data={salesData.totalSalesByOrderOption?.WalkIn}/>
 
      </div>
   );

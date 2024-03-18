@@ -57,6 +57,7 @@
       "totalReceived": "Total Received",
       "dineIn": "DineIn",
       "pickUp": "PickUp",
+      "walkIn": "WalkIn",
       "delivery": "Delivery",
       "orders": "Orders",
       "subtotal": "Subtotal",
