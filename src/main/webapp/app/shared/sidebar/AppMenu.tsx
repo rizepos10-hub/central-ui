@@ -263,6 +263,12 @@ const AppMenu = () => {
                               icon: 'pi pi-box',
                               items: [
                                 {
+                                  label: 'Users',
+                                  role: ['ROLE_ADMIN'],
+                                  icon: ' pi pi-users',
+                                  to: '/online-ordering/user'
+                                },
+                                {
                                   label: 'UI Settings',
                                   role: ['ROLE_ADMIN'],
                                   icon: ' pi pi-users',

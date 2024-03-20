@@ -226,10 +226,10 @@ export default function Home() {
         console.error('Error fetching data:', error);
       }finally {
         setLoading({
-          chartsData: true,
-          topFieldsData: true,
-          topItemsData: true,
-          recentSalesData: true,
+          chartsData: false,
+          topFieldsData: false,
+          topItemsData: false,
+          recentSalesData: false,
         });
       }
     };
