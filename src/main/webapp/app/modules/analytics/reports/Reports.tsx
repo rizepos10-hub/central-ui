@@ -216,7 +216,6 @@ const SalesSummaryReport = () => {
               />
               <Dropdown
                 style={{minWidth: '7rem'}}
-
                 value={selectedBranch}
                 options={filteredBranchOptions}
                 onChange={(e) => setSelectedBranch(e.value)}

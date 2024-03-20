@@ -99,6 +99,7 @@
         "itemPrice": "Item Price",
         "itemSalePrice": "Item Sale Price",
         "itemBranchPrice": "Enter price for {{ branchName }}",
+        "itemBranchSalePrice": "Enter sale price for {{ branchName }}",
         "variantName": "Variant Name",
         "variantPrice": "Variant Price"
       },
@@ -111,6 +112,9 @@
       "excludedFromLoyalty": "Excluded From Loyalty Points",
       "image": "Image",
       "sku": "SKU",
+      "selectDiscounts": "Select Discounts",
+      "attributes": "Attributes",
+      "discounts": "Discounts",
       "WholesalePrices": "Wholesale Prices",
       "baseMeasure": "Select Base Measure",
       "measures": "Measures",

@@ -683,11 +683,11 @@ export const ItemUpdate = () => {
                               </div>
                               <div >
                                 <Translate contentKey="items.update.accountingGroups">Accounting Groups</Translate>
-                                <Select value={selectedAccountingGroups} onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
+                                <Select value={selectedAccountingGroups} onChange={handleAccountingGroupsChange} isClearable options={accountingGroupsOptions} />
                               </div>
                               <div >
                                 <Translate contentKey="items.update.productionCenter">Production Center</Translate>
-                                <Select value={selectedProductionCenter} onChange={handleProductionCenterChange} options={productionCenterOptions} />
+                                <Select value={selectedProductionCenter} onChange={handleProductionCenterChange} isClearable options={productionCenterOptions} />
                               </div>
                             <Col md={12}>
                               {/* <ValidatedField */}
@@ -722,19 +722,19 @@ export const ItemUpdate = () => {
                               {/*     validate: v => isNumber(v) || translate('entity.validation.number'), */}
                               {/*   }} */}
                               {/* /> */}
-                                <div >
-                                  <ValidatedField label={translate('items.view.fields.regular.status')}
-                                                  value={itemStatus} id="item-status" name="status"
-                                                  data-cy="status" type="select"
-                                                  onChange={(e) => setItemStatus(e.target.value)}
-                                  >
-                                    {itemStatusValues?.map((itemStatus, i) => (
-                                      <option value={itemStatus} key={i}>
-                                        {translate('tempApp.ItemStatus.' + itemStatus)}
-                                      </option>
-                                    ))}
-                                  </ValidatedField>
-                                </div>
+                              {/*   <div > */}
+                              {/*     <ValidatedField label={translate('items.view.fields.regular.status')} */}
+                              {/*                     value={itemStatus} id="item-status" name="status" */}
+                              {/*                     data-cy="status" type="select" */}
+                              {/*                     onChange={(e) => setItemStatus(e.target.value)} */}
+                              {/*     > */}
+                              {/*       {itemStatusValues?.map((itemStatus, i) => ( */}
+                              {/*         <option value={itemStatus} key={i}> */}
+                              {/*           {translate('tempApp.ItemStatus.' + itemStatus)} */}
+                              {/*         </option> */}
+                              {/*       ))} */}
+                              {/*     </ValidatedField> */}
+                              {/*   </div> */}
 
                                 <div >
                                   <ValidatedField
