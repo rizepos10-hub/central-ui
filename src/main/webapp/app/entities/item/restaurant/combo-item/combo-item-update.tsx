@@ -22,6 +22,7 @@ import ComboItemAddonDropDown from "app/entities/item/restaurant/combo-item/comb
 import {TabPanel, TabView} from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
 import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
+import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 
 
 export const ComboItemUpdate = () => {
@@ -36,6 +37,7 @@ export const ComboItemUpdate = () => {
   const updating = useAppSelector(state => state.comboItem.updating);
   const updateSuccess = useAppSelector(state => state.comboItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
+  const discountList = useAppSelector(state => state.discount.entities);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -61,31 +63,33 @@ export const ComboItemUpdate = () => {
     }));
   }, []);
 
-  const handlePriceChange = (price) => {
+
+
+  const handleComboVariantChange = (fieldName, value) => {
     setComboItem((prev) => ({
       ...prev,
       variants: [
         {
           ...(prev.variants && prev?.variants?.[0] ? prev.variants[0] : {}),
-          price
+          [fieldName]:  value,
         }
       ]
     }))
-  }
+  };
 
 
-  const handleBranchPriceChange = (branchId, price) => {
+  const handleBranchPriceChange = (branchId, priceType, price) => {
     setComboItem(prev => ({
       ...prev,
       variants: [
         {
-          ...(prev.variants && prev?.variants?.[0] ? prev.variants[0] : {}),
+          ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
           branchVariantDetails: {
-            ...prev.variants?.[0]?.branchVariantDetails,
+            ...prev.variants[0]?.branchVariantDetails,
             [branchId]: {
-              branch: branchList.find(branch => branch.id === branchId),
-              price,
-              salePrice: prev.variants?.[0]?.branchVariantDetails?.[branchId]?.salePrice || 0,
+              ...(prev.variants?.[0]?.branchVariantDetails?.[branchId]),
+              branch: {id: branchId},
+              [priceType]: price,
             },
           },
         },
@@ -252,7 +256,14 @@ export const ComboItemUpdate = () => {
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    }));
+
+    dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
 
   },[id, isNew]);
 
@@ -336,8 +347,26 @@ export const ComboItemUpdate = () => {
                           onFieldChange={handleFieldChange}
                         />
 
+                        <Row>
+                          <Col md="7">
+                            <div className={"d-flex flex-column gap-2"}>
+                              <label className={"text-xl font-bold"}>
+                                <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
+                              </label>
+                              <Select
+                                value={comboItem?.variants?.[0]?.discounts}
+                                options={discountList}
+                                isMulti
+                                getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
+                                getOptionValue={option => option.id}
+                                onChange={(discounts) => handleComboVariantChange('discounts', discounts)}
+                              />
+                            </div>
+                          </Col>
+                        </Row>
+
                         <Col md="4">
-                          <div className={"d-flex flex-column gap-2"}>
+                          <div className={"d-flex flex-column gap-2 mt-3"}>
                             <label className={"text-xl font-bold"}>
                               <Translate contentKey={'items.update.price'}>Price</Translate>
                             </label>
@@ -348,18 +377,20 @@ export const ComboItemUpdate = () => {
                               maxFractionDigits={2}
                               placeholder={translate('items.update.placeholders.itemPrice')}
                               value={comboItem?.variants?.[0]?.price}
-                              onChange={(e) => handlePriceChange(e.value)}
+                              onChange={(e) => handleComboVariantChange("price",e.value)}
                             />
                           </div>
                         </Col>
 
-                        <Col md="8" className={"mt-3"}>
+                        <Col md="12" className={"mt-3"}>
                           <h4><Translate contentKey={'items.update.branchPrices'}>Branch Prices</Translate></h4>
+                          <div className={"table-responsive"}>
                           <Table>
                             <thead>
                             <tr>
                               <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
                               <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
+                              <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -371,17 +402,29 @@ export const ComboItemUpdate = () => {
                                     name={`branchPrice_${branch.id}`}
                                     placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                     onWheel={(e: any) => e.target.blur()}
-                                    size={60}
+                                    maxFractionDigits={2}
+                                    size={12}
                                     value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
-                                    onChange={e => handleBranchPriceChange(branch.id, e.value)}
+                                    onChange={e => handleBranchPriceChange(branch.id,"price", e.value)}
+                                  />
+                                </td>
+                                <td>
+                                  <InputNumber
+                                    name={`branchSalePrice_${branch.id}`}
+                                    size={12}
+                                    placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
+                                    onWheel={(e: any) => e.target.blur()}
+                                    maxFractionDigits={2}
+                                    value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.salePrice}
+                                    onChange={e => handleBranchPriceChange(branch.id, "salePrice", e.value)}
                                   />
                                 </td>
                               </tr>
                             ))}
                             </tbody>
                           </Table>
+                          </div>
                         </Col>
-
                         <Row>
                           <FormGroup>
                             <h3><Translate contentKey={'items.update.combo.title'}>Combo</Translate></h3>

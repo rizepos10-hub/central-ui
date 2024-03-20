@@ -34,6 +34,7 @@ import {IExchangeMeasure} from "app/shared/model/ITEM/retail/simple-item.model";
 import {getEntities as getMeasures} from "app/entities/item-measure/item-measure.reducer";
 import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
 import WholesalePrices from "app/shared/layout/item/wholsale-prices-modal";
+import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 
 
 const defaultItemPriceNumber = {
@@ -64,7 +65,7 @@ export const VariableItemUpdate = () => {
   const branchList = useAppSelector(state => state.branch.entities);
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
   const measureList = useAppSelector(state => state.itemMeasure.entities);
-
+  const discountList = useAppSelector(state => state.discount.entities);
   const location = useLocation();
 
 
@@ -232,7 +233,7 @@ export const VariableItemUpdate = () => {
     });
   };
 
-  const handleBranchPriceChange = (variantIndex, branchId, price) => {
+  const handleBranchPriceChange = (variantIndex, branchId, priceType, price ) => {
     setVariableItem((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -240,9 +241,9 @@ export const VariableItemUpdate = () => {
         branchVariantDetails: {
           ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
           [branchId]: {
-            branch: branchList.find((branch) => branch.id === branchId),
-            price: price,
-            salePrice: prev.variants[variantIndex]?.branchVariantDetails?.[branchId]?.salePrice || null,
+            ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
+            branch: {id: branchId},
+            [priceType]: price,
           },
         },
       };
@@ -395,7 +396,11 @@ export const VariableItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-
+    dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
   },[id, isNew]);
 
@@ -704,6 +709,25 @@ export const VariableItemUpdate = () => {
                                   </div>
                                 </Col>
                               </Row>
+
+                              <Row>
+                                <Col md="7">
+                                  <div className={"d-flex flex-column gap-2 mt-2"}>
+                                    <label className={"text-xl font-bold"}>
+                                      <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
+                                    </label>
+                                    <Select
+                                      value={variant.discounts}
+                                      options={discountList}
+                                      isMulti
+                                      getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
+                                      getOptionValue={option => option.id}
+                                      onChange={(discounts) => handleVariantFieldChange(variantIndex, 'discounts', discounts)}
+                                    />
+                                  </div>
+                                </Col>
+                              </Row>
+
                               <Col md="12" className={"mt-3"}>
                                 <h4>
                                   <Translate contentKey={'items.update.branchPrices'}>
@@ -715,6 +739,7 @@ export const VariableItemUpdate = () => {
                                   <tr>
                                     <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
                                     <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
+                                    <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
                                     {branchList.some(branch => branch.wholesale) ?
                                     <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
                                     : null}
@@ -730,7 +755,16 @@ export const VariableItemUpdate = () => {
                                           placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                           onWheel={(e: any) => e.target.blur()}
                                           value={variant?.branchVariantDetails?.[branch.id]?.price}
-                                          onChange={e => handleBranchPriceChange(variantIndex,branch.id, e.value)}
+                                          onChange={e => handleBranchPriceChange(variantIndex,branch.id,"price", e.value)}
+                                        />
+                                      </td>
+                                      <td>
+                                        <InputNumber
+                                          name={`branchSalePrice_${branch.id}`}
+                                          placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
+                                          onWheel={(e: any) => e.target.blur()}
+                                          value={variant?.branchVariantDetails?.[branch.id]?.salePrice}
+                                          onChange={e => handleBranchPriceChange(variantIndex,branch.id, "salePrice", e.value)}
                                         />
                                       </td>
                                       {branch.wholesale &&

@@ -30,6 +30,7 @@ import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
 import {TabPanel, TabView} from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
 import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
+import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 
 const items: MenuItem[] = [
   {
@@ -64,7 +65,7 @@ export const PizzaItemUpdate = () => {
   const pizzaToppingList = useAppSelector(state => state.pizzaTopping.entities);
   const crustTypeList = useAppSelector(state => state.pizzaCrustType.entities);
   const crustThicknessList = useAppSelector(state => state.pizzaCrustThickness.entities);
-
+  const discountList = useAppSelector(state => state.discount.entities);
   const predefinedPizzaOptions = useAppSelector(state => state.predefinedPizza.entities);
   const pizzaPricingClasses = useAppSelector(state => state.pizzaPricingClass.entities);
   console.log(pizzaPricingClasses, 'pizzaPricingClasses')
@@ -106,6 +107,20 @@ export const PizzaItemUpdate = () => {
       return updatedState;
     });
   }, []);
+
+
+  const handleDiscount = (discounts) => {
+    setPizzaItem((prev) => ({
+      ...prev,
+      variants: [
+        {
+          ...(prev.variants && prev?.variants?.[0] ? prev.variants[0] : {}),
+          discounts,
+        }
+      ]
+    }))
+  };
+
 
 
 
@@ -372,8 +387,14 @@ export const PizzaItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
+    dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
     return () => {
-      dispatch(resetPredefined())
+      dispatch(resetPredefined());
     }
 
   },[id, isNew]);
@@ -524,6 +545,24 @@ export const PizzaItemUpdate = () => {
                                 </Col> : null}
 
                               </Row>
+                            </Row>
+
+                            <Row>
+                              <Col md="7">
+                                <div className={"d-flex flex-column gap-2"}>
+                                  <label className={"text-xl font-bold"}>
+                                    <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
+                                  </label>
+                                  <Select
+                                    value={pizzaItem?.variants?.[0]?.discounts}
+                                    options={discountList}
+                                    isMulti
+                                    getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
+                                    getOptionValue={option => option.id}
+                                    onChange={(discounts) => handleDiscount(discounts)}
+                                  />
+                                </div>
+                              </Col>
                             </Row>
 
 

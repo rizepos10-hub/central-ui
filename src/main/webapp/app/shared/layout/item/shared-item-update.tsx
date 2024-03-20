@@ -33,7 +33,6 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
   const isRestaurantItem = item?.itemType === "RESTAURANT";
-  console.log(isRestaurantItem, 'isRestaurantItemisRestaurantItem')
 
   const isRetailItem = item?.itemType === "RETAIL";
   const isSimplePizza = isRestaurantItem && item?.variants?.[0]?.multiple === false;
@@ -190,6 +189,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       <Select
                         value={item?.productionCenter}
                         options={productionCenterOptions}
+                        isClearable
                         getOptionLabel={(option) => option.name}
                         getOptionValue={(option) => option.id}
                         onChange={(productionCenter) => onFieldChange('productionCenter',productionCenter)}
@@ -220,6 +220,7 @@ export const SharedItemUpdate = ({item, onFieldChange}:{item: IItem, onFieldChan
                       </label>
                       <Select
                         value={item?.accountingGroups}
+                        isClearable
                         options={accountingGroupsOptions}
                         getOptionLabel={(option) => option.name}
                         getOptionValue={(option) => option.id}
