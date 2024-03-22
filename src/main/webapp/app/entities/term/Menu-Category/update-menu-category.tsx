@@ -272,7 +272,7 @@ console.log(termEntity)
 
               <div className="my-4 p-1">
                 <label><Translate contentKey={'menus.category.update.parents'}>Parents</Translate></label>
-                <Select options={termOptions} value={selectedParent} onChange={handleParentChange} />
+                <Select options={termOptions} value={selectedParent} isClearable onChange={handleParentChange} />
               </div>
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/category/menus" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />

@@ -1,0 +1,44 @@
+{
+  "onlineOrderingUser": {
+    "user": {
+      "title": "Online Ordering Users View",
+      "table": {
+        "title": "Online Ordering Users",
+        "fields": {
+          "name": "Name",
+          "username": "Username",
+          "email": "Email",
+          "enabled": "Enabled",
+          "edit": "Edit"
+        },
+        "search": {
+          "name": "Search by Name",
+          "username": "Search by Username",
+          "email": "Search by Email"
+        }
+      },
+      "buttons": {
+        "refreshList": "Refresh List",
+        "createNewUser": "Create New Online Ordering User"
+      }
+    },
+    "delete": {
+
+    },
+    "update": {
+      "create": {
+        "title": "Create New Online Ordering User"
+      },
+      "edit": {
+        "title": "Edit Online Ordering User"
+      },
+      "username": "Username",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "password": "Password",
+      "enabled": "Enabled",
+      "permissions": "Permissions"
+    }
+  }
+}

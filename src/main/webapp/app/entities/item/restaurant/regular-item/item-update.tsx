@@ -385,11 +385,12 @@ export const ItemUpdate = () => {
       specialPrices: specialPricesValues,
       options: selectedModifiersFromOptions
     };
+
     setVariants(prevVariants => [...prevVariants, newValues]);
   };
   const saveEntity = values => {
     console.log(values, 'values');
-    console.log(variants, 'variants');
+    console.log(variants, 'variants121');
 
     const entity = {
       ...itemEntity,
@@ -725,7 +726,7 @@ export const ItemUpdate = () => {
                               {/*   <div > */}
                               {/*     <ValidatedField label={translate('items.view.fields.regular.status')} */}
                               {/*                     value={itemStatus} id="item-status" name="status" */}
-                              {/*                     data-cy="status" type="select" */}
+                              {/*               f      data-cy="status" type="select" */}
                               {/*                     onChange={(e) => setItemStatus(e.target.value)} */}
                               {/*     > */}
                               {/*       {itemStatusValues?.map((itemStatus, i) => ( */}
