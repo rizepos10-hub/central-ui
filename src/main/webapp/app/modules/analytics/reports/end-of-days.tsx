@@ -8,7 +8,6 @@ import {Dropdown} from "primereact/dropdown";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {translate, Translate} from "react-jhipster";
-import {convertUtcToLocalDate, } from "app/shared/util/date-utils";
 
 
 
@@ -105,10 +104,10 @@ export const EndOfDays = () => {
                 >
 
         {/* <Column field="id" header="ID" body={(rowData) => (<Link to={rowData.id}>{rowData.id} </Link>)}  /> */}
-        <Column field="toDate" body={(rowData) => convertUtcToLocalDate(rowData?.toDate)} header={translate('analytics.endOfDay.table.toDate')} />
-        <Column field="fromDate" body={(rowData) => convertUtcToLocalDate(rowData?.fromDate)} header={translate('analytics.endOfDay.table.fromDate')} />
+        <Column field="toDate" header={translate('analytics.endOfDay.table.toDate')} />
+        <Column field="fromDate" header={translate('analytics.endOfDay.table.fromDate')} />
         <Column field="actionTakenBy" header={translate('analytics.endOfDay.table.actionBy')} />
-        <Column field="createdDate" body={(rowData) => convertUtcToLocalDate(rowData?.createdDate)}  header={translate('analytics.endOfDay.table.createdDate')} />
+        <Column field="createdDate" header={translate('analytics.endOfDay.table.createdDate')} />
         <Column field="branch.name" header={translate('analytics.endOfDay.table.branchName')} />
         <Column field="branch.appName" header={translate('analytics.endOfDay.table.appName')} />
         <Column field="branch.appType" header={translate('analytics.endOfDay.table.appType')} />

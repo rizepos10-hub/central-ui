@@ -8,7 +8,7 @@ import {Alert, Spinner} from "reactstrap";
 import UnclosedOrders from "app/modules/analytics/reports/unclosed-orders";
 import {useParams} from "react-router-dom";
 import {translate, Translate} from "react-jhipster";
-const EndOfDayReport = () => {
+const EndOFDayReport = () => {
 
 
   const dispatch = useAppDispatch()
@@ -163,10 +163,9 @@ const EndOfDayReport = () => {
       <SalesSection title={translate('analytics.report.dineIn')} data={salesData.totalSalesByOrderOption?.DineIn}/>
       <SalesSection title={translate('analytics.report.pickUp')} data={salesData.totalSalesByOrderOption?.PickUp}/>
       <SalesSection title={translate('analytics.report.delivery')} data={salesData.totalSalesByOrderOption?.Delivery}/>
-      <SalesSection title={translate('analytics.report.walkIn')} data={salesData.totalSalesByOrderOption?.WalkIn}/>
 
     </div>
   );
 };
 
-export default EndOfDayReport;
+export default EndOFDayReport;

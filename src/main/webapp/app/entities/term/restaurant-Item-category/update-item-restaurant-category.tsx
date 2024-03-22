@@ -47,7 +47,6 @@ export const UpdateItemRestaurantCategory = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-
   const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities).map(category => ({ value: category.id, label: category.name }));
 
   const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
@@ -251,12 +250,12 @@ export const UpdateItemRestaurantCategory = () => {
               {/* </ValidatedField> */}
               <div className="mb-3">
               <Translate contentKey="itemCategories.update.accountingGroups">Accounting Groups</Translate>
-              <Select  value={selectedAccountingGroups} isClearable onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
+              <Select  value={selectedAccountingGroups}  onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
               </div>
 
               <div className="mb-3">
                 <Translate contentKey="itemCategories.update.parents">Parents</Translate>
-                <Select  value={selectedParents} isClearable  onChange={handleParentsChange} options={categories} />
+                <Select  value={selectedParents}  onChange={handleParentsChange} options={categories} />
               </div>
               <div className="mb-3">
                 <ValidatedField
