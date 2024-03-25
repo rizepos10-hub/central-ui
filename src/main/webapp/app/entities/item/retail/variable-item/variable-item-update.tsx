@@ -8,7 +8,7 @@ import {useAppDispatch, useAppSelector} from 'app/config/store';
 import {Button as PrimeButton} from "primereact/button"
 
 import {createEntity, getEntity, reset, updateEntity} from './variable-item.reducer';
-import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
+import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import {IVariableItem} from "app/shared/model/ITEM/retail/variable-item.model";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
@@ -29,11 +29,11 @@ import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {isEqual} from "lodash";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
-import ItemStockTab from "app/shared/layout/item/item-stock-tab";
+import ItemStockTab from "app/shared/components/item/item-stock-tab";
 import {IExchangeMeasure} from "app/shared/model/ITEM/retail/simple-item.model";
 import {getEntities as getMeasures} from "app/entities/item-measure/item-measure.reducer";
-import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
-import WholesalePrices from "app/shared/layout/item/wholsale-prices-modal";
+import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
+import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 
 

@@ -195,33 +195,36 @@ export const CustomerUpdate = () => {
                   />
                 </div>}
 
-                <h4>Wholesale Price</h4>
-                <Table>
+                {wholeSaleBranches?.length > 0 ?
+                  <>
+                  <h4>Wholesale Price</h4>
+                  <Table>
                   <thead>
                   <tr>
-                    <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
-                    <th>Price Line</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {wholeSaleBranches.map(branch => {
-                    return (
-                      <tr key={branch.id}>
-                        <td>{branch.name}</td>
-                        <td>
-                          <Dropdown
-                            placeholder={"Enter Price Line"}
-                            value={customerEntity?.wholesalePriceLines?.[branch.id]}
-                            options={priceLineOptions}
-                            style={{minWidth: '15rem'}}
-                            onChange={event => handleBranchPriceChange(branch.id, event.target.value)}
-                          />
-                        </td>
-                      </tr>
-                    )
-                  })}
-                  </tbody>
-                </Table>
+                  <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
+            <th>Price Line</th>
+            </tr>
+            </thead>
+            <tbody>
+          {wholeSaleBranches.map(branch => {
+            return (
+            <tr key={branch.id}>
+            <td>{branch.name}</td>
+            <td>
+              <Dropdown
+                placeholder={"Enter Price Line"}
+                value={customerEntity?.wholesalePriceLines?.[branch.id]}
+                options={priceLineOptions}
+                style={{minWidth: '15rem'}}
+                onChange={event => handleBranchPriceChange(branch.id, event.target.value)}
+              />
+            </td>
+          </tr>
+          )
+          })}
+        </tbody>
+      </Table>
+      </> : null}
 
                 <h4>Customer Orders</h4>
                 {customerEntity?.id && (

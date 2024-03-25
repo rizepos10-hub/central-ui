@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './combo-item.reducer';
-import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
+import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import {IComboItem} from "app/shared/model/ITEM/restaurant/combo-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
@@ -21,7 +21,7 @@ import ComboItemSelection from "app/entities/item/restaurant/combo-item/combo-it
 import ComboItemAddonDropDown from "app/entities/item/restaurant/combo-item/combo-item-addon";
 import {TabPanel, TabView} from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
-import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
+import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 
 

@@ -41,8 +41,8 @@ export default function Instructions()
 
   const data = [
     {title: 'Apple', url: 'content/images/apple.jpeg', link: 'https://apps.apple.com/th/app/rize-pos-client/id6476973045'},
-    {title: 'Android', url: 'content/images/android.png', link: 'https://play.google.com/'},
-    {title: 'Windows', url: 'content/images/windows.png', link: 'https://www.apple.com/store'}
+    {title: 'Android', url: 'content/images/android.png', link:   '/pos-resources/apk/app-release.apk'},
+    {title: 'Windows', url: 'content/images/windows.png', link:  '/pos-resources/win/rize_pos_setup.exe'}
   ]
 
   useEffect(() => {
@@ -146,7 +146,7 @@ export default function Instructions()
             </div>
             }
 
-            {branchesCredentials.brokerConfig &&
+            {branchesCredentials?.brokerConfig &&
               <div className="card" style={{marginBottom: '2rem'}}>
               <div className="card-header">
                 <h5>Business Information</h5>

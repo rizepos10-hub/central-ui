@@ -8,6 +8,7 @@ import {
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit';
 import { AxiosError } from 'axios';
+import {IAuditLog} from "app/shared/model/audit-log.model";
 
 /**
  * Model for redux actions with pagination
@@ -76,6 +77,8 @@ export interface EntityState<T> {
   links?: any;
   updating: boolean;
   totalItems?: number;
+  logs?: IAuditLog[];
+  loadingLogs?: boolean;
   updateSuccess: boolean;
   availableRoles?: [];
   assignedRoles?: [];

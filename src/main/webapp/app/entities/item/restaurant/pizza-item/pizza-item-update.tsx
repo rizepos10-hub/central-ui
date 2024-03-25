@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-item.reducer';
-import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
+import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import {IBasePizzaDetail, IPizzaItem} from "app/shared/model/ITEM/restaurant/pizza-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
@@ -29,7 +29,7 @@ import {getEntities as getCrustThicknesses} from "app/entities/pizza-settings/pi
 import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
 import {TabPanel, TabView} from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
-import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
+import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 
 const items: MenuItem[] = [
