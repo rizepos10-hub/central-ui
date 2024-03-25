@@ -4,20 +4,23 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { ITransferRequest, defaultValue } from 'app/shared/model/STOCK/transfer-request.model';
+import {IAuditLog} from "app/shared/model/audit-log.model";
 
 const initialState: EntityState<ITransferRequest> = {
   loading: false,
   errorMessage: null,
   entities: [],
+  logs: [],
   entity: defaultValue,
   updating: false,
   totalItems: 0,
   updateSuccess: false,
+  loadingLogs: false
 };
 
 const apiUrl = 'api/inventory/transfer-requests';
 const apiSearchUrl = 'api/_search/inventory/transfer-requests';
-
+const apiLogsUrl = 'api/transfer-requests'
 // Actions
 
 export const searchEntities = createAsyncThunk('transfer-request/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
@@ -28,6 +31,11 @@ export const searchEntities = createAsyncThunk('transfer-request/search_entity',
 export const getEntities = createAsyncThunk('transfer-request/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<ITransferRequest[]>(requestUrl);
+});
+
+export const getEntityLogs = createAsyncThunk('transfer-request-logs/fetch_entity_log_list', async ({ page, size, sort, id }: IQueryParams) => {
+  const requestUrl = `${apiLogsUrl}/${id}/logs${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+  return axios.get<IAuditLog[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
@@ -95,6 +103,18 @@ export const TransferRequestSlice = createEntitySlice({
         state.updating = false;
         state.updateSuccess = true;
         state.entity = {};
+      })
+      .addCase(getEntityLogs.pending, (state, action) => {
+        state.loadingLogs = true;
+      })
+      .addMatcher(isFulfilled(getEntityLogs), (state, action) => {
+        const { data, headers } = action.payload;
+        return {
+          ...state,
+          loadingLogs: false,
+          logs: data,
+          totalItems: parseInt(headers['x-total-count'], 10),
+        };
       })
       .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
         const { data, headers } = action.payload;

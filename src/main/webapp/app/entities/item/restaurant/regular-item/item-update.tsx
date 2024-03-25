@@ -37,7 +37,7 @@ import {getEntities as getSharedItemEntities} from "app/entities/item/restaurant
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
 import {IVisibility} from "app/shared/model/visibility.model";
-import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
+import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();

@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './simple-item.reducer';
-import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
+import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import {IExchangeMeasure, ISimpleItem, ISimpleItemVariant} from "app/shared/model/ITEM/retail/simple-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
@@ -31,10 +31,10 @@ import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
-import ItemStockTab from "app/shared/layout/item/item-stock-tab";
+import ItemStockTab from "app/shared/components/item/item-stock-tab";
 import {IItemMeasure} from "app/shared/model/item-measure.model";
-import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
-import WholesalePrices from "app/shared/layout/item/wholsale-prices-modal";
+import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
+import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
 
 
 const defaultItemPriceNumber = {

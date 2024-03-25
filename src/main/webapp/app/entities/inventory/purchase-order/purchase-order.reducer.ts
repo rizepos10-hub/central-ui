@@ -4,19 +4,25 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { IPurchaseOrder, defaultValue } from 'app/shared/model/STOCK/purchase-order.model';
+import {IAuditLog} from "app/shared/model/audit-log.model";
 
 const initialState: EntityState<IPurchaseOrder> = {
   loading: false,
   errorMessage: null,
   entities: [],
+  logs: [],
   entity: defaultValue,
   updating: false,
   totalItems: 0,
   updateSuccess: false,
+  loadingLogs: false
 };
+
 
 const apiUrl = 'api/inventory/purchase-orders';
 const apiSearchUrl = 'api/inventory/_search/purchase-orders';
+const apiLogsUrl = 'api/purchase-orders'
+
 // Actions
 
 export const searchEntities = createAsyncThunk('purchase-order/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
@@ -31,6 +37,11 @@ export const filterEntities = createAsyncThunk('purchase-order/filter_entity_lis
 export const getEntities = createAsyncThunk('purchase-order/fetch_entity_list', async ({ page, size, sort, query }: IQueryParams) => {
   const requestUrl = `${apiUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<IPurchaseOrder[]>(requestUrl);
+});
+
+export const getEntityLogs = createAsyncThunk('purchase-order-logs/fetch_entity_log_list', async ({ page, size, sort, id }: IQueryParams) => {
+  const requestUrl = `${apiLogsUrl}/${id}/logs${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+  return axios.get<IAuditLog[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
@@ -109,9 +120,20 @@ export const SalesLocationSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
+      .addCase(getEntityLogs.pending, (state) => {
+        state.loadingLogs = true;
+      })
+      .addMatcher(isFulfilled(getEntityLogs), (state, action) => {
+        const { data, headers } = action.payload;
+        return {
+          ...state,
+          loadingLogs: false,
+          logs: data,
+          totalItems: parseInt(headers['x-total-count'], 10),
+        };
+      })
       .addMatcher(isFulfilled(getEntities, searchEntities,filterEntities), (state, action) => {
         const { data, headers } = action.payload;
-
         return {
           ...state,
           loading: false,
