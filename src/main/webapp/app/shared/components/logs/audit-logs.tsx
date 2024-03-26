@@ -13,7 +13,6 @@ import {
 
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
-import {AxiosResponse} from "axios";
 
 type AuditLogsProps = {
   entity: "PURCHASE_ORDER" | "ORDER" | "TRANSFER_REQUEST";
@@ -88,7 +87,10 @@ const AuditLogs = ({entity, entityId} :AuditLogsProps) => {
     <>
       <h4>Audit Logs</h4>
       <ol className="list-group list-group-numbered">
-        {logs?.map((log, index) => {
+        {logs.length === 0 ? (
+          <li className="list-group-item">No logs available</li>
+        ) : (
+        logs?.map((log, index) => {
           const isChangeLog = true;
           return (
             <li
@@ -107,7 +109,7 @@ const AuditLogs = ({entity, entityId} :AuditLogsProps) => {
               <span>{convertUtcToLocalDate(log.occurredAt)}</span>
             </li>
           );
-        })}
+        }))}
       </ol>
       {showModal ? (
         <Modal isOpen={showModal} toggle={toggleModal} className=" modal-xl modal-dialog-scrollable">

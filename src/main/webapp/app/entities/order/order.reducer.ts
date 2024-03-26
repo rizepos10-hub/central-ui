@@ -33,7 +33,7 @@ export const getEntities = createAsyncThunk('order/fetch_entity_list', async ({ 
 });
 
 export const getEntityLogs = createAsyncThunk('order-logs/fetch_entity_log_list', async ({ page, size, sort, id }: IQueryParams) => {
-  const requestUrl = `${apiLogsUrl}/${id}/log${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+  const requestUrl = `${apiLogsUrl}/${id}/logs${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<IAuditLog[]>(requestUrl);
 });
 

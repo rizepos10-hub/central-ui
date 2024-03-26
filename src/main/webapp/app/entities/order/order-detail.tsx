@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, Card, Spinner} from 'reactstrap';
+import {Button, Row, Col, Card, Spinner, CardHeader, CardBody, Label} from 'reactstrap';
 import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -12,6 +12,8 @@ import OrderCustomerDetail from 'app/entities/order/order-customer-details';
 import { OrderedItems } from 'app/entities/order/ordered-items';
 import {OrderBill} from "app/entities/order/order-bill";
 import OrderGeneralInfo from "app/entities/order/order-general-info";
+import {SelectButton} from "primereact/selectbutton";
+import AuditLogs from "app/shared/components/logs/audit-logs";
 
 export const OrderDetail = () => {
   const dispatch = useAppDispatch();
@@ -66,11 +68,12 @@ export const OrderDetail = () => {
   }
 
   return (
-    <Row>
+    <>
       <h3 className="mb-3">
         <Translate contentKey={'orders.details.title'}>Order</Translate> <span className="text-primary">#{filteredOrderEntity.sequenceNumber}</span>
       </h3>
-      <Col md="12" className="d-flex flex-wrap ">
+      <div className={"d-flex flex-row"} >
+      <Col md="9" className="d-flex flex-wrap ">
                 <Card className={"w-full d-flex flex-column gap-2"}>
                  <OrderGeneralInfo order={filteredOrderEntity} />
                 </Card>
@@ -124,15 +127,25 @@ export const OrderDetail = () => {
         </Col>
         </div>
       </Col>
-      <div className="text-end">
-        <Button tag={Link} to="/order" replace color="info" data-cy="entityDetailsBackButton">
-          <FontAwesomeIcon icon="arrow-left" />{' '}
-          <span className="d-none d-md-inline">
+      <Col md="3" className={'ml-3'}>
+        <Card>
+          <CardHeader>Actions</CardHeader>
+
+          <div className="text-end mt-3">
+            <Button tag={Link} to="/order" replace color="info" data-cy="entityDetailsBackButton">
+              <FontAwesomeIcon icon="arrow-left" />{' '}
+              <span className="d-none d-md-inline">
             <Translate contentKey="entity.action.back">Back</Translate>
           </span>
-        </Button>
+            </Button>
+          </div>
+
+        </Card>
+
+        {orderEntity?.id &&  <AuditLogs entity={'ORDER'} entityId={orderEntity?.id} />}
+      </Col>
       </div>
-    </Row>
+    </>
   );
 };
 
