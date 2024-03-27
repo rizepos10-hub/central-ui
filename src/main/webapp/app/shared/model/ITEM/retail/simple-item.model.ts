@@ -8,6 +8,7 @@ import {ITaxonomy} from "app/shared/model/taxonomy.model";
 import {IStockQuantity} from "app/shared/model/STOCK/stock-quantity.model";
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {IItemMeasure} from "app/shared/model/item-measure.model";
+import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -46,6 +47,7 @@ export interface ISimpleItemVariant {
   archived?: boolean;
   stockQuantities?: IStockQuantity[];
   purchaseConfig?: IPurchaseConfig;
+  mixAndMatchRule?: IMixAndMatchRule;
 }
 
 export interface ISimpleItem extends IItem{

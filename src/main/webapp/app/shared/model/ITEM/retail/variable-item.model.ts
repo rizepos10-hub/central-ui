@@ -8,6 +8,7 @@ import {IStockQuantity} from "app/shared/model/STOCK/stock-quantity.model";
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {IItemMeasure} from "app/shared/model/item-measure.model";
 import {IExchangeMeasure, IItemPriceNumber} from "app/shared/model/ITEM/retail/simple-item.model";
+import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -23,7 +24,7 @@ interface IAttributes {
   attributeTerms?: ITerm[];
   attachments?: IAttachment[];
 }
-interface IVariableItemVariant {
+export interface IVariableItemVariant {
   id?: string | null;
   name?: string | null;
   attachments?: IAttachment[];
@@ -36,6 +37,7 @@ interface IVariableItemVariant {
   attributeValues?: any;
   stockQuantities?: IStockQuantity[];
   purchaseConfig?: IPurchaseConfig;
+  mixAndMatchRule?: IMixAndMatchRule;
 }
 
 export interface IVariableItem extends IItem{

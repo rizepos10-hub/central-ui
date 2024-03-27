@@ -9,7 +9,7 @@ import {Button as PrimeButton} from "primereact/button"
 
 import {createEntity, getEntity, reset, updateEntity} from './variable-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
-import {IVariableItem} from "app/shared/model/ITEM/retail/variable-item.model";
+import {IVariableItem, IVariableItemVariant} from "app/shared/model/ITEM/retail/variable-item.model";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
@@ -35,6 +35,7 @@ import {getEntities as getMeasures} from "app/entities/item-measure/item-measure
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
+import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 
 
 const defaultItemPriceNumber = {
@@ -66,6 +67,7 @@ export const VariableItemUpdate = () => {
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
   const measureList = useAppSelector(state => state.itemMeasure.entities);
   const discountList = useAppSelector(state => state.discount.entities);
+  const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const location = useLocation();
 
 
@@ -130,7 +132,7 @@ export const VariableItemUpdate = () => {
     }));
   }, [])
 
-  const handleVariantFieldChange = (variantIndex, fieldName, value) => {
+  const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
     setVariableItem((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -397,6 +399,12 @@ export const VariableItemUpdate = () => {
     }));
 
     dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getMixAndMatchRules({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -725,6 +733,20 @@ export const VariableItemUpdate = () => {
                                       onChange={(discounts) => handleVariantFieldChange(variantIndex, 'discounts', discounts)}
                                     />
                                   </div>
+
+                                  <div className={"d-flex flex-column gap-2"}>
+                                    <label className={"text-xl font-bold"}>
+                                      <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                    </label>
+                                    <Select
+                                      value={variant?.mixAndMatchRule}
+                                      options={mixAndMatchRuleList}
+                                      getOptionLabel={option => option.name}
+                                      getOptionValue={option => option.id}
+                                      onChange={(mixAndMatchRule) => handleVariantFieldChange(variantIndex,'mixAndMatchRule', mixAndMatchRule)}
+                                    />
+                                  </div>
+
                                 </Col>
                               </Row>
 

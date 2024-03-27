@@ -111,6 +111,12 @@ const AppMenu = () => {
                                 role: ['ROLE_ADMIN'],
                                 icon: 'pi pi-folder-open',
                                 to: '/item-measure'
+                              },
+                              {
+                                label: 'Mix & Match Rule',
+                                role: ['ROLE_ADMIN'],
+                                icon: 'pi pi-folder-open',
+                                to: '/mix-and-match-rule'
                               }
 
                             ]

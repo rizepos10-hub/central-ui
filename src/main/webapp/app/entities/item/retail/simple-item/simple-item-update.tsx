@@ -35,6 +35,7 @@ import ItemStockTab from "app/shared/components/item/item-stock-tab";
 import {IItemMeasure} from "app/shared/model/item-measure.model";
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
+import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 
 
 const defaultItemPriceNumber = {
@@ -65,6 +66,7 @@ export const SimpleItemUpdate = () => {
   const updateSuccess = useAppSelector(state => state.simpleRetailItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
   const discountList = useAppSelector(state => state.discount.entities);
+  const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const measureList = useAppSelector(state => state.itemMeasure.entities);
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
   const location = useLocation();
@@ -132,7 +134,7 @@ export const SimpleItemUpdate = () => {
     }));
   }, [])
 
-  const handleSimpleItemChange = (fieldName, value) => {
+  const handleSimpleItemVariantChange = (fieldName: keyof ISimpleItemVariant, value) => {
     setSimpleItem((prev) => {
       const updatedVariants = [
         {
@@ -339,6 +341,12 @@ export const SimpleItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
+    dispatch(getMixAndMatchRules({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
 
 
   },[id, isNew]);
@@ -426,7 +434,7 @@ export const SimpleItemUpdate = () => {
                               required={true}
                               placeholder={translate('items.update.placeholders.itemSku')}
                               value={simpleItem?.variants?.[0]?.sku}
-                              onChange={(e) => handleSimpleItemChange('sku', e.target.value)}
+                              onChange={(e) => handleSimpleItemVariantChange('sku', e.target.value)}
                             />
                           </div>
                         </Col>
@@ -446,7 +454,7 @@ export const SimpleItemUpdate = () => {
                                 inputClassName={"w-1"}
                                 placeholder={translate('items.update.placeholders.itemPrice')}
                                 value={simpleItem?.variants?.[0]?.price}
-                                onChange={(e) => handleSimpleItemChange('price', e.value)}
+                                onChange={(e) => handleSimpleItemVariantChange('price', e.value)}
                               />
                             </div>
                           </Col>
@@ -462,7 +470,7 @@ export const SimpleItemUpdate = () => {
                                 maxFractionDigits={2}
                                 placeholder={translate('items.update.placeholders.itemSalePrice')}
                                 value={simpleItem?.variants?.[0]?.salePrice}
-                                onChange={(e) => handleSimpleItemChange('salePrice', e.value)}
+                                onChange={(e) => handleSimpleItemVariantChange('salePrice', e.value)}
                               />
                             </div>
                           </Col>
@@ -539,7 +547,20 @@ export const SimpleItemUpdate = () => {
                               isMulti
                               getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
                               getOptionValue={option => option.id}
-                              onChange={(discounts) => handleSimpleItemChange('discounts', discounts)}
+                              onChange={(discounts) => handleSimpleItemVariantChange('discounts', discounts)}
+                            />
+                          </div>
+
+                          <div className={"d-flex flex-column gap-2"}>
+                            <label className={"text-xl font-bold"}>
+                              <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                            </label>
+                            <Select
+                              value={simpleItem?.variants?.[0]?.mixAndMatchRule}
+                              options={mixAndMatchRuleList}
+                              getOptionLabel={option => option.name}
+                              getOptionValue={option => option.id}
+                              onChange={(mixAndMatchRule) => handleSimpleItemVariantChange('mixAndMatchRule', mixAndMatchRule)}
                             />
                           </div>
                         </Col>
