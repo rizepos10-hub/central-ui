@@ -204,6 +204,7 @@ export const MixAndMatchRuleUpdate = () => {
                               minWidth: '15rem'
                             }),
                           }}
+                          isDisabled={!rule?.quantity}
                           value={rule?.accountingGroup}
                           options={accountingGroupList}
                           getOptionLabel={option => option.name}
