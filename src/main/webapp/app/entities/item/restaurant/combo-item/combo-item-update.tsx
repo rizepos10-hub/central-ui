@@ -341,7 +341,7 @@ export const ComboItemUpdate = () => {
                   <Row>
                     <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
-                      <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                      <Col md="10" className={`d-flex flex-column p-3  bg-white mt-3 `} >
 
                         {isModalOpen ?<ComboItemSelection
                           isOpen={isModalOpen}
