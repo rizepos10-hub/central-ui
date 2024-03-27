@@ -421,7 +421,7 @@ export const SimpleItemUpdate = () => {
 
                     <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
-                      <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
+                      <Col md="10" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
 
                         <Col md="7">
                           <div className={"d-flex flex-column gap-2"}>
@@ -476,7 +476,7 @@ export const SimpleItemUpdate = () => {
                           </Col>
 
 
-                          <Col md="7" className={"mt-3"}>
+                          <Col md="12" className={"mt-3"}>
                             {pricesModal?.show &&
                               <WholesalePrices
                                 toggle={handleShowPricesModal}
