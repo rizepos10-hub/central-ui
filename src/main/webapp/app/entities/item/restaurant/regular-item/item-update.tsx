@@ -37,7 +37,7 @@ import {getEntities as getSharedItemEntities} from "app/entities/item/restaurant
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
 import {IVisibility} from "app/shared/model/visibility.model";
-import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
+import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 
 export const ItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -385,11 +385,12 @@ export const ItemUpdate = () => {
       specialPrices: specialPricesValues,
       options: selectedModifiersFromOptions
     };
+
     setVariants(prevVariants => [...prevVariants, newValues]);
   };
   const saveEntity = values => {
     console.log(values, 'values');
-    console.log(variants, 'variants');
+    console.log(variants, 'variants121');
 
     const entity = {
       ...itemEntity,
@@ -683,11 +684,11 @@ export const ItemUpdate = () => {
                               </div>
                               <div >
                                 <Translate contentKey="items.update.accountingGroups">Accounting Groups</Translate>
-                                <Select value={selectedAccountingGroups} onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
+                                <Select value={selectedAccountingGroups} onChange={handleAccountingGroupsChange} isClearable options={accountingGroupsOptions} />
                               </div>
                               <div >
                                 <Translate contentKey="items.update.productionCenter">Production Center</Translate>
-                                <Select value={selectedProductionCenter} onChange={handleProductionCenterChange} options={productionCenterOptions} />
+                                <Select value={selectedProductionCenter} onChange={handleProductionCenterChange} isClearable options={productionCenterOptions} />
                               </div>
                             <Col md={12}>
                               {/* <ValidatedField */}
@@ -722,19 +723,19 @@ export const ItemUpdate = () => {
                               {/*     validate: v => isNumber(v) || translate('entity.validation.number'), */}
                               {/*   }} */}
                               {/* /> */}
-                                <div >
-                                  <ValidatedField label={translate('items.view.fields.regular.status')}
-                                                  value={itemStatus} id="item-status" name="status"
-                                                  data-cy="status" type="select"
-                                                  onChange={(e) => setItemStatus(e.target.value)}
-                                  >
-                                    {itemStatusValues?.map((itemStatus, i) => (
-                                      <option value={itemStatus} key={i}>
-                                        {translate('tempApp.ItemStatus.' + itemStatus)}
-                                      </option>
-                                    ))}
-                                  </ValidatedField>
-                                </div>
+                              {/*   <div > */}
+                              {/*     <ValidatedField label={translate('items.view.fields.regular.status')} */}
+                              {/*                     value={itemStatus} id="item-status" name="status" */}
+                              {/*               f      data-cy="status" type="select" */}
+                              {/*                     onChange={(e) => setItemStatus(e.target.value)} */}
+                              {/*     > */}
+                              {/*       {itemStatusValues?.map((itemStatus, i) => ( */}
+                              {/*         <option value={itemStatus} key={i}> */}
+                              {/*           {translate('tempApp.ItemStatus.' + itemStatus)} */}
+                              {/*         </option> */}
+                              {/*       ))} */}
+                              {/*     </ValidatedField> */}
+                              {/*   </div> */}
 
                                 <div >
                                   <ValidatedField

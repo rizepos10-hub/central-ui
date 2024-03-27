@@ -36,12 +36,14 @@ import { InputText } from 'primereact/inputtext';
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import Pizza from "app/entities/item/restaurant/regular-item/pizza-display/pizza";
+import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
+import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 
 interface IVariantProps {
   showModal: boolean;
   handleClose?: () => void;
   handleSave: (name: string, price: number, discount: any, attachments: any, branchPrices: any, ingredients: any ,
-               selectedVariantAddons: any, specialPrices : any, selectedModifiersFromOptions: {} ) => void;
+               selectedVariantAddons: any, specialPrices : any, selectedModifiersFromOptions: {}, mixAndMatchRule) => void;
   onVariantImageUpload: any;
   editingVariantId: any;
   variants: any;
@@ -69,6 +71,7 @@ const ItemVariantModal = (props: IVariantProps) => {
 
   const discounts = useAppSelector(state => state.discount.entities);
   console.log(discounts, 'discount1');
+  const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
 
   const branchList = useAppSelector(state => state.branch.entities);
 
@@ -111,6 +114,8 @@ const ItemVariantModal = (props: IVariantProps) => {
   const [ingredients, setIngredients] = useState([]);
 
   const [attachments, setAttachments] = useState([]);
+
+  const [mixAndMatchRule, setMixAndMatchRule] = useState<IMixAndMatchRule>({})
 
   const [wholesalePrices, setWholesalePrices] = useState({
     "PRICE_1": null,
@@ -243,7 +248,7 @@ const ItemVariantModal = (props: IVariantProps) => {
     }
 
     props.handleSave(
-      name, parseFloat(price), selectedDiscountObjects,selectedVariantAddons, variantImage, branchPrices, ingredients, specialPrices,selectedModifiersFromOptions);
+      name, parseFloat(price), selectedDiscountObjects,selectedVariantAddons, variantImage, branchPrices, ingredients, specialPrices,selectedModifiersFromOptions, mixAndMatchRule);
   };
 
   const {
@@ -332,7 +337,8 @@ const ItemVariantModal = (props: IVariantProps) => {
         branchVariantDetails: formattedBranchPrices,
         ingredients: formattedIngredients,
         specialPrices: specialPricesValues,
-        options: selectedModifiersFromOptions
+        options: selectedModifiersFromOptions,
+        mixAndMatchRule
       };
 
       console.log(formattedBranchPrices, 'formattedBranchPrices')
@@ -351,7 +357,7 @@ const ItemVariantModal = (props: IVariantProps) => {
       } else {
 
         props.handleSave(name, parseFloat(price), selectedDiscountObjects, selectedAddonsObjects,
-          attachmentsToSend, formattedBranchPrices, formattedIngredients, specialPricesValues, selectedModifiersFromOptions);
+          attachmentsToSend, formattedBranchPrices, formattedIngredients, specialPricesValues, selectedModifiersFromOptions,mixAndMatchRule,);
         resetForm();
         setSelectedDiscounts([]);
       }
@@ -486,6 +492,10 @@ const ItemVariantModal = (props: IVariantProps) => {
         setSelectedModifiersFromOptions(editingVariant.options)
       }
 
+      if(editingVariant.mixAndMatchRule){
+        setMixAndMatchRule(editingVariant.mixAndMatchRule)
+      }
+
       if (editingVariant.specialPrices) {
         setWholesalePrices((prevPrices) => ({
           ...prevPrices,
@@ -537,6 +547,13 @@ const ItemVariantModal = (props: IVariantProps) => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
+
+    dispatch(getMixAndMatchRules({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
   }, [props.editingVariantId,editingVariant,isNew]);
 
 
@@ -972,6 +989,17 @@ const ItemVariantModal = (props: IVariantProps) => {
               </div>
 
               <div className="mb-3">
+                  <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                <Select
+                  value={mixAndMatchRule}
+                  options={mixAndMatchRuleList}
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                  onChange={(mixAndMatchRuleOpt) => setMixAndMatchRule( mixAndMatchRuleOpt)}
+                />
+              </div>
+
+              <div className="mb-3">
                 <Translate contentKey="items.update.regular.variantModal.addons"></Translate>
                 <Select isMulti={true} defaultValue={defaultAddons} onChange={handleAddonChange} options={props.addonsOptions} />
               </div>
@@ -1001,44 +1029,45 @@ const ItemVariantModal = (props: IVariantProps) => {
 
                 </div>
 
-                <h4><Translate contentKey={'items.update.regular.variantModal.specialPrices'}>Special Prices</Translate></h4>
-                {!isPizza ? <Row>
-                <Col>
-                <h5 className="font-semibold">Wholesale Prices</h5>
-                {Object.keys(wholesalePrices).map((priceKey, index) => (
-                <>
-                <label className="font-semibold">{priceKey}</label>
-                <ValidatedField
-                key={index}
-                type="number"
-                placeholder={`Enter price ${index + 1}`}
-                name={`wholesale_price_${index + 1}`}
-                value={parseFloat(wholesalePrices[priceKey])}
-                onChange={(e) => handleWholesalePriceChange(priceKey, e.target.value)}
+                {/* <h4><Translate contentKey={'items.update.regular.variantModal.specialPrices'}>Special Prices</Translate></h4> */}
+                {/* {!isPizza ? <Row> */}
+                {/* <Col> */}
+                {/* <h5 className="font-semibold">Wholesale Prices</h5> */}
+                {/* {Object.keys(wholesalePrices).map((priceKey, index) => ( */}
+                {/* <> */}
+                {/* <label className="font-semibold">{priceKey}</label> */}
+                {/* <ValidatedField */}
+                {/* key={index} */}
+                {/* type="number" */}
+                {/* placeholder={`Enter price ${index + 1}`} */}
+                {/* name={`wholesale_price_${index + 1}`} */}
+                {/* value={parseFloat(wholesalePrices[priceKey])} */}
+                {/* onChange={(e) => handleWholesalePriceChange(priceKey, e.target.value)} */}
 
-                />
-                </>
-                ))}
-                </Col>
-                <Col>
-                <h5 className="font-semibold">Retail Prices</h5>
-                {Object.keys(retailPrices).map((priceKey, index) => (
-                <>
-                <label className="font-semibold">{priceKey}</label><ValidatedField
-                key={priceKey}
-                type="number"
-                placeholder={`Enter price ${index + 1}`}
-                name={`retail_price_${index + 1}`}
-                value={parseFloat(retailPrices[priceKey])}
-                onChange={(e) => handleRetailPriceChange(priceKey, e.target.value)}
-                validate={{
-                required: {value: true, message: translate('entity.validation.required')},
-                }}
-                />
-                </>
-                ))}
-                </Col>
-                </Row> : null}
+                {/* /> */}
+                {/* </> */}
+                {/* ))} */}
+                {/* </Col> */}
+                {/* <Col> */}
+                {/* <h5 className="font-semibold">Retail Prices</h5> */}
+                {/* {Object.keys(retailPrices).map((priceKey, index) => ( */}
+                {/* <> */}
+                {/* <label className="font-semibold">{priceKey}</label><ValidatedField */}
+                {/* key={priceKey} */}
+                {/* type="number" */}
+                {/* placeholder={`Enter price ${index + 1}`} */}
+                {/* name={`retail_price_${index + 1}`} */}
+                {/* value={parseFloat(retailPrices[priceKey])} */}
+                {/* onChange={(e) => handleRetailPriceChange(priceKey, e.target.value)} */}
+                {/* validate={{ */}
+                {/* required: {value: true, message: translate('entity.validation.required')}, */}
+                {/* }} */}
+                {/* /> */}
+                {/* </> */}
+                {/* ))} */}
+                {/* </Col> */}
+                {/* </Row> : null} */}
+
                 <Table>
                   <thead>
                   <tr>
@@ -1186,10 +1215,10 @@ const ItemVariantModal = (props: IVariantProps) => {
             <Row>
 
               {/* Listing for pizza */}
-              { isPizza ? <Pizza
-                selectedModifiersFromOptions={selectedModifiersFromOptions}
-                setSelectedModifiersFromOptions={setSelectedModifiersFromOptions}
-              /> : null}
+              {/* { isPizza ? <Pizza */}
+              {/*   selectedModifiersFromOptions={selectedModifiersFromOptions} */}
+              {/*   setSelectedModifiersFromOptions={setSelectedModifiersFromOptions} */}
+              {/* /> : null} */}
 
 
 

@@ -7,6 +7,7 @@ import {IPizzaPricingClass} from "app/shared/model/PIZZA/pizza-pricing-class.mod
 import {ITopping} from "app/shared/model/PIZZA/topping.model";
 import {ICrustType} from "app/shared/model/PIZZA/crust-type.model";
 import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
+import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
 
 interface IMultiplePizzaDetails{
   numberOfPizza?: number;
@@ -33,11 +34,12 @@ export interface IBasePizzaDetail {
   pricingClass: IPizzaPricingClass;
 }
 
-interface IPizzaItemVariant {
+export interface IPizzaItemVariant {
   id?: string | null;
   name?: string | null;
   attachments?: IAttachment[];
   discounts?: IDiscount[];
+  mixAndMatchRule?: IMixAndMatchRule;
   predefinedPizza?: IPredefinedPizza;
   itemPricingClass?: IPizzaPricingClass;
   toppingPricing?: IToppingPricingItem[];

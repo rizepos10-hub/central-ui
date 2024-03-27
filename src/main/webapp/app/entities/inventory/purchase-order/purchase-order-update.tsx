@@ -43,6 +43,7 @@ import {SelectButton} from "primereact/selectbutton";
 import {IInventoryItem, IInventoryItemVariant} from "app/shared/model/STOCK/inventory-item.model";
 import _ from "lodash";
 import {applyMatchModeMap} from "app/shared/util/util-func";
+import AuditLogs from "app/shared/components/logs/audit-logs";
 
 
 const statusOptions = [
@@ -363,333 +364,365 @@ export const PurchaseOrderUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Purchase Order" : isDisabled ? "View Purchase Order" :"Edit Purchase Order"}</h2>
+          <h2>{isNew ? 'Add New Purchase Order' : isDisabled ? 'View Purchase Order' : 'Edit Purchase Order'}</h2>
         </Col>
       </Row>
       {loading ? (
         <p>Loading...</p>
       ) : (
         <Row>
-      <form onSubmit={saveEntity} className={'d-flex'}>
-
-        <Col md="9" className="d-flex flex-column p-3 bg-white">
+          <form onSubmit={saveEntity} className={'d-flex'}>
+            <Col md="9" className="d-flex flex-column p-3 bg-white">
               <FormGroup>
                 <Row>
-             <Col md={4} className={"d-flex flex-column gap-2"}>
-               <div className={"d-flex gap-2 mt-2"}>
-                 <Label for="supplier" className={"mt-2"}>Supplier</Label>
-               <Select
-                 options={supplierList}
-                 name="supplier"
-                 id="supplier"
-                 placeholder={"Select supplier"}
-                 value={purchaseOrder?.supplier}
-                 isDisabled={isOrderReceived}
-                 getOptionLabel={(option: ISupplier) => option.name}
-                 getOptionValue={option => option.id}
-                 onChange={(selectedSupplier) => setPurchaseOrder((prev) => ({...prev, supplier: selectedSupplier}))}
-                 />
-               </div>
+                  <Col md={4} className={'d-flex flex-column gap-2'}>
+                    <div className={'d-flex gap-2 mt-2'}>
+                      <Label for="supplier" className={'mt-2'}>
+                        Supplier
+                      </Label>
+                      <Select
+                        options={supplierList}
+                        name="supplier"
+                        id="supplier"
+                        placeholder={'Select supplier'}
+                        value={purchaseOrder?.supplier}
+                        isDisabled={isOrderReceived}
+                        getOptionLabel={(option: ISupplier) => option.name}
+                        getOptionValue={option => option.id}
+                        onChange={selectedSupplier => setPurchaseOrder(prev => ({ ...prev, supplier: selectedSupplier }))}
+                      />
+                    </div>
 
-               <div className={"d-flex gap-2 mt-2"}>
-                 <Label for="warehouse" className={"mt-2"}>warehouse</Label>
-                 <Select
-                   name="warehouse"
-                   id="warehouse"
-                   placeholder={"Select warehouse"}
-                   options={warehouseList}
-                   value={purchaseOrder?.warehouse}
-                   isDisabled={isOrderReceived || !purchaseOrder?.supplier}
-                   getOptionLabel={(option: IWarehouse) => option.name}
-                   getOptionValue={option => option.id}
-                   onChange={(selectedWarehouse) => setPurchaseOrder((prev) => ({...prev, warehouse: selectedWarehouse}))}
-                 />
-               </div>
-             </Col>
+                    <div className={'d-flex gap-2 mt-2'}>
+                      <Label for="warehouse" className={'mt-2'}>
+                        warehouse
+                      </Label>
+                      <Select
+                        name="warehouse"
+                        id="warehouse"
+                        placeholder={'Select warehouse'}
+                        options={warehouseList}
+                        value={purchaseOrder?.warehouse}
+                        isDisabled={isOrderReceived || !purchaseOrder?.supplier}
+                        getOptionLabel={(option: IWarehouse) => option.name}
+                        getOptionValue={option => option.id}
+                        onChange={selectedWarehouse => setPurchaseOrder(prev => ({ ...prev, warehouse: selectedWarehouse }))}
+                      />
+                    </div>
+                  </Col>
 
-              <Col md={4} className={"d-flex flex-column gap-2"}>
-                <div className={"d-flex gap-2 mt-2"}>
-                  <Label for="delivery" className={"mt-2"}>Delivery</Label>
-                  <InputText
-                    name="delivery"
-                    id="delivery"
-                    value={purchaseOrder?.delivery}
-                    disabled={isDisabled}
-                    onChange={handleChange}
-                  />
-                </div>
+                  <Col md={4} className={'d-flex flex-column gap-2'}>
+                    <div className={'d-flex gap-2 mt-2'}>
+                      <Label for="delivery" className={'mt-2'}>
+                        Delivery
+                      </Label>
+                      <InputText
+                        name="delivery"
+                        id="delivery"
+                        value={purchaseOrder?.delivery}
+                        disabled={isDisabled}
+                        onChange={handleChange}
+                      />
+                    </div>
 
-                <div className={"d-flex gap-2 mt-2"}>
-                  <Label for="address" className={"mt-2"}>Address</Label>
-                  <InputText
-                    name="address"
-                    id="address"
-                    value={purchaseOrder?.address}
-                    disabled={isDisabled}
-                    onChange={handleChange}
-                  />
-                </div>
+                    <div className={'d-flex gap-2 mt-2'}>
+                      <Label for="address" className={'mt-2'}>
+                        Address
+                      </Label>
+                      <InputText name="address" id="address" value={purchaseOrder?.address} disabled={isDisabled} onChange={handleChange} />
+                    </div>
+                  </Col>
 
-              </Col>
+                  <Col md={4} className={'d-flex flex-column gap-2'}>
+                    <div className={'d-flex gap-2  mt-2'}>
+                      <Label for="datePlaced" className={'mt-2'}>
+                        Order Date
+                      </Label>
+                      <Calendar
+                        name="datePlaced"
+                        id="datePlaced"
+                        value={new Date(purchaseOrder.datePlaced)}
+                        disabled={isDisabled}
+                        onChange={e => handleDateChange('datePlaced', e)}
+                      />
+                    </div>
 
-                <Col md={4} className={"d-flex flex-column gap-2"}>
-                  <div className={"d-flex gap-2  mt-2"}>
-                    <Label for="datePlaced" className={"mt-2"}>Order Date</Label>
-                    <Calendar
-                      name="datePlaced"
-                      id="datePlaced"
-                      value={new Date(purchaseOrder.datePlaced)}
-                      disabled={isDisabled}
-                      onChange={(e) =>handleDateChange("datePlaced", e)}
-                    />
-                  </div>
-
-                  <div className={"d-flex gap-2 mt-2"}>
-                    <Label for="dateDelivered" className={"mt-2"}>Delivery Date</Label>
-                    <Calendar
-                      name="dateDelivered"
-                      id="dateDelivered"
-                      value={new Date(purchaseOrder.dateDelivered)}
-                      disabled={isDisabled}
-                      onChange={(e) =>handleDateChange("dateDelivered", e)}
-                    />
-                  </div>
-                </Col>
+                    <div className={'d-flex gap-2 mt-2'}>
+                      <Label for="dateDelivered" className={'mt-2'}>
+                        Delivery Date
+                      </Label>
+                      <Calendar
+                        name="dateDelivered"
+                        id="dateDelivered"
+                        value={new Date(purchaseOrder.dateDelivered)}
+                        disabled={isDisabled}
+                        onChange={e => handleDateChange('dateDelivered', e)}
+                      />
+                    </div>
+                  </Col>
                 </Row>
 
                 {/* Order Lines */}
-                <Row className={"mt-3"}>
+                <Row className={'mt-3'}>
                   <h3>Order Lines</h3>
-                  {!isDisabled ? <Table>
-                    <tbody>
-                    <tr>
-                      <td>Item</td>
-                      <td>Variant</td>
-                      <td>Description</td>
-                      <td>Quantity</td>
-                      <td>Cost Price</td>
-                      <td>Delivery Date</td>
-                      <td>Sub Total</td>
-                    </tr>
-                    <tr>
-                      <td className={'col-md-3'}>
-                        <Select
-                          onInputChange={loadItems}
-                          options={inventoryItemList}
-                          getOptionValue={option => option.id}
-                          getOptionLabel={option => option.name}
-                          onChange={(item) => setSelectedItem(item)}
-                          value={selectedItem || null}
-                          onFocus={(e: any) => {
-                           e.preventDefault()
-                          }}
-                          onBlur={(e: any) => {
-                            e.preventDefault();
-                          }}
-                          isDisabled={isDisabled}
-                          isLoading={loadingItems}
-                        />
-                      </td>
+                  {!isDisabled ? (
+                    <Table>
+                      <tbody>
+                        <tr>
+                          <td>Item</td>
+                          <td>Variant</td>
+                          <td>Description</td>
+                          <td>Quantity</td>
+                          <td>Cost Price</td>
+                          <td>Delivery Date</td>
+                          <td>Sub Total</td>
+                        </tr>
+                        <tr>
+                          <td className={'col-md-3'}>
+                            <Select
+                              onInputChange={loadItems}
+                              options={inventoryItemList}
+                              getOptionValue={option => option.id}
+                              getOptionLabel={option => option.name}
+                              onChange={item => setSelectedItem(item)}
+                              value={selectedItem || null}
+                              onFocus={(e: any) => {
+                                e.preventDefault();
+                              }}
+                              onBlur={(e: any) => {
+                                e.preventDefault();
+                              }}
+                              isDisabled={isDisabled}
+                              isLoading={loadingItems}
+                            />
+                          </td>
 
-                      <td className={'col-md-3'}>
-                        <Select
-                          options={selectedItem?.variants}
-                          getOptionValue={(option) => option.id}
-                          getOptionLabel={option => option.name}
-                          onChange={handleSelectVariant}
-                          isDisabled={isDisabled || !selectedItem}
-                          value={selectedVariant}
+                          <td className={'col-md-3'}>
+                            <Select
+                              options={selectedItem?.variants}
+                              getOptionValue={option => option.id}
+                              getOptionLabel={option => option.name}
+                              onChange={handleSelectVariant}
+                              isDisabled={isDisabled || !selectedItem}
+                              value={selectedVariant}
+                            />
+                          </td>
 
-                        />
-                      </td>
+                          <td className={'col-md-2'}>
+                            <InputTextarea
+                              value={purchaseOrderLine?.description || ''}
+                              disabled={isDisabled}
+                              onChange={e => handleOrderLineChange('description', e.target.value)}
+                            />
+                          </td>
+                          <td className={'col-md-1'}>
+                            <InputNumber
+                              value={purchaseOrderLine?.quantity}
+                              disabled={isDisabled}
+                              size={4}
+                              onChange={e => handleOrderLineChange('quantity', e.value)}
+                            />
+                          </td>
 
-                      <td className={'col-md-2'}>
-                        <InputTextarea
-                          value={purchaseOrderLine?.description || ''} disabled={isDisabled}
-                          onChange={(e) => handleOrderLineChange("description", e.target.value)}/>
-
-                      </td>
-                      <td className={'col-md-1'}>
-
-                      <InputNumber
-                          value={purchaseOrderLine?.quantity} disabled={isDisabled}  size={4}
-                          onChange={(e) => handleOrderLineChange("quantity", e.value)}/>
-                      </td>
-
-                      <td className={'col-md-1'}>
-                      <InputNumber
-                          size={4}
-                          value={purchaseOrderLine?.price} disabled={isDisabled}
-                          onChange={(e) => handleOrderLineChange("price", e.value)}/>
-                      </td>
-                      <td className={'col-md-2'}>
-                        <Calendar
-                          name="deliveryDate"
-                          id="deliveryDate"
-                          disabled={isDisabled}
-                          onSelect={(e) => handleOrderLineChange("deliveryDate", e.value)}
-                          value={new Date(purchaseOrderLine?.deliveryDate)}
-                        />
-                      </td>
-                      <td className={'col-md-2'}>
-                        <InputNumber disabled={true} size={4}
-                                     value={(purchaseOrderLine?.price * purchaseOrderLine?.quantity) || null}/>
-                      </td>
-                      <td className={'col-md-1'}>
-                        <Button disabled={!purchaseOrderLine?.item} color={"success"}
-                                onClick={() => handleAdd("orderLine")}>Add</Button>
-                      </td>
-                    </tr>
-                    </tbody>
-                  </Table> : null}
+                          <td className={'col-md-1'}>
+                            <InputNumber
+                              size={4}
+                              value={purchaseOrderLine?.price}
+                              disabled={isDisabled}
+                              onChange={e => handleOrderLineChange('price', e.value)}
+                            />
+                          </td>
+                          <td className={'col-md-2'}>
+                            <Calendar
+                              name="deliveryDate"
+                              id="deliveryDate"
+                              disabled={isDisabled}
+                              onSelect={e => handleOrderLineChange('deliveryDate', e.value)}
+                              value={new Date(purchaseOrderLine?.deliveryDate)}
+                            />
+                          </td>
+                          <td className={'col-md-2'}>
+                            <InputNumber disabled={true} size={4} value={purchaseOrderLine?.price * purchaseOrderLine?.quantity || null} />
+                          </td>
+                          <td className={'col-md-1'}>
+                            <Button disabled={!purchaseOrderLine?.item} color={'success'} onClick={() => handleAdd('orderLine')}>
+                              Add
+                            </Button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </Table>
+                  ) : null}
 
                   <DataTable
                     value={purchaseOrder?.orderLines}
                     editMode="row"
-                    header={"Order Lines"}
+                    header={'Order Lines'}
                     removableSort
                     paginator
                     totalRecords={purchaseOrder?.orderLines?.length}
                     rows={20}
-                    onRowEditComplete={(e) => onRowEditComplete(e,"orderLines")}
+                    onRowEditComplete={e => onRowEditComplete(e, 'orderLines')}
                   >
-                    <Column field="item.name" header={"Item"} />
-                    <Column field="description" editor={(options) => textEditor(options)} header={"Description"} />
-                    <Column field="quantity" editor={(options) => numberEditor(options)} header={"Quantity"} />
-                    <Column field="received" editor={(options) => receivedEditor(options)} header={"Received Quantity"} />
-                    <Column field="returnedQuantity" header={"Returned Quantity"} />
-                    <Column field="price" editor={(options) => numberEditor(options)} header={"Cost Price"} />
-                    <Column field="deliveryDate" header={"Delivery Date"}
-                            body={(rowData) => rowData.deliveryDate ? new Date(rowData.deliveryDate).toDateString() : ''}
+                    <Column field="item.name" header={'Item'} />
+                    <Column field="description" editor={options => textEditor(options)} header={'Description'} />
+                    <Column field="quantity" editor={options => numberEditor(options)} header={'Quantity'} />
+                    <Column field="received" editor={options => receivedEditor(options)} header={'Received Quantity'} />
+                    <Column field="returnedQuantity" header={'Returned Quantity'} />
+                    <Column field="price" editor={options => numberEditor(options)} header={'Cost Price'} />
+                    <Column
+                      field="deliveryDate"
+                      header={'Delivery Date'}
+                      body={rowData => (rowData.deliveryDate ? new Date(rowData.deliveryDate).toDateString() : '')}
                     />
-                    <Column  header={"Sub Total"} body={(rowData) => rowData.price * rowData.quantity} />
-                    {!isDisabled ?
-                        <Column rowEditor headerStyle={{width: '10%', minWidth: '8rem'}}
-                                bodyStyle={{textAlign: 'center'}} />
-                    : null}
+                    <Column header={'Sub Total'} body={rowData => rowData.price * rowData.quantity} />
+                    {!isDisabled ? (
+                      <Column rowEditor headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }} />
+                    ) : null}
 
-                    {!isDisabled ?
-                        <Column header={"Delete"}
-                                body={(rowData, index) => deleteColumnTemplate(rowData, index, 'orderLines')}
-                                headerStyle={{width: '1%',}} bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/>
-                      : null}
+                    {!isDisabled ? (
+                      <Column
+                        header={'Delete'}
+                        body={(rowData, index) => deleteColumnTemplate(rowData, index, 'orderLines')}
+                        headerStyle={{ width: '1%' }}
+                        bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+                      />
+                    ) : null}
                   </DataTable>
                 </Row>
 
-                <Row className={"mt-3"}>
+                <Row className={'mt-3'}>
                   <h3>Cost Lines</h3>
-                  {!isDisabled ? <Table>
-                    <tbody>
-                    <tr>
-                      <td>Supplier</td>
-                      <td>Cost</td>
-                      <td>Cost Date</td>
-                      <td>Comments</td>
-                    </tr>
-                    <tr>
-                      <td className={'w-2'}>
-                        <AsyncSelect
-                          cacheOptions
-                          loadOptions={loadSuppliers}
-                          defaultOptions={supplierList}
-                          getOptionValue={(option: ISupplier) => option.id}
-                          getOptionLabel={option => option.name}
-                          name={"supplier"}
-                          onChange={(supplier) => setPurchaseCostLine((prevState => ({...prevState, supplier})))}
-                          value={purchaseCostLine?.supplier || null}
-                          isDisabled={isDisabled}
-
-                        />
-                      </td>
-                      <td className={'w-1'}>
-                        <InputNumber value={purchaseCostLine?.cost} disabled={isDisabled}
-                                     onChange={(e) => setPurchaseCostLine((prevState) => ({
-                                       ...prevState,
-                                       cost: e.value
-                                     }))}/>
-                      </td>
-                      <td className={'w-1'}>
-                        <Calendar
-                          name="costDate"
-                          id="costDate"
-                          disabled={isDisabled}
-                          onSelect={(e) => handleDateChange("costDate", e)}
-                          value={new Date(purchaseCostLine?.costDate)}
-                        />
-                      </td>
-                      <td className={'w-1'}>
-                        <InputTextarea name={"comment"} disabled={isDisabled} value={purchaseCostLine?.comment || ''}
-                                       onChange={handleCostLineChange}/>
-                      </td>
-                      <td className={'w-2'}>
-                        <Button disabled={!purchaseCostLine} color={"success"}
-                                onClick={() => handleAdd("costLine")}>Add</Button>
-                      </td>
-                    </tr>
-                    </tbody>
-                  </Table> : null}
+                  {!isDisabled ? (
+                    <Table>
+                      <tbody>
+                        <tr>
+                          <td>Supplier</td>
+                          <td>Cost</td>
+                          <td>Cost Date</td>
+                          <td>Comments</td>
+                        </tr>
+                        <tr>
+                          <td className={'w-2'}>
+                            <AsyncSelect
+                              cacheOptions
+                              loadOptions={loadSuppliers}
+                              defaultOptions={supplierList}
+                              getOptionValue={(option: ISupplier) => option.id}
+                              getOptionLabel={option => option.name}
+                              name={'supplier'}
+                              onChange={supplier => setPurchaseCostLine(prevState => ({ ...prevState, supplier }))}
+                              value={purchaseCostLine?.supplier || null}
+                              isDisabled={isDisabled}
+                            />
+                          </td>
+                          <td className={'w-1'}>
+                            <InputNumber
+                              value={purchaseCostLine?.cost}
+                              disabled={isDisabled}
+                              onChange={e =>
+                                setPurchaseCostLine(prevState => ({
+                                  ...prevState,
+                                  cost: e.value,
+                                }))
+                              }
+                            />
+                          </td>
+                          <td className={'w-1'}>
+                            <Calendar
+                              name="costDate"
+                              id="costDate"
+                              disabled={isDisabled}
+                              onSelect={e => handleDateChange('costDate', e)}
+                              value={new Date(purchaseCostLine?.costDate)}
+                            />
+                          </td>
+                          <td className={'w-1'}>
+                            <InputTextarea
+                              name={'comment'}
+                              disabled={isDisabled}
+                              value={purchaseCostLine?.comment || ''}
+                              onChange={handleCostLineChange}
+                            />
+                          </td>
+                          <td className={'w-2'}>
+                            <Button disabled={!purchaseCostLine} color={'success'} onClick={() => handleAdd('costLine')}>
+                              Add
+                            </Button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </Table>
+                  ) : null}
 
                   <DataTable
                     value={purchaseOrder?.costLines}
                     editMode="row"
-                    header={"Cost Lines"}
+                    header={'Cost Lines'}
                     removableSort
                     paginator
                     totalRecords={purchaseOrder?.costLines?.length}
                     rows={20}
                   >
-                    <Column field="supplier.name" header={"Supplier"} />
-                    <Column field="cost" header={"Cost"} />
-                    <Column field="costDate" header={"Cost Date"}  />
-                    <Column field="comment" header={"Comment"}  />
-                    {!isDisabled ?
+                    <Column field="supplier.name" header={'Supplier'} />
+                    <Column field="cost" header={'Cost'} />
+                    <Column field="costDate" header={'Cost Date'} />
+                    <Column field="comment" header={'Comment'} />
+                    {!isDisabled ? (
                       <Column
-                        header={"Delete"}
-                        body={(rowData, index) => deleteColumnTemplate(rowData,index,'costLines')}
-                        headerStyle={{width: '1%',}}  bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/> : null}
+                        header={'Delete'}
+                        body={(rowData, index) => deleteColumnTemplate(rowData, index, 'costLines')}
+                        headerStyle={{ width: '1%' }}
+                        bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+                      />
+                    ) : null}
                   </DataTable>
                 </Row>
               </FormGroup>
-              </Col>
-              <Col md='3'>
-                <Card>
-                  <CardHeader>
-                    Actions
-                  </CardHeader>
-                  <CardBody>
-                    <div className={"d-flex flex-column mt-2"}>
-                      <Label for="status">Status</Label>
-                      <SelectButton
-                        value={purchaseOrder?.status ?? "PLACED"}
-                        options={statusOptions}
-                        id="status"
-                        disabled={isOrderReceived || isNew}
-                        onChange={(e) => setPurchaseOrder((prv) => ({...prv, status: e.value}))}
-                      />
-                    </div>
-
-                  </CardBody>
-                    <div className={"d-flex gap-3 mt-2"}>
-                      <Button tag={Link} to="/inventory/purchase-order" replace color="info">
-                        <FontAwesomeIcon icon="arrow-left" />
-                        &nbsp;Back
-                      </Button>
-                      {isOrderReceived ?
-                          <Button color={'primary'} id="returnItems" onClick={handleSupplierReturn}>Return Items</Button>
-                         : null}
-                      {canSplit ?
-                        <Button color={'primary'} id="splitOrder" onClick={handleOrderSplit}>Split & Complete Order</Button>
-                        : null}
-                      {purchaseOrderEntity?.status !== "RECEIVED" ? <Button color="primary" type="submit" disabled={updating || isDisabled}>
-                        <FontAwesomeIcon icon="save"/>
-                        &nbsp;Save
-                      </Button> : null}
-                    </div>
-                </Card>
             </Col>
+            <Col md="3" className={'ml-3'}>
+              <Card>
+                <CardHeader>Actions</CardHeader>
+                <CardBody>
+                  <div className={'d-flex flex-column mt-2'}>
+                    <Label for="status">Status</Label>
+                    <SelectButton
+                      value={purchaseOrder?.status ?? 'PLACED'}
+                      options={statusOptions}
+                      id="status"
+                      disabled={isOrderReceived || isNew}
+                      onChange={e => setPurchaseOrder(prv => ({ ...prv, status: e.value }))}
+                    />
+                  </div>
+                </CardBody>
+                <div className={'d-flex gap-3 mt-2'}>
+                  <Button tag={Link} to="/inventory/purchase-order" replace color="info">
+                    <FontAwesomeIcon icon="arrow-left" />
+                    &nbsp;Back
+                  </Button>
+                  {isOrderReceived ? (
+                    <Button color={'primary'} id="returnItems" onClick={handleSupplierReturn}>
+                      Return Items
+                    </Button>
+                  ) : null}
+                  {canSplit ? (
+                    <Button color={'primary'} id="splitOrder" onClick={handleOrderSplit}>
+                      Split & Complete Order
+                    </Button>
+                  ) : null}
+                  {purchaseOrderEntity?.status !== 'RECEIVED' ? (
+                    <Button color="primary" type="submit" disabled={updating || isDisabled}>
+                      <FontAwesomeIcon icon="save" />
+                      &nbsp;Save
+                    </Button>
+                  ) : null}
+                </div>
+              </Card>
 
-      </form>
-    </Row>
+              {purchaseOrderEntity?.id && <AuditLogs entity={'PURCHASE_ORDER'} entityId={purchaseOrderEntity?.id} />}
+            </Col>
+          </form>
+        </Row>
       )}
     </div>
   );

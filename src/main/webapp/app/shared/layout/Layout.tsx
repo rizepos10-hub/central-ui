@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useEffect, useRef} from "react";
 
-import "./sidebar.scss";
+import "../sidebar/sidebar.scss";
 import AppSidebar from "app/shared/sidebar/AppSidebar";
 import '../styles/layout/layout.scss';
 import '../styles/demo/Demos.scss';
@@ -22,7 +22,7 @@ import AppTopbar from "app/shared/sidebar/AppTopbar";
 import AppBreadCrumb from "app/shared/sidebar/AppBreadCrumb";
 import AppProfileSidebar from "app/shared/sidebar/AppProfileSidebar";
 import AppConfig from "app/shared/sidebar/AppConfig";
-import type { AppTopbarRef, ChildContainerProps } from './types/types';
+import type { AppTopbarRef, ChildContainerProps } from '../sidebar/types/types';
 import {useNavigate} from "react-router-dom";
 import Footer from "app/shared/layout/footer/footer";
 

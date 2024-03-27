@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
-import { format } from 'date-fns';
 
 import { APP_LOCAL_DATETIME_FORMAT } from 'app/config/constants';
+import {format} from "date-fns";
 
 export const convertDateTimeFromServer = date => (date ? dayjs(date).format(APP_LOCAL_DATETIME_FORMAT) : null);
 
@@ -17,3 +17,10 @@ export function toLocalISOString(date: Date): string {
   const timezone = getLocalTimeZone();
   return format(date, "yyyy-MM-dd'T'HH:mm:ssxxx", { timeZone: timezone } as any);
 }
+
+export function convertUtcToLocalDate(utcTimestamp: string): string {
+  if(!utcTimestamp) return;
+  const localDate = new Date(utcTimestamp);
+  return  format(localDate, 'yyyy-MM-dd HH:mm:ss')
+}
+

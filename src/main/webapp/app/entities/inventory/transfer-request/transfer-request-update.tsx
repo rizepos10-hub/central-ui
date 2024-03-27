@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label, Input, Table} from 'reactstrap';
+import {Button, Row, Col, FormGroup, Label, Input, Table, Card, CardHeader, CardBody} from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -20,6 +20,7 @@ import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {SelectButton} from "primereact/selectbutton";
+import AuditLogs from "app/shared/components/logs/audit-logs";
 
 const statusOptions = [
   "PLACED",
@@ -66,7 +67,9 @@ export const TransferRequestUpdate = () => {
 
   const query = transferRequest?.source?.id ? `location=${transferRequest?.source?.id}&` : null;
 
-  const isDisabled = !transferRequest.source || transferRequestEntity?.status === "CONFIRMED";
+  const isConfirmed = transferRequestEntity?.status === "CONFIRMED"
+
+  const isDisabled = !transferRequest.source || isConfirmed ;
 
   const handleClose = () => {
     navigate('/inventory/transfer-request' + location.search);
@@ -191,152 +194,181 @@ export const TransferRequestUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Transfer Request" : "View Transfer Request"}</h2>
+          <h2>{isNew ? 'Add New Transfer Request' : 'View Transfer Request'}</h2>
         </Col>
       </Row>
       <Row>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form onSubmit={saveEntity}>
-              <FormGroup>
-                <div className={"d-flex flex-column"}>
-                  <Label for="source">Source</Label>
-               <Select
-                  value={transferRequest?.source}
-                  options={warehousesAndSalesLocations}
-                  getOptionLabel={option => option?.name}
-                  getOptionValue={option => option.id}
-                  id="source"
-                  isDisabled={transferRequestEntity.status === "CONFIRMED"}
-                  onChange={(source) => setTransferRequest((prv) => ({...prv, source, transferItems: []}))}
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <Row>
+            <form onSubmit={saveEntity} className={'d-flex'}>
+              <Col md="9" className="d-flex flex-column p-3 bg-white">
+                <FormGroup>
+                  <div className={'d-flex flex-column'}>
+                    <Label for="source">Source</Label>
+                    <Select
+                      value={transferRequest?.source}
+                      options={warehousesAndSalesLocations}
+                      getOptionLabel={option => option?.name}
+                      getOptionValue={option => option.id}
+                      id="source"
+                      isDisabled={transferRequestEntity.status === 'CONFIRMED'}
+                      onChange={source => setTransferRequest(prv => ({ ...prv, source, transferItems: [] }))}
+                    />
+                  </div>
 
-               />
-                </div>
+                  <div className={'d-flex flex-column mt-2'}>
+                    <Label for="destination">Destination</Label>
+                    <Select
+                      value={transferRequest?.destination}
+                      options={destinationOptions}
+                      getOptionLabel={option => option?.name}
+                      getOptionValue={option => option.id}
+                      id="destination"
+                      isDisabled={isDisabled}
+                      onChange={destination => setTransferRequest(prv => ({ ...prv, destination }))}
+                    />
+                  </div>
 
-                <div className={"d-flex flex-column mt-2"}>
-                  <Label for="destination">Destination</Label>
-                  <Select
-                    value={transferRequest?.destination}
-                    options={destinationOptions}
-                    getOptionLabel={option => option?.name}
-                    getOptionValue={option => option.id}
-                    id="destination"
-                    isDisabled={isDisabled}
-                    onChange={(destination) => setTransferRequest((prv) => ({...prv, destination}))}
-                  />
-                </div>
+                  {!isDisabled ? (
+                    <Row className={'mt-3'}>
+                      <h3>Transfer Items</h3>
+                      <Table>
+                        <tbody>
+                          <tr>
+                            <td>Item</td>
+                            <td>Quantity in Source</td>
+                            <td>Quantity To Transfer</td>
+                            <td>Received Quantity</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <AsyncSelect
+                                cacheOptions
+                                loadOptions={loadItems}
+                                defaultOptions={filteredStockItems}
+                                getOptionValue={option => option.variantId}
+                                getOptionLabel={option => option.itemName}
+                                onChange={handleSelectItem}
+                                value={transferRequestItem?.item || null}
+                                isDisabled={isDisabled}
+                              />
+                            </td>
+                            <td className={'w-1 '}>
+                              <InputNumber value={transferRequestItem?.item?.quantity} size={8} disabled />
+                            </td>
+                            <td className={'w-1'}>
+                              <InputNumber
+                                size={8}
+                                value={transferRequestItem?.quantity}
+                                disabled={isDisabled || transferRequestItem?.item?.quantity <= 0}
+                                max={transferRequestItem?.item?.quantity}
+                                onValueChange={e =>
+                                  setTransferRequestItem(prevState => ({
+                                    ...prevState,
+                                    quantity: e.value,
+                                  }))
+                                }
+                              />
+                            </td>
 
-                <div className={"d-flex flex-column mt-2"}>
-                  <Label for="status">Status</Label>
-                  <SelectButton
-                    value={transferRequest?.status ?? "PLACED"}
-                    options={statusOptions}
-                    id="status"
-                    disabled={isDisabled}
-                    onChange={(e) => setTransferRequest((prv) => ({...prv, status: e.value}))}
-                  />
-                </div>
+                            <td className={'w-1'}>
+                              <InputNumber
+                                size={8}
+                                value={transferRequestItem?.receivedQuantity}
+                                disabled={transferRequestItem?.item?.quantity <= 0 || isDisabled}
+                                max={transferRequestItem?.item?.quantity}
+                                onValueChange={e =>
+                                  setTransferRequestItem(prevState => ({
+                                    ...prevState,
+                                    receivedQuantity: e.value,
+                                  }))
+                                }
+                              />
+                            </td>
 
+                            <td className={'w-2'}>
+                              <Button
+                                disabled={
+                                  isDisabled ||
+                                  transferRequestItem?.item?.quantity <= 0 ||
+                                  !transferRequestItem?.item ||
+                                  !transferRequestItem?.receivedQuantity
+                                }
+                                color={'success'}
+                                onClick={handleAdd}
+                              >
+                                Add
+                              </Button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </Table>
+                    </Row>
+                  ) : null}
+                  <Row className={'mt-3'}>
+                    <DataTable
+                      value={transferRequest?.transferItems}
+                      editMode="row"
+                      header={'Transferred Items'}
+                      removableSort
+                      paginator
+                      totalRecords={transferRequest?.transferItems?.length}
+                      rows={10}
+                    >
+                      <Column field="item.name" header={'Item'} />
+                      <Column field="quantity" header={'Transferred Quantity'} />
+                      <Column field="receivedQuantity" header={'Received Quantity'} />
 
-                {!isDisabled ? <Row className={"mt-3"}>
-                  <h3>Transfer Items</h3>
-                  <Table>
-                    <tbody>
-                    <tr>
-                      <td>Item</td>
-                      <td>Quantity in Source</td>
-                      <td>Quantity To Transfer</td>
-                      <td>Received Quantity</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <AsyncSelect
-                          cacheOptions
-                          loadOptions={loadItems}
-                          defaultOptions={filteredStockItems}
-                          getOptionValue={option => option.variantId}
-                          getOptionLabel={option => option.itemName}
-                          onChange={handleSelectItem}
-                          value={transferRequestItem?.item || null}
-                          isDisabled={isDisabled}
-
+                      {transferRequestEntity.status !== 'CONFIRMED' ? (
+                        <Column
+                          header={'Delete'}
+                          body={deleteColumnTemplate}
+                          headerStyle={{ width: '1%' }}
+                          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
                         />
-                      </td>
-                      <td className={"w-1 "}>
-                     <InputNumber value={transferRequestItem?.item?.quantity} size={8} disabled />
-                      </td>
-                      <td className={'w-1'}>
-                        <InputNumber
-                          size={8}
-                          value={transferRequestItem?.quantity}
-                          disabled={isDisabled || transferRequestItem?.item?.quantity <= 0}
-                          max={transferRequestItem?.item?.quantity}
-                          onValueChange={(e) => setTransferRequestItem((prevState => ({
-                            ...prevState,
-                            quantity: e.value
-                          })))}
-                        />
-                      </td>
+                      ) : null}
+                    </DataTable>
+                  </Row>
+                </FormGroup>
+              </Col>
 
-                      <td className={'w-1'}>
-                        <InputNumber
-                          size={8}
-                          value={transferRequestItem?.receivedQuantity}
-                          disabled={ transferRequestItem?.item?.quantity <= 0 ||isDisabled}
-                          max={transferRequestItem?.item?.quantity}
-                          onValueChange={(e) => setTransferRequestItem((prevState => ({
-                            ...prevState,
-                            receivedQuantity: e.value
-                          })))}
-                        />
+              <Col md="3" className={'ml-3'}>
+                <Card>
+                  <CardHeader>Actions</CardHeader>
+                  <CardBody>
+                    <div className={'d-flex flex-column mt-2'}>
+                      <Label for="status">Status</Label>
+                      <SelectButton
+                        value={transferRequest?.status ?? 'PLACED'}
+                        options={statusOptions}
+                        id="status"
+                        disabled={isDisabled}
+                        onChange={e => setTransferRequest(prv => ({ ...prv, status: e.value }))}
+                      />
+                    </div>
+                  </CardBody>
+                  <div className={'d-flex gap-3 mt-2'}>
+                    <Button tag={Link} to="/inventory/transfer-request" replace color="info">
+                      <FontAwesomeIcon icon="arrow-left" />
+                      &nbsp;Back
+                    </Button>
 
-                      </td>
+                    {!isConfirmed ? (
+                      <Button color="primary" type="submit" disabled={updating || isDisabled}>
+                        <FontAwesomeIcon icon="save" />
+                        &nbsp;Save
+                      </Button>
+                    ) : null}
+                  </div>
+                </Card>
 
-                      <td className={'w-2'}>
-                        <Button
-                          disabled={isDisabled || transferRequestItem?.item?.quantity <= 0 ||
-                            !transferRequestItem?.item || !transferRequestItem?.receivedQuantity}
-                          color={"success"} onClick={handleAdd}>Add</Button>
-                      </td>
-
-                    </tr>
-                    </tbody>
-                  </Table>
-                </Row> : null}
-                <Row className={"mt-3"}>
-                  <DataTable
-                    value={transferRequest?.transferItems}
-                    editMode="row"
-                    header={"Transferred Items"}
-                    removableSort
-                    paginator
-                    totalRecords={transferRequest?.transferItems?.length}
-                    rows={10}
-                  >
-                    <Column field="item.name" header={"Item"} />
-                    <Column field="quantity" header={"Transferred Quantity"} />
-                    <Column field="receivedQuantity" header={"Received Quantity"} />
-
-                    {transferRequestEntity.status !== "CONFIRMED" ? <Column header={"Delete"} body={deleteColumnTemplate} headerStyle={{width: '1%',}}
-                             bodyStyle={{textAlign: '-moz-initial', overflow: 'visible'}}/> : null}
-                  </DataTable>
-                </Row>
-
-              </FormGroup>
-              <Button tag={Link} to="/inventory/transfer-request" replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
-              </Button>
-              &nbsp;
-              {transferRequestEntity.status !== "CONFIRMED" ?<Button color="primary" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save"/>
-                &nbsp;Save
-              </Button> : null}
+                {transferRequestEntity?.id &&  <AuditLogs entity={'TRANSFER_REQUEST'} entityId={transferRequestEntity?.id} />}
+              </Col>
             </form>
-          )}
-        </Col>
+          </Row>
+        )}
       </Row>
     </div>
   );

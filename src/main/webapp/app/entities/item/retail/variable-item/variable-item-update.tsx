@@ -8,8 +8,8 @@ import {useAppDispatch, useAppSelector} from 'app/config/store';
 import {Button as PrimeButton} from "primereact/button"
 
 import {createEntity, getEntity, reset, updateEntity} from './variable-item.reducer';
-import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
-import {IVariableItem} from "app/shared/model/ITEM/retail/variable-item.model";
+import SharedItemUpdate from "app/shared/components/item/shared-item-update";
+import {IVariableItem, IVariableItemVariant} from "app/shared/model/ITEM/retail/variable-item.model";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
@@ -29,11 +29,13 @@ import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {isEqual} from "lodash";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
-import ItemStockTab from "app/shared/layout/item/item-stock-tab";
+import ItemStockTab from "app/shared/components/item/item-stock-tab";
 import {IExchangeMeasure} from "app/shared/model/ITEM/retail/simple-item.model";
 import {getEntities as getMeasures} from "app/entities/item-measure/item-measure.reducer";
-import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
-import WholesalePrices from "app/shared/layout/item/wholsale-prices-modal";
+import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
+import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
+import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
+import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 
 
 const defaultItemPriceNumber = {
@@ -64,7 +66,8 @@ export const VariableItemUpdate = () => {
   const branchList = useAppSelector(state => state.branch.entities);
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
   const measureList = useAppSelector(state => state.itemMeasure.entities);
-
+  const discountList = useAppSelector(state => state.discount.entities);
+  const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const location = useLocation();
 
 
@@ -129,7 +132,7 @@ export const VariableItemUpdate = () => {
     }));
   }, [])
 
-  const handleVariantFieldChange = (variantIndex, fieldName, value) => {
+  const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
     setVariableItem((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -232,7 +235,7 @@ export const VariableItemUpdate = () => {
     });
   };
 
-  const handleBranchPriceChange = (variantIndex, branchId, price) => {
+  const handleBranchPriceChange = (variantIndex, branchId, priceType, price ) => {
     setVariableItem((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -240,9 +243,9 @@ export const VariableItemUpdate = () => {
         branchVariantDetails: {
           ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
           [branchId]: {
-            branch: branchList.find((branch) => branch.id === branchId),
-            price: price,
-            salePrice: prev.variants[variantIndex]?.branchVariantDetails?.[branchId]?.salePrice || 0,
+            ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
+            branch: {id: branchId},
+            [priceType]: price,
           },
         },
       };
@@ -395,7 +398,17 @@ export const VariableItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
+    dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
+    dispatch(getMixAndMatchRules({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
   },[id, isNew]);
 
@@ -704,6 +717,39 @@ export const VariableItemUpdate = () => {
                                   </div>
                                 </Col>
                               </Row>
+
+                              <Row>
+                                <Col md="7">
+                                  <div className={"d-flex flex-column gap-2 mt-2"}>
+                                    <label className={"text-xl font-bold"}>
+                                      <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
+                                    </label>
+                                    <Select
+                                      value={variant.discounts}
+                                      options={discountList}
+                                      isMulti
+                                      getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
+                                      getOptionValue={option => option.id}
+                                      onChange={(discounts) => handleVariantFieldChange(variantIndex, 'discounts', discounts)}
+                                    />
+                                  </div>
+
+                                  <div className={"d-flex flex-column gap-2"}>
+                                    <label className={"text-xl font-bold"}>
+                                      <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                    </label>
+                                    <Select
+                                      value={variant?.mixAndMatchRule}
+                                      options={mixAndMatchRuleList}
+                                      getOptionLabel={option => option.name}
+                                      getOptionValue={option => option.id}
+                                      onChange={(mixAndMatchRule) => handleVariantFieldChange(variantIndex,'mixAndMatchRule', mixAndMatchRule)}
+                                    />
+                                  </div>
+
+                                </Col>
+                              </Row>
+
                               <Col md="12" className={"mt-3"}>
                                 <h4>
                                   <Translate contentKey={'items.update.branchPrices'}>
@@ -715,7 +761,10 @@ export const VariableItemUpdate = () => {
                                   <tr>
                                     <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
                                     <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
+                                    <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
+                                    {branchList.some(branch => branch.wholesale) ?
                                     <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
+                                    : null}
                                   </tr>
                                   </thead>
                                   <tbody>
@@ -724,13 +773,20 @@ export const VariableItemUpdate = () => {
                                       <td>{branch.name}</td>
                                       <td>
                                         <InputNumber
-                                          type="number"
                                           name={`branchPrice_${branch.id}`}
                                           placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                           onWheel={(e: any) => e.target.blur()}
-                                          size={60}
                                           value={variant?.branchVariantDetails?.[branch.id]?.price}
-                                          onChange={e => handleBranchPriceChange(variantIndex,branch.id, e.value)}
+                                          onChange={e => handleBranchPriceChange(variantIndex,branch.id,"price", e.value)}
+                                        />
+                                      </td>
+                                      <td>
+                                        <InputNumber
+                                          name={`branchSalePrice_${branch.id}`}
+                                          placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
+                                          onWheel={(e: any) => e.target.blur()}
+                                          value={variant?.branchVariantDetails?.[branch.id]?.salePrice}
+                                          onChange={e => handleBranchPriceChange(variantIndex,branch.id, "salePrice", e.value)}
                                         />
                                       </td>
                                       {branch.wholesale &&

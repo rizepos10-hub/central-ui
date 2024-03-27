@@ -1,7 +1,6 @@
 import 'react-toastify/dist/ReactToastify.css';
 import './app.scss';
 import 'app/config/dayjs.ts';
-
 import React, { useEffect } from 'react';
 import { Card } from 'reactstrap';
 import { BrowserRouter } from 'react-router-dom';
@@ -17,7 +16,7 @@ import { hasAnyAuthority } from 'app/shared/auth/private-route';
 import ErrorBoundary from 'app/shared/error/error-boundary';
 import { AUTHORITIES } from 'app/config/constants';
 import AppRoutes from 'app/routes';
-import Sidebar, { Layout } from 'app/shared/sidebar/Layout';
+import Sidebar, { Layout } from 'app/shared/layout/Layout';
 import { LayoutProvider } from 'app/shared/sidebar/context/layoutcontext';
 import { getState, setTenant } from 'app/shared/tenant/TenantContext';
 import {PrimeReactProvider} from "primereact/api";

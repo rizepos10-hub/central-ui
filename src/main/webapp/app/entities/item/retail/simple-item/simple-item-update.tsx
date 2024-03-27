@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './simple-item.reducer';
-import SharedItemUpdate from "app/shared/layout/item/shared-item-update";
+import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import {IExchangeMeasure, ISimpleItem, ISimpleItemVariant} from "app/shared/model/ITEM/retail/simple-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
@@ -21,6 +21,7 @@ import {getEntities as getMeasures} from "app/entities/item-measure/item-measure
 import {CascadeSelect} from "primereact/cascadeselect";
 import Select from "react-select";
 import {getEntities as getAttributes} from "app/entities/item/retail/attributes/retail-attribute.reducer";
+import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 import {ITaxonomy} from "app/shared/model/taxonomy.model";
 import {ITerm} from "app/shared/model/term.model";
 import {getEntities as getAttributeValues, reset as resetAttributeValues} from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
@@ -30,10 +31,11 @@ import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
 import Visibility from 'app/shared/Visibility/Visibility';
 import {TabPanel, TabView} from "primereact/tabview";
-import ItemStockTab from "app/shared/layout/item/item-stock-tab";
+import ItemStockTab from "app/shared/components/item/item-stock-tab";
 import {IItemMeasure} from "app/shared/model/item-measure.model";
-import ItemLoyaltyTab from "app/shared/layout/item/item-loyalty-tab";
-import WholesalePrices from "app/shared/layout/item/wholsale-prices-modal";
+import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
+import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
+import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 
 
 const defaultItemPriceNumber = {
@@ -63,11 +65,11 @@ export const SimpleItemUpdate = () => {
   const updating = useAppSelector(state => state.simpleRetailItem.updating);
   const updateSuccess = useAppSelector(state => state.simpleRetailItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
+  const discountList = useAppSelector(state => state.discount.entities);
+  const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const measureList = useAppSelector(state => state.itemMeasure.entities);
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
   const location = useLocation();
-
-
   const attributeValuesList = useAppSelector(state => state.retailAttributeValue.entities);
   const loadingAttributesValues = useAppSelector(state => state.retailAttributeValue.loading);
 
@@ -108,6 +110,8 @@ export const SimpleItemUpdate = () => {
     return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
   };
 
+
+
   const isAttributeAddButtonDisabled =
     filteredAvailableAttributes().length === 0 ||
     Object.keys(itemAttribute.attributeTax).length === 0 &&
@@ -130,8 +134,7 @@ export const SimpleItemUpdate = () => {
     }));
   }, [])
 
-  const handleSimpleItemChange = (fieldName, value) => {
-    console.log(fieldName, 'field', value, "value");
+  const handleSimpleItemVariantChange = (fieldName: keyof ISimpleItemVariant, value) => {
     setSimpleItem((prev) => {
       const updatedVariants = [
         {
@@ -154,7 +157,7 @@ export const SimpleItemUpdate = () => {
     }));
   }
 
-  const handleBranchPriceChange = (branchId, price) => {
+  const handleBranchPriceChange = (branchId, priceType, price) => {
     setSimpleItem(prev => ({
       ...prev,
       variants: [
@@ -163,9 +166,9 @@ export const SimpleItemUpdate = () => {
           branchVariantDetails: {
             ...prev.variants[0]?.branchVariantDetails,
             [branchId]: {
-              branch: branchList.find(branch => branch.id === branchId),
-              price: price,
-              salePrice: prev.variants[0]?.branchVariantDetails?.[branchId]?.salePrice || 0,
+              ...(prev.variants?.[0]?.branchVariantDetails?.[branchId]),
+              branch: {id: branchId},
+              [priceType]: price,
             },
           },
         },
@@ -248,14 +251,18 @@ export const SimpleItemUpdate = () => {
   };
 
 
-  const handleAddAttribute = () => {
-    setSimpleItem((prev) => ({
-      ...prev,
-      attributes: [
-        ...(prev.attributes || []),
-        itemAttribute,
-      ],
-    }));
+  const handleAddAttribute = () :void => {
+    const attributeExists = simpleItem?.attributes?.some(attr => attr === itemAttribute);
+
+    if (!attributeExists) {
+      setSimpleItem((prev) => ({
+        ...prev,
+        attributes: [
+          ...(prev.attributes || []),
+          itemAttribute,
+        ],
+      }));
+    }
   };
 
   const handleItemAttributeSelect = (selectedOption) => {
@@ -326,7 +333,19 @@ export const SimpleItemUpdate = () => {
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    }));
+
+    dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getMixAndMatchRules({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
 
 
 
@@ -402,7 +421,7 @@ export const SimpleItemUpdate = () => {
 
                     <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
-                      <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
+                      <Col md="10" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
 
                         <Col md="7">
                           <div className={"d-flex flex-column gap-2"}>
@@ -415,7 +434,7 @@ export const SimpleItemUpdate = () => {
                               required={true}
                               placeholder={translate('items.update.placeholders.itemSku')}
                               value={simpleItem?.variants?.[0]?.sku}
-                              onChange={(e) => handleSimpleItemChange('sku', e.target.value)}
+                              onChange={(e) => handleSimpleItemVariantChange('sku', e.target.value)}
                             />
                           </div>
                         </Col>
@@ -435,7 +454,7 @@ export const SimpleItemUpdate = () => {
                                 inputClassName={"w-1"}
                                 placeholder={translate('items.update.placeholders.itemPrice')}
                                 value={simpleItem?.variants?.[0]?.price}
-                                onChange={(e) => handleSimpleItemChange('price', e.value)}
+                                onChange={(e) => handleSimpleItemVariantChange('price', e.value)}
                               />
                             </div>
                           </Col>
@@ -451,13 +470,13 @@ export const SimpleItemUpdate = () => {
                                 maxFractionDigits={2}
                                 placeholder={translate('items.update.placeholders.itemSalePrice')}
                                 value={simpleItem?.variants?.[0]?.salePrice}
-                                onChange={(e) => handleSimpleItemChange('salePrice', e.value)}
+                                onChange={(e) => handleSimpleItemVariantChange('salePrice', e.value)}
                               />
                             </div>
                           </Col>
 
 
-                          <Col md="7" className={"mt-3"}>
+                          <Col md="12" className={"mt-3"}>
                             {pricesModal?.show &&
                               <WholesalePrices
                                 toggle={handleShowPricesModal}
@@ -472,7 +491,10 @@ export const SimpleItemUpdate = () => {
                               <tr>
                                 <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
                                 <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
-                                <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
+                                <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
+                                {branchList.some(branch => branch.wholesale) ?
+                                  <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
+                                : null}
                               </tr>
                               </thead>
                               <tbody>
@@ -486,9 +508,18 @@ export const SimpleItemUpdate = () => {
                                         name={`branchPrice_${branch.id}`}
                                         placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                         onWheel={(e: any) => e.target.blur()}
-                                        size={60}
                                         value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
-                                        onChange={e => handleBranchPriceChange(branch.id, e.value)}
+                                        onChange={e => handleBranchPriceChange(branch.id, "price", e.value)}
+                                      />
+                                    </td>
+
+                                    <td>
+                                      <InputNumber
+                                        name={`branchSalePrice_${branch.id}`}
+                                        placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
+                                        onWheel={(e: any) => e.target.blur()}
+                                        value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.salePrice}
+                                        onChange={e => handleBranchPriceChange(branch.id,"salePrice", e.value)}
                                       />
                                     </td>
                                     {branch.wholesale &&
@@ -504,14 +535,46 @@ export const SimpleItemUpdate = () => {
                             </Table>
                           </Col>
 
+                      <Row>
+                        <Col md="7">
+                          <div className={"d-flex flex-column gap-2"}>
+                            <label className={"text-xl font-bold"}>
+                              <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
+                            </label>
+                            <Select
+                              value={simpleItem?.variants?.[0]?.discounts}
+                              options={discountList}
+                              isMulti
+                              getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
+                              getOptionValue={option => option.id}
+                              onChange={(discounts) => handleSimpleItemVariantChange('discounts', discounts)}
+                            />
+                          </div>
+
+                          <div className={"d-flex flex-column gap-2"}>
+                            <label className={"text-xl font-bold"}>
+                              <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                            </label>
+                            <Select
+                              value={simpleItem?.variants?.[0]?.mixAndMatchRule}
+                              options={mixAndMatchRuleList}
+                              getOptionLabel={option => option.name}
+                              getOptionValue={option => option.id}
+                              onChange={(mixAndMatchRule) => handleSimpleItemVariantChange('mixAndMatchRule', mixAndMatchRule)}
+                            />
+                          </div>
+                        </Col>
+                      </Row>
+
                           <Row>
                             <Col md="7">
                               <div className={"d-flex flex-column gap-2"}>
                                 <label className={"text-xl font-bold"}>
-                                  <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
+                                  <Translate contentKey={'items.update.attributes'}>Attributes</Translate>
                                 </label>
                                 <Select
-                                  value={itemAttribute?.attributeTax}
+                                  value={itemAttribute?.attributeTax || null}
+                                  isClearable
                                   options={filteredAvailableAttributes()}
                                   getOptionValue={option => option.id}
                                   getOptionLabel={option => option.key}

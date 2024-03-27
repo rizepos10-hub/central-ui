@@ -216,7 +216,6 @@ const SalesSummaryReport = () => {
               />
               <Dropdown
                 style={{minWidth: '7rem'}}
-
                 value={selectedBranch}
                 options={filteredBranchOptions}
                 onChange={(e) => setSelectedBranch(e.value)}
@@ -299,6 +298,7 @@ const SalesSummaryReport = () => {
         <SalesSection title={translate('analytics.report.dineIn')} data={salesData.totalSalesByOrderOption?.DineIn}/>
         <SalesSection title={translate('analytics.report.pickUp')} data={salesData.totalSalesByOrderOption?.PickUp}/>
         <SalesSection title={translate('analytics.report.delivery')} data={salesData.totalSalesByOrderOption?.Delivery}/>
+        <SalesSection title={translate('analytics.report.walkIn')} data={salesData.totalSalesByOrderOption?.WalkIn}/>
 
      </div>
   );

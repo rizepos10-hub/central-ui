@@ -1,6 +1,6 @@
 export enum OrderMethod {
   DineIn = "DineIn",
   PickUp = "PickUP",
-  Delivery= "Delivery"
-
+  Delivery= "Delivery",
+  WalkIn = "WalkIn"
 }

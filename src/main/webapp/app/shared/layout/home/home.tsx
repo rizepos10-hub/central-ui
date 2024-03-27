@@ -224,6 +224,13 @@ export default function Home() {
 
       } catch (error) {
         console.error('Error fetching data:', error);
+      }finally {
+        setLoading({
+          chartsData: false,
+          topFieldsData: false,
+          topItemsData: false,
+          recentSalesData: false,
+        });
       }
     };
 
