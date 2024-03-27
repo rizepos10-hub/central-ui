@@ -107,11 +107,11 @@ export const MixAndMatchRuleUpdate = () => {
   };
 
   const handleAdd = () => {
-    if (mixAndMatchRule.configPerQuantity[newQuantityConfig.quantity]) {
+    if (mixAndMatchRule.configPerQuantity?.[newQuantityConfig.quantity]) {
       alert('Quantity already exists.');
     } else {
       const updatedConfigPerQuantity = {
-        ...mixAndMatchRule.configPerQuantity,
+        ...(mixAndMatchRule.configPerQuantity || {}),
         [newQuantityConfig.quantity]: { ...newQuantityConfig },
       };
       setMixAndMatchRule(prevState => ({
@@ -172,7 +172,7 @@ export const MixAndMatchRuleUpdate = () => {
                     />
                   </div>
 
-                  <div className={'d-flex flex-row'}>
+                  <div className={'d-flex flex-row gap-2'}>
                     <Label for="requireToBeSameSKU">Require to be same SKU</Label>
                     <Checkbox
                       name="requireToBeSameSKU"  id="requireToBeSameSKU" checked={mixAndMatchRule.requireToBeSameSKU}
