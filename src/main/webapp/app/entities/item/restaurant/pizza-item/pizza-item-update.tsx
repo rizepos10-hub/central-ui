@@ -9,7 +9,7 @@ import {Button as PrimeButton} from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
-import {IBasePizzaDetail, IPizzaItem} from "app/shared/model/ITEM/restaurant/pizza-item.model";
+import {IBasePizzaDetail, IPizzaItem, IPizzaItemVariant} from "app/shared/model/ITEM/restaurant/pizza-item.model";
 import {Steps} from "primereact/steps";
 import {MenuItem} from "primereact/menuitem";
 import Select from "react-select";
@@ -31,6 +31,7 @@ import {TabPanel, TabView} from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
+import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 
 const items: MenuItem[] = [
   {
@@ -66,6 +67,7 @@ export const PizzaItemUpdate = () => {
   const crustTypeList = useAppSelector(state => state.pizzaCrustType.entities);
   const crustThicknessList = useAppSelector(state => state.pizzaCrustThickness.entities);
   const discountList = useAppSelector(state => state.discount.entities);
+  const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const predefinedPizzaOptions = useAppSelector(state => state.predefinedPizza.entities);
   const pizzaPricingClasses = useAppSelector(state => state.pizzaPricingClass.entities);
   console.log(pizzaPricingClasses, 'pizzaPricingClasses')
@@ -109,19 +111,18 @@ export const PizzaItemUpdate = () => {
   }, []);
 
 
-  const handleDiscount = (discounts) => {
+
+  const handlePizzaVariantChange = (fieldName: keyof IPizzaItemVariant, value) => {
     setPizzaItem((prev) => ({
       ...prev,
       variants: [
         {
           ...(prev.variants && prev?.variants?.[0] ? prev.variants[0] : {}),
-          discounts,
+          [fieldName]:  value,
         }
       ]
     }))
   };
-
-
 
 
   const handleSinglePizzaValuesChange = (fieldName, value) => {
@@ -393,6 +394,12 @@ export const PizzaItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
+    dispatch(getMixAndMatchRules({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
     return () => {
       dispatch(resetPredefined());
     }
@@ -559,7 +566,20 @@ export const PizzaItemUpdate = () => {
                                     isMulti
                                     getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
                                     getOptionValue={option => option.id}
-                                    onChange={(discounts) => handleDiscount(discounts)}
+                                    onChange={(discounts) => handlePizzaVariantChange( "discounts" ,discounts)}
+                                  />
+                                </div>
+
+                                <div className={"d-flex flex-column gap-2"}>
+                                  <label className={"text-xl font-bold"}>
+                                    <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                  </label>
+                                  <Select
+                                    value={pizzaItem?.variants?.[0]?.mixAndMatchRule}
+                                    options={mixAndMatchRuleList}
+                                    getOptionLabel={option => option.name}
+                                    getOptionValue={option => option.id}
+                                    onChange={(mixAndMatchRule) => handlePizzaVariantChange('mixAndMatchRule', mixAndMatchRule)}
                                   />
                                 </div>
                               </Col>

@@ -23,6 +23,7 @@ import {TabPanel, TabView} from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
+import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 
 
 export const ComboItemUpdate = () => {
@@ -38,6 +39,7 @@ export const ComboItemUpdate = () => {
   const updateSuccess = useAppSelector(state => state.comboItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
   const discountList = useAppSelector(state => state.discount.entities);
+  const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -264,6 +266,12 @@ export const ComboItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
+    dispatch(getMixAndMatchRules({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
 
   },[id, isNew]);
 
@@ -360,6 +368,19 @@ export const ComboItemUpdate = () => {
                                 getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
                                 getOptionValue={option => option.id}
                                 onChange={(discounts) => handleComboVariantChange('discounts', discounts)}
+                              />
+                            </div>
+
+                            <div className={"d-flex flex-column gap-2"}>
+                              <label className={"text-xl font-bold"}>
+                                <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                              </label>
+                              <Select
+                                value={comboItem?.variants?.[0]?.mixAndMatchRule}
+                                options={mixAndMatchRuleList}
+                                getOptionLabel={option => option.name}
+                                getOptionValue={option => option.id}
+                                onChange={(mixAndMatchRule) => handleComboVariantChange('mixAndMatchRule', mixAndMatchRule)}
                               />
                             </div>
                           </Col>

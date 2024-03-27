@@ -67,6 +67,7 @@ import inventoryItem from "app/entities/inventory/stock-config/inventory-items.r
 import stockQuantity from "app/entities/inventory/stock-config/stock-quantity.reducer"
 import transferRequest from "app/entities/inventory/transfer-request/transfer-request.reducer"
 import supplierReturn from "app/entities/inventory/supplier-return/supplier-return.reducer"
+import mixAndMatchRule from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer"
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 import onlineOrderingReducers from "app/entities/online-ordering/reducer";
 
@@ -135,6 +136,7 @@ const entitiesReducers = {
   supplierReturn,
   inventoryItem,
   itemMeasure,
+  mixAndMatchRule,
   ...onlineOrderingReducers
 
 
