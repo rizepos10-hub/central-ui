@@ -157,7 +157,7 @@ export const MixAndMatchRuleUpdate = () => {
               <form onSubmit={saveEntity}>
                 <FormGroup className={"d-flex flex-column gap-3"}>
                   <div className={'d-flex flex-column'}>
-                    <Label for="name">Name</Label>
+                    <Label className={'font-bold'} for="name">Name</Label>
                     <InputText
                       type="text" name="name" required={true} id="name" value={mixAndMatchRule.name}
                       onChange={(e) => handleChange(e, e.target.value)}
@@ -165,7 +165,7 @@ export const MixAndMatchRuleUpdate = () => {
                   </div>
 
                   <div className={'d-flex flex-row gap-2'}>
-                    <Label for="exactValue">Exact Value</Label>
+                    <Label className={'font-bold'} for="exactValue">Exact Quantity</Label>
                     <Checkbox
                       name="exactValue"  id="exactValue" checked={mixAndMatchRule.exactValue}
                       onChange={(e) => handleChange(e, e.checked)}
@@ -173,52 +173,16 @@ export const MixAndMatchRuleUpdate = () => {
                   </div>
 
                   <div className={'d-flex flex-row gap-2'}>
-                    <Label for="requireToBeSameSKU">Require to be same SKU</Label>
+                    <Label className={'font-bold'} for="requireToBeSameSKU">Require to be same Item ID</Label>
                     <Checkbox
                       name="requireToBeSameSKU"  id="requireToBeSameSKU" checked={mixAndMatchRule.requireToBeSameSKU}
                       onChange={(e) => handleChange(e, e.checked)}
                     />
                   </div>
 
-                  <div className={'d-flex flex-row gap-3'}>
-                    <div className={'d-flex flex-column gap-2'}>
-                      <Label><strong>Tax Rule</strong></Label>
-                      <div className="p-inputgroup w-full md:w-50rem">
-                        <span className="p-inputgroup-addon">
-                        Above This Quantity
-                        </span>
-                        <InputNumber
-                          value={rule.quantity}
-                          id="ruleQuantity"
-                          size={3}
-                          onChange={(e) => setRule(prevState => ({ ...prevState, quantity: e.value }))}
-                        />
-                        <span className="p-inputgroup-addon">Apply</span>
-                        <Select
-                          id="ruleGroup"
-                          styles={{
-                            control: (baseStyles, state) => ({
-                              ...baseStyles,
-                              paddingTop: '0.5rem',
-                              paddingBottom: '0.5rem',
-                              minWidth: '15rem'
-                            }),
-                          }}
-                          isDisabled={!rule?.quantity}
-                          value={rule?.accountingGroup}
-                          options={accountingGroupList}
-                          getOptionLabel={option => option.name}
-                          getOptionValue={option => option.id}
-                          onChange={(accountingGroup) => setRule(prevState => ({ ...prevState, accountingGroup }))}
-                        />
-                        <span className="p-inputgroup-addon">Accounting group</span>
-                      </div>
-                    </div>
-                  </div>
-
-
 
                   <Table>
+                    <Label className={"font-bold"}>Conditions To Apply</Label>
                     <tbody>
                       <tr>
                         <td className={'font-bold'}>Quantity</td>
@@ -282,6 +246,42 @@ export const MixAndMatchRuleUpdate = () => {
                     <Column field={"type"} header={"Type"} />
                     <Column field={"value"} header={"Value"} />
                   </DataTable>
+
+                  <div className={'d-flex flex-row gap-3'}>
+                    <div className={'d-flex flex-column gap-2'}>
+                      <Label><strong>Tax Rule</strong></Label>
+                      <div className="p-inputgroup w-full md:w-50rem">
+                        <span className="p-inputgroup-addon">
+                        Above This Quantity
+                        </span>
+                        <InputNumber
+                          value={rule.quantity}
+                          id="ruleQuantity"
+                          size={3}
+                          onChange={(e) => setRule(prevState => ({ ...prevState, quantity: e.value }))}
+                        />
+                        <span className="p-inputgroup-addon">Apply</span>
+                        <Select
+                          id="ruleGroup"
+                          styles={{
+                            control: (baseStyles, state) => ({
+                              ...baseStyles,
+                              paddingTop: '0.5rem',
+                              paddingBottom: '0.5rem',
+                              minWidth: '15rem'
+                            }),
+                          }}
+                          isDisabled={!rule?.quantity}
+                          value={rule?.accountingGroup}
+                          options={accountingGroupList}
+                          getOptionLabel={option => option.name}
+                          getOptionValue={option => option.id}
+                          onChange={(accountingGroup) => setRule(prevState => ({ ...prevState, accountingGroup }))}
+                        />
+                        <span className="p-inputgroup-addon">Accounting group</span>
+                      </div>
+                    </div>
+                  </div>
 
                 </FormGroup>
                 <Button tag={Link} to="/mix-and-match-rule" replace color="info">
