@@ -2,11 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 
-import { Calendar } from 'primereact/calendar';
-import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IOrder } from 'app/shared/model/ORDER/order.model';
 import {searchEntities, getEntities, filterOrders, getOrderSources, getOrderStatuses} from './order.reducer';
 
 

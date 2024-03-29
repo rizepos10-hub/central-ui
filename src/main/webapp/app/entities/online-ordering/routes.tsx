@@ -4,6 +4,7 @@ import { Route } from 'react-router-dom';
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import UiSettingsUpdate from "app/entities/online-ordering/settings/settings";
 import User from "app/entities/online-ordering/user";
+import OnlineOrder from "app/entities/online-ordering/online-order/online-order";
 
 
 export default () => {
@@ -13,6 +14,7 @@ export default () => {
         <Route>
           <Route path={"settings"} element={<UiSettingsUpdate />} />
           <Route path={"user"} element={<User />} />
+          <Route path={"order"} element={<OnlineOrder />} />
 
         </Route>
       </ErrorBoundaryRoutes>

@@ -275,6 +275,12 @@ const AppMenu = () => {
                                   to: '/online-ordering/user'
                                 },
                                 {
+                                  label: 'Orders',
+                                  role: ['ROLE_ADMIN'],
+                                  icon: ' pi pi-users',
+                                  to: '/online-ordering/order'
+                                },
+                                {
                                   label: 'UI Settings',
                                   role: ['ROLE_ADMIN'],
                                   icon: ' pi pi-users',
