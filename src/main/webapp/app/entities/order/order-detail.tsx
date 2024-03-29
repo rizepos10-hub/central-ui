@@ -142,7 +142,7 @@ export const OrderDetail = () => {
 
         </Card>
 
-        {orderEntity?.id &&  <AuditLogs entity={'ORDER'} entityId={orderEntity?.id} />}
+        {orderEntity?.id &&  <AuditLogs entityId={orderEntity?.id} />}
       </Col>
       </div>
     </>

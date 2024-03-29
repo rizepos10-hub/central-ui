@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, Spinner, FormGroup, Table, Card, CardBody} from 'reactstrap';
+import {Button, Row, Col, Spinner, FormGroup, Table, Card, CardBody, CardHeader} from 'reactstrap';
 import {getSortState, translate, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -32,6 +32,7 @@ import Visibility from "app/shared/Visibility/Visibility";
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
+import AuditLogs from "app/shared/components/logs/audit-logs";
 
 const items: MenuItem[] = [
   {
@@ -502,10 +503,10 @@ export const PizzaItemUpdate = () => {
       <Row>
         {activeIndex === 1 || !isNew ?
           <form onSubmit={saveEntity}>
-            <Card>
-              <CardBody>
-                <Row>
-                  <Col md={10}>
+            <div className={"d-flex flex-row"}>
+                <Col md={9}>
+                  <Card>
+                    <CardBody>
                     <TabView>
                       <TabPanel header={translate('items.update.tabs.details.label')}>
                         <FormGroup  className={`${isNew ? "d-flex justify-content-center bg-white mt-3" : ""}`}>
@@ -853,33 +854,34 @@ export const PizzaItemUpdate = () => {
                         <ItemLoyaltyTab excludedFromLoyaltyPoints={pizzaItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
                       </TabPanel>
                     </TabView>
-
+                    </CardBody>
+                  </Card>
                   </Col>
-                  <Col md={2}>
-                    <div className={"d-flex"}>
-                      <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
-                               color="info">
-                        <FontAwesomeIcon icon="arrow-left"/>
-                        &nbsp;
-                        <span className="d-none d-md-inline">
+                    <Col md={3}>
+                      <Card>
+                        <CardHeader>Actions</CardHeader>
+                        <div className={'d-flex gap-3 mt-2'}>
+                          <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
+                                   color="info">
+                            <FontAwesomeIcon icon="arrow-left"/>
+                            &nbsp;
+                            <span className="d-none d-md-inline">
                                   <Translate contentKey="entity.action.back">Back</Translate>
                               </span>
-                      </Button>
-                      &nbsp;
-                      <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                              disabled={updating}>
-                        <FontAwesomeIcon icon="save"/>
-                        &nbsp;
-                        <Translate contentKey="entity.action.save">Save</Translate>
-                      </Button>
-                    </div>
-                  </Col>
-                </Row>
-              </CardBody>
-            </Card>
-
-
-          </form> : null}
+                          </Button>
+                          &nbsp;
+                          <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                                  disabled={updating}>
+                            <FontAwesomeIcon icon="save"/>
+                            &nbsp;
+                            <Translate contentKey="entity.action.save">Save</Translate>
+                          </Button>
+                        </div>
+                      </Card>
+                      {pizzaItemEntity?.id &&  <AuditLogs entityId={pizzaItemEntity?.id} />}
+                    </Col>
+                  </div>
+              </form> : null}
 
       </Row>
     </div>

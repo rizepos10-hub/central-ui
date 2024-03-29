@@ -16,7 +16,7 @@ import entitiesReducers from 'app/entities/reducers';
 import analyticsReducers from "app/modules/analytics/reducers";
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 import tenant from '../../shared/tenant/TenantContext';
-
+import entityLogs from "../components/logs/audit-logs.reducer"
 const rootReducer: ReducersMapObject = {
   authentication,
   locale,
@@ -29,8 +29,8 @@ const rootReducer: ReducersMapObject = {
   password,
   settings,
   tenant,
+  entityLogs,
   loadingBar,
-
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
   ...entitiesReducers,
   ...analyticsReducers

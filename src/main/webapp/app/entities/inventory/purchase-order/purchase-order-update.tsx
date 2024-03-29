@@ -719,7 +719,7 @@ export const PurchaseOrderUpdate = () => {
                 </div>
               </Card>
 
-              {purchaseOrderEntity?.id && <AuditLogs entity={'PURCHASE_ORDER'} entityId={purchaseOrderEntity?.id} />}
+              {purchaseOrderEntity?.id && <AuditLogs entityId={purchaseOrderEntity?.id} />}
             </Col>
           </form>
         </Row>
