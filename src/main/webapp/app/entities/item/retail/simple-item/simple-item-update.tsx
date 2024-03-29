@@ -450,6 +450,7 @@ export const SimpleItemUpdate = () => {
                                 name="price"
                                 id="price"
                                 required={true}
+                                min={0}
                                 maxFractionDigits={2}
                                 inputClassName={"w-1"}
                                 placeholder={translate('items.update.placeholders.itemPrice')}
@@ -467,6 +468,7 @@ export const SimpleItemUpdate = () => {
                               <InputNumber
                                 name="sale-price"
                                 id="sale-price"
+                                min={0}
                                 maxFractionDigits={2}
                                 placeholder={translate('items.update.placeholders.itemSalePrice')}
                                 value={simpleItem?.variants?.[0]?.salePrice}
@@ -508,6 +510,8 @@ export const SimpleItemUpdate = () => {
                                         name={`branchPrice_${branch.id}`}
                                         placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                         onWheel={(e: any) => e.target.blur()}
+                                        maxFractionDigits={2}
+                                        min={0}
                                         value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
                                         onChange={e => handleBranchPriceChange(branch.id, "price", e.value)}
                                       />
@@ -518,6 +522,8 @@ export const SimpleItemUpdate = () => {
                                         name={`branchSalePrice_${branch.id}`}
                                         placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
                                         onWheel={(e: any) => e.target.blur()}
+                                        maxFractionDigits={2}
+                                        min={0}
                                         value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.salePrice}
                                         onChange={e => handleBranchPriceChange(branch.id,"salePrice", e.value)}
                                       />

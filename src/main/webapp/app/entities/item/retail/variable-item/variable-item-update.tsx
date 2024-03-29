@@ -695,6 +695,7 @@ export const VariableItemUpdate = () => {
                                       required={true}
                                       placeholder="Variant Price"
                                       value={variant?.price}
+                                      min={0}
                                       maxFractionDigits={2}
                                       onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
                                     />
@@ -710,6 +711,7 @@ export const VariableItemUpdate = () => {
                                       name="sale-price"
                                       id="sale-price"
                                       placeholder="Variant Sale Price"
+                                      min={0}
                                       maxFractionDigits={2}
                                       value={variant?.salePrice}
                                       onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
@@ -776,6 +778,8 @@ export const VariableItemUpdate = () => {
                                           name={`branchPrice_${branch.id}`}
                                           placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                           onWheel={(e: any) => e.target.blur()}
+                                          maxFractionDigits={2}
+                                          min={0}
                                           value={variant?.branchVariantDetails?.[branch.id]?.price}
                                           onChange={e => handleBranchPriceChange(variantIndex,branch.id,"price", e.value)}
                                         />
@@ -785,6 +789,8 @@ export const VariableItemUpdate = () => {
                                           name={`branchSalePrice_${branch.id}`}
                                           placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
                                           onWheel={(e: any) => e.target.blur()}
+                                          min={0}
+                                          maxFractionDigits={2}
                                           value={variant?.branchVariantDetails?.[branch.id]?.salePrice}
                                           onChange={e => handleBranchPriceChange(variantIndex,branch.id, "salePrice", e.value)}
                                         />

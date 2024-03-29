@@ -59,6 +59,8 @@ const WholesalePrices = ({toggle, isOpen, branchWholesalePrices,savePrices} :mod
                 key={index}
                 placeholder={`Enter price ${index + 1}`}
                 name={`wholesale_price_${index + 1}`}
+                min={0}
+                maxFractionDigits={2}
                 value={wholeSalePrices[priceKey]}
                 onChange={(e) => handleWholesalePriceChange(priceKey, e.value)}
 
