@@ -395,6 +395,7 @@ export const ComboItemUpdate = () => {
                               name="price"
                               id="price"
                               required={true}
+                              min={0}
                               maxFractionDigits={2}
                               placeholder={translate('items.update.placeholders.itemPrice')}
                               value={comboItem?.variants?.[0]?.price}
@@ -423,6 +424,7 @@ export const ComboItemUpdate = () => {
                                     name={`branchPrice_${branch.id}`}
                                     placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                     onWheel={(e: any) => e.target.blur()}
+                                    min={0}
                                     maxFractionDigits={2}
                                     size={12}
                                     value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
@@ -435,6 +437,7 @@ export const ComboItemUpdate = () => {
                                     size={12}
                                     placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
                                     onWheel={(e: any) => e.target.blur()}
+                                    min={0}
                                     maxFractionDigits={2}
                                     value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.salePrice}
                                     onChange={e => handleBranchPriceChange(branch.id, "salePrice", e.value)}
@@ -484,6 +487,7 @@ export const ComboItemUpdate = () => {
                                         name={`quantity_${comboPackage?.variant?.id}`}
                                         placeholder={translate('items.update.combo.quantityPlaceholder', {variantName: comboPackage?.variant?.name})}
                                         value={comboPackage.amount}
+                                        min={0}
                                         onChange={(e) => handleComboAmountChange(index, e.value)}
                                       />
                                     </td>

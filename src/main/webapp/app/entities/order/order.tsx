@@ -23,8 +23,13 @@ interface LazyTableState {
   filters: any;
 }
 
+type OrderProps = {
+  customer?: string;
+  appSourceProp?: "ONLINE_ORDERING" | "BRANCH_POS" | "BUSINESS_ADMIN" | "CENTRAL_APP";
+}
 
-export const Order = ({customer = ''} : {customer?: string}) => {
+
+export const Order = ({customer = '', appSourceProp} :OrderProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const toast = useRef(null);
@@ -125,7 +130,7 @@ export const Order = ({customer = ''} : {customer?: string}) => {
         dates
       ) {
         const queryParams = {
-          orderSource: lazyState.filters.orderSource?.value || '',
+          orderSource: appSourceProp || lazyState.filters.orderSource?.value || '',
           orderStatus: lazyState.filters.status?.value || '',
           first: lazyState.first,
           sequenceId: lazyState.filters.id?.value || '',
@@ -271,24 +276,25 @@ export const Order = ({customer = ''} : {customer?: string}) => {
                 <p className="text-danger text-center ">&#10006;</p> }
               />
 
-              <Column field="orderSource" body={(rowData) => rowData.sourceApp.type} sortable filter
-                      filterElement={
-                        <Dropdown
-                          value={lazyState.filters.orderSource?.value || ''}
-                          options={orderSources?.map((source) => ({label: source, value: source}))}
-                          onChange={(e) =>
-                            setLazyState((prevState) => ({
-                              ...prevState,
-                              filters: {
-                                ...prevState.filters,
-                                orderSource: { value: e.value, matchMode: 'equals' },
-                              },
-                            }))
-                          }
-                          placeholder={translate('orders.view.table.filters.source')}
-                        />
+              <Column
+                header={translate('orders.view.table.fields.source')}
+                field="orderSource" body={(rowData) => rowData.sourceApp.type} sortable filter={!appSourceProp}
+                filterElement={ !appSourceProp ?
+                  <Dropdown
+                      value={lazyState.filters.orderSource?.value || ''}
+                      placeholder={translate('orders.view.table.filters.source')}
+                      options={orderSources?.map((source) => ({label: source, value: source}))}
+                      onChange={(e) =>
+                        setLazyState((prevState) => ({
+                          ...prevState,
+                          filters: {
+                            ...prevState.filters,
+                            orderSource: { value: e.value, matchMode: 'equals' },
+                          },
+                        }))
                       }
-                      header={translate('orders.view.table.fields.source')}  />
+                    /> : null}
+              />
 
 
               <Column field="tables" sortable  filter  header={translate('orders.view.table.fields.tables')}  filterElement={
