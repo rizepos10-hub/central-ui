@@ -10,7 +10,6 @@ const initialState: EntityState<IOrder> = {
   loading: false,
   errorMessage: null,
   entities: [],
-  logs: [],
   entity: defaultValue,
   updating: false,
   updateSuccess: false,

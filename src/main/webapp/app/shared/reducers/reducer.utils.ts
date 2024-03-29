@@ -77,8 +77,6 @@ export interface EntityState<T> {
   links?: any;
   updating: boolean;
   totalItems?: number;
-  logs?: IAuditLog[];
-  loadingLogs?: boolean;
   updateSuccess: boolean;
   availableRoles?: [];
   assignedRoles?: [];
@@ -86,6 +84,12 @@ export interface EntityState<T> {
   orderSources?: any;
 }
 
+export interface AuditLogState{
+  logs: IAuditLog[];
+  loading: boolean;
+  totalItems: number;
+  errorMessage: string | null;
+}
 /**
  * A wrapper on top of createSlice from Redux Toolkit to extract
  * common reducers and matchers used by entities
