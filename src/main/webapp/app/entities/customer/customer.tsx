@@ -154,7 +154,7 @@ export const Customer = () => {
     const editUrl = `/customer/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        {`${rowData.firstName} ${rowData.lastName}`}
+        {`${rowData.firstName ?? ''} ${rowData.lastName ?? ''}`}
       </Link>
     );
   };
