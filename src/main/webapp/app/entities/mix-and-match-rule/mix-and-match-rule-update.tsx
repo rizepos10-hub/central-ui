@@ -34,7 +34,6 @@ export const MixAndMatchRuleUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const [rule, setRule] = useState<Rule>({});
 
   const [newQuantityConfig, setNewQuantityConfig] = useState<INewQuantityRule>({
     type: "PRICE",
@@ -42,7 +41,7 @@ export const MixAndMatchRuleUpdate = () => {
 
   const [mixAndMatchRule, setMixAndMatchRule] = useState<IMixAndMatchRule>({
     name: '',
-    configPerQuantity: {},
+
   });
 
   const mixAndMatchRuleEntity :IMixAndMatchRule = useAppSelector(state => state.mixAndMatchRule.entity);
@@ -58,18 +57,16 @@ export const MixAndMatchRuleUpdate = () => {
     navigate('/mix-and-match-rule' + location.search);
   };
 
-  const flattenedData = useMemo(() => {
-   return Object.entries(mixAndMatchRule.configPerQuantity || {}).map(([quantity, config]) => ({
-      quantity,
-      type: config.type,
-      value:
-        config.type === 'DISCOUNT' && config.discount.type === "PERCENTAGE" ? `${config.discount.value}%`
-          :
-          config.type === 'DISCOUNT' ? `${config.discount.value} ${config.discount.type}`
-            :
-            config.price,
-    }));
-  }, [mixAndMatchRule.configPerQuantity]);
+
+  const valueTemplate = (rowData) => {
+    if (rowData?.type === 'DISCOUNT' && rowData?.discount.type === "PERCENTAGE") {
+      return `${rowData?.discount.value}%`;
+    } else if (rowData?.type === 'DISCOUNT') {
+      return `${rowData?.discount.value} ${rowData?.discount.type}`;
+    } else {
+      return rowData?.price;
+    }
+  }
 
   useEffect(() => {
     if (isNew) {
@@ -92,28 +89,34 @@ export const MixAndMatchRuleUpdate = () => {
     }
     if (mixAndMatchRuleEntity) {
       setMixAndMatchRule(mixAndMatchRuleEntity);
-
-      const [quantity, accountingGroup] = Object.entries(mixAndMatchRuleEntity.rules || {})[0] || [];
-      setRule({
-      quantity: (quantity as unknown as number),
-      accountingGroup
-      });
     }
-  }, [updateSuccess, mixAndMatchRuleEntity?.name]);
+
+  }, [updateSuccess, mixAndMatchRuleEntity?.id]);
 
   const handleChange = (e, value) => {
     const { name } = e.target;
     setMixAndMatchRule(prevState => ({ ...prevState, [name]: value }));
   };
 
+  const handleRuleChange = (fieldName, value) => {
+    setMixAndMatchRule(prevState => ({
+      ...prevState,
+      rules: [
+        {
+          ...(prevState.rules?.[0] || {}),
+          [fieldName]: value
+        }
+      ]
+    }));
+  };
+
+
   const handleAdd = () => {
-    if (mixAndMatchRule.configPerQuantity?.[newQuantityConfig.quantity]) {
+    if (mixAndMatchRule.configPerQuantity?.some(cnfg => cnfg.quantity === newQuantityConfig.quantity)) {
       alert('Quantity already exists.');
     } else {
-      const updatedConfigPerQuantity = {
-        ...(mixAndMatchRule.configPerQuantity || {}),
-        [newQuantityConfig.quantity]: { ...newQuantityConfig },
-      };
+      const updatedConfigPerQuantity = [...(mixAndMatchRule?.configPerQuantity || []), newQuantityConfig];
+
       setMixAndMatchRule(prevState => ({
         ...prevState,
         configPerQuantity: updatedConfigPerQuantity,
@@ -127,9 +130,7 @@ export const MixAndMatchRuleUpdate = () => {
     e.preventDefault()
     const entity: IMixAndMatchRule = {
       ...mixAndMatchRule,
-      rules: {
-        [rule?.quantity] : rule.accountingGroup
-      }
+
     };
 
     if (isNew) {
@@ -239,12 +240,12 @@ export const MixAndMatchRuleUpdate = () => {
                   </Table>
 
                   <DataTable
-                    value={flattenedData}
+                    value={mixAndMatchRule?.configPerQuantity}
                     header={"Mix And Match Rules"}
                   >
                     <Column field={"quantity"} header={"Quantity"} />
                     <Column field={"type"} header={"Type"} />
-                    <Column field={"value"} header={"Value"} />
+                    <Column field={"value"} header={"Value"} body={valueTemplate} />
                   </DataTable>
 
                   <div className={'d-flex flex-row gap-3'}>
@@ -255,10 +256,10 @@ export const MixAndMatchRuleUpdate = () => {
                         Above This Quantity
                         </span>
                         <InputNumber
-                          value={rule.quantity}
+                          value={mixAndMatchRule?.rules?.[0]?.aboveQuantity}
                           id="ruleQuantity"
                           size={3}
-                          onChange={(e) => setRule(prevState => ({ ...prevState, quantity: e.value }))}
+                          onChange={(e) => handleRuleChange('aboveQuantity', e.value)}
                         />
                         <span className="p-inputgroup-addon">Apply</span>
                         <Select
@@ -271,12 +272,12 @@ export const MixAndMatchRuleUpdate = () => {
                               minWidth: '15rem'
                             }),
                           }}
-                          isDisabled={!rule?.quantity}
-                          value={rule?.accountingGroup}
+                          isDisabled={!mixAndMatchRule?.rules?.[0]?.aboveQuantity}
+                          value={mixAndMatchRule?.rules?.[0]?.accountingGroup}
                           options={accountingGroupList}
                           getOptionLabel={option => option.name}
                           getOptionValue={option => option.id}
-                          onChange={(accountingGroup) => setRule(prevState => ({ ...prevState, accountingGroup }))}
+                          onChange={(selectedOption) => handleRuleChange('accountingGroup', selectedOption)}
                         />
                         <span className="p-inputgroup-addon">Accounting group</span>
                       </div>
