@@ -5,21 +5,21 @@ import {IDiscount} from "app/shared/model/discount.model";
 export interface IMixAndMatchRule {
   id?: string;
   name?: string;
-  configPerQuantity?: ConfigPerQuantity;
-  rules?: Rules;
+  configPerQuantity?: IQuantityConfigurationProperties[];
+  rules?: Rule[];
   exactValue?: boolean;
   requireToBeSameSKU?: boolean;
 }
 
-type ConfigPerQuantity = {
-  [key: number]: IQuantityConfigurationProperties
-}
 
-type Rules = {
-  [key: number]: IAccountingGroups;
+
+type Rule = {
+  aboveQuantity?: number;
+  accountingGroup?: IAccountingGroups;
 }
 
 export interface IQuantityConfigurationProperties {
+  quantity?: number
   type?: "DISCOUNT" | "PRICE";
   price?: number;
   discount?: IDiscount;

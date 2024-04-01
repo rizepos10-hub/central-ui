@@ -1,9 +1,7 @@
 import React, {useEffect, useState} from "react"
 import {useAppDispatch, useAppSelector} from "app/config/store";
-import {getEntityLogs as getPurchaseOrderLogs} from "app/entities/inventory/purchase-order/purchase-order.reducer";
-import {getEntityLogs as getTransferRequestLogs} from "app/entities/inventory/transfer-request/transfer-request.reducer";
-import {getEntityLogs as getOrderLogs} from "app/entities/order/order.reducer";
 import {IAuditLog} from "app/shared/model/audit-log.model";
+import {getEntityLogs} from "app/shared/components/logs/audit-logs.reducer";
 import {convertUtcToLocalDate} from "app/shared/util/date-utils";
 import {
   Modal,
@@ -15,49 +13,27 @@ import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 
 type AuditLogsProps = {
-  entity: "PURCHASE_ORDER" | "ORDER" | "TRANSFER_REQUEST";
+  // entity: "PURCHASE_ORDER" | "ORDER" | "TRANSFER_REQUEST";
   entityId: string;
 }
 
-const AuditLogs = ({entity, entityId} :AuditLogsProps) => {
+const AuditLogs = ({ entityId} :AuditLogsProps) => {
   const dispatch = useAppDispatch();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [selectedLogIndex, setSelectedLogIndex] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const logsMap: Record<typeof entity, { getLogs: () => void; logs: IAuditLog[], loading: boolean }> = {
-    PURCHASE_ORDER: {
-      logs: useAppSelector(state => state.purchaseOrder.logs),
-      loading:  useAppSelector(state => state.purchaseOrder.loadingLogs),
-      getLogs: () => dispatch(getPurchaseOrderLogs({
-        id: entityId,
-      })),
-    },
-    ORDER: {
-      logs: useAppSelector(state => state.order.logs),
-      loading:  useAppSelector(state => state.order.loadingLogs),
-      getLogs: () => dispatch(getOrderLogs({
-        id: entityId,
-      })),
-    },
-    TRANSFER_REQUEST: {
-      logs: useAppSelector(state => state.transferRequest.logs),
-      loading: useAppSelector(state => state.transferRequest.loadingLogs),
-      getLogs: () => dispatch(getTransferRequestLogs({
-        id: entityId,
-      })),
-
-    },
-  };
 
 
-  const logs = logsMap[entity]?.logs || [];
-  const loading = logsMap[entity]?.loading || false;
+  const logs = useAppSelector(state => state.entityLogs.logs);
+  const loading = useAppSelector(state => state.entityLogs.loading);
 
 
   useEffect(() => {
-    logsMap[entity]?.getLogs();
-  }, [entity]);
+    dispatch(getEntityLogs({
+      id: entityId,
+    }))
+  }, [entityId]);
 
 
   const handleMouseEnter = (index: number, isChangeLog :boolean) => {

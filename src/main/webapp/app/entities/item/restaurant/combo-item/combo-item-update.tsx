@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, Spinner, FormGroup, Table, Card, CardBody} from 'reactstrap';
+import {Button, Row, Col, Spinner, FormGroup, Table, Card, CardBody, CardHeader} from 'reactstrap';
 import {getSortState, translate, Translate, ValidatedField} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -24,6 +24,7 @@ import Visibility from "app/shared/Visibility/Visibility";
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
+import AuditLogs from "app/shared/components/logs/audit-logs";
 
 
 export const ComboItemUpdate = () => {
@@ -325,23 +326,22 @@ export const ComboItemUpdate = () => {
 
   return (
     <form onSubmit={saveEntity}>
-      <Card>
-        <CardBody>
-          <Row>
-            <Col md={10}>
+      <Row>
+        <Col md="8">
+          <h2>
+            {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.combo'}>Create New Combo Item</Translate> : <Translate contentKey={'items.update.tabs.details.titles.edit.combo'}>Edit Combo Item</Translate>}
+          </h2>
+        </Col>
+      </Row>
+        <div className={"d-flex flex-row"}>
+            <Col md={9}>
+              <Card>
               <TabView>
                 <TabPanel header={translate('items.update.tabs.details.label')}>
                   <Row>
-                    <Col md="8">
-                      <h2>
-                        {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.combo'}>Create New Combo Item</Translate> : <Translate contentKey={'items.update.tabs.details.titles.edit.combo'}>Edit Combo Item</Translate>}
-                      </h2>
-                    </Col>
-                  </Row>
-                  <Row>
                     <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
-                      <Col md="10" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                      <Col md="9" className={`d-flex flex-column p-3  bg-white mt-3 `} >
 
                         {isModalOpen ?<ComboItemSelection
                           isOpen={isModalOpen}
@@ -395,6 +395,7 @@ export const ComboItemUpdate = () => {
                               name="price"
                               id="price"
                               required={true}
+                              min={0}
                               maxFractionDigits={2}
                               placeholder={translate('items.update.placeholders.itemPrice')}
                               value={comboItem?.variants?.[0]?.price}
@@ -423,6 +424,7 @@ export const ComboItemUpdate = () => {
                                     name={`branchPrice_${branch.id}`}
                                     placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                     onWheel={(e: any) => e.target.blur()}
+                                    min={0}
                                     maxFractionDigits={2}
                                     size={12}
                                     value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
@@ -435,6 +437,7 @@ export const ComboItemUpdate = () => {
                                     size={12}
                                     placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
                                     onWheel={(e: any) => e.target.blur()}
+                                    min={0}
                                     maxFractionDigits={2}
                                     value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.salePrice}
                                     onChange={e => handleBranchPriceChange(branch.id, "salePrice", e.value)}
@@ -484,6 +487,7 @@ export const ComboItemUpdate = () => {
                                         name={`quantity_${comboPackage?.variant?.id}`}
                                         placeholder={translate('items.update.combo.quantityPlaceholder', {variantName: comboPackage?.variant?.name})}
                                         value={comboPackage.amount}
+                                        min={0}
                                         onChange={(e) => handleComboAmountChange(index, e.value)}
                                       />
                                     </td>
@@ -533,29 +537,32 @@ export const ComboItemUpdate = () => {
                   <ItemLoyaltyTab excludedFromLoyaltyPoints={comboItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
                 </TabPanel>
               </TabView>
+              </Card>
             </Col>
-            <Col md={2}>
-              <div className={"d-flex"}>
-                <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
-                         color="info">
-                  <FontAwesomeIcon icon="arrow-left"/>
-                  &nbsp;
-                  <span className="d-none d-md-inline">
+            <Col md={3}>
+              <Card>
+                <CardHeader>Actions</CardHeader>
+                <div className={'d-flex gap-3 mt-2'}>
+                  <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
+                           color="info">
+                    <FontAwesomeIcon icon="arrow-left"/>
+                    &nbsp;
+                    <span className="d-none d-md-inline">
                                 <Translate contentKey="entity.action.back">Back</Translate>
                             </span>
-                </Button>
-                &nbsp;
-                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                        disabled={updating}>
-                  <FontAwesomeIcon icon="save"/>
+                  </Button>
                   &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-              </div>
+                  <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                          disabled={updating}>
+                    <FontAwesomeIcon icon="save"/>
+                    &nbsp;
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                </div>
+              </Card>
+              {comboItemEntity?.id &&  <AuditLogs entityId={comboItemEntity?.id} />}
             </Col>
-          </Row>
-        </CardBody>
-      </Card>
+        </div>
     </form>
   );
 };

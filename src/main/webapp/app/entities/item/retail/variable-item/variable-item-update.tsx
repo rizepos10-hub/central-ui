@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Card, CardBody, Col, FormGroup, Row, Spinner, Table} from 'reactstrap';
+import {Button, Card, CardBody, CardHeader, Col, FormGroup, Row, Spinner, Table} from 'reactstrap';
 import {getSortState, translate, Translate} from 'react-jhipster';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
@@ -36,6 +36,7 @@ import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
+import AuditLogs from "app/shared/components/logs/audit-logs";
 
 
 const defaultItemPriceNumber = {
@@ -317,7 +318,7 @@ export const VariableItemUpdate = () => {
         };
 
         const isDuplicate = variableItem?.variants.some((variant) => {
-            return isEqual(variant.attributeValues, newVariant.attributeValues)
+          return isEqual(variant.attributeValues, newVariant.attributeValues)
         });
         if (!isDuplicate) {
           combinations.push(newVariant);
@@ -546,283 +547,291 @@ export const VariableItemUpdate = () => {
 
   return (
     <form onSubmit={saveEntity}>
-      <Card>
-        <CardBody>
-          <Row>
-            <Col md={10}>
-              <TabView>
-                <TabPanel header={translate('items.update.tabs.details.label')}>
-                  <Row>
-                    <Col md="8">
-                      <h2>
-                        {isNew ? translate('items.update.tabs.details.titles.create.variable') : translate('items.update.tabs.details.titles.edit.variable')}
-                      </h2>
-                    </Col>
-                  </Row>
+      <div className={"d-flex flex-row"}>
+        <Col md={9}>
+          <Card>
+            <CardBody>
+              <Row>
+                <Col md={10}>
+                  <TabView>
+                    <TabPanel header={translate('items.update.tabs.details.label')}>
+                      <Row>
+                        <Col md="8">
+                          <h2>
+                            {isNew ? translate('items.update.tabs.details.titles.create.variable') : translate('items.update.tabs.details.titles.edit.variable')}
+                          </h2>
+                        </Col>
+                      </Row>
 
-                  <Row>
+                      <Row>
 
-                    <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
+                        <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
-                      <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                          <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
 
-                        <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange}/>
+                            <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange}/>
 
-                        <Row className={"mb-3"} >
-
-                          <Row>
-                            <Col md="4">
-                              <div className={"d-flex flex-column gap-2"}>
-                                <label className={"text-xl font-bold"}>
-                                  <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
-                                </label>
-                                <Select
-                                  value={itemAttribute?.attributeTax || null}
-                                  options={filteredAvailableAttributes()}
-                                  getOptionValue={option => option.id}
-                                  getOptionLabel={option => option.name}
-                                  onChange={(attribute) => handleItemAttributeSelect(attribute)}
-                                />
-                              </div>
-                            </Col>
-
-
-                            <Col md="3" >
-                              <Button color="primary" disabled={isAttributeAddButtonDisabled} className={"mt-5"} onClick={handleAddAttribute}>
-                                <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
-                              </Button>
-                            </Col>
-                            <Col md={"12"} className={"mt-2"}>
-                              <Accordion multiple activeIndex={[0]}>
-                                {variableItem?.attributes?.map((attribute, index) => (
-                                  <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
-                                    <div className={"d-flex gap-3"}>
-                                      <label className={"mt-2"}>{translate('items.update.name')}: {attribute?.attributeTax?.name}</label>
-                                      <Col md={"9"}>
-                                        <AsyncSelect
-                                          value={attribute?.attributeTerms}
-                                          isMulti
-                                          getOptionLabel={option => option.name}
-                                          getOptionValue={option => option.id}
-                                          onChange={(selectedOptions) => handleAttributeTermChange(index, selectedOptions)}
-                                          isLoading={loadingAttributesValues}
-                                          onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                                          defaultOptions={attributeValuesList}
-                                        />
-
-                                      </Col>
-                                    </div>
-                                  </AccordionTab>
-                                ))}
-                              </Accordion>
-
-
-                            </Col>
-                          </Row>
-                        </Row>
-                      </Col>
-                    </FormGroup>
-                  </Row>
-                </TabPanel>
-                <TabPanel header={translate('items.update.variants')} >
-                  <Col md="5" className={"d-flex gap-3"}>
-
-                    <Button color="primary" className={"mt-5"} onClick={generateCombinations}>
-                      <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
-                    </Button>
-
-                    <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
-                      <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
-                    </Button>
-                  </Col>
-                  <Col md={"12"} className={"mt-2"}>
-                    <Row className={"mt-2"}>
-                      {pricesModal?.show && pricesModal?.variantIndex !== null &&
-                        <WholesalePrices
-                          toggle={handleShowPricesModal}
-                          isOpen={pricesModal?.show}
-                          branchWholesalePrices={variableItem?.variants?.[pricesModal?.variantIndex]?.branchVariantDetails?.[pricesModal?.branchId]?.wholesalePrices}
-                          savePrices={handleSaveWholesalePrices}
-                        />
-                      }
-                      {variableItem?.variants?.map((variant, variantIndex) => (
-                        <Col md={"12"} key={variantIndex} className={"mt-2"}>
-                          <Accordion multiple  activeIndex={[0]}>
-                            <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
-                              <Row>
-                                <Col md="4">
-                                  <div className={"d-flex flex-column gap-2 mt-2"}>
-                                    <label className={"text-xl font-bold"}>
-                                      <Translate contentKey={'items.update.name'}>Name</Translate>
-                                    </label>
-                                    <InputText
-                                      name="variant-name"
-                                      id="name"
-                                      required={true}
-                                      placeholder={translate('items.update.placeholders.variantName')}
-                                      value={variant?.name}
-                                      onChange={(e) => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
-                                    />
-                                  </div>
-                                </Col>
-
-                                <Col md="4">
-                                  <div className={"d-flex flex-column gap-2 mt-2"}>
-                                    <label className={"text-xl font-bold"}>
-                                      <Translate contentKey={'items.update.sku'}>SKU</Translate>
-                                    </label>
-                                    <InputText
-                                      name="sku"
-                                      id="sku"
-                                      required={true}
-                                      placeholder="Variant Sku"
-                                      value={variant?.sku}
-                                      onChange={(e) => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
-                                    />
-                                  </div>
-                                </Col>
-
-                                <Col md="4">
-                                  <div className={"d-flex flex-column gap-2 mt-2"}>
-                                    <label htmlFor="price" className={"text-xl font-bold"}>
-                                      <Translate contentKey={'items.update.price'}>Price</Translate>
-                                    </label>
-                                    <InputNumber
-                                      name="price"
-                                      id="price"
-                                      inputId={"price"}
-                                      inputClassName={"w-1"}
-                                      required={true}
-                                      placeholder="Variant Price"
-                                      value={variant?.price}
-                                      maxFractionDigits={2}
-                                      onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
-                                    />
-                                  </div>
-                                </Col>
-
-                                <Col md="4">
-                                  <div className={"d-flex flex-column gap-2 mt-2"}>
-                                    <label className={"text-xl font-bold"}>
-                                      <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                                    </label>
-                                    <InputNumber
-                                      name="sale-price"
-                                      id="sale-price"
-                                      placeholder="Variant Sale Price"
-                                      maxFractionDigits={2}
-                                      value={variant?.salePrice}
-                                      onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
-                                    />
-                                  </div>
-                                </Col>
-                              </Row>
+                            <Row className={"mb-3"} >
 
                               <Row>
-                                <Col md="7">
-                                  <div className={"d-flex flex-column gap-2 mt-2"}>
-                                    <label className={"text-xl font-bold"}>
-                                      <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
-                                    </label>
-                                    <Select
-                                      value={variant.discounts}
-                                      options={discountList}
-                                      isMulti
-                                      getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
-                                      getOptionValue={option => option.id}
-                                      onChange={(discounts) => handleVariantFieldChange(variantIndex, 'discounts', discounts)}
-                                    />
-                                  </div>
-
+                                <Col md="4">
                                   <div className={"d-flex flex-column gap-2"}>
                                     <label className={"text-xl font-bold"}>
-                                      <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                      <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
                                     </label>
                                     <Select
-                                      value={variant?.mixAndMatchRule}
-                                      options={mixAndMatchRuleList}
-                                      getOptionLabel={option => option.name}
+                                      value={itemAttribute?.attributeTax || null}
+                                      options={filteredAvailableAttributes()}
                                       getOptionValue={option => option.id}
-                                      onChange={(mixAndMatchRule) => handleVariantFieldChange(variantIndex,'mixAndMatchRule', mixAndMatchRule)}
+                                      getOptionLabel={option => option.name}
+                                      onChange={(attribute) => handleItemAttributeSelect(attribute)}
                                     />
                                   </div>
+                                </Col>
+
+
+                                <Col md="3" >
+                                  <Button color="primary" disabled={isAttributeAddButtonDisabled} className={"mt-5"} onClick={handleAddAttribute}>
+                                    <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
+                                  </Button>
+                                </Col>
+                                <Col md={"12"} className={"mt-2"}>
+                                  <Accordion multiple activeIndex={[0]}>
+                                    {variableItem?.attributes?.map((attribute, index) => (
+                                      <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
+                                        <div className={"d-flex gap-3"}>
+                                          <label className={"mt-2"}>{translate('items.update.name')}: {attribute?.attributeTax?.name}</label>
+                                          <Col md={"9"}>
+                                            <AsyncSelect
+                                              value={attribute?.attributeTerms}
+                                              isMulti
+                                              getOptionLabel={option => option.name}
+                                              getOptionValue={option => option.id}
+                                              onChange={(selectedOptions) => handleAttributeTermChange(index, selectedOptions)}
+                                              isLoading={loadingAttributesValues}
+                                              onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                                              defaultOptions={attributeValuesList}
+                                            />
+
+                                          </Col>
+                                        </div>
+                                      </AccordionTab>
+                                    ))}
+                                  </Accordion>
+
 
                                 </Col>
                               </Row>
+                            </Row>
+                          </Col>
+                        </FormGroup>
+                      </Row>
+                    </TabPanel>
+                    <TabPanel header={translate('items.update.variants')} >
+                      <Col md="5" className={"d-flex gap-3"}>
 
-                              <Col md="12" className={"mt-3"}>
-                                <h4>
-                                  <Translate contentKey={'items.update.branchPrices'}>
-                                    Branch Prices
-                                  </Translate>
-                                </h4>
-                                <Table>
-                                  <thead>
-                                  <tr>
-                                    <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
-                                    <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
-                                    <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
-                                    {branchList.some(branch => branch.wholesale) ?
-                                    <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
-                                    : null}
-                                  </tr>
-                                  </thead>
-                                  <tbody>
-                                  {branchList.map(branch => (
-                                    <tr key={branch.id}>
-                                      <td>{branch.name}</td>
-                                      <td>
-                                        <InputNumber
-                                          name={`branchPrice_${branch.id}`}
-                                          placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
-                                          onWheel={(e: any) => e.target.blur()}
-                                          value={variant?.branchVariantDetails?.[branch.id]?.price}
-                                          onChange={e => handleBranchPriceChange(variantIndex,branch.id,"price", e.value)}
-                                        />
-                                      </td>
-                                      <td>
-                                        <InputNumber
-                                          name={`branchSalePrice_${branch.id}`}
-                                          placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
-                                          onWheel={(e: any) => e.target.blur()}
-                                          value={variant?.branchVariantDetails?.[branch.id]?.salePrice}
-                                          onChange={e => handleBranchPriceChange(variantIndex,branch.id, "salePrice", e.value)}
-                                        />
-                                      </td>
-                                      {branch.wholesale &&
-                                        <td>
-                                          <Button onClick={() => handleShowPricesModal(branch.id, variantIndex)}>Wholesale Prices</Button>
-                                        </td>
-                                      }
-                                    </tr>
-                                  ))}
-                                  </tbody>
-                                </Table>
-                              </Col>
+                        <Button color="primary" className={"mt-5"} onClick={generateCombinations}>
+                          <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
+                        </Button>
 
-                            </AccordionTab>
-                          </Accordion>
-                        </Col>
-                      ))}
-                    </Row>
-                  </Col>
-                </TabPanel>
-                <TabPanel header={translate('items.update.tabs.visibility.label')}>
-                  <Visibility
-                    initialState={variableItem.visibility}
-                    title={translate('items.update.tabs.visibility.titles.variable')}
-                    onStateChanged={(visibility)=>setVariableItem(prev => {
-                      return {...prev, visibility}
-                    })}/>
-                </TabPanel>
-                <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
-                  <ItemLoyaltyTab excludedFromLoyaltyPoints={variableItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
-                </TabPanel>
-                <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
-                  <ItemStockTab variants={variableItem?.variants} itemId={variableItem.id}/>
-                </TabPanel>
-                <TabPanel header={translate('items.update.measures')}>
-                  <Row className={"mb-3 d-flex flex-column gap-3"} >
+                        <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
+                          <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
+                        </Button>
+                      </Col>
+                      <Col md={"12"} className={"mt-2"}>
+                        <Row className={"mt-2"}>
+                          {pricesModal?.show && pricesModal?.variantIndex !== null &&
+                            <WholesalePrices
+                              toggle={handleShowPricesModal}
+                              isOpen={pricesModal?.show}
+                              branchWholesalePrices={variableItem?.variants?.[pricesModal?.variantIndex]?.branchVariantDetails?.[pricesModal?.branchId]?.wholesalePrices}
+                              savePrices={handleSaveWholesalePrices}
+                            />
+                          }
+                          {variableItem?.variants?.map((variant, variantIndex) => (
+                            <Col md={"12"} key={variantIndex} className={"mt-2"}>
+                              <Accordion multiple  activeIndex={[0]}>
+                                <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
+                                  <Row>
+                                    <Col md="4">
+                                      <div className={"d-flex flex-column gap-2 mt-2"}>
+                                        <label className={"text-xl font-bold"}>
+                                          <Translate contentKey={'items.update.name'}>Name</Translate>
+                                        </label>
+                                        <InputText
+                                          name="variant-name"
+                                          id="name"
+                                          required={true}
+                                          placeholder={translate('items.update.placeholders.variantName')}
+                                          value={variant?.name}
+                                          onChange={(e) => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                                        />
+                                      </div>
+                                    </Col>
+
+                                    <Col md="4">
+                                      <div className={"d-flex flex-column gap-2 mt-2"}>
+                                        <label className={"text-xl font-bold"}>
+                                          <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                                        </label>
+                                        <InputText
+                                          name="sku"
+                                          id="sku"
+                                          required={true}
+                                          placeholder="Variant Sku"
+                                          value={variant?.sku}
+                                          onChange={(e) => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
+                                        />
+                                      </div>
+                                    </Col>
+
+                                    <Col md="4">
+                                      <div className={"d-flex flex-column gap-2 mt-2"}>
+                                        <label htmlFor="price" className={"text-xl font-bold"}>
+                                          <Translate contentKey={'items.update.price'}>Price</Translate>
+                                        </label>
+                                        <InputNumber
+                                          name="price"
+                                          id="price"
+                                          inputId={"price"}
+                                          inputClassName={"w-1"}
+                                          required={true}
+                                          placeholder="Variant Price"
+                                          value={variant?.price}
+                                          min={0}
+                                          maxFractionDigits={2}
+                                          onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
+                                        />
+                                      </div>
+                                    </Col>
+
+                                    <Col md="4">
+                                      <div className={"d-flex flex-column gap-2 mt-2"}>
+                                        <label className={"text-xl font-bold"}>
+                                          <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                        </label>
+                                        <InputNumber
+                                          name="sale-price"
+                                          id="sale-price"
+                                          placeholder="Variant Sale Price"
+                                          min={0}
+                                          maxFractionDigits={2}
+                                          value={variant?.salePrice}
+                                          onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
+                                        />
+                                      </div>
+                                    </Col>
+                                  </Row>
+
+                                  <Row>
+                                    <Col md="7">
+                                      <div className={"d-flex flex-column gap-2 mt-2"}>
+                                        <label className={"text-xl font-bold"}>
+                                          <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
+                                        </label>
+                                        <Select
+                                          value={variant.discounts}
+                                          options={discountList}
+                                          isMulti
+                                          getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
+                                          getOptionValue={option => option.id}
+                                          onChange={(discounts) => handleVariantFieldChange(variantIndex, 'discounts', discounts)}
+                                        />
+                                      </div>
+
+                                      <div className={"d-flex flex-column gap-2"}>
+                                        <label className={"text-xl font-bold"}>
+                                          <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                        </label>
+                                        <Select
+                                          value={variant?.mixAndMatchRule}
+                                          options={mixAndMatchRuleList}
+                                          getOptionLabel={option => option.name}
+                                          getOptionValue={option => option.id}
+                                          onChange={(mixAndMatchRule) => handleVariantFieldChange(variantIndex,'mixAndMatchRule', mixAndMatchRule)}
+                                        />
+                                      </div>
+
+                                    </Col>
+                                  </Row>
+
+                                  <Col md="12" className={"mt-3"}>
+                                    <h4>
+                                      <Translate contentKey={'items.update.branchPrices'}>
+                                        Branch Prices
+                                      </Translate>
+                                    </h4>
+                                    <Table>
+                                      <thead>
+                                      <tr>
+                                        <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
+                                        <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
+                                        <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
+                                        {branchList.some(branch => branch.wholesale) ?
+                                          <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
+                                          : null}
+                                      </tr>
+                                      </thead>
+                                      <tbody>
+                                      {branchList.map(branch => (
+                                        <tr key={branch.id}>
+                                          <td>{branch.name}</td>
+                                          <td>
+                                            <InputNumber
+                                              name={`branchPrice_${branch.id}`}
+                                              placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
+                                              onWheel={(e: any) => e.target.blur()}
+                                              maxFractionDigits={2}
+                                              min={0}
+                                              value={variant?.branchVariantDetails?.[branch.id]?.price}
+                                              onChange={e => handleBranchPriceChange(variantIndex,branch.id,"price", e.value)}
+                                            />
+                                          </td>
+                                          <td>
+                                            <InputNumber
+                                              name={`branchSalePrice_${branch.id}`}
+                                              placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
+                                              onWheel={(e: any) => e.target.blur()}
+                                              min={0}
+                                              maxFractionDigits={2}
+                                              value={variant?.branchVariantDetails?.[branch.id]?.salePrice}
+                                              onChange={e => handleBranchPriceChange(variantIndex,branch.id, "salePrice", e.value)}
+                                            />
+                                          </td>
+                                          {branch.wholesale &&
+                                            <td>
+                                              <Button onClick={() => handleShowPricesModal(branch.id, variantIndex)}>Wholesale Prices</Button>
+                                            </td>
+                                          }
+                                        </tr>
+                                      ))}
+                                      </tbody>
+                                    </Table>
+                                  </Col>
+
+                                </AccordionTab>
+                              </Accordion>
+                            </Col>
+                          ))}
+                        </Row>
+                      </Col>
+                    </TabPanel>
+                    <TabPanel header={translate('items.update.tabs.visibility.label')}>
+                      <Visibility
+                        initialState={variableItem.visibility}
+                        title={translate('items.update.tabs.visibility.titles.variable')}
+                        onStateChanged={(visibility)=>setVariableItem(prev => {
+                          return {...prev, visibility}
+                        })}/>
+                    </TabPanel>
+                    <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                      <ItemLoyaltyTab excludedFromLoyaltyPoints={variableItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
+                    </TabPanel>
+                    <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
+                      <ItemStockTab variants={variableItem?.variants} itemId={variableItem.id}/>
+                    </TabPanel>
+                    <TabPanel header={translate('items.update.measures')}>
+                      <Row className={"mb-3 d-flex flex-column gap-3"} >
                         <Col md="12" className={"d-flex gap-3 mb-3"}>
                           <div className={"d-flex flex-column gap-2 w-6 mt-3"}>
                             <label className={"text-xl font-bold"}>
@@ -905,33 +914,39 @@ export const VariableItemUpdate = () => {
                             </tbody>
                           </Table>
                         </Col>
-                  </Row>
-                </TabPanel>
+                      </Row>
+                    </TabPanel>
 
-              </TabView>
-            </Col>
-            <Col md={2}>
-              <div className={"d-flex"}>
-                <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"  replace
-                        color="info">
-                  <FontAwesomeIcon icon="arrow-left"/>
-                  &nbsp;
-                  <span className="d-none d-md-inline">
+                  </TabView>
+                </Col>
+              </Row>
+            </CardBody>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card>
+            <CardHeader>Actions</CardHeader>
+            <div className={'d-flex gap-3 mt-2'}>
+              <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"  replace
+                      color="info">
+                <FontAwesomeIcon icon="arrow-left"/>
+                &nbsp;
+                <span className="d-none d-md-inline">
                                 <Translate contentKey="entity.action.back">Back</Translate>
                             </span>
-                </Button>
+              </Button>
+              &nbsp;
+              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                      disabled={updating}>
+                <FontAwesomeIcon icon="save"/>
                 &nbsp;
-                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                        disabled={updating}>
-                  <FontAwesomeIcon icon="save"/>
-                  &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-              </div>
-            </Col>
-          </Row>
-        </CardBody>
-      </Card>
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+            </div>
+          </Card>
+          {variableItemEntity?.id &&  <AuditLogs entityId={variableItemEntity?.id} />}
+        </Col>
+      </div>
     </form>
   );
 };

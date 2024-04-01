@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, Spinner, FormGroup, Table, FormText, Card, CardBody} from 'reactstrap';
+import {Button, Row, Col, Spinner, FormGroup, Table, FormText, Card, CardBody, CardHeader} from 'reactstrap';
 import {getSortState, translate, Translate, ValidatedField} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -36,6 +36,7 @@ import {IItemMeasure} from "app/shared/model/item-measure.model";
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
+import AuditLogs from "app/shared/components/logs/audit-logs";
 
 
 const defaultItemPriceNumber = {
@@ -403,6 +404,8 @@ export const SimpleItemUpdate = () => {
   return (
     <form onSubmit={saveEntity}>
 
+      <div className={"d-flex flex-row"}>
+    <Col md={9}>
       <Card>
         <CardBody>
           <Row>
@@ -450,6 +453,7 @@ export const SimpleItemUpdate = () => {
                                 name="price"
                                 id="price"
                                 required={true}
+                                min={0}
                                 maxFractionDigits={2}
                                 inputClassName={"w-1"}
                                 placeholder={translate('items.update.placeholders.itemPrice')}
@@ -467,6 +471,7 @@ export const SimpleItemUpdate = () => {
                               <InputNumber
                                 name="sale-price"
                                 id="sale-price"
+                                min={0}
                                 maxFractionDigits={2}
                                 placeholder={translate('items.update.placeholders.itemSalePrice')}
                                 value={simpleItem?.variants?.[0]?.salePrice}
@@ -508,6 +513,8 @@ export const SimpleItemUpdate = () => {
                                         name={`branchPrice_${branch.id}`}
                                         placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
                                         onWheel={(e: any) => e.target.blur()}
+                                        maxFractionDigits={2}
+                                        min={0}
                                         value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
                                         onChange={e => handleBranchPriceChange(branch.id, "price", e.value)}
                                       />
@@ -518,6 +525,8 @@ export const SimpleItemUpdate = () => {
                                         name={`branchSalePrice_${branch.id}`}
                                         placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
                                         onWheel={(e: any) => e.target.blur()}
+                                        maxFractionDigits={2}
+                                        min={0}
                                         value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.salePrice}
                                         onChange={e => handleBranchPriceChange(branch.id,"salePrice", e.value)}
                                       />
@@ -729,30 +738,37 @@ export const SimpleItemUpdate = () => {
                   </Row>
                 </TabPanel>
 
-              </TabView>
-            </Col>
-            <Col md={2}>
-              <div className={"d-flex"}>
-                <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"  replace
-                        color="info">
-                  <FontAwesomeIcon icon="arrow-left"/>
-                  &nbsp;
-                  <span className="d-none d-md-inline">
+                  </TabView>
+                </Col>
+              </Row>
+            </CardBody>
+          </Card>
+        </Col>
+              <Col md={3}>
+                <Card>
+                  <CardHeader>Actions</CardHeader>
+                  <div className={'d-flex gap-3 mt-2'}>
+                    <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"  replace
+                            color="info">
+                      <FontAwesomeIcon icon="arrow-left"/>
+                      &nbsp;
+                      <span className="d-none d-md-inline">
                                   <Translate contentKey="entity.action.back">Back</Translate>
                               </span>
-                </Button>
-                &nbsp;
-                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                        disabled={updating}>
-                  <FontAwesomeIcon icon="save"/>
-                  &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-              </div>
+                    </Button>
+                    &nbsp;
+                    <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                            disabled={updating}>
+                      <FontAwesomeIcon icon="save"/>
+                      &nbsp;
+                      <Translate contentKey="entity.action.save">Save</Translate>
+                    </Button>
+                  </div>
+                </Card>
+                {simpleItemEntity?.id &&  <AuditLogs entityId={simpleItemEntity?.id} />}
             </Col>
-          </Row>
-        </CardBody>
-      </Card>
+
+      </div>
     </form>
   );
 };

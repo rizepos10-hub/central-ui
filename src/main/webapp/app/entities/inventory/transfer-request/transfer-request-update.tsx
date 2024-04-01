@@ -364,7 +364,7 @@ export const TransferRequestUpdate = () => {
                   </div>
                 </Card>
 
-                {transferRequestEntity?.id &&  <AuditLogs entity={'TRANSFER_REQUEST'} entityId={transferRequestEntity?.id} />}
+                {transferRequestEntity?.id &&  <AuditLogs entityId={transferRequestEntity?.id} />}
               </Col>
             </form>
           </Row>
