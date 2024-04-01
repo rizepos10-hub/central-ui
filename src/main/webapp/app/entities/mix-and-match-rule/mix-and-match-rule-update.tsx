@@ -221,6 +221,7 @@ export const MixAndMatchRuleUpdate = () => {
                             <InputNumber
                               value={newQuantityConfig?.price}
                               min={0}
+                              maxFractionDigits={2}
                               size={5}
                               onChange={e => setNewQuantityConfig(prev => ({...prev, price: e.value}))}
                               />
