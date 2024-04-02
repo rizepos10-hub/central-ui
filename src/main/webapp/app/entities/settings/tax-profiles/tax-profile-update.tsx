@@ -18,10 +18,7 @@ import {
 import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
-import { ITax } from 'app/shared/model/TAX/tax.model';
 import { getEntity, updateEntity, createEntity, reset } from './tax-profile.reducer';
-import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import Select from "react-select";
 import {  getEntities as getTaxRates } from '../taxes/tax.reducer';
 import { Calendar } from 'primereact/calendar';
@@ -107,8 +104,8 @@ console.log(taxEntity, 'loli')
     console.log(selectedConditions, 'sl')
     const formData = {
       id: id ? id : null,
-      name: name,
-      description: description,
+      name,
+      description,
       taxRate: { id: taxRate.value },
       rules: selectedConditions
     };

@@ -7,12 +7,14 @@ import {IVisibility} from "app/shared/model/visibility.model";
 import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {IAddon} from "app/shared/model/ADDON/addon.model";
 import {IAddonGroup} from "app/shared/model/ADDON/addon-groups.model";
+import { IDiscount } from "app/shared/model/discount.model";
 
 export interface IItem {
   id?: string;
   name?: string;
   desc?: string | null;
   categories?: ITerm[];
+  discounts?: IDiscount[];
   itemVariantType?: ItemVariantType;
   itemType?: "RESTAURANT" | "RETAIL";
   stock?: number;

@@ -96,10 +96,8 @@ export const SimpleItemUpdate = () => {
   const [itemAttribute, setItemAttribute] = useState<{
     attributeTax: ITaxonomy;
     attributeTerms: ITerm[];
-  }>({
-    attributeTax: {},
-    attributeTerms: []
-  });
+  } | null>(null);
+
 
   const filteredMeasures = useMemo(() => {
     const exchangeMeasuresIds = simpleItem?.measures?.map((exMeasure) => exMeasure.itemMeasure.id);
@@ -114,9 +112,11 @@ export const SimpleItemUpdate = () => {
 
 
   const isAttributeAddButtonDisabled =
-    filteredAvailableAttributes().length === 0 ||
-    Object.keys(itemAttribute.attributeTax).length === 0 &&
-    itemAttribute.attributeTerms.length === 0;
+    filteredAvailableAttributes()?.length === 0 ||
+    !itemAttribute ||
+    itemAttribute?.attributeTax &&
+    Object.keys(itemAttribute?.attributeTax)?.length === 0 &&
+    itemAttribute?.attributeTerms?.length === 0;
 
 
   const handleBackClick = () => {
@@ -263,17 +263,25 @@ export const SimpleItemUpdate = () => {
           itemAttribute,
         ],
       }));
+      setItemAttribute(null)
     }
   };
 
-  const handleItemAttributeSelect = (selectedOption) => {
-      dispatch(getAttributeValues({
+  const handleItemAttributeSelect = selectedOption => {
+    if (!selectedOption) {
+      setItemAttribute(null);
+      return
+    }
+
+    dispatch(getAttributeValues({
         id: selectedOption?.id,
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
-      }));
-      setItemAttribute((prevState) => ({...prevState, attributeTax: selectedOption}))
+      })
+    );
+
+    setItemAttribute(prevState => ({ ...prevState, attributeTax: selectedOption }));
   };
 
   const handleAttributeTermChange = (index, selectedTerms) => {
@@ -442,7 +450,7 @@ export const SimpleItemUpdate = () => {
                           </div>
                         </Col>
 
-                        <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange}/>
+                        <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange} />
 
                           <Col md="7">
                             <div className={"d-flex flex-column gap-2"}>
@@ -560,7 +568,7 @@ export const SimpleItemUpdate = () => {
                             />
                           </div>
 
-                          <div className={"d-flex flex-column gap-2"}>
+                          <div className={"d-flex flex-column gap-2 mt-2"}>
                             <label className={"text-xl font-bold"}>
                               <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                             </label>
@@ -575,8 +583,9 @@ export const SimpleItemUpdate = () => {
                         </Col>
                       </Row>
 
-                          <Row>
-                            <Col md="7">
+                        <Row>
+                          <Col md="12">
+                            <div className={"d-flex flex-row gap-2"}>
                               <div className={"d-flex flex-column gap-2"}>
                                 <label className={"text-xl font-bold"}>
                                   <Translate contentKey={'items.update.attributes'}>Attributes</Translate>
@@ -584,26 +593,31 @@ export const SimpleItemUpdate = () => {
                                 <Select
                                   value={itemAttribute?.attributeTax || null}
                                   isClearable
+                                  styles={{
+                                    control: (baseStyles) => ({
+                                      ...baseStyles,
+                                    minWidth: '15rem'
+                                    }),
+                                  }}
                                   options={filteredAvailableAttributes()}
                                   getOptionValue={option => option.id}
                                   getOptionLabel={option => option.key}
                                   onChange={(attribute) => handleItemAttributeSelect(attribute)}
                                 />
                               </div>
-                            </Col>
+                                <Button
+                                  color="primary" className={"mt-5"} onClick={handleAddAttribute}
+                                  disabled={isAttributeAddButtonDisabled}
+                                >
+                                  <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
+                                </Button>
+                            </div>
+                          </Col>
 
 
 
-                            <Col md="7" >
-                              <Button
-                                color="primary" className={"mt-5"} onClick={handleAddAttribute}
-                                disabled={isAttributeAddButtonDisabled}
-                              >
-                                <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
-                              </Button>
-                            </Col>
                             <Col md={"7"} className={"mt-2"}>
-                              <Accordion multiple activeIndex={[0]}>
+                              <Accordion  multiple activeIndex={[0]}>
                                 {simpleItem?.attributes?.map((attribute, index) => (
                                   <AccordionTab key={index} header={attribute?.attributeTax?.key}>
                                     <div className={"d-flex gap-3"}>

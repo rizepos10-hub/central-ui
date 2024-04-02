@@ -5,7 +5,7 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './item.reducer';
+import { getEntity, deleteEntity } from './regular-item.reducer';
 
 export const ItemDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -21,11 +21,11 @@ export const ItemDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const itemEntity = useAppSelector(state => state.comboItem.entity);
-  const updateSuccess = useAppSelector(state => state.comboItem.updateSuccess);
+  const itemEntity = useAppSelector(state => state.regularItem.entity);
+  const updateSuccess = useAppSelector(state => state.regularItem.updateSuccess);
 
   const handleClose = () => {
-    navigate('/restaurant/combo' + location.search);
+    navigate('/restaurant/regular' + location.search);
   };
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export const ItemDeleteDialog = () => {
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.item.delete.question">
-        <Translate contentKey="tempApp.item.delete.question" interpolate={{ id: itemEntity.id }}>
+        <Translate contentKey="items.delete.question" interpolate={{ id: itemEntity.id }}>
           Are you sure you want to delete this Item?
         </Translate>
       </ModalBody>

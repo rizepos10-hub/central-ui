@@ -531,7 +531,7 @@ export const PizzaItemUpdate = () => {
                                 </Col>
                               </Row> : null}
 
-                            <SharedItemUpdate item={pizzaItem} onFieldChange={handleFieldChange}/>
+                            <SharedItemUpdate item={pizzaItem} onFieldChange={handleFieldChange} />
 
                             <Row className={"my-6"} >
                               <Row className={"mt-2"}>

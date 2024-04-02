@@ -9,7 +9,7 @@ import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IItem } from 'app/shared/model/ITEM/item.model';
-import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
+import { getEntities as getItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
 import { IPrinter } from 'app/shared/model/PRINTER/printer.model';
 import { getEntity, updateEntity, createEntity, reset } from './printer.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
@@ -27,7 +27,7 @@ export const PrinterUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const items = useAppSelector(state => state.item.entities);
+  const items = useAppSelector(state => state.restaurantItems.entities);
   const printerEntity = useAppSelector(state => state.printer.entity);
   const loading = useAppSelector(state => state.printer.loading);
   const updating = useAppSelector(state => state.printer.updating);

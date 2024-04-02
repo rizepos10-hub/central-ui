@@ -1,11 +1,7 @@
 import React, {useEffect, useReducer, useState} from 'react';
-import { Dialog } from 'primereact/dialog';
-// import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import {Modal, Button, ModalBody, ModalFooter, ModalHeader, Alert} from 'reactstrap';
 import {createEntity, getEntity, reset, updateEntity} from "app/entities/settings/taxes/tax.reducer";
-import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
-import {getEntities as getItems} from "app/entities/item/restaurant/regular-item/item.reducer";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 
 

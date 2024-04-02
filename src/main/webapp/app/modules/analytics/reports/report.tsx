@@ -8,9 +8,13 @@ import {useAppDispatch, useAppSelector} from "app/config/store";
 import {Dropdown} from "primereact/dropdown";
 import {SourceType} from "app/shared/model/ENUMS/source-type.model";
 import {translate, Translate} from "react-jhipster";
+import applicationProfile from "app/shared/reducers/application-profile";
+import tenant from "app/shared/tenant/TenantContext";
 const SalesSummaryReport = () => {
 
-  const  dispatch = useAppDispatch()
+  const  dispatch = useAppDispatch();
+
+
 
   const [salesData, setSalesData]:any = useState([]);
   const [loading, setLoading] = useState(false);
@@ -188,7 +192,6 @@ const SalesSummaryReport = () => {
 
     <div className="container mt-5">
         <div className="text-center">
-          <h2>Pos Business 10</h2>
           <h4><Translate contentKey={'analytics.summary.report.title'}>Sales Summary Report</Translate></h4>
           <p><Translate contentKey={'analytics.report.location'} interpolate={{location: "Random Location"}}>Location: Random Location</Translate></p>
           <form onSubmit={handleSubmit}>

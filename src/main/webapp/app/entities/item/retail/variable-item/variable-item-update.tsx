@@ -111,6 +111,7 @@ export const VariableItemUpdate = () => {
 
   const isAttributeAddButtonDisabled =
     filteredAvailableAttributes()?.length === 0 ||
+    !itemAttribute ||
     itemAttribute?.attributeTax &&
     Object.keys(itemAttribute?.attributeTax)?.length === 0 &&
     itemAttribute?.attributeTerms?.length === 0;
@@ -260,11 +261,6 @@ export const VariableItemUpdate = () => {
 
   const handleAddAttribute = () => {
 
-    if(!itemAttribute){
-      alert("Please select an attribute to add.");
-      return;
-    }
-    console.log(itemAttribute, 'itemAttribute')
     setVariableItem((prev) => ({
       ...prev,
       attributes: [
@@ -276,6 +272,11 @@ export const VariableItemUpdate = () => {
   };
 
   const handleItemAttributeSelect = (selectedOption) => {
+    if (!selectedOption) {
+      setItemAttribute(null);
+      return
+    }
+
     dispatch(getAttributeValues({
       id: selectedOption?.id,
       page: paginationState.activePage - 1,
@@ -283,8 +284,7 @@ export const VariableItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
     setItemAttribute((prevState) => ({...prevState, attributeTax: selectedOption}))
-
-  }
+  };
 
   const handleAttributeTermChange = (index, selectedTerms) => {
     setVariableItem((prev) => ({
@@ -569,7 +569,7 @@ export const VariableItemUpdate = () => {
 
                           <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
 
-                            <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange}/>
+                            <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange} />
 
                             <Row className={"mb-3"} >
 
@@ -582,6 +582,7 @@ export const VariableItemUpdate = () => {
                                     <Select
                                       value={itemAttribute?.attributeTax || null}
                                       options={filteredAvailableAttributes()}
+                                      isClearable
                                       getOptionValue={option => option.id}
                                       getOptionLabel={option => option.name}
                                       onChange={(attribute) => handleItemAttributeSelect(attribute)}
@@ -596,7 +597,7 @@ export const VariableItemUpdate = () => {
                                   </Button>
                                 </Col>
                                 <Col md={"12"} className={"mt-2"}>
-                                  <Accordion multiple activeIndex={[0]}>
+                                  <Accordion multiple >
                                     {variableItem?.attributes?.map((attribute, index) => (
                                       <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
                                         <div className={"d-flex gap-3"}>
@@ -650,7 +651,7 @@ export const VariableItemUpdate = () => {
                           }
                           {variableItem?.variants?.map((variant, variantIndex) => (
                             <Col md={"12"} key={variantIndex} className={"mt-2"}>
-                              <Accordion multiple  activeIndex={[0]}>
+                              <Accordion multiple >
                                 <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
                                   <Row>
                                     <Col md="4">

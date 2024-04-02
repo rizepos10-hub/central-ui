@@ -4,23 +4,16 @@ import {Button, Row, Col, FormText, Spinner, FormGroup, Table} from 'reactstrap'
 import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
+import { overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IItem } from 'app/shared/model/ITEM/item.model';
-import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
-import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import {
   getEntity as getRetailAttribute,
-  updateEntity as updateRetailAttribute,
-  createEntity as createRetailAttribute,
   reset as resetRetailAttribute
 } from './retail-attribute.reducer';
 import {
   getEntities as getRetailAttributeValues,
   updateEntity as updateRetailAttributeValue,
-  createEntity as createRetailAttributeValue,
   reset as resetRetailAttributeValues, deleteEntity,
 
 } from './retail-attribute-values.reducer';
@@ -65,7 +58,7 @@ export const RetailAttributeValuesUpdate = () => {
   useEffect(() => {
   dispatch(getRetailAttribute(id));
   dispatch(getRetailAttributeValues({
-    id:  id,
+    id,
     page: paginationState.activePage - 1,
     size: paginationState.itemsPerPage,
     sort: `${paginationState.sort},${paginationState.order}`,
