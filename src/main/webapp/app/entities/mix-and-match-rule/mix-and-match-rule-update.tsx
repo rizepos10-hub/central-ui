@@ -1,6 +1,6 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label, Input, Table, ListGroup} from 'reactstrap';
+import React, {useEffect, useState} from 'react';
+import {Link, useNavigate, useParams} from 'react-router-dom';
+import {Button, Row, Col, FormGroup, Label,Table, } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -23,10 +23,6 @@ interface INewQuantityRule extends IQuantityConfigurationProperties {
   quantity?: number;
 }
 
-type Rule = {
-  quantity?: number;
-  accountingGroup?: IAccountingGroups;
-}
 
 export const MixAndMatchRuleUpdate = () => {
   const dispatch = useAppDispatch();
@@ -266,7 +262,7 @@ export const MixAndMatchRuleUpdate = () => {
                         <Select
                           id="ruleGroup"
                           styles={{
-                            control: (baseStyles, state) => ({
+                            control: (baseStyles) => ({
                               ...baseStyles,
                               paddingTop: '0.5rem',
                               paddingBottom: '0.5rem',

@@ -51,7 +51,7 @@ export const ComboItemUpdate = () => {
     itemType: "RESTAURANT",
   });
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
 
 

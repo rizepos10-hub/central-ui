@@ -4,18 +4,10 @@ import { Button, Row, Col, FormText } from 'reactstrap';
 import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IItem } from 'app/shared/model/ITEM/item.model';
-import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
-import { ITax } from 'app/shared/model/TAX/tax.model';
 import { getEntity, updateEntity, createEntity, reset } from './tax.reducer';
-import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import Select from "react-select";
-import value from "*.json";
-
 
 export const TaxUpdate = () => {
   const dispatch = useAppDispatch();
