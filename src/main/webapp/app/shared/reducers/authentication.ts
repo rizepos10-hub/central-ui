@@ -52,7 +52,7 @@ interface IAuthParams {
 export const authenticate = createAsyncThunk(
   'authentication/login',
   async (auth: IAuthParams) => {
-    let data = {
+    const data = {
       username: auth.username,
       password: auth.password,
       rememberMe: auth.rememberMe,
