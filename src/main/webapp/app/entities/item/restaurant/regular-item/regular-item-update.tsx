@@ -24,6 +24,9 @@ import {getEntities as getDiscounts} from "app/entities/discount/discount.reduce
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import Attachment from "app/shared/layout/attachment/attachment";
+import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
+import { IDiscount } from "app/shared/model/discount.model";
+import { IAddon } from "app/shared/model/ADDON/addon.model";
 
 
 
@@ -42,6 +45,7 @@ export const RegularItemUpdate = () => {
   const updateSuccess = useAppSelector(state => state.regularItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
   const discountList = useAppSelector(state => state.discount.entities);
+  const addonList = useAppSelector(state => state.addon.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
 
 
@@ -71,7 +75,7 @@ export const RegularItemUpdate = () => {
     }));
   }, [])
 
-  const handleVariantFieldChange = (variantIndex, fieldName: keyof IRegularItemVariant, value) => {
+  const handleVariantFieldChange = <K extends keyof IRegularItemVariant>(variantIndex, fieldName: K, value: IRegularItemVariant[K]) => {
     setRegularItem((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -86,7 +90,7 @@ export const RegularItemUpdate = () => {
   };
 
 
-  const handleBranchPriceChange = (variantIndex, branchId, priceType, price ) => {
+  const handleBranchPriceChange = useCallback((variantIndex, branchId, priceType, price ) => {
     setRegularItem((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -105,7 +109,7 @@ export const RegularItemUpdate = () => {
         variants: updatedVariants,
       };
     });
-  };
+  },[]);
 
 
 
@@ -332,6 +336,20 @@ export const RegularItemUpdate = () => {
                                     <Col md="7">
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
                                         <label className={"text-xl font-bold"}>
+                                          <Translate contentKey={'items.update.addons'}>Addons</Translate>
+                                        </label>
+                                        <Select
+                                          value={variant.addons}
+                                          options={addonList}
+                                          isMulti
+                                          getOptionLabel={option => option.name}
+                                          getOptionValue={option => option.id}
+                                          onChange={(addons) => handleVariantFieldChange(variantIndex, 'addons', addons as IAddon[])}
+                                        />
+                                      </div>
+
+                                      <div className={"d-flex flex-column gap-2 mt-2"}>
+                                        <label className={"text-xl font-bold"}>
                                           <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
                                         </label>
                                         <Select
@@ -340,7 +358,7 @@ export const RegularItemUpdate = () => {
                                           isMulti
                                           getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
                                           getOptionValue={option => option.id}
-                                          onChange={(discounts) => handleVariantFieldChange(variantIndex, 'discounts', discounts)}
+                                          onChange={(discounts) => handleVariantFieldChange(variantIndex, 'discounts', discounts as IDiscount[])}
                                         />
                                       </div>
 
@@ -375,52 +393,13 @@ export const RegularItemUpdate = () => {
                                     </Col>
                                   </Row>
 
-                                  <Col md="12" className={"mt-3"}>
-                                    <h4>
-                                      <Translate contentKey={'items.update.branchPrices'}>
-                                        Branch Prices
-                                      </Translate>
-                                    </h4>
-                                    <Table>
-                                      <thead>
-                                      <tr>
-                                        <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
-                                        <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
-                                        <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
-                                      </tr>
-                                      </thead>
-                                      <tbody>
-                                      {branchList.map(branch => (
-                                        <tr key={branch.id}>
-                                          <td>{branch.name}</td>
-                                          <td>
-                                            <InputNumber
-                                              name={`branchPrice_${branch.id}`}
-                                              placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
-                                              onWheel={(e: any) => e.target.blur()}
-                                              maxFractionDigits={2}
-                                              min={0}
-                                              value={variant?.branchVariantDetails?.[branch.id]?.price}
-                                              onChange={e => handleBranchPriceChange(variantIndex,branch.id,"price", e.value)}
-                                            />
-                                          </td>
-                                          <td>
-                                            <InputNumber
-                                              name={`branchSalePrice_${branch.id}`}
-                                              placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
-                                              onWheel={(e: any) => e.target.blur()}
-                                              min={0}
-                                              maxFractionDigits={2}
-                                              value={variant?.branchVariantDetails?.[branch.id]?.salePrice}
-                                              onChange={e => handleBranchPriceChange(variantIndex,branch.id, "salePrice", e.value)}
-                                            />
-                                          </td>
-
-                                        </tr>
-                                      ))}
-                                      </tbody>
-                                    </Table>
-                                  </Col>
+                                 <VariantBranchPrice
+                                  branchList={branchList}
+                                  handleBranchPriceChange={handleBranchPriceChange}
+                                  variantIndex={variantIndex}
+                                  branchVariantDetails={variant.branchVariantDetails}
+                                  itemVariantType={"RESTAURANT"}
+                                 />
 
                                 </AccordionTab>
                               </Accordion>

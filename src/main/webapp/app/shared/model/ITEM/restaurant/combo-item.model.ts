@@ -32,6 +32,7 @@ interface IComboItemVariant {
   attachments?: IAttachment[];
   discounts?: IDiscount[];
   price?: number;
+  salePrice?: number;
   branchVariantDetails?: IBranchVariantDetails;
   comboPackages?: IComboPackage[];
   mixAndMatchRule?: IMixAndMatchRule;

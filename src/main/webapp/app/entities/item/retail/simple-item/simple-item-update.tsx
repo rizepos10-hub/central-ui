@@ -37,6 +37,7 @@ import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 
 
 const defaultItemPriceNumber = {
@@ -78,10 +79,6 @@ export const SimpleItemUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [pricesModal, setPricesModal] = useState({
-    show: false,
-    branchId: '',
-  });
   const [simpleItem, setSimpleItem] = useState<ISimpleItem>({
     itemType: "RETAIL",
     itemVariantType: ItemVariantType.RETAIL_SIMPLE,
@@ -150,13 +147,7 @@ export const SimpleItemUpdate = () => {
     });
   };
 
-  const handleShowPricesModal = (branchId?) => {
-    setPricesModal(prev => ({
-      ...prev,
-      show: !prev.show,
-     branchId
-    }));
-  }
+
 
   const handleBranchPriceChange = (branchId, priceType, price) => {
     setSimpleItem(prev => ({
@@ -177,7 +168,7 @@ export const SimpleItemUpdate = () => {
     }));
   };
 
-  const handleSaveWholesalePrices = (prices) => {
+  const handleSaveWholesalePrices = (prices, branchId) => {
     setSimpleItem(prev => ({
       ...prev,
       variants: [
@@ -185,8 +176,8 @@ export const SimpleItemUpdate = () => {
           ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
           branchVariantDetails: {
             ...prev.variants[0]?.branchVariantDetails,
-            [pricesModal?.branchId]: {
-            ...prev?.variants?.[0]?.branchVariantDetails?.[pricesModal?.branchId],
+            [branchId]: {
+            ...prev?.variants?.[0]?.branchVariantDetails?.[branchId],
               wholesalePrices: prices,
             },
           },
@@ -298,21 +289,7 @@ export const SimpleItemUpdate = () => {
     }));
   };
 
-  const handleSpecialPriceChange = ( priceKey, value) => {
-    setSimpleItem(prevSimpleItem => ({
-      ...prevSimpleItem,
-      variants: [{
-        ...prevSimpleItem.variants[0],
-        branchVariantDetails: {
-          ...prevSimpleItem.variants[0].branchVariantDetails,
-         wholesalePrices: {
-            ...prevSimpleItem.variants[0].branchVariantDetails["wholesalePrices"],
-            [priceKey]: value
-          }
-        }
-      }]
-    }));
-  };
+
 
 
   const handleNavigate = (simpleItemId) => {
@@ -432,7 +409,7 @@ export const SimpleItemUpdate = () => {
 
                     <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
-                      <Col md="10" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
+                      <Col md="12" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
 
                         <Col md="7">
                           <div className={"d-flex flex-column gap-2"}>
@@ -489,68 +466,14 @@ export const SimpleItemUpdate = () => {
                           </Col>
 
 
-                          <Col md="12" className={"mt-3"}>
-                            {pricesModal?.show &&
-                              <WholesalePrices
-                                toggle={handleShowPricesModal}
-                                isOpen={pricesModal?.show}
-                                branchWholesalePrices={simpleItem?.variants?.[0]?.branchVariantDetails?.[pricesModal?.branchId]?.wholesalePrices}
-                                savePrices={handleSaveWholesalePrices}
-                              />
-                            }
-                            <h4><Translate contentKey={'items.update.branchPrices'}>Branch Prices</Translate></h4>
-                            <Table>
-                              <thead>
-                              <tr>
-                                <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
-                                <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
-                                <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
-                                {branchList.some(branch => branch.wholesale) ?
-                                  <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
-                                : null}
-                              </tr>
-                              </thead>
-                              <tbody>
-                              {branchList.map(branch => {
-                                console.log(branch, 'vbranch')
-                                return (
-                                  <tr key={branch.id}>
-                                    <td>{branch.name}</td>
-                                    <td>
-                                      <InputNumber
-                                        name={`branchPrice_${branch.id}`}
-                                        placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
-                                        onWheel={(e: any) => e.target.blur()}
-                                        maxFractionDigits={2}
-                                        min={0}
-                                        value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
-                                        onChange={e => handleBranchPriceChange(branch.id, "price", e.value)}
-                                      />
-                                    </td>
-
-                                    <td>
-                                      <InputNumber
-                                        name={`branchSalePrice_${branch.id}`}
-                                        placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
-                                        onWheel={(e: any) => e.target.blur()}
-                                        maxFractionDigits={2}
-                                        min={0}
-                                        value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.salePrice}
-                                        onChange={e => handleBranchPriceChange(branch.id,"salePrice", e.value)}
-                                      />
-                                    </td>
-                                    {branch.wholesale &&
-                                      <td>
-                                        <Button onClick={() => handleShowPricesModal(branch.id)}>Wholesale
-                                          Prices</Button>
-                                      </td>
-                                    }
-                                  </tr>
-                                )
-                              })}
-                              </tbody>
-                            </Table>
-                          </Col>
+                        <VariantBranchPrice
+                          itemVariantType={"RETAIL"}
+                          branchVariantDetails={simpleItem?.variants?.[0]?.branchVariantDetails}
+                          variantIndex={0}
+                          branchList={branchList}
+                          handleBranchPriceChange={handleBranchPriceChange}
+                          handleSaveWholesalePrices={handleSaveWholesalePrices}
+                        />
 
                       <Row>
                         <Col md="7">

@@ -3,6 +3,7 @@ import {IAttachment} from "app/shared/model/attachment.model";
 import {IDiscount} from "app/shared/model/discount.model";
 import {IBranch} from "app/shared/model/branch.model";
 import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
+import { IAddon } from "app/shared/model/ADDON/addon.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -17,6 +18,7 @@ export interface IRegularItemVariant {
   name?: string | null;
   attachments?: IAttachment[];
   discounts?: IDiscount[];
+  addons?: IAddon[];
   price?: number;
   salePrice?: number;
   branchVariantDetails?: IBranchVariantDetails;
