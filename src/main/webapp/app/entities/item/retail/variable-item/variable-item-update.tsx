@@ -762,6 +762,7 @@ export const VariableItemUpdate = () => {
                                     handleBranchPriceChange={handleBranchPriceChange}
                                     variantIndex={variantIndex}
                                     branchVariantDetails={variant.branchVariantDetails}
+                                    itemVariantType={"RETAIL"}
                                   />
 
                                 </AccordionTab>

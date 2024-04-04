@@ -25,6 +25,7 @@ import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 
 
 export const ComboItemUpdate = () => {
@@ -404,51 +405,34 @@ export const ComboItemUpdate = () => {
                           </div>
                         </Col>
 
-                        <Col md="12" className={"mt-3"}>
-                          <h4><Translate contentKey={'items.update.branchPrices'}>Branch Prices</Translate></h4>
-                          <div className={"table-responsive"}>
-                          <Table>
-                            <thead>
-                            <tr>
-                              <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
-                              <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
-                              <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {branchList?.map(branch => (
-                              <tr key={branch.id}>
-                                <td>{branch.name}</td>
-                                <td>
-                                  <InputNumber
-                                    name={`branchPrice_${branch.id}`}
-                                    placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
-                                    onWheel={(e: any) => e.target.blur()}
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    size={12}
-                                    value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
-                                    onChange={e => handleBranchPriceChange(branch.id,"price", e.value)}
-                                  />
-                                </td>
-                                <td>
-                                  <InputNumber
-                                    name={`branchSalePrice_${branch.id}`}
-                                    size={12}
-                                    placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
-                                    onWheel={(e: any) => e.target.blur()}
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    value={comboItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.salePrice}
-                                    onChange={e => handleBranchPriceChange(branch.id, "salePrice", e.value)}
-                                  />
-                                </td>
-                              </tr>
-                            ))}
-                            </tbody>
-                          </Table>
+                        <Col md="4">
+                          <div className={"d-flex flex-column gap-2 mt-2"}>
+                            <label className={"text-xl font-bold"}>
+                              <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                            </label>
+                            <InputNumber
+                              name="sale-price"
+                              id="sale-price"
+                              placeholder="Variant Sale Price"
+                              min={0}
+                              size={6}
+                              maxFractionDigits={2}
+                              value={comboItem?.variants?.[0]?.salePrice}
+                              onChange={(e) => handleComboVariantChange( 'salePrice', e.value)}
+                            />
                           </div>
                         </Col>
+
+
+                       <VariantBranchPrice
+                        branchVariantDetails={comboItem?.variants?.[0].branchVariantDetails}
+                        branchList={branchList}
+                        handleBranchPriceChange={handleBranchPriceChange}
+                        variantIndex={0}
+                        itemVariantType={"RESTAURANT"}
+                       />
+
+
                         <Row>
                           <FormGroup>
                             <h3><Translate contentKey={'items.update.combo.title'}>Combo</Translate></h3>

@@ -398,6 +398,7 @@ export const RegularItemUpdate = () => {
                                   handleBranchPriceChange={handleBranchPriceChange}
                                   variantIndex={variantIndex}
                                   branchVariantDetails={variant.branchVariantDetails}
+                                  itemVariantType={"RESTAURANT"}
                                  />
 
                                 </AccordionTab>
