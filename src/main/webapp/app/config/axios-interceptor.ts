@@ -1,30 +1,30 @@
-import axios from 'axios';
-import { Storage } from 'react-jhipster';
-import { AUTH_TOKEN_KEY, clearAccessToken, REFRESH_TOKEN_KEY, TENANT_KEY } from 'app/shared/reducers/authentication';
+  import axios from 'axios';
+  import { Storage } from 'react-jhipster';
+  import { AUTH_TOKEN_KEY, clearAccessToken, REFRESH_TOKEN_KEY, TENANT_KEY } from 'app/shared/reducers/authentication';
 
-const TIMEOUT = 1 * 60 * 1000;
-axios.defaults.timeout = TIMEOUT;
-axios.defaults.baseURL = SERVER_API_URL;
+  const TIMEOUT = 1 * 60 * 1000;
+  axios.defaults.timeout = TIMEOUT;
+  axios.defaults.baseURL = SERVER_API_URL;
 
-const setupAxiosInterceptors = onUnauthenticated => {
-  let refreshPromise = null;
+  const setupAxiosInterceptors = onUnauthenticated => {
+    let refreshPromise = null;
 
-  const refreshAccessToken = async () => {
-      clearAccessToken();
-      const localStorageToken = Storage.local.get(REFRESH_TOKEN_KEY) || null;
-      const sessionStorageToken = Storage.session.get(REFRESH_TOKEN_KEY) || null;
-      const tenantKey = Storage.local.get(TENANT_KEY) || Storage.session.get(TENANT_KEY);
-      const refreshToken = localStorageToken || sessionStorageToken;
+    const refreshAccessToken = async () => {
+      try {
+        clearAccessToken();
+        const localStorageToken = Storage.local.get(REFRESH_TOKEN_KEY) || null;
+        const sessionStorageToken = Storage.session.get(REFRESH_TOKEN_KEY) || null;
+        const tenantKey = Storage.local.get(TENANT_KEY) || Storage.session.get(TENANT_KEY);
+        const refreshToken = localStorageToken || sessionStorageToken;
 
-      if (refreshToken) {
-        const requestBody = {
-          refresh: refreshToken,
-          realm: tenantKey,
-          clientId: 'central-app',
-        };
+        if (refreshToken) {
+          const requestBody = {
+            refresh: refreshToken,
+            realm: tenantKey,
+            clientId: 'central-app',
+          };
 
           const response = await axios.post(SERVER_ADMIN_API_URL + '/api/auth/refresh', requestBody);
-           console.log('isRefreshing1 response', response)
 
           const newAccessToken = response?.data?.access_token;
           const newRefreshToken = response?.data?.refresh_token;
@@ -38,46 +38,51 @@ const setupAxiosInterceptors = onUnauthenticated => {
               Storage.session.set(REFRESH_TOKEN_KEY, newRefreshToken);
             }
             return newAccessToken;
+          }
+        }
+        return null;
+      } catch (error) {
+        console.error('error refreshing token: ', error)
+        onUnauthenticated();
+        throw error
       }
+    };
 
-    }
-    return null;
-  };
+    const onRequestSuccess = config => {
+      const token = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    };
 
-  const onRequestSuccess = config => {
-    const token = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  };
+    const onResponseSuccess = response => response;
 
-  const onResponseSuccess = response => response;
-
-  const onResponseError = async err => {
-    const status = err.status || (err.response ? err.response.status : 0);
-    if ((status === 403 || status === 401) && !refreshPromise) {
-      console.log(err, 'hass erorr')
-      refreshPromise = refreshAccessToken();
-      if (refreshPromise) {
-        try {
-          const newAccessToken = await refreshPromise;
-          if (newAccessToken) {
-            err.config.headers.Authorization = `Bearer ${newAccessToken}`;
-            return axios(err.config);
-          } else {
+    const onResponseError = async err => {
+      const status = err.status || (err.response ? err.response.status : 0);
+      if ((status === 403 || status === 401) && !refreshPromise) {
+        refreshPromise = refreshAccessToken();
+        if (refreshPromise) {
+          try {
+            const newAccessToken = await refreshPromise;
+            if (newAccessToken) {
+              err.config.headers.Authorization = `Bearer ${newAccessToken}`;
+              return axios(err.config);
+            }
+          }catch (error){
+            console.log('error refreshing token2: ', error)
             onUnauthenticated();
           }
-        } finally {
-          refreshPromise = null;
+          finally {
+            refreshPromise = null;
+          }
         }
       }
-    }
-    return Promise.reject(err);
+      return Promise.reject(err);
+    };
+
+    axios.interceptors.request.use(onRequestSuccess);
+    axios.interceptors.response.use(onResponseSuccess, onResponseError);
   };
 
-  axios.interceptors.request.use(onRequestSuccess);
-  axios.interceptors.response.use(onResponseSuccess, onResponseError);
-};
-
-export default setupAxiosInterceptors;
+  export default setupAxiosInterceptors;
