@@ -1,38 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
+import { Link, useLocation } from 'react-router-dom';
+import { getSortState, } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { searchEntities, getEntities } from './tax.reducer';
-import {Button as ReactStrapButton } from "reactstrap";
-// import { ITax } from 'app/shared/model/tax.model';
+import { searchEntities, getEntities, resetEntity } from "./tax.reducer";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
 import {InputText} from "primereact/inputtext";
 import AddTaxModal from "app/entities/settings/taxes/add-tax-modal";
+import { ITax } from "app/shared/model/TAX/tax.model";
 
 export const Tax = () => {
   const dispatch = useAppDispatch();
-
   const location = useLocation();
-  const navigate = useNavigate();
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const taxList = useAppSelector(state => state.tax.entities);
+  const taxList :ITax[] = useAppSelector(state => state.tax.entities);
   const loading = useAppSelector(state => state.tax.loading);
   const totalItems = useAppSelector(state => state.tax.totalItems);
-
-
-  console.log(taxList, 'lol')
-
 
 
   const [isModalVisible, setModalVisible] = useState(false)
@@ -41,17 +34,16 @@ export const Tax = () => {
 
 
   const handleCreate = () => {
-    setSelectedTaxId(null)
-
+    setSelectedTaxId(null);
+    dispatch(resetEntity());
     setModalVisible(true);
   };
 
-  console.log("Selected Tax ID:", selectedTaxId);
-  console.log("Modal Visibility:", isModalVisible);
+
 
   const handleEdit = (id) => {
     setModalVisible(true);
-    setSelectedTaxId(id)
+    setSelectedTaxId(id);
   };
 
   const handleCloseModal = () => {
@@ -68,25 +60,17 @@ export const Tax = () => {
   });
 
 
-
-  // console.log(taxList,'taxList')
-
-
-
-
-
   const getTaxes = () => {
-  dispatch(getEntities({}))
+    dispatch(getEntities({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
   };
-
 
   useEffect(() => {
     getTaxes()
   }, []);
-
-
-
-
 
 
   const codeColumnTemplate = (rowData) => {
@@ -113,10 +97,10 @@ export const Tax = () => {
   };
   const editColumnTemplate = (rowData) => {
     return (
-      <ReactStrapButton raised onClick={() => handleEdit(rowData.id)} disabled={loading}>
-
+      <Link to={"#"} type={"button"} onClick={() => handleEdit(rowData.id)}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </ReactStrapButton>
+      </Link>
+
     );
   };
 
@@ -130,13 +114,8 @@ export const Tax = () => {
   // };
 
 
-  const activeColumnTemplate = rowData => {
-    return rowData.taxInclusive ?<p className="text-success ml-2  ">&#10004;</p>:
-      <p className="text-danger ml-2 ">&#10006;</p>
-  };
 
 
-  // console.log(taxList, 'taxList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Taxes</span>

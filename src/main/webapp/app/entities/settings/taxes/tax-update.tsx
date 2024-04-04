@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormText } from 'reactstrap';
+import { Button, Row, Col, FormText, FormGroup, Label } from "reactstrap";
 import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -8,6 +8,8 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './tax.reducer';
 import Select from "react-select";
+import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
 
 export const TaxUpdate = () => {
   const dispatch = useAppDispatch();
@@ -17,17 +19,19 @@ export const TaxUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const items = useAppSelector(state => state.item.entities);
   const taxEntity = useAppSelector(state => state.tax.entity);
   const loading = useAppSelector(state => state.tax.loading);
   const updating = useAppSelector(state => state.tax.updating);
   const updateSuccess = useAppSelector(state => state.tax.updateSuccess);
   const discounts = useAppSelector(state => state.discount.entities);
 
+  const taxCodeRef = useRef(null);
+  const taxDescRef = useRef(null);
+  const taxValueRef = useRef(null);
+
   const [selectedDiscounts, setSelectedDiscounts] = useState([]);
 
   const  handleDiscountsChange = selectedOptions => {
-    console.log(selectedOptions, 'news')
     const selectedValues = selectedOptions.map((option) => ({
       id: option.id,
       type: option.type,
@@ -112,47 +116,25 @@ export const TaxUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {!isNew ? (
-                <ValidatedField
-                  name="id"
-                  required
-                  readOnly
-                  id="tax-id"
-                  label={translate('global.field.id')}
-                  validate={{ required: true }}
-                />
-              ) : null}
-              <ValidatedField
-                label={translate('tempApp.tax.code')}
-                id="tax-code"
-                name="code"
-                data-cy="code"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                }}
-              />
-              <ValidatedField label={translate('tempApp.tax.desc')} id="tax-desc" name="desc" data-cy="desc" type="text" />
-              <ValidatedField
-                label={translate('tempApp.tax.value')}
-                id="tax-value"
-                name="value"
-                data-cy="value"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('entity.validation.required') },
-                  validate: v => isNumber(v) || translate('entity.validation.number'),
-                }}
-              />
-              <div className="mb-3">
-                <Translate contentKey="tempApp.item.variant.discount">Discount</Translate>
-                <Select isMulti={true}
-                        defaultValue={defaultDiscountsOptions}
-                        options={discountsOptions}
-                        onChange={handleDiscountsChange} />
-              </div>
+            <form onSubmit={saveEntity}>
+              <FormGroup>
+                <div className={'d-flex flex-column'}>
+                  <Label for="tax-code">{translate('tempApp.tax.code')}</Label>
+                  <InputText required={true} id="tax-code" ref={taxCodeRef} />
+                </div>
 
+                <div className={'d-flex flex-column'}>
+                  <Label for="tax-desc">{translate('tempApp.tax.desc')}</Label>
+                  <InputTextarea id="tax-desc" ref={taxDescRef} />
+                </div>
+
+                <div className={'d-flex flex-column'}>
+                  <Label for="tax-value">{translate('tempApp.tax.value')}</Label>
+                  <InputTextarea id="tax-value" ref={taxValueRef} />
+                </div>
+
+
+              </FormGroup>
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/tax" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
@@ -166,7 +148,7 @@ export const TaxUpdate = () => {
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
-            </ValidatedForm>
+            </form>
           )}
         </Col>
       </Row>
