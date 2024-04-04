@@ -37,6 +37,7 @@ import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 
 
 const defaultItemPriceNumber = {
@@ -756,59 +757,12 @@ export const VariableItemUpdate = () => {
                                     </Col>
                                   </Row>
 
-                                  <Col md="12" className={"mt-3"}>
-                                    <h4>
-                                      <Translate contentKey={'items.update.branchPrices'}>
-                                        Branch Prices
-                                      </Translate>
-                                    </h4>
-                                    <Table>
-                                      <thead>
-                                      <tr>
-                                        <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
-                                        <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
-                                        <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
-                                        {branchList.some(branch => branch.wholesale) ?
-                                          <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
-                                          : null}
-                                      </tr>
-                                      </thead>
-                                      <tbody>
-                                      {branchList.map(branch => (
-                                        <tr key={branch.id}>
-                                          <td>{branch.name}</td>
-                                          <td>
-                                            <InputNumber
-                                              name={`branchPrice_${branch.id}`}
-                                              placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
-                                              onWheel={(e: any) => e.target.blur()}
-                                              maxFractionDigits={2}
-                                              min={0}
-                                              value={variant?.branchVariantDetails?.[branch.id]?.price}
-                                              onChange={e => handleBranchPriceChange(variantIndex,branch.id,"price", e.value)}
-                                            />
-                                          </td>
-                                          <td>
-                                            <InputNumber
-                                              name={`branchSalePrice_${branch.id}`}
-                                              placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
-                                              onWheel={(e: any) => e.target.blur()}
-                                              min={0}
-                                              maxFractionDigits={2}
-                                              value={variant?.branchVariantDetails?.[branch.id]?.salePrice}
-                                              onChange={e => handleBranchPriceChange(variantIndex,branch.id, "salePrice", e.value)}
-                                            />
-                                          </td>
-                                          {branch.wholesale &&
-                                            <td>
-                                              <Button onClick={() => handleShowPricesModal(branch.id, variantIndex)}>Wholesale Prices</Button>
-                                            </td>
-                                          }
-                                        </tr>
-                                      ))}
-                                      </tbody>
-                                    </Table>
-                                  </Col>
+                                  <VariantBranchPrice
+                                    branchList={branchList}
+                                    handleBranchPriceChange={handleBranchPriceChange}
+                                    variantIndex={variantIndex}
+                                    branchVariantDetails={variant.branchVariantDetails}
+                                  />
 
                                 </AccordionTab>
                               </Accordion>
