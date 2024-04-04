@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
@@ -26,7 +26,7 @@ export const searchEntities = createAsyncThunk('tax/search_entity', async ({ que
 });
 
 export const getEntities = createAsyncThunk('tax/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}`;
   return axios.get<ITax[]>(requestUrl);
 });
 
@@ -34,10 +34,7 @@ export const getEntity = createAsyncThunk(
   'tax/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-   const response = await  axios.get<ITax>(requestUrl);
-
-   console.log(response, 'mizo')
-    return response
+    return axios.get<ITax>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
@@ -46,7 +43,7 @@ export const createEntity = createAsyncThunk(
   'tax/create_entity',
   async (entity: ITax, thunkAPI) => {
     const result = await axios.post<ITax>(apiUrl, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    thunkAPI.dispatch(getEntities({size: 400}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -56,7 +53,7 @@ export const updateEntity = createAsyncThunk(
   'tax/update_entity',
   async (entity: ITax, thunkAPI) => {
     const result = await axios.put<ITax>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    thunkAPI.dispatch(getEntities({size: 400}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -83,13 +80,25 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const changeEntityField = createAction<{ fieldName: keyof ITax; value: ITax[keyof ITax] }>('tax/change-entity-field');
+
 // slice
 
 export const TaxSlice = createEntitySlice({
   name: 'tax',
   initialState,
+  reducers: {
+    resetEntity(state) {
+      state.entity = {};
+      state.updateSuccess = false;
+    },
+  },
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { fieldName, value } = action.payload;
+        state.entity[fieldName] = value;
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
@@ -128,7 +137,7 @@ export const TaxSlice = createEntitySlice({
   },
 });
 
-export const { reset } = TaxSlice.actions;
+export const { reset, resetEntity } = TaxSlice.actions;
 
 // Reducer
 export default TaxSlice.reducer;

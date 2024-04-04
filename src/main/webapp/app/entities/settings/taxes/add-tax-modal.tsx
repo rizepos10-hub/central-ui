@@ -1,98 +1,73 @@
-import React, {useEffect, useReducer, useState} from 'react';
+import React, { useEffect, useReducer, useRef, useState } from "react";
 import { Dialog } from 'primereact/dialog';
 // import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import {Modal, Button, ModalBody, ModalFooter, ModalHeader, Alert} from 'reactstrap';
-import {createEntity, getEntity, reset, updateEntity} from "app/entities/settings/taxes/tax.reducer";
+import {createEntity, getEntity, resetEntity, updateEntity, changeEntityField} from "app/entities/settings/taxes/tax.reducer";
 import {useAppDispatch, useAppSelector} from "app/config/store";
+import { ITax } from "app/shared/model/TAX/tax.model";
+import { InputNumber } from "primereact/inputnumber";
 
 
-const initialState = {
-  id: null,
-  code: '',
-  description: '',
-  value: '',
-};
 
-const reducer = (state, action) => {
-  switch (action.type) {
-    case 'SET_CODE':
-      return { ...state, code: action.payload };
-    case 'SET_DESCRIPTION':
-      return { ...state, description: action.payload };
-
-    case 'SET_VALUE':
-      return { ...state, value: action.payload };
-
-    case 'SET_ID':
-      return { ...state, id: action.payload };
-    default:
-      return state;
-  }
-};
 const AddTaxModal = ({ visible, onHide, taxId= null }) => {
 
-  const [state, dispatch] = useReducer(reducer, initialState);
   const isNew = taxId === null;
-
-  const dispatchAction = useAppDispatch()
-
+  const dispatch = useAppDispatch()
   const [next, setNext] = useState(false);
 
-  const taxEntity = useAppSelector(state => state.tax.entity);
+
+  const taxEntity :ITax = useAppSelector(state => state.tax.entity);
   const loading = useAppSelector(state => state.tax.loading);
   const updating = useAppSelector(state => state.tax.updating);
   const updateSuccess = useAppSelector(state => state.tax.updateSuccess);
 
-  console.log(taxEntity, 'lolo')
 
-  const handleInputChange = (field, value) => {
-    dispatch({ type: `SET_${field}`, payload: value });
+  const handleChange = <K extends keyof ITax>(fieldName: K, value: ITax[K]) => {
+    dispatch(changeEntityField({ fieldName, value }));
+  };
+
+ const allFieldsFilled =  taxEntity.code &&  taxEntity.description && taxEntity.value;
+
+  const handleClose = () => {
+    setNext(false);
+    onHide();
   };
 
   const handleNextClick = () => {
-    if (state.code && state.description && state.value) {
+    if (allFieldsFilled) {
       setNext(true);
     } else {
       alert("Please fill in all required fields (Code, Description, Value) before proceeding.");
     }
   };
 
+
   const handleSubmit = () => {
-    console.log(state, 'meso')
-    if (state.code && state.description && state.value) {
-      if (isNew) {
-        dispatchAction(createEntity(state));
-      } else {
-        dispatchAction(updateEntity( state));
-      }
-
-      onHide();
+    const entity :ITax = {
+     ...taxEntity
+    }
+    if (isNew) {
+      dispatch(createEntity(entity));
     } else {
-      alert('Please fill in all required fields (Code, Description, value) before submitting.');
+      dispatch(updateEntity(entity));
     }
   };
-  const handleClose = () => {
-    setNext(false);
-    onHide();
+
+  const fetchTaxEntity = () => {
+    if (!isNew && taxId !== null) {
+      dispatch(getEntity(taxId));
+    }
   };
 
   useEffect(() => {
-
-    if (taxId !== null) {
-      dispatchAction(getEntity(taxId));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (taxEntity && taxId !== null) {
-      dispatch({ type: 'SET_CODE', payload: taxEntity.code });
-      dispatch({ type: 'SET_DESCRIPTION', payload: taxEntity.description });
-      dispatch({ type: 'SET_VALUE', payload: taxEntity.value });
-      dispatch({ type: 'SET_ID', payload: taxEntity.id });
+    fetchTaxEntity();
+    if(updateSuccess){
+      onHide();
     }
 
-  }, [taxEntity.code]);
+  }, [taxId, updateSuccess]);
+
 
 
   return (
@@ -108,10 +83,11 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
           <div className="grid">
             <div className="col-12 d-flex flex-column mb-2">
               <span style={{ fontWeight: 'bold' }}>Code</span>
-              <InputText placeholder="Enter code"
-                         value={state.code}
-                         readOnly={!isNew}
-                         onChange={(e) => handleInputChange('CODE', e.target.value)}
+              <InputText
+                placeholder="Enter code"
+                value={taxEntity.code}
+                readOnly={!isNew}
+                onChange={(e) => handleChange('code', e.target.value)}
               />
               <p>You cannot edit the code after saving</p>
             </div>
@@ -119,27 +95,17 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
               <span style={{ fontWeight: 'bold' }}>Description</span>
               <InputText
                 placeholder="Enter description"
-                value={state.description}
-                onChange={(e) => handleInputChange('DESCRIPTION', e.target.value)}
+                value={taxEntity.description}
+                onChange={(e) => handleChange('description', e.target.value)}
               />
             </div>
-            {/* <div className="col-12 d-flex flex-column mb-2"> */}
-            {/*   <div className="d-flex justify-content-between"> */}
-            {/*     <span style={{ fontWeight: 'bold' }}>Accounting reference</span> */}
-            {/*     <span className="font-bold">Optional</span> */}
-            {/*   </div> */}
-            {/*   <InputText */}
-            {/*     placeholder="Enter accounting reference" */}
-            {/*     value={state.accountingReference} */}
-            {/*     onChange={(e) => handleInputChange('ACCOUNTING_REFERENCE', e.target.value)} */}
-            {/*   /> */}
-            {/*   <p>Used for accounting integrations such as POS Accounting</p> */}
-            {/* </div> */}
+
             <div className="col-12 d-flex flex-column mb-2">
               <span style={{ fontWeight: 'bold' }}>Value (%)</span>
-              <InputText placeholder="Enter value"
-                         value={state.value}
-                         onChange={(e) => handleInputChange('VALUE', e.target.value)}
+              <InputNumber
+                placeholder="Enter value"
+                value={taxEntity.value}
+                onChange={(e) => handleChange('value', e.value)}
               />
             </div>
           </div>
@@ -152,22 +118,19 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
           <>
             <div className="col-6 d-flex mb-2 align-items-center">
               <span className="font-bold text-xl">Code</span>
-              <span className="ml-auto">{state.code}</span>
+              <span className="ml-auto">{taxEntity.code}</span>
             </div>
             <hr className="border-dark" />
             <div className="col-6 d-flex mb-2 align-items-center">
               <span className="font-bold text-xl">Description</span>
-              <span className="ml-auto">{state.description}</span>
+              <span className="ml-auto">{taxEntity.description}</span>
             </div>
             <hr className="border-dark" />
-            <div className="col-6 d-flex mb-2 align-items-center">
-              <span className="font-bold text-xl">Accounting reference</span>
-              <span className="ml-auto">{state.accountingReference}</span>
-            </div>
+
             <hr className="border-dark" />
             <div className="col-6 d-flex mb-2 align-items-center">
               <span className="font-bold text-xl">Value (%)</span>
-              <span className="ml-auto  ">{state.value}</span>
+              <span className="ml-auto  ">{taxEntity.value}</span>
             </div>
           </>
         </ModalBody>
@@ -179,7 +142,7 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
             <Button color="primary" onClick={handleClose}>
               Close
             </Button>
-            <Button color="primary" onClick={!next ? handleNextClick : handleSubmit}>
+            <Button color="primary" disabled={updating} onClick={!next ? handleNextClick : handleSubmit}>
               {next ? 'Submit' : "Next"}
             </Button>
       </ModalFooter>
