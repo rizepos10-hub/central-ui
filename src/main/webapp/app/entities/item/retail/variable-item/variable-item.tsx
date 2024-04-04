@@ -18,6 +18,7 @@ import {IVariableItem} from "app/shared/model/ITEM/retail/variable-item.model";
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
 import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {SummarizeText} from "app/shared/util/SummarizeText";
+import ImageDisplay from "app/shared/layout/image/image-display";
 
 export const VariableItem = () => {
   const dispatch = useAppDispatch();
@@ -176,7 +177,12 @@ export const VariableItem = () => {
                    rows={20}>
           <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
           <Column header={translate('items.view.fields.image')}  body={(rowData) =>
-            <img src={rowData.attachments[0]?.url} alt={rowData.attachments[0]?.name}  className="w-6rem shadow-2 border-round" /> } />
+            <ImageDisplay
+              imageType={"product"}
+              imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url }
+              height={50}
+              width={50}
+            />} />
           <Column field="desc" header={translate('items.view.fields.description')} body={(rowData)=> <SummarizeText>{rowData.desc}</SummarizeText>}/>
 
           <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
