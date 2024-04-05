@@ -5,9 +5,9 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './void-reasons.reducer';
+import { getEntity, deleteEntity } from './void-reason.reducer';
 
-export const VoidReasonsDeleteDialog = () => {
+export const VoidReasonDeleteDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -21,8 +21,8 @@ export const VoidReasonsDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const voidReasonsEntity = useAppSelector(state => state.voidReasons.entity);
-  const updateSuccess = useAppSelector(state => state.voidReasons.updateSuccess);
+  const voidReasonsEntity = useAppSelector(state => state.voidReason.entity);
+  const updateSuccess = useAppSelector(state => state.voidReason.updateSuccess);
 
   const handleClose = () => {
     navigate('/void-reasons' + location.search);
@@ -65,4 +65,4 @@ export const VoidReasonsDeleteDialog = () => {
   );
 };
 
-export default VoidReasonsDeleteDialog;
+export default VoidReasonDeleteDialog;

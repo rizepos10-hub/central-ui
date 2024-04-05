@@ -1,11 +1,11 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IVoidReasons, defaultValue } from 'app/shared/model/void-reasons.model';
+import { IVoidReason, defaultValue } from 'app/shared/model/void-reason.model';
 
-const initialState: EntityState<IVoidReasons> = {
+const initialState: EntityState<IVoidReason> = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -22,21 +22,19 @@ const apiSearchUrl = 'api/_search/void-reasons';
 
 export const searchEntities = createAsyncThunk('void-reasons/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IVoidReasons[]>(requestUrl);
+  return axios.get<IVoidReason[]>(requestUrl);
 });
 
 export const getEntities = createAsyncThunk('void-reasons/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
-  return axios.get<IVoidReasons[]>(requestUrl);
+  return axios.get<IVoidReason[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
   'void-reasons/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-   const response = await  axios.get<IVoidReasons>(requestUrl);
-
-   console.log(response, 'mizo')
+    const response = await  axios.get<IVoidReason>(requestUrl);
     return response
   },
   { serializeError: serializeAxiosError }
@@ -44,9 +42,9 @@ export const getEntity = createAsyncThunk(
 
 export const createEntity = createAsyncThunk(
   'void-reasons/create_entity',
-  async (entity: IVoidReasons, thunkAPI) => {
-    const result = await axios.post<IVoidReasons>(apiUrl, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+  async (entity: IVoidReason, thunkAPI) => {
+    const result = await axios.post<IVoidReason>(apiUrl, cleanEntity(entity));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -54,9 +52,9 @@ export const createEntity = createAsyncThunk(
 
 export const updateEntity = createAsyncThunk(
   'void-reasons/update_entity',
-  async (entity: IVoidReasons, thunkAPI) => {
-    const result = await axios.put<IVoidReasons>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+  async (entity: IVoidReason, thunkAPI) => {
+    const result = await axios.put<IVoidReason>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -64,9 +62,9 @@ export const updateEntity = createAsyncThunk(
 
 export const partialUpdateEntity = createAsyncThunk(
   'void-reasons/partial_update_entity',
-  async (entity: IVoidReasons, thunkAPI) => {
-    const result = await axios.patch<IVoidReasons>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+  async (entity: IVoidReason, thunkAPI) => {
+    const result = await axios.patch<IVoidReason>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -76,13 +74,14 @@ export const deleteEntity = createAsyncThunk(
   'void-reasons/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IVoidReasons>(requestUrl);
-    thunkAPI.dispatch(getEntities({}));
+    const result = await axios.delete<IVoidReason>(requestUrl);
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
 );
 
+export const changeEntityField = createAction<{field: keyof IVoidReason, value: IVoidReason[keyof IVoidReason]}>("Change-entity-field");
 // slice
 
 export const VoidReasonsSlice = createEntitySlice({
@@ -90,6 +89,10 @@ export const VoidReasonsSlice = createEntitySlice({
   initialState,
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { field, value } = action.payload;
+        state.entity[field] = value;
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
