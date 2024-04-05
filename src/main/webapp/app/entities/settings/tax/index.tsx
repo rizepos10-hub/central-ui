@@ -3,9 +3,8 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import TaxUpdate from './tax-update';
 import TaxDeleteDialog from './tax-delete-dialog';
-import Tax from "app/entities/settings/taxes/taxes";
+import Tax from "app/entities/settings/tax/tax";
 
 const TaxRoutes = () => (
   <ErrorBoundaryRoutes>

@@ -1,11 +1,11 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IAccountingGroups, defaultValue } from 'app/shared/model/TAX/accounting-groups.model';
+import { IAccountingGroup, defaultValue } from 'app/shared/model/TAX/accounting-groups.model';
 
-const initialState: EntityState<IAccountingGroups> = {
+const initialState: EntityState<IAccountingGroup> = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -22,19 +22,19 @@ const apiSearchUrl = 'api/_search/accounting-groups';
 
 export const searchEntities = createAsyncThunk('accounting-groups/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IAccountingGroups[]>(requestUrl);
+  return axios.get<IAccountingGroup[]>(requestUrl);
 });
 
 export const getEntities = createAsyncThunk('accounting-groups/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
-  return axios.get<IAccountingGroups[]>(requestUrl);
+  return axios.get<IAccountingGroup[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
   'accounting-groups/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-   const response = await  axios.get<IAccountingGroups>(requestUrl);
+   const response = await  axios.get<IAccountingGroup>(requestUrl);
 
    console.log(response, 'mizo')
     return response
@@ -44,9 +44,9 @@ export const getEntity = createAsyncThunk(
 
 export const createEntity = createAsyncThunk(
   'accounting-groups/create_entity',
-  async (entity: IAccountingGroups, thunkAPI) => {
-    const result = await axios.post<IAccountingGroups>(apiUrl, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+  async (entity: IAccountingGroup, thunkAPI) => {
+    const result = await axios.post<IAccountingGroup>(apiUrl, cleanEntity(entity));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -54,9 +54,9 @@ export const createEntity = createAsyncThunk(
 
 export const updateEntity = createAsyncThunk(
   'accounting-groups/update_entity',
-  async (entity: IAccountingGroups, thunkAPI) => {
-    const result = await axios.put<IAccountingGroups>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+  async (entity: IAccountingGroup, thunkAPI) => {
+    const result = await axios.put<IAccountingGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -64,8 +64,8 @@ export const updateEntity = createAsyncThunk(
 
 export const partialUpdateEntity = createAsyncThunk(
   'accounting-groups/partial_update_entity',
-  async (entity: IAccountingGroups, thunkAPI) => {
-    const result = await axios.patch<IAccountingGroups>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  async (entity: IAccountingGroup, thunkAPI) => {
+    const result = await axios.patch<IAccountingGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -76,20 +76,26 @@ export const deleteEntity = createAsyncThunk(
   'accounting-groups/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IAccountingGroups>(requestUrl);
-    thunkAPI.dispatch(getEntities({}));
+    const result = await axios.delete<IAccountingGroup>(requestUrl);
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
 );
 
+export const changeEntityField = createAction<{ fieldName: keyof IAccountingGroup; value: IAccountingGroup[keyof IAccountingGroup] }>('tax/change-entity-field');
+
 // slice
 
-export const AccountingGroupsSlice = createEntitySlice({
+export const AccountingGroupSlice = createEntitySlice({
   name: 'accounting-groups',
   initialState,
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { fieldName, value } = action.payload;
+        state.entity[fieldName] = value;
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
@@ -101,7 +107,6 @@ export const AccountingGroupsSlice = createEntitySlice({
       })
       .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
         const { data, headers } = action.payload;
-
         return {
           ...state,
           loading: false,
@@ -128,7 +133,7 @@ export const AccountingGroupsSlice = createEntitySlice({
   },
 });
 
-export const { reset } = AccountingGroupsSlice.actions;
+export const { reset } = AccountingGroupSlice.actions;
 
 // Reducer
-export default AccountingGroupsSlice.reducer;
+export default AccountingGroupSlice.reducer;

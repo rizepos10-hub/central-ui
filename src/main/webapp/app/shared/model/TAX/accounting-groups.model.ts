@@ -1,13 +1,13 @@
-export interface IAccountingGroups {
+export interface IAccountingGroup {
   id: string;
   name: string;
   accountingId: string | null;
   profiles: any[];
 }
 
-export const defaultValue: Readonly<IAccountingGroups> = {
-  id: '',
+export const defaultValue: Readonly<IAccountingGroup> = {
+  id: null,
   name: '',
-  accountingId: null,
+  accountingId: '',
   profiles: [],
 };

@@ -3,7 +3,7 @@ import { Dialog } from 'primereact/dialog';
 // import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import {Modal, Button, ModalBody, ModalFooter, ModalHeader, Alert} from 'reactstrap';
-import {createEntity, getEntity, resetEntity, updateEntity, changeEntityField} from "app/entities/settings/taxes/tax.reducer";
+import {createEntity, getEntity, resetEntity, updateEntity, changeEntityField} from "app/entities/settings/tax/tax.reducer";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import { ITax } from "app/shared/model/TAX/tax.model";
 import { InputNumber } from "primereact/inputnumber";
@@ -82,7 +82,7 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
           <p>Code, description, and value are required. Note that you cannot delete a tax after adding it.</p>
           <div className="grid">
             <div className="col-12 d-flex flex-column mb-2">
-              <span style={{ fontWeight: 'bold' }}>Code</span>
+              <span className={"fw-bold"}>Code</span>
               <InputText
                 placeholder="Enter code"
                 value={taxEntity.code}
@@ -92,7 +92,7 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
               <p>You cannot edit the code after saving</p>
             </div>
             <div className="col-12 d-flex flex-column mb-2">
-              <span style={{ fontWeight: 'bold' }}>Description</span>
+              <span className={"fw-bold"}>Description</span>
               <InputText
                 placeholder="Enter description"
                 value={taxEntity.description}
@@ -101,7 +101,7 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
             </div>
 
             <div className="col-12 d-flex flex-column mb-2">
-              <span style={{ fontWeight: 'bold' }}>Value (%)</span>
+              <span className={"fw-bold"}>Value (%)</span>
               <InputNumber
                 placeholder="Enter value"
                 value={taxEntity.value}

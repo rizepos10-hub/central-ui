@@ -11,8 +11,8 @@ import term from 'app/entities/term/term.reducer';
 import order from 'app/entities/order/order.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
-import tax from 'app/entities/settings/taxes/tax.reducer';
-import accountingGroups from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
+import tax from 'app/entities/settings/tax/tax.reducer';
+import accountingGroup from 'app/entities/settings/accounting-group/accounting-group.reducer';
 import voidReasons from 'app/entities/settings/void-reasons/void-reasons.reducer';
 import printer from 'app/entities/settings/printing/printer/printer.reducer';
 import printingProfiles from 'app/entities/settings/printing/printing-profiles/printing-profile.reducer';
@@ -88,7 +88,7 @@ const entitiesReducers = {
   PosBranchUser,
   tax,
   taxProfiles,
-  accountingGroups,
+  accountingGroup,
   businessDetail,
   voidReasons,
   printer,
