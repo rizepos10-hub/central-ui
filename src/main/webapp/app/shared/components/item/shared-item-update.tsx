@@ -246,7 +246,7 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                 options={accountingGroupsOptions}
                 getOptionLabel={option => option.name}
                 getOptionValue={option => option.id}
-                onChange={accountingGroup => onFieldChange('accountingGroups', [accountingGroup])}
+                onChange={accountingGroup => onFieldChange('accountingGroups', accountingGroup ? [accountingGroup] : [])}
               />
             </div>
           </Col>
