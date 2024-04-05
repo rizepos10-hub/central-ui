@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {Link,  useParams} from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset } from './void-reasons.reducer';
-import { getEntities as getTaxProfiles } from '../tax-profiles/tax-profile.reducer';
+import { getEntities as getTaxProfiles } from 'app/entities/settings/tax-profile/tax-profile.reducer';
 import { InputText } from "primereact/inputtext";
 import {Col, FormGroup, Row,Button} from 'reactstrap';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -39,7 +39,7 @@ export const VoidReasonsUpdate = () => {
   const handleSubmit = () => {
     const formData = {
       id: id ? id : null,
-      code: code,
+      code,
       reason: reason !== '' ? reason : null,
     };
 

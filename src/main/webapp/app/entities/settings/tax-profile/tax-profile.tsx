@@ -8,14 +8,13 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntities, getEntities } from './tax-profile.reducer';
 
-// import { ITax } from 'app/shared/model/tax.model';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
 import {InputText} from "primereact/inputtext";
 import AddTaxModal from "app/entities/settings/tax/add-tax-modal";
-import taxProfiles from "app/entities/settings/tax-profiles/tax-profile.reducer";
+import taxProfiles from "app/entities/settings/tax-profile/tax-profile.reducer";
 
 export const Tax = () => {
   const dispatch = useAppDispatch();
@@ -32,28 +31,15 @@ export const Tax = () => {
   const totalItems = useAppSelector(state => state.taxProfiles.totalItems);
 
 
-  console.log(taxProfileList, 'lol')
 
-
-
-  const [isModalVisible, setModalVisible] = useState(false)
-
-  const [selectedTaxId, setSelectedTaxId] = useState(null);
 
 
   const handleCreate = () => {
-  navigate('/tax-profiles/new')
+    navigate('/tax-profiles/new')
   };
 
 
-  const handleEdit = (id) => {
-    setModalVisible(true);
-    setSelectedTaxId(id)
-  };
 
-  const handleCloseModal = () => {
-    setModalVisible(false);
-  };
 
 
 
@@ -66,21 +52,18 @@ export const Tax = () => {
 
 
 
-  // console.log(taxProfileList,'taxProfileList')
-
-
-
-
-
   const getTaxes = () => {
-  dispatch(getEntities({}))
+    dispatch(getEntities({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
   };
 
 
   useEffect(() => {
     getTaxes()
   }, []);
-
 
 
 
@@ -119,13 +102,8 @@ export const Tax = () => {
   };
 
 
-  const activeColumnTemplate = rowData => {
-    return rowData.taxInclusive ?<p className="text-success ml-2  ">&#10004;</p>:
-      <p className="text-danger ml-2 ">&#10006;</p>
-  };
 
 
-  // console.log(taxProfileList, 'taxProfileList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Tax Profiles</span>
@@ -152,12 +130,9 @@ export const Tax = () => {
           />
 
 
-          <Column field="description" body={(rowData) => rowData?.taxRate?.description} header="Description"   sortable   />
+          <Column field="description" body={(rowData) => rowData?.taxRate?.description} header="Description" sortable />
 
           <Column field="value" header="Value" body={(rowData) => `${rowData?.taxRate?.code}(${rowData?.taxRate?.value})`} filter filterPlaceholder="Search by value"  sortable   />
-
-
-          {/* <Column header="Tax Inclusive" body={activeColumnTemplate} style={{width: '10%'}}   /> */}
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
@@ -165,7 +140,6 @@ export const Tax = () => {
           {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}
           {/*          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} /> */}
         </DataTable>
-        {isModalVisible && <AddTaxModal visible={isModalVisible} onHide={handleCloseModal} taxId={selectedTaxId}/>}
       </div>
   );
 };
