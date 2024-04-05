@@ -27,6 +27,7 @@ import Attachment from "app/shared/layout/attachment/attachment";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 import { IDiscount } from "app/shared/model/discount.model";
 import { IAddon } from "app/shared/model/ADDON/addon.model";
+import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 
 
 
@@ -348,19 +349,11 @@ export const RegularItemUpdate = () => {
                                         />
                                       </div>
 
-                                      <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
-                                          <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
-                                        </label>
-                                        <Select
-                                          value={variant.discounts}
-                                          options={discountList}
-                                          isMulti
-                                          getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
-                                          getOptionValue={option => option.id}
-                                          onChange={(discounts) => handleVariantFieldChange(variantIndex, 'discounts', discounts as IDiscount[])}
-                                        />
-                                      </div>
+                                      <DiscountDropdown
+                                        discounts={variant.discounts}
+                                        handleVariantChange={handleVariantFieldChange}
+                                        variantIndex={variantIndex}
+                                      />
 
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
                                         <label className={"text-xl font-bold"}>
