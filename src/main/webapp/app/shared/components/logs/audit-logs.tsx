@@ -91,7 +91,7 @@ const AuditLogs = ({ entityId} :AuditLogsProps) => {
         <Modal isOpen={showModal} toggle={toggleModal} className=" modal-xl modal-dialog-scrollable">
           <ModalHeader toggle={toggleModal}>Log Changes</ModalHeader>
           <ModalBody>
-            <DataTable value={logs?.[selectedLogIndex]?.changes}>
+            <DataTable scrollable scrollHeight="400px" value={logs?.[selectedLogIndex]?.changes}>
               <Column header={'Property'} field={'propertyName'} />
               <Column header={'Type'} field={'changeType'} />
 
