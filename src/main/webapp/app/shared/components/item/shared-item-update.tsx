@@ -22,6 +22,7 @@ import AddonImportModal from "./addon-import-modal";
 import { getEntities as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
 import {InputTextarea} from "primereact/inputtextarea";
 import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
+import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -169,9 +170,9 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
     <div>
       <Row>
         <FormGroup className={'d-flex flex-column gap-3'}>
+          <Col md="7">
           {!isSimplePizza ? (
-            <Col md="7">
-              <div className={'d-flex flex-column gap-2'}>
+              <div className={'d-flex flex-column gap-2 mt-2'}>
                 <label className={'text-xl font-bold'}>
                   <Translate contentKey={'items.update.name'}>Name</Translate>
                 </label>
@@ -185,11 +186,9 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                   onChange={e => onFieldChange('name', e.target.value)}
                 />
               </div>
-            </Col>
           ) : null}
 
-          <Col md="7">
-            <div className={'d-flex flex-column gap-2'}>
+            <div className={'d-flex flex-column gap-2 mt-2'}>
               <label className={'text-xl font-bold'}>
                 <Translate contentKey={'items.update.description'}>Description</Translate>
               </label>
@@ -201,10 +200,8 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                 onChange={e => onFieldChange('desc', e.target.value)}
               />
             </div>
-          </Col>
 
-          <Col md="7">
-            <div className={'d-flex flex-column gap-2'}>
+            <div className={'d-flex flex-column gap-2 mt-2'}>
               <label className={'text-xl font-bold'}>
                 <Translate contentKey="items.update.productionCenter">Production Center</Translate>
               </label>
@@ -217,10 +214,8 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                 onChange={productionCenter => onFieldChange('productionCenter', productionCenter)}
               />
             </div>
-          </Col>
 
-          <Col md="7">
-            <div className={'d-flex flex-column gap-2'}>
+            <div className={'d-flex flex-column gap-2 mt-2'}>
               <label className={'text-xl font-bold'}>
                 <Translate contentKey="items.update.categories">Categories</Translate>
               </label>
@@ -233,10 +228,8 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                 onChange={selectedItemTerms => onFieldChange('categories', selectedItemTerms)}
               />
             </div>
-          </Col>
 
-          <Col md="7">
-            <div className={'d-flex flex-column gap-2'}>
+            <div className={'d-flex flex-column gap-2 mt-2'}>
               <label className={'text-xl font-bold'}>
                 <Translate contentKey="items.update.accountingGroups">Accounting Groups</Translate>
               </label>
@@ -249,29 +242,17 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                 onChange={accountingGroup => onFieldChange('accountingGroups', accountingGroup ? [accountingGroup] : [])}
               />
             </div>
-          </Col>
 
           {isVariableItem ?
-            <Col md="7">
-              <div className={'d-flex flex-column gap-2'}>
-                <label className={'text-xl font-bold'}>
-                  <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
-                </label>
-                <Select
-                  value={item?.discounts}
-                  options={discountList}
-                  isMulti
-                  getOptionLabel={option => (option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`)}
-                  getOptionValue={option => option.id}
-                  onChange={discounts => onFieldChange('discounts', discounts)}
-                />
-              </div>
-            </Col>
+              <DiscountDropdown
+                discounts={item?.discounts}
+                handleChange={onFieldChange}
+              />
          : null}
 
           <Row className={'my-3'}>
             <Col md={'7'}>
-              <div className={'d-flex flex-column'}>
+              <div className={'d-flex flex-column mt-2'}>
                 <label className={'text-xl mt-2 font-bold'}>
                   <Translate contentKey={'items.update.image'}>Image</Translate>
                 </label>
@@ -291,8 +272,7 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                 />
               )}
               <Row className={'my-3'}>
-                <Col md="7">
-                  <div className={'d-flex flex-column gap-2'}>
+                  <div className={'d-flex flex-column gap-2 mt-2'}>
                     <label className={'text-xl font-bold'}>
                       <Translate contentKey={'items.update.addons'}>Addons</Translate>
                     </label>
@@ -305,8 +285,6 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                       onChange={selectedAddons => onFieldChange('addons', selectedAddons)}
                     />
                   </div>
-                </Col>
-                <Col md={'7'}>
                   <div className={'d-flex flex-column gap-2 flex-start mt-3'}>
                     <label className={'text-xl font-bold'}>
                       <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
@@ -317,7 +295,6 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                       </Button>
                     </div>
                   </div>
-                </Col>
               </Row>
               <Row>
                 <div className="mt-2">
@@ -363,6 +340,7 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
               </Row>
             </>
           ) : null}
+          </Col>
         </FormGroup>
       </Row>
     </div>

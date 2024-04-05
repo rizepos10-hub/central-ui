@@ -26,6 +26,7 @@ import {getEntities as getDiscounts} from "app/entities/discount/discount.reduce
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
+import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 
 
 export const ComboItemUpdate = () => {
@@ -358,19 +359,11 @@ export const ComboItemUpdate = () => {
 
                         <Row>
                           <Col md="7">
-                            <div className={"d-flex flex-column gap-2"}>
-                              <label className={"text-xl font-bold"}>
-                                <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
-                              </label>
-                              <Select
-                                value={comboItem?.variants?.[0]?.discounts}
-                                options={discountList}
-                                isMulti
-                                getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
-                                getOptionValue={option => option.id}
-                                onChange={(discounts) => handleComboVariantChange('discounts', discounts)}
-                              />
-                            </div>
+
+                            <DiscountDropdown
+                              discounts={comboItem?.variants?.[0]?.discounts}
+                              handleChange={handleComboVariantChange}
+                            />
 
                             <div className={"d-flex flex-column gap-2"}>
                               <label className={"text-xl font-bold"}>
