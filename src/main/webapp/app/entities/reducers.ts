@@ -24,7 +24,7 @@ import menuCategory from 'app/entities/term/Menu-Category/menu-category.reducer'
 
 
 
-import taxProfiles from 'app/entities/settings/tax-profiles/tax-profile.reducer';
+import taxProfiles from 'app/entities/settings/tax-profile/tax-profile.reducer';
 import businessDetail from 'app/entities/settings/business-details/business-detail.reducer';
 import pizzaGroup from 'app/entities/pizza-settings/pizza-group.reducer';
 import pizzaSize from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';

@@ -6,7 +6,7 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import VoidReasonsUpdate from './void-reasons-update';
 import VoidReasonsDeleteDialog from './void-reasons-delete-dialog';
 import VoidReasons from "app/entities/settings/void-reasons/void-reasons";
-import TaxProfileEdit from "app/entities/settings/tax-profiles/tax-profile-update";
+import TaxProfileEdit from "app/entities/settings/tax-profile/tax-profile-update";
 
 const VoidReasonsRoutes = () => (
   <ErrorBoundaryRoutes>
