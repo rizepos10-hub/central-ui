@@ -19,12 +19,6 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
 
   const billList = list;
 
-  const items = orderedItems
-
-  console.log(items, 'items' )
-
-  console.log(billList, 'billList')
-
   const transformAddonToTreeNode = (addon) => {
 
     let total = addon.price * addon.amount;
@@ -46,17 +40,15 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
         discount: addon.discount ? (addon.discount.type === 'PERCENTAGE'
             ? `${addon.discount.value}%` : `$${addon.discount.value.toFixed(2)}`)
           : '-',
-        total: total,
+        total,
       },
     };
   };
-  console.log(billList, 'bill List')
+
   const transformBillToTreeNode = (bill, orderedItems) => {
     const treeNodes = [];
-console.log(bill.billItems, 'bill.billItems')
     bill.billItems.forEach((billItem) => {
       const orderedItem = orderedItems.find((item) => item.id === billItem.orderedItemId);
-      console.log(orderedItem, 'ordered Item')
 
       if (orderedItem) {
         const addonTotal = orderedItem.addons.reduce((total, addon) => {
@@ -90,7 +82,7 @@ console.log(bill.billItems, 'bill.billItems')
             discount: orderedItem.discount ? (orderedItem.discount.type === 'PERCENTAGE'
                 ? `${orderedItem.discount.value}%` : `$${orderedItem.discount.value.toFixed(2)}`)
               : '-',
-            total: total,
+            total,
             date: format(new Date(bill.dateTime), 'MMMM dd, yyyy'),
           },
           children: orderedItem.addons.map(transformAddonToTreeNode),
@@ -104,13 +96,11 @@ console.log(bill.billItems, 'bill.billItems')
   };
 
 
-  console.log(orderedItems, 'billis')
   return (
     <div className="d-flex"  >
       <div>
         {list && list.length > 0 ? (
           list.filter((billItem) => !billItem.archived).map((bill, billIndex) => {
-            console.log(bill.paymentTransactions, 'paymentTransactions');
 
             const totalPaid = bill.paymentTransactions.reduce(
               (acc, transaction) => {
@@ -119,7 +109,6 @@ console.log(bill.billItems, 'bill.billItems')
               0
             );
 
-            console.log(totalPaid, 'totalPaid');
             const transformedTreeData = transformBillToTreeNode(bill, orderedItems);
             const itemsTotal = bill.billItems.reduce((total, billItem) => {
               const orderedItem = orderedItems.find((item) => item.id === billItem.orderedItemId);
@@ -168,21 +157,11 @@ console.log(bill.billItems, 'bill.billItems')
             const totalPrice = subtotal - totalDiscounts;
             const remainingAmount = totalPrice - totalPaid;
 
-            console.log(totalPrice, 'totalo')
-
-            // const totalPaymentAmount = list.reduce((total, bill) => {
-            //   const billPaymentTotal = bill.paymentTransactions.reduce(
-            //     (acc, transaction) => acc + transaction.amount > 0 ? transaction.amount : 0,
-            //     0
-            //   );
-            //   return total + billPaymentTotal;
-            // }, 0);
 
 
-            console.log(transformedTreeData, 'hello tree')
 
 
-            // console.log(totalPaymentAmount, 'totalPaymentAmount')
+
 
 
             return   (
@@ -194,7 +173,7 @@ console.log(bill.billItems, 'bill.billItems')
 
                     <TreeTable value={transformedTreeData} className="mt-4">
                       <Column field="id" header={translate('orders.details.billsCard.table.id')}/>
-                      <Column field="name" header={translate('orders.details.billsCard.table.name')} expander style={{width: '30%'}}/>
+                      <Column field="name" style={{ width: '10rem' }} header={translate('orders.details.billsCard.table.name')}  />
                       <Column field="amount" header={translate('orders.details.common.amount')}/>
                       <Column field="price" header={translate('orders.details.common.price')}/>
                       <Column field="discount" header={translate('orders.details.common.discount')}/>

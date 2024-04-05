@@ -13,7 +13,7 @@ type DiscountDropdownProps = {
 
 const DiscountDropdown = ({discounts, handleChange, variantIndex, handleVariantChange} :DiscountDropdownProps) => {
   const discountList = useAppSelector(state => state.discount.entities);
-  console.log(variantIndex, 'lol')
+
   return (
     <div className={'d-flex flex-column gap-2 my-3'}>
       <label className={'text-xl font-bold'}>
