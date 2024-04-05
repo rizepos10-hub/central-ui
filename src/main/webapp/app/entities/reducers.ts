@@ -13,7 +13,7 @@ import user from 'app/entities/back-office-user/user.reducer';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
 import tax from 'app/entities/settings/tax/tax.reducer';
 import accountingGroup from 'app/entities/settings/accounting-group/accounting-group.reducer';
-import voidReasons from 'app/entities/settings/void-reasons/void-reasons.reducer';
+import voidReason from 'app/entities/settings/void-reason/void-reason.reducer';
 import printer from 'app/entities/settings/printing/printer/printer.reducer';
 import printingProfiles from 'app/entities/settings/printing/printing-profiles/printing-profile.reducer';
 import productionCenter from 'app/entities/location/production-center/production-center.reducer';
@@ -90,7 +90,7 @@ const entitiesReducers = {
   taxProfiles,
   accountingGroup,
   businessDetail,
-  voidReasons,
+  voidReason,
   printer,
   printingProfiles,
   productionCenter,

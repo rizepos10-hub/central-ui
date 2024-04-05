@@ -6,16 +6,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { searchEntities, getEntities } from './void-reasons.reducer';
+import { searchEntities, getEntities } from './void-reason.reducer';
 
- import { IVoidReasons } from 'app/shared/model/void-reasons.model';
+ import { IVoidReason } from 'app/shared/model/void-reason.model';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
 import {InputText} from "primereact/inputtext";
 
-export const VoidReasons = () => {
+export const VoidReason = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -25,25 +25,14 @@ export const VoidReasons = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const voidReasonsList = useAppSelector(state => state.voidReasons.entities);
-  const loading = useAppSelector(state => state.voidReasons.loading);
-  const totalItems = useAppSelector(state => state.voidReasons.totalItems);
-
-
-  console.log(voidReasonsList, 'lol')
-
-
-
-
+  const voidReasonsList = useAppSelector(state => state.voidReason.entities);
+  const loading = useAppSelector(state => state.voidReason.loading);
+  const totalItems = useAppSelector(state => state.voidReason.totalItems);
 
 
   const handleCreate = () => {
     navigate('/void-reasons/new')
   };
-
-
-
-
 
 
 
@@ -56,11 +45,12 @@ export const VoidReasons = () => {
 
 
 
-
-
-
   const getVoidReasons = () => {
-  dispatch(getEntities({}))
+    dispatch(getEntities({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
   };
 
 
@@ -146,4 +136,4 @@ export const VoidReasons = () => {
   );
 };
 
-export default VoidReasons;
+export default VoidReason;

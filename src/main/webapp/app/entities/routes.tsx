@@ -19,7 +19,7 @@ import Order from './order';
 import Tax from './settings/tax';
 import TaxesProfile from './settings/tax-profile';
 import AccountingGroups from './settings/accounting-group';
-import VoidReasons from './settings/void-reasons';
+import VoidReasons from './settings/void-reason';
 
 import BranchPosUser from './branch-pos-user';
 import BackOfficeUser from './back-office-user';
