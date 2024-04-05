@@ -6,16 +6,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { searchEntities, getEntities } from './accounting-groups.reducer';
+import {  getEntities } from './accounting-group.reducer';
 
- import { IAccountingGroups } from 'app/shared/model/TAX/accounting-groups.model';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
 import {InputText} from "primereact/inputtext";
 
-export const AccountingGroups = () => {
+export const AccountingGroup = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -25,29 +24,9 @@ export const AccountingGroups = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const accountingGroupsList = useAppSelector(state => state.accountingGroups.entities);
-  const loading = useAppSelector(state => state.accountingGroups.loading);
-  const totalItems = useAppSelector(state => state.accountingGroups.totalItems);
-
-
-  console.log(accountingGroupsList, 'lol')
-
-
-
-
-  const [selectedAccountingGroupsId, setSelectedAccountingGroupsId] = useState(null);
-
-
-  const handleCreate = () => {
-    navigate('/accounting-groups/new')
-  };
-  console.log("Selected VoidReasons ID:", selectedAccountingGroupsId);
-
-
-
-
-
-
+  const accountingGroupsList = useAppSelector(state => state.accountingGroup.entities);
+  const loading = useAppSelector(state => state.accountingGroup.loading);
+  const totalItems = useAppSelector(state => state.accountingGroup.totalItems);
 
   const [filters, setFilters] :any = useState({
     accountingId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -56,25 +35,23 @@ export const AccountingGroups = () => {
 
   });
 
-
-
-  // console.log(accounting-groupsList,'accounting-groupsList')
-
-
-
+  const handleCreate = () => {
+    navigate('/accounting-groups/new')
+  };
 
 
   const getAccountingGroups = () => {
-  dispatch(getEntities({}))
+    dispatch(getEntities({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
   };
 
 
   useEffect(() => {
     getAccountingGroups()
   }, []);
-
-
-
 
 
 
@@ -129,7 +106,7 @@ export const AccountingGroups = () => {
   return (
     <div>
 
-        <DataTable value={accountingGroupsList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
+        <DataTable  loading={loading} value={accountingGroupsList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
             field="name" header="Name" filter
             body={nameColumnTemplate}
@@ -139,9 +116,6 @@ export const AccountingGroups = () => {
           <Column field="accountingId" header="Accounting Id" filter filterPlaceholder="Search by accounting id"  sortable   />
 
           <Column field="profiles" header="Profiles" body={(rowData) => rowData.profiles.map((profile) => profile.name).join(' | ')}   sortable   />
-
-
-          {/* <Column header="VoidReasons Inclusive" body={activeColumnTemplate} style={{width: '10%'}}   /> */}
 
           <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
@@ -153,4 +127,4 @@ export const AccountingGroups = () => {
   );
 };
 
-export default AccountingGroups;
+export default AccountingGroup;

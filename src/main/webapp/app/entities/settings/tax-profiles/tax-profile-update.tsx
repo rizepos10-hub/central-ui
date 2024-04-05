@@ -20,7 +20,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset } from './tax-profile.reducer';
 import Select from "react-select";
-import {  getEntities as getTaxRates } from '../taxes/tax.reducer';
+import {  getEntities as getTaxRates } from 'app/entities/settings/tax/tax.reducer';
 import { Calendar } from 'primereact/calendar';
 import {InputText} from "primereact/inputtext";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";

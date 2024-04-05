@@ -1,66 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, updateEntity, createEntity, reset } from './accounting-groups.reducer';
+import { getEntity, updateEntity, createEntity, changeEntityField,reset } from './accounting-group.reducer';
 import { getEntities as getTaxProfiles } from '../tax-profiles/tax-profile.reducer';
 import Select from "react-select";
 import { InputText } from "primereact/inputtext";
-import {Col, FormGroup, Row,Button} from 'reactstrap';
+import { Col, FormGroup, Row, Button, Label, Spinner } from "reactstrap";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {getSortState, Translate} from "react-jhipster";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants"; // Import FormGroup from reactstrap
+import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import { IAccountingGroup} from "app/shared/model/TAX/accounting-groups.model";
 
-export const AccountingGroupsUpdate = () => {
+export const AccountingGroupUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
+  const accountingGroupsEntity :IAccountingGroup = useAppSelector(state => state.accountingGroup.entity);
+  const loading = useAppSelector(state => state.accountingGroup.loading);
+  const updating = useAppSelector(state => state.accountingGroup.updating);
+  const updateSuccess = useAppSelector(state => state.accountingGroup.updateSuccess);
+  const taxProfilesList = useAppSelector(state => state.taxProfiles.entities);
 
+  const handleChange = <K extends keyof IAccountingGroup>(fieldName: K, value: IAccountingGroup[K]) => {
+    dispatch(changeEntityField({ fieldName, value }));
+  };
 
-  const accountingGroupsEntity = useAppSelector(state => state.accountingGroups.entity);
-
-  const [name, setName] = useState('');
-  const [accountingId, setAccountingId] = useState('');
-  const [selectedProfile, setSelectedProfile] = useState(null);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const taxProfilesList = useAppSelector(state => state.taxProfiles.entities).map((profile) => ({label: profile.name, value: profile.id}))
 
-  const handleNameChange = (e) => {
-    setName(e.target.value);
-  };
+  const handleClose = () => {
+    navigate('/accounting-groups')
+  }
 
-  const handleAccountingIdChange = (e) => {
-    setAccountingId(e.target.value);
-  };
-
-  const handleProfileChange = (selectedOption) => {
-    setSelectedProfile(selectedOption);
-  };
-
- console.log(accountingGroupsEntity, 'lol')
-  console.log(selectedProfile, 'l2ol')
 
   const handleSubmit = () => {
-    const formData = {
-      id: id ? id : null,
-      name: name,
-      accountingId: accountingId !== '' ? accountingId : null,
-      profiles: selectedProfile.map((profile) => ({ id: profile.value })),
+    const entity = {
+         ...accountingGroupsEntity
     };
 
     if (isNew) {
-      dispatch(createEntity(formData));
+      dispatch(createEntity(entity));
     } else {
-      dispatch(updateEntity(formData));
+      dispatch(updateEntity(entity));
     }
   };
 
+
+  useEffect(() => {
+    if(updateSuccess){
+      handleClose();
+    }
+    return () => {
+      dispatch(reset());
+    }
+  }, [updateSuccess])
 
   useEffect(() => {
     if (isNew) {
@@ -73,16 +72,13 @@ export const AccountingGroupsUpdate = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
+
+
   }, []);
 
-  useEffect(() => {
-    if (accountingGroupsEntity) {
-      setName(accountingGroupsEntity.name);
-      setAccountingId(accountingGroupsEntity.accountingId);
-      setSelectedProfile(
-        accountingGroupsEntity.profiles?.map((profile) => ({ label: profile.name, value: profile.id})))}
 
-  }, [accountingGroupsEntity]);
+  if(loading) return <Spinner />;
+
 
   return (
     <div>
@@ -91,25 +87,34 @@ export const AccountingGroupsUpdate = () => {
         <Col md="8"  className="d-flex flex-column p-3  bg-white">
       <FormGroup>
           <div className="d-flex flex-column mb-3">
-            <label htmlFor="name">Name</label>
-            <InputText id="name" value={name} onChange={handleNameChange} />
+            <Label htmlFor="name">Name</Label>
+            <InputText
+              id="name"
+              value={accountingGroupsEntity.name}
+              onChange={(e) => handleChange('name', e.target.value)}
+            />
           </div>
           <div className="d-flex flex-column mb-3">
 
 
-          <label htmlFor="accountingId">Accounting ID</label>
-            <InputText id="accountingId" value={accountingId} onChange={handleAccountingIdChange} />
+          <Label htmlFor="accountingId">Accounting ID</Label>
+            <InputText
+              id="accountingId"
+              value={accountingGroupsEntity.accountingId}
+              onChange={(e) => handleChange('accountingId', e.target.value)}
+            />
           </div>
           <div className="d-flex flex-column mb-3">
 
-
-          <label htmlFor="profiles">Profiles</label>
+          <Label htmlFor="profiles">Profiles</Label>
             <Select
               id="profiles"
               options={taxProfilesList}
-              value={selectedProfile}
+              value={accountingGroupsEntity.profiles}
+              getOptionValue={option => option.id}
+              getOptionLabel={option => option.name}
               isMulti={true}
-              onChange={handleProfileChange}
+              onChange={(profiles)  => handleChange('profiles', profiles as IAccountingGroup["profiles"])}
               isClearable={true}
             />
           </div>
@@ -117,7 +122,6 @@ export const AccountingGroupsUpdate = () => {
       </FormGroup>
         </Col>
         <div className="d-flex justify-content-start align-items-center  mt-7">
-
 
           <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/accounting-groups" replace color="info">
             <FontAwesomeIcon icon="arrow-left" />
@@ -128,7 +132,7 @@ export const AccountingGroupsUpdate = () => {
           </Button>
           &nbsp;
 
-          <Button color="primary" onClick={handleSubmit}>
+          <Button color="primary" disabled={updating} onClick={handleSubmit}>
             Save
           </Button>
 
@@ -138,4 +142,4 @@ export const AccountingGroupsUpdate = () => {
   );
 };
 
-export default AccountingGroupsUpdate;
+export default AccountingGroupUpdate;

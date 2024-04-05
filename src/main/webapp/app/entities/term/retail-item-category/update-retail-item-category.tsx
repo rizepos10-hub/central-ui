@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getTaxonomies } from 'app/entities/taxonomy/taxonomy.reducer';
 
 import { getEntity, updateEntity, createEntity, reset } from './retail-item-category.reducer';
-import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
+import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-group/accounting-group.reducer';
 
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
@@ -47,7 +47,7 @@ export const UpdateItemRestaurantCategory = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities).map(category => ({ value: category.id, label: category.name }));
+  const accountingGroupsOptions = useAppSelector(state => state.accountingGroup.entities).map(category => ({ value: category.id, label: category.name }));
 
   const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
 

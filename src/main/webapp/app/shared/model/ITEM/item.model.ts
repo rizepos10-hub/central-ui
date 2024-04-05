@@ -1,7 +1,7 @@
 import { IAttachment } from 'app/shared/model/attachment.model';
 import { ITerm } from 'app/shared/model/term.model';
 import { ItemStatus } from 'app/shared/model/ENUMS/item-status.model';
-import {IAccountingGroups} from "app/shared/model/TAX/accounting-groups.model";
+import {IAccountingGroup} from "app/shared/model/TAX/accounting-groups.model";
 import {IProductionCenter} from "app/shared/model/PRINTER/production-center.model";
 import {IVisibility} from "app/shared/model/visibility.model";
 import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
@@ -29,7 +29,7 @@ export interface IItem {
   visibility?: IVisibility[] | null;
   attachments?: IAttachment[] | null;
   terms?: ITerm[] | null;
-  accountingGroups?: IAccountingGroups[] | null;
+  accountingGroups?: IAccountingGroup[] | null;
   productionCenter?: IProductionCenter | null;
 
 }

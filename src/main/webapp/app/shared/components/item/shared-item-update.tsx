@@ -8,7 +8,7 @@ import { getEntities as getRestaurantItemCategories } from 'app/entities/term/re
 import { getEntities as  getRetailItemCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import {getEntities as getAddons} from "app/entities/addon/addon.reducer";
 import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
-import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
+import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-group/accounting-group.reducer';
 import {getEntities as getAddonGroups} from "app/entities/addon-groups/addon-groups.reducer";
 import { ItemStatus } from 'app/shared/model/ENUMS/item-status.model';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
@@ -48,7 +48,7 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
     isRetailItem ? useAppSelector(state => state.retailCategory.entities) :
       useAppSelector(state => state.restaurantCategory.entities) ;
 
-  const accountingGroupsOptions = useAppSelector(state => state.accountingGroups.entities);
+  const accountingGroupsOptions = useAppSelector(state => state.accountingGroup.entities);
   const addonsOptions = useAppSelector(state => state.addon.entities);
   const addonGroupsOptions = useAppSelector(state => state.addonGroups.entities);
   const productionCenterOptions = useAppSelector(state => state.productionCenter.entities);

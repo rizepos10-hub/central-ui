@@ -5,9 +5,9 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './accounting-groups.reducer';
+import { getEntity, deleteEntity } from './accounting-group.reducer';
 
-export const AccountingGroupsDeleteDialog = () => {
+export const AccountingGroupDeleteDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -21,8 +21,8 @@ export const AccountingGroupsDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const accountingGroupsEntity = useAppSelector(state => state.accountingGroups.entity);
-  const updateSuccess = useAppSelector(state => state.accountingGroups.updateSuccess);
+  const accountingGroupsEntity = useAppSelector(state => state.accountingGroup.entity);
+  const updateSuccess = useAppSelector(state => state.accountingGroup.updateSuccess);
 
   const handleClose = () => {
     navigate('/accounting-groups' + location.search);
@@ -46,7 +46,7 @@ export const AccountingGroupsDeleteDialog = () => {
       </ModalHeader>
       <ModalBody id="tempApp.accounting-groups.delete.question">
         <Translate contentKey="tempApp.accounting-groups.delete.question" interpolate={{ id: accountingGroupsEntity.id }}>
-          Are you sure you want to delete this AccountingGroups?
+          Are you sure you want to delete this AccountingGroup?
         </Translate>
       </ModalBody>
       <ModalFooter>
@@ -65,4 +65,4 @@ export const AccountingGroupsDeleteDialog = () => {
   );
 };
 
-export default AccountingGroupsDeleteDialog;
+export default AccountingGroupDeleteDialog;

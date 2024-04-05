@@ -12,7 +12,7 @@ import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
 import {InputText} from "primereact/inputtext";
-import AddTaxModal from "app/entities/settings/taxes/add-tax-modal";
+import AddTaxModal from "app/entities/settings/tax/add-tax-modal";
 import { ITax } from "app/shared/model/TAX/tax.model";
 
 export const Tax = () => {

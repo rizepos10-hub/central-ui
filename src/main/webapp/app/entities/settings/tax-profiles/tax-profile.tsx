@@ -14,7 +14,7 @@ import {Column} from "primereact/column";
 import {Button} from "primereact/button";
 import {FilterMatchMode} from "primereact/api";
 import {InputText} from "primereact/inputtext";
-import AddTaxModal from "app/entities/settings/taxes/add-tax-modal";
+import AddTaxModal from "app/entities/settings/tax/add-tax-modal";
 import taxProfiles from "app/entities/settings/tax-profiles/tax-profile.reducer";
 
 export const Tax = () => {
@@ -45,8 +45,6 @@ export const Tax = () => {
   navigate('/tax-profiles/new')
   };
 
-  console.log("Selected Tax ID:", selectedTaxId);
-  console.log("Modal Visibility:", isModalVisible);
 
   const handleEdit = (id) => {
     setModalVisible(true);
