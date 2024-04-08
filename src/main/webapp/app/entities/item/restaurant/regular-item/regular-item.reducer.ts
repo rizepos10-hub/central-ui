@@ -31,6 +31,26 @@ export const getEntities = createAsyncThunk('regular-item/fetch_entity_list', as
   return axios.get<IRegularItem[]>(requestUrl);
 });
 
+export const importData = createAsyncThunk('importData', async (file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'ITEM');
+
+    const response = await axios.post('/api/import-data', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error('Error during data import:', error.response ? error.response.data.message : error.message);
+
+    return error;
+  }
+});
+
 export const getEntity = createAsyncThunk(
   'regular-item/fetch_entity',
   async (id: string | number) => {
