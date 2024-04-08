@@ -51,7 +51,6 @@ export const Tax = () => {
   };
 
 
-
   const [filters, setFilters] = useState({
     code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     description: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -69,7 +68,7 @@ export const Tax = () => {
   };
 
   useEffect(() => {
-    getTaxes()
+    getTaxes();
   }, []);
 
 
@@ -153,7 +152,7 @@ export const Tax = () => {
           {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}
           {/*          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} /> */}
         </DataTable>
-        {isModalVisible && <AddTaxModal visible={isModalVisible} onHide={handleCloseModal} taxId={selectedTaxId}/>}
+        {isModalVisible && <AddTaxModal visible={isModalVisible} onHide={handleCloseModal} taxId={selectedTaxId} />}
       </div>
   );
 };
