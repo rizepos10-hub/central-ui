@@ -73,7 +73,7 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
   return (
     <Modal isOpen={visible} toggle={handleClose} size="lg">
       <ModalHeader toggle={handleClose}>
-        <h2>Add a New Tax</h2>
+        Add a New Tax
         <hr className="black" />
       </ModalHeader>
       {!next ? (
@@ -85,7 +85,7 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
               <span className={"fw-bold"}>Code</span>
               <InputText
                 placeholder="Enter code"
-                value={taxEntity.code}
+                value={taxEntity.code || ''}
                 readOnly={!isNew}
                 onChange={(e) => handleChange('code', e.target.value)}
               />
@@ -95,7 +95,7 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
               <span className={"fw-bold"}>Description</span>
               <InputText
                 placeholder="Enter description"
-                value={taxEntity.description}
+                value={taxEntity.description || ''}
                 onChange={(e) => handleChange('description', e.target.value)}
               />
             </div>
@@ -104,7 +104,7 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
               <span className={"fw-bold"}>Value (%)</span>
               <InputNumber
                 placeholder="Enter value"
-                value={taxEntity.value}
+                value={taxEntity.value || null}
                 onChange={(e) => handleChange('value', e.value)}
               />
             </div>

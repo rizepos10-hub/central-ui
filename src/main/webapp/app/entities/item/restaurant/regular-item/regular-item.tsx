@@ -8,7 +8,8 @@ import {  ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { searchEntities, getEntities } from './regular-item.reducer';
+import { searchEntities, getEntities, importData } from "./regular-item.reducer";
+import {getEntities as getCategories} from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
@@ -16,6 +17,8 @@ import {FilterMatchMode} from "primereact/api";
 import {IRegularItem} from "app/shared/model/ITEM/restaurant/regular-item.model";
 import {Dropdown} from "primereact/dropdown";
 import ImageDisplay from "app/shared/layout/image/image-display";
+import restaurantCategory from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
+import { ITerm } from "app/shared/model/term.model";
 
 export const RegularItem = () => {
   const dispatch = useAppDispatch();
@@ -29,10 +32,13 @@ export const RegularItem = () => {
   );
 
   const regularItemsList:IRegularItem[] = useAppSelector(state => state.regularItem.entities);
+
+  const categories :ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
   const loading = useAppSelector(state => state.regularItem.loading);
   const totalItems = useAppSelector(state => state.regularItem.totalItems);
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    category : {value: null, matchMode: FilterMatchMode.CONTAINS},
   });
 
   const getAllEntities = () => {
@@ -69,7 +75,17 @@ export const RegularItem = () => {
   };
 
   useEffect(() => {
+    dispatch(getCategories({
+      page: 0,
+      size: 500,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
+  },[])
+
+
+  useEffect(() => {
     sortEntities();
+
   }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
 
   useEffect(() => {
@@ -93,7 +109,31 @@ export const RegularItem = () => {
     sortEntities();
   };
 
+  const handleImportButtonClick = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.xlsx';
+    fileInput.onchange = (e) => {
+      const inputElement = e.target as HTMLInputElement;
+      const selectedFile = inputElement.files?.[0] || null;
+      handleImportData(selectedFile);
+    };
+    fileInput.click();
+  };
 
+  const handleImportData = async  (selectedFile) =>  {
+    const response = await dispatch(importData(selectedFile)).then((response) => {
+      const errMsg = response.payload.response.data.message
+      alert(`Error importing data: ${errMsg} `)
+    })
+  };
+
+  const clearCategoryFilter = () => {
+      setFilters((prevState) => ({
+        ...prevState,
+        category: { value: null, matchMode: FilterMatchMode.CONTAINS }
+      }));
+  };
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -104,6 +144,23 @@ export const RegularItem = () => {
     const price = item.price
     return formatCurrency(price);
   };
+
+  const categoryFilter = (
+    <Dropdown
+      value={filters.category?.value}
+      options={categories}
+      optionLabel={"name"}
+      optionValue={"name"}
+      onChange={(e) => {
+        const updatedFilters = {
+          ...filters,
+          category: { value: e.value, matchMode: FilterMatchMode.EQUALS },
+        };
+        setFilters(updatedFilters);
+      }}
+      placeholder="Select a category"
+    />
+  );
 
   const nameColumnTemplate = rowData => {
     const editUrl = `/restaurant/regular/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
@@ -133,10 +190,13 @@ export const RegularItem = () => {
   const handleCreate = () => {
     navigate('/restaurant/regular/new')
   }
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold"><Translate contentKey={'items.view.titles.tableTitle.regular'}>Regular Items</Translate></span>
       <div className="ms-auto">
+        <Button label="Import Data" severity="help" raised className="me-5" color="help"  onClick={handleImportButtonClick} disabled={loading} />
+         &nbsp;
         <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
@@ -147,27 +207,29 @@ export const RegularItem = () => {
       </div>
     </div>
   );
-  const renderDiscounts = rowData => {
-    const discounts = rowData.discounts || [];
-    return discounts.map((discount, index) => (
-      <>
-      <Chip
-        key={index}
-        label={discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}
-        className="p-mr-2 p-mb-2"
-      />
-      </>
 
-    ));
-  };
-
+  const processedItemList = regularItemsList?.map(item => ({
+    ...item,
+    category: item.categories?.map(cat => cat.name).join(" | "),
+  }));
 
 
   return (
     <div>
-        <DataTable loading={loading} value={regularItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
+        <DataTable loading={loading} value={processedItemList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
           <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
+
+          <Column
+            header="Category"
+            field="category"
+            sortable
+            filter
+            showFilterMatchModes={false}
+            filterElement={categoryFilter}
+            onFilterClear={clearCategoryFilter}
+          />
+
           <Column header={translate('items.view.fields.image')}  body={(rowData) =>
             <ImageDisplay
               imageType={"product"}
@@ -175,6 +237,7 @@ export const RegularItem = () => {
               height={50}
               width={50}
             />} />
+
           <Column field="desc" header={translate('items.view.fields.description')} />
 
           <Column field="stock" sortable header={translate('items.view.fields.inStock')} />

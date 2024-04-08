@@ -156,11 +156,18 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
   const handleImportAddonModalSave = (option: IItem) => {
     const addons = item.addons || [];
     const extraAddons = option.addons;
-    const uniqueIds = Array.from(new Set([...addons, ...extraAddons].map(item => item.id)));
-    const mergedAddons = uniqueIds.map(id => [...addons, ...extraAddons].find(item => item.id === id));
+    const uniqueAddonIds = Array.from(new Set([...addons, ...extraAddons].map(item => item.id)));
+    const mergedAddons = uniqueAddonIds.map(id => [...addons, ...extraAddons].find(item => item.id === id));
 
+    const addonGroups = item.addonGroups || [];
+    const extraAddonGroups = option.addonGroups;
+    const uniqueAddonGroupIds = Array.from(new Set([...addonGroups, ...extraAddonGroups].map(item => item.addonGroup.id)));
+    const mergedAddonGroups = uniqueAddonGroupIds.map(id => [...addonGroups, ...extraAddonGroups].find(item => item.addonGroup.id === id));
+
+    onFieldChange('addonGroups', mergedAddonGroups);
     onFieldChange('addons', mergedAddons);
   };
+
   const handleImportAddonModalClose = () => {
     setOpenedAddonModal(false);
   };

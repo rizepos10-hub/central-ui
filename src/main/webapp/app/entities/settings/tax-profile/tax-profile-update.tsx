@@ -141,7 +141,7 @@ export const TaxProfileUpdate = () => {
                       id="name"
                       required
                       placeholder="Enter name"
-                      value={taxProfileEntity.name}
+                      value={taxProfileEntity.name || ''}
                       onChange={e => handleChange('name', e.target.value)}
                     />
                   </div>
@@ -152,7 +152,7 @@ export const TaxProfileUpdate = () => {
                       name="description"
                       placeholder="Enter description"
                       id="description"
-                      value={taxProfileEntity.description}
+                      value={taxProfileEntity.description || ''}
                       onChange={e => handleChange('description', e.target.value)}
                     />
                   </div>
