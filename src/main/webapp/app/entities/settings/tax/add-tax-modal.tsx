@@ -52,6 +52,8 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
     } else {
       dispatch(updateEntity(entity));
     }
+
+    onHide();
   };
 
   const fetchTaxEntity = () => {
@@ -62,11 +64,9 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
 
   useEffect(() => {
     fetchTaxEntity();
-    if(updateSuccess){
-      onHide();
-    }
 
-  }, [taxId, updateSuccess]);
+
+  }, [taxId]);
 
 
 
