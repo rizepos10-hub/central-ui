@@ -12,7 +12,7 @@ import {  getEntities } from './pizza-topping.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
-import ImportButton from "app/shared/components/data-import";
+import ImportButton from "app/shared/components/data-import/data-import";
 
 export const PizzaTopping = () => {
   const dispatch = useAppDispatch();
@@ -95,7 +95,7 @@ export const PizzaTopping = () => {
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Pizza Toppings</span>
       <div className="ms-auto">
-        <ImportButton type={"ADDON"} />
+        <ImportButton type={"TOPPING"} />
           &nbsp;
         <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;

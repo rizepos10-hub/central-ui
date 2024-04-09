@@ -15,7 +15,7 @@ import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
-import ImportButton from "app/shared/components/data-import";
+import ImportButton from "app/shared/components/data-import/data-import";
 
 export const Addon = () => {
   const dispatch = useAppDispatch();
