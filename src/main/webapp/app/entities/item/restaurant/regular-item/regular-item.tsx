@@ -19,7 +19,7 @@ import {Dropdown} from "primereact/dropdown";
 import ImageDisplay from "app/shared/layout/image/image-display";
 import restaurantCategory from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
 import { ITerm } from "app/shared/model/term.model";
-import ImportButton from "app/shared/components/data-import";
+import ImportButton from "app/shared/components/data-import/data-import";
 
 export const RegularItem = () => {
   const dispatch = useAppDispatch();
