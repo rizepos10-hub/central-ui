@@ -12,6 +12,7 @@ import {  getEntities } from './pizza-topping.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
+import ImportButton from "app/shared/components/data-import";
 
 export const PizzaTopping = () => {
   const dispatch = useAppDispatch();
@@ -26,6 +27,8 @@ export const PizzaTopping = () => {
   const pizzaToppingList = useAppSelector(state => state.pizzaTopping.entities);
   const loading = useAppSelector(state => state.pizzaTopping.loading);
   const totalItems = useAppSelector(state => state.pizzaTopping.totalItems);
+  const importSuccess = useAppSelector(state => state.dataImport.importSuccess);
+
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
@@ -46,7 +49,7 @@ export const PizzaTopping = () => {
 
   useEffect(() => {
     getAllEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, importSuccess]);
 
 
 
@@ -92,6 +95,8 @@ export const PizzaTopping = () => {
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Pizza Toppings</span>
       <div className="ms-auto">
+        <ImportButton type={"ADDON"} />
+          &nbsp;
         <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
