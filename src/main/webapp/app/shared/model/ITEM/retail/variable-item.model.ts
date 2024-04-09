@@ -10,12 +10,12 @@ import {IItemMeasure} from "app/shared/model/item-measure.model";
 import {IExchangeMeasure, IItemPriceNumber} from "app/shared/model/ITEM/retail/simple-item.model";
 import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
 
-interface IBranchVariantDetails {
+export interface IBranchVariantDetails {
   [key: string]: {
     branch: IBranch;
     price: number;
     salePrice: number;
-    wholesalePrices: IItemPriceNumber;
+    wholesalePrices?: IItemPriceNumber;
 
   };
 }

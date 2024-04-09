@@ -4,7 +4,6 @@ export interface ITax {
   code?: string;
   description?: string | null;
   value?: number;
-
 }
 
 export const defaultValue: Readonly<ITax> = {};

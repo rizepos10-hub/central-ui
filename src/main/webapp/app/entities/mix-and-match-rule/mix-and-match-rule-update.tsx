@@ -1,6 +1,6 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label, Input, Table, ListGroup} from 'reactstrap';
+import React, {useEffect, useState} from 'react';
+import {Link, useNavigate, useParams} from 'react-router-dom';
+import {Button, Row, Col, FormGroup, Label,Table, } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -16,17 +16,13 @@ import {InputNumber} from "primereact/inputnumber";
 import {Checkbox} from "primereact/checkbox";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
-import {IAccountingGroups} from "app/shared/model/TAX/accounting-groups.model";
-import {getEntities as getAccountingGroups} from "app/entities/settings/accounting-groups/accounting-groups.reducer";
+import {IAccountingGroup} from "app/shared/model/TAX/accounting-groups.model";
+import {getEntities as getAccountingGroups} from "app/entities/settings/accounting-group/accounting-group.reducer";
 
 interface INewQuantityRule extends IQuantityConfigurationProperties {
   quantity?: number;
 }
 
-type Rule = {
-  quantity?: number;
-  accountingGroup?: IAccountingGroups;
-}
 
 export const MixAndMatchRuleUpdate = () => {
   const dispatch = useAppDispatch();
@@ -46,7 +42,7 @@ export const MixAndMatchRuleUpdate = () => {
 
   const mixAndMatchRuleEntity :IMixAndMatchRule = useAppSelector(state => state.mixAndMatchRule.entity);
   const discountList = useAppSelector(state => state.discount.entities);
-  const accountingGroupList :IAccountingGroups[] = useAppSelector(state => state.accountingGroups.entities);
+  const accountingGroupList :IAccountingGroup[] = useAppSelector(state => state.accountingGroup.entities);
   const loading = useAppSelector(state => state.mixAndMatchRule.loading);
   const updating = useAppSelector(state => state.mixAndMatchRule.updating);
   const updateSuccess = useAppSelector(state => state.mixAndMatchRule.updateSuccess);
@@ -266,7 +262,7 @@ export const MixAndMatchRuleUpdate = () => {
                         <Select
                           id="ruleGroup"
                           styles={{
-                            control: (baseStyles, state) => ({
+                            control: (baseStyles) => ({
                               ...baseStyles,
                               paddingTop: '0.5rem',
                               paddingBottom: '0.5rem',

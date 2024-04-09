@@ -35,11 +35,11 @@ export default () => next => action => {
   if (isRejectedAction(action) && error && error.isAxiosError) {
     const isLoginPage = location.pathname.endsWith('login');
     const isLogoutPage = location.pathname.endsWith('logout');
-
     if (error.response && !isLoginPage && !isLogoutPage) {
       const response = error.response;
       const data = response.data;
       if (
+
         !(
           response.status === 401 &&
           (error.message === '' || (data && data.path && (data.path.includes('/api/account') || data.path.includes('/api/authenticate'))))
@@ -105,9 +105,8 @@ export default () => next => action => {
     } else {
       toast.error(error.message || 'Unknown error!');
     }
-  } else if (error) {
+  } else if (error && error.response.status !== 401) {
     toast.error(error.message || 'Unknown error!');
   }
-
   return next(action);
 };

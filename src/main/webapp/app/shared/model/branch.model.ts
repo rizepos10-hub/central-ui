@@ -4,6 +4,7 @@ export interface IBranch {
   id?: string;
   name?: string;
   appId?: string | null;
+  wholesale?: boolean
   numberOfEmployees?: number | null;
   menu?: IMenu | null;
 }

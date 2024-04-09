@@ -37,6 +37,8 @@ import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
+import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 
 
 const defaultItemPriceNumber = {
@@ -78,10 +80,6 @@ export const SimpleItemUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [pricesModal, setPricesModal] = useState({
-    show: false,
-    branchId: '',
-  });
   const [simpleItem, setSimpleItem] = useState<ISimpleItem>({
     itemType: "RETAIL",
     itemVariantType: ItemVariantType.RETAIL_SIMPLE,
@@ -96,10 +94,8 @@ export const SimpleItemUpdate = () => {
   const [itemAttribute, setItemAttribute] = useState<{
     attributeTax: ITaxonomy;
     attributeTerms: ITerm[];
-  }>({
-    attributeTax: {},
-    attributeTerms: []
-  });
+  } | null>(null);
+
 
   const filteredMeasures = useMemo(() => {
     const exchangeMeasuresIds = simpleItem?.measures?.map((exMeasure) => exMeasure.itemMeasure.id);
@@ -114,9 +110,11 @@ export const SimpleItemUpdate = () => {
 
 
   const isAttributeAddButtonDisabled =
-    filteredAvailableAttributes().length === 0 ||
-    Object.keys(itemAttribute.attributeTax).length === 0 &&
-    itemAttribute.attributeTerms.length === 0;
+    filteredAvailableAttributes()?.length === 0 ||
+    !itemAttribute ||
+    itemAttribute?.attributeTax &&
+    Object.keys(itemAttribute?.attributeTax)?.length === 0 &&
+    itemAttribute?.attributeTerms?.length === 0;
 
 
   const handleBackClick = () => {
@@ -150,13 +148,7 @@ export const SimpleItemUpdate = () => {
     });
   };
 
-  const handleShowPricesModal = (branchId?) => {
-    setPricesModal(prev => ({
-      ...prev,
-      show: !prev.show,
-     branchId
-    }));
-  }
+
 
   const handleBranchPriceChange = (branchId, priceType, price) => {
     setSimpleItem(prev => ({
@@ -177,7 +169,7 @@ export const SimpleItemUpdate = () => {
     }));
   };
 
-  const handleSaveWholesalePrices = (prices) => {
+  const handleSaveWholesalePrices = (prices, branchId) => {
     setSimpleItem(prev => ({
       ...prev,
       variants: [
@@ -185,8 +177,8 @@ export const SimpleItemUpdate = () => {
           ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
           branchVariantDetails: {
             ...prev.variants[0]?.branchVariantDetails,
-            [pricesModal?.branchId]: {
-            ...prev?.variants?.[0]?.branchVariantDetails?.[pricesModal?.branchId],
+            [branchId]: {
+            ...prev?.variants?.[0]?.branchVariantDetails?.[branchId],
               wholesalePrices: prices,
             },
           },
@@ -263,17 +255,25 @@ export const SimpleItemUpdate = () => {
           itemAttribute,
         ],
       }));
+      setItemAttribute(null)
     }
   };
 
-  const handleItemAttributeSelect = (selectedOption) => {
-      dispatch(getAttributeValues({
+  const handleItemAttributeSelect = selectedOption => {
+    if (!selectedOption) {
+      setItemAttribute(null);
+      return
+    }
+
+    dispatch(getAttributeValues({
         id: selectedOption?.id,
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
-      }));
-      setItemAttribute((prevState) => ({...prevState, attributeTax: selectedOption}))
+      })
+    );
+
+    setItemAttribute(prevState => ({ ...prevState, attributeTax: selectedOption }));
   };
 
   const handleAttributeTermChange = (index, selectedTerms) => {
@@ -290,21 +290,7 @@ export const SimpleItemUpdate = () => {
     }));
   };
 
-  const handleSpecialPriceChange = ( priceKey, value) => {
-    setSimpleItem(prevSimpleItem => ({
-      ...prevSimpleItem,
-      variants: [{
-        ...prevSimpleItem.variants[0],
-        branchVariantDetails: {
-          ...prevSimpleItem.variants[0].branchVariantDetails,
-         wholesalePrices: {
-            ...prevSimpleItem.variants[0].branchVariantDetails["wholesalePrices"],
-            [priceKey]: value
-          }
-        }
-      }]
-    }));
-  };
+
 
 
   const handleNavigate = (simpleItemId) => {
@@ -424,7 +410,7 @@ export const SimpleItemUpdate = () => {
 
                     <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
 
-                      <Col md="10" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
+                      <Col md="12" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
 
                         <Col md="7">
                           <div className={"d-flex flex-column gap-2"}>
@@ -442,7 +428,7 @@ export const SimpleItemUpdate = () => {
                           </div>
                         </Col>
 
-                        <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange}/>
+                        <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange} />
 
                           <Col md="7">
                             <div className={"d-flex flex-column gap-2"}>
@@ -481,86 +467,24 @@ export const SimpleItemUpdate = () => {
                           </Col>
 
 
-                          <Col md="12" className={"mt-3"}>
-                            {pricesModal?.show &&
-                              <WholesalePrices
-                                toggle={handleShowPricesModal}
-                                isOpen={pricesModal?.show}
-                                branchWholesalePrices={simpleItem?.variants?.[0]?.branchVariantDetails?.[pricesModal?.branchId]?.wholesalePrices}
-                                savePrices={handleSaveWholesalePrices}
-                              />
-                            }
-                            <h4><Translate contentKey={'items.update.branchPrices'}>Branch Prices</Translate></h4>
-                            <Table>
-                              <thead>
-                              <tr>
-                                <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
-                                <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
-                                <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
-                                {branchList.some(branch => branch.wholesale) ?
-                                  <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
-                                : null}
-                              </tr>
-                              </thead>
-                              <tbody>
-                              {branchList.map(branch => {
-                                console.log(branch, 'vbranch')
-                                return (
-                                  <tr key={branch.id}>
-                                    <td>{branch.name}</td>
-                                    <td>
-                                      <InputNumber
-                                        name={`branchPrice_${branch.id}`}
-                                        placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
-                                        onWheel={(e: any) => e.target.blur()}
-                                        maxFractionDigits={2}
-                                        min={0}
-                                        value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.price}
-                                        onChange={e => handleBranchPriceChange(branch.id, "price", e.value)}
-                                      />
-                                    </td>
-
-                                    <td>
-                                      <InputNumber
-                                        name={`branchSalePrice_${branch.id}`}
-                                        placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
-                                        onWheel={(e: any) => e.target.blur()}
-                                        maxFractionDigits={2}
-                                        min={0}
-                                        value={simpleItem?.variants?.[0]?.branchVariantDetails?.[branch.id]?.salePrice}
-                                        onChange={e => handleBranchPriceChange(branch.id,"salePrice", e.value)}
-                                      />
-                                    </td>
-                                    {branch.wholesale &&
-                                      <td>
-                                        <Button onClick={() => handleShowPricesModal(branch.id)}>Wholesale
-                                          Prices</Button>
-                                      </td>
-                                    }
-                                  </tr>
-                                )
-                              })}
-                              </tbody>
-                            </Table>
-                          </Col>
+                        <VariantBranchPrice
+                          itemVariantType={"RETAIL"}
+                          branchVariantDetails={simpleItem?.variants?.[0]?.branchVariantDetails}
+                          variantIndex={0}
+                          branchList={branchList}
+                          handleBranchPriceChange={handleBranchPriceChange}
+                          handleSaveWholesalePrices={handleSaveWholesalePrices}
+                        />
 
                       <Row>
                         <Col md="7">
-                          <div className={"d-flex flex-column gap-2"}>
-                            <label className={"text-xl font-bold"}>
-                              <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
-                            </label>
-                            <Select
-                              value={simpleItem?.variants?.[0]?.discounts}
-                              options={discountList}
-                              isMulti
-                              getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
-                              getOptionValue={option => option.id}
-                              onChange={(discounts) => handleSimpleItemVariantChange('discounts', discounts)}
-                            />
-                          </div>
 
-                          <div className={"d-flex flex-column gap-2"}>
+                         <DiscountDropdown
+                           discounts={simpleItem?.variants?.[0]?.discounts}
+                           handleChange={handleSimpleItemVariantChange}
+                         />
+
+                          <div className={"d-flex flex-column gap-2 mt-2"}>
                             <label className={"text-xl font-bold"}>
                               <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                             </label>
@@ -575,8 +499,9 @@ export const SimpleItemUpdate = () => {
                         </Col>
                       </Row>
 
-                          <Row>
-                            <Col md="7">
+                        <Row>
+                          <Col md="12">
+                            <div className={"d-flex flex-row gap-2"}>
                               <div className={"d-flex flex-column gap-2"}>
                                 <label className={"text-xl font-bold"}>
                                   <Translate contentKey={'items.update.attributes'}>Attributes</Translate>
@@ -584,26 +509,31 @@ export const SimpleItemUpdate = () => {
                                 <Select
                                   value={itemAttribute?.attributeTax || null}
                                   isClearable
+                                  styles={{
+                                    control: (baseStyles) => ({
+                                      ...baseStyles,
+                                    minWidth: '15rem'
+                                    }),
+                                  }}
                                   options={filteredAvailableAttributes()}
                                   getOptionValue={option => option.id}
                                   getOptionLabel={option => option.key}
                                   onChange={(attribute) => handleItemAttributeSelect(attribute)}
                                 />
                               </div>
-                            </Col>
+                                <Button
+                                  color="primary" className={"mt-5"} onClick={handleAddAttribute}
+                                  disabled={isAttributeAddButtonDisabled}
+                                >
+                                  <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
+                                </Button>
+                            </div>
+                          </Col>
 
 
 
-                            <Col md="7" >
-                              <Button
-                                color="primary" className={"mt-5"} onClick={handleAddAttribute}
-                                disabled={isAttributeAddButtonDisabled}
-                              >
-                                <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
-                              </Button>
-                            </Col>
                             <Col md={"7"} className={"mt-2"}>
-                              <Accordion multiple activeIndex={[0]}>
+                              <Accordion  multiple activeIndex={[0]}>
                                 {simpleItem?.attributes?.map((attribute, index) => (
                                   <AccordionTab key={index} header={attribute?.attributeTax?.key}>
                                     <div className={"d-flex gap-3"}>

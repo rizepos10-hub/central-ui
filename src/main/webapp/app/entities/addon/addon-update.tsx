@@ -4,13 +4,9 @@ import {Button, Row, Col, FormText, Spinner} from 'reactstrap';
 import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IItem } from 'app/shared/model/ITEM/item.model';
-import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
-import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { getEntity, updateEntity, createEntity, reset } from './addon.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import Select from "react-select";
@@ -60,11 +56,6 @@ export const AddonUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-    dispatch(getItems({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
     return () => {
       reset()
       setSelectedDiscounts([])
@@ -88,8 +79,6 @@ export const AddonUpdate = () => {
   }, [updateSuccess,addonEntity]);
 
   const saveEntity = values => {
-    console.log(values, 'values')
-    console.log(addonEntity, 'addonEntity')
     const entity = {
       ...addonEntity,
       ...values,
@@ -110,8 +99,6 @@ export const AddonUpdate = () => {
       }
       : {
           ...addonEntity,
-        // discounts: addonEntity.discounts,
-
         };
 
   const defaultDiscountsOptions = addonEntity?.discounts?.map(discount => ({

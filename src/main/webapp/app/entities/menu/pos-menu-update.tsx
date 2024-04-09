@@ -14,8 +14,8 @@ import {
   FormGroup,
   Popover,
   PopoverHeader,
-  PopoverBody, CardBody, ModalFooter, Spinner,
-} from 'reactstrap';
+  PopoverBody, CardBody, ModalFooter, Spinner, CardHeader
+} from "reactstrap";
 import {useNavigate, useParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {createEntity, duplicateMenu, getEntity, reset, sendEvent, updateEntity} from "app/entities/menu/menu.reducer";
@@ -27,12 +27,14 @@ import {APP_DATE_FORMAT} from "app/config/constants";
 import {convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime} from "app/shared/util/date-utils";
 import ItemSelectionModal from "app/entities/menu/item-selection-modal";
 import {FaBars} from "react-icons/fa";
+import { MdDeleteOutline, MdModeEditOutline } from "react-icons/md";
 import Select from "react-select";
 import MenuPosPreview from "app/entities/menu/menu-pos-preview";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {getEntities as getMenuCategories} from "app/entities/term/Menu-Category/menu-category.reducer";
 import {InputText} from "primereact/inputtext";
 import {isEqual} from "lodash";
+import { InputNumber } from "primereact/inputnumber";
 
 function MenuUpdate() {
 
@@ -78,15 +80,18 @@ function MenuUpdate() {
   });
 
   const [newMainScreenName, setNewMainScreenName] = useState('');
+  const [newMainScreenCols, setNewMainScreenCols] = useState<number | null>(null);
   const [selectedColorTheme, setSelectedColorTheme] = useState('');
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newSubScreenName, setNewSubScreenName] = useState('');
+  const [newSubScreenCols, setNewSubScreenCols] = useState<number | null>(null);
   const [newSubScreenColor, setNewSubScreenColor] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectedScreenIndex, setSelectedScreenIndex] = useState(null);
   const [selectedScreenType, setSelectedScreenType] = useState(null);
   const [editScreenName, setEditScreenName] = useState('');
   const [editScreenColor, setEditScreenColor] = useState('');
+  const [editScreenCols, setEditScreenCols] = useState<number| null>(null);
   const [breadcrumb, setBreadcrumb] = useState([]);
   const [isFormDirty, setIsFormDirty] = useState(false);
 
@@ -104,6 +109,8 @@ function MenuUpdate() {
 
 
   const openEditModal = (selectedScreen, screenIndex, screenType) => {
+
+    setEditScreenCols(selectedScreen.numberOfColumns);
     setSelectedScreenIndex(screenIndex);
     setSelectedScreenType(screenType);
     setEditScreenName(selectedScreen.name);
@@ -132,14 +139,16 @@ function MenuUpdate() {
             ...mainScreen,
             name: editScreenName,
             backgroundColor: editScreenColor,
+            numberOfColumns: editScreenCols
           };
-        } else if (selectedScreenType === 'sub') {
+        } else if (selectedScreenType === 'sub' && i === selectedMainScreenIndex) {
           if (subScreenStack.length === 1) {
             const topSubScreens = [...mainScreen.subScreens];
             topSubScreens[selectedScreenIndex] = {
               ...topSubScreens[selectedScreenIndex],
               name: editScreenName,
               backgroundColor: editScreenColor,
+              numberOfColumns: editScreenCols
             };
 
             return {
@@ -147,9 +156,12 @@ function MenuUpdate() {
               subScreens: topSubScreens,
             };
           } else {
+
             const topSubScreen = subScreenStack[subScreenStack.length - 1];
 
-            const updatedSubScreens = editSubScreens(mainScreen.subScreens, topSubScreen, selectedScreenIndex, editScreenName, editScreenColor);
+            const updatedSubScreens = editSubScreens(mainScreen.subScreens, topSubScreen);
+
+            console.log(updatedSubScreens, 'updatedSubScreens')
 
             const updatedSubScreenStack = subScreenStack.map((subScreen) =>
               subScreen === topSubScreen
@@ -161,6 +173,7 @@ function MenuUpdate() {
                         ...sub,
                         name: editScreenName,
                         backgroundColor: editScreenColor,
+                        numberOfColumns: editScreenCols
                       }
                       : sub
                   ),
@@ -193,7 +206,7 @@ function MenuUpdate() {
   console.log(subScreenStack, 'subscreentStack alone')
 
 
-  const editSubScreens = (subScreens, targetSubScreen, selectedScreenIndex, editScreenName, editScreenColor) => {
+  const editSubScreens = (subScreens, targetSubScreen) => {
     let nameExists = false;
     return subScreens.map((subScreen, index) => {
       console.log(subScreen, 'kamelsubScreen')
@@ -225,6 +238,7 @@ function MenuUpdate() {
                   ...nestedSubScreen,
                   name: editScreenName,
                   backgroundColor: editScreenColor,
+                  numberOfColumns: editScreenCols
                 };
               }
               return nestedSubScreen;
@@ -232,7 +246,7 @@ function MenuUpdate() {
           };
         }
        else if (subScreen.subScreens) {
-        const updatedNestedSubScreens = editSubScreens(subScreen.subScreens, targetSubScreen, selectedScreenIndex, editScreenName, editScreenColor);
+        const updatedNestedSubScreens = editSubScreens(subScreen.subScreens, targetSubScreen);
         return {
           ...subScreen,
           subScreens: updatedNestedSubScreens,
@@ -324,6 +338,7 @@ function MenuUpdate() {
     const newMainScreen = {
       name: newMainScreenName,
       backgroundColor: selectedColorTheme,
+      numberOfColumns: newMainScreenCols,
       managerOnlyAccess: '',
       componentType: "SUB_SCREENS",
 
@@ -340,6 +355,7 @@ function MenuUpdate() {
     setIsModalOpen({...isModalOpen, isMainScreenModalOpen: false});
     setNewMainScreenName('');
     setSelectedColorTheme('');
+    setNewMainScreenCols(null);
   };
 
 
@@ -629,6 +645,7 @@ function MenuUpdate() {
           {
             name: newSubScreenName,
             backgroundColor: newSubScreenColor,
+            numberOfColumns: newSubScreenCols,
             componentType: 'SUB_SCREENS',
             managerOnlyAccess: false,
             subScreens: [],
@@ -652,6 +669,7 @@ function MenuUpdate() {
             {
               name: newSubScreenName,
               backgroundColor: newSubScreenColor,
+              numberOfColumns: newSubScreenCols,
               componentType: 'SUB_SCREENS',
               managerOnlyAccess: false,
               subScreens: [],
@@ -663,6 +681,7 @@ function MenuUpdate() {
             ? { ...topSubScreen, subScreens: [...(topSubScreen.subScreens || []), {
                 name: newSubScreenName,
                 backgroundColor: newSubScreenColor,
+                numberOfColumns: newSubScreenCols,
                 componentType: 'SUB_SCREENS',
                 managerOnlyAccess: false,
                 subScreens: [],
@@ -686,6 +705,7 @@ function MenuUpdate() {
 
     setNewSubScreenName('');
     setNewSubScreenColor('');
+    setNewSubScreenCols(null);
   };
 
 
@@ -791,27 +811,46 @@ function MenuUpdate() {
     if (!subscreens || subscreens.length === 0) {
       return null;
     }
+    const mainScreen = data?.menuScreens?.[selectedMainScreenIndex];
 
+    const cols = subScreenStack?.length === 1 ?
+      mainScreen.numberOfColumns
+      :
+      subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns &&
+    subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns > 8 ?
+      8
+      :
+    subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns || 1;
 
-    console.log(subscreens, 'hellloizz');
+    const columnStyle = {
+      display: 'grid',
+      gridTemplateColumns: `repeat(${cols},  1fr)`,
+      gridAutoFlow: 'row',
+    };
 
     return (
-      <div className="container mb-3" onDragOver={(e) => e.preventDefault()}>
-        <div className="row">
-          {subscreens.map((item, index) => (
+      <div className="d-flex gap-3 mb-3" onDragOver={(e) => e.preventDefault()}>
+        <Col md={12}>
+        <div style={columnStyle}>
+        {subscreens.map((item, index) => (
             <div
               key={index}
-              className="col-md-6 mb-3"
               draggable
+              className={"col"}
               onDragStart={() => handleSubDragStart(mainScreenIndex, index)}
               onDragOver={(e) => handleSubDragOver( index, e)}
               onDragEnd={handleSubDragEnd}
             >
-              <div className="d-flex flex-column p-1 cursor-pointer">
-                <Card className="mb-3 position-relative">
-                  <div className="d-flex justify-content-end">
-                    <FaBars onClick={() => openEditModal(item, index, 'sub')} />
+              <div className="d-flex flex-column p-1 cursor-pointer card p-3">
+                  <div className={"d-flex"}>
+                    <span className="m-0">{item.componentType}</span>
+                    <div className="ml-auto">
+                      <MdModeEditOutline size={20} onClick={() => openEditModal(item, index, 'sub')} />
+                      &nbsp;
+                      <MdDeleteOutline size={20} color={"red"} onClick={() => handleRemoveCard(mainScreenIndex, index, item)} />
+                    </div>
                   </div>
+
                   <div
                     onClick={() => {
                       if (item.componentType === 'SUB_SCREENS') {
@@ -824,26 +863,20 @@ function MenuUpdate() {
                       <Button
                         style={{ backgroundColor: item.backgroundColor, width: '55px', height: '30px', marginRight: '10px' }}
                       />
-                      <span className="m-0">{item.componentType}</span>
+
                     </div>
                   </div>
-                  <div className="d-flex justify-content-end">
-                    <Button
-                      color="danger"
-                      size="sm"
-                      onClick={() => handleRemoveCard(mainScreenIndex, index, item)}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </Card>
+
               </div>
             </div>
           ))}
-        </div>
       </div>
+        </Col>
+    </div>
     );
   };
+
+
   const handleSubDragStart = (mainIndex, subIndex) => {
     setSelectedMainScreenIndex(mainIndex);
     setDraggedIndex( subIndex );
@@ -946,6 +979,8 @@ function MenuUpdate() {
 
     let currentSubScreens = mainScreen.subScreens;
 
+
+
     for (let i = 1; i < subScreenStack.length; i++) {
       const nextScreenName = subScreenStack[i].name;
       const nextScreen = findSubScreenByName(currentSubScreens, nextScreenName);
@@ -958,7 +993,7 @@ function MenuUpdate() {
     }
 
     return (
-      <div className="ml-3">
+      <div className="mt-3">
         {renderSubScreens(currentSubScreens, selectedMainScreenIndex)}
       </div>
     );
@@ -1025,7 +1060,7 @@ function MenuUpdate() {
 
   useEffect(() => {
     if (menuEntity && menuEntity.id) {
-      let newData = {
+      const newData = {
         name: menuEntity.name,
         branch: menuEntity.branch,
         menuScreens: menuEntity.menuScreens ,
@@ -1199,7 +1234,7 @@ function MenuUpdate() {
   };
 
   return (
-    <div className="mt-5" >
+    <div className="mt-5">
       <Card>
         <div className="d-flex justify-content-between align-items-center p-3">
           <h1>{menuEntity.name}</h1>
@@ -1207,8 +1242,8 @@ function MenuUpdate() {
             <Button color="primary" onClick={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: true })}>
               <FontAwesomeIcon icon="pencil-alt" />{' '}
               <span className="d-none d-md-inline">
-            <Translate contentKey="menus.shared.update.edit.buttons.edit">Edit</Translate>
-          </span>
+                <Translate contentKey="menus.shared.update.edit.buttons.edit">Edit</Translate>
+              </span>
             </Button>
             <Button onClick={() => dispatch(sendEvent(id))} className="btn-success ms-2" style={{ fontFamily: 'fantasy' }}>
               <Translate contentKey="menus.shared.update.edit.buttons.trigger">Trigger</Translate>
@@ -1220,7 +1255,7 @@ function MenuUpdate() {
         </div>
         <CardBody>
           <p>
-            <Translate contentKey="menus.shared.update.edit.branch">Branch</Translate>: {menuEntity.branch? menuEntity.branch?.name : ''}
+            <Translate contentKey="menus.shared.update.edit.branch">Branch</Translate>: {menuEntity.branch ? menuEntity.branch?.name : ''}
           </p>
           <p>
             <Translate contentKey="menus.shared.update.edit.createdAt">Created At</Translate>:{' '}
@@ -1231,20 +1266,24 @@ function MenuUpdate() {
             {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
           </p>
           <p>
-            <Translate contentKey="menus.shared.update.edit.url">Menu URl</Translate>:  {menuEntity.menuUrl? menuEntity.menuUrl : ''}
+            <Translate contentKey="menus.shared.update.edit.url">Menu URl</Translate>: {menuEntity.menuUrl ? menuEntity.menuUrl : ''}
           </p>
           <p>
             <Translate contentKey="menus.shared.update.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
           </p>
         </CardBody>
       </Card>
-      <Card >
+      <Card>
         <Row style={{ minHeight: '55rem' }}>
-          <Col md="4" className="border-right-1">
+          <Col md="3" className="border-right-1">
             <div className="d-flex justify-content-between align-items-center">
               <div>
-                <h2 className="border- border-dark pb-3"><Translate contentKey={'menus.pos.update.mainScreens'}>Main Screens</Translate></h2>
-                <Button color="primary" onClick={handleMainScreenAdd}><Translate contentKey={'menus.pos.update.buttons.add'}>Add</Translate></Button>
+                <h2 className="border- border-dark pb-3">
+                  <Translate contentKey={'menus.pos.update.mainScreens'}>Main Screens</Translate>
+                </h2>
+                <Button color="primary" onClick={handleMainScreenAdd}>
+                  <Translate contentKey={'menus.pos.update.buttons.add'}>Add</Translate>
+                </Button>
               </div>
               <hr />
             </div>
@@ -1259,96 +1298,82 @@ function MenuUpdate() {
                   onDragEnd={handleMainDragEnd}
                 >
                   <Card className="d-flex p-3 cursor-pointer">
-                  <div  onClick={() => {
-                    const mainScreenItems = mainScreen?.subScreens?.filter((item) => item.componentType === "ITEM")
-                      .map((item) =>({ id :item.component.item.id , name: item.component.item.name, desc: item.component.item.desc}))
-                    setSelectedItems(mainScreenItems || [])
-                    setSelectedMainScreenIndex(index)
-                    setSubScreenStack([mainScreen]);
-                    setBreadcrumb(() => [mainScreen.name]);
-
-                  }}>
-                    <div className="d-flex justify-content-end" >
-                      <FaBars  onClick={() => openEditModal(mainScreen, index, 'main')} />
-                    </div>
-                    <h5 className="m-0 mr-3 mb-2">{mainScreen.name}</h5>
-                    <div className='d-flex flex-row justify-content-between'>
-                      <Button
-                        style={{ backgroundColor: mainScreen.backgroundColor, width: '55px', height: '30px' }}
-                      />
-                      <div>{`${translate('menus.pos.update.buttonsLabel')} - ${mainScreen.subScreens?.length ?? 0}`}</div>
-                    </div>
-
-                    </div>
-                    <div className="d-flex justify-content-end">
-                      <Button color="danger" size="sm" onClick={() => handleRemoveMainScreen(index, mainScreen.name)}>
-                        <Translate contentKey={'menus.pos.update.buttons.remove'}>Remove</Translate>
-                      </Button>
+                    <div
+                      onClick={() => {
+                        const mainScreenItems = mainScreen?.subScreens
+                          ?.filter(item => item.componentType === 'ITEM')
+                          .map(item => ({ id: item.component.item.id, name: item.component.item.name, desc: item.component.item.desc }));
+                        setSelectedItems(mainScreenItems || []);
+                        setSelectedMainScreenIndex(index);
+                        setSubScreenStack([mainScreen]);
+                        setBreadcrumb(() => [mainScreen.name]);
+                      }}
+                    >
+                      <div className="d-flex justify-content-end">
+                        <MdModeEditOutline size={20} onClick={() => openEditModal(mainScreen, index, 'main')} />
+                        &nbsp;
+                        <MdDeleteOutline size={20} color={'red'} onClick={() => handleRemoveMainScreen(index, mainScreen.name)} />
+                      </div>
+                      <h5 className="m-0 mr-3 mb-2">{mainScreen.name}</h5>
+                      <div className="d-flex flex-row justify-content-between">
+                        <Button style={{ backgroundColor: mainScreen.backgroundColor, width: '55px', height: '30px' }} />
+                      </div>
                     </div>
                   </Card>
-
                 </div>
               ))}
             </ListGroup>
           </Col>
-          <Col md="8" className="border-left">
+          <Col md="9" className="border-left">
             <div className="d-flex justify-content-between">
               <Col md="8">
-                  <h2>
-                {breadcrumb?.length > 0 &&
-                  breadcrumb.map((breadcrumbTitle, index) => (
-                    <span
-                      key={index}
-                      className="cursor-pointer"
-                      onClick={() => navigateToBreadcrumbItem(index)}
-                    >
-                      {breadcrumbTitle}
-                      {index < breadcrumb.length - 1 && ' / '}
-                  </span>
-                  ))}
-              </h2>
+                <h2>
+                  {breadcrumb?.length > 0 &&
+                    breadcrumb.map((breadcrumbTitle, index) => (
+                      <span key={index} className="cursor-pointer" onClick={() => navigateToBreadcrumbItem(index)}>
+                        {breadcrumbTitle}
+                        {index < breadcrumb.length - 1 && ' / '}
+                      </span>
+                    ))}
+                </h2>
               </Col>
 
-              <Col md={4} className={'d-flex gap-3'}>
+              <Button color="primary" onClick={() => handleButtonAdd('Item')} className="ml-2">
+                <Translate contentKey={'menus.pos.update.buttons.addItem'}>Add Item</Translate>
+              </Button>
+              <Button color="primary" onClick={() => handleButtonAdd('Sub-screen')} className="ml-2">
+                <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>
+              </Button>
 
-                <Button color="primary" onClick={() => handleButtonAdd('Item')}  className="ml-2" >
-                  <Translate contentKey={'menus.pos.update.buttons.addItem'}>Add Item</Translate>
-                </Button>
-                <Button color="primary" onClick={() => handleButtonAdd('Sub-screen')}  className="ml-2" >
-                  <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>
-                </Button>
-
-
-                <Button onClick={togglePreviewModal} className="mx-2 btn btn-info">
-                  <Translate contentKey={'menus.pos.update.buttons.preview'}>Preview</Translate>
-                </Button>
-                <Button color="primary" disabled={updating} onClick={handleSaveClick} className="">
-                  <Translate contentKey={'entity.action.save'}>Save</Translate>
-                </Button>
-              </Col>
+              <Button onClick={togglePreviewModal} className="mx-2 btn btn-info">
+                <Translate contentKey={'menus.pos.update.buttons.preview'}>Preview</Translate>
+              </Button>
+              <Button color="primary" disabled={updating} onClick={handleSaveClick} className="">
+                <Translate contentKey={'entity.action.save'}>Save</Translate>
+              </Button>
             </div>
-            <ListGroup className="mt-3">{renderCurrentSubScreen()}</ListGroup>
+            <div className="mt-3">{renderCurrentSubScreen()}</div>
           </Col>
         </Row>
       </Card>
 
+      <Modal
+        isOpen={isModalOpen.isPreviewModalOpen}
+        className="modal-xl"
+        toggle={() => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: !isModalOpen.isPreviewModalOpen })}
+      >
+        <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: !isModalOpen.isPreviewModalOpen })}>
+          <Translate contentKey={'menus.pos.update.modals.preview.title'}>Screen Preview</Translate>
+        </ModalHeader>
+        <ModalBody style={{ minWidth: '100%', minHeight: '60vh' }}>
+          <MenuPosPreview data={data} />
+        </ModalBody>
+      </Modal>
 
-
-
-        <Modal isOpen={isModalOpen.isPreviewModalOpen} className="modal-xl"
-
-               toggle={() => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: !isModalOpen.isPreviewModalOpen })}>
-          <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isPreviewModalOpen: !isModalOpen.isPreviewModalOpen })}>
-            <Translate contentKey={'menus.pos.update.modals.preview.title'}>Screen Preview</Translate>
-          </ModalHeader>
-          <ModalBody  style={{ minWidth: '100%', minHeight: '60vh' }}>
-            <MenuPosPreview data={data} />
-          </ModalBody>
-        </Modal>
-
-
-      <Modal isOpen={isModalOpen.isMainScreenModalOpen}
-             toggle={() => setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: !isModalOpen.isMainScreenModalOpen })}>
+      <Modal
+        isOpen={isModalOpen.isMainScreenModalOpen}
+        toggle={() => setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: !isModalOpen.isMainScreenModalOpen })}
+      >
         <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: !isModalOpen.isMainScreenModalOpen })}>
           <Translate contentKey={'menus.pos.update.modals.mainScreen.title'}>Add new main screen</Translate>
         </ModalHeader>
@@ -1362,10 +1387,20 @@ function MenuUpdate() {
               id="mainScreenName"
               required
               value={newMainScreenName}
-              onChange={(e) => setNewMainScreenName(e.target.value)}
+              onChange={e => setNewMainScreenName(e.target.value)}
             />
-          </FormGroup>
-          <FormGroup>
+
+            <div className={'d-flex flex-column mt-2'}>
+              <Label for="newMainScreenCols">Main screen cols</Label>
+              <InputNumber
+                id="newMainScreenCols"
+                value={newMainScreenCols}
+                min={1}
+                max={12}
+                onChange={e => setNewMainScreenCols(e.value)}
+              />
+            </div>
+
             <Label for="colorTheme">
               <Translate contentKey={'menus.pos.update.modals.mainScreen.color'}>Select color theme</Translate>
             </Label>
@@ -1373,7 +1408,14 @@ function MenuUpdate() {
               {colorThemes.map((color, index) => (
                 <Button
                   key={index}
-                  style={{ backgroundColor: color, width: '55px', height: '30px', border: 'none', marginRight: '10px', marginBottom: '10px' }}
+                  style={{
+                    backgroundColor: color,
+                    width: '55px',
+                    height: '30px',
+                    border: 'none',
+                    marginRight: '10px',
+                    marginBottom: '10px',
+                  }}
                   className={selectedColorTheme === color ? 'active' : ''}
                   onClick={() => setSelectedColorTheme(color)}
                 ></Button>
@@ -1386,8 +1428,10 @@ function MenuUpdate() {
         </ModalBody>
       </Modal>
 
-      <Modal isOpen={isModalOpen.isSubScreenModalOpen}
-             toggle={() => setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: !isModalOpen.isSubScreenModalOpen })}>
+      <Modal
+        isOpen={isModalOpen.isSubScreenModalOpen}
+        toggle={() => setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: !isModalOpen.isSubScreenModalOpen })}
+      >
         <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: !isModalOpen.isSubScreenModalOpen })}>
           <Translate contentKey={'menus.pos.update.modals.subScreen.title'}>Add new sub-screen</Translate>
         </ModalHeader>
@@ -1396,14 +1440,13 @@ function MenuUpdate() {
             <Label for="subScreenName">
               <Translate contentKey={'menus.pos.update.modals.subScreen.name'}>Sub-screen name</Translate>
             </Label>
-            <Input
-              type="text"
-              id="subScreenName"
-              value={newSubScreenName}
-              onChange={(e) => setNewSubScreenName(e.target.value)}
-            />
-          </FormGroup>
-          <FormGroup>
+            <Input type="text" id="subScreenName" value={newSubScreenName} onChange={e => setNewSubScreenName(e.target.value)} />
+
+            <div className={'d-flex flex-column mt-2'}>
+              <Label for="subScreenColumns">Sub-screen Cols</Label>
+              <InputNumber id="subScreenColumns" min={1} max={12} value={newSubScreenCols} onChange={e => setNewSubScreenCols(e.value)} />
+            </div>
+
             <Label for="subScreenColor">
               <Translate contentKey={'menus.pos.update.modals.subScreen.color'}>Select color theme</Translate>
             </Label>
@@ -1411,7 +1454,14 @@ function MenuUpdate() {
               {colorThemes.map((color, index) => (
                 <Button
                   key={index}
-                  style={{ backgroundColor: color, width: '55px', height: '30px', border: 'none', marginRight: '10px', marginBottom: '10px' }}
+                  style={{
+                    backgroundColor: color,
+                    width: '55px',
+                    height: '30px',
+                    border: 'none',
+                    marginRight: '10px',
+                    marginBottom: '10px',
+                  }}
                   className={newSubScreenColor === color ? 'active' : ''}
                   onClick={() => setNewSubScreenColor(color)}
                 ></Button>
@@ -1424,15 +1474,14 @@ function MenuUpdate() {
         </ModalBody>
       </Modal>
 
-      {isModalOpen.isItemModalOpen && <ItemSelectionModal
-        isOpen={isModalOpen.isItemModalOpen}
-        toggle={() => setIsModalOpen({...isModalOpen, isItemModalOpen: !isModalOpen.isItemModalOpen})}
-        selectedItems={selectedItems}
-        handleToggleSelect={handleToggleSelect}
-      />}
-
-
-
+      {isModalOpen.isItemModalOpen && (
+        <ItemSelectionModal
+          isOpen={isModalOpen.isItemModalOpen}
+          toggle={() => setIsModalOpen({ ...isModalOpen, isItemModalOpen: !isModalOpen.isItemModalOpen })}
+          selectedItems={selectedItems}
+          handleToggleSelect={handleToggleSelect}
+        />
+      )}
 
       <Modal isOpen={isModalOpen.isEditModalOpen} toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: false })}>
         <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isEditModalOpen: false })}>
@@ -1443,14 +1492,15 @@ function MenuUpdate() {
             <Label for="subScreenName">
               <Translate contentKey={'menus.pos.update.modals.editScreen.name'}>Name</Translate>
             </Label>
-            <Input
-              type="text"
-              id="subScreenName"
-              value={editScreenName}
-              onChange={(e) => setEditScreenName(e.target.value)}
-            />
-          </FormGroup>
-          <FormGroup>
+            <Input type="text" id="subScreenName" value={editScreenName} onChange={e => setEditScreenName(e.target.value)} />
+
+            {editScreenCols ? (
+              <div className={'d-flex flex-column mt-2'}>
+                <Label for="editCols">Cols</Label>
+                <InputNumber id="editCols" min={1} max={12} value={editScreenCols} onChange={e => setEditScreenCols(e.value)} />
+              </div>
+            ) : null}
+
             <Label for="subScreenColor">
               <Translate contentKey={'menus.pos.update.modals.editScreen.color'}>Select color theme</Translate>
             </Label>
@@ -1458,86 +1508,93 @@ function MenuUpdate() {
               {colorThemes.map((color, index) => (
                 <Button
                   key={index}
-                  style={{ backgroundColor: color, width: '55px', height: '30px', border: 'none', marginRight: '10px', marginBottom: '10px' }}
+                  style={{
+                    backgroundColor: color,
+                    width: '55px',
+                    height: '30px',
+                    border: 'none',
+                    marginRight: '10px',
+                    marginBottom: '10px',
+                  }}
                   className={editScreenColor === color ? 'active' : ''}
                   onClick={() => setEditScreenColor(color)}
                 ></Button>
               ))}
             </div>
           </FormGroup>
-          <Button color="primary" onClick={handleEditScreen}>
+          <Button
+            color="primary"
+
+            onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleEditScreen();
+            }}
+          >
             <Translate contentKey={'entity.action.save'}>Save</Translate>
           </Button>
         </ModalBody>
       </Modal>
 
       {isModalOpen.isMenuModalOpen && (
-        <Modal isOpen={isModalOpen.isMenuModalOpen} className="modal-lg"
-            >
-        <ModalHeader  toggle={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} >
-          <Translate contentKey="menus.shared.update.edit.title">Create or edit a Menu</Translate>
-        </ModalHeader>
-        <ModalBody>
-          <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-            <div className={"d-flex flex-column gap-2"}>
-              <label>
-                <Translate contentKey={"menus.shared.update.name"}>Name</Translate>
-              </label>
-              <InputText
-                type="text"
-                name="name"
-                id="name"
-                required={true}
-                placeholder="Menu Name"
-                value={data.name || ''}
-                onChange={(e) => setData((prev) => ({...prev, name: e.target.value}))}
-              />
-            </div>
-            <ValidatedField
-              label={translate('menus.shared.update.url')}
-              id="menu-menuUrl"
-              name="menuUrl"
-              data-cy="menuUrl"
-              type="text"
-
-            />
-            <div className="mb-3">
-              {translate('menus.shared.update.branches')}
-              <Select defaultValue={initialBranches}
-                      onChange={handleBranchChange} options={branchList} />
-            </div>
-
-            <div className="mb-3">
-              {translate('menus.shared.update.category')}
-              <Select
-                value={selectedCategory}
-                onChange={handleCategoryChange}
-                options={menuCategories}
-                getOptionLabel={option => option.name}
-                getOptionValue={option => option.id}
+        <Modal isOpen={isModalOpen.isMenuModalOpen} className="modal-lg">
+          <ModalHeader toggle={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })}>
+            <Translate contentKey="menus.shared.update.edit.title">Create or edit a Menu</Translate>
+          </ModalHeader>
+          <ModalBody>
+            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
+              <div className={'d-flex flex-column gap-2'}>
+                <label>
+                  <Translate contentKey={'menus.shared.update.name'}>Name</Translate>
+                </label>
+                <InputText
+                  type="text"
+                  name="name"
+                  id="name"
+                  required={true}
+                  placeholder="Menu Name"
+                  value={data.name || ''}
+                  onChange={e => setData(prev => ({ ...prev, name: e.target.value }))}
                 />
-            </div>
-            <Button  id="cancel-save" data-cy="entityCreateCancelButton"
-                     onClick={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })} replace color="info">
-              <FontAwesomeIcon icon="arrow-left"/>
+              </div>
+              <ValidatedField label={translate('menus.shared.update.url')} id="menu-menuUrl" name="menuUrl" data-cy="menuUrl" type="text" />
+              <div className="mb-3">
+                {translate('menus.shared.update.branches')}
+                <Select defaultValue={initialBranches} onChange={handleBranchChange} options={branchList} />
+              </div>
+              <div className="mb-3">
+                {translate('menus.shared.update.category')}
+                <Select
+                  value={selectedCategory}
+                  onChange={handleCategoryChange}
+                  options={menuCategories}
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                />
+              </div>
+              <Button
+                id="cancel-save"
+                data-cy="entityCreateCancelButton"
+                onClick={() => setIsModalOpen({ ...isModalOpen, isMenuModalOpen: !isModalOpen.isMenuModalOpen })}
+                replace
+                color="info"
+              >
+                <FontAwesomeIcon icon="arrow-left" />
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
+              </Button>
               &nbsp;
-              <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.back">Back</Translate>
-                        </span>
-            </Button>
-            &nbsp;
-            <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                    disabled={updating}>
-              <FontAwesomeIcon icon="save"/>
-              &nbsp;
-              <Translate contentKey="entity.action.save">Save</Translate>
-            </Button>
-          </ValidatedForm>
-
-        </ModalBody>
-
-      </Modal>)}
-
+              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+            </ValidatedForm>
+          </ModalBody>
+        </Modal>
+      )}
     </div>
   );
 }

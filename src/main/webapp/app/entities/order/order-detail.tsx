@@ -30,8 +30,6 @@ export const OrderDetail = () => {
       : [],
   };
 
-  console.log(orderEntity, 'orderEntity')
-
   const navigateCustomer = () => {
     navigate(`/customer/${filteredOrderEntity?.customer?.id}/edit?from=${location.pathname}`);
   };

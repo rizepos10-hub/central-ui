@@ -15,6 +15,7 @@ import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
+import ImportButton from "app/shared/components/data-import/data-import";
 
 export const Addon = () => {
   const dispatch = useAppDispatch();
@@ -30,6 +31,8 @@ export const Addon = () => {
   const addonList = useAppSelector(state => state.addon.entities);
   const loading = useAppSelector(state => state.addon.loading);
   const totalItems = useAppSelector(state => state.addon.totalItems);
+  const importSuccess = useAppSelector(state => state.dataImport.importSuccess);
+
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
@@ -69,7 +72,7 @@ export const Addon = () => {
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, search, importSuccess]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -130,11 +133,13 @@ export const Addon = () => {
   const handleCreate = () => {
     navigate('/addon/new')
   }
-  console.log(addonList, 'addonlist')
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold"><Translate contentKey={'addons.view.table.title'}>Addons</Translate></span>
       <div className="ms-auto">
+        <ImportButton type={"ADDON"} />
+          &nbsp;
         <Button label={translate("addons.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}

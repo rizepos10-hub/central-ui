@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {Row, Col, Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Label} from 'reactstrap';
-import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import {getSortState,Translate, } from 'react-jhipster';
 import { overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntities as getItems } from 'app/entities/item/restaurant/regular-item/item.reducer';
 import { createEntity, reset } from '../addon/addon.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import Select from "react-select";
@@ -46,11 +45,6 @@ export const CreateAddonModal = ({isOpen, toggle}) => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-    dispatch(getItems({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
     return () => {
       reset()
       setAddon({})

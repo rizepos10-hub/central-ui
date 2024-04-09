@@ -46,6 +46,10 @@ export const AuditLogsSlice = createSlice({
       .addCase(getEntityLogs.pending, (state, action) => {
         state.loading = true;
       })
+      .addCase(getEntityLogs.rejected, (state, action) => {
+        state.loading = false
+        state.errorMessage = action.error.message
+      })
       .addMatcher(isFulfilled(getEntityLogs), (state, action) => {
         const { data, headers } = action.payload;
         return {

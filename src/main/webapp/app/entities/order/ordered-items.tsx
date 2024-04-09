@@ -27,7 +27,6 @@
       },
     });
 
-console.log(totalPayments, 'totalPayments')
     const transformItemToTreeNode = (item: IOrderedItem) => ({
       key: `item-${item.id}`,
       data: {
@@ -64,22 +63,20 @@ console.log(totalPayments, 'totalPayments')
     const totalPrice = subtotal - totalDiscounts;
 
 
-    const items = list;
-  console.log(items, 'items')
     return (
       <div >
 
           <div>
             {list && list.length > 0 ? (
               <TreeTable value={treeData} className="mt-4">
-                <Column field="name" header={translate('orders.details.itemsCard.table.name')} expander style={{ width: '40%' }} />
-                <Column field="variant" header={translate('orders.details.itemsCard.table.variant')} style={{ width: '15%' }} />
-                <Column field="amount" header={translate('orders.details.common.amount')} style={{ width: '15%' }} />
-                <Column field="returnedAmount" header={translate('orders.details.itemsCard.table.returnedAmount')} style={{ width: '20%' }} />
-                <Column field="totalAmount" header={translate('orders.details.itemsCard.table.totalAmount')} style={{ width: '20%' }} />
-                <Column field="discount" header={translate('orders.details.common.discount')} style={{ width: '15%' }} />
-                <Column field="price" header={translate('orders.details.common.price')} style={{ width: '15%' }} />
-                <Column field="total" header={translate('orders.details.common.total')} style={{ width: '15%' }} />
+                <Column field="name"  style={{ width: '10rem' }} header={translate('orders.details.itemsCard.table.name')}  />
+                <Column field="variant"  style={{ width: '10rem' }} header={translate('orders.details.itemsCard.table.variant')}  />
+                <Column field="amount" header={translate('orders.details.common.amount')}  />
+                <Column field="returnedAmount" header={translate('orders.details.itemsCard.table.returnedAmount')} />
+                <Column field="totalAmount" header={translate('orders.details.itemsCard.table.totalAmount')}  />
+                <Column field="discount" header={translate('orders.details.common.discount')} />
+                <Column field="price" header={translate('orders.details.common.price')} />
+                <Column field="total" header={translate('orders.details.common.total')}  />
               </TreeTable>
 
             ) : (

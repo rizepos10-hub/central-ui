@@ -37,6 +37,8 @@ import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
+import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 
 
 const defaultItemPriceNumber = {
@@ -111,6 +113,7 @@ export const VariableItemUpdate = () => {
 
   const isAttributeAddButtonDisabled =
     filteredAvailableAttributes()?.length === 0 ||
+    !itemAttribute ||
     itemAttribute?.attributeTax &&
     Object.keys(itemAttribute?.attributeTax)?.length === 0 &&
     itemAttribute?.attributeTerms?.length === 0;
@@ -260,11 +263,6 @@ export const VariableItemUpdate = () => {
 
   const handleAddAttribute = () => {
 
-    if(!itemAttribute){
-      alert("Please select an attribute to add.");
-      return;
-    }
-    console.log(itemAttribute, 'itemAttribute')
     setVariableItem((prev) => ({
       ...prev,
       attributes: [
@@ -276,6 +274,11 @@ export const VariableItemUpdate = () => {
   };
 
   const handleItemAttributeSelect = (selectedOption) => {
+    if (!selectedOption) {
+      setItemAttribute(null);
+      return
+    }
+
     dispatch(getAttributeValues({
       id: selectedOption?.id,
       page: paginationState.activePage - 1,
@@ -283,8 +286,7 @@ export const VariableItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
     setItemAttribute((prevState) => ({...prevState, attributeTax: selectedOption}))
-
-  }
+  };
 
   const handleAttributeTermChange = (index, selectedTerms) => {
     setVariableItem((prev) => ({
@@ -569,7 +571,7 @@ export const VariableItemUpdate = () => {
 
                           <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
 
-                            <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange}/>
+                            <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange} />
 
                             <Row className={"mb-3"} >
 
@@ -582,6 +584,7 @@ export const VariableItemUpdate = () => {
                                     <Select
                                       value={itemAttribute?.attributeTax || null}
                                       options={filteredAvailableAttributes()}
+                                      isClearable
                                       getOptionValue={option => option.id}
                                       getOptionLabel={option => option.name}
                                       onChange={(attribute) => handleItemAttributeSelect(attribute)}
@@ -596,7 +599,7 @@ export const VariableItemUpdate = () => {
                                   </Button>
                                 </Col>
                                 <Col md={"12"} className={"mt-2"}>
-                                  <Accordion multiple activeIndex={[0]}>
+                                  <Accordion multiple >
                                     {variableItem?.attributes?.map((attribute, index) => (
                                       <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
                                         <div className={"d-flex gap-3"}>
@@ -650,7 +653,7 @@ export const VariableItemUpdate = () => {
                           }
                           {variableItem?.variants?.map((variant, variantIndex) => (
                             <Col md={"12"} key={variantIndex} className={"mt-2"}>
-                              <Accordion multiple  activeIndex={[0]}>
+                              <Accordion multiple >
                                 <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
                                   <Row>
                                     <Col md="4">
@@ -725,19 +728,12 @@ export const VariableItemUpdate = () => {
 
                                   <Row>
                                     <Col md="7">
-                                      <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
-                                          <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
-                                        </label>
-                                        <Select
-                                          value={variant.discounts}
-                                          options={discountList}
-                                          isMulti
-                                          getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
-                                          getOptionValue={option => option.id}
-                                          onChange={(discounts) => handleVariantFieldChange(variantIndex, 'discounts', discounts)}
-                                        />
-                                      </div>
+
+                                      <DiscountDropdown
+                                        discounts={variant.discounts}
+                                        handleVariantChange={handleVariantFieldChange}
+                                        variantIndex={variantIndex}
+                                      />
 
                                       <div className={"d-flex flex-column gap-2"}>
                                         <label className={"text-xl font-bold"}>
@@ -755,59 +751,13 @@ export const VariableItemUpdate = () => {
                                     </Col>
                                   </Row>
 
-                                  <Col md="12" className={"mt-3"}>
-                                    <h4>
-                                      <Translate contentKey={'items.update.branchPrices'}>
-                                        Branch Prices
-                                      </Translate>
-                                    </h4>
-                                    <Table>
-                                      <thead>
-                                      <tr>
-                                        <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
-                                        <th><Translate contentKey={'items.update.price'}>Price</Translate></th>
-                                        <th><Translate contentKey={'items.update.salePrice'}>Sale Price</Translate></th>
-                                        {branchList.some(branch => branch.wholesale) ?
-                                          <th><Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate></th>
-                                          : null}
-                                      </tr>
-                                      </thead>
-                                      <tbody>
-                                      {branchList.map(branch => (
-                                        <tr key={branch.id}>
-                                          <td>{branch.name}</td>
-                                          <td>
-                                            <InputNumber
-                                              name={`branchPrice_${branch.id}`}
-                                              placeholder={translate('items.update.placeholders.itemBranchPrice', {branchName: branch.name})}
-                                              onWheel={(e: any) => e.target.blur()}
-                                              maxFractionDigits={2}
-                                              min={0}
-                                              value={variant?.branchVariantDetails?.[branch.id]?.price}
-                                              onChange={e => handleBranchPriceChange(variantIndex,branch.id,"price", e.value)}
-                                            />
-                                          </td>
-                                          <td>
-                                            <InputNumber
-                                              name={`branchSalePrice_${branch.id}`}
-                                              placeholder={translate('items.update.placeholders.itemBranchSalePrice', {branchName: branch.name})}
-                                              onWheel={(e: any) => e.target.blur()}
-                                              min={0}
-                                              maxFractionDigits={2}
-                                              value={variant?.branchVariantDetails?.[branch.id]?.salePrice}
-                                              onChange={e => handleBranchPriceChange(variantIndex,branch.id, "salePrice", e.value)}
-                                            />
-                                          </td>
-                                          {branch.wholesale &&
-                                            <td>
-                                              <Button onClick={() => handleShowPricesModal(branch.id, variantIndex)}>Wholesale Prices</Button>
-                                            </td>
-                                          }
-                                        </tr>
-                                      ))}
-                                      </tbody>
-                                    </Table>
-                                  </Col>
+                                  <VariantBranchPrice
+                                    branchList={branchList}
+                                    handleBranchPriceChange={handleBranchPriceChange}
+                                    variantIndex={variantIndex}
+                                    branchVariantDetails={variant.branchVariantDetails}
+                                    itemVariantType={"RETAIL"}
+                                  />
 
                                 </AccordionTab>
                               </Accordion>

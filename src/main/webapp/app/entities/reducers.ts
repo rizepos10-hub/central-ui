@@ -11,9 +11,9 @@ import term from 'app/entities/term/term.reducer';
 import order from 'app/entities/order/order.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
-import tax from 'app/entities/settings/taxes/tax.reducer';
-import accountingGroups from 'app/entities/settings/accounting-groups/accounting-groups.reducer';
-import voidReasons from 'app/entities/settings/void-reasons/void-reasons.reducer';
+import tax from 'app/entities/settings/tax/tax.reducer';
+import accountingGroup from 'app/entities/settings/accounting-group/accounting-group.reducer';
+import voidReason from 'app/entities/settings/void-reason/void-reason.reducer';
 import printer from 'app/entities/settings/printing/printer/printer.reducer';
 import printingProfiles from 'app/entities/settings/printing/printing-profiles/printing-profile.reducer';
 import productionCenter from 'app/entities/location/production-center/production-center.reducer';
@@ -24,7 +24,7 @@ import menuCategory from 'app/entities/term/Menu-Category/menu-category.reducer'
 
 
 
-import taxProfiles from 'app/entities/settings/tax-profiles/tax-profile.reducer';
+import taxProfiles from 'app/entities/settings/tax-profile/tax-profile.reducer';
 import businessDetail from 'app/entities/settings/business-details/business-detail.reducer';
 import pizzaGroup from 'app/entities/pizza-settings/pizza-group.reducer';
 import pizzaSize from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
@@ -38,14 +38,14 @@ import floorPlanSettings from 'app/entities/settings/floor-plans/floor-plan-sett
 import floorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 import toppingGroup from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer"
 import pizzaItem from "app/entities/item/restaurant/pizza-item/pizza-item.reducer";
-import regularItem from 'app/entities/item/restaurant/regular-item/item.reducer';
+import regularItem from 'app/entities/item/restaurant/regular-item/regular-item.reducer';
 import comboItem from 'app/entities/item/restaurant/combo-item/combo-item.reducer';
 import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.reducer";
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
 import retailAttribute from "app/entities/item/retail/attributes/retail-attribute.reducer";
 import retailAttributeValue from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import retailItems from "app/entities/item/retail/retail-items.reducer";
-import itemsForCombo from 'app/entities/item/restaurant/combo-item-prev/items-for-combo.reducer';
+import itemsForCombo from 'app/entities/item/restaurant/combo-item/items-for-combo.reducer';
 import currencies from "app/entities/settings/currency/currencies.reducer"
 import currencySettings from "app/entities/settings/currency/currency-settings.reducer"
 import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
@@ -88,9 +88,9 @@ const entitiesReducers = {
   PosBranchUser,
   tax,
   taxProfiles,
-  accountingGroups,
+  accountingGroup,
   businessDetail,
-  voidReasons,
+  voidReason,
   printer,
   printingProfiles,
   productionCenter,

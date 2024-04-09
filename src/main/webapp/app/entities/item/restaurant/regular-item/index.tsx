@@ -3,20 +3,19 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
-import Item from './item';
-import ItemUpdate from './item-update';
-import ItemDeleteDialog from './item-delete-dialog';
-import VariantView from "app/entities/item/restaurant/regular-item/variant-view";
+import RegularItem from './regular-item';
+import RegularItemUpdate from './regular-item-update';
+import RegularItemDeleteDialog from './regular-item-delete-dialog';
 
-const ItemRoutes = () => (
+const ComboItemRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<Item />} />
-    <Route path="new" element={<ItemUpdate />} />
+    <Route index element={<RegularItem />} />
+    <Route path="new" element={<RegularItemUpdate />} />
     <Route path=":id">
-      <Route path="edit" element={<ItemUpdate />} />
-      <Route path="delete" element={<ItemDeleteDialog />} />
+      <Route path="edit" element={<RegularItemUpdate />} />
+      <Route path="delete" element={<RegularItemDeleteDialog />} />
     </Route>
   </ErrorBoundaryRoutes>
 );
 
-export default ItemRoutes;
+export default ComboItemRoutes;
