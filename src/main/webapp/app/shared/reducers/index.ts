@@ -14,9 +14,11 @@ import settings from 'app/modules/account/settings/settings.reducer';
 import passwordReset from 'app/modules/account/password-reset/password-reset.reducer';
 import entitiesReducers from 'app/entities/reducers';
 import analyticsReducers from "app/modules/analytics/reducers";
-/* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 import tenant from '../../shared/tenant/TenantContext';
 import entityLogs from "../components/logs/audit-logs.reducer"
+import dataImport from "./import-data"
+/* jhipster-needle-add-reducer-import - JHipster will add reducer here */
+
 const rootReducer: ReducersMapObject = {
   authentication,
   locale,
@@ -30,6 +32,7 @@ const rootReducer: ReducersMapObject = {
   settings,
   tenant,
   entityLogs,
+  dataImport,
   loadingBar,
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
   ...entitiesReducers,

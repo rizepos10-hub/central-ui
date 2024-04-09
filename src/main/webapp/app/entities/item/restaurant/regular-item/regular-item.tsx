@@ -8,7 +8,7 @@ import {  ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { searchEntities, getEntities, importData } from "./regular-item.reducer";
+import { searchEntities, getEntities } from "./regular-item.reducer";
 import {getEntities as getCategories} from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
@@ -19,6 +19,7 @@ import {Dropdown} from "primereact/dropdown";
 import ImageDisplay from "app/shared/layout/image/image-display";
 import restaurantCategory from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
 import { ITerm } from "app/shared/model/term.model";
+import ImportButton from "app/shared/components/data-import";
 
 export const RegularItem = () => {
   const dispatch = useAppDispatch();
@@ -33,6 +34,7 @@ export const RegularItem = () => {
 
   const regularItemsList:IRegularItem[] = useAppSelector(state => state.regularItem.entities);
 
+  const importSuccess = useAppSelector(state => state.dataImport.importSuccess);
   const categories :ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
   const loading = useAppSelector(state => state.regularItem.loading);
   const totalItems = useAppSelector(state => state.regularItem.totalItems);
@@ -86,7 +88,7 @@ export const RegularItem = () => {
   useEffect(() => {
     sortEntities();
 
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, search, importSuccess]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -109,24 +111,7 @@ export const RegularItem = () => {
     sortEntities();
   };
 
-  const handleImportButtonClick = () => {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.xlsx';
-    fileInput.onchange = (e) => {
-      const inputElement = e.target as HTMLInputElement;
-      const selectedFile = inputElement.files?.[0] || null;
-      handleImportData(selectedFile);
-    };
-    fileInput.click();
-  };
 
-  const handleImportData = async  (selectedFile) =>  {
-    const response = await dispatch(importData(selectedFile)).then((response) => {
-      const errMsg = response.payload.response.data.message
-      alert(`Error importing data: ${errMsg} `)
-    })
-  };
 
   const clearCategoryFilter = () => {
       setFilters((prevState) => ({
@@ -195,7 +180,8 @@ export const RegularItem = () => {
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold"><Translate contentKey={'items.view.titles.tableTitle.regular'}>Regular Items</Translate></span>
       <div className="ms-auto">
-        <Button label="Import Data" severity="help" raised className="me-5" color="help"  onClick={handleImportButtonClick} disabled={loading} />
+
+        <ImportButton type={"REGULAR_RESTAURANT"} />
          &nbsp;
         <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
