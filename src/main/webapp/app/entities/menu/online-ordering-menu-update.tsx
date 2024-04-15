@@ -48,6 +48,7 @@ import {OrderList} from "primereact/orderlist";
 import {ItemRoute} from "app/shared/model/ENUMS/item-route.model";
 import {IItem} from "app/shared/model/ITEM/item.model";
 import ImageDisplay from "app/shared/layout/image/image-display";
+import { SelectButton } from "primereact/selectbutton";
 
 
 export const OnlineOrderingMenuUpdate = () => {
@@ -68,6 +69,8 @@ export const OnlineOrderingMenuUpdate = () => {
   const errorMessage = useAppSelector(state => state.menu.errorMessage);
 
 
+  const ITEM_TYPE_OPTIONS = ["RETAIL","RESTAURANT"];
+  const [itemType, setItemType] = useState<"RETAIL" | "RESTAURANT">("RETAIL")
   const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
   const initialBranches = {label : menuEntity?.branch?.name , value: menuEntity?.branch?.id}
 
@@ -75,7 +78,7 @@ export const OnlineOrderingMenuUpdate = () => {
 
 
 
-  console.log('initalBranches', initialBranches)
+
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -258,10 +261,14 @@ export const OnlineOrderingMenuUpdate = () => {
     if (menuEntity?.category){
       setSelectedCategory(menuEntity.category.name)
     }
+
+    if (menuEntity?.itemType){
+      setItemType(menuEntity.itemType)
+    }
     if (menuEntity?.branch){
       setSelectedBranches({label: menuEntity?.branch?.name , value: menuEntity?.branch?.id})
     }
-    console.log(menuEntity, 'menuEntity')
+
     onFilter();
 
     return () => {
@@ -309,6 +316,7 @@ export const OnlineOrderingMenuUpdate = () => {
     const entity = {
       ...menuEntity,
       ...restValues,
+      itemType,
       category: selectedCategory ? menuCategories.find((it) => it.name === selectedCategory) : null,
       item: [...filteredMenuItems, ...itemIds].map(item => ({id: item.id})),
       branch: { id: selectedBranches.value }
@@ -581,6 +589,9 @@ export const OnlineOrderingMenuUpdate = () => {
             {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
           </p>
           <p>
+           Layout: {menuEntity.itemType ? menuEntity.itemType : ''}
+          </p>
+          <p>
             <Translate contentKey="menus.shared.update.edit.url">Menu URl</Translate>: {menuEntity.menuUrl ? menuEntity.menuUrl : ''}
           </p>
           <p>
@@ -626,6 +637,11 @@ export const OnlineOrderingMenuUpdate = () => {
                     {translate('menus.shared.update.branches')}
                     <Select defaultValue={initialBranches}
                             onChange={handleBranchChange} options={branchList} />
+                  </div>
+
+                  <div className="my-3">
+                    Layout
+                    <SelectButton value={itemType} onChange={(e) => setItemType(e.value)} options={ITEM_TYPE_OPTIONS} />
                   </div>
                   <ValidatedField
                     id="menu-category"
