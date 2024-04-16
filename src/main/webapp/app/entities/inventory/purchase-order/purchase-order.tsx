@@ -22,7 +22,7 @@ import {InputText} from "primereact/inputtext";
 import Select from "react-select";
 import {Calendar} from "primereact/calendar";
 import {toLocalISOString} from "app/shared/util/date-utils";
-import {applyMatchModeMap} from "app/shared/util/util-func";
+import {applyMatchModeMap} from "app/shared/util/filter-match-model-util";
 
 const initialState = {
   first: 0,
@@ -63,25 +63,23 @@ export const PurchaseOrder = () => {
 
 
   const getAllEntities = () => {
-
     const updatedQuery = applyMatchModeMap(query);
-    dispatch(filterEntities({
-     query: updatedQuery
-    }));
+    dispatch(
+      filterEntities({
+        query: updatedQuery,
+      })
+    );
   };
-
 
   useEffect(() => {
     getAllEntities();
   }, [searchParam]);
-
 
   const handleSyncList = () => {
     getAllEntities();
   };
 
   const onSort = (event) => {
-    console.log(event,'event')
     const queryParams = JSON.stringify(event);
     setSearchParams({query: queryParams}, {replace: true})
   };
@@ -123,7 +121,7 @@ export const PurchaseOrder = () => {
       }
     });
     setSearchParams({query: newQueryWithStatus}, {replace: true});
-  }
+  };
 
 
 

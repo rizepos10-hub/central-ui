@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
 import {getSortState, translate, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -7,15 +7,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {  ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
-import { searchEntities, getEntities } from './pizza-item.reducer';
-import {DataTable} from "primereact/datatable";
+import { filterEntities, getEntities } from './pizza-item.reducer';
+import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import {Column} from "primereact/column";
-import {Chip} from "primereact/chip";
-import {FilterMatchMode} from "primereact/api";
 import {IPizzaItem} from "app/shared/model/ITEM/restaurant/pizza-item.model";
-import {Dropdown} from "primereact/dropdown";
 import ImageDisplay from "app/shared/layout/image/image-display";
+import { initialItemFilterState } from "app/shared/components/filter/initial-item-filter-state.model";
+import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
+import DropDownFilter from "app/shared/components/filter/drop-down-filter";
+import _ from "lodash";
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
@@ -31,80 +31,64 @@ export const PizzaItem = () => {
   const pizzaItemsList:IPizzaItem[] = useAppSelector(state => state.pizzaItem.entities);
   const loading = useAppSelector(state => state.pizzaItem.loading);
   const totalItems = useAppSelector(state => state.pizzaItem.totalItems);
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  });
+
+
+  const [searchParams, setSearchParams]=  useSearchParams();
+  const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
+
+
+
 
   const getAllEntities = () => {
-    if (search) {
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    } else {
-      dispatch(
-        getEntities({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
+    const updatedQuery = applyMatchModeMap(query);
+    dispatch(
+      filterEntities({
+        query: updatedQuery,
+      })
+    );
   };
 
-
-  console.log(pizzaItemsList, 'pizzaItemsList')
-
-
-
-  const sortEntities = () => {
+  useEffect(() => {
     getAllEntities();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
-  };
-
-  useEffect(() => {
-    sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = params.get('page');
-    const sort = params.get(SORT);
-    if (page && sort) {
-      const sortSplit = sort.split(',');
-      setPaginationState({
-        ...paginationState,
-        activePage: +page,
-        sort: sortSplit[0],
-        order: sortSplit[1],
-      });
-    }
-  }, [location.search]);
-
-
+  }, [searchParams]);
 
   const handleSyncList = () => {
-    sortEntities();
+    getAllEntities();
+  };
+
+  const onSort = (event) => {
+    const queryParams = JSON.stringify(event);
+    setSearchParams({query: queryParams}, {replace: true})
+  };
+
+  const onFilter = (event: DataTableFilterEvent) => {
+    const debouncedSearchAction = _.debounce(() => {
+      event['first'] = 0;
+      event['page'] = 0;
+      const queryParams = JSON.stringify(event);
+      setSearchParams({query: queryParams}, {replace: true})
+    }, 300);
+    debouncedSearchAction();
   };
 
 
-
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  const onPage = (event) => {
+    const queryParams = JSON.stringify(event);
+    setSearchParams({query: queryParams}, {replace: true})
   };
 
 
-  const priceBodyTemplate = (item) => {
-    const price = item.price
-    return formatCurrency(price);
+  const handleDropdownChange = (field, value) => {
+    const newQuery = JSON.stringify(  {
+      ...query,
+      filters: {
+        ...query.filters,
+        [field] : value
+      }
+    });
+    setSearchParams({query: newQuery}, {replace: true});
   };
+
 
   const nameColumnTemplate = rowData => {
     const editUrl = `/restaurant/pizza/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
@@ -134,7 +118,7 @@ export const PizzaItem = () => {
   const handleCreate = () => {
     navigate('/restaurant/pizza/new')
   }
-  console.log(pizzaItemsList, 'pizzaItemsList')
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold"><Translate contentKey={'items.view.titles.tableTitle.pizza'}>Pizza Items</Translate></span>
@@ -149,28 +133,36 @@ export const PizzaItem = () => {
       </div>
     </div>
   );
-  const renderDiscounts = rowData => {
-    const discounts = rowData.discounts || [];
-    return discounts.map((discount, index) => (
-      <>
-      <Chip
-        key={index}
-        label={discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}
-        className="p-mr-2 p-mb-2"
-      />
-      </>
-
-    ));
-  };
-
 
 
   return (
 
       <div >
-        <DataTable loading={loading} value={pizzaItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20}>
+        <DataTable
+          value={pizzaItemsList} loading={loading} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
+          paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
+          onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
+        >
+
           <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
+
+          <Column
+            header="Category"
+            field="categories"
+            body={rowData => rowData?.categories?.map(cat => cat?.name).join(" | ")}
+            sortable
+            filter
+            showFilterMatchModes={false}
+            filterElement={
+              <DropDownFilter
+                dropDownOptionType={"RESTAURANT_CATEGORY"}
+                selectedOption={query?.filters?.["categories.id"]?.value}
+                fieldName={"categories.id"}
+                handleDropdownChange={handleDropdownChange}
+              />
+            }
+          />
+
           <Column header={translate('items.view.fields.image')}  body={(rowData) =>
             <ImageDisplay
               imageType={"product"}

@@ -19,11 +19,11 @@ const apiUrl = 'api/items/restaurant-variable';
 const summaryUrl = 'api/items/restaurant-variable/summary';
 const apiSearchUrl = 'api/_search/items/restaurant-variable';
 
+
 // Actions
 
-export const searchEntities = createAsyncThunk('regular-item/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IRegularItem[]>(requestUrl);
+export const filterEntities = createAsyncThunk('regular-item/filter_entity_list', async ({ query, }: IQueryParams) => {
+  return axios.post<IRegularItem[]>(apiSearchUrl, query);
 });
 
 export const getEntities = createAsyncThunk('regular-item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
@@ -99,7 +99,7 @@ export const RegularItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, filterEntities), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -115,7 +115,7 @@ export const RegularItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

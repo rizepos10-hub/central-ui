@@ -20,8 +20,8 @@ const apiSearchUrl = 'api/_search/restaurant-categories';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('restaurant-category/search_entity', async ({ query, page, size, sort, taxonomyName }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}${taxonomyName ? `&taxonomyName=${encodeURIComponent(taxonomyName)}` : ''}`;
+export const searchEntities = createAsyncThunk('restaurant-category/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
+  const requestUrl = `${apiSearchUrl}?name=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<ITerm[]>(requestUrl);
 });
 

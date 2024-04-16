@@ -4,6 +4,8 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { IPizzaItem, defaultValue } from 'app/shared/model/ITEM/restaurant/pizza-item.model';
+import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
+
 const initialState: EntityState<IPizzaItem> = {
   loading: false,
   errorMessage: null,
@@ -19,9 +21,8 @@ const apiSearchUrl = 'api/_search/items/restaurant-pizza';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('pizza-item/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IPizzaItem[]>(requestUrl);
+export const filterEntities = createAsyncThunk('pizza-item/filter_entity_list', async ({ query, }: IQueryParams) => {
+  return axios.post<IComboItem[]>(apiSearchUrl, query);
 });
 
 export const getEntities = createAsyncThunk('pizza-item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
@@ -95,7 +96,7 @@ export const PizzaItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, filterEntities), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -111,7 +112,7 @@ export const PizzaItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
