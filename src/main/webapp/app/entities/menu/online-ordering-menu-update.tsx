@@ -275,7 +275,7 @@ export const OnlineOrderingMenuUpdate = () => {
       reset()
     }
 
-  }, [updateSuccess, menuEntity?.item, displayedTerms,selectedTerm ]);
+  }, [updateSuccess, menuEntity?.item, displayedTerms, selectedTerm]);
 
 
 
@@ -299,7 +299,6 @@ export const OnlineOrderingMenuUpdate = () => {
 
 
   const saveEntity = (values) => {
-    console.log(values, 'lololo')
     values.createdDate = convertDateTimeToServer(values.createdDate);
     values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate);
     setIsEditModalOpen(false)
