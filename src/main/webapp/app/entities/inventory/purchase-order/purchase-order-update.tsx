@@ -42,7 +42,7 @@ import {convertDateTimeToServer, toLocalISOString} from "app/shared/util/date-ut
 import {SelectButton} from "primereact/selectbutton";
 import {IInventoryItem, IInventoryItemVariant} from "app/shared/model/STOCK/inventory-item.model";
 import _ from "lodash";
-import {applyMatchModeMap} from "app/shared/util/util-func";
+import {applyMatchModeMap} from "app/shared/util/filter-match-model-util";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 
 

@@ -19,9 +19,8 @@ const apiSearchUrl = 'api/_search/items/retail';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('simple-item/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<ISimpleItem[]>(requestUrl);
+export const filterEntities = createAsyncThunk('simple-item/filter_entity_list', async ({ query, }: IQueryParams) => {
+  return axios.post<ISimpleItem[]>(apiSearchUrl, query);
 });
 
 export const getEntities = createAsyncThunk('simple-item/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
@@ -95,7 +94,7 @@ export const SimpleItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, filterEntities), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -111,7 +110,7 @@ export const SimpleItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

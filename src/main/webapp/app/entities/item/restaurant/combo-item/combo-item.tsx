@@ -1,113 +1,80 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, {  useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
-import {getSortState, translate, Translate} from 'react-jhipster';
+import { translate, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {  ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { searchEntities, getEntities } from './combo-item.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
-import {Chip} from "primereact/chip";
-import {FilterMatchMode} from "primereact/api";
 import {IComboItem} from "app/shared/model/ITEM/restaurant/combo-item.model";
-import {Dropdown} from "primereact/dropdown";
 import ImageDisplay from "app/shared/layout/image/image-display";
+import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
+import { filterEntities } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
+import { initialItemFilterState } from "app/shared/components/filter/initial-item-filter-state.model";
+import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 
 export const ComboItem = () => {
   const dispatch = useAppDispatch();
-
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const [search, setSearch] = useState('');
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
 
   const comboItemsList:IComboItem[] = useAppSelector(state => state.comboItem.entities);
   const loading = useAppSelector(state => state.comboItem.loading);
   const totalItems = useAppSelector(state => state.comboItem.totalItems);
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  });
+  const [searchParams, setSearchParams]=  useSearchParams();
+  const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
+
 
   const getAllEntities = () => {
-    if (search) {
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    } else {
-      dispatch(
-        getEntities({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
+    const updatedQuery = applyMatchModeMap(query);
+    dispatch(
+      filterEntities({
+        query: updatedQuery,
+      })
+    );
   };
 
-
-  console.log(comboItemsList, 'comboItemsList')
-
-
-
-  const sortEntities = () => {
+  useEffect(() => {
     getAllEntities();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
-  };
-
-  useEffect(() => {
-    sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = params.get('page');
-    const sort = params.get(SORT);
-    if (page && sort) {
-      const sortSplit = sort.split(',');
-      setPaginationState({
-        ...paginationState,
-        activePage: +page,
-        sort: sortSplit[0],
-        order: sortSplit[1],
-      });
-    }
-  }, [location.search]);
-
-
+  }, [searchParams]);
 
   const handleSyncList = () => {
-    sortEntities();
+    getAllEntities();
+  };
+
+  const onSort = (event) => {
+    const queryParams = JSON.stringify(event);
+    setSearchParams({query: queryParams}, {replace: true})
+  };
+
+  const onFilter = (event: any) => {
+    event['first'] = 0;
+    event['page'] = 0;
+    const queryParams = JSON.stringify(event);
+    setSearchParams({query: queryParams}, {replace: true})
   };
 
 
-
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  const onPage = (event) => {
+    const queryParams = JSON.stringify(event);
+    setSearchParams({query: queryParams}, {replace: true})
   };
 
 
-  const priceBodyTemplate = (item) => {
-    const price = item.price
-    return formatCurrency(price);
+  const handleDropdownChange = (field, value) => {
+    const newQuery = JSON.stringify(  {
+      ...query,
+      filters: {
+        ...query.filters,
+        [field] : value
+      }
+    });
+    setSearchParams({query: newQuery}, {replace: true});
   };
 
   const nameColumnTemplate = rowData => {
-    const editUrl = `/restaurant/combo/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/restaurant/combo/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -115,7 +82,7 @@ export const ComboItem = () => {
     );
   };
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/restaurant/combo/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/restaurant/combo/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
@@ -124,7 +91,7 @@ export const ComboItem = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/restaurant/combo/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/restaurant/combo/${rowData.id}/delete`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -134,7 +101,7 @@ export const ComboItem = () => {
   const handleCreate = () => {
     navigate('/restaurant/combo/new')
   }
-  console.log(comboItemsList, 'comboItemsList')
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold"><Translate contentKey={'items.view.titles.tableTitle.combo'}>Combo Items</Translate></span>
@@ -149,27 +116,37 @@ export const ComboItem = () => {
       </div>
     </div>
   );
-  const renderDiscounts = rowData => {
-    const discounts = rowData.discounts || [];
-    return discounts.map((discount, index) => (
-      <>
-      <Chip
-        key={index}
-        label={discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}
-        className="p-mr-2 p-mb-2"
-      />
-      </>
 
-    ));
-  };
 
 
 
   return (
     <div>
-        <DataTable loading={loading} value={comboItemsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20}>
+      <DataTable
+        value={comboItemsList} loading={loading} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
+        paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
+        onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
+      >
+
           <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
+
+          <Column
+            header="Category"
+            field="categories"
+            body={rowData => rowData?.categories?.map(cat => cat?.name).join(" | ")}
+            sortable
+            filter
+            showFilterMatchModes={false}
+            filterElement={
+              <DropDownFilter
+                dropDownOptionType={"RESTAURANT_CATEGORY"}
+                selectedOption={query?.filters?.["categories.id"]?.value}
+                fieldName={"categories.id"}
+                handleDropdownChange={handleDropdownChange}
+              />
+            }
+          />
+
           <Column header={translate('items.view.fields.image')}  body={(rowData) =>
             <ImageDisplay
               imageType={"product"}
@@ -177,7 +154,7 @@ export const ComboItem = () => {
               height={50}
               width={50}
             />} />
-          <Column field="desc" header={translate('items.view.fields.description')} />
+          <Column field="description" header={translate('items.view.fields.description')} />
 
           <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
 
