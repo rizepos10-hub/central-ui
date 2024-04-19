@@ -16,7 +16,7 @@ const initialState: EntityState<IVariableItem> = {
 };
 
 const apiUrl = 'api/items/retail';
-const apiSearchUrl = 'api/_search/items/retail';
+const apiSearchUrl = 'api/_search/items/retail/variable';
 
 // Actions
 

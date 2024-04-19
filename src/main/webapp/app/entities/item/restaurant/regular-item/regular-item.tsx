@@ -16,8 +16,8 @@ import { ITerm } from "app/shared/model/term.model";
 import ImportButton from "app/shared/components/data-import/data-import";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
-import { initialItemFilterState } from "app/shared/components/filter/initial-item-filter-state.model";
 import _ from "lodash";
+import { initialItemFilterState } from "app/shared/model/filter-state.model";
 
 
 export const RegularItem = () => {
