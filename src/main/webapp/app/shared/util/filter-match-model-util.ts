@@ -1,4 +1,4 @@
-export const applyMatchModeMap = (query: any ) => {
+export const applyMatchModeMap = (query: any) => {
   const matchModeMap = {
     contains: 'CONTAINS',
     startsWith: 'STARTS_WITH',
@@ -8,14 +8,40 @@ export const applyMatchModeMap = (query: any ) => {
   };
 
   const updatedFilters = { ...query.filters };
+
   Object.keys(updatedFilters).forEach(key => {
-    const { value, matchMode } = updatedFilters[key];
-    const updatedMatchMode = matchModeMap[matchMode];
-    updatedFilters[key] = { value, matchMode: updatedMatchMode };
+    if (key !== 'attributes.attributeTerms.id') {
+      const { value, matchMode } = updatedFilters[key];
+      const updatedMatchMode = matchModeMap[matchMode];
+      updatedFilters[key] = { value, matchMode: updatedMatchMode };
+
+      if (value == null || value === '' || value === undefined) {
+        delete updatedFilters[key];
+      }
+    }
   });
+
+  const updatedFiltersFinal = updateTableFilters(updatedFilters);
 
   return {
     ...query,
-    filters: updatedFilters
+    filters: updatedFiltersFinal,
   };
 };
+
+
+export const updateTableFilters = (filters) => {
+  for (const key in filters) {
+    if (key === 'attributes.attributeTerms.id') {
+      if (filters[key].constraints.length === 0) {
+        delete filters[key];
+      }
+    } else {
+      if (filters[key].value === null || filters[key].value === undefined || filters[key].value === '') {
+        delete filters[key];
+      }
+    }
+  }
+  return filters;
+};
+

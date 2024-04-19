@@ -12,8 +12,8 @@ import {IComboItem} from "app/shared/model/ITEM/restaurant/combo-item.model";
 import ImageDisplay from "app/shared/layout/image/image-display";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import { filterEntities } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
-import { initialItemFilterState } from "app/shared/components/filter/initial-item-filter-state.model";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
+import { initialItemFilterState } from "app/shared/model/filter-state.model";
 
 export const ComboItem = () => {
   const dispatch = useAppDispatch();

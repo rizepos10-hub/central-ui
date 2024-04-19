@@ -27,7 +27,7 @@ export const searchEntities = createAsyncThunk('retail-attributes-value/search_e
 });
 
 export const getEntities = createAsyncThunk('retail-attributes-value/fetch_entity_list', async ({ id, page, size, sort }: IQueryParams) => {
-  const requestUrl = `api/retail-attr-value${sort ? `?page=${page}&size=${size}&sort=${sort}&taxonomy=${id}` : '?'}`;
+  const requestUrl = `api/retail-attr-value?taxonomy=${id}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<ITerm[]>(requestUrl);
 });
 
