@@ -17,18 +17,16 @@ const AppSubMenu = (props) => {
             tooltipRef.current.hide();
             (tooltipRef.current as any).updateTargetEvents();
         }
-      console.log(tooltipRef.current, 'tooltipRef')
 
     }, [layoutState?.overlaySubmenuActive]);
 
     useEffect(() => {
         generateBreadcrumbs(props.model);
-      console.log(props.model, 'props.model')
 
     }, []);
 
     const generateBreadcrumbs = (model: any) => {
-        let breadcrumbs: any[] = [];
+        const breadcrumbs: any[] = [];
 
         const getBreadcrumb = (item: any, labels: string[] = []) => {
             const { label, to, items } = item;
