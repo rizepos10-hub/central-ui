@@ -2,24 +2,18 @@ import 'react-toastify/dist/ReactToastify.css';
 import './app.scss';
 import 'app/config/dayjs.ts';
 import React, { useEffect } from 'react';
-import { Card } from 'reactstrap';
 import { BrowserRouter } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getSession } from 'app/shared/reducers/authentication';
 import { getProfile } from 'app/shared/reducers/application-profile';
-import { setLocale } from 'app/shared/reducers/locale';
-import Header from 'app/shared/layout/header/header';
-import Footer from 'app/shared/layout/footer/footer';
 import { hasAnyAuthority } from 'app/shared/auth/private-route';
 import ErrorBoundary from 'app/shared/error/error-boundary';
 import { AUTHORITIES } from 'app/config/constants';
 import AppRoutes from 'app/routes';
-import Sidebar, { Layout } from 'app/shared/layout/Layout';
+import { Layout } from 'app/shared/layout/Layout';
 import { LayoutProvider } from 'app/shared/sidebar/context/layoutcontext';
-import { getState, setTenant } from 'app/shared/tenant/TenantContext';
-import {PrimeReactProvider} from "primereact/api";
+import { setTenant } from 'app/shared/tenant/TenantContext';
 import VersionUpdateChecker from "app/version/version-checker";
 
 // const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
@@ -43,42 +37,20 @@ export const App = () => {
   useEffect(() => {
     dispatch(getSession());
     dispatch(getProfile());
-    dispatch(setTenant({ tenant: tenant }));
+    dispatch(setTenant({ tenant }));
   }, []);
 
 
 
-  const currentLocale = useAppSelector(state => state.locale.currentLocale);
-  const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
-  const isAdmin = useAppSelector(state => hasAnyAuthority(state.authentication.account.authorities, [AUTHORITIES.ADMIN]));
-  const ribbonEnv = useAppSelector(state => state.applicationProfile.ribbonEnv);
-  const isInProduction = useAppSelector(state => state.applicationProfile.inProduction);
-  const isOpenAPIEnabled = useAppSelector(state => state.applicationProfile.isOpenAPIEnabled);
-
 
   return (
     <BrowserRouter basename={baseHref}>
-        {/* <div className="app-container" style={{ paddingTop }}> */}
-        {/* <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" /> */}
-        {/* <ErrorBoundary> */}
-        {/*   <Header */}
-        {/*     isAuthenticated={isAuthenticated} */}
-        {/*     isAdmin={isAdmin} */}
-        {/*     currentLocale={currentLocale} */}
-        {/*     ribbonEnv={ribbonEnv} */}
-        {/*     isInProduction={isInProduction} */}
-        {/*     isOpenAPIEnabled={isOpenAPIEnabled} */}
-        {/*   /> */}
-        {/* </ErrorBoundary> */}
-        {/* <div className="container-fluid view-container row" id="app-view-container"> */}
         <LayoutProvider>
-        <Layout isAuthenticated={isAuthenticated}>
+        <Layout>
           <ErrorBoundary>
             <VersionUpdateChecker />
             <AppRoutes />
           </ErrorBoundary>
-          {/* </div> */}
-          {/* </div> */}
         </Layout>
       </LayoutProvider>
     </BrowserRouter>

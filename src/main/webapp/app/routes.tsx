@@ -18,7 +18,6 @@ import { AUTHORITIES } from 'app/config/constants';
 import { sendActivity } from 'app/config/websocket-middleware';
 import Instructions from "app/modules/instructions/instructions";
 import BusinessDetailRoutes from "app/entities/settings/business-details";
-import {useAppSelector} from "app/config/store";
 import AppConfig from "app/shared/sidebar/AppConfig";
 
 const loading = <div>loading ...</div>;
@@ -38,7 +37,6 @@ const AppRoutes = () => {
   React.useEffect(() => {
     sendActivity(location.pathname);
   }, [location]);
-  const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
 
   return (
     <div className="view-routes">
