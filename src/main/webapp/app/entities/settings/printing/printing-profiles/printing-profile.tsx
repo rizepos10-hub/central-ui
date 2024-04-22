@@ -6,16 +6,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import {  getEntities } from './printing-profile.reducer';
-import { getEntities  as getBranches} from '../../../branch/branch.reducer';
+import { getEntities } from './printing-profile.reducer';
+import { getEntities as getBranches } from '../../../branch/branch.reducer';
 
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {Button} from "primereact/button";
-import {FilterMatchMode} from "primereact/api";
-import {InputText} from "primereact/inputtext";
-import printingProfiles from "app/entities/settings/printing/printing-profiles/printing-profile.reducer";
-import {Dropdown} from "primereact/dropdown";
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
+import { FilterMatchMode } from 'primereact/api';
+import { InputText } from 'primereact/inputtext';
+import { Dropdown } from 'primereact/dropdown';
 
 export const PrintingProfiles = () => {
   const dispatch = useAppDispatch();
@@ -33,65 +32,44 @@ export const PrintingProfiles = () => {
   const branchList = useAppSelector(state => state.branch.entities);
 
 
-  console.log(printingProfiles, 'lol')
-
-
-
-
-
-
   const handleCreate = () => {
-  navigate('/printing-profiles/new')
+    navigate('/printing-profiles/new');
   };
 
-  const filteredBranchOptions = branchList
-    .map((branch) => ({
-      label: branch.name,
-      value: branch.id,
-    }));
-
-
-
-
-
+  const filteredBranchOptions = branchList.map(branch => ({
+    label: branch.name,
+    value: branch.id,
+  }));
 
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    "branch.name": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    'branch.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     printers: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-
   });
 
-
-
-
-
-
   const getPrintingProfiles = () => {
-  dispatch(getEntities({}))
-    dispatch(getBranches({}))
-
+    dispatch(getEntities({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+    dispatch(getBranches({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
   };
 
-
   useEffect(() => {
-    getPrintingProfiles()
-
+    getPrintingProfiles();
   }, []);
-
-
 
   const nameColumnTemplate = rowData => {
     const editUrl = `/printing-profiles/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
-  }
+    return <Link to={editUrl}>{rowData.name}</Link>;
+  };
 
-
-  const handleNameFilterChange = (e) => {
+  const handleNameFilterChange = e => {
     const filterValue = e.target.value;
     if (filterValue === '') {
       setFilters({
@@ -105,23 +83,28 @@ export const PrintingProfiles = () => {
       });
     }
   };
-  const editColumnTemplate = (rowData) => {
+  const editColumnTemplate = rowData => {
     const editUrl = `/printing-profiles/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
       </Link>
     );
   };
-
-
-
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Printing Profiles</span>
       <div className="ms-auto">
-        <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={getPrintingProfiles} disabled={loading}>
+        <Button
+          label="Refresh List"
+          severity="secondary"
+          raised
+          className="me-5"
+          color="info"
+          onClick={getPrintingProfiles}
+          disabled={loading}
+        >
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
@@ -133,34 +116,56 @@ export const PrintingProfiles = () => {
   );
   return (
     <div>
-        <DataTable value={printingProfilesList} editMode="row" header={header}  paginator filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
-          <Column
-            field="name" header="Name" filter body={nameColumnTemplate}
-            filterElement={ <InputText  placeholder="Search by Name" onChange={handleNameFilterChange}/> }
-            filterField="name"  sortable
-          />
+      <DataTable
+        value={printingProfilesList}
+        editMode="row"
+        header={header}
+        paginator
+        filters={filters}
+        filterDisplay="row"
+        totalRecords={totalItems}
+        rows={20}
+      >
+        <Column
+          field="name"
+          header="Name"
+          filter
+          body={nameColumnTemplate}
+          filterElement={<InputText placeholder="Search by Name" onChange={handleNameFilterChange} />}
+          filterField="name"
+          sortable
+        />
 
-
-          <Column field="branch" body={(rowData) => rowData?.branch?.name} header="Branch" filter   sortable filterElement={
+        <Column
+          field="branch"
+          body={rowData => rowData?.branch?.name}
+          header="Branch"
+          filter
+          sortable
+          filterElement={
             <Dropdown
-              value={filters["branch.name"]?.value || ''}
+              value={filters['branch.name']?.value || ''}
               options={filteredBranchOptions}
-              onChange={(e) => {
-                setFilters((prevState) => ({
+              onChange={e => {
+                setFilters(prevState => ({
                   ...prevState,
-                  ["branch.id"]: {value: e.value, matchMode: FilterMatchMode.CONTAINS},
-                }))
+                  ['branch.id']: { value: e.value, matchMode: FilterMatchMode.CONTAINS },
+                }));
               }}
-              placeholder="Select a branch" />
-          }
+              placeholder="Select a branch"
             />
+          }
+        />
 
-          <Column field="printers" header="Printers" body={(rowData) => rowData?.printers?.map((printer) => printer.name).join(' | ')}    />
+        <Column field="printers" header="Printers" body={rowData => rowData?.printers?.map(printer => printer.name).join(' | ')} />
 
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-        </DataTable>
+        <Column
+          header="Edit"
+          body={editColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
+      </DataTable>
     </div>
   );
 };

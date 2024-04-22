@@ -69,6 +69,13 @@ export const serializeAxiosError = (value: any): AxiosError | SerializedError =>
   return { message: String(value) };
 };
 
+export type ChangeFieldPayload<T> = {
+  [K in keyof T]: {
+    name: K;
+    value: T[K];
+  }
+}[keyof T];
+
 export interface EntityState<T> {
   loading: boolean;
   errorMessage: string | null;
