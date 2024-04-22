@@ -1,4 +1,3 @@
-// VersionUpdateChecker.js
 import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -29,12 +28,25 @@ function VersionUpdateChecker() {
         closeButton: <Button onClick={reloadWithCacheBusting}>Reload</Button>,
       });
     }
+
   }, [isNewVersion]);
 
-  const reloadWithCacheBusting = () => {
-    const url = `${window.location.href}?${Date.now()}`; // Append timestamp as query parameter
-    window.location.href = url;
+  const reloadWithCacheBusting = async () => {
+    try {
+      const cacheKeys = await caches.keys();
+
+      await Promise.all(
+        cacheKeys.map(key => {
+          return caches.delete(key);
+        })
+      );
+
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting caches:', error);
+    }
   };
+
 
   return <ToastContainer position="top-left" className="toastify-container" toastClassName="toastify-toast" />;
 }
