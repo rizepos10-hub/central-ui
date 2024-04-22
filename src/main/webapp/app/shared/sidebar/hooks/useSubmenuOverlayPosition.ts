@@ -41,7 +41,8 @@ export const useSubmenuOverlayPosition = ({ target, overlay, container, when }: 
                 overlay.style.left = vWidth < width ? `${left - (width - vWidth)}px` : `${left}px`;
             } else if (isSlim() || isSlimPlus()) {
                 const height = top + oHeight;
-                overlay.style.top = vHeight < height ? `${top - (height - vHeight)}px` : `${top}px`;
+                overlay.style.top = `0`;
+                overlay.style.height= "100%"
             }
         }
     };

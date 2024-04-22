@@ -102,8 +102,8 @@
                         box-shadow: var(--sidebar-shadow);
                         border: var(--sidebar-border);
                         padding: 1rem;
-                        max-height: 20rem;
-                        overflow: auto;
+                        //max-height: 20rem;
+                        overflow: scroll;
                         z-index: 999;
 
                         a {
