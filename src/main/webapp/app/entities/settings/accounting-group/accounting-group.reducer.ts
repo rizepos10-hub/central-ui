@@ -7,10 +7,8 @@ import {
   createEntitySlice,
   EntityState,
   serializeAxiosError,
-  ChangeFieldPayload
 } from "app/shared/reducers/reducer.utils";
 import { IAccountingGroup, defaultValue } from 'app/shared/model/TAX/accounting-group.model';
-import { IPrinter } from "app/shared/model/PRINTER/printer.model";
 
 const initialState: EntityState<IAccountingGroup> = {
   loading: false,
@@ -22,8 +20,8 @@ const initialState: EntityState<IAccountingGroup> = {
   updateSuccess: false,
 };
 
-const apiUrl = 'api/accounting-group';
-const apiSearchUrl = 'api/_search/accounting-group';
+const apiUrl = 'api/accounting-groups';
+const apiSearchUrl = 'api/_search/accounting-groups';
 
 // Actions
 
