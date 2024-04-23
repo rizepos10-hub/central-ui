@@ -10,7 +10,7 @@ import {Column} from "primereact/column";
 import {IVariableItem} from "app/shared/model/ITEM/retail/variable-item.model";
 import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {SummarizeText} from "app/shared/util/SummarizeText";
-import ImageDisplay from "app/shared/layout/image/image-display";
+import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import _ from "lodash";

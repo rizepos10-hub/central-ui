@@ -16,7 +16,7 @@ import {InputNumber} from "primereact/inputnumber";
 import {Checkbox} from "primereact/checkbox";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
-import {IAccountingGroup} from "app/shared/model/TAX/accounting-groups.model";
+import {IAccountingGroup} from "app/shared/model/TAX/accounting-group.model";
 import {getEntities as getAccountingGroups} from "app/entities/settings/accounting-group/accounting-group.reducer";
 
 interface INewQuantityRule extends IQuantityConfigurationProperties {

@@ -15,7 +15,7 @@ import {
 } from "app/shared/model/ONLINE_ORDERING/ui-setting.model";
 import {SelectButton} from "primereact/selectbutton";
 import {Checkbox} from "primereact/checkbox";
-import Attachment from "app/shared/layout/attachment/attachment";
+import Attachment from "app/shared/components/attachment/attachment";
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
