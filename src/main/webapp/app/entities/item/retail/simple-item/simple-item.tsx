@@ -9,7 +9,7 @@ import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import {Column} from "primereact/column";
 import {ISimpleItem} from "app/shared/model/ITEM/retail/simple-item.model";
 import {SummarizeText} from "app/shared/util/SummarizeText";
-import ImageDisplay from "app/shared/layout/image/image-display";
+import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap, updateTableFilters } from "app/shared/util/filter-match-model-util";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import SharedFilter from "app/shared/components/item/shared-filter";

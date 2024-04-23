@@ -10,7 +10,7 @@ import {InputText} from "primereact/inputtext";
 import {IFloorPlanSettings} from "app/shared/model/FLOOR-PLAN/floor-plan-settings.model";
 import {InputNumber} from "primereact/inputnumber";
 import {Translate} from "react-jhipster";
-import Attachment from "app/shared/layout/attachment/attachment";
+import Attachment from "app/shared/components/attachment/attachment";
 
 export const FloorPlanSettingsUpdate = () => {
   const dispatch = useAppDispatch();

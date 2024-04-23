@@ -5,41 +5,33 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntity, updateEntity, createEntity, reset } from './tv.reducer';
+import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './tv.reducer';
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {getEntities as getTvDisplays} from "app/entities/settings/tv-config/tv-display/tv-display.reducer";
 import {InputText} from "primereact/inputtext";
 import {getSortState, Translate} from "react-jhipster";
-import Attachment from "app/shared/layout/attachment/attachment";
 import Select from "react-select";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
-import {ITv} from "app/shared/model/TV/tv.model";
 
-export const FloorPlanTvUpdate = () => {
+export const TVUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const [tv, setFloorPlanTv] = useState<ITv>({
-    name: '',
-    branch: null,
-    dimensions: null,
-    tvDisplay: null
-  });
 
   const branchList = useAppSelector(state => state.branch.entities)
   const tvDisplayList = useAppSelector(state => state.tvDisplay.entities)
-  const tvEntity = useAppSelector(state => state.tv.entity);
+  const tv = useAppSelector(state => state.tv.entity);
   const loading = useAppSelector(state => state.tv.loading);
   const updating = useAppSelector(state => state.tv.updating);
   const updateSuccess = useAppSelector(state => state.tv.updateSuccess);
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-  console.log(tv, 'tv')
+
   const handleClose = () => {
     navigate('/tv' + location.search);
   };
@@ -67,44 +59,25 @@ export const FloorPlanTvUpdate = () => {
     if (updateSuccess) {
       handleClose();
     }
-    if(tvEntity){
-      setFloorPlanTv(tvEntity)
-    }
-  }, [updateSuccess, tvEntity?.name]);
+  }, [updateSuccess]);
 
   const handleBranchChange = (selectedBranch) => {
-    setFloorPlanTv(prevState => ({...prevState, branch: selectedBranch}))
+    dispatch(changeEntityField({name: "branch", value: selectedBranch}))
   }
 
   const handleDisplayChange = (display) => {
-    setFloorPlanTv(prevState => ({...prevState, tvDisplay: display}))
+    dispatch(changeEntityField({name: "tvDisplay", value: display}))
   }
 
   const handleChange = e => {
     const { name, value } = e.target;
-    setFloorPlanTv(prevState => ({ ...prevState, [name]: value }));
+    dispatch(changeEntityField({name, value}))
   };
 
   const handleDimensionChange = (type, e) => {
-    setFloorPlanTv((prevState) => ({
-      ...prevState, dimensions: {...prevState.dimensions, [type]: e.value,},}));
+    dispatch(changeEntityField({name: "dimensions", value: {...tv.dimensions, [type]: e.value,}}))
   };
 
-  const removeImage = () => {
-    setFloorPlanTv(prev => ({
-      ...prev,
-      image: null
-    }))
-  }
-
-
-  const addImage = (imageInfo) => {
-    console.log(imageInfo, 'imageInfo')
-    setFloorPlanTv(prev => ({
-      ...prev,
-      image: imageInfo
-    }))
-  }
 
 
   const saveEntity = (e) => {
@@ -231,4 +204,4 @@ export const FloorPlanTvUpdate = () => {
   );
 };
 
-export default FloorPlanTvUpdate;
+export default TVUpdate;

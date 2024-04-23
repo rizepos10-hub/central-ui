@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchTopCustomers, fetchTopItems } from 'app/modules/analytics/api';
 import { Col, ListGroup, ListGroupItem, Row } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import ImageDisplay from 'app/shared/layout/image/image-display';
+import ImageDisplay from 'app/shared/components/image/image-display';
 
 const TopItems = () => {
   const [bestSellers, setBestSellers] = useState([]);

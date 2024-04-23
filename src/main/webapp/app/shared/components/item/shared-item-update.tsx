@@ -15,7 +15,7 @@ import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import {InputText} from "primereact/inputtext";
 import Select, {ActionMeta, MultiValue} from "react-select";
 import {IItem} from "app/shared/model/ITEM/item.model";
-import Attachment from "app/shared/layout/attachment/attachment";
+import Attachment from "app/shared/components/attachment/attachment";
 import {Checkbox} from "primereact/checkbox";
 import {cloneDeep} from "lodash";
 import AddonImportModal from "./addon-import-modal";

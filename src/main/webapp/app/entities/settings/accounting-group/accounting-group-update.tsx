@@ -10,7 +10,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {getSortState, Translate} from "react-jhipster";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import { IAccountingGroup} from "app/shared/model/TAX/accounting-groups.model";
+import { IAccountingGroup} from "app/shared/model/TAX/accounting-group.model";
 
 export const AccountingGroupUpdate = () => {
   const dispatch = useAppDispatch();
@@ -18,7 +18,7 @@ export const AccountingGroupUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const accountingGroupsEntity :IAccountingGroup = useAppSelector(state => state.accountingGroup.entity);
+  const accountingGroup :IAccountingGroup = useAppSelector(state => state.accountingGroup.entity);
   const loading = useAppSelector(state => state.accountingGroup.loading);
   const updating = useAppSelector(state => state.accountingGroup.updating);
   const updateSuccess = useAppSelector(state => state.accountingGroup.updateSuccess);
@@ -41,7 +41,7 @@ export const AccountingGroupUpdate = () => {
 
   const handleSubmit = () => {
     const entity = {
-         ...accountingGroupsEntity
+         ...accountingGroup
     };
 
     if (isNew) {
@@ -82,7 +82,7 @@ export const AccountingGroupUpdate = () => {
 
   return (
     <div>
-      <h2>{isNew ? `Add New Accounting Groups` : `Edit Accounting Groups ${accountingGroupsEntity.name}` }</h2>
+      <h2>{isNew ? `Add New Accounting Groups` : `Edit Accounting Groups ${accountingGroup.name}` }</h2>
       <Row>
         <Col md="8"  className="d-flex flex-column p-3  bg-white">
       <FormGroup>
@@ -90,17 +90,16 @@ export const AccountingGroupUpdate = () => {
             <Label htmlFor="name">Name</Label>
             <InputText
               id="name"
-              value={accountingGroupsEntity.name}
+              value={accountingGroup.name}
               onChange={(e) => handleChange('name', e.target.value)}
             />
           </div>
           <div className="d-flex flex-column mb-3">
 
-
           <Label htmlFor="accountingId">Accounting ID</Label>
             <InputText
               id="accountingId"
-              value={accountingGroupsEntity.accountingId}
+              value={accountingGroup.accountingId}
               onChange={(e) => handleChange('accountingId', e.target.value)}
             />
           </div>
@@ -110,7 +109,7 @@ export const AccountingGroupUpdate = () => {
             <Select
               id="profiles"
               options={taxProfilesList}
-              value={accountingGroupsEntity.profiles}
+              value={accountingGroup.profiles}
               getOptionValue={option => option.id}
               getOptionLabel={option => option.name}
               isMulti={true}
@@ -122,7 +121,6 @@ export const AccountingGroupUpdate = () => {
       </FormGroup>
         </Col>
         <div className="d-flex justify-content-start align-items-center  mt-7">
-
           <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/accounting-groups" replace color="info">
             <FontAwesomeIcon icon="arrow-left" />
             &nbsp;
@@ -135,7 +133,6 @@ export const AccountingGroupUpdate = () => {
           <Button color="primary" disabled={updating} onClick={handleSubmit}>
             Save
           </Button>
-
         </div>
       </Row>
     </div>

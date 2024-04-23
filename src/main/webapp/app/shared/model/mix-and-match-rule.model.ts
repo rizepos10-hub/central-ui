@@ -1,4 +1,4 @@
-import {IAccountingGroup} from "app/shared/model/TAX/accounting-groups.model";
+import {IAccountingGroup} from "app/shared/model/TAX/accounting-group.model";
 import {IDiscount} from "app/shared/model/discount.model";
 
 

@@ -23,7 +23,7 @@ import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
 import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
-import Attachment from "app/shared/layout/attachment/attachment";
+import Attachment from "app/shared/components/attachment/attachment";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 import { IDiscount } from "app/shared/model/discount.model";
 import { IAddon } from "app/shared/model/ADDON/addon.model";

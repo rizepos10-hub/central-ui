@@ -14,4 +14,9 @@ export interface ITv {
   tvDisplay?: ITvDisplay;
 }
 
-export const defaultValue: Readonly <ITv> = {};
+export const defaultValue: Readonly <ITv> = {
+  name: '',
+  branch: null,
+  dimensions: null,
+  tvDisplay: null
+};

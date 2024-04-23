@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
-import Attachment from 'app/shared/layout/attachment/attachment';
+import Attachment from 'app/shared/components/attachment/attachment';
 import { Checkbox } from 'primereact/checkbox';
 import { Button } from 'primereact/button';
 import {Translate} from "react-jhipster";
