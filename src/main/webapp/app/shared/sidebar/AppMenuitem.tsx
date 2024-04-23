@@ -103,10 +103,10 @@ const AppMenuitem = (props: AppMenuItemProps) => {
         }
 
         // toggle active state
-        if (item?.items) {
+        if (item?.items && !(isSlim() || isSlimPlus())) {
             setActiveMenu(active ? props.parentKey : key);
 
-            if (props.root && !active && (isSlim() || isHorizontal() || isSlimPlus())) {
+            if (props.root && !active && (isHorizontal())) {
                 setLayoutState((prevLayoutState) => ({ ...prevLayoutState, overlaySubmenuActive: true }));
             }
         } else {

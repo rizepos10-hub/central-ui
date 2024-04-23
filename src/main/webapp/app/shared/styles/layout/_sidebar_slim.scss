@@ -34,7 +34,7 @@
             }
 
             .layout-content-wrapper {
-                margin-left: 5rem;
+                margin-left: 19rem;
             }
 
             .layout-menu {
@@ -93,8 +93,7 @@
                         box-shadow: var(--sidebar-shadow);
                         border: var(--sidebar-border);
                         padding: 1rem;
-                        max-height: 20rem;
-                        overflow: auto;
+                        overflow: scroll;
                         z-index: 999;
 
                         a {

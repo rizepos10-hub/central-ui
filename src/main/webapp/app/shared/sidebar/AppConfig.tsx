@@ -29,7 +29,7 @@ const AppConfig = (props: AppConfigProps) => {
     ];
 
     useEffect(() => {
-        if (isSlim() || isSlimPlus() || isHorizontal()) {
+        if (isHorizontal()) {
             setLayoutState((prevState) => ({ ...prevState, resetMenu: true }));
         }
     }, [ layoutConfig.menuMode, setLayoutState]);
@@ -53,10 +53,10 @@ const AppConfig = (props: AppConfigProps) => {
     };
 
     const changeRipple = (e: InputSwitchChangeEvent) => {
-        PrimeReact.ripple = e.value as boolean;
+        PrimeReact.ripple = e.value ;
         setLayoutConfig((prevState) => ({
             ...prevState,
-            ripple: e.value as boolean
+            ripple: e.value 
         }));
     };
 

@@ -130,7 +130,7 @@ export const Layout =  (props: ChildContainerProps) => {
 
   useEffect(() => {
     if (layoutState.overlayMenuActive || layoutState.staticMenuMobileActive || layoutState.overlaySubmenuActive) {
-      bindMenuOutsideClickListener();
+      // bindMenuOutsideClickListener();
     }
 
     if (layoutState.staticMenuMobileActive) {
@@ -139,7 +139,7 @@ export const Layout =  (props: ChildContainerProps) => {
     }
 
     return () => {
-      unbindMenuOutsideClickListener();
+      // unbindMenuOutsideClickListener();
       unbindDocumentResizeListener();
       unblockBodyScroll();
     };
