@@ -44,6 +44,10 @@
                     display: none;
                 }
 
+                li.active-menuitem{
+                    background-color: #dee6f661;
+                }
+
                 li.active-menuitem {
                     > ul {
                         display: block;

@@ -43,6 +43,7 @@ export const useSubmenuOverlayPosition = ({ target, overlay, container, when }: 
                 const height = top + oHeight;
                 overlay.style.top = `0`;
                 overlay.style.height= "100%"
+                overlay.style.backgroundColor = "#dee6f661"
             }
         }
     };

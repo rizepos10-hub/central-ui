@@ -15,7 +15,7 @@ const AppBreadcrumb = (props: AppBreadcrumbProps) => {
     const filteredBreadcrumbs = breadcrumbs?.find((crumb) => {
       return crumb.to?.replace(/\/$/, '') === location.pathname.replace(/\/$/, '');
     });
-    console.log("im bread", breadcrumbs)
+    // breadcrumbs
     setBreadcrumb(filteredBreadcrumbs ?? null);
   }, [location.pathname, breadcrumbs]);
 
