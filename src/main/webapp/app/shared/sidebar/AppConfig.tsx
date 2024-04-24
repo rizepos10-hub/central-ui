@@ -158,37 +158,37 @@ const AppConfig = (props: AppConfigProps) => {
 
                 {!props.minimal && (
                     <>
-                        <h5>Menu Type</h5>
-                        <div className="flex flex-wrap row-gap-3">
-                            <div className="flex align-items-center gap-2 w-6">
-                                <RadioButton name="menuMode" value={'static'} checked={layoutConfig.menuMode === 'static'} onChange={(e) => changeMenuMode(e)} inputId="mode1"></RadioButton>
-                                <label htmlFor="mode1">Static</label>
-                            </div>
-                            <div className="flex align-items-center gap-2 w-6">
-                                <RadioButton name="menuMode" value={'overlay'} checked={layoutConfig.menuMode === 'overlay'} onChange={(e) => changeMenuMode(e)} inputId="mode2"></RadioButton>
-                                <label htmlFor="mode2">Overlay</label>
-                            </div>
-                            <div className="flex align-items-center gap-2 w-6">
-                                <RadioButton name="menuMode" value={'slim'} checked={layoutConfig.menuMode === 'slim'} onChange={(e) => changeMenuMode(e)} inputId="mode3"></RadioButton>
-                                <label htmlFor="mode3">Slim</label>
-                            </div>
-                            <div className="flex align-items-center gap-2 w-6">
-                                <RadioButton name="menuMode" value={'slim-plus'} checked={layoutConfig.menuMode === 'slim-plus'} onChange={(e) => changeMenuMode(e)} inputId="mode4"></RadioButton>
-                                <label htmlFor="mode4">Slim +</label>
-                            </div>
-                            <div className="flex align-items-center gap-2 w-6">
-                                <RadioButton name="menuMode" value={'drawer'} checked={layoutConfig.menuMode === 'drawer'} onChange={(e) => changeMenuMode(e)} inputId="mode7"></RadioButton>
-                                <label htmlFor="mode7">Drawer</label>
-                            </div>
-                            <div className="flex align-items-center gap-2 w-6">
-                                <RadioButton name="menuMode" value={'reveal'} checked={layoutConfig.menuMode === 'reveal'} onChange={(e) => changeMenuMode(e)} inputId="mode5"></RadioButton>
-                                <label htmlFor="mode6">Reveal</label>
-                            </div>
-                            <div className="flex align-items-center gap-2 w-6">
-                                <RadioButton name="menuMode" value={'horizontal'} checked={layoutConfig.menuMode === 'horizontal'} onChange={(e) => changeMenuMode(e)} inputId="mode5"></RadioButton>
-                                <label htmlFor="mode5">Horizontal</label>
-                            </div>
-                        </div>
+                        {/* <h5>Menu Type</h5> */}
+                        {/* <div className="flex flex-wrap row-gap-3"> */}
+                        {/*     <div className="flex align-items-center gap-2 w-6"> */}
+                        {/*         <RadioButton name="menuMode" value={'static'} checked={layoutConfig.menuMode === 'static'} onChange={(e) => changeMenuMode(e)} inputId="mode1"></RadioButton> */}
+                        {/*         <label htmlFor="mode1">Static</label> */}
+                        {/*     </div> */}
+                        {/*     <div className="flex align-items-center gap-2 w-6"> */}
+                        {/*         <RadioButton name="menuMode" value={'overlay'} checked={layoutConfig.menuMode === 'overlay'} onChange={(e) => changeMenuMode(e)} inputId="mode2"></RadioButton> */}
+                        {/*         <label htmlFor="mode2">Overlay</label> */}
+                        {/*     </div> */}
+                        {/*     <div className="flex align-items-center gap-2 w-6"> */}
+                        {/*         <RadioButton name="menuMode" value={'slim'} checked={layoutConfig.menuMode === 'slim'} onChange={(e) => changeMenuMode(e)} inputId="mode3"></RadioButton> */}
+                        {/*         <label htmlFor="mode3">Slim</label> */}
+                        {/*     </div> */}
+                        {/*     <div className="flex align-items-center gap-2 w-6"> */}
+                        {/*         <RadioButton name="menuMode" value={'slim-plus'} checked={layoutConfig.menuMode === 'slim-plus'} onChange={(e) => changeMenuMode(e)} inputId="mode4"></RadioButton> */}
+                        {/*         <label htmlFor="mode4">Slim +</label> */}
+                        {/*     </div> */}
+                        {/*     <div className="flex align-items-center gap-2 w-6"> */}
+                        {/*         <RadioButton name="menuMode" value={'drawer'} checked={layoutConfig.menuMode === 'drawer'} onChange={(e) => changeMenuMode(e)} inputId="mode7"></RadioButton> */}
+                        {/*         <label htmlFor="mode7">Drawer</label> */}
+                        {/*     </div> */}
+                        {/*     <div className="flex align-items-center gap-2 w-6"> */}
+                        {/*         <RadioButton name="menuMode" value={'reveal'} checked={layoutConfig.menuMode === 'reveal'} onChange={(e) => changeMenuMode(e)} inputId="mode5"></RadioButton> */}
+                        {/*         <label htmlFor="mode6">Reveal</label> */}
+                        {/*     </div> */}
+                        {/*     <div className="flex align-items-center gap-2 w-6"> */}
+                        {/*         <RadioButton name="menuMode" value={'horizontal'} checked={layoutConfig.menuMode === 'horizontal'} onChange={(e) => changeMenuMode(e)} inputId="mode5"></RadioButton> */}
+                        {/*         <label htmlFor="mode5">Horizontal</label> */}
+                        {/*     </div> */}
+                        {/* </div> */}
 
                         <h5>Menu Theme</h5>
                         <div className="field-radiobutton">
