@@ -36,12 +36,16 @@
             }
 
             .layout-content-wrapper {
-                margin-left: 7rem;
+                margin-left: 21rem;
             }
 
             .layout-menu {
                 ul {
                     display: none;
+                }
+
+                li.active-menuitem{
+                    background-color: #dee6f661;
                 }
 
                 li.active-menuitem {
@@ -102,8 +106,8 @@
                         box-shadow: var(--sidebar-shadow);
                         border: var(--sidebar-border);
                         padding: 1rem;
-                        max-height: 20rem;
-                        overflow: auto;
+                        //max-height: 20rem;
+                        overflow: scroll;
                         z-index: 999;
 
                         a {

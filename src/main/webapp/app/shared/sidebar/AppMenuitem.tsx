@@ -22,7 +22,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
     const parts = path.split('/');
     const lastPath = parts[parts.length - 1];
 
-    const isActiveRoute = item!.to && path === item!.to || (path + location.search) === item!.to || path?.substring(1) === item!.to;
+    const isActiveRoute = item.to && path === item.to || (path + location.search) === item.to || path?.substring(1) === item.to;
     const account = useAppSelector(state => state.authentication.account);
     const userRole = account.authorities
     const active = activeMenu === key || !!(activeMenu && activeMenu.startsWith(key + '-'));
@@ -44,9 +44,11 @@ const AppMenuitem = (props: AppMenuItemProps) => {
   useEffect(() => {
     const onRouteChange = () => {
       const isRouteActive =
-        item!.to && (location.pathname + location.search) === item!.to
-        || (path + location.search) === item!.to
-        || path?.substring(1) === item!.to;
+        item.to && (location.pathname + location.search) === item.to
+        || (path + location.search) === item.to
+        || path?.substring(1) === item.to;
+
+
 
       if (isRouteActive) {
         setActiveMenu(key);
@@ -84,29 +86,34 @@ const AppMenuitem = (props: AppMenuItemProps) => {
 
 
   const itemClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-        //avoid processing disabled items
-        if (item!.disabled) {
+        // avoid processing disabled items
+        if (item.disabled) {
             event.preventDefault();
             return;
         }
 
         // navigate with hover
-        if (props.root && (isSlim() || isHorizontal() || isSlimPlus())) {
+        if (props.root && ( isHorizontal() )) {
             const isSubmenu = event.currentTarget.closest('.layout-root-menuitem.active-menuitem > ul') !== null;
             if (isSubmenu) setLayoutState((prevLayoutState) => ({ ...prevLayoutState, menuHoverActive: true }));
             else setLayoutState((prevLayoutState) => ({ ...prevLayoutState, menuHoverActive: !prevLayoutState.menuHoverActive }));
         }
 
-        //execute command
+        // execute command
         if (item?.command) {
-            item?.command({ originalEvent: event, item: item });
+            item?.command({ originalEvent: event, item });
         }
 
         // toggle active state
+    //  && !(isSlim() || isSlimPlus())
         if (item?.items) {
-            setActiveMenu(active ? props.parentKey! : key);
+          if(isSlim() || isSlimPlus()){
+            setActiveMenu(key);
+          }else{
+            setActiveMenu(active ? props.parentKey : key);
+          }
 
-            if (props.root && !active && (isSlim() || isHorizontal() || isSlimPlus())) {
+            if (props.root && !active && (isHorizontal())) {
                 setLayoutState((prevLayoutState) => ({ ...prevLayoutState, overlaySubmenuActive: true }));
             }
         } else {
@@ -124,7 +131,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
 
     const onMouseEnter = () => {
         // activate item on hover
-        if (props.root && (isSlim() || isHorizontal() || isSlimPlus()) && isDesktop()) {
+        if (props.root && ( isHorizontal() ) && isDesktop()) {
             if (!active && layoutState.menuHoverActive) {
                 setActiveMenu(key);
             }
@@ -153,6 +160,8 @@ const AppMenuitem = (props: AppMenuItemProps) => {
         })}
       </ul>
     ) : null;
+
+
     return (
         <li ref={menuitemRef} className={classNames({ 'layout-root-menuitem': props.root, 'active-menuitem': active })}>
             {props.root && item?.visible !== false && <div className="layout-menuitem-root-text">{item?.label}</div>}

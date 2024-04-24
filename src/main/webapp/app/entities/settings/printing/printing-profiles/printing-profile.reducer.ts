@@ -1,9 +1,16 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
-import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
+import {
+  IQueryParams,
+  createEntitySlice,
+  EntityState,
+  serializeAxiosError,
+  ChangeFieldPayload
+} from "app/shared/reducers/reducer.utils";
 import { IPrintingProfile, defaultValue } from 'app/shared/model/PRINTER/printing-profile.model';
+import { IPrinter } from "app/shared/model/PRINTER/printer.model";
 
 const initialState: EntityState<IPrintingProfile> = {
   loading: false,
@@ -26,7 +33,7 @@ export const searchEntities = createAsyncThunk('printing-profiles/search_entity'
 });
 
 export const getEntities = createAsyncThunk('printing-profiles/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}`;
+  const requestUrl = `${apiUrl}?${sort ? `page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<IPrintingProfile[]>(requestUrl);
 });
 
@@ -34,9 +41,7 @@ export const getEntity = createAsyncThunk(
   'printing-profiles/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-   const response = await  axios.get<IPrintingProfile>(requestUrl);
-
-   console.log(response, 'mizo')
+    const response = await  axios.get<IPrintingProfile>(requestUrl);
     return response
   },
   { serializeError: serializeAxiosError }
@@ -82,6 +87,8 @@ export const deleteEntity = createAsyncThunk(
   },
   { serializeError: serializeAxiosError }
 );
+export const changeEntityField = createAction<ChangeFieldPayload<IPrintingProfile>>('printing-profiles/change-entity-field');
+
 
 // slice
 
@@ -90,6 +97,10 @@ export const PrintingProfilesSlice = createEntitySlice({
   initialState,
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { name, value } = action.payload;
+        state.entity[name] = value;
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;

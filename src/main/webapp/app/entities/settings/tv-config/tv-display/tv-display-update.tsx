@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
+import { Button, Row, Col, FormGroup } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntity, updateEntity, createEntity, reset } from './tv-display.reducer';
+import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './tv-display.reducer';
 import {InputText} from "primereact/inputtext";
 import {getSortState, Translate} from "react-jhipster";
-import Attachment from "app/shared/layout/attachment/attachment";
-import Select from "react-select";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {InputNumber} from "primereact/inputnumber";
 import {ITvDisplay} from "app/shared/model/TV/tv-display.model";
 
 export const TvDisplayUpdate = () => {
@@ -21,19 +18,13 @@ export const TvDisplayUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const [tvDisplay, setTvDisplay] = useState<ITvDisplay>({
-    name: '',
-    dimensions: null
-  });
-
-  const tvDisplayEntity = useAppSelector(state => state.tvDisplay.entity);
+  const tvDisplay :ITvDisplay = useAppSelector(state => state.tvDisplay.entity);
   const loading = useAppSelector(state => state.tvDisplay.loading);
   const updating = useAppSelector(state => state.tvDisplay.updating);
   const updateSuccess = useAppSelector(state => state.tvDisplay.updateSuccess);
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-  console.log(tvDisplay, 'tvDisplay')
   const handleClose = () => {
     navigate('/tv-display' + location.search);
   };
@@ -51,29 +42,14 @@ export const TvDisplayUpdate = () => {
     if (updateSuccess) {
       handleClose();
     }
-    if(tvDisplayEntity){
-      setTvDisplay(tvDisplayEntity)
-    }
-  }, [updateSuccess, tvDisplayEntity?.name]);
-
+  }, [updateSuccess]);
 
 
   const handleChange = e => {
     const { name, value } = e.target;
-    setTvDisplay(prevState => ({ ...prevState, [name]: value }));
+    dispatch(changeEntityField({name, value}))
   };
 
-
-
-
-
-  const addImage = (imageInfo) => {
-    console.log(imageInfo, 'imageInfo')
-    setTvDisplay(prev => ({
-      ...prev,
-      image: imageInfo
-    }))
-  }
 
 
   const saveEntity = (e) => {

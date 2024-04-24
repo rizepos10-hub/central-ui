@@ -24,7 +24,10 @@
       "model": "Model",
       "printSpeed": "Print Speed",
       "branch": "Branch",
+      "connectionType": "Connection Type",
+      "port": "Port",
       "colorPrinter": "Color Printer",
+      "size": "Size",
       "ipAddress": "Ip Address"
     }
   }

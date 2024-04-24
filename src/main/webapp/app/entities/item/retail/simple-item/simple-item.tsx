@@ -1,34 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
 import {getSortState, translate, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {  ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { filterEntities, getEntities } from './simple-item.reducer';
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import {Column} from "primereact/column";
 import {ISimpleItem} from "app/shared/model/ITEM/retail/simple-item.model";
-import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {SummarizeText} from "app/shared/util/SummarizeText";
-import ImageDisplay from "app/shared/layout/image/image-display";
-import { initialItemFilterState } from "app/shared/components/filter/initial-item-filter-state.model";
-import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
+import ImageDisplay from "app/shared/components/image/image-display";
+import { applyMatchModeMap, updateTableFilters } from "app/shared/util/filter-match-model-util";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
-import _ from "lodash";
+import SharedFilter from "app/shared/components/item/shared-filter";
+import { initialItemFilterState } from "app/shared/model/filter-state.model";
+import AttributeFilter from "app/shared/components/filter/attribute-filter";
+
 
 export const SimpleItem = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const simpleItemsList:ISimpleItem[] = useAppSelector(state => state.simpleRetailItem.entities)
-    .filter(item => item.itemVariantType === ItemVariantType.RETAIL_SIMPLE);
   const loading = useAppSelector(state => state.simpleRetailItem.loading);
   const totalItems = useAppSelector(state => state.simpleRetailItem.totalItems);
-
   const [searchParams, setSearchParams]=  useSearchParams();
   const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
+  const [localFilters, setLocalFilters] = useState(query?.filters);
+  const filteredAttributes = localFilters?.["attributes.attributeTerms.id"]?.constraints || [];
+
 
 
 
@@ -42,9 +42,14 @@ export const SimpleItem = () => {
     );
   };
 
+
+
   useEffect(() => {
     getAllEntities();
-  }, [searchParams]);
+    return () => {
+      searchParams.set("query", "")
+    }
+  }, [query?.first, query?.page]);
 
   const handleSyncList = () => {
     getAllEntities();
@@ -55,14 +60,15 @@ export const SimpleItem = () => {
     setSearchParams({query: queryParams}, {replace: true})
   };
 
-  const onFilter = (event: DataTableFilterEvent) => {
-    const debouncedSearchAction = _.debounce(() => {
-      event['first'] = 0;
-      event['page'] = 0;
-      const queryParams = JSON.stringify(event);
-      setSearchParams({query: queryParams}, {replace: true})
-    }, 300);
-    debouncedSearchAction();
+  const onFilter = (newFilters) => {
+      const newFilters1 = updateTableFilters(newFilters);
+      setLocalFilters(newFilters1);
+      query['first'] = 0;
+      query['page'] = 0;
+      query.filters = updateTableFilters({ ...localFilters });
+      const queryParams = JSON.stringify(query);
+      setSearchParams({query: queryParams}, {replace: true});
+      getAllEntities();
   };
 
 
@@ -71,17 +77,32 @@ export const SimpleItem = () => {
     setSearchParams({query: queryParams}, {replace: true})
   };
 
+  const handleFilterValueChange = useCallback((field, value) => {
+    const updatedFilters = {
+      ...localFilters,
+      [field]: value
+    };
 
-  const handleDropdownChange = (field, value) => {
-    const newQuery = JSON.stringify(  {
+    const cleanedFilters = updateTableFilters(updatedFilters);
+    setLocalFilters(cleanedFilters)
+    // const newQuery = JSON.stringify({
+    //   ...query,
+    //   filters: cleanedFilters
+    // });
+    //
+    // setSearchParams({ query: newQuery }, { replace: true });
+  }, [query.filters, localFilters]);
+
+  const handleClear = () => {
+    setLocalFilters({});
+    const newQuery = JSON.stringify({
       ...query,
-      filters: {
-        ...query.filters,
-        [field] : value
-      }
+      filters: {}
     });
-    setSearchParams({query: newQuery}, {replace: true});
+    setSearchParams({ query: newQuery }, { replace: true });
   };
+
+
 
   const nameColumnTemplate = rowData => {
     const editUrl = `/retail/simple/${rowData.id}/edit`;
@@ -128,55 +149,77 @@ export const SimpleItem = () => {
   );
 
 
-
-
-
   return (
-      <div >
-        <DataTable
-          value={simpleItemsList} loading={loading} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
-          paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
-          onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
-        >
+    <div>
+      <h2>Simple Items</h2>
+      <div className="d-flex align-items-center gap-3">
+        <AttributeFilter
+          filteredAttributes={filteredAttributes}
+          onFilterValueChange={handleFilterValueChange}
+        />
+        <div className={'d-flex flex-column align-items-center justify-content-center gap-3'}>
+          <SharedFilter onClear={handleClear} onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
+        </div>
+      </div>
 
-          <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
+      <DataTable
+        value={simpleItemsList} lazy filterDisplay="row" dataKey="id" paginator
+        first={query.first} rows={query?.rows} totalRecords={totalItems} onPage={onPage}
+        onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder}
+        onFilter={onFilter} filters={query.filters} loading={loading} tableStyle={{ minWidth: '75rem' }}
+        header={header}
+        removableSort
+        showGridlines
+      >
+        <Column
+          field="name"
+          header={translate('items.view.fields.name')}
+          body={nameColumnTemplate}
+          filterPlaceholder={translate('items.view.filters.name')}
+          sortable
+        />
 
-          <Column
-            header="Category"
-            field="categories"
-            body={rowData => rowData?.categories?.map(cat => cat?.name).join(" | ")}
-            sortable
-            filter
-            showFilterMatchModes={false}
-            filterElement={
-              <DropDownFilter
-                dropDownOptionType={"RETAIL_CATEGORY"}
-                selectedOption={query?.filters?.["categories.id"]?.value}
-                fieldName={"categories.id"}
-                handleDropdownChange={handleDropdownChange}
-              />
-            }
-          />
+        <Column
+          header="Category"
+          field="categories"
+          body={rowData => rowData?.categories?.map(cat => cat?.name).join(' | ')}
+          sortable
+          showFilterMatchModes={false}
+        />
 
-          <Column header={translate('items.view.fields.image')}  body={(rowData) =>
+        <Column
+          header={translate('items.view.fields.image')}
+          body={rowData => (
             <ImageDisplay
-              imageType={"product"}
-              imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url }
+              imageType={'product'}
+              imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
               height={50}
               width={50}
-            />} />
-          <Column field="desc" header={translate('items.view.fields.description')} body={(rowData)=> <SummarizeText>{rowData.desc}</SummarizeText>}/>
+            />
+          )}
+        />
+        <Column
+          field="desc"
+          header={translate('items.view.fields.description')}
+          body={rowData => <SummarizeText>{rowData.desc}</SummarizeText>}
+        />
 
-          <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
+        <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
 
-          <Column header={translate('items.view.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+        <Column
+          header={translate('items.view.fields.edit')}
+          body={editColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
 
-          <Column  header={translate('items.view.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-
-        </DataTable>
+        <Column
+          header={translate('items.view.fields.delete')}
+          body={deleteColumnTemplate}
+          headerStyle={{ width: '1%' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
+      </DataTable>
     </div>
   );
 };

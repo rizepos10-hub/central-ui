@@ -2,8 +2,13 @@ import axios from 'axios';
 import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
-import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IAccountingGroup, defaultValue } from 'app/shared/model/TAX/accounting-groups.model';
+import {
+  IQueryParams,
+  createEntitySlice,
+  EntityState,
+  serializeAxiosError,
+} from "app/shared/reducers/reducer.utils";
+import { IAccountingGroup, defaultValue } from 'app/shared/model/TAX/accounting-group.model';
 
 const initialState: EntityState<IAccountingGroup> = {
   loading: false,
@@ -20,30 +25,27 @@ const apiSearchUrl = 'api/_search/accounting-groups';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('accounting-groups/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
+export const searchEntities = createAsyncThunk('accounting-group/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<IAccountingGroup[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('accounting-groups/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+export const getEntities = createAsyncThunk('accounting-group/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IAccountingGroup[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
-  'accounting-groups/fetch_entity',
+  'accounting-group/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-   const response = await  axios.get<IAccountingGroup>(requestUrl);
-
-   console.log(response, 'mizo')
-    return response
+    return await  axios.get<IAccountingGroup>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
 
 export const createEntity = createAsyncThunk(
-  'accounting-groups/create_entity',
+  'accounting-group/create_entity',
   async (entity: IAccountingGroup, thunkAPI) => {
     const result = await axios.post<IAccountingGroup>(apiUrl, cleanEntity(entity));
     // thunkAPI.dispatch(getEntities({}));
@@ -53,7 +55,7 @@ export const createEntity = createAsyncThunk(
 );
 
 export const updateEntity = createAsyncThunk(
-  'accounting-groups/update_entity',
+  'accounting-group/update_entity',
   async (entity: IAccountingGroup, thunkAPI) => {
     const result = await axios.put<IAccountingGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     // thunkAPI.dispatch(getEntities({}));
@@ -63,7 +65,7 @@ export const updateEntity = createAsyncThunk(
 );
 
 export const partialUpdateEntity = createAsyncThunk(
-  'accounting-groups/partial_update_entity',
+  'accounting-group/partial_update_entity',
   async (entity: IAccountingGroup, thunkAPI) => {
     const result = await axios.patch<IAccountingGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
@@ -73,7 +75,7 @@ export const partialUpdateEntity = createAsyncThunk(
 );
 
 export const deleteEntity = createAsyncThunk(
-  'accounting-groups/delete_entity',
+  'accounting-group/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
     const result = await axios.delete<IAccountingGroup>(requestUrl);
@@ -88,7 +90,7 @@ export const changeEntityField = createAction<{ fieldName: keyof IAccountingGrou
 // slice
 
 export const AccountingGroupSlice = createEntitySlice({
-  name: 'accounting-groups',
+  name: 'accounting-group',
   initialState,
   extraReducers(builder) {
     builder

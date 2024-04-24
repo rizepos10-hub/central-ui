@@ -8,8 +8,6 @@ import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
 import {classNames, DomHandler} from "primereact/utils";
 import {useEventListener, useMountEffect, useResizeListener} from "primereact/hooks";
 import PrimeReact from "primereact/api";
-import Header from "app/shared/layout/header/header";
-import AppRoutes from "app/routes";
 import ErrorBoundary from "app/shared/error/error-boundary";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {getSession} from "app/shared/reducers/authentication";
@@ -17,19 +15,14 @@ import {getProfile} from "app/shared/reducers/application-profile";
 import {hasAnyAuthority} from "app/shared/auth/private-route";
 import {AUTHORITIES} from "app/config/constants";
 import {toast, ToastContainer} from "react-toastify";
-import {Card} from "reactstrap";
 import AppTopbar from "app/shared/sidebar/AppTopbar";
 import AppBreadCrumb from "app/shared/sidebar/AppBreadCrumb";
 import AppProfileSidebar from "app/shared/sidebar/AppProfileSidebar";
-import AppConfig from "app/shared/sidebar/AppConfig";
 import type { AppTopbarRef, ChildContainerProps } from '../sidebar/types/types';
-import {useNavigate} from "react-router-dom";
 import Footer from "app/shared/layout/footer/footer";
 
 
-export interface ISideBarProps {
-  isAuthenticated: boolean;
-}
+
 
 export const Layout =  (props: ChildContainerProps) => {
 
@@ -37,7 +30,6 @@ export const Layout =  (props: ChildContainerProps) => {
   const topbarRef = useRef<AppTopbarRef>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  const navigate = useNavigate()
   const containerClass = classNames({
     'layout-light': layoutConfig.colorScheme === 'light',
     'layout-dim': layoutConfig.colorScheme === 'dim',
@@ -63,7 +55,7 @@ export const Layout =  (props: ChildContainerProps) => {
 
   const [bindMenuOutsideClickListener, unbindMenuOutsideClickListener] = useEventListener({
     type: 'click',
-    listener: (event) => {
+    listener(event) {
       const isOutsideClicked = !(
         sidebarRef.current?.isSameNode(event.target as Node) ||
         sidebarRef.current?.contains(event.target as Node) ||
@@ -78,7 +70,7 @@ export const Layout =  (props: ChildContainerProps) => {
   });
 
   const [bindDocumentResizeListener, unbindDocumentResizeListener] = useResizeListener({
-    listener: () => {
+    listener() {
       if (isDesktop() && !DomHandler.isTouchDevice()) {
         hideMenu();
       }
@@ -138,7 +130,7 @@ export const Layout =  (props: ChildContainerProps) => {
 
   useEffect(() => {
     if (layoutState.overlayMenuActive || layoutState.staticMenuMobileActive || layoutState.overlaySubmenuActive) {
-      bindMenuOutsideClickListener();
+      // bindMenuOutsideClickListener();
     }
 
     if (layoutState.staticMenuMobileActive) {
@@ -147,7 +139,7 @@ export const Layout =  (props: ChildContainerProps) => {
     }
 
     return () => {
-      unbindMenuOutsideClickListener();
+      // unbindMenuOutsideClickListener();
       unbindDocumentResizeListener();
       unblockBodyScroll();
     };
@@ -204,7 +196,6 @@ export const Layout =  (props: ChildContainerProps) => {
 
 
 
-console.log(isAdmin, 'hello admin')
 
   return (
     <React.Fragment>

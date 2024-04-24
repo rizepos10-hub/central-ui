@@ -1,0 +1,94 @@
+import axios from 'axios';
+import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+
+import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
+
+import { IProduct, defaultValue } from "app/shared/model/ITEM/retail/product.model";
+const initialState: EntityState<IProduct> = {
+  loading: false,
+  errorMessage: null,
+  entities: [],
+  entity: defaultValue,
+  updating: false,
+  totalItems: 0,
+  updateSuccess: false,
+};
+
+const apiUrl = 'api/items/retail';
+const apiSearchUrl = 'api/_search/items/retail';
+
+// Actions
+
+export const filterEntities = createAsyncThunk('product/filter_entity_list', async ({ query, }: IQueryParams) => {
+  return axios.post<IProduct[]>(apiSearchUrl, query);
+});
+
+export const getEntities = createAsyncThunk('product/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+  return axios.get<IProduct[]>(requestUrl);
+});
+
+export const getEntity = createAsyncThunk(
+  'product/fetch_entity',
+  async (id: string | number) => {
+    const requestUrl = `${apiUrl}/${id}`;
+    return axios.get<IProduct>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+
+
+export const deleteEntity = createAsyncThunk(
+  'product/delete_entity',
+  async (id: string | number, thunkAPI) => {
+    const requestUrl = `${apiUrl}/${id}`;
+    const result = await axios.delete<IProduct>(requestUrl);
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+// slice
+
+export const ProductSlice = createEntitySlice({
+  name: 'product',
+  initialState,
+  extraReducers(builder) {
+    builder
+      .addCase(getEntity.fulfilled, (state, action) => {
+        state.loading = false;
+        state.entity = action.payload.data;
+      })
+      .addCase(deleteEntity.fulfilled, state => {
+        state.updating = false;
+        state.updateSuccess = true;
+        state.entity = {};
+      })
+      .addMatcher(isFulfilled(getEntities, filterEntities), (state, action) => {
+        const { data, headers } = action.payload;
+
+        return {
+          ...state,
+          loading: false,
+          entities: data,
+          totalItems: parseInt(headers['x-total-count'], 10),
+        };
+      })
+      .addMatcher(isPending(getEntities, getEntity, filterEntities), state => {
+        state.errorMessage = null;
+        state.updateSuccess = false;
+        state.loading = true;
+      })
+      .addMatcher(isPending( deleteEntity), state => {
+        state.errorMessage = null;
+        state.updateSuccess = false;
+        state.updating = true;
+      });
+  },
+});
+
+export const { reset } = ProductSlice.actions;
+
+// Reducer
+export default ProductSlice.reducer;

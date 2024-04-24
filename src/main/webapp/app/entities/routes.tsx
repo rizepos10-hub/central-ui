@@ -58,6 +58,7 @@ import TransferRequest from "app/entities/inventory/transfer-request";
 import SupplierReturn from "app/entities/inventory/supplier-return";
 import ItemMeasure from "app/entities/item-measure";
 import MixAndMatchRule from "app/entities/mix-and-match-rule"
+import Product from "app/entities/item/retail/product";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -119,6 +120,7 @@ export default () => {
         <Route path="retail/attributes/*" element={<RetailAttributes />} />
         <Route path="retail/simple/*" element={<SimpleItem />} />
         <Route path="retail/variable/*" element={<VariableItem />} />
+        <Route path="product/*" element={<Product />} />
 
         <Route path="item-measure/*" element={<ItemMeasure />} />
         <Route path="mix-and-match-rule/*" element={<MixAndMatchRule />} />

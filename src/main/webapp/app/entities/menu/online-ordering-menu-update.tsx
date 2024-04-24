@@ -47,7 +47,7 @@ import {toast} from "react-toastify";
 import {OrderList} from "primereact/orderlist";
 import {ItemRoute} from "app/shared/model/ENUMS/item-route.model";
 import {IItem} from "app/shared/model/ITEM/item.model";
-import ImageDisplay from "app/shared/layout/image/image-display";
+import ImageDisplay from "app/shared/components/image/image-display";
 import { SelectButton } from "primereact/selectbutton";
 
 

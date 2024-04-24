@@ -17,7 +17,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTrash} from "@fortawesome/free-solid-svg-icons/faTrash";
 import {AttachmentType} from "app/shared/model/ENUMS/attachment-type.model";
 import {IAttachment} from "app/shared/model/attachment.model";
-import Attachment from "app/shared/layout/attachment/attachment";
+import Attachment from "app/shared/components/attachment/attachment";
 
 interface newOption {
   id: string | null;

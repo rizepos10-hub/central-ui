@@ -15,7 +15,7 @@ import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {ITopping} from "app/shared/model/PIZZA/topping.model";
 import CreatableSelect from "react-select/creatable";
 import {getEntities as getToppingGroups, createEntity as createToppingGroup} from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
-import Attachment from "app/shared/layout/attachment/attachment";
+import Attachment from "app/shared/components/attachment/attachment";
 import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
 import Select from "react-select";
 

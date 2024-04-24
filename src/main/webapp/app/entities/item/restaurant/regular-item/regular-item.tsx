@@ -11,13 +11,13 @@ import { filterEntities} from "./regular-item.reducer";
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import {Column} from "primereact/column";
 import {IRegularItem} from "app/shared/model/ITEM/restaurant/regular-item.model";
-import ImageDisplay from "app/shared/layout/image/image-display";
+import ImageDisplay from "app/shared/components/image/image-display";
 import { ITerm } from "app/shared/model/term.model";
 import ImportButton from "app/shared/components/data-import/data-import";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
-import { initialItemFilterState } from "app/shared/components/filter/initial-item-filter-state.model";
 import _ from "lodash";
+import { initialItemFilterState } from "app/shared/model/filter-state.model";
 
 
 export const RegularItem = () => {

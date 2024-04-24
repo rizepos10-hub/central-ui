@@ -10,7 +10,6 @@ const AppMenu = () => {
                             items: [
                               {
                                 label: 'Dashboard',
-                                icon: 'pi pi-home',
                                 to: '/'
                               },
                             ]
@@ -18,16 +17,14 @@ const AppMenu = () => {
                           {
                             label: 'Users',
                             role: ['ROLE_ADMIN'],
-                            icon: 'pi pi-shopping-cart',
+                            icon: 'pi pi-user',
                             items: [
                               {
                                 label: 'Backoffice users',
-                                icon: 'pi pi-user',
                                 to: '/back-office-user'
                               },
                               {
                                 label: 'Pos users',
-                                icon: 'pi pi-user',
                                 to: '/branch-pos-user'
                               },
                             ]
@@ -40,37 +37,30 @@ const AppMenu = () => {
                             items: [
                               {
                                 label: 'Restaurant',
-                                icon: 'pi pi-folder-open',
                                 items: [
                                   {
                                     label: 'Category',
-                                    icon: 'pi pi-folder-open',
                                     to: '/category/restaurant-items'
                                   },
                                   {
                                     label: 'Regular',
-                                    icon: 'pi pi-folder-open',
                                     to: 'restaurant/regular'
                                   },
                                   {
                                     label: 'Combo',
-                                    icon: 'pi pi-folder-open',
                                     to: 'restaurant/combo'
                                   },
                                   {
                                     label: 'Pizza',
-                                    icon: 'pi pi-folder-open',
                                     to: 'restaurant/pizza'
                                   },
                                   {
                                     label: 'Addons',
-                                    icon: 'pi pi-plus-circle',
                                     to: '/addon'
                                   },
 
                                   {
                                     label: 'Addon Groups',
-                                    icon: 'pi pi-plus-circle',
                                     to: '/addon-groups'
                                   },
                                 ]
@@ -81,27 +71,29 @@ const AppMenu = () => {
                                 items: [
                                   {
                                     label: 'Category',
-                                    icon: 'pi pi-folder-open',
                                     to: '/category/retail-items'
                                   },
                                   {
-                                    label: 'Simple',
-                                    icon: 'pi pi-folder-open',
-                                    to: 'retail/simple'
+                                    label: 'Products',
+                                    to: '/product'
                                   },
-                                  {
-                                    label: 'Variable',
-                                    icon: 'pi pi-folder-open',
-                                    to: 'retail/variable'
-                                  },
-                                  {
-                                    label: 'Grouped',
-                                    icon: 'pi pi-folder-open',
-                                    to: 'retail/grouped'
-                                  },
+                                  // {
+                                  //   label: 'Simple',
+                                  //   icon: 'pi pi-folder-open',
+                                  //   to: 'retail/simple'
+                                  // },
+                                  // {
+                                  //   label: 'Variable',
+                                  //   icon: 'pi pi-folder-open',
+                                  //   to: 'retail/variable'
+                                  // },
+                                  // {
+                                  //   label: 'Grouped',
+                                  //   icon: 'pi pi-folder-open',
+                                  //   to: 'retail/grouped'
+                                  // },
                                   {
                                     label: 'Attributes',
-                                    icon: 'pi pi-folder-open',
                                     to: 'retail/attributes'
                                   },
                                 ]
@@ -109,13 +101,11 @@ const AppMenu = () => {
                               {
                                 label: 'Measures',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-folder-open',
                                 to: '/item-measure'
                               },
                               {
                                 label: 'Mix & Match Rule',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-folder-open',
                                 to: '/mix-and-match-rule'
                               }
 
@@ -128,17 +118,14 @@ const AppMenu = () => {
                             items: [
                               {
                                 label: 'Category',
-                                icon: 'pi pi-folder',
                                 to: '/category/menus'
                               },
                               {
                                 label: 'Pos List',
-                                icon: 'pi pi-list',
                                 to: '/menu?type=POS'
                               },
                               {
                                 label: 'Online List',
-                                icon: 'pi pi-list',
                                 to: '/menu?type=ONLINE_ORDERING'
                               },
 
@@ -146,18 +133,16 @@ const AppMenu = () => {
                           },
 
                           {
-                            label: 'Orders',
+                            label: 'Sales',
                             role: ['ROLE_ADMIN'],
-                            icon: 'pi pi-shopping-cart',
+                            icon: 'pi pi-dollar',
                             items: [
                               {
                                 label: 'Today',
-                                icon: 'pi pi-calendar',
                                 to: '/order/today'
                               },
                               {
                                 label: 'History',
-                                icon: 'pi pi-clock',
                                 to: '/order'
                               }
                             ]
@@ -171,22 +156,18 @@ const AppMenu = () => {
                             items: [
                               {
                                 label: 'Top Items',
-                                icon: 'pi pi-star',
                                 to: '/analytics/topItems'
                               },
                               {
                                 label: 'End Of Day',
-                                icon: 'pi pi-moon',
                                 to: '/analytics/endofday'
                               },
                               {
                                 label: 'Sales Report',
-                                icon: 'pi pi-star',
                                 to: '/analytics/sales'
                               },
                               {
                                 label: 'Report',
-                                icon: 'pi pi-file-pdf',
                                 to: '/analytics/reports'
                               },
                             ]
@@ -199,14 +180,12 @@ const AppMenu = () => {
                               {
                                 label: 'All Customers',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-users',
                                 to: '/customer'
 
                               },
                               {
                                 label: 'Loyalty',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-dollar',
                                 to: '/loyalty'
                               },
                             ]
@@ -220,43 +199,36 @@ const AppMenu = () => {
                               {
                                 label: 'Stock',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-users',
                                 to: '/inventory/stock'
                               },
                               {
                                 label: 'Suppliers',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-users',
                                 to: '/inventory/supplier'
                               },
                               {
                                 label: 'Warehouses',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-users',
                                 to: '/inventory/warehouse'
                               },
                               {
                                 label: 'Sales Locations',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-users',
                                 to: '/inventory/sales-location'
                               },
                               {
                                 label: 'Transfer Requests',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-users',
                                 to: '/inventory/transfer-request'
                               },
                               {
                                 label: 'Supplier Returns',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-users',
                                 to: '/inventory/supplier-return'
                               },
                               {
                                 label: 'Purchase Orders',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-users',
                                 to: '/inventory/purchase-order'
                               },
                             ]
@@ -266,24 +238,21 @@ const AppMenu = () => {
                             {
                               label: 'Online Ordering',
                               role: ['ROLE_ADMIN'],
-                              icon: 'pi pi-box',
+                              icon: 'pi pi-tablet',
                               items: [
                                 {
                                   label: 'Users',
                                   role: ['ROLE_ADMIN'],
-                                  icon: ' pi pi-users',
                                   to: '/online-ordering/user'
                                 },
                                 {
-                                  label: 'Orders',
+                                  label: 'Sales',
                                   role: ['ROLE_ADMIN'],
-                                  icon: ' pi pi-users',
                                   to: '/online-ordering/order'
                                 },
                                 {
                                   label: 'UI Settings',
                                   role: ['ROLE_ADMIN'],
-                                  icon: ' pi pi-users',
                                   to: '/online-ordering/settings'
                                 },
 
@@ -292,47 +261,39 @@ const AppMenu = () => {
 
                           {
                             label: 'Settings',
-                            icon: 'pi pi-book',
+                            icon: 'pi pi-cog',
                             role: ['ROLE_ADMIN', 'ROLE_BO-BUSINESS-SETTING'],
                             items: [
                               {
                                 label: 'Business settings',
-                                icon: ' pi pi-th-large',
                                 role: ['ROLE_ADMIN', 'ROLE_BO-BUSINESS-SETTING'],
                                 to: '/details'
                               },
                               {
                                 label: 'Pizza Settings',
-                                icon: 'pi pi-folder-open',
                                 items: [
                                   {
                                     label: 'Sizes',
-                                    icon: 'pi pi-folder-open',
                                     to: '/pizza-size'
                                   },
                                   {
                                     label: 'Crust Settings',
-                                    icon: 'pi pi-folder-open',
                                     to: '/pizza-crust'
                                   },
                                   {
                                     label: 'Toppings',
-                                    icon: 'pi pi-folder-open',
                                     to: '/pizza-topping'
                                   },
                                   {
                                     label: 'Topping Groups',
-                                    icon: 'pi pi-folder-open',
                                     to: '/pizza-topping-group'
                                   },
                                   {
                                     label: 'Pricing Class',
-                                    icon: 'pi pi-folder-open',
                                     to: '/pizza-pricing-class?type=CRUST_TYPE'
                                   },
                                   {
                                     label: 'Predefined Pizza',
-                                    icon: 'pi pi-folder-open',
                                     to: '/predefined-pizza'
                                   },
 
@@ -340,104 +301,86 @@ const AppMenu = () => {
                               },
                               {
                                 label: 'Tv Config',
-                                icon: 'pi pi-folder-open',
                                 items: [
                                   {
                                     label: 'Tvs',
-                                    icon: 'pi pi-folder-open',
                                     to: '/tv'
                                   },
                                   {
                                     label: 'Tv Displays',
-                                    icon: 'pi pi-folder-open',
                                     to: '/tv-display'
                                   },
                                 ]
                               },
                               {
                                 label: 'Reporting shifts ',
-                                icon: 'pi pi-folder-open',
                                 role: ['ROLE_ADMIN'],
                                 to: '/reporting-shifts'
                               },
                               {
                                 label: 'Printers',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-plus-circle',
                                 to: '/printer'
                               },
                               {
                                 label: 'Printing Profiles',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-plus-circle',
                                 to: '/printing-profiles'
                               },
                               {
                                 label: 'Production Centers',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-plus-circle',
                                 to: '/production-center'
                               },
                               {
                                 label: 'Currencies',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-plus-circle',
                                 to: '/currencies'
                               },
                               {
                                 label: 'Discounts',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-percentage',
                                 to: '/discount'
                               },
                               {
                                 label: 'Account profiles',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-th-large',
                                 to: '/account-profiles'
                               },
                               {
                                 label: 'Taxes',
                                 role: ['ROLE_ADMIN'],
-                                icon: ' pi pi-th-large',
                                 to: '/tax'
                               },
                               {
                                 label: 'Tax profiles ',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-folder-open',
                                 to: '/tax-profiles'
                               },
                               {
                                 label: 'Accounting Groups ',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-folder-open',
                                 to: '/accounting-groups'
                               },
                               {
                                 label: 'Payment methods ',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-folder-open',
                                 to: '/payment-methods'
                               },
                               {
                                 label: 'Floor plans',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-plus-circle',
                                 items: [
                                   {
                                     label: 'List',
-                                    icon: 'pi pi-star',
                                     to: '/floor-plan'
                                   },
                                   {
                                     label: 'Tables',
-                                    icon: 'pi pi-moon',
                                     to: '/floor-plan/table'
                                   },
                                   {
                                     label: 'Settings',
-                                    icon: 'pi pi-moon',
                                     to: '/floor-plan/settings'
                                   },
                                 ]
@@ -445,43 +388,36 @@ const AppMenu = () => {
                               {
                                 label: 'Transfer Operations',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-percentage',
                                 to: '/transfer-operations'
                               },
                               {
                                 label: 'Web extensions',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-percentage',
                                 to: '/web-extensions'
                               },
 
                               {
                                 label: 'Voids ',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-folder-open',
                                 to: '/void-reasons'
                               },
                               {
                                 label: 'Instructions',
-                                icon: ' pi pi-th-large',
                                 to: '/instructions'
                               },
                               {
                                 label: 'Reporting automations',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-plus-circle',
                                 to: '/reporting-automations'
                               },
                               {
                                 label: 'Theme',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-percentage',
                                 to: '/theme'
                               },
                               {
                                 label: 'Item languages',
                                 role: ['ROLE_ADMIN'],
-                                icon: 'pi pi-percentage',
                                 to: '/items-languages'
                               },
                             ]

@@ -1,8 +1,14 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
-import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
+import {
+  IQueryParams,
+  createEntitySlice,
+  EntityState,
+  serializeAxiosError,
+  ChangeFieldPayload
+} from "app/shared/reducers/reducer.utils";
 import { IPrinter, defaultValue } from 'app/shared/model/PRINTER/printer.model';
 
 const initialState: EntityState<IPrinter> = {
@@ -80,6 +86,11 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+
+
+
+export const changeEntityField = createAction<ChangeFieldPayload<IPrinter>>('printer/change-entity-field');
+
 // slice
 
 export const PrinterSlice = createEntitySlice({
@@ -87,6 +98,10 @@ export const PrinterSlice = createEntitySlice({
   initialState,
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { name, value } = action.payload;
+        state.entity[name] = value;
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;

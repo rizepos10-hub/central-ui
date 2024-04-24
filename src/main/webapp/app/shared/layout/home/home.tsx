@@ -34,7 +34,6 @@ export default function Home() {
 
 
 
-
   const [fromDate, setFromDate] = useState(format(subWeeks(new Date(), 1), 'yyyy-MM-dd'));
   const [toDate, setToDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [topFields, setTopFields]:any = useState({})
@@ -90,7 +89,7 @@ export default function Home() {
   };
 
   const onWeekChange = (e: DropdownChangeEvent) => {
-    let newBarData = { ...chartData.barData };
+    const newBarData = { ...chartData.barData };
     (newBarData.datasets as any)[0].data = weeks[e.value].data[0];
     (newBarData.datasets as any)[1].data[1] = weeks[e.value].data[1];
     setSelectedWeek(e.value);
@@ -101,7 +100,7 @@ export default function Home() {
   };
   const onGlobalFilterChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const value = e.target.value;
-    let _filters = { ...filters };
+    const _filters = { ...filters };
     (_filters['global'] as any).value = value;
 
     console.log(value)
@@ -191,7 +190,7 @@ export default function Home() {
       try {
 
         setLoading({
-          chartsData: true,
+          ...loading,
           topFieldsData: true,
           topItemsData: true,
           recentSalesData: true,
@@ -200,13 +199,6 @@ export default function Home() {
 
         const topCategoriesData = await fetchTopCategories();
         setTopCategories(topCategoriesData);
-
-
-
-        const ordersData = await fetchOrdersByYear(selectedYear);
-        setYearlyOrders(ordersData);
-        setLoading({ ...loading, chartsData: false });
-
 
         const topFieldsData = await fetchTopFields(fromDate, toDate);
         setTopFields(topFieldsData);
@@ -226,7 +218,7 @@ export default function Home() {
         console.error('Error fetching data:', error);
       }finally {
         setLoading({
-          chartsData: false,
+          ...loading,
           topFieldsData: false,
           topItemsData: false,
           recentSalesData: false,
@@ -236,6 +228,17 @@ export default function Home() {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchYearData = async () => {
+      setLoading({...loading, chartsData: true})
+      const ordersData = await fetchOrdersByYear(selectedYear);
+      setYearlyOrders(ordersData);
+      setLoading({ ...loading, chartsData: false });
+    };
+
+    fetchYearData();
+  }, [selectedYear])
 
 
   // useEffect(() => {
@@ -373,8 +376,6 @@ export default function Home() {
   const onYearChange =  (event) => {
     const selectedYearValue = event.value;
     setSelectedYear(selectedYearValue);
-
-
   };
 
 

@@ -9,7 +9,7 @@ import { getEntity, updateEntity, createEntity, reset } from './table.reducer';
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {InputText} from "primereact/inputtext";
 import {getSortState, Translate} from "react-jhipster";
-import Attachment from "app/shared/layout/attachment/attachment";
+import Attachment from "app/shared/components/attachment/attachment";
 import Select from "react-select";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
