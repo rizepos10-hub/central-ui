@@ -7,7 +7,6 @@
   axios.defaults.baseURL = SERVER_API_URL;
 
   const setupAxiosInterceptors = onUnauthenticated => {
-    let refreshPromise = null;
 
     const refreshAccessToken = async () => {
       try {
@@ -58,26 +57,20 @@
 
     const onResponseSuccess = response => response;
 
-    const onResponseError = async err => {
+    const onResponseError = async (err) => {
       const status = err.status || (err.response ? err.response.status : 0);
-      if ((status === 403 || status === 401) && !refreshPromise) {
-        refreshPromise = refreshAccessToken();
-        if (refreshPromise) {
-          try {
-            const newAccessToken = await refreshPromise;
-            if (newAccessToken) {
-              err.config.headers.Authorization = `Bearer ${newAccessToken}`;
-              return axios(err.config);
-            }
-          }catch (error){
-            console.log('error refreshing token2: ', error)
-            onUnauthenticated();
+      if (status === 403 || status === 401 && !err.config.url.endsWith("/refresh") ) {
+        try {
+          const newAccessToken = await refreshAccessToken();
+          if (newAccessToken) {
+            err.config.headers.Authorization = `Bearer ${newAccessToken}`;
+            return axios(err.config);
           }
-          finally {
-            refreshPromise = null;
-          }
+        } catch (error) {
+          onUnauthenticated();
         }
       }
+
       return Promise.reject(err);
     };
 
