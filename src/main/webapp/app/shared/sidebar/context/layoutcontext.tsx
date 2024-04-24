@@ -11,7 +11,7 @@ export const LayoutProvider = (props: ChildContainerProps) => {
 
         ripple: false,
         inputStyle: 'outlined',
-        menuMode: 'reveal',
+        menuMode: 'slim',
         menuTheme: 'primaryColor',
         colorScheme: 'light',
         theme: 'indigo',
