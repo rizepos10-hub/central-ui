@@ -29,23 +29,30 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange,onC
     onFilterValueChange(field, value)
   };
 
-  const handleClick = e => {
-    e.preventDefault();
-    handleSearch(filters);
-  };
 
-  const handleClear = () => {
-    onClear();
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      handleSearch(filters);
+    }
   };
 
   return (
       <form >
-        <Col className={"d-flex flex-row gap-3"}>
-          <div className={'d-flex flex-column flex-1'}>
+        <div className={"d-flex flex-row flex-wrap gap-4"}>
+          <div className={'d-flex flex-column flex-1 gap-3'}>
+            <div className={'d-flex flex-column'}>
             <Label className={'font-semibold'}>Name</Label>
-            <InputTextFilter value={filters?.name?.value} size={30} field={'name'} onChange={onInputChange} />
+            <InputTextFilter onKeyDown={handleKeyDown}  value={filters?.name?.value} size={30} field={'name'} onChange={onInputChange} />
+            </div>
+
+            <div className={'d-flex flex-column'}>
+            <Label className={'font-semibold'}>SKU</Label>
+            <InputTextFilter onKeyDown={handleKeyDown} value={filters?.["variants.sku"]?.value} size={30} field={'variants.sku'} onChange={onInputChange} />
+            </div>
           </div>
-          <div className={'d-flex flex-column'}>
+
+          <div className={'d-flex flex-column flex-1 gap-3'}>
+            <div className={'d-flex flex-column'}>
             <Label className={'font-semibold'}>Category</Label>
             <DropDownFilter
               style={{minWidth: '18rem'}}
@@ -55,9 +62,8 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange,onC
               fieldName={'categories.id'}
               handleDropdownChange={handleDropdownChange}
             />
-          </div>
-
-            <div className={'d-flex flex-column flex-1'}>
+            </div>
+            <div className={'d-flex flex-column'}>
               <Label className={'font-semibold'}>Base Measure</Label>
               <DropDownFilter
                 style={{minWidth: '18rem'}}
@@ -67,17 +73,10 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange,onC
                 fieldName={'baseMeasure.id'}
                 handleDropdownChange={handleDropdownChange}
               />
-            </div>
-        </Col>
-        <Col>
-
-        </Col>
-        <div className={'d-flex flex-row justify-content-end mt-1 mb-3'}>
-          <Button type={'button'} severity={"info"} label={'Clear Filters'} onClick={handleClear} />
-          &nbsp;
-          &nbsp;
-          <Button type={'submit'} label={'Search'} onClick={handleClick} />
+          </div>
         </div>
+      </div>
+
       </form>
   );
 };

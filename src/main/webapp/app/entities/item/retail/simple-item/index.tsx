@@ -9,7 +9,7 @@ import SimpleItemDeleteDialog from './simple-item-delete-dialog';
 
 const AddonRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<SimpleItem />} />
+    {/* <Route index element={<SimpleItem />} /> */}
     <Route path="new" element={<SimpleItemUpdate />} />
     <Route path=":id">
       <Route path="edit" element={<SimpleItemUpdate />} />

@@ -44,13 +44,13 @@ import simpleRetailItem from "app/entities/item/retail/simple-item/simple-item.r
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
 import retailAttribute from "app/entities/item/retail/attributes/retail-attribute.reducer";
 import retailAttributeValue from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
-import retailItems from "app/entities/item/retail/retail-items.reducer";
 import itemsForCombo from 'app/entities/item/restaurant/combo-item/items-for-combo.reducer';
 import currencies from "app/entities/settings/currency/currencies.reducer"
 import currencySettings from "app/entities/settings/currency/currency-settings.reducer"
 import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
 import allItems from 'app/entities/item/all-items.reducer';
 import itemMeasure from 'app/entities/item-measure/item-measure.reducer'
+import product from 'app/entities/item/retail/product/product.reducer';
 
 import tv from "app/entities/settings/tv-config/tv/tv.reducer"
 import tvDisplay from "app/entities/settings/tv-config/tv-display/tv-display.reducer"
@@ -116,7 +116,7 @@ const entitiesReducers = {
   retailAttribute,
   retailAttributeValue,
   restaurantItems,
-  retailItems,
+  product,
   itemsForCombo,
   allItems,
   loyalty,

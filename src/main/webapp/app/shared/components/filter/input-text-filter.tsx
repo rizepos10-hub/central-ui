@@ -8,11 +8,12 @@ type InputTextFilterProps = {
   classname?: string;
   style?: Record<string, string>;
   size?: string | number;
+  onKeyDown?: (e) => void;
   field: string;
   value: string;
 };
 
-const InputTextFilter = ({ field, placeholder = "Search", style, classname, onChange, size, value }: InputTextFilterProps) => {
+const InputTextFilter = ({ field, placeholder = "Search", style, classname, onChange, size, value, onKeyDown }: InputTextFilterProps) => {
   const handleChange = e => {
     onChange(e);
   };
@@ -21,6 +22,7 @@ const InputTextFilter = ({ field, placeholder = "Search", style, classname, onCh
     <span className="p-input-icon-right">
       <InputText
         id={field}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         size={size}
         value={value || ''}

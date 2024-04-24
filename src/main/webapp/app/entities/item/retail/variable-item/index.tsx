@@ -9,7 +9,7 @@ import VariableItemDeleteDialog from './variable-item-delete-dialog';
 
 const AddonRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<VariableItem />} />
+    {/* <Route index element={<VariableItem />} /> */}
     <Route path="new" element={<VariableItemUpdate />} />
     <Route path=":id">
       <Route path="edit" element={<VariableItemUpdate />} />

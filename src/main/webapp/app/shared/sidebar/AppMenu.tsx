@@ -85,20 +85,25 @@ const AppMenu = () => {
                                     to: '/category/retail-items'
                                   },
                                   {
-                                    label: 'Simple',
+                                    label: 'Products',
                                     icon: 'pi pi-folder-open',
-                                    to: 'retail/simple'
+                                    to: '/product'
                                   },
-                                  {
-                                    label: 'Variable',
-                                    icon: 'pi pi-folder-open',
-                                    to: 'retail/variable'
-                                  },
-                                  {
-                                    label: 'Grouped',
-                                    icon: 'pi pi-folder-open',
-                                    to: 'retail/grouped'
-                                  },
+                                  // {
+                                  //   label: 'Simple',
+                                  //   icon: 'pi pi-folder-open',
+                                  //   to: 'retail/simple'
+                                  // },
+                                  // {
+                                  //   label: 'Variable',
+                                  //   icon: 'pi pi-folder-open',
+                                  //   to: 'retail/variable'
+                                  // },
+                                  // {
+                                  //   label: 'Grouped',
+                                  //   icon: 'pi pi-folder-open',
+                                  //   to: 'retail/grouped'
+                                  // },
                                   {
                                     label: 'Attributes',
                                     icon: 'pi pi-folder-open',
