@@ -90,7 +90,7 @@ const AttributeFilter = ({
       <div>
         <Label className={'font-semibold'}>Attributes</Label>
       </div>
-      <div className={"card d-flex flex-column gap-3"} style={{ maxHeight: "400px", overflowY: "auto" }}>
+      <div className={"card d-flex flex-column gap-3"} style={{ maxHeight: "400px", minWidth: '33rem', minHeight: '200px', overflowY: "auto" }}>
         <Button disabled={filteredAvailableAttributes.length <= 0} size={"small"} className={"ml-auto"}
                 icon="pi pi-plus"
                 onClick={() => addAttrDropDown(filteredAvailableAttributes?.[0]?.id)}

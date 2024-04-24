@@ -18,7 +18,7 @@ interface IBranchVariantDetails {
   };
 }
 
-interface IAttributes {
+export interface IAttributes {
   attributeTax?:ITaxonomy;
   attributeTerms?: ITerm[];
   attachments?: IAttachment[];
