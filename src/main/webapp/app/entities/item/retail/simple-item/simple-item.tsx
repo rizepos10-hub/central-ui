@@ -158,7 +158,7 @@ export const SimpleItem = () => {
           onFilterValueChange={handleFilterValueChange}
         />
         <div className={'d-flex flex-column align-items-center justify-content-center gap-3'}>
-          <SharedFilter onClear={handleClear} onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
+          <SharedFilter filteredAttributes={filteredAttributes}  onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
         </div>
       </div>
 

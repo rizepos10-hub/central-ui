@@ -67,7 +67,6 @@ const AppMenu = () => {
                               },
                               {
                                 label: 'Retail',
-                                icon: 'pi pi-folder-open',
                                 items: [
                                   {
                                     label: 'Category',

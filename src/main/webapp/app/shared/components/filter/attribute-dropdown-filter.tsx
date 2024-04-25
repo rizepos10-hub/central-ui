@@ -117,6 +117,10 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
           value={itemAttribute?.attributeTax || null}
           options={availableAttributes}
           placeholder={"Select Attribute"}
+          styles={{control: (baseStyles) => ({
+            ...baseStyles,
+                minWidth: "18rem"
+            })}}
           isClearable
           getOptionValue={option => option.id}
           getOptionLabel={option => option.name}
@@ -129,6 +133,10 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
           isDisabled={!itemAttribute?.attributeTax}
           getOptionLabel={option => option.name}
           getOptionValue={option => option.id}
+          styles={{control: (baseStyles) => ({
+              ...baseStyles,
+              minWidth: "18rem"
+            })}}
           placeholder={"Select Attribute Value"}
           isLoading={loadingAttributesValues}
           onFocus={() => loadOptions(itemAttribute?.attributeTax?.id)}

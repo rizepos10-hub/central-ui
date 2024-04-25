@@ -86,15 +86,22 @@ const AttributeFilter = ({
 
 
   return (
-    <div className={"d-flex flex-column gap-1"}>
-      <div>
-        <Label className={'font-semibold'}>Attributes</Label>
-      </div>
-      <div className={"card d-flex flex-column gap-3"} style={{ maxHeight: "400px", minWidth: '33rem', minHeight: '200px', overflowY: "auto" }}>
-        <Button disabled={filteredAvailableAttributes.length <= 0} size={"small"} className={"ml-auto"}
+    <div className={"d-flex flex-column gap-1 mb-3"}>
+      <div className={"d-flex flex-row gap-1"}>
+        <Button disabled={filteredAvailableAttributes.length <= 0} size={"small"}
                 icon="pi pi-plus"
+                name="plusBtn"
+                style={{position: "absolute", marginLeft: "5.5rem", background: "none", height: '20px', width: "20px"}}
+                id="plusBtn"
+                type={"button"}
                 onClick={() => addAttrDropDown(filteredAvailableAttributes?.[0]?.id)}
                 rounded outlined  text aria-label="Filter" />
+        <Label htmlFor="plusBtn" className={'font-semibold'}>Attributes</Label>
+
+
+      </div>
+      <div className={" d-flex flex-column gap-3"} style={{ maxHeight: "500px", minWidth: '33rem', minHeight: '200px', overflowY: "auto" }}>
+
         {filteredAttributes.length > 0 ? attributesListing : (
           <AttributeDropdownFilter
             defaultAttribute={null}
