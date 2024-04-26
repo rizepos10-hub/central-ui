@@ -51,7 +51,7 @@ const AppMenu = () => {
                               },
                               {
                                 label: 'Activities',
-                                to: '/branch-pos-user'
+                                to: '/activities'
                               },
                             ]
                           },
@@ -152,7 +152,7 @@ const AppMenu = () => {
                                     to: '/tags'
                                   },
                                   {
-                                    label: 'Pos List',
+                                    label: 'Menu',
                                     to: '/menu?type=POS'
                                   },
                                 ]
@@ -188,17 +188,17 @@ const AppMenu = () => {
                                   {
                                     label: 'Brands',
                                     role: ['ROLE_ADMIN'],
-                                    to: '/mix-and-match-rule'
+                                    to: '/brands'
                                   },
                                   {
                                     label: 'Tags',
                                     role: ['ROLE_ADMIN'],
-                                    to: '/mix-and-match-rule'
+                                    to: '/tag'
                                   },
                                   {
                                     label: 'Menus',
                                     role: ['ROLE_ADMIN'],
-                                    to: '/mix-and-match-rule'
+                                    to: '/menu?type=POS'
                                   },
 
                                 ]
