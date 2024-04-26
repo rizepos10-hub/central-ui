@@ -19,6 +19,7 @@ const AppMenu = () => {
                             label: 'POS',
                             role: ['ROLE_ADMIN'],
                             icon: 'pi pi-desktop',
+                            to: '/switch-register',
                             items: [
                               {
                                 label: 'Switch Register',
@@ -38,6 +39,7 @@ const AppMenu = () => {
                             label: 'Users',
                             role: ['ROLE_ADMIN'],
                             icon: 'pi pi-user',
+                            to: '/back-office-user',
                             items: [
                               {
                                 label: 'Back End',
@@ -57,6 +59,7 @@ const AppMenu = () => {
                             label: 'Online Ordering',
                             role: ['ROLE_ADMIN'],
                             icon: 'pi pi-tablet',
+                            to: '/menu?type=ONLINE_ORDERING',
                             items: [
                               {
                                 label: 'Menu',
@@ -84,6 +87,7 @@ const AppMenu = () => {
                             label: 'Restaurant Catalog',
                             role: ['ROLE_ADMIN'],
                             icon: 'pi pi-book',
+                            to: '/category/restaurant-items',
                             items: [
                               {
                                 label: 'Categories',
@@ -156,6 +160,7 @@ const AppMenu = () => {
                               {
                                 label: 'Retail Catalog',
                                 icon: 'pi pi-tags',
+                                to: '/category/retail-items',
                                 items: [
                                   {
                                     label: 'Categories',
@@ -202,6 +207,7 @@ const AppMenu = () => {
                                 label: 'Inventory',
                                 role: ['ROLE_ADMIN'],
                                 icon: 'pi pi-box',
+                                to: '/inventory/warehouse',
                                 items: [
                                   {
                                     label: 'Warehouses',
@@ -301,6 +307,7 @@ const AppMenu = () => {
                                 label: 'Customers',
                                 role: ['ROLE_ADMIN'],
                                 icon: ' pi pi-users',
+                                to: '/customer/group',
                                 items: [
                                   {
                                     label: 'Groups',
@@ -333,6 +340,7 @@ const AppMenu = () => {
                             label: 'Orders',
                             role: ['ROLE_ADMIN'],
                             icon: 'pi pi-dollar',
+                            to: '/order/today',
                             items: [
                               {
                                 label: 'Today',
@@ -354,6 +362,7 @@ const AppMenu = () => {
                             label: 'Digital Signage',
                             icon:  'pi pi-desktop',
                             role: ['ROLE_ADMIN'],
+                            to: '/tv',
                             items: [
                               {
                                 label: 'Tv Config',
@@ -374,6 +383,7 @@ const AppMenu = () => {
                             label: 'Reports',
                             role: ['ROLE_ADMIN'],
                             icon: ' pi pi-chart-bar',
+                            to: '/analytics/retail-dashboard',
                             items: [
                               {
                                 label: 'Retail Dashboard',
@@ -477,6 +487,7 @@ const AppMenu = () => {
                             label: 'Settings',
                             icon: 'pi pi-cog',
                             role: ['ROLE_ADMIN', 'ROLE_BO-BUSINESS-SETTING'],
+                            to: '/details',
                             items: [
                               {
                                 label: 'Business Information',
