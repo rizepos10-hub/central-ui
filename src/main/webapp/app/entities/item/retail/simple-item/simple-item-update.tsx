@@ -150,16 +150,16 @@ export const SimpleItemUpdate = () => {
 
 
 
-  const handleBranchPriceChange = (branchId, priceType, price) => {
+  const handleBranchPriceChange = (variantIndex = 0, branchId, priceType, price) => {
     setSimpleItem(prev => ({
       ...prev,
       variants: [
         {
-          ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
+          ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
           branchVariantDetails: {
-            ...prev.variants[0]?.branchVariantDetails,
+            ...prev.variants[variantIndex]?.branchVariantDetails,
             [branchId]: {
-              ...(prev.variants?.[0]?.branchVariantDetails?.[branchId]),
+              ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
               branch: {id: branchId},
               [priceType]: price,
             },

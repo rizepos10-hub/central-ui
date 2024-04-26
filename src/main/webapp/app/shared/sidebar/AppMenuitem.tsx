@@ -5,50 +5,52 @@ import { LayoutContext } from './context/layoutcontext';
 import { MenuContext } from './context/menucontext';
 import type { AppMenuItemProps } from './types/types';
 import { useSubmenuOverlayPosition } from './hooks/useSubmenuOverlayPosition';
-import {Link, useLocation} from 'react-router-dom';
-import {useAppSelector} from "app/config/store";
-
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAppSelector } from 'app/config/store';
 
 const AppMenuitem = (props: AppMenuItemProps) => {
-    const { activeMenu, setActiveMenu } = useContext(MenuContext);
-    const { isSlim, isSlimPlus, isHorizontal, isDesktop, setLayoutState, layoutState, layoutConfig } = useContext(LayoutContext);
-    const location = useLocation();
-    const submenuRef = useRef<HTMLUListElement>(null);
-    const menuitemRef = useRef<HTMLLIElement>(null);
-    const item = props.item;
-    const key = props.parentKey ? props.parentKey + '-' + props.index : String(props.index);
-    // console.log(key, 'keyyyyy')
-    const path = location.pathname;
-    const parts = path.split('/');
-    const lastPath = parts[parts.length - 1];
+  const { activeMenu, setActiveMenu } = useContext(MenuContext);
+  const { isSlim, isSlimPlus, isHorizontal, isDesktop, setLayoutState, layoutState, layoutConfig } = useContext(LayoutContext);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const submenuRef = useRef<HTMLUListElement>(null);
+  const menuitemRef = useRef<HTMLLIElement>(null);
+  const item = props.item;
+  const key = props.parentKey ? props.parentKey + '-' + props.index : String(props.index);
+  // console.log(key, 'keyyyyy')
+  const path = location.pathname;
+  const parts = path.split('/');
+  const lastPath = parts[parts.length - 1];
 
-    const isActiveRoute = item.to && path === item.to || (path + location.search) === item.to || path?.substring(1) === item.to;
-    const account = useAppSelector(state => state.authentication.account);
-    const userRole = account.authorities
-    const active = activeMenu === key || !!(activeMenu && activeMenu.startsWith(key + '-'));
+  const isActiveRoute = (item.to && path === item.to) || path + location.search === item.to || path?.substring(1) === item.to;
+  const account = useAppSelector(state => state.authentication.account);
+  const userRole = account.authorities;
+  const active = activeMenu === key || !!(activeMenu && activeMenu.startsWith(key + '-'));
 
-    useSubmenuOverlayPosition({
-        target: menuitemRef.current,
-        overlay: submenuRef.current,
-        container: menuitemRef.current && menuitemRef.current.closest('.layout-menu-container'),
-        when: props.root && active && (isSlim() || isSlimPlus() || isHorizontal()) && isDesktop()
-    });
-
-    useEffect(() => {
-        if (layoutState.resetMenu) {
-            setActiveMenu('');
-            setLayoutState((prevLayoutState) => ({ ...prevLayoutState, resetMenu: false }));
-        }
-    }, [layoutState]);
+  useSubmenuOverlayPosition({
+    target: menuitemRef.current,
+    overlay: submenuRef.current,
+    container: menuitemRef.current && menuitemRef.current.closest('.layout-menu-container'),
+    when: props.root && active && (isSlim() || isSlimPlus() || isHorizontal()) && isDesktop(),
+  });
 
   useEffect(() => {
+    if (layoutState.resetMenu) {
+      setActiveMenu('');
+      setLayoutState(prevLayoutState => ({ ...prevLayoutState, resetMenu: false }));
+    }
+  }, [layoutState]);
+
+  useEffect(() => {
+    console.log(location.pathname, 'location.pathname')
+
     const onRouteChange = () => {
+      console.log(path + location.search, 'firstRoute')
+
       const isRouteActive =
-        item.to && (location.pathname + location.search) === item.to
-        || (path + location.search) === item.to
-        || path?.substring(1) === item.to;
-
-
+        (item.to && location.pathname + location.search === item.to) ||
+        path + location.search === item.to ||
+        path?.substring(1) === item.to;
 
       if (isRouteActive) {
         setActiveMenu(key);
@@ -62,16 +64,12 @@ const AppMenuitem = (props: AppMenuItemProps) => {
     onRouteChange();
 
     return () => {
-      setActiveMenu("")
+      setActiveMenu('');
     };
   }, []);
 
-
-
-
-
   useEffect(() => {
-    const onRouteChange = (newLocation) => {
+    const onRouteChange = newLocation => {
       if (!(isSlim() || isHorizontal()) && item?.to && item.to === newLocation.pathname) {
         setActiveMenu(key);
       }
@@ -84,64 +82,76 @@ const AppMenuitem = (props: AppMenuItemProps) => {
     return unlisten;
   }, [location, layoutConfig]);
 
-
   const itemClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-        // avoid processing disabled items
-        if (item.disabled) {
-            event.preventDefault();
-            return;
-        }
+    // avoid processing disabled items
+    if (item.disabled) {
+      event.preventDefault();
+      return;
+    }
 
-        // navigate with hover
-        if (props.root && ( isHorizontal() )) {
-            const isSubmenu = event.currentTarget.closest('.layout-root-menuitem.active-menuitem > ul') !== null;
-            if (isSubmenu) setLayoutState((prevLayoutState) => ({ ...prevLayoutState, menuHoverActive: true }));
-            else setLayoutState((prevLayoutState) => ({ ...prevLayoutState, menuHoverActive: !prevLayoutState.menuHoverActive }));
-        }
+    console.log(item, 'itemClick', event)
 
-        // execute command
-        if (item?.command) {
-            item?.command({ originalEvent: event, item });
-        }
+    // navigate with hover
+    if (props.root && isHorizontal()) {
+      const isSubmenu = event.currentTarget.closest('.layout-root-menuitem.active-menuitem > ul') !== null;
+      if (isSubmenu) setLayoutState(prevLayoutState => ({ ...prevLayoutState, menuHoverActive: true }));
+      else setLayoutState(prevLayoutState => ({ ...prevLayoutState, menuHoverActive: !prevLayoutState.menuHoverActive }));
+    }
 
-        // toggle active state
+    // execute command
+    if (item?.command) {
+      item?.command({ originalEvent: event, item });
+    }
+
+    if(item?.to){
+      navigate(item.to)
+    }
+
+    // toggle active state
     //  && !(isSlim() || isSlimPlus())
-        if (item?.items) {
-          if(isSlim() || isSlimPlus()){
-            setActiveMenu(key);
-          }else{
-            setActiveMenu(active ? props.parentKey : key);
-          }
+    if (item?.items) {
+      if ((item.icon && isSlim()) || isSlimPlus()) {
+        setActiveMenu(key);
+      } else {
+        setActiveMenu(active ? props.parentKey : key);
+      }
 
-            if (props.root && !active && (isHorizontal())) {
-                setLayoutState((prevLayoutState) => ({ ...prevLayoutState, overlaySubmenuActive: true }));
-            }
-        } else {
-            if (!isDesktop()) {
-                setLayoutState((prevLayoutState) => ({ ...prevLayoutState, staticMenuMobileActive: !prevLayoutState.staticMenuMobileActive }));
-            }
+      if (props.root && !active && isHorizontal()) {
+        setLayoutState(prevLayoutState => ({ ...prevLayoutState, overlaySubmenuActive: true }));
+      }
+    } else {
+      if (!isDesktop()) {
+        setLayoutState(prevLayoutState => ({ ...prevLayoutState, staticMenuMobileActive: !prevLayoutState.staticMenuMobileActive }));
+      }
 
-            if (isSlim() || isSlimPlus() || isHorizontal()) {
-                setLayoutState((prevLayoutState) => ({ ...prevLayoutState, menuHoverActive: false }));
-            }
+      if (isSlim() || isSlimPlus() || isHorizontal()) {
+        setLayoutState(prevLayoutState => ({ ...prevLayoutState, menuHoverActive: false }));
+      }
 
-            setActiveMenu(key);
-        }
-    };
+      setActiveMenu(key);
+    }
+  };
 
-    const onMouseEnter = () => {
-        // activate item on hover
-        if (props.root && ( isHorizontal() ) && isDesktop()) {
-            if (!active && layoutState.menuHoverActive) {
-                setActiveMenu(key);
-            }
-        }
-    };
+  const onMouseEnter = () => {
+    // activate item on hover
+    if (props.root && isHorizontal() && isDesktop()) {
+      if (!active && layoutState.menuHoverActive) {
+        setActiveMenu(key);
+      }
+    }
+  };
 
-
-    const badge = item?.badge ? (
-        <span className={classNames('layout-menu-badge p-tag p-tag-rounded ml-2 uppercase', { [`${item?.badge}`]: true, 'p-tag-success': item?.badge === 'new', 'p-tag-info': item?.badge === 'updated' })}>{item?.badge}</span>
-    ) : null;
+  const badge = item?.badge ? (
+    <span
+      className={classNames('layout-menu-badge p-tag p-tag-rounded ml-2 uppercase', {
+        [`${item?.badge}`]: true,
+        'p-tag-success': item?.badge === 'new',
+        'p-tag-info': item?.badge === 'updated',
+      })}
+    >
+      {item?.badge}
+    </span>
+  ) : null;
   const subMenu =
     item?.items && item?.visible !== false ? (
       <ul ref={submenuRef}>
@@ -149,57 +159,62 @@ const AppMenuitem = (props: AppMenuItemProps) => {
           if (child.role && child.role.length > 0) {
             const hasAccess = child.role.some(role => userRole.includes(role));
             if (!hasAccess) {
-              return null
+              return null;
             }
           }
           // console.log(userRole, 'userRole');
 
-          return (
-            <AppMenuitem item={child} index={i} className={child.badgeClass} parentKey={key} key={child.label} />
-          );
+          return <AppMenuitem item={child} index={i} className={child.badgeClass} parentKey={key} key={child.label} />;
         })}
       </ul>
     ) : null;
 
+  return (
+    <li ref={menuitemRef} className={classNames({ 'layout-root-menuitem': props.root, 'active-menuitem': active })}>
+      {props.root && item?.visible !== false && <div className="layout-menuitem-root-text">{item?.label}</div>}
+      {(!item?.to || item?.items) && item?.visible !== false ? (
+        <>
+          <a
+            href={item?.url}
+            onClick={e => itemClick(e)}
+            className={classNames(item?.class, 'p-ripple tooltip-target')}
+            target={item?.target}
+            data-pr-tooltip={item?.label}
+            data-pr-disabled={!(isSlim() && props.root && !layoutState.menuHoverActive)}
+            tabIndex={0}
+            style={{ fontWeight: isActiveRoute ? 'bold' : 'normal' }}
+            onMouseEnter={onMouseEnter}
+          >
+            <i className={classNames('layout-menuitem-icon', item?.icon)}></i>
+            <span className="layout-menuitem-text">{item?.label}</span>
+            {item?.items && <i className="pi pi-fw pi-angle-down layout-submenu-toggler"></i>}
+            <Ripple />
+          </a>
+        </>
+      ) : null}
 
-    return (
-        <li ref={menuitemRef} className={classNames({ 'layout-root-menuitem': props.root, 'active-menuitem': active })}>
-            {props.root && item?.visible !== false && <div className="layout-menuitem-root-text">{item?.label}</div>}
-            {(!item?.to || item?.items) && item?.visible !== false ? (
-                <>
-                    <a
-                        href={item?.url}
-                        onClick={(e) => itemClick(e)}
-                        className={classNames(item?.class, 'p-ripple tooltip-target')}
-                        target={item?.target}
-                        data-pr-tooltip={item?.label}
-                        data-pr-disabled={!(isSlim() && props.root && !layoutState.menuHoverActive)}
-                        tabIndex={0}
-                        style={{ fontWeight: isActiveRoute ? 'bold' : 'normal' }}
-                        onMouseEnter={onMouseEnter}
-                    >
-                        <i className={classNames('layout-menuitem-icon', item?.icon)}></i>
-                        <span className="layout-menuitem-text">{item?.label}</span>
-                        {item?.items && <i className="pi pi-fw pi-angle-down layout-submenu-toggler"></i>}
-                        <Ripple />
-                    </a>
-                </>
-            ) : null}
-
-            {item?.to && !item?.items && item?.visible !== false ? (
-                <>
-                    <Link   style={{ fontWeight: isActiveRoute ? 'bold' : 'normal' }} to={item?.to} replace={item?.replaceUrl} onClick={(e) => itemClick(e)} className={classNames(item?.class, 'p-ripple ', { 'active-route': isActiveRoute })} tabIndex={0} onMouseEnter={onMouseEnter}>
-                        <i className={classNames('layout-menuitem-icon', item?.icon)}></i>
-                        <span className="layout-menuitem-text">{item?.label}</span>
-                        {badge}
-                        {item?.items && <i className="pi pi-fw pi-angle-down layout-submenu-toggler"></i>}
-                        <Ripple />
-                    </Link>
-                </>
-            ) : null}
-            {subMenu}
-        </li>
-    );
+      {item?.to && !item?.items && item?.visible !== false ? (
+        <>
+          <Link
+            style={{ fontWeight: isActiveRoute ? 'bold' : 'normal' }}
+            to={item?.to}
+            replace={item?.replaceUrl}
+            onClick={e => itemClick(e)}
+            className={classNames(item?.class, 'p-ripple ', { 'active-route': isActiveRoute })}
+            tabIndex={0}
+            onMouseEnter={onMouseEnter}
+          >
+            <i className={classNames('layout-menuitem-icon', item?.icon)}></i>
+            <span className="layout-menuitem-text">{item?.label}</span>
+            {badge}
+            {item?.items && <i className="pi pi-fw pi-angle-down layout-submenu-toggler"></i>}
+            <Ripple />
+          </Link>
+        </>
+      ) : null}
+      {subMenu}
+    </li>
+  );
 };
 
 export default AppMenuitem;

@@ -172,14 +172,11 @@ export const Product = () => {
       <div className="d-flex gap-3">
 
         <div className={'d-flex flex-column  gap-3'}>
-          <SharedFilter onClear={handleClear} onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
+          <SharedFilter filteredAttributes={filteredAttributes} onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
         </div>
 
         <div className={'ml-auto'}>
-        <AttributeFilter
-          filteredAttributes={filteredAttributes}
-          onFilterValueChange={handleFilterValueChange}
-        />
+
         </div>
       </div>
       <div className={'d-flex flex-row justify-content-center mt-1 mb-3'}>
