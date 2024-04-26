@@ -5,13 +5,14 @@ import { LayoutContext } from './context/layoutcontext';
 import { MenuContext } from './context/menucontext';
 import type { AppMenuItemProps } from './types/types';
 import { useSubmenuOverlayPosition } from './hooks/useSubmenuOverlayPosition';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from 'app/config/store';
 
 const AppMenuitem = (props: AppMenuItemProps) => {
   const { activeMenu, setActiveMenu } = useContext(MenuContext);
   const { isSlim, isSlimPlus, isHorizontal, isDesktop, setLayoutState, layoutState, layoutConfig } = useContext(LayoutContext);
   const location = useLocation();
+  const navigate = useNavigate();
   const submenuRef = useRef<HTMLUListElement>(null);
   const menuitemRef = useRef<HTMLLIElement>(null);
   const item = props.item;
@@ -88,6 +89,8 @@ const AppMenuitem = (props: AppMenuItemProps) => {
       return;
     }
 
+    console.log(item, 'itemClick', event)
+
     // navigate with hover
     if (props.root && isHorizontal()) {
       const isSubmenu = event.currentTarget.closest('.layout-root-menuitem.active-menuitem > ul') !== null;
@@ -98,6 +101,10 @@ const AppMenuitem = (props: AppMenuItemProps) => {
     // execute command
     if (item?.command) {
       item?.command({ originalEvent: event, item });
+    }
+
+    if(item?.to){
+      navigate(item.to)
     }
 
     // toggle active state
