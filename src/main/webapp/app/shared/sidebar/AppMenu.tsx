@@ -307,7 +307,7 @@ const AppMenu = () => {
                                 label: 'Customers',
                                 role: ['ROLE_ADMIN'],
                                 icon: ' pi pi-users',
-                                to: '/customer/group',
+                                to: '/customer',
                                 items: [
                                   {
                                     label: 'Groups',
