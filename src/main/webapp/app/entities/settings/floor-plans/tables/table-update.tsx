@@ -16,7 +16,7 @@ import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
 import {IFloorPlanTable} from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
 
-export const FloorPlanTableUpdate = () => {
+const FloorPlanTableUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id } = useParams<'id'>();
