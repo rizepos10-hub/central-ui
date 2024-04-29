@@ -254,6 +254,11 @@ const AppMenu = () => {
                                   role: ['ROLE_ADMIN'],
                                   to: '/online-ordering/settings'
                                 },
+                                {
+                                  label: 'Layout Settings',
+                                  role: ['ROLE_ADMIN'],
+                                  to: '/online-ordering/layout-settings'
+                                },
 
                               ]
                             },
