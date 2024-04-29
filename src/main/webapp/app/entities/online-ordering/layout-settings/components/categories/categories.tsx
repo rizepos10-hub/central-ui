@@ -1,19 +1,19 @@
 import React from 'react'
 import { ITerm } from 'app/shared/model/term.model'
-import { CategoryLayout } from 'app/shared/model/ENUMS/categories-layout.model'
+import { Layout } from 'app/shared/model/ENUMS/layout.model'
 import LayoutOne from './layout-one/layout-one'
 
 const CategoriesLayout = ({
     layout,
     categories
 }: {
-    layout: CategoryLayout
+    layout: Layout
     categories: ITerm[]
 }) => {
     switch (layout) {
-        case CategoryLayout.layoutOne:
+        case Layout.layoutOne:
             return <LayoutOne categories={categories}/>
-        case CategoryLayout.layoutTwo:
+        case Layout.layoutTwo:
             // return <LayoutTwo />
             return <div>1</div>
         default:

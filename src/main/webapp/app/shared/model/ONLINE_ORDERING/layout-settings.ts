@@ -1,5 +1,5 @@
 import { buttonSettingsAlignment } from "../ENUMS/button-settings-alignment";
-import { CategoryLayout } from "../ENUMS/categories-layout.model";
+import { Layout } from "../ENUMS/layout.model";
 import { IItem } from "../ITEM/item.model";
 import { IAttachment } from "../attachment.model";
 import { ITerm } from "../term.model";
@@ -16,19 +16,19 @@ export interface ILayoutSettings {
     retailCategorySetting: {
         categories: ITerm[],
         showImages: boolean,
-        layout: CategoryLayout
+        layout: Layout
     },
     restuarantCategorySetting: {
         categories: ITerm[],
         showImages: boolean,
-        layout: CategoryLayout
+        layout: Layout
     },
     sliderSettings: ISliderSettings[];
     productSetting: {
         FEATURED: {
             items: IItem[],
             showImages: boolean,
-            layout: CategoryLayout
+            layout: Layout
         }
     }
 }
@@ -38,19 +38,19 @@ export const defaultLayoutValue: Readonly<ILayoutSettings> = {
     retailCategorySetting: {
         categories: [],
         showImages: false,
-        layout: CategoryLayout.layoutOne
+        layout: Layout.layoutOne
     },
     restuarantCategorySetting: {
         categories: [],
         showImages: false,
-        layout: CategoryLayout.layoutOne
+        layout: Layout.layoutOne
     },
     sliderSettings: [],
     productSetting: {
         FEATURED: {
             items: [],
             showImages: false,
-            layout: CategoryLayout.layoutOne
+            layout: Layout.layoutOne
         }
     }
 }

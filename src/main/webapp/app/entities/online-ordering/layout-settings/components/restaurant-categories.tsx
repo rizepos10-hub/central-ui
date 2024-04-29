@@ -7,7 +7,7 @@ import { Button, Row, Spinner } from 'reactstrap';
 import CategoriesLayout from './categories/categories';
 import { ILayoutSettings } from 'app/shared/model/ONLINE_ORDERING/layout-settings';
 import { TabPanel, TabView } from 'primereact/tabview';
-import { CategoryLayout } from 'app/shared/model/ENUMS/categories-layout.model';
+import { Layout } from 'app/shared/model/ENUMS/layout.model';
 import { changeLayoutField } from '../../settings/settings.reducer';
 import { Checkbox } from 'primereact/checkbox';
 
@@ -50,12 +50,12 @@ export const RestaurantCategories = ({
         {
             id: 1,
             name: 'layout 1',
-            value: CategoryLayout.layoutOne
+            value: Layout.layoutOne
         },
         {
             id: 2,
             name: 'layout 2',
-            value: CategoryLayout.layoutTwo
+            value: Layout.layoutTwo
         }
     ]
 
