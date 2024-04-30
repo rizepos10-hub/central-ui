@@ -10,6 +10,7 @@ import { TabPanel, TabView } from 'primereact/tabview';
 import { Layout } from 'app/shared/model/ENUMS/layout.model';
 import { changeLayoutField } from '../../settings/settings.reducer';
 import { Checkbox } from 'primereact/checkbox';
+import { debounce } from 'lodash';
 
 export const RestaurantCategories = ({
     restuarantCategorySetting,
@@ -18,14 +19,6 @@ export const RestaurantCategories = ({
 }) => {
     const dispatch = useAppDispatch();
 
-    // const handleChange = (field: keyof ILayoutSettings["restuarantCategorySetting"], value) => {
-    //     console.log(value)
-    //     const newCategories = {
-    //         ...restuarantCategorySetting,
-    //         [field]: value
-    //     }
-    //     dispatch(changeEntityField({ name: "restuarantCategorySetting", value: newCategories }));
-    // };
     const categoryOptions: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
     const loading = useAppSelector(state => state.restaurantCategory.loading);
     const updating = useAppSelector(state => state.restaurantCategory.updating);
@@ -34,16 +27,20 @@ export const RestaurantCategories = ({
     const [filterValue, setFilterValue] = useState<string>("");
 
     useEffect(() => {
-        const debouncer = setTimeout(() => {
+        const handleFilter = debounce(() => {
             dispatch(searchEntities({
                 query: filterValue,
                 sort: 'id,asc',
                 page: 0,
                 size: 10,
             }))
-        }, 300);
+        }, 500);
 
-        return () => clearTimeout(debouncer);
+        handleFilter();
+
+        return () => {
+            handleFilter.cancel();
+        };
     }, [filterValue]);
 
     const layouts = [

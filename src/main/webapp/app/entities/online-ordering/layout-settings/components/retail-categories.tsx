@@ -10,6 +10,7 @@ import { TabPanel, TabView } from 'primereact/tabview';
 import { Layout } from 'app/shared/model/ENUMS/layout.model';
 import { changeLayoutField } from '../../settings/settings.reducer';
 import { Checkbox } from 'primereact/checkbox';
+import { debounce } from 'lodash';
 
 export const RetailCategories = ({
     retailCategorySetting
@@ -26,16 +27,20 @@ export const RetailCategories = ({
     const [activeIndex, setActiveIndex] = useState(0);
 
     useEffect(() => {
-        const debouncer = setTimeout(() => {
+        const handleFilter = debounce(() => {
             dispatch(searchEntities({
                 query: filterValue,
                 sort: 'id,asc',
                 page: 0,
                 size: 10
             }))
-        }, 300);
+        }, 500);
 
-        return () => clearTimeout(debouncer);
+        handleFilter();
+
+        return () => {
+            handleFilter.cancel();
+        };
     }, [filterValue]);
 
     const layouts = [

@@ -10,6 +10,9 @@ import { InputText } from 'primereact/inputtext';
 import { buttonSettingsAlignment } from 'app/shared/model/ENUMS/button-settings-alignment';
 import { changeLayoutField } from '../../settings/settings.reducer';
 import { uploadImage } from 'app/entities/attachment/attachment.reducer';
+import Attachment from 'app/shared/components/attachment/attachment';
+import { set } from 'lodash';
+import { IAttachment } from 'app/shared/model/attachment.model';
 
 const Slider = ({
     sliderSettings,
@@ -21,7 +24,7 @@ const Slider = ({
     const [animating, setAnimating] = useState<boolean>(false);
     const [isMobileView, setIsMobileView] = useState(false);
 
-    const [image, setImage] = useState<File | null>(null);
+    const [image, setImage] = useState<IAttachment | null>(null);
     const [text, setText] = useState<string>('');
 
 
@@ -80,42 +83,19 @@ const Slider = ({
         </CarouselItem>
     ));
 
-    const handleImageChange = async (file: File | null, sliderText: string) => {
-        if (!file) return;
-
-        const formData = new FormData();
-        formData.append('file', file);
-        try {
-            const response: any = await dispatch(uploadImage(formData));
-            const imageUrl = response?.payload?.url;
-            const imageInfo = {
-                id: response?.payload?.id,
-                name: response?.payload?.name,
-                path: response?.payload?.path,
-                size: response?.payload?.size,
-                type: response?.payload?.type,
-                createdAt: response?.payload?.createdAt,
-                updatedAt: response?.payload?.updatedAt,
-                url: imageUrl,
-            };
-
-            const newSlider: ISliderSettings = {
-                image: imageInfo,
-                text: sliderText,
-                buttonSetting: {
-                    text: '',
-                    color: '',
-                    alignment: buttonSettingsAlignment.CENTER
-                }
-            };
-            setActiveIndex(sliderSettings.length);
-            dispatch(changeLayoutField({ name: "sliderSettings", value: [...sliderSettings, newSlider] }));
-            return;
-        } catch (error) {
-            console.error('Error uploading image:', error);
-
-            return;
-        }
+    const handleImageChange = () => {
+        const newSlider: ISliderSettings = {
+            image,
+            text,
+            buttonSetting: {
+                text: '',
+                color: '',
+                alignment: buttonSettingsAlignment.CENTER
+            }
+        };
+        setActiveIndex(sliderSettings.length);
+        dispatch(changeLayoutField({ name: "sliderSettings", value: [...sliderSettings, newSlider] }));
+        setImage(null);
     };
 
     const containerStyle: React.CSSProperties = {
@@ -132,10 +112,10 @@ const Slider = ({
                 flexDirection: 'column',
                 gap: '10px'
             }}>
-                <Input
-                    type="file"
-                    id="imageUpload"
-                    onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
+                <Attachment
+                    image={image}
+                    onRemoveImage={() => setImage(null)}
+                    onAddImage={(imageInfo) => setImage(imageInfo)}
                 />
                 <InputText
                     placeholder="Enter text"
@@ -144,10 +124,10 @@ const Slider = ({
                 />
                 <Button
                     color="primary"
-                    onClick={handleImageChange.bind(null, image, text)}
+                    onClick={handleImageChange}
                     disabled={!image}
                 >
-                    Add Image
+                    Add Slide
                 </Button>
             </FormGroup>
 
@@ -196,15 +176,6 @@ const Slider = ({
                         alignItems: "center",
                         gap: "10px"
                     }}>
-                        {/* <InputNumber
-                            placeholder="Enter number to remove"
-                            value={indexToRemove !== null ? indexToRemove : null}
-                            onChange={handleIndexToRemoveChange}
-                        />
-                        <Button color="danger" onClick={handleImageRemove}>Remove Image</Button>
-                        <Button color="danger" onClick={() =>
-                            dispatch(changeEntityField({ name: "slider_images", value: [] }))
-                        }>Remove All Images</Button> */}
                     </div>
                 </>
             )}

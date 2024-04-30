@@ -19,8 +19,7 @@ import { getEntity, updateEntity } from '../settings/settings.reducer';
 
 const LayoutSettingsUpdate = () => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate
-    ();
+  const navigate = useNavigate();
 
 
   const uiSettings: IUiSettings = useAppSelector(state => state.uiSettings.entity);

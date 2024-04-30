@@ -9,6 +9,7 @@ import { Checkbox } from 'primereact/checkbox';
 import LayoutOne from './items/layout-one/layout-one';
 import { ILayoutSettings } from 'app/shared/model/ONLINE_ORDERING/layout-settings';
 import { changeLayoutField } from '../../settings/settings.reducer';
+import { debounce } from 'lodash';
 
 const ProductSetting = ({
     productSetting
@@ -22,19 +23,21 @@ const ProductSetting = ({
     const [filterValue, setFilterValue] = useState<string>("");
 
     useEffect(() => {
-        const debouncer = setTimeout(() => {
+        const handleFilter = debounce(() => {
             dispatch(searchEntities({
                 query: filterValue,
                 sort: 'id,asc',
                 page: 0,
-                size: 10,
-                taxonomyName: 'retail-item-category'
+                size: 10
             }))
-        }, 300);
+        }, 500);
 
-        return () => clearTimeout(debouncer);
+        handleFilter();
+
+        return () => {
+            handleFilter.cancel();
+        };
     }, [filterValue]);
-
 
     return (
         <div>
@@ -59,9 +62,9 @@ const ProductSetting = ({
                     }}
                 />
             </Row>
-            <Row style={{ 
+            <Row style={{
                 marginTop: '1rem'
-             }}>
+            }}>
                 <div className="flex align-items-center">
                     <Checkbox
                         onChange={e => {
