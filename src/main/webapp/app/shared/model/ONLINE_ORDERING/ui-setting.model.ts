@@ -1,4 +1,5 @@
 import {IAttachment} from "app/shared/model/attachment.model";
+import { ILayoutSettings, defaultLayoutValue } from "./layout-settings";
 
 export interface IUiSettings {
   key?: "ONLINE_ORDERING_UI",
@@ -6,6 +7,8 @@ export interface IUiSettings {
   digitsAfterDecimal?: number,
   hideItemDescription?: boolean,
   hideModalDescription?: boolean,
+  homePageSetting?: ILayoutSettings,
+  domain?: string,
   itemPerRow?: number,
   orderTaking?: "TAKE_AWAY" | "DELIVERY",
   showDeliveryTips?: boolean,
@@ -17,4 +20,6 @@ export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"
 export const orderTakingOptions: IUiSettings["orderTaking"][] = ["TAKE_AWAY", "DELIVERY"];
 
 
-export const defaultValue: Readonly<IUiSettings> = {};
+export const defaultValue: Readonly<IUiSettings> = {
+  homePageSetting: defaultLayoutValue
+};

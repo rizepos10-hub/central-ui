@@ -21,7 +21,7 @@ const apiSearchUrl = 'api/_search/retail-categories';
 // Actions
 
 export const searchEntities = createAsyncThunk('retail-category/search_entity', async ({ query, page, size, sort, taxonomyName }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}${taxonomyName ? `&taxonomyName=${encodeURIComponent(taxonomyName)}` : ''}`;
+  const requestUrl = `${apiSearchUrl}?name=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}${taxonomyName ? `&name=${encodeURIComponent(taxonomyName)}` : ''}`;
   return axios.get<ITerm[]>(requestUrl);
 });
 

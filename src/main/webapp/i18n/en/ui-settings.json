@@ -27,6 +27,7 @@
       "hideItemDescription": "Hide Item Description",
       "currencySymbolPosition": "Currency Symbol Position",
       "orderTaking": "Order Taking",
+      "domain": "Domain",
       "logo": "Logo"
     }
   }

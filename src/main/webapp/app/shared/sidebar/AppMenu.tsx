@@ -477,12 +477,39 @@ const AppMenu = () => {
                               },
                             ]
                           },
+                            {
+                              label: 'Online Ordering',
+                              role: ['ROLE_ADMIN'],
+                              icon: 'pi pi-tablet',
+                              items: [
+                                {
+                                  label: 'Users',
+                                  role: ['ROLE_ADMIN'],
+                                  to: '/online-ordering/user'
+                                },
+                                {
+                                  label: 'Sales',
+                                  role: ['ROLE_ADMIN'],
+                                  to: '/online-ordering/order'
+                                },
+                                {
+                                  label: 'UI Settings',
+                                  role: ['ROLE_ADMIN'],
+                                  to: '/online-ordering/settings'
+                                },
+                                {
+                                  label: 'Layout Settings',
+                                  role: ['ROLE_ADMIN'],
+                                  to: '/online-ordering/layout-settings'
+                                },
+
+                              ]
+                            },
                           {
                             label: 'Accounting',
                             icon: 'pi pi-money-bill',
                             to: "/accounting"
                           },
-
                           {
                             label: 'Settings',
                             icon: 'pi pi-cog',

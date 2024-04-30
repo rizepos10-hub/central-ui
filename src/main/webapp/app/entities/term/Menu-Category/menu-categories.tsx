@@ -16,7 +16,7 @@ import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {FilterMatchMode} from "primereact/api";
 
-export const MenuCategories = () => {
+const MenuCategories = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();

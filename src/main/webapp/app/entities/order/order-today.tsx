@@ -29,7 +29,7 @@ interface LazyTableState {
 
 
 
-export const Order = () => {
+const Order = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const today = new Date();
