@@ -12,25 +12,34 @@ const SocialProfiles = ({
 }) => {
     const dispatch = useAppDispatch();
     const handleChange = (field: keyof ILayoutSettings["socialProfiles"], value) => {
-        const newSocialProfilesValues = { ...socialProfiles, [field]: value };
+        const newSocialProfilesValues = {
+            ...socialProfiles, [field]: {
+                ...socialProfiles[field],
+                url: value,
+                name: field
+            }
+        };
         dispatch(changeLayoutField({ name: "socialProfiles", value: newSocialProfilesValues }));
     };
 
     const socials = [{
-        key: 'instagram',
+        key: 'INSTAGRAM',
         label: 'Instagram'
     }, {
-        key: 'facebook',
+        key: 'FACEBOOK',
         label: 'Facebook'
     }, {
-        key: 'twitter',
+        key: 'TIKTOK',
         label: 'Tiktok'
     }, {
-        key: 'twitter',
+        key: 'TWITTER',
         label: 'Twitter'
     }, {
-        key: 'youtube',
+        key: 'YOUTUBE',
         label: 'Youtube'
+    }, {
+        key: 'LINKEDIN',
+        label: 'Linkedin'
     }]
 
     return (
@@ -45,7 +54,8 @@ const SocialProfiles = ({
                         id={social.key}
                         name={social.key}
                         placeholder={`${social.label} URL`}
-                        onChange={(e) => handleChange(`${social.key}_url` as keyof ILayoutSettings["socialProfiles"], e.target.value)}
+                        value={socialProfiles[social.key]?.url || ''}
+                        onChange={(e) => handleChange(`${social.key}` as keyof ILayoutSettings["socialProfiles"], e.target.value)}
                     />
                 </FormGroup>
             ))}
