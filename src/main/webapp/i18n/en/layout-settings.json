@@ -41,11 +41,12 @@
           "phone": "Phone",
           "socials": {
             "label": "Social Media Links",
-            "instagram": "Instagram",
-            "facebook": "Facebook",
-            "twitter": "Twitter",
-            "youtube": "Youtube",
-            "tiktok": "Tiktok"
+            "INSTAGRAM": "Instagram",
+            "FACEBOOK": "Facebook",
+            "TWITTER": "Twitter",
+            "YOUTUBE": "Youtube",
+            "TIKTOK": "Tiktok",
+            "LINKEDIN": "Linked In"
           }
         },
         "slider": {

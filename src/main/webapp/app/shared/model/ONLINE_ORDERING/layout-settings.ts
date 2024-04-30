@@ -4,15 +4,17 @@ import { IItem } from "../ITEM/item.model";
 import { IAttachment } from "../attachment.model";
 import { ITerm } from "../term.model";
 import { ISliderSettings } from "./slider-settings";
+import { ISocialProfile } from "./social-profile";
 
 export interface ILayoutSettings {
     socialProfiles: {
-        name: string;
-        link: string;
-        icon?: {
-            id: string;
-        }
-    }[],
+        FACEBOOK: ISocialProfile,
+        INSTAGRAM: ISocialProfile,
+        TWITTER: ISocialProfile,
+        TIKTOK: ISocialProfile,
+        YOUTUBE: ISocialProfile,
+        LINKEDIN: ISocialProfile,
+    },
     retailCategorySetting: {
         categories: ITerm[],
         showImages: boolean,
@@ -34,7 +36,33 @@ export interface ILayoutSettings {
 }
 
 export const defaultLayoutValue: Readonly<ILayoutSettings> = {
-    socialProfiles: [],
+    socialProfiles: {
+        FACEBOOK: {
+            name: "Facebook",
+            url: ""
+        },
+        INSTAGRAM: {
+            name: "Instagram",
+            url: ""
+        },
+        TWITTER: {
+            name: "Twitter",
+            url: ""
+        },
+        TIKTOK: {
+            name: "Tiktok",
+            url: ""
+        },
+        YOUTUBE: {
+            name: "Youtube",
+            url: ""
+        },
+        LINKEDIN: {
+            name: "Linkedin",
+            url: ""
+        }
+
+    },
     retailCategorySetting: {
         categories: [],
         showImages: false,
