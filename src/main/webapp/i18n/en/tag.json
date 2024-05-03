@@ -1,0 +1,41 @@
+{
+  "tag": {
+    "view": {
+      "title": "Tags View",
+      "table": {
+        "title": "Tags",
+        "fields": {
+          "name": "Name",
+          "price": "Price",
+          "discounts": "Discounts",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "buttons": {
+          "refreshList": "Refresh List",
+          "createNewTag": "Create New Tag"
+        },
+        "search": {
+          "name": "Search by Name"
+        }
+      }
+    },
+    "delete": {
+      "title": "Confirm Delete Operation",
+      "question": "Are you sure you want to delete Tag {{ id }}"
+    },
+    "update": {
+      "id": "ID",
+      "name": "Name",
+      "description": "Description",
+      "price": "Price",
+      "discount": "Tag Discount",
+      "create": {
+        "title": "Create Tag"
+      },
+      "edit": {
+        "title": "Edit Tag"
+      }
+    }
+  }
+}

@@ -7,7 +7,6 @@ import taxonomy from 'app/entities/taxonomy/taxonomy.reducer';
 import addon from 'app/entities/addon/addon.reducer'
 import addonGroups from 'app/entities/addon-groups/addon-groups.reducer';
 
-import term from 'app/entities/term/term.reducer';
 import order from 'app/entities/order/order.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
@@ -22,6 +21,8 @@ import retailCategory from 'app/entities/term/retail-item-category/retail-item-c
 import menuCategory from 'app/entities/term/Menu-Category/menu-category.reducer';
 
 
+import tagGroup from "app/entities/tag-group/tag-group.reducer"
+import tag from "app/entities/tag/tag.reducer"
 
 
 import taxProfiles from 'app/entities/settings/tax-profile/tax-profile.reducer';
@@ -82,7 +83,6 @@ const entitiesReducers = {
   taxonomy,
   addon,
   addonGroups,
-  term,
   order,
   user,
   PosBranchUser,
@@ -137,6 +137,8 @@ const entitiesReducers = {
   inventoryItem,
   itemMeasure,
   mixAndMatchRule,
+  tagGroup,
+  tag,
   ...onlineOrderingReducers
 
 

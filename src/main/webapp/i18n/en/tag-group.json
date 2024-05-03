@@ -1,0 +1,38 @@
+{
+  "tagGroup": {
+    "view": {
+      "title": "Tag Groups View",
+      "table": {
+        "title": "Tag Groups",
+        "fields": {
+          "name": "Name",
+          "tags": "Tags",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "buttons": {
+          "refreshList": "Refresh List",
+          "createNewAddonGroup": "Create New Tag Group"
+        },
+        "search": {
+          "name": "Search by Name"
+        }
+      }
+    },
+    "delete" : {
+      "title": "Confirm Delete Operation",
+      "question": "Are you sure you want to delete Tag {{ id }}"
+    },
+    "update": {
+      "id": "ID",
+      "name": "Name",
+      "tags": "Tags",
+      "create": {
+        "title": "Create New Tag Group"
+      },
+      "edit": {
+        "title": "Edit Tag Group"
+      }
+    }
+  }
+}

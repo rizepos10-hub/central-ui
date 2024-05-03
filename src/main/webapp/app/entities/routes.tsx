@@ -59,6 +59,8 @@ import SupplierReturn from "app/entities/inventory/supplier-return";
 import ItemMeasure from "app/entities/item-measure";
 import MixAndMatchRule from "app/entities/mix-and-match-rule"
 import Product from "app/entities/item/retail/product";
+import Tag from "app/entities/tag";
+import TagGroup from "app/entities/tag-group";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -78,6 +80,7 @@ export default () => {
         <Route path="loyalty/*" element={<Loyalty />}/>
         <Route path="addon/*" element={<Addon />} />
         <Route path="addon-groups/*" element={<AddonGroups />} />
+
 
         <Route path="category/*" element={<Term />} />
         <Route path="order/*" element={<Order />} />
@@ -124,6 +127,8 @@ export default () => {
 
         <Route path="item-measure/*" element={<ItemMeasure />} />
         <Route path="mix-and-match-rule/*" element={<MixAndMatchRule />} />
+        <Route path="tag/*" element={<Tag />} />
+        <Route path="tag-group/*" element={<TagGroup />} />
 
 
         <Route path="currencies/*" element={<CurrencySettings />} />
