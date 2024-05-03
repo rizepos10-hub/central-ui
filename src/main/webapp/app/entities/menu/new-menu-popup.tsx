@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { createEntity, getEntity, reset, updateEntity } from 'app/entities/menu/menu.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
-import { getMenuCategories } from 'app/entities/term/term.reducer';
+import { getEntities as getMenuCategories } from 'app/entities/term/Menu-Category/menu-category.reducer';
 import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 import { MenuTypeModel } from 'app/shared/model/ENUMS/menu-type.model';
 
@@ -21,7 +21,7 @@ const NewMenuPopup = () => {
   const params = new URLSearchParams(location.search);
   const menuType = params.get('type');
 
-  const terms = useAppSelector(state => state.term.entities);
+  const terms = useAppSelector(state => state.menuCategory.entities);
   const menuEntity = useAppSelector(state => state.menu.entity);
   const loading = useAppSelector(state => state.menu.loading);
   const updating = useAppSelector(state => state.menu.updating);

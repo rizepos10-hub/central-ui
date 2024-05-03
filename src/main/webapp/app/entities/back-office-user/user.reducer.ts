@@ -13,6 +13,7 @@ const initialState: EntityState<IUser> = {
   updating: false,
   totalItems: 0,
   updateSuccess: false,
+  roles: [],
 };
 
 const apiUrl = 'api/users';
@@ -39,39 +40,13 @@ export const getEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-export const getAllRoles = createAsyncThunk(
-  'back-office-user/fetch_all_roles', // Corrected action name
-  async () => {
-    console.log('im heree12')
-    const requestUrl = `/api/roles`;
-    const response = await axios.get<IUser>(requestUrl);
-    console.log(response, 'response1')
 
-    return response
-  },
-  { serializeError: serializeAxiosError }
-);
-export const getAvailableRoles = createAsyncThunk(
-  'back-office-user/fetch_available_roles', // Corrected action name
-  async (id: string | number) => {
-
-    const requestUrl = `${apiUrl}/${id}/roles-available`;
-   const response = await axios.get<IUser>(requestUrl);
-    console.log(response, 'response')
-
-   return response
-  },
-  { serializeError: serializeAxiosError }
-);
-
-export const getAssignedRoles = createAsyncThunk(
+export const getRoles = createAsyncThunk(
   'back-office-user/fetch_assigned_roles', // Corrected action name
   async (id: string | number) => {
 
     const requestUrl = `${apiUrl}/${id}/roles`;
     const response = await axios.get<IUser>(requestUrl);
-    console.log(response, 'response')
-
     return response
   },
   { serializeError: serializeAxiosError }
@@ -79,14 +54,12 @@ export const getAssignedRoles = createAsyncThunk(
 
 export const assignRole = createAsyncThunk(
   'back-office-user/assign_role',
-  async ({ id = null, selectedRoles }: { id: string; selectedRoles: any[] }, ) => {
-    const rolesData = selectedRoles.map(roleId => ({ id: roleId }));
-    console.log(rolesData, '12roles12')
-    console.log(id, '12id12')
+  async ({ id , selectedRoles }: { id: string; selectedRoles: any[] }, ) => {
+    if(id){
+      const result = await axios.put<IUser>(`${apiUrl}/${id}/roles`, selectedRoles);
+      return result.data;
+    }
 
-    const result = await axios.put<IUser>(`${apiUrl}/${id}/roles`, selectedRoles);
-    console.log(result, '12result12')
-    return result.data;
   },
   { serializeError: serializeAxiosError }
 );
@@ -95,11 +68,14 @@ export const assignRole = createAsyncThunk(
 
 
 
-export const createEntity = createAsyncThunk(
+export const createEntityAndAssignRole = createAsyncThunk(
   'back-office-user/create_entity',
-  async (entity: any, thunkAPI) => {
+  async ({ entity, roles } : any, thunkAPI) => {
     const result = await axios.post<any>(apiUrl, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
+    if (result.data.id) {
+      await thunkAPI.dispatch(assignRole({ id: result.data.id, selectedRoles: roles }));
+    }
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -141,6 +117,12 @@ export const deleteEntity = createAsyncThunk(
 export const UserSlice = createEntitySlice({
   name: 'user',
   initialState,
+  reducers: {
+    updateRoles(state, action) {
+      console.log(action.payload, 'accdsds')
+      state.roles["groups"] = action.payload;
+    },
+  },
   extraReducers(builder) {
     builder
       .addCase(getEntity.fulfilled, (state, action) => {
@@ -152,14 +134,8 @@ export const UserSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addCase(getAllRoles.fulfilled, (state, action :any) => {
-        state.allRoles = action.payload.data;
-      })
-      .addCase(getAvailableRoles.fulfilled, (state, action :any) => {
-      state.availableRoles = action.payload.data;
-       })
-      .addCase(getAssignedRoles.fulfilled, (state, action :any) => {
-        state.assignedRoles = action.payload.data;
+      .addCase(getRoles.fulfilled, (state, action :any) => {
+        state.roles = action.payload.data;
       })
       .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
         const { data, headers } = action.payload;
@@ -171,7 +147,7 @@ export const UserSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntityAndAssignRole, updateEntity, partialUpdateEntity), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -182,7 +158,7 @@ export const UserSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntityAndAssignRole, updateEntity, partialUpdateEntity, deleteEntity), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
@@ -190,7 +166,7 @@ export const UserSlice = createEntitySlice({
   },
 });
 
-export const { reset } = UserSlice.actions;
+export const { reset,updateRoles } = UserSlice.actions;
 
 // Reducer
 export default UserSlice.reducer;

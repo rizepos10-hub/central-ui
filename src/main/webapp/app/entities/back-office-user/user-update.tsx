@@ -1,25 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {  Translate, translate, } from 'react-jhipster';
 
-import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IUser } from 'app/shared/model/user.model';
 import {
   getEntity,
   updateEntity,
-  createEntity,
+  createEntityAndAssignRole,
   reset,
-  getAvailableRoles,
-  getAssignedRoles,
-  getAllRoles, assignRole
+  assignRole
 } from './user.reducer';
 import {InputText} from "primereact/inputtext";
 import {Checkbox} from "primereact/checkbox";
 import {Button} from "primereact/button";
+import Authorities from "app/entities/back-office-user/Authority";
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
@@ -30,19 +26,13 @@ export const UserUpdate = () => {
   const isNew = id === undefined;
 
   const userEntity = useAppSelector(state => state.user.entity);
+  const roles = useAppSelector(state => state.user.roles?.['groups']);
   const loading = useAppSelector(state => state.user.loading);
   const updating = useAppSelector(state => state.user.updating);
   const updateSuccess = useAppSelector(state => state.user.updateSuccess);
-  const availableRoles = useAppSelector(state => state.user.availableRoles);
-  const assignedRoles = useAppSelector(state => state.user.assignedRoles);
-  const allRoles = useAppSelector(state => state.user.allRoles);
 
 
-  console.log(userEntity, 'userEntity')
-  console.log(availableRoles, 'availableRoles')
-  console.log(assignedRoles, 'assignedRoles')
-  console.log(allRoles, 'allRoles')
-  const [selectedRoles, setSelectedRoles] = useState([]);
+
   const [user, setUser] = useState({
     username: '',
     firstName: '',
@@ -53,14 +43,7 @@ export const UserUpdate = () => {
     enabled: false,
   });
 
-  const permissions = [
-    '[BO-Write] User has write access to the Back Office',
-    '[BO-REPORT] User has write access to the Back Office reports',
-    '[BO-CONFIG] User can edit the configuration',
-    '[BO-USERS] User has manage users and their access rights ',
-    '[BO-PMG] User can access the receipt quick-view page',
-    ' User can manage taxes',
-  ];
+
 
   const handleClose = () => {
     navigate('/back-office-user' + location.search);
@@ -92,25 +75,18 @@ export const UserUpdate = () => {
     });
   };
 
-  const handleCheckboxChange = (event, role) => {
-    const { checked } = event.target;
 
-    if (checked) {
-      setSelectedRoles((prevSelectedRoles) => [...prevSelectedRoles, role]);
-    } else {
-      setSelectedRoles((prevSelectedRoles) =>
-        prevSelectedRoles.filter((selectedRole) => selectedRole.id !== role.id)
-      );
-    }
-  };
 
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const authoritiesWithAssignedTrue = roles.reduce((acc, role) => {
+      const trueAuthorities = role.authorities.filter(authority => authority.assigned);
+      return acc.concat(trueAuthorities.map(authority => authority.authorityName));
+    }, []);
 
     try {
       if (isNew) {
-
         const newUser = {
           user: {
             id: null,
@@ -128,26 +104,17 @@ export const UserUpdate = () => {
           },
         };
 
+        dispatch(createEntityAndAssignRole({
+          entity: newUser,
+          roles: authoritiesWithAssignedTrue
+        }));
 
-        const createdUserResponse :any = await dispatch(createEntity(newUser));
-
-        const createdUserId  = createdUserResponse.payload.data.id;
-
-        await dispatch(assignRole({ id: createdUserId, selectedRoles }));
+        dispatch(assignRole({ id: userEntity.id, selectedRoles: authoritiesWithAssignedTrue }));
       } else {
-        console.log("put")
-     console.log(selectedRoles, 'selectedRoles')
-        await dispatch(assignRole({id, selectedRoles}))
-        await dispatch(updateEntity(user));
+         dispatch(assignRole({id, selectedRoles: authoritiesWithAssignedTrue}))
+         dispatch(updateEntity(user));
       }
 
-      if (isNew) {
-        console.log('User created successfully');
-      } else {
-        console.log('User updated successfully');
-      }
-
-      // handleClose();
     } catch (error) {
       console.error('Error occurred while submitting:', error);
     }
@@ -157,52 +124,24 @@ export const UserUpdate = () => {
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
-      setSelectedRoles([])
     } else {
       dispatch(getEntity(id));
-      dispatch(getAvailableRoles(id))
-      dispatch(getAssignedRoles(id))
     }
-    dispatch(getAllRoles())
-
-    console.log(selectedRoles, 'selectedRole2')
 
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
+    // if (updateSuccess) {
+    //   handleClose();
+    // }
+    
     if(userEntity){
       setUser(userEntity)
     }
 
-    if (assignedRoles && assignedRoles.length > 0) {
-      const initialSelectedRoles = assignedRoles.map(role => ({id: role.id, name: role.name, description: role.description}));
-      setSelectedRoles(initialSelectedRoles);
-    }
-    return () => {
-      setSelectedRoles([])
-    }
-  }, [updateSuccess,userEntity,assignedRoles]);
+  }, [updateSuccess,userEntity]);
 
 
-
-  // const saveEntity = values => {
-  //   // const entity = {
-  //   //   ...userEntity,
-  //   //   ...values,
-  //   // };
-  //   //
-  //   // if (isNew) {
-  //   //   dispatch(createEntity(entity));
-  //   // } else {
-  //   //   dispatch(updateEntity(entity));
-  //   // }
-  //   console.log('Saving back-office-user:', values);
-  //   handleClose();
-  //
-  // };
 
 
   return (
@@ -296,21 +235,7 @@ export const UserUpdate = () => {
               <label className="font-bold">
                 <Translate contentKey="backOfficeUsers.update.permissions" />
               </label>
-              <ul className="p-field d-flex flex-column gap-1 mb-0">
-                {allRoles?.map(role => (
-                  <li key={role.id} className="d-flex align-items-center gap-1">
-                    <Checkbox
-                      inputId={`permission-${role.id}`}
-                      name={role.name}
-                      value={role.id}
-                      onChange={(event) => handleCheckboxChange(event, role)}
-                      checked={selectedRoles.some(selectedRole => selectedRole.id === role.id)}
-                    />
-                    <p><strong>{role.name} - {role.description}</strong></p>
-                  </li>
-                ))}
-              </ul>
-
+              <Authorities id={userEntity.id} />
             </div>
             <div className="p-field d-flex gap-2 align-items-center mb-3">
               <Button

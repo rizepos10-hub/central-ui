@@ -26,6 +26,7 @@
     "update": {
       "id": "ID",
       "name": "Name",
+      "tags": "Tags",
       "addons": "Addons",
       "create": {
         "title": "Create New Addon Group"
