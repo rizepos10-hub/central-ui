@@ -28,8 +28,10 @@
       "id": "ID",
       "name": "Name",
       "description": "Description",
+      "tags": "Tags",
       "price": "Price",
-      "discount": "Addon Discount",
+      "discounts": "Discounts",
+      "discount": "Discount",
       "create": {
         "title": "Create Addon"
       },

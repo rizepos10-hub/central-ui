@@ -1,9 +1,16 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
-import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
+import {
+  IQueryParams,
+  createEntitySlice,
+  EntityState,
+  serializeAxiosError,
+  ChangeFieldPayload
+} from "app/shared/reducers/reducer.utils";
 import { IAddon, defaultValue } from 'app/shared/model/ADDON/addon.model';
+import { ITv } from "app/shared/model/TV/tv.model";
 
 const initialState: EntityState<IAddon> = {
   loading: false,
@@ -80,6 +87,8 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const changeEntityField = createAction<ChangeFieldPayload<IAddon>>('addon/change-entity-field');
+
 // slice
 
 export const AddonSlice = createEntitySlice({
@@ -87,6 +96,10 @@ export const AddonSlice = createEntitySlice({
   initialState,
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const {name, value} = action.payload;
+        state.entity[name] = value;
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
