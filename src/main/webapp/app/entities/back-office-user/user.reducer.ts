@@ -1,11 +1,15 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IUser, defaultValue } from 'app/shared/model/user.model';
+import { IUser, defaultValue, RolePermissions } from "app/shared/model/user.model";
 
-const initialState: EntityState<IUser> = {
+interface EntityStateWithRoles<T> extends EntityState<T> {
+  roles: RolePermissions;
+}
+
+const initialState: EntityStateWithRoles<IUser> = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -13,7 +17,10 @@ const initialState: EntityState<IUser> = {
   updating: false,
   totalItems: 0,
   updateSuccess: false,
-  roles: [],
+  roles: {
+    groups: [],
+    authorities: [],
+  },
 };
 
 const apiUrl = 'api/users';
@@ -114,14 +121,16 @@ export const deleteEntity = createAsyncThunk(
 
 // slice
 
-export const UserSlice = createEntitySlice({
+export const UserSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
     updateRoles(state, action) {
-      console.log(action.payload, 'accdsds')
       state.roles["groups"] = action.payload;
     },
+    reset() {
+      return initialState
+    }
   },
   extraReducers(builder) {
     builder

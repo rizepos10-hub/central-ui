@@ -10,7 +10,6 @@ import {
   ChangeFieldPayload
 } from "app/shared/reducers/reducer.utils";
 import {ITerm, defaultValue} from "app/shared/model/term.model";
-import { ITagGroup } from "app/shared/model/TAG/tag-group.model";
 import { ITag } from "app/shared/model/TAG/tag.model";
 
 const initialState: EntityState<ITerm> = {
@@ -23,9 +22,9 @@ const initialState: EntityState<ITerm> = {
   updateSuccess: false,
 };
 
-const apiUrl = 'api/tag-value';
+const apiUrl = 'api/tag-values';
 
-const apiSearchUrl = 'api/_search/tag-value';
+const apiSearchUrl = 'api/_search/tag-values';
 
 // Actions
 

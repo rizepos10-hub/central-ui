@@ -84,7 +84,7 @@ const AppMenu = () => {
     {
       label: 'Tags',
       role: ['ROLE_ADMIN'],
-      icon: 'pi pi-book',
+      icon: 'pi pi-ticket',
       to: '/tag',
       items: [
         {
@@ -362,6 +362,12 @@ const AppMenu = () => {
       role: ['ROLE_ADMIN'],
       icon: 'pi pi-wallet',
       to: '/loyalty',
+      items: [
+        {
+          label: 'Loyalty'
+          , to: '/loyalty'
+        }
+      ],
     },
     {
       label: 'Digital Signage',

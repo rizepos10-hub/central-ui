@@ -85,9 +85,6 @@ export interface EntityState<T> {
   updating: boolean;
   totalItems?: number;
   updateSuccess: boolean;
-  availableRoles?: [];
-  assignedRoles?: [];
-  allRoles?: [];
   orderSources?: any;
 }
 

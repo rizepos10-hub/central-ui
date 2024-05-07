@@ -1,47 +1,44 @@
-import React, { useState } from "react";
-import {  Col, Row, Table } from "reactstrap";
-import {Button} from "primereact/button"
+import React, { useState } from 'react';
+import { Col, Row, Table } from 'reactstrap';
+import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
-import { IBranchVariantDetails, IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
-import { IRegularItemVariant } from "app/shared/model/ITEM/restaurant/regular-item.model";
-import { translate, Translate } from "react-jhipster";
-import { IBranch } from "app/shared/model/branch.model";
-import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
-
+import { IBranchVariantDetails, IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
+import { IRegularItemVariant } from 'app/shared/model/ITEM/restaurant/regular-item.model';
+import { translate, Translate } from 'react-jhipster';
+import { IBranch } from 'app/shared/model/branch.model';
+import WholesalePrices from 'app/shared/components/item/wholsale-prices-modal';
 
 interface BranchPriceComponentProps<T extends IVariableItemVariant | IRegularItemVariant> {
   variantIndex: number;
   branchVariantDetails: IBranchVariantDetails;
   branchList: IBranch[];
   handleBranchPriceChange: (variantIndex: number, branchId: string, field: string, value: number) => void;
-  itemVariantType: "RETAIL" | "RESTAURANT"
+  itemVariantType: 'RETAIL' | 'RESTAURANT';
   handleSaveWholesalePrices?: (prices: number, branchId: string) => void;
 }
 
-
 const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant>({
-                                                                                  variantIndex,
-                                                                                  branchList,
-                                                                                  handleBranchPriceChange,
-                                                                                  branchVariantDetails,
-                                                                                  itemVariantType,
-                                                                                  handleSaveWholesalePrices
+  variantIndex,
+  branchList,
+  handleBranchPriceChange,
+  branchVariantDetails,
+  itemVariantType,
+  handleSaveWholesalePrices,
 }: BranchPriceComponentProps<T>) => {
-
-
-  const isRetail = itemVariantType === "RETAIL";
+  const isRetail = itemVariantType === 'RETAIL';
   const [pricesModal, setPricesModal] = useState({
     show: false,
     branchId: '',
   });
+  console.log(branchList, 'branchList')
 
   const handleShowPricesModal = (branchId?) => {
     setPricesModal(prev => ({
       ...prev,
       show: !prev.show,
-      branchId
+      branchId,
     }));
-  }
+  };
 
   return (
     <Col md="12" className={'mt-3'}>
@@ -50,7 +47,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
           toggle={handleShowPricesModal}
           isOpen={pricesModal?.show}
           branchWholesalePrices={branchVariantDetails?.[pricesModal?.branchId]?.wholesalePrices}
-          savePrices={(prices) => handleSaveWholesalePrices(prices, pricesModal.branchId)}
+          savePrices={prices => handleSaveWholesalePrices(prices, pricesModal.branchId)}
         />
       )}
       <h4>

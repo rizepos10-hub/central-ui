@@ -14,8 +14,24 @@ export interface IUser {
   password?: string;
   permissions?: any[];
   isActive?: boolean;
+  roles?: RolePermissions;
   username?: string ;
   authorities?: any[];
+}
+
+interface Authority {
+  authorityName?: string;
+  assigned?: boolean;
+}
+
+interface Group {
+  groupName?: string;
+  authorities?: Authority[];
+}
+
+export interface RolePermissions {
+  groups: Group[];
+  authorities: Authority[];
 }
 
 export interface AvailableRoles {
@@ -39,4 +55,8 @@ export const defaultValue: Readonly<IUser> = {
   lastModifiedDate: null,
   password: '',
   username: '',
+  roles: {
+    groups: [],
+    authorities: [],
+  },
 };
