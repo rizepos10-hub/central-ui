@@ -130,7 +130,7 @@ export const OrderDetail = () => {
           <CardHeader>Actions</CardHeader>
 
           <div className="text-end mt-3">
-            <Button tag={Link} to="/order" replace color="info" data-cy="entityDetailsBackButton">
+            <Button onClick={() => navigate(-1)} replace color="info" data-cy="entityDetailsBackButton">
               <FontAwesomeIcon icon="arrow-left" />{' '}
               <span className="d-none d-md-inline">
             <Translate contentKey="entity.action.back">Back</Translate>
