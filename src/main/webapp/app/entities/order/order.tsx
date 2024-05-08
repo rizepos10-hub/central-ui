@@ -103,7 +103,6 @@ export const Order = ({customer = '', appSourceProp} :OrderProps) => {
     if(e?.value?.items?.length > 0){
       navigate(`/order/${e.value.id}`)
     }else{
-      console.log(toast?.current, 'fsf')
       toast.current.show({ severity: 'warn', summary: 'No Order Items', detail: `Order ID: ${e.value.sequenceNumber}`, life: 3000 });
     }
   }

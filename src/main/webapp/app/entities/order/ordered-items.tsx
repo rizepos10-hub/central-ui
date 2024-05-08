@@ -68,12 +68,12 @@
 
           <div>
             {list && list.length > 0 ? (
-              <TreeTable value={treeData} className="mt-4">
-                <Column field="name"  style={{ width: '10rem' }} header={translate('orders.details.itemsCard.table.name')}  />
-                <Column field="variant"  style={{ width: '10rem' }} header={translate('orders.details.itemsCard.table.variant')}  />
+              <TreeTable value={treeData}   resizableColumns showGridlines columnResizeMode="expand" tableStyle={{ minWidth: '70rem' }} className="mt-4">
+                <Column field="name"  header={translate('orders.details.itemsCard.table.name')}  />
+                <Column field="variant"   header={translate('orders.details.itemsCard.table.variant')}  />
                 <Column field="amount" header={translate('orders.details.common.amount')}  />
-                <Column field="returnedAmount" header={translate('orders.details.itemsCard.table.returnedAmount')} />
-                <Column field="totalAmount" header={translate('orders.details.itemsCard.table.totalAmount')}  />
+                <Column field="returnedAmount" headerStyle={{width: '158px'}}  header={translate('orders.details.itemsCard.table.returnedAmount')} />
+                <Column field="totalAmount"  headerStyle={{width: '148px'}} header={translate('orders.details.itemsCard.table.totalAmount')}  />
                 <Column field="discount" header={translate('orders.details.common.discount')} />
                 <Column field="price" header={translate('orders.details.common.price')} />
                 <Column field="total" header={translate('orders.details.common.total')}  />

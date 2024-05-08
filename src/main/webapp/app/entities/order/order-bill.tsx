@@ -171,9 +171,9 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
                     {/* maxHeight: '300px', overflowY: 'auto', */}
                     <h4><Translate contentKey={'orders.details.billsCard.subTitle'} interpolate={{billId: bill.sequenceNumber}}>Order Bill {bill.sequenceNumber}</Translate></h4>
 
-                    <TreeTable value={transformedTreeData} className="mt-4">
+                    <TreeTable value={transformedTreeData} resizableColumns showGridlines columnResizeMode="expand" tableStyle={{ minWidth: '50rem' }}  className="mt-4">
                       <Column field="id" header={translate('orders.details.billsCard.table.id')}/>
-                      <Column field="name" style={{ width: '10rem' }} header={translate('orders.details.billsCard.table.name')}  />
+                      <Column field="name"  header={translate('orders.details.billsCard.table.name')}  />
                       <Column field="amount" header={translate('orders.details.common.amount')}/>
                       <Column field="price" header={translate('orders.details.common.price')}/>
                       <Column field="discount" header={translate('orders.details.common.discount')}/>
