@@ -23,6 +23,7 @@ export default () => {
         <Route path="endofday/:id" element={<EndOfDayReport />} />
         <Route path="reports" element={<SalesSummaryReport />} />
         <Route path="sales" element={<SalesReport />} />
+        <Route path="/sales-report/sales-by-:reportType" element={<SalesReport />} />
         <Route path="*" element={<PageNotFound />} />
 
 

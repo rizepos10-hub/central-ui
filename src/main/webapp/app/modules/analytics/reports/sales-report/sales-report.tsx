@@ -22,6 +22,8 @@ import {getEntities as getCurrencies} from "app/entities/settings/currency/curre
 import {getEntity as getCurrencySettings} from "app/entities/settings/currency/currency-settings.reducer";
 import {formatPrice} from "app/shared/util/price-utils";
 import {toLocalISOString} from "app/shared/util/date-utils";
+import { useParams } from "react-router-dom";
+import { capitalizeFirstLetter, capitalizeString } from "app/shared/util/string-utils";
 
 
 type Slot = {
@@ -83,14 +85,18 @@ type formRequest = {
   type: string;
 }
 
+const reportTypesOptions = Object.entries(SalesReportsTypes).map(([key,val]) => ({label: key, value: val}));
+const reportMeasuresOptions = Object.entries(SalesReportsMeasures).map(([key,val]) => ({label: key, value: val}));
+
 export const SalesReport = () => {
   const dispatch = useAppDispatch();
-  const reportTypesOptions = Object.entries(SalesReportsTypes).map(([key,val]) => ({label: key, value: val}));
-  console.log(reportTypesOptions, 'reportTypesOptions')
-  const reportMeasuresOptions = Object.entries(SalesReportsMeasures).map(([key,val]) => ({label: key, value: val}));
+  const { reportType } = useParams();
 
-  const [selectedType, setSelectedType] = useState(reportTypesOptions?.[0]?.value);
-  const [selectedMeasure, setSelectedMeasure] = useState(reportMeasuresOptions?.[0]?.value);
+  const initialSelectedType = reportType ? capitalizeString(reportType) : reportTypesOptions?.[0]?.value;
+  const initialSelectedMeasure = reportType ? SalesReportsMeasures.Revenue : reportMeasuresOptions?.[0]?.value;
+
+  const [selectedType, setSelectedType] = useState(initialSelectedType);
+  const [selectedMeasure, setSelectedMeasure] = useState(initialSelectedMeasure);
   const [appliedDateRange, setAppliedDateRange] = useState<dateRange | null>();
   const salesReportData = useAppSelector(state => state.salesReportReducer.data);
   const salesReportLoading = useAppSelector(state => state.salesReportReducer.loading);
@@ -178,9 +184,7 @@ export const SalesReport = () => {
     setSelectedMeasure(measure)
   };
 
-  const capitalizeFirstLetter = (string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  }
+
 
   const sortedHeaderSlots = salesReportData?.headerSlots?.slice().sort((a, b) => a?.order - b?.order);
 
@@ -355,14 +359,18 @@ export const SalesReport = () => {
       </h1>
 
       <div className="d-flex gap-3">
+        {!reportType ?
+          <>
         <div className="d-flex flex-column gap-1">
           <label>Report Type</label>
           <Dropdown options={reportTypesOptions} onChange={handleTypeChange} value={selectedType} />
         </div>
-        <div className="d-flex flex-column gap-1">
+          <div className="d-flex flex-column gap-1">
           <label>Measure Type</label>
           <Dropdown options={reportMeasuresOptions} onChange={handleMeasureChange} value={selectedMeasure} />
-        </div>
+    </div>
+        </>
+          : null}
         <div className="d-flex flex-column gap-1">
           <div className="d-flex flex-column gap-1">
             <label>Date Range</label>
