@@ -137,13 +137,7 @@ export default () => {
         <Route path="tv-display/*" element={<TvDisplay />} />
 
 
-        <Route path="inventory/supplier/*" element={<Supplier />} />
-        <Route path="inventory/sales-location/*" element={<SalesLocation />} />
-        <Route path="inventory/warehouse/*" element={<Warehouse />} />
-        <Route path="inventory/purchase-order/*" element={<PurchaseOrder />} />
-        <Route path="inventory/stock/*" element={<StockConfig />} />
-        <Route path="inventory/transfer-request/*" element={<TransferRequest />} />
-        <Route path="inventory/supplier-return/*" element={<SupplierReturn />} />
+
 
         <Route path="online-ordering/*" element={<OnlineOrderingRoutes />} />
 
