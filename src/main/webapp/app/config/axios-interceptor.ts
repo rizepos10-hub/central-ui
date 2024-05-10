@@ -59,7 +59,7 @@
 
     const onResponseError = async (err) => {
       const status = err.status || (err.response ? err.response.status : 0);
-      if (status === 403 || status === 401 && !err.config.url.endsWith("/refresh") ) {
+      if ( status === 401 && !err.config.url.endsWith("/refresh") ) {
         try {
           const newAccessToken = await refreshAccessToken();
           if (newAccessToken) {

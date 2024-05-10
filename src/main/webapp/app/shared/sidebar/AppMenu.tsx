@@ -6,6 +6,7 @@ const AppMenu = () => {
     {
       label: 'Control Panel',
       icon: 'pi pi-home',
+      role: ['ROLE_ADMINISTRATOR'],
       to: '/',
       items: [
         {
@@ -16,7 +17,7 @@ const AppMenu = () => {
     },
     {
       label: 'POS',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-desktop',
       to: '/switch-register',
       items: [
@@ -36,7 +37,7 @@ const AppMenu = () => {
     },
     {
       label: 'Users',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-user',
       to: '/back-office-user',
       items: [
@@ -56,7 +57,7 @@ const AppMenu = () => {
     },
     {
       label: 'Online Ordering',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-tablet',
       to: '/menu?type=ONLINE_ORDERING',
       items: [
@@ -66,24 +67,24 @@ const AppMenu = () => {
         },
         {
           label: 'Online Orders',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/online-ordering/order',
         },
         {
           label: 'Users',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/online-ordering/user',
         },
         {
           label: 'UI Settings',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/online-ordering/settings',
         },
       ],
     },
     {
       label: 'Tags',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-ticket',
       to: '/tag',
       items: [
@@ -100,7 +101,7 @@ const AppMenu = () => {
 
     {
       label: 'Restaurant Catalog',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-book',
       to: '/category/restaurant-items',
       items: [
@@ -188,140 +189,140 @@ const AppMenu = () => {
         },
         {
           label: 'Mix & Match',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/mix-and-match-rule',
         },
         {
           label: 'Suppliers',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/supplier',
         },
         {
           label: 'Brands',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/brands',
         },
         {
           label: 'Menus',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/menu?type=POS',
         },
       ],
     },
     {
       label: 'Inventory',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
       icon: 'pi pi-box',
       to: '/inventory/warehouse',
       items: [
         {
           label: 'Warehouses',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
           to: '/inventory/warehouse',
         },
         {
           label: 'Sales Locations',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
           to: '/inventory/sales-location',
         },
         {
           label: 'Stock',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
           to: '/inventory/stock',
         },
         {
           label: 'Purchase Orders',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
           to: '/inventory/purchase-order',
         },
         {
           label: 'Transfers',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
           to: '/inventory/transfer-request',
         },
         {
           label: 'Returns',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN' ],
           to: '/inventory/supplier-return',
         },
         {
           label: 'Inventory Count',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
           items: [
             {
               label: 'Due',
-              role: ['ROLE_ADMIN'],
+              role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
               to: '/inventory/due',
             },
             {
               label: 'Upcoming',
-              role: ['ROLE_ADMIN'],
+              role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
               to: '/inventory/upcoming',
             },
             {
               label: 'Completed',
-              role: ['ROLE_ADMIN'],
+              role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
               to: '/inventory/completed',
             },
             {
               label: 'Canceled',
-              role: ['ROLE_ADMIN'],
+              role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
               to: '/inventory/canceled',
             },
           ],
         },
         {
           label: 'Fulfillments',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
           items: [
             {
               label: 'All',
-              role: ['ROLE_ADMIN'],
+              role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
               to: '/inventory/all',
             },
             {
               label: 'Pack Orders',
-              role: ['ROLE_ADMIN'],
+              role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
               to: '/inventory/pack-orders',
             },
             {
               label: 'Customer Pickup',
-              role: ['ROLE_ADMIN'],
+              role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
               to: '/inventory/customer-pickup',
             },
             {
               label: 'Delivery',
-              role: ['ROLE_ADMIN'],
+              role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
               to: '/inventory/delivery',
             },
           ],
         },
         {
           label: 'Serial Numbers',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
           to: '/inventory/serial-number',
         },
         {
           label: 'Suppliers',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR','ROLE_INVENTORY_ADMIN'],
           to: '/inventory/supplier',
         },
       ],
     },
     {
       label: 'Customers',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       icon: ' pi pi-users',
       to: '/customer',
       items: [
         {
           label: 'Groups',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/customer/group',
         },
         {
           label: 'Customers',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/customer',
         },
       ],
@@ -329,7 +330,7 @@ const AppMenu = () => {
 
     // {
     //   label: 'Menus',
-    //   role: ['ROLE_ADMIN'],
+    //   role: ['ROLE_ADMINISTRATOR'],
     //   icon: 'pi pi-bars',
     //   items: [
     //     {
@@ -343,36 +344,39 @@ const AppMenu = () => {
 
     {
       label: 'Orders',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-dollar',
       to: '/order/today',
       items: [
         {
           label: 'Today',
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/order/today',
         },
         {
           label: 'History',
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/order',
         },
       ],
     },
     {
       label: 'Loyalty',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-wallet',
       to: '/loyalty',
       items: [
         {
-          label: 'Loyalty'
-          , to: '/loyalty'
+          label: 'Loyalty',
+          role: ['ROLE_ADMINISTRATOR'],
+          to: '/loyalty'
         }
       ],
     },
     {
       label: 'Digital Signage',
       icon: 'pi pi-desktop',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       to: '/tv',
       items: [
         {
@@ -392,7 +396,7 @@ const AppMenu = () => {
     },
     {
       label: 'Reports',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       icon: ' pi pi-chart-bar',
       to: '/analytics/retail-dashboard',
       items: [
@@ -409,15 +413,19 @@ const AppMenu = () => {
           items: [
             {
               label: 'Individual Performance',
-              to: '/analytics/individual-performance',
+              to: '/analytics/sales-report/individual-performance',
             },
             {
               label: 'Sales by Hour',
-              to: '/analytics/sales-by-hour',
+              to: '/analytics/sales-report/sales-report/sales-by-hour',
             },
             {
               label: 'Sales by Hour',
-              to: '/analytics/summary',
+              to: '/analytics/sales-report/summary',
+            },
+            {
+              label: 'Sales by Product',
+              to: '/analytics/sales-report/sales-by-product',
             },
           ],
         },
@@ -490,27 +498,27 @@ const AppMenu = () => {
     },
     {
       label: 'Online Ordering',
-      role: ['ROLE_ADMIN'],
+      role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-tablet',
       items: [
         {
           label: 'Users',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/online-ordering/user',
         },
         {
           label: 'Sales',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/online-ordering/order',
         },
         {
           label: 'UI Settings',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/online-ordering/settings',
         },
         {
           label: 'Layout Settings',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/online-ordering/layout-settings',
         },
       ],
@@ -523,78 +531,78 @@ const AppMenu = () => {
     {
       label: 'Settings',
       icon: 'pi pi-cog',
-      role: ['ROLE_ADMIN', 'ROLE_BO-BUSINESS-SETTING'],
+      role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
       to: '/details',
       items: [
         {
           label: 'Business Information',
-          role: ['ROLE_ADMIN', 'ROLE_BO-BUSINESS-SETTING'],
+          role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
           to: '/details',
         },
         {
           label: 'Billing',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/billing',
         },
         {
           label: 'Branches',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/branch',
         },
         {
           label: 'Registers',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/register',
         },
         {
           label: 'Payment Types',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/payment-types',
         },
         {
           label: 'Discounts',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/discount',
         },
         {
           label: 'Voids',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/void-reasons',
         },
         {
           label: 'On Account',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/on-account',
         },
         {
           label: 'Taxes',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           items: [
             {
               label: 'Taxes',
-              role: ['ROLE_ADMIN'],
+              role: ['ROLE_ADMINISTRATOR'],
               to: '/tax',
             },
             {
               label: 'Tax profiles ',
-              role: ['ROLE_ADMIN'],
+              role: ['ROLE_ADMINISTRATOR'],
               to: '/tax-profiles',
             },
           ],
         },
         {
           label: 'Accounting Groups ',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/accounting-groups',
         },
         {
           label: 'Units of Measures',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/item-measure',
         },
         {
           label: 'Floor plans',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           items: [
             {
               label: 'List',
@@ -612,17 +620,17 @@ const AppMenu = () => {
         },
         {
           label: 'App Integrations',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/app-integration',
         },
         {
           label: 'Themes',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/theme',
         },
         {
           label: 'Language',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/language',
         },
         {
@@ -632,57 +640,57 @@ const AppMenu = () => {
 
         // {
         //   label: 'Reporting shifts ',
-        //   role: ['ROLE_ADMIN'],
+        //   role: ['ROLE_ADMINISTRATOR'],
         //   to: '/reporting-shifts'
         // },
 
         {
           label: 'Printers',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/printer',
         },
         {
           label: 'Printing Profiles',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/printing-profiles',
         },
         {
           label: 'Production Centers',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/production-center',
         },
         {
           label: 'Currencies',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/currencies',
         },
 
         {
           label: 'Account profiles',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/account-profiles',
         },
 
         {
           label: 'Payment methods ',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/payment-methods',
         },
 
         {
           label: 'Transfer Operations',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/transfer-operations',
         },
         {
           label: 'Web extensions',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/web-extensions',
         },
 
         {
           label: 'Reporting automations',
-          role: ['ROLE_ADMIN'],
+          role: ['ROLE_ADMINISTRATOR'],
           to: '/reporting-automations',
         },
       ],

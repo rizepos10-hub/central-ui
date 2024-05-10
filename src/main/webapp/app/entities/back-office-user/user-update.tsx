@@ -77,13 +77,18 @@ export const UserUpdate = () => {
 
 
 
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     const authoritiesWithAssignedTrue = roles.reduce((acc, role) => {
+      if (role.assigned) {
+        acc.groups.push(role.groupName);
+      }
+
       const trueAuthorities = role.authorities.filter(authority => authority.assigned);
-      return acc.concat(trueAuthorities.map(authority => authority.authorityName));
-    }, []);
+      acc.authorities = acc.authorities.concat(trueAuthorities.map(authority => authority.authorityName));
+
+      return acc;
+    }, { authorities: [], groups: [] });
 
     try {
       if (isNew) {

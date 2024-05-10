@@ -2,10 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { getRoles, updateRoles } from "app/entities/back-office-user/user.reducer";
 import { Checkbox } from "primereact/checkbox";
+import { Label } from "reactstrap";
+
+
+
+
+
 
 function Authorities({id}) {
   const dispatch = useAppDispatch();
   const roles = useAppSelector(state => state.user.roles?.['groups']);
+
 
   useEffect(() => {
     if(id){
@@ -14,43 +21,75 @@ function Authorities({id}) {
   }, [id]);
 
 
-  const handleRoleChange = (groupName, newValue) => {
-    const authorityMap = new Map();
-    roles.forEach(role => {
-      role.authorities.forEach(authority => {
-        const existingAuthorities = authorityMap.get(authority.authorityName) || [];
-        existingAuthorities.push(role.groupName);
-        authorityMap.set(authority.authorityName, existingAuthorities);
+
+    const handleRoleChange = (groupName, newValue) => {
+
+      const updatedRoles = roles.map(role => {
+        if (role.groupName === groupName) {
+          return {
+            ...role,
+            assigned: newValue,
+          };
+        }
+        return role
       });
-    });
 
-    const updatedRoles = roles.map(role => {
-      if (role.groupName === groupName) {
-        const updatedRoleAuthorities = role.authorities.map(authority => ({
-          ...authority,
-          assigned: newValue,
-        }));
+      dispatch(updateRoles(updatedRoles));
+    };
 
-        return { ...role, authorities: updatedRoleAuthorities };
-      }
+    const areAllRolesAuthoritiesAssigned = (groupName) => {
+     const targetedRole = roles.find(role => role.groupName === groupName);
+     return targetedRole.authorities.every(authority => authority.assigned);
+    }
 
-      const updatedAuthorities = role.authorities.map(authority => {
-        const associatedRoles = authorityMap.get(authority.authorityName);
+    const handleAllRoleAuthoritiesChange = (groupName: string, checked: boolean) => {
+      const authorityMap = new Map();
+      roles.forEach(role => {
+        role.authorities.forEach(authority => {
+          const existingAuthorities = authorityMap.get(authority.authorityName) || [];
+          existingAuthorities.push(role.groupName);
+          authorityMap.set(authority.authorityName, existingAuthorities);
+        });
+      });
 
-        if (associatedRoles.includes(groupName)) {
-          return { ...authority, assigned: newValue };
+      const updatedRoles = roles.map(role => {
+        if (role.groupName === groupName) {
+          const updatedRoleAuthorities = role.authorities.map(authority => ({
+            ...authority,
+            assigned: checked,
+          }));
+
+          return {
+            ...role,
+            authorities: updatedRoleAuthorities,
+          };
         }
 
-        return authority;
+        const updatedAuthorities = role.authorities.map(authority => {
+          const associatedRoles = authorityMap.get(authority.authorityName);
+
+          if (associatedRoles.includes(groupName)) {
+            return {
+              ...authority,
+              assigned: checked,
+            };
+          }
+
+          return authority;
+        });
+
+        return {
+          ...role,
+          authorities: updatedAuthorities,
+        };
       });
 
-      return { ...role, authorities: updatedAuthorities };
-    });
 
-    dispatch(updateRoles(updatedRoles));
-  };
+      dispatch(updateRoles(updatedRoles));
+    }
 
-  console.log(roles, 'rolesssssss')
+
+
 
 
   const handleAuthorityChange = (authorityName, newValue) => {
@@ -67,23 +106,31 @@ function Authorities({id}) {
     dispatch(updateRoles(updatedAuthorities));
   };
 
-  const isRoleSelected = role => {
-    console.log(role, 'rolerole')
-    return role.authorities?.every(authority => authority.assigned);
-  };
-
   return (
     <div className={'d-flex flex-row flex-wrap justify-content-between'}>
       {roles?.map((role, index) => {
         return (
           <div key={`role-${index}-${role.groupName}`}>
-            <div className={'d-flex flex-row gap-1 border border-light'}>
-              <Checkbox
-                className={"mt-3"}
-                checked={isRoleSelected(role)}
-                onChange={event => handleRoleChange(role.groupName, event.checked)}
-              />
-              <h5>{role.groupName}</h5>
+            <h5>{role.groupName}</h5>
+            <div className={'d-flex flex-column gap-2'}>
+              <div className={'d-flex flex-row gap-2'}>
+                <Label htmlFor="role-checkbox" >{role.assigned ? 'Deactivate Role' : 'Activate Role'}</Label>
+                <Checkbox
+                  id="role-checkbox"
+                  value={role.assigned}
+                  checked={role.assigned}
+                  onChange={event => handleRoleChange(role.groupName, event.checked)}
+                />
+              </div>
+
+              <div className={'d-flex flex-row gap-2'}>
+                <Label htmlFor="authorities-checkbox">{areAllRolesAuthoritiesAssigned(role.groupName) ? ' Uncheck All Authorities' : 'Check All Authorities'}</Label>
+                <Checkbox
+                  id="authorities-checkbox"
+                  checked={areAllRolesAuthoritiesAssigned(role.groupName)}
+                  onChange={event => handleAllRoleAuthoritiesChange(role.groupName, event.checked)}
+                />
+              </div>
             </div>
             <ul>
               {role.authorities?.map((authority, i) => (

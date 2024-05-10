@@ -19,6 +19,7 @@ import { sendActivity } from 'app/config/websocket-middleware';
 import Instructions from "app/modules/instructions/instructions";
 import BusinessDetailRoutes from "app/entities/settings/business-details";
 import AppConfig from "app/shared/sidebar/AppConfig";
+import InventoryRoutes from "app/entities/inventory/routes";
 
 const loading = <div>loading ...</div>;
 
@@ -97,6 +98,14 @@ const AppRoutes = () => {
             </PrivateRoute>
           }
         />
+
+        <Route
+          path="inventory/*"
+          element={
+              <InventoryRoutes />
+          }
+        />
+
         <Route
           path="*"
           element={
