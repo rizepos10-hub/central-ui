@@ -540,6 +540,11 @@ const AppMenu = () => {
           to: '/details',
         },
         {
+          label: 'Branch Registry',
+          role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
+          to: '/branch-registry',
+        },
+        {
           label: 'Billing',
           role: ['ROLE_ADMINISTRATOR'],
           to: '/billing',
