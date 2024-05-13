@@ -19,8 +19,13 @@ const AppMenu = () => {
       label: 'POS',
       role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-desktop',
-      to: '/switch-register',
+      to: '/branch-registry',
       items: [
+        {
+          label: 'Branch Registry',
+          role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
+          to: '/branch-registry',
+        },
         {
           label: 'Switch Register',
           to: '/switch-register',
@@ -52,33 +57,6 @@ const AppMenu = () => {
         {
           label: 'Activities',
           to: '/activities',
-        },
-      ],
-    },
-    {
-      label: 'Online Ordering',
-      role: ['ROLE_ADMINISTRATOR'],
-      icon: 'pi pi-tablet',
-      to: '/menu?type=ONLINE_ORDERING',
-      items: [
-        {
-          label: 'Menu',
-          to: '/menu?type=ONLINE_ORDERING',
-        },
-        {
-          label: 'Online Orders',
-          role: ['ROLE_ADMINISTRATOR'],
-          to: '/online-ordering/order',
-        },
-        {
-          label: 'Users',
-          role: ['ROLE_ADMINISTRATOR'],
-          to: '/online-ordering/user',
-        },
-        {
-          label: 'UI Settings',
-          role: ['ROLE_ADMINISTRATOR'],
-          to: '/online-ordering/settings',
         },
       ],
     },
@@ -500,7 +478,12 @@ const AppMenu = () => {
       label: 'Online Ordering',
       role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-tablet',
+      to: '/menu?type=ONLINE_ORDERING',
       items: [
+        {
+          label: 'Menu',
+          to: '/menu?type=ONLINE_ORDERING',
+        },
         {
           label: 'Users',
           role: ['ROLE_ADMINISTRATOR'],
@@ -538,11 +521,6 @@ const AppMenu = () => {
           label: 'Business Information',
           role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
           to: '/details',
-        },
-        {
-          label: 'Branch Registry',
-          role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
-          to: '/branch-registry',
         },
         {
           label: 'Billing',
