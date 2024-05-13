@@ -61,6 +61,7 @@ import MixAndMatchRule from "app/entities/mix-and-match-rule"
 import Product from "app/entities/item/retail/product";
 import Tag from "app/entities/tag";
 import TagGroup from "app/entities/tag-group";
+import BranchRegistry from "app/entities/settings/branch-registry";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -95,6 +96,7 @@ export default () => {
 
         <Route path="production-center/*" element={<ProductionCenter />} />
 
+        <Route path="branch-registry/*" element={<BranchRegistry />} />
 
         <Route path="void-reasons/*" element={<VoidReasons />} />
 
