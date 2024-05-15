@@ -150,6 +150,7 @@ const AppMenu = () => {
     {
       label: 'Retail Catalog',
       icon: 'pi pi-tags',
+      role: ['ROLE_ADMINISTRATOR'],
       to: '/category/retail-items',
       items: [
         {
