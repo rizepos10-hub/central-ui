@@ -3,9 +3,10 @@ import dayjs from 'dayjs';
 import { APP_LOCAL_DATETIME_FORMAT } from 'app/config/constants';
 import {format} from "date-fns";
 
-export const convertDateTimeFromServer = date => (date ? dayjs(date).format(APP_LOCAL_DATETIME_FORMAT) : null);
 
-export const convertDateTimeToServer = date => (date ? dayjs(date).toDate() : null);
+export const convertDateTimeFromServer = (date: string | number | Date | dayjs.Dayjs) => date ? dayjs(date).format(APP_LOCAL_DATETIME_FORMAT) : null;
+
+export const convertDateTimeToServer = (date: string | number | Date | dayjs.Dayjs) => (date ? dayjs(date).toDate() : null);
 
 export const displayDefaultDateTime = () => dayjs().startOf('day').format(APP_LOCAL_DATETIME_FORMAT);
 

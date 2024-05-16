@@ -70,6 +70,7 @@ import transferRequest from "app/entities/inventory/transfer-request/transfer-re
 import supplierReturn from "app/entities/inventory/supplier-return/supplier-return.reducer"
 import mixAndMatchRule from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer"
 import branchRegistry from "app/entities/settings/branch-registry/branch-registry.reducer";
+import till from "app/entities/settings/branch-registry/till/till.reducer";
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 import onlineOrderingReducers from "app/entities/online-ordering/reducer";
 
@@ -141,6 +142,7 @@ const entitiesReducers = {
   tagGroup,
   tag,
   branchRegistry,
+  till,
   ...onlineOrderingReducers
 
 

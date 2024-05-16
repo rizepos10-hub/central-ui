@@ -51,6 +51,24 @@ export const BranchRegistry = () => {
     getAllEntities();
   };
 
+  const nameColumnTemplate = rowData => {
+    const editUrl = `/branch-registry/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        {rowData.name}
+      </Link>
+    );
+  };
+
+  const editColumnTemplate = (rowData: IBranchRegistry) => {
+    const editUrl = `/branch-registry/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+      </Link>
+    );
+  };
+
 
 
   const header = (
@@ -73,9 +91,13 @@ export const BranchRegistry = () => {
 
         <DataTable value={branchRegistryList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20}>
-          <Column field="name" header="Name" filter filterPlaceholder={"Search by name"}  sortable  />
+          <Column field="name" header="Name" body={nameColumnTemplate} filter  filterPlaceholder={"Search by name"}  sortable  />
           <Column field="code" header="Code" sortable  />
           <Column field="branch" header="Branch"  body={(rowData) => rowData?.branch?.name}   sortable  />
+
+          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+
         </DataTable>
       </div>
   );
