@@ -10,6 +10,7 @@ import {
   ChangeFieldPayload
 } from "app/shared/reducers/reducer.utils";
 import { ITill, defaultValue } from "app/shared/model/till.model";
+import { IFilters } from "app/shared/model/filter-state.model";
 
 
 
@@ -28,13 +29,13 @@ const apiSearchUrl = 'api/_search/tills';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('till/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<ITill[]>(requestUrl);
+export const searchEntities = createAsyncThunk('till/search_entity', async (filters: IFilters) => {
+  const requestUrl = `${apiSearchUrl}`;
+  return axios.post<ITill[]>(requestUrl, filters);
 });
 
-export const getEntities = createAsyncThunk('till/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+export const getEntities = createAsyncThunk('till/fetch_entity_list', async ({ page, size, sort, id: registryId }: IQueryParams) => {
+  const requestUrl = `${apiUrl}?registryId=${registryId}${sort ? `&page=${page}&size=${size}&sort=${sort}&` : '&'}cacheBuster=${new Date().getTime()}`;
   return axios.get<ITill[]>(requestUrl);
 });
 
