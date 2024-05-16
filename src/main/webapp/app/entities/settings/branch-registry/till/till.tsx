@@ -17,6 +17,7 @@ import { ITill } from "app/shared/model/till.model";
 import { InputNumber } from "primereact/inputnumber";
 import { convertDateTimeFromServer, convertDateTimeToServer, toLocalISOString } from "app/shared/util/date-utils";
 import { Calendar } from "primereact/calendar";
+import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 
 export const Till = ({registryId}: {registryId: string}) => {
   const dispatch = useAppDispatch();
@@ -34,24 +35,43 @@ export const Till = ({registryId}: {registryId: string}) => {
   const updateSuccess = useAppSelector(state => state.till.updateSuccess);
   const totalItems = useAppSelector(state => state.till.totalItems);
 
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    "registry.id": { value: registryId, matchMode: FilterMatchMode.EQUALS},
-    startDate: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    endDate: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  console.log(tillsList, 'tillsList')
+
+  const [lazyState, setLazyState] = useState({
+      first: 0,
+      rows: 20,
+      page: 0,
+      sortField: null,
+      sortOrder: null,
+      query: '',
+      filters: {
+        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        "registry.id": { value: registryId, matchMode: FilterMatchMode.EQUALS },
+        startDate: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        endDate: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      }
   });
 
 
   const getAllEntities = () => {
-    dispatch(searchEntities(filters));
+    const modifiedFilters = applyMatchModeMap(lazyState);
+    dispatch(searchEntities(modifiedFilters));
   };
 
 
   useEffect(() => {
     getAllEntities();
-  }, [updateSuccess, filters]);
+  }, [updateSuccess, lazyState]);
 
 
+
+  const onPage = (event) => {
+    setLazyState(event);
+  };
+
+  const onSort = (event) => {
+    setLazyState(event);
+  };
 
   const onRowEditComplete = (e) => {
      const entity = e.newData as ITill;
@@ -59,12 +79,16 @@ export const Till = ({registryId}: {registryId: string}) => {
   };
 
   const handleFilterDateChange = (e, field: "startDate" | "endDate") => {
-    setFilters(prevState => ({
+    setLazyState(prevState => ({
       ...prevState,
-      [field]: toLocalISOString(e.value),
+      filters: {
+        ...lazyState.filters,
+        [field]: { value: toLocalISOString(e.value), matchMode: FilterMatchMode.STARTS_WITH },
+      },
     }));
   }
 
+  console.log(lazyState, 'lazyStatelazyState')
 
   const InputNumberEditor = (options) => {
     return <InputNumber value={options.value} onValueChange={(e) => options.editorCallback(e.value)} />;
@@ -88,16 +112,19 @@ export const Till = ({registryId}: {registryId: string}) => {
     <div>
 
       <DataTable
-        value={tillsList} header={header} loading={loading || updating} editMode="row" dataKey="id"
-        onRowEditComplete={onRowEditComplete} tableStyle={{ minWidth: '50rem' }}
-         filters={filters} filterDisplay="row" totalRecords={totalItems}
+         value={tillsList} header={header} loading={loading || updating}
+         editMode="row"  removableSort  filters={lazyState.filters} filterDisplay="row"
+         paginator totalRecords={totalItems} rows={20} lazy  first={lazyState.first}
+
+         onSort={onSort}  onPage={onPage}
+         sortField={lazyState.sortField} sortOrder={lazyState.sortOrder} showGridlines
         >
         <Column field="openAmount" header="Open Amount" editor={(options) => InputNumberEditor(options)} />
         <Column field="status" header="Status" />
         <Column
           field="startDate"
           filter
-          filterElement={<Calendar  value={filters?.startDate?.value} onChange={(e) => handleFilterDateChange(e, 'startDate')}  />}
+          filterElement={<Calendar  value={lazyState?.filters?.startDate?.value} onChange={(e) => handleFilterDateChange(e, 'startDate')}  />}
           body={(rowData) => convertDateTimeFromServer(rowData?.startDate)}
           header="Start Date"
         />
