@@ -97,6 +97,19 @@ export const BusinessDetailUpdate = () => {
     return placePredictions.map((prediction) => prediction.description);
   }, [placePredictions])
 
+  const handleGeocode = (e, branchIndex) => {
+    geocode(RequestType.LATLNG, `${e.detail.latLng.lat},${e.detail.latLng.lng}`)
+    .then(({ results }) => {
+      handleBranchAddressFieldChange(branchIndex, {
+        latitude: e.detail.latLng.lat,
+        longitude: e.detail.latLng.lng,
+        fullAddress: results[0].formatted_address
+      });
+    })
+    .catch(err => (
+      toast.error(`Error fetching address: ${err}`)
+    ));
+  }
 
   const [selectedAttachments, setSelectedAttachments]:any = useState(null)
 
@@ -513,19 +526,7 @@ export const BusinessDetailUpdate = () => {
                                 defaultZoom={3}
                                 gestureHandling={'greedy'}
                                 disableDefaultUI={true}
-                                onClick={(e) => {
-                                  geocode(RequestType.LATLNG, `${e.detail.latLng.lat},${e.detail.latLng.lng}`)
-                                  .then(({ results }) => {
-                                    handleBranchAddressFieldChange(branchIndex, {
-                                      latitude: e.detail.latLng.lat,
-                                      longitude: e.detail.latLng.lng,
-                                      fullAddress: results[0].formatted_address
-                                    });
-                                  })
-                                  .catch(err => (
-                                    toast.error(`Error fetching address: ${err}`)
-                                  ));
-                                }}
+                                onClick={(e) => handleGeocode(e, branchIndex)}
                               >
                                 <Marker position={{lat: branch.address?.latitude || 0 , lng: branch.address?.longitude || 0}} />
                               </Map>
