@@ -14,7 +14,7 @@ import {InputText} from "primereact/inputtext";
 import {Button as PrimeButton} from "primereact/button"
 import {IBusinessDetail, Metric} from "app/shared/model/business-detail.model";
 import {Checkbox} from "primereact/checkbox";
-import { APIProvider, Map, Marker } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, MapMouseEvent, Marker } from '@vis.gl/react-google-maps';
 import { RequestType, fromAddress, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import { InputNumber } from 'primereact/inputnumber';
@@ -97,7 +97,7 @@ export const BusinessDetailUpdate = () => {
     return placePredictions.map((prediction) => prediction.description);
   }, [placePredictions])
 
-  const handleGeocode = (e, branchIndex) => {
+  const handleGeocode = (e: MapMouseEvent, branchIndex) => {
     geocode(RequestType.LATLNG, `${e.detail.latLng.lat},${e.detail.latLng.lng}`)
     .then(({ results }) => {
       handleBranchAddressFieldChange(branchIndex, {
