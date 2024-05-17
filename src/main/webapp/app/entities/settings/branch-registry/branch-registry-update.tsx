@@ -4,11 +4,16 @@ import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, reset } from 'app/entities/settings/branch-registry/branch-registry.reducer';
 import { Link, useParams } from "react-router-dom";
-import TillsTable from "app/entities/settings/branch-registry/till/till";
+import TillsTable, { PreviousTill } from "app/entities/settings/branch-registry/till/previous-till";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Translate } from "react-jhipster";
 import ActivateTillModal from "app/entities/settings/branch-registry/till/activate-till-modal";
 import { closeEntity as closeTill} from "app/entities/settings/branch-registry/till/till.reducer";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Calendar } from "primereact/calendar";
+import { convertDateTimeFromServer } from "app/shared/util/date-utils";
+import CurrentTill from "app/entities/settings/branch-registry/till/current-till";
 
 const BranchRegistryUpdate = () => {
   const dispatch = useAppDispatch();
@@ -49,11 +54,18 @@ const BranchRegistryUpdate = () => {
           <p><strong>Name:</strong> {branchRegistry.name}</p>
           <p><strong>Code:</strong> {branchRegistry.code}</p>
           <p><strong>Branch:</strong> {branchRegistry.branch?.name}</p>
-          <p><strong>Till Status:</strong> {(branchRegistry.openTill?.status ?? "CLOSED")}</p>
+          <p><strong>Current Till</strong>
+            { branchRegistry?.openTill ?
+              <CurrentTill till={branchRegistry?.openTill} />
+              :
+              null
+            }
+          </p>
+
         </CardBody>
       </Card>
 
-      <TillsTable registryId={id} />
+      <PreviousTill registryId={id} />
 
       {showModal &&
         <ActivateTillModal registryId={id} toggle={toggleModal} isOpen={showModal} />
