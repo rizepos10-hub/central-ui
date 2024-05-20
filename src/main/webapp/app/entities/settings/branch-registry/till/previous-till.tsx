@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { getSortState } from 'react-jhipster';
 
-import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, updateEntity } from './till.reducer';
@@ -48,7 +44,7 @@ export const PreviousTill = ({ registryId }: { registryId: string }) => {
 
   useEffect(() => {
     getAllEntities();
-  }, [lazyState]);
+  }, [lazyState, updateSuccess]);
 
   const onPage = event => {
     setLazyState(event);
@@ -114,8 +110,9 @@ export const PreviousTill = ({ registryId }: { registryId: string }) => {
         totalRecords={totalItems} rows={20} lazy first={lazyState.first} onSort={onSort}
         onPage={onPage} sortField={lazyState.sortField} sortOrder={lazyState.sortOrder} showGridlines
       >
-        <Column field="openAmount" header="Open Amount" editor={options => InputNumberEditor(options)} />
         <Column field="status" header="Status" />
+        <Column field="openAmount" header="Open Amount" editor={options => InputNumberEditor(options)} />
+        <Column field="closeAmount" header="Close Amount" />
         <Column
           field="startDate"
           filter

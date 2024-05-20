@@ -1,4 +1,4 @@
-import { Button, Card, CardBody } from 'reactstrap';
+import { Button, Card, CardBody, Spinner } from "reactstrap";
 import React, { useEffect, useState } from "react";
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -38,6 +38,10 @@ const BranchRegistryUpdate = () => {
       dispatch(getEntity(id));
     }
   }, [updateTillSuccess]);
+
+  if(loading){
+    return <Spinner />;
+  }
 
   return (
     <div className="d-flex flex-column justify-content-between">
