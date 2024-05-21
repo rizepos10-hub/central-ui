@@ -395,15 +395,23 @@ const AppMenu = () => {
             },
             {
               label: 'Sales by Hour',
-              to: '/analytics/sales-report/sales-report/sales-by-hour',
-            },
-            {
-              label: 'Sales by Hour',
               to: '/analytics/sales-report/summary',
             },
             {
               label: 'Sales by Product',
               to: '/analytics/sales-report/sales-by-product',
+            },
+            {
+              label: 'Sales by Category',
+              to: '/analytics/sales-report/sales-by-category',
+            },
+            {
+              label: 'Sales by Branch',
+              to: '/analytics/sales-report/sales-by-branch',
+            },
+            {
+              label: 'Sales by User',
+              to: '/analytics/sales-report/sales-by-user',
             },
           ],
         },

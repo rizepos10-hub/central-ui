@@ -92,7 +92,9 @@ export const SalesReport = () => {
   const dispatch = useAppDispatch();
   const { reportType } = useParams();
 
-  const initialSelectedType = reportType ? capitalizeString(reportType) : reportTypesOptions?.[0]?.value;
+  console.log(reportType, 'reportTypereportType')
+
+  const initialSelectedType = reportTypesOptions?.[0]?.value;
   const initialSelectedMeasure = reportType ? SalesReportsMeasures.Revenue : reportMeasuresOptions?.[0]?.value;
 
   const [selectedType, setSelectedType] = useState(initialSelectedType);
@@ -115,10 +117,6 @@ export const SalesReport = () => {
   }) || currencySettingsEntity.defaultCurrency;
 
 
-  console.log(exchange, 'exchange')
-
-
-
   const handleDateRangeApply = (selectedDateRange: dateRange) => {
     setAppliedDateRange(selectedDateRange);
   };
@@ -138,7 +136,7 @@ export const SalesReport = () => {
     const formRequest = {
       dateRange: appliedDateRange || defaultDateRange,
       measure: selectedMeasure,
-      type: selectedType,
+      type: reportType ? capitalizeString(reportType) : selectedType,
     };
    // const resp = await fetchSalesReport(formRequest);
    // setReportData(resp)
@@ -166,10 +164,7 @@ export const SalesReport = () => {
     fetchReportData();
 
 
-  }, [selectedMeasure, selectedType, appliedDateRange]);
-
-
-
+  }, [selectedMeasure, selectedType, appliedDateRange, reportType]);
 
 
 
@@ -212,7 +207,7 @@ export const SalesReport = () => {
   const headerGroup = (
     <ColumnGroup>
         <PrimeRow>
-        <Column  header={selectedType} />
+        <Column  header={reportType ? capitalizeString(reportType) : selectedType} />
           {sortedHeaderSlots?.map((header) => (
             <Column key={header.order} header={header.label} colSpan={1}/>
           ))}
@@ -325,31 +320,6 @@ export const SalesReport = () => {
        </PrimeRow> : null}
     </ColumnGroup>
    );
-
-
-
-  // const initialFooterRows = totalsRowForFooter.length > 0 ? Object.keys(totalsRowForFooter[0]) : [];
-
-  // const footerGroup = (
-  //   <ColumnGroup>
-  //     <PrimeRow>
-  //       <Column footer="Totals" footerStyle={{ textAlign: 'left' }} />
-  //       {totalsRowForFooter.map((totalsRecord: any, rowIndex) => (
-  //         <Column key={rowIndex} footer={totalsRecord.amount} />
-  //       ))}
-  //     </PrimeRow>
-  //
-  //     {initialFooterRows.map((columnName, index) => (
-  //       columnName !== 'amount' && (
-  //         <PrimeRow key={index}>
-  //           <Column footer={capitalizeFirstLetter(columnName)} footerStyle={{ textAlign: 'left' }}/>
-  //           {totalsRowForFooter.map((totalsRecord: any, rowIndex) => (
-  //             <Column key={rowIndex} footer={totalsRecord[columnName]} />
-  //           ))}
-  //         </PrimeRow>)
-  //     ))}
-  //   </ColumnGroup>
-  // );
 
 
   return (
