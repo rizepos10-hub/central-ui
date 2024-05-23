@@ -22,6 +22,8 @@ import SearchPredictions from 'app/shared/components/google/search-predictions';
 import usePlacesService from "react-google-autocomplete/lib/usePlacesAutocompleteService";
 import _ from 'lodash';
 import { RadioButton } from 'primereact/radiobutton';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
@@ -393,7 +395,7 @@ export const BusinessDetailUpdate = () => {
                 onChange={handleFieldChange}
 
               />
-              <ValidatedField
+              {/* <ValidatedField
                 label={'Logo'}
                 id="item-image"
                 name="image"
@@ -401,39 +403,50 @@ export const BusinessDetailUpdate = () => {
                 type="file"
                 onChange={handleImageChange}
                 accept="image/*"
-              />
-                <div style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
-                  <div className="mb-3">
-                    <div style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
-                      <img
-                        src={selectedAttachments?.url}
-                        alt={selectedAttachments?.name}
-                        className="img-fluid"
-                        style={{
-                          maxWidth: '100px',
-                          maxHeight: '100px',
-                        }}
-                      />
-                      {selectedAttachments?.id && <div
-                        style={{
-                          position: 'absolute',
-                          top: '5px',
-                          right: '5px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                          borderRadius: '50%',
-                          padding: '2px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => setSelectedAttachments(() => null)}
-                      >     <FontAwesomeIcon icon={faTrashAlt}  />
-                      </div>
+              /> */}
+              <div className='d-flex flex-column gap-2'>
+                <div className='fw-light'>
+                  Logo
+                </div>
+                <div className='w-25'>
+                  {businessDetailsState && (
+                    <MediaLibrary
+                      sizePerPage={80}
+                      handleFilesSelectCallback={(files) => setSelectedAttachments(transformAttachmentStructure(files, 'toIAttachment')[0])}
+                      defaultValues={
+                        businessDetailsState?.logo ?  transformAttachmentStructure([businessDetailsState.logo], 'toFileLibraryListItem') :
+                        undefined
                       }
-
-                    </div>
-
-
-
-
+                    />
+                  )}  
+                </div>
+                <div style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
+                    <div className="mb-3">
+                      <div style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
+                        <img
+                          src={selectedAttachments?.url}
+                          alt={selectedAttachments?.name}
+                          className="img-fluid"
+                          style={{
+                            maxWidth: '100px',
+                            maxHeight: '100px',
+                          }}
+                        />
+                        {selectedAttachments?.id && <div
+                          style={{
+                            position: 'absolute',
+                            top: '5px',
+                            right: '5px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            borderRadius: '50%',
+                            padding: '2px',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => setSelectedAttachments(() => null)}
+                        >     <FontAwesomeIcon icon={faTrashAlt}  />
+                        </div>}
+                      </div>
+                  </div>
                 </div>
               </div>
               <h4>Address Details</h4>
