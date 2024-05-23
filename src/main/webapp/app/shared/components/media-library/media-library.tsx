@@ -35,7 +35,7 @@ const MediaLibrary = ({
         dispatch(getEntities({
             page: pageNumber,
             size: sizePerPage,
-            sort: 'name,asc'
+            sort: 'updatedAt,desc'
         })).then(res => {
             // @ts-expect-error -- unknown type ;
             const newAttachments = res.payload.data as IAttachment[];
