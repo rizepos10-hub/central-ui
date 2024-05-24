@@ -29,6 +29,7 @@
       "name": "Name",
       "description": "Description",
       "tags": "Tags",
+      "accountingGroup": "Accounting Group",
       "price": "Price",
       "discounts": "Discounts",
       "discount": "Discount",

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormText, Spinner, Label } from "reactstrap";
-import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import {getSortState, Translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
+import { overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './addon.reducer';
@@ -19,6 +19,8 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { InputNumber } from "primereact/inputnumber";
 import { ITag } from "app/shared/model/TAG/tag.model";
 import { getEntities as getTags } from "app/entities/tag/tag.reducer";
+import { getEntities as getAccountingGroups } from "app/entities/settings/accounting-group/accounting-group.reducer";
+import { IAccountingGroup } from "app/shared/model/TAX/accounting-group.model";
 
 
 export const AddonUpdate = () => {
@@ -35,6 +37,8 @@ export const AddonUpdate = () => {
   const updateSuccess = useAppSelector(state => state.addon.updateSuccess);
   const discounts = useAppSelector(state => state.discount.entities);
   const tags = useAppSelector(state => state.tag.entities);
+  const accountingGroups = useAppSelector(state => state.accountingGroup.entities);
+
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -67,6 +71,12 @@ export const AddonUpdate = () => {
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getAccountingGroups({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
   }, []);
@@ -125,7 +135,8 @@ export const AddonUpdate = () => {
                 <Label for="addon-name">
                   <Translate contentKey={'addons.update.name'}>Name</Translate>
                 </Label>
-                <InputText name="name" required={true} id="addon-name" value={addonEntity.name || ''} onChange={handleChange} />
+                <InputText name="name" required={true} id="addon-name" value={addonEntity.name || ''}
+                           onChange={handleChange} />
               </div>
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-desc">
@@ -143,6 +154,25 @@ export const AddonUpdate = () => {
                   onChange={e => dispatch(changeEntityField({ name: 'price', value: e.value }))}
                 />
               </div>
+
+              <div className={'d-flex flex-column mt-3'}>
+                <Label for="addon-accountingGroup">
+                  <Translate contentKey={'addons.update.accountingGroup'}>Accounting Group</Translate>
+                </Label>
+                <Select
+                  value={addonEntity?.accountingGroups}
+                  options={accountingGroups}
+                  id="addon-accountingGroup"
+
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                  onChange={selectedAccountingGroups => dispatch(changeEntityField({
+                    name: 'accountingGroups',
+                    value: [selectedAccountingGroups]
+                  }))}
+                />
+              </div>
+
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-tags">
                   <Translate contentKey={'addons.update.tags'}>Tags</Translate>
@@ -154,7 +184,10 @@ export const AddonUpdate = () => {
                   id="addon-tags"
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
-                  onChange={selectedTags => dispatch(changeEntityField({ name: 'tags', value: selectedTags as ITag[] }))}
+                  onChange={selectedTags => dispatch(changeEntityField({
+                    name: 'tags',
+                    value: selectedTags as ITag[]
+                  }))}
                 />
               </div>
               <div className={'d-flex flex-column my-3'}>
@@ -169,7 +202,10 @@ export const AddonUpdate = () => {
                   getOptionLabel={option => (option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`)}
                   getOptionValue={option => option.id}
                   onChange={selectedDiscounts =>
-                    dispatch(changeEntityField({ name: 'discounts', value: selectedDiscounts ? [selectedDiscounts] : []  }))}
+                    dispatch(changeEntityField({
+                      name: 'discounts',
+                      value: selectedDiscounts ? [selectedDiscounts] : []
+                    }))}
                 />
               </div>
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/addon" replace color="info">
@@ -180,7 +216,8 @@ export const AddonUpdate = () => {
                 </span>
               </Button>
               &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                      disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>

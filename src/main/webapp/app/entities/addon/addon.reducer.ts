@@ -10,7 +10,6 @@ import {
   ChangeFieldPayload
 } from "app/shared/reducers/reducer.utils";
 import { IAddon, defaultValue } from 'app/shared/model/ADDON/addon.model';
-import { ITv } from "app/shared/model/TV/tv.model";
 
 const initialState: EntityState<IAddon> = {
   loading: false,
@@ -31,6 +30,11 @@ export const searchEntities = createAsyncThunk('addon/search_entity', async ({ q
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<IAddon[]>(requestUrl);
 });
+
+export const filterEntities = createAsyncThunk('addon/filter_entity_list', async ({ query }: IQueryParams) => {
+  return axios.post<IAddon[]>(apiSearchUrl, query);
+});
+
 
 export const getEntities = createAsyncThunk('addon/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
@@ -109,7 +113,7 @@ export const AddonSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities, filterEntities), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -125,7 +129,7 @@ export const AddonSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
