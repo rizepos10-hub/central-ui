@@ -59,7 +59,6 @@ export const EndOfDays = () => {
       );
       setTotalRecords(Number(result.headers['x-total-count']))
       setEndOFDaysData(result.data)
-      console.log(result, 'result')
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -105,8 +104,8 @@ export const EndOfDays = () => {
                 >
 
         {/* <Column field="id" header="ID" body={(rowData) => (<Link to={rowData.id}>{rowData.id} </Link>)}  /> */}
-        <Column field="toDate" body={(rowData) => convertUtcToLocalDate(rowData?.toDate)} header={translate('analytics.endOfDay.table.toDate')} />
         <Column field="fromDate" body={(rowData) => convertUtcToLocalDate(rowData?.fromDate)} header={translate('analytics.endOfDay.table.fromDate')} />
+        <Column field="toDate" body={(rowData) => convertUtcToLocalDate(rowData?.toDate)} header={translate('analytics.endOfDay.table.toDate')} />
         <Column field="actionTakenBy" header={translate('analytics.endOfDay.table.actionBy')} />
         <Column field="createdDate" body={(rowData) => convertUtcToLocalDate(rowData?.createdDate)}  header={translate('analytics.endOfDay.table.createdDate')} />
         <Column field="branch.name" header={translate('analytics.endOfDay.table.branchName')} />
