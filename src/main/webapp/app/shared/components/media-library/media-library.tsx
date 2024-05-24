@@ -1,7 +1,7 @@
 import React, { ReactElement, useEffect, useMemo, useState } from 'react'
 import { FileLibrarySelectedItems, ReactMediaLibrary } from 'react-media-library-cloud-links'
 import { useAppDispatch, useAppSelector } from '../../../config/store';
-import { getEntities, uploadImage } from '../../../entities/attachment/attachment.reducer';
+import { deleteEntities, getEntities, uploadImage } from '../../../entities/attachment/attachment.reducer';
 import { IAttachment } from '../../model/attachment.model';
 import { toast } from 'react-toastify';
 import { FileLibraryListItem } from 'react-media-library-cloud-links';
@@ -13,17 +13,17 @@ interface MediaLibraryProps {
     multiSelect?: boolean
     handleFilesSelectCallback: (files: FileLibraryListItem[]) => void
     defaultValues?: FileLibraryListItem[]
-  }
+}
 
 const MediaLibrary: React.FC<MediaLibraryProps> = ({
-    sizePerPage,
+    sizePerPage = 30,
     multiSelect,
     handleFilesSelectCallback,
     defaultValues
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false)
     const [page, setPage] = useState<number>(0)
-    const [totalPages, setTotalPages] = useState<number>(500)
+    const [totalPages, setTotalPages] = useState<number>(0)
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [selectedItems, setSelectedItems] = useState<Array<FileLibraryListItem>>([]);
     const dispatch = useAppDispatch()
@@ -31,6 +31,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     // const attachments: IAttachment[] = useAppSelector(state => state.attachment.entities);
     const [attachments, setAttachments] = useState<IAttachment[]>([])
     const memoizedAttachments = useMemo(() => attachments, [attachments]);
+
 
     const fetchAttachments = (pageNumber: number) => {
         setIsLoading(true)
@@ -42,11 +43,18 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             // @ts-expect-error -- unknown type ;
             const newAttachments = res.payload.data as IAttachment[];
             if (newAttachments.length > 0) {
-                setAttachments(prev => [...prev, ...newAttachments])
-            } else {
-                // to remove the load more button since there is no total pages in the api
-                setTotalPages(0)
+                const { headers } = res.payload as any;
+                const totalCount = headers['x-total-count']
+                if (headers['x-total-count']) {
+                    setTotalPages(Math.floor(totalCount / sizePerPage))
+                }
+                if (pageNumber === 0) {
+                    setAttachments(newAttachments)
+                } else {
+                    setAttachments(prev => [...prev, ...newAttachments])
+                }
             }
+
         }).finally(() => {
             setIsLoading(false)
         })
@@ -97,8 +105,10 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
         setIsOpen(prev => !prev)
     }
 
-    const filesDeleteCallback = (files: FileLibraryListItem[]) => {
-        // todo: to handle BULK DELETE
+    const filesDeleteCallback = async (files: FileLibraryListItem[]) => {
+        const idsToDelete = files.map(att => att._id) as IAttachment['id'][]
+        await dispatch(deleteEntities(idsToDelete))
+        fetchAttachments(0)
     }
 
     return (
@@ -122,7 +132,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     }))
                 }
                 fileUploadCallback={fileUploadCallback}
-                filesDeleteCallback={filesDeleteCallback}
+                filesDeleteCallback={(files) => void filesDeleteCallback(files)}
                 filesSelectCallback={filesSelectCallback}
                 finishUploadCallback={finishUploadCallback}
                 onClose={() => { setIsOpen(prev => !prev) }}
