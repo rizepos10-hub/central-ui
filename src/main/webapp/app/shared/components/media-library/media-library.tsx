@@ -8,16 +8,18 @@ import { FileLibraryListItem } from 'react-media-library-cloud-links';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 
-const MediaLibrary = ({
-    sizePerPage = 30,
-    multiSelect,
-    handleFilesSelectCallback,
-    defaultValues
-}: {
+interface MediaLibraryProps {
     sizePerPage: number
     multiSelect?: boolean
     handleFilesSelectCallback: (files: FileLibraryListItem[]) => void
     defaultValues?: FileLibraryListItem[]
+  }
+
+const MediaLibrary: React.FC<MediaLibraryProps> = ({
+    sizePerPage,
+    multiSelect,
+    handleFilesSelectCallback,
+    defaultValues
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false)
     const [page, setPage] = useState<number>(0)
