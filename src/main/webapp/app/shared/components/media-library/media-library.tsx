@@ -70,7 +70,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
         if (defaultValues) {
             setSelectedItems(prev => [...prev, ...defaultValues])
         }
-    }, []);
+    }, [defaultValues]);
 
     const handleLoadMore = () => {
         setPage(prev => prev + 1)
