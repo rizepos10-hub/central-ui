@@ -10,6 +10,7 @@ import {
   ChangeFieldPayload
 } from "app/shared/reducers/reducer.utils";
 import { IBranchRegistry, defaultValue } from "app/shared/model/branch-registry.model";
+import { IAddon } from "app/shared/model/ADDON/addon.model";
 
 const initialState: EntityState<IBranchRegistry> = {
   loading: false,
@@ -29,6 +30,10 @@ const apiSearchUrl = 'api/_search/branch-registries';
 export const searchEntities = createAsyncThunk('branch-registry/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<IBranchRegistry[]>(requestUrl);
+});
+
+export const filterEntities = createAsyncThunk('branch-registry/filter_entity_list', async ({ query }: IQueryParams) => {
+  return axios.post<IBranchRegistry[]>(apiSearchUrl, query);
 });
 
 export const getEntities = createAsyncThunk('branch-registry/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
@@ -58,7 +63,7 @@ export const BranchRegistrySlice = createEntitySlice({
         state.loading = false;
         state.entity = action.payload.data;
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities,filterEntities), (state, action) => {
         const { data, headers } = action.payload;
         return {
           ...state,
@@ -67,12 +72,12 @@ export const BranchRegistrySlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities,filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-    
+
   },
 });
 

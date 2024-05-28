@@ -11,6 +11,7 @@ import {
 } from "app/shared/reducers/reducer.utils";
 import { ITill, defaultValue } from "app/shared/model/till.model";
 import { IFilters } from "app/shared/model/filter-state.model";
+import { getSummaryReportByTill } from "app/modules/analytics/reports/end-of-day/end-of-day.reducer";
 
 
 
@@ -44,6 +45,25 @@ export const getEntity = createAsyncThunk(
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
     return axios.get<ITill>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const getEntityAndGetReportByTill = createAsyncThunk(
+  'till/fetch_entity_and_report',
+  async ( {id, registryId } : { id: string, registryId: string }, { dispatch }) => {
+    const requestUrl = `${apiUrl}/${id}`;
+    const response = await axios.get<ITill>(requestUrl);
+    const till = response.data;
+
+    dispatch(getSummaryReportByTill({
+      fromDate: till.startDate,
+      toDate: till.endDate,
+      tillId: till.id,
+      registryId
+    }));
+
+    return response;
   },
   { serializeError: serializeAxiosError }
 );
@@ -112,14 +132,14 @@ export const TillSlice = createEntitySlice({
         const { name, value } = action.payload;
         state.entity[name] = value;
       })
-      .addCase(getEntity.fulfilled, (state, action) => {
-        state.loading = false;
-        state.entity = action.payload.data;
-      })
       .addCase(deleteEntity.fulfilled, state => {
         state.updating = false;
         state.updateSuccess = true;
         state.entity = {};
+      })
+      .addMatcher(isFulfilled(getEntity, getEntityAndGetReportByTill), (state, action) => {
+        state.loading = false;
+        state.entity = action.payload.data;
       })
       .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
         const { data, headers } = action.payload;
@@ -136,7 +156,7 @@ export const TillSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, getEntityAndGetReportByTill), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

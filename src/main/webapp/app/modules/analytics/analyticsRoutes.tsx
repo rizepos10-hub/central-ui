@@ -5,11 +5,12 @@ import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import TopItems from "app/modules/analytics/TopItems";
-import SalesSummaryReport from "app/modules/analytics/reports/report";
-import EndOfDayReport from "app/modules/analytics/reports/end-of-day-report";
+import SalesSummaryReport from "app/modules/analytics/reports/summary-report";
+import EndOfDayReport from "app/modules/analytics/reports/end-of-day/end-of-day-report";
 import {SalesReport} from "app/modules/analytics/reports/sales-report/sales-report";
-import {EndOfDays} from "app/modules/analytics/reports/end-of-days";
+import {EndOfDays} from "app/modules/analytics/reports/end-of-day/end-of-days";
 import PageNotFound from "app/shared/error/page-not-found";
+import RegisterClosures from "app/modules/analytics/register-closures";
 
 
 
@@ -21,6 +22,7 @@ export default () => {
         <Route path="topItems" element={<TopItems />} />
         <Route path="endofday" element={<EndOfDays />} />
         <Route path="endofday/:id" element={<EndOfDayReport />} />
+        <Route path="register-closure/*" element={<RegisterClosures />} />
         <Route path="reports" element={<SalesSummaryReport />} />
         <Route path="sales" element={<SalesReport />} />
         <Route path="/sales-report/sales-by-:reportType" element={<SalesReport />} />

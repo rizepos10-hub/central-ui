@@ -53,13 +53,15 @@ export const Addon = () => {
     );
   };
 
+  const handleSyncList = () => {
+    getAllEntities();
+  };
+
   useEffect(() => {
     getAllEntities();
   }, [searchParam]);
 
-  const handleSyncList = () => {
-    getAllEntities();
-  };
+
 
 
   const onSort = (event) => {
