@@ -1,4 +1,9 @@
 export function transformAttachmentStructure(array, flag: 'toIAttachment' | 'toFileLibraryListItem') {
+    console.log(array)
+    if (!array || array.length === 0) {
+        return [];
+    }
+
     if (flag === 'toFileLibraryListItem') {
         return array.map(item => ({
             _id: item.id,
@@ -6,7 +11,7 @@ export function transformAttachmentStructure(array, flag: 'toIAttachment' | 'toF
             fileName: item.name,
             size: item.size,
             thumbnailUrl: item.url,
-            title: item.name.split('_')[0]
+            title: item.name ? item.name.split('_')[0] : ''
         }));
     } else if (flag === 'toIAttachment') {
         return array.map(item => ({

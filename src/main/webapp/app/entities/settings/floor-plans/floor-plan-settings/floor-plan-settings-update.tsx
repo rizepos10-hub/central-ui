@@ -11,6 +11,8 @@ import {IFloorPlanSettings} from "app/shared/model/FLOOR-PLAN/floor-plan-setting
 import {InputNumber} from "primereact/inputnumber";
 import {Translate} from "react-jhipster";
 import Attachment from "app/shared/components/attachment/attachment";
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 export const FloorPlanSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -185,21 +187,19 @@ export const FloorPlanSettingsUpdate = () => {
                   <label  className={"mt-2"}>
                     <Translate contentKey={"tempApp.floorPlanSettings.tableImage"}>Table Image</Translate>
                   </label>
-                  <Attachment
-                    image={floorPlanSettings.tableImage}
-                    onRemoveImage={() => removeImage("tableImage")}
-                    onAddImage={addTableImage}
-                  />
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => addTableImage(transformAttachmentStructure(files, 'toIAttachment')[0])}
+                    defaultValues={transformAttachmentStructure(floorPlanSettings.tableImage ? [floorPlanSettings.tableImage] : [], 'toFileLibraryListItem')}
+                />
                 </div>
 
                 <div className={"d-flex flex-column"}>
                   <label  className={"mt-2"}>
                     <Translate contentKey={"tempApp.floorPlanSettings.sectionBackground"}>Section Background Image</Translate>
                   </label>
-                  <Attachment
-                    image={floorPlanSettings.sectionBackground}
-                    onRemoveImage={() => removeImage("sectionBackground")}
-                    onAddImage={addSectionBackgroundImage}
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => addSectionBackgroundImage(transformAttachmentStructure(files, 'toIAttachment')[0])}
+                    defaultValues={transformAttachmentStructure(floorPlanSettings.sectionBackground ? [floorPlanSettings.sectionBackground] : [], 'toFileLibraryListItem')}
                   />
                 </div>
               </FormGroup>

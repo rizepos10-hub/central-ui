@@ -6,6 +6,8 @@ import Attachment from 'app/shared/components/attachment/attachment';
 import { Checkbox } from 'primereact/checkbox';
 import { Button } from 'primereact/button';
 import {Translate} from "react-jhipster";
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions}) => {
   console.log(initialDimensions, 'initialDimensions')
@@ -119,10 +121,9 @@ const SectionModal = ({ isOpen, onClose, onAddSection, initialDimensions}) => {
                 <label  className={"mt-2"}>
                   <Translate contentKey={"tempApp.table.image"}>Image</Translate>
                 </label>
-                <Attachment
-                  image={newSection?.backgroundImage}
-                  onRemoveImage={removeImage}
-                  onAddImage={addImage}
+                <MediaLibrary
+                    handleFilesSelectCallback={(files) => addImage(transformAttachmentStructure(files, 'toIAttachment')[0])}
+                    defaultValues={transformAttachmentStructure(newSection?.backgroundImage ? [newSection?.backgroundImage] : [], 'toFileLibraryListItem')}
                 />
               </div>
               <div className={"d-flex flex-column"}>

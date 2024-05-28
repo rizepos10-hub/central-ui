@@ -9,7 +9,7 @@ import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 
 interface MediaLibraryProps {
-    sizePerPage: number
+    sizePerPage?: number
     multiSelect?: boolean
     handleFilesSelectCallback: (files: FileLibraryListItem[]) => void
     defaultValues?: FileLibraryListItem[]
@@ -68,7 +68,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
 
     useEffect(() => {
         if (defaultValues) {
-            setSelectedItems(prev => [...prev, ...defaultValues])
+            setSelectedItems(defaultValues)
         }
     }, [defaultValues]);
 
@@ -116,9 +116,33 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             <Button
                 onClick={() => setIsOpen(prev => !prev)}
                 type='button'
+                text
+                raised
+                style={{
+                    maxWidth: '120px',
+                    padding: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
             >
                 Select Media
             </Button>
+            <div className="d-flex flex-wrap gap-3 my-3">
+                {selectedItems.map((item, index) => (
+                    <div key={index}>
+                        <img
+                            src={item.thumbnailUrl}
+                            alt={item.name}
+                            className="img-fluid"
+                            style={{
+                                maxWidth: '100px',
+                                maxHeight: '100px',
+                            }}
+                        />
+                    </div>
+                ))}
+            </div>
             <ReactMediaLibrary
                 fileLibraryList={
                     memoizedAttachments.map(item => ({
