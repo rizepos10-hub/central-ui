@@ -24,6 +24,8 @@ import {InputTextarea} from "primereact/inputtextarea";
 import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import { getEntities as getTags } from "app/entities/tag/tag.reducer";
+import MediaLibrary from '../media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -62,8 +64,8 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
     onFieldChange('attachments', []);
   };
 
-  const addImage = (newImage) => {
-    onFieldChange('attachments', [newImage]);
+  const addImage = (files) => {
+    onFieldChange('attachments', transformAttachmentStructure(files, 'toIAttachment'));
   };
 
   const handleCheckboxChange = (addonGroupIndex: number) => {
@@ -284,7 +286,10 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                   <label className={'text-xl mt-2 font-bold'}>
                     <Translate contentKey={'items.update.image'}>Image</Translate>
                   </label>
-                  <Attachment image={item?.attachments?.[0]} onRemoveImage={removeImage} onAddImage={addImage} />
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => addImage(files)}
+                    defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
+                  />
                 </div>
               </Col>
             </Row>

@@ -17,6 +17,8 @@ import {SelectButton} from "primereact/selectbutton";
 import {Checkbox} from "primereact/checkbox";
 import Attachment from "app/shared/components/attachment/attachment";
 import { InputText } from 'primereact/inputtext';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -191,10 +193,9 @@ export const UiSettingsUpdate = () => {
                       {translate('tempApp.UiSettings.logo')}
                     </strong>
                   </Label>
-                  <Attachment
-                    image={UiSettingsEntity.logo}
-                    onRemoveImage={() => dispatch(changeEntityField({name: 'logo',value: null}))}
-                    onAddImage={(imageInfo) => dispatch(changeEntityField({name: 'logo',value: imageInfo}))}
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => dispatch(changeEntityField({name: 'logo',value: transformAttachmentStructure(files, 'toIAttachment')[0]}))}
+                    defaultValues={transformAttachmentStructure(UiSettingsEntity.logo ? [UiSettingsEntity.logo] : [], 'toFileLibraryListItem')} 
                   />
                 </div>
 

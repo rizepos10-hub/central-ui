@@ -17,6 +17,8 @@ import {InputNumber} from "primereact/inputnumber";
 import Attachment from "app/shared/components/attachment/attachment";
 import {createEntity} from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
 import {useNavigate} from "react-router-dom";
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
 
 const items: MenuItem[] = [
   {
@@ -248,10 +250,9 @@ const CreateFloorPlan = () => {
                 <label  className={"mt-2"}>
                   <Translate contentKey={"tempApp.table.image"}>Image</Translate>
                 </label>
-                <Attachment
-                  image={newFloorPlan?.sections?.[0]?.backgroundImage}
-                  onRemoveImage={removeImage}
-                  onAddImage={addImage}
+                <MediaLibrary
+                    handleFilesSelectCallback={(files) => addImage(transformAttachmentStructure(files, 'toIAttachment')[0])}
+                    defaultValues={transformAttachmentStructure(newFloorPlan?.sections?.[0]?.backgroundImage ? [newFloorPlan?.sections?.[0]?.backgroundImage] : [], 'toFileLibraryListItem')}
                 />
               </div>
               <div className={"d-flex gap-8"}>

@@ -13,6 +13,8 @@ import { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import Attachment from 'app/shared/components/attachment/attachment';
 import { set } from 'lodash';
 import { IAttachment } from 'app/shared/model/attachment.model';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 const Slider = ({
     sliderSettings,
@@ -24,7 +26,7 @@ const Slider = ({
     const [animating, setAnimating] = useState<boolean>(false);
     const [isMobileView, setIsMobileView] = useState(false);
 
-    const [image, setImage] = useState<IAttachment | null>(null);
+    const [image, setImage] = useState<IAttachment[] | null>(null);
     const [text, setText] = useState<string>('');
 
 
@@ -85,7 +87,7 @@ const Slider = ({
 
     const handleImageChange = () => {
         const newSlider: ISliderSettings = {
-            image,
+            image: image[0],
             text,
             buttonSetting: {
                 text: '',
@@ -112,10 +114,9 @@ const Slider = ({
                 flexDirection: 'column',
                 gap: '10px'
             }}>
-                <Attachment
-                    image={image}
-                    onRemoveImage={() => setImage(null)}
-                    onAddImage={(imageInfo) => setImage(imageInfo)}
+                <MediaLibrary
+                    handleFilesSelectCallback={(files) => setImage(transformAttachmentStructure(files, 'toIAttachment'))}
+                    defaultValues={transformAttachmentStructure(image, 'toFileLibraryListItem')}
                 />
                 <InputText
                     placeholder="Enter text"
