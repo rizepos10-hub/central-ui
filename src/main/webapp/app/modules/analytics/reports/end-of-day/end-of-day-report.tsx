@@ -5,7 +5,6 @@ import axios from "axios";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 
 import {Alert, Spinner} from "reactstrap";
-import UnclosedOrders from "app/modules/analytics/reports/unclosed-orders";
 import {useParams} from "react-router-dom";
 import {translate, Translate} from "react-jhipster";
 const EndOfDayReport = () => {

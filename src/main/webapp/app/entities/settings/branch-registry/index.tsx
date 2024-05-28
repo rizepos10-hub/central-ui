@@ -7,9 +7,9 @@ import BranchRegistryUpdate from "app/entities/settings/branch-registry/branch-r
 
 const BranchRegistryRoutes = () => (
   <ErrorBoundaryRoutes>
-    <Route index element={<BranchRegistry />} />
+    <Route index element={<BranchRegistry  />} />
     <Route path=":id">
-      <Route path="edit" element={<BranchRegistryUpdate />} />
+      <Route path="edit" element={<BranchRegistryUpdate  />} />
     </Route>
   </ErrorBoundaryRoutes>
 );

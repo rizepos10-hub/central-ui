@@ -11,16 +11,18 @@ import { InputNumber } from 'primereact/inputnumber';
 import { convertDateTimeFromServer, toLocalISOString } from 'app/shared/util/date-utils';
 import { Calendar } from 'primereact/calendar';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { useNavigate, useParams } from "react-router-dom";
 
-export const PreviousTill = ({ registryId }: { registryId: string }) => {
+export const PreviousTill = ({ registryId, isRegisterClosure }: { registryId: string, isRegisterClosure: boolean | undefined}) => {
   const dispatch = useAppDispatch();
+  const { id, tillId } = useParams();
 
   const tillsList: ITill[] = useAppSelector(state => state.till.entities);
   const loading = useAppSelector(state => state.till.loading);
   const updating = useAppSelector(state => state.till.updating);
   const updateSuccess = useAppSelector(state => state.till.updateSuccess);
   const totalItems = useAppSelector(state => state.till.totalItems);
-
+  const navigate = useNavigate();
 
   const [lazyState, setLazyState] = useState({
     first: 0,
@@ -92,9 +94,7 @@ export const PreviousTill = ({ registryId }: { registryId: string }) => {
     return <InputNumber value={options.value} onValueChange={e => options.editorCallback(e.value)} />;
   };
 
-  const allowEdit = (rowData: ITill) => {
-    return rowData.status === 'OPENED';
-  };
+
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
@@ -107,7 +107,10 @@ export const PreviousTill = ({ registryId }: { registryId: string }) => {
       <DataTable
         value={tillsList} header={header} loading={loading || updating}  onRowEditComplete={onRowEditComplete}
         editMode="row" removableSort filters={lazyState.filters} filterDisplay="row" paginator
+        selectionMode ={ isRegisterClosure ? "single" : undefined}
+        onSelectionChange={(e) => navigate(`/analytics/register-closure/${id}/edit/${e.value.id}`)}
         totalRecords={totalItems} rows={20} lazy first={lazyState.first} onSort={onSort}
+
         onPage={onPage} sortField={lazyState.sortField} sortOrder={lazyState.sortOrder} showGridlines
       >
         <Column field="status" header="Status" />
@@ -142,7 +145,6 @@ export const PreviousTill = ({ registryId }: { registryId: string }) => {
           header="End Date"
         />
 
-        <Column rowEditor={allowEdit} headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }} />
       </DataTable>
     </div>
   );

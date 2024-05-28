@@ -1,11 +1,11 @@
-
-
 import salesReportReducer from "app/modules/analytics/reports/sales-report/sales-report.reducer";
+import summaryReport from "./reports/end-of-day/end-of-day.reducer"
 
-/* jhipster-needle-add-reducer-import - JHipster will add reducer here */
+
 
 const analyticsReducers = {
-  salesReportReducer
+  salesReportReducer,
+  summaryReport
 };
 
 export default analyticsReducers;

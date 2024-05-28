@@ -4,18 +4,17 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {searchEntities, getEntities, filterOrders, getOrderSources, getOrderStatuses} from './order.reducer';
+import { filterOrders, getOrderSources, getOrderStatuses} from './order.reducer';
 
 
-import { searchEntities as searchBranches, getEntities as getBranches } from '../branch/branch.reducer';
-import {format, formatISO} from "date-fns";
-import {DataTable, DataTableFilterMeta} from "primereact/datatable";
+import {  getEntities as getBranches } from '../branch/branch.reducer';
+import {format, } from "date-fns";
+import {DataTable, } from "primereact/datatable";
 import {Column} from "primereact/column";
-import {fromPairs} from "lodash";
 import {Dropdown} from "primereact/dropdown";
 import { startOfDay, endOfDay } from 'date-fns';
 import {InputText} from "primereact/inputtext";
-import {translate, Translate} from "react-jhipster";
+import {translate, } from "react-jhipster";
 
 interface LazyTableState {
   first: number;
@@ -37,11 +36,8 @@ const Order = () => {
   const from = startOfDay(today);
   const to = endOfDay(today);
 
-  const [selectAll, setSelectAll] = useState(false);
-  const [selectedOrders, setSelectedOrders] = useState(null);
 
-
-  const [orderStatuses, setOrderStatuses]:any = useState([]);
+  const [orderStatuses, setOrderStatuses] :any = useState([]);
 
   const [lazyState, setLazyState] = useState<LazyTableState>({
     first: 0,
@@ -77,19 +73,9 @@ const Order = () => {
 
 
   const getBranchName = (branchId) => {
-    console.log(branchId, 'branchID')
     const branch = branchList.find(branch => branch.id === branchId);
-    console.log(branch, 'branch')
-
     return branch ? branch.name : 'Unknown Branch';
   };
-
-  const statusOptions = [
-    { label: 'DRAFT', value: 'DRAFT' },
-    { label: 'Kitchen', value: 'KITCHEN' },
-    { label: 'Delivered', value: 'DELIVERED' },
-    { label: 'Done', value: 'DONE' }
-  ];
 
   const filteredBranchOptions = branchList
     .map((branch) => ({
@@ -102,9 +88,6 @@ const Order = () => {
 
 
   const onFilter = (event) => {
-
-    console.log(from,'from')
-    console.log(to, 'to')
     event['first'] = 0;
     setLazyState(event);
   };
@@ -114,14 +97,13 @@ const Order = () => {
 
 
   const onSort = (event) => {
-    console.log(event, 'event');
     const sortField = event.sortField;
     const sortOrder = event.sortOrder;
     setLazyState((prev) => ({
       ...prev,
       first: 10,
-      sortField: sortField,
-      sortOrder: sortOrder,
+      sortField,
+      sortOrder,
     }));
   };
   const onPage = (event) => {
@@ -129,9 +111,7 @@ const Order = () => {
   };
 
 
-
   useEffect(() => {
-
     const queryParams = {
       orderSource: lazyState.filters.orderSource?.value || '',
       orderStatus: lazyState.filters.status?.value || '',
@@ -149,8 +129,12 @@ const Order = () => {
 
     };
 
-      dispatch(filterOrders(queryParams));
+    dispatch(filterOrders(queryParams));
 
+  }, [lazyState]);
+
+
+  useEffect(() => {
     dispatch(getBranches({}))
 
     dispatch(getOrderSources())
@@ -159,13 +143,10 @@ const Order = () => {
       .then((response :any) => {
         setOrderStatuses(response.payload?.map((status) => ({label: status, value: status})));
       })
-  }, [lazyState]);
+  }, []);
 
 
 
-
-
-  console.log(orderList.length, 'len')
   return (
         <div className="p-3 mb-2" style={{ background: 'var(--surface-card)', borderRadius: '10px'}}>
         <DataTable
