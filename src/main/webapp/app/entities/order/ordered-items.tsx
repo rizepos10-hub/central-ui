@@ -7,60 +7,86 @@
   import { IOrderedAddon } from 'app/shared/model/ORDER/ordered-addon.model';
   import {TreeTable} from "primereact/treetable";
   import {Column} from "primereact/column";
+  import { DataTable } from "primereact/datatable";
 
   interface OrderedItems {
     list: IOrderedItem[];
     totalPayments: number
   }
   export const OrderedItems: React.FC<OrderedItems> = ({ list,totalPayments }) => {
-    const transformAddonToTreeNode = (addon) => ({
-      key: `addon-${addon.id}`,
-      data: {
-        name: addon.name,
-        amount: addon.amount,
-        price: addon.price.toFixed(2),
-        discount: addon.discount
-          ? addon.discount.type === 'PERCENTAGE'
-            ? `${addon.discount.value}%`
-            : `${addon.discount.value.toFixed(2)}`
-          : '-',
-      },
-    });
 
-    const transformItemToTreeNode = (item: IOrderedItem) => ({
-      key: `item-${item.id}`,
-      data: {
-        name: item.itemName,
-        variant: item.variantName,
-        amount: item.amount.toFixed(2),
-        returnedAmount: item.returnedAmount.toFixed(2),
-        totalAmount: (item.amount - item.returnedAmount).toFixed(2),
-        discount: item.discount
-          ? item.discount.type === 'PERCENTAGE'
-            ? `${item.discount.value}%`
-            : `${item.discount.value.toFixed(2)}`
-          : '-',
-        price: item.price.toFixed(2),
-        total: (item.price * (item.amount - item.returnedAmount)).toFixed(2),
-      },
-      children: item.addons.map(transformAddonToTreeNode),
-    });
+    const calculateAllItemsPrice = () => {
+      return list.reduce((acc, item) => {
+        return acc + calculateTotalItemPriceWithAddonsAndDiscounts(item);
+      }, 0);
+    }
 
+    const calculateAllItemsPriceBeforeDiscount = () => {
+      return list.reduce((acc, item) => {
+        return acc + item.price * item.amount;
+      }, 0);
+    }
 
-    const treeData = list.map(transformItemToTreeNode);
+    const calculateSubtractedDiscounts = () => {
+      return list.reduce((acc, item) => {
+        const totalAddonDiscounts = item.addons?.reduce((addonAcc, addon) => {
+          return addonAcc + calculateDiscount(addon);
+        }, 0) || 0;
 
-    const subtotal = list.reduce((acc, item) => acc + item.price * (item.amount - item.returnedAmount), 0);
-    const totalDiscounts = list.reduce((acc, item) => {
+        return acc + calculateDiscount(item) + totalAddonDiscounts;
+      }, 0);
+    }
+
+    const calculateDiscount = (item: IOrderedItem) => {
       if (item.discount?.type === 'PERCENTAGE') {
-        return acc + (item.price * item.discount.value * item.amount) / 100;
+        return (item.price * item.discount.value) / 100;
       } else if (item.discount?.type === 'FLAT') {
-        return acc + (item.discount.value !== undefined ? item.discount.value * item.amount : 0);
+        return item.discount.value !== undefined ? item.discount.value : 0;
       } else {
-        return acc;
+        return 0;
       }
-    }, 0);
+    }
 
-    const totalPrice = subtotal - totalDiscounts;
+
+    const calculateTotalItemPriceWithAddonsAndDiscounts = (item: IOrderedItem) => {
+      const itemPrice = item.price * item.amount;
+      const addonsPrice = item.addons?.reduce((acc, addon) => {
+        return acc + calculateAddonPriceAfterDiscount(addon) * addon.amount;
+      }, 0);
+      const itemTotalPrice = itemPrice + addonsPrice;
+      const itemDiscount = item.discount?.type === 'PERCENTAGE' ? (itemTotalPrice * item.discount.value) / 100 : item.discount?.value !== undefined ? item.discount.value : 0;
+      return itemTotalPrice - itemDiscount;
+    }
+
+    const calculateAddonPriceAfterDiscount = (addon: IOrderedAddon) => {
+      if (addon.discount?.type === 'PERCENTAGE') {
+        return addon.price - (addon.price * addon.discount.value) / 100;
+      } else if (addon.discount?.type === 'FLAT') {
+        return addon.price - (addon.discount.value !== undefined ? addon.discount.value : 0);
+      } else {
+        return addon.price;
+      }
+    };
+
+
+    const nameBodyTemplate = (rowData: IOrderedItem) => {
+      return (
+        <div className="d-flex flex-column">
+          <div className="ml-3">
+            <div>{rowData.itemName}</div>
+            {rowData?.addons?.length > 0 && (
+              <>
+                {rowData.addons.map((addon: IOrderedAddon, index: number) => (
+                  <div key={index}>
+                    + {addon.name} (x {addon.amount.toFixed(1)}) {(calculateAddonPriceAfterDiscount(addon) * addon.amount).toFixed(1)}
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
 
 
     return (
@@ -68,16 +94,17 @@
 
           <div>
             {list && list.length > 0 ? (
-              <TreeTable value={treeData}   resizableColumns showGridlines columnResizeMode="expand" tableStyle={{ minWidth: '70rem' }} className="mt-4">
-                <Column field="name"  header={translate('orders.details.itemsCard.table.name')}  />
-                <Column field="variant"   header={translate('orders.details.itemsCard.table.variant')}  />
-                <Column field="amount" header={translate('orders.details.common.amount')}  />
-                <Column field="returnedAmount" headerStyle={{width: '158px'}}  header={translate('orders.details.itemsCard.table.returnedAmount')} />
-                <Column field="totalAmount"  headerStyle={{width: '148px'}} header={translate('orders.details.itemsCard.table.totalAmount')}  />
-                <Column field="discount" header={translate('orders.details.common.discount')} />
+              <DataTable value={list}   resizableColumns showGridlines columnResizeMode="expand" tableStyle={{ minWidth: '70rem' }} className="mt-4">
+                <Column expander style={{ width: '5rem' }} />
+                <Column field="itemName" body={nameBodyTemplate}  header={translate('orders.details.itemsCard.table.name')}  />
+                <Column field="variantName"   header={translate('orders.details.itemsCard.table.variant')}  />
+                <Column field="amount" header={translate('orders.details.common.quantity')}  />
+                <Column field="returnedAmount" headerStyle={{width: '158px'}}  header={translate('orders.details.common.returnedQuantity')} />
+                <Column body={(rowData) => rowData.amount - (rowData?.returnedAmount || 0)}  headerStyle={{width: '148px'}} header={translate('orders.details.common.totalQuantity')}  />
+                <Column body={(rowDate) => calculateDiscount(rowDate)} header={translate('orders.details.common.discount')} />
                 <Column field="price" header={translate('orders.details.common.price')} />
-                <Column field="total" header={translate('orders.details.common.total')}  />
-              </TreeTable>
+                <Column body={(rowData) => calculateTotalItemPriceWithAddonsAndDiscounts(rowData)} header={translate('orders.details.common.total')}  />
+              </DataTable>
 
             ) : (
               <div><Translate contentKey={'orders.details.itemsCard.emptyMessage'}>No items available.</Translate></div>
@@ -89,19 +116,19 @@
             <div>
               <strong>{translate('orders.details.common.subtotal')}</strong>
             </div>
-            <div className="text-center">$ {subtotal.toFixed(2)}</div>
+            <div className="text-center">$ {calculateAllItemsPriceBeforeDiscount().toFixed(2)}</div>
           </div>
           <div className="d-flex justify-content-between my-2">
             <div>
               <strong>{translate('orders.details.common.totalDiscounts')}</strong>
             </div>
-            <div className="text-center">$ {totalDiscounts.toFixed(2)}</div>
+            <div className="text-center">$ {calculateSubtractedDiscounts().toFixed(2)}</div>
           </div>
           <div className="d-flex justify-content-between my-2">
             <div>
               <strong>{translate('orders.details.common.totalPrice')}</strong>
             </div>
-            <div className="text-center">$ {totalPrice.toFixed(2)}</div>
+            <div className="text-center">$ {calculateAllItemsPrice().toFixed(2)}</div>
           </div>
           <div className="d-flex justify-content-between my-2">
             <div>
@@ -113,7 +140,7 @@
             <div>
               <strong>{translate('orders.details.common.remaining')}</strong>
             </div>
-            <div className="text-center">$ {(totalPrice - totalPayments).toFixed(2) }</div>
+            <div className="text-center">$ {(calculateAllItemsPrice() - totalPayments).toFixed(2) }</div>
           </div>
         </Card>}
       </div>
