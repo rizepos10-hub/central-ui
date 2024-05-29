@@ -89,6 +89,32 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
 
   useEffect(() => {
 
+    dispatch(getTags({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      }));
+    dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getProductionCenters({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getAccountingGroups({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+  }, []);
+
+  useEffect(() => {
     if(isVariableItem){
       dispatch(getDiscounts({
         page: paginationState.activePage - 1,
@@ -102,8 +128,7 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
-      }));
-      dispatch(
+      }));dispatch(
         getRestaurantItems({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
@@ -127,33 +152,7 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
     }
-
-    dispatch(
-      getTags({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      })
-    );
-    dispatch(getDiscounts({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-
-    dispatch(getProductionCenters({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-
-    dispatch(getAccountingGroups({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-
-  }, []);
+  }, [isRestaurantItem, isRetailItem, isVariableItem]);
 
   const [openedAddonModal, setOpenedAddonModal] = useState(false);
   const openImportAddonModal = () => {
