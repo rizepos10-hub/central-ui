@@ -12,6 +12,8 @@ import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
 import Select from "react-select";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 export const UpdateMenuCategory = () => {
   const dispatch = useAppDispatch();
@@ -130,7 +132,7 @@ export const UpdateMenuCategory = () => {
 
   };
 
-
+  console.log(selectedAttachments)
 console.log(termEntity)
   const saveEntity = values => {
     setSelectedImage('')
@@ -211,65 +213,11 @@ console.log(termEntity)
 
 
               <div className="mb-3">
-                <ValidatedField
-                  label={translate('menus.category.update.image')}
-                  id="item-image"
-                  name="image"
-                  data-cy="image"
-                  type="file"
-                  onChange={handleImageChange}
-                  accept="image/*"
+                <MediaLibrary
+                  handleFilesSelectCallback={(files) => setSelectedAttachments((prevAttachments) => [transformAttachmentStructure(files, 'toIAttachment')[0]])}
+                  defaultValues={transformAttachmentStructure(selectedAttachments ? selectedAttachments : [], 'toFileLibraryListItem')}
                 />
-                <div className="mb-3">
-                  {selectedAttachments.map((attachment, index) => (
-                    <div key={index} style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
-                      <img
-                        src={attachment.url}
-                        alt={attachment.name}
-                        className="img-fluid"
-                        style={{
-                          maxWidth: '100px',
-                          maxHeight: '100px',
-                        }}
-                      />
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '5px',
-                          right: '5px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                          borderRadius: '50%',
-                          padding: '2px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => removeAttachment(attachment.id)}
-                      >
-                        <FontAwesomeIcon icon={faTrashAlt}  />
-                      </div>
-                    </div>
-
-                  ))}
-                  {selectedImage && (
-                    <img
-                      src={URL.createObjectURL(selectedImage)}
-                      alt="Selected Image"
-                      className="img-fluid m-lg-1"
-                      style={{
-                        maxWidth: '100px',
-                        maxHeight: '100px',
-                      }}
-                    />
-                  )}
-
-                  {selectedImage && uploadImageStatus === 'success' && (
-                    <div className={`alert alert-${uploadImageStatus === 'success' ? 'success' : 'danger'}`}
-                         role="alert">
-                      {uploadImageStatus === 'success' && 'Uploaded successfully!'}
-                    </div>
-                  )}
-                </div>
               </div>
-
               <div className="my-4 p-1">
                 <label><Translate contentKey={'menus.category.update.parents'}>Parents</Translate></label>
                 <Select options={termOptions} value={selectedParent} isClearable onChange={handleParentChange} />

@@ -92,6 +92,18 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const deleteEntities = createAsyncThunk(
+  'attachment/delete_entity',
+  async (ids: IAttachment['id'][]) => {
+    const requestUrl = `${apiUrl}/list`;
+    const result = await axios.delete<IAttachment['id'][]>(requestUrl, {
+      data: ids
+    });
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 // slice
 
 export const AttachmentSlice = createEntitySlice({

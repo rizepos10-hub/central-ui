@@ -289,7 +289,7 @@ export default function Home() {
             color: textColor,
             usePointStyle: true,
             font: {
-              weight: '700'
+              weight: 'bold'
             },
             padding: 28
           },

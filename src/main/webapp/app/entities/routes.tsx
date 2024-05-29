@@ -59,6 +59,9 @@ import SupplierReturn from "app/entities/inventory/supplier-return";
 import ItemMeasure from "app/entities/item-measure";
 import MixAndMatchRule from "app/entities/mix-and-match-rule"
 import Product from "app/entities/item/retail/product";
+import Tag from "app/entities/tag";
+import TagGroup from "app/entities/tag-group";
+import BranchRegistry from "app/entities/settings/branch-registry";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -79,6 +82,7 @@ export default () => {
         <Route path="addon/*" element={<Addon />} />
         <Route path="addon-groups/*" element={<AddonGroups />} />
 
+
         <Route path="category/*" element={<Term />} />
         <Route path="order/*" element={<Order />} />
 
@@ -92,6 +96,7 @@ export default () => {
 
         <Route path="production-center/*" element={<ProductionCenter />} />
 
+        <Route path="branch-registry/*" element={<BranchRegistry />} />
 
         <Route path="void-reasons/*" element={<VoidReasons />} />
 
@@ -124,6 +129,8 @@ export default () => {
 
         <Route path="item-measure/*" element={<ItemMeasure />} />
         <Route path="mix-and-match-rule/*" element={<MixAndMatchRule />} />
+        <Route path="tag/*" element={<Tag />} />
+        <Route path="tag-group/*" element={<TagGroup />} />
 
 
         <Route path="currencies/*" element={<CurrencySettings />} />
@@ -132,13 +139,7 @@ export default () => {
         <Route path="tv-display/*" element={<TvDisplay />} />
 
 
-        <Route path="inventory/supplier/*" element={<Supplier />} />
-        <Route path="inventory/sales-location/*" element={<SalesLocation />} />
-        <Route path="inventory/warehouse/*" element={<Warehouse />} />
-        <Route path="inventory/purchase-order/*" element={<PurchaseOrder />} />
-        <Route path="inventory/stock/*" element={<StockConfig />} />
-        <Route path="inventory/transfer-request/*" element={<TransferRequest />} />
-        <Route path="inventory/supplier-return/*" element={<SupplierReturn />} />
+
 
         <Route path="online-ordering/*" element={<OnlineOrderingRoutes />} />
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {  useNavigate } from 'react-router-dom';
 import {Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert, Card} from 'reactstrap';
 import {Card as PrimeCard} from 'primereact/card'
@@ -12,8 +12,18 @@ import { uploadImage } from 'app/entities/attachment/attachment.reducer';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import {InputText} from "primereact/inputtext";
 import {Button as PrimeButton} from "primereact/button"
-import {IBusinessDetail} from "app/shared/model/business-detail.model";
+import {IBusinessDetail, Metric} from "app/shared/model/business-detail.model";
 import {Checkbox} from "primereact/checkbox";
+import { APIProvider, Map, MapMouseEvent, Marker } from '@vis.gl/react-google-maps';
+import { RequestType, fromAddress, geocode, setKey } from 'react-geocode';
+import { toast } from 'react-toastify';
+import { InputNumber } from 'primereact/inputnumber';
+import SearchPredictions from 'app/shared/components/google/search-predictions';
+import usePlacesService from "react-google-autocomplete/lib/usePlacesAutocompleteService";
+import _ from 'lodash';
+import { RadioButton } from 'primereact/radiobutton';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
@@ -31,7 +41,7 @@ export const BusinessDetailUpdate = () => {
   const isNew = businessDetailEntity === undefined;
 
 
-  const [businessDetailsState, setBusinessDetailsState] = useState({
+  const [businessDetailsState, setBusinessDetailsState] = useState<IBusinessDetail>({
     businessName: '',
     slogan: '',
     address: {
@@ -39,10 +49,69 @@ export const BusinessDetailUpdate = () => {
       city: '',
       state: '',
       postalCode: '',
+      fullAddress: '',
+      longitude: 0,
+      latitude: 0,
     },
     branchDetails: []
   });
 
+
+  const [openResultMenu, setOpenResultMenu] = useState<boolean>(false);
+
+  // key for geocode
+  setKey(GOOGLE_MAPS_API_KEY)
+  
+  const {
+    placesService,
+    placePredictions,
+    getPlacePredictions,
+    isPlacePredictionsLoading,
+  } = usePlacesService({
+    apiKey: GOOGLE_MAPS_API_KEY,
+  });
+
+  const searchPredictionsChangeHandler = (e: React.ChangeEvent<HTMLInputElement>, branchIndex) => {
+    getPlacePredictions({ input: e.target.value });
+    handleBranchAddressFieldChange(branchIndex, {
+      ...businessDetailsState?.branchDetails[branchIndex].address,
+      fullAddress: e.target.value,
+    });
+    setOpenResultMenu(true);
+  }
+
+  const handlePredictionResultClick = (result: string, branchIndex) => {
+      fromAddress(result).then((response) => {
+          const { lat, lng } = response.results[0].geometry.location;
+          handleBranchAddressFieldChange(branchIndex, {
+            latitude: lat,
+            longitude: lng,
+            fullAddress: result
+          });
+      }).catch((error) => {
+          console.log('Geocode error:', error);
+      });
+      setOpenResultMenu(false);
+  }
+
+
+  const predictionsTextResults = useMemo(() => {
+    return placePredictions.map((prediction) => prediction.description);
+  }, [placePredictions])
+
+  const handleGeocode = (e: MapMouseEvent, branchIndex) => {
+    geocode(RequestType.LATLNG, `${e.detail.latLng.lat},${e.detail.latLng.lng}`)
+    .then(({ results }) => {
+      handleBranchAddressFieldChange(branchIndex, {
+        latitude: e.detail.latLng.lat,
+        longitude: e.detail.latLng.lng,
+        fullAddress: results[0].formatted_address
+      });
+    })
+    .catch(err => (
+      toast.error(`Error fetching address: ${err}`)
+    ));
+  }
 
   const [selectedAttachments, setSelectedAttachments]:any = useState(null)
 
@@ -73,16 +142,39 @@ export const BusinessDetailUpdate = () => {
         street: "",
         city: "",
         state: "",
-        postalCode: ""
+        postalCode: "",
+        fullAddress: "",
+        longitude: 0,
+        latitude: 0,
       };
     }
     branch.address[field] = value;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
+  
 
-
-
-
+  const handleBranchAddressFieldChange = (branchIndex, updates) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    const branch = newData[branchIndex];
+  
+    if (!branch.address) {
+      branch.address = {
+        street: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        fullAddress: "",
+        longitude: 0,
+        latitude: 0,
+      };
+    }
+  
+    Object.keys(updates).forEach(field => {
+      branch.address[field] = updates[field];
+    });
+  
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
 
   const handleClose = () => {
     navigate('/details' + location.search);
@@ -219,6 +311,16 @@ export const BusinessDetailUpdate = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
 
+  const metrics = [Metric.KILOMETERS, Metric.MILES, Metric.NEUTRAL];
+  
+  const handleDeliveryConfiguration = (branchIndex, field, value) => {
+    setBusinessDetailsState(prevState => {
+      const newState = _.cloneDeep(prevState);
+      _.set(newState.branchDetails[branchIndex].deliveryConfiguration, field, value);
+      return newState;
+    });
+  };
+
   const handleFieldChange = (e) => {
     const { name, value, type, files } = e.target;
     if (name.includes('.')) {
@@ -293,47 +395,21 @@ export const BusinessDetailUpdate = () => {
                 onChange={handleFieldChange}
 
               />
-              <ValidatedField
-                label={'Logo'}
-                id="item-image"
-                name="image"
-                data-cy="image"
-                type="file"
-                onChange={handleImageChange}
-                accept="image/*"
-              />
-                <div style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
-                  <div className="mb-3">
-                    <div style={{ display: 'inline-block', marginRight: '10px', position: 'relative' }}>
-                      <img
-                        src={selectedAttachments?.url}
-                        alt={selectedAttachments?.name}
-                        className="img-fluid"
-                        style={{
-                          maxWidth: '100px',
-                          maxHeight: '100px',
-                        }}
-                      />
-                      {selectedAttachments?.id && <div
-                        style={{
-                          position: 'absolute',
-                          top: '5px',
-                          right: '5px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                          borderRadius: '50%',
-                          padding: '2px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => setSelectedAttachments(() => null)}
-                      >     <FontAwesomeIcon icon={faTrashAlt}  />
-                      </div>
+              <div className='d-flex flex-column gap-2'>
+                <div className='fw-light'>
+                  Logo
+                </div>
+                <div className='w-25'>
+                  {businessDetailsState && (
+                    <MediaLibrary
+                      sizePerPage={80}
+                      handleFilesSelectCallback={(files) => setSelectedAttachments(transformAttachmentStructure(files, 'toIAttachment')[0])}
+                      defaultValues={
+                        businessDetailsState?.logo ?  transformAttachmentStructure([businessDetailsState.logo], 'toFileLibraryListItem') :
+                        undefined
                       }
-
-                    </div>
-
-
-
-
+                    />
+                  )}  
                 </div>
               </div>
               <h4>Address Details</h4>
@@ -409,6 +485,29 @@ export const BusinessDetailUpdate = () => {
 
                           <label className="font-bold my-2">Branch Address</label>
                           <div className='d-flex flex-column'>
+                              
+                            <SearchPredictions 
+                              placeHolder="Search for an address"
+                              handleInputChange={(e) => searchPredictionsChangeHandler(e, branchIndex)}
+                              searchTerm={branch.address?.fullAddress || ''}
+                              searchResults={predictionsTextResults}
+                              isLoading={isPlacePredictionsLoading}
+                              showResults={openResultMenu}
+                              handleClick={(result) => handlePredictionResultClick(result, branchIndex)}
+                            />
+                            <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+                              <Map
+                                style={{width: '500px', height: '500px'}}
+                                defaultCenter={{lat: branch.address?.latitude || 0 , lng: branch.address?.longitude || 0}}
+                                defaultZoom={3}
+                                gestureHandling={'greedy'}
+                                disableDefaultUI={true}
+                                onClick={(e) => handleGeocode(e, branchIndex)}
+                              >
+                                <Marker position={{lat: branch.address?.latitude || 0 , lng: branch.address?.longitude || 0}} />
+                              </Map>
+                            </APIProvider>
+                           
                             <label className="font-bold">Street</label>
                             <InputText
                               type="text"
@@ -440,14 +539,110 @@ export const BusinessDetailUpdate = () => {
                             />
 
                           </div>
-                          <div className="ml-auto mt-2">
-                          <Button
-                            type="button"
-                            className="btn btn-primary btn-sm ml-2"
-                            onClick={() => setEditingBranch(null)}
-                          >
-                            Save
-                          </Button>
+                          <div className="mt-2">
+                            <Col>
+                              <Row>
+                                <label className="font-bold my-2">
+                                  Delivery Configuration
+                                </label>
+                              </Row>
+
+                              <div className='p-2'>
+                                <Row>
+                                  <label className="font-bold">
+                                    Charge Per Distance
+                                  </label>
+                                </Row>
+                                <div className='p-2'>
+                                  <div className="flex flex-wrap gap-3">
+                                    <div className='flex flex-column gap-1'>
+                                      <label className='font-bold'>Distance</label>
+                                      <InputNumber
+                                        placeholder="Distance Value"
+                                        value={branch.deliveryConfiguration?.chargePerDistance.distance.value}
+                                        onChange={(e) => 
+                                          handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.value', e.value)
+                                        }
+                                      />
+                                    </div>
+
+                                    {metrics.map((metric, idx) => (
+                                      <div className="flex align-items-center" key={idx}>
+                                        <RadioButton
+                                          inputId={`charge-metric-${idx}`}
+                                          name={`charge-metric-${branchIndex}`}
+                                          value={metric}
+                                          checked={branch.deliveryConfiguration?.chargePerDistance?.distance?.metric === metric}
+                                          onChange={(e) => handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.metric', metric)}
+                                        />
+                                        <label htmlFor={`charge-metric-${idx}`} className="ml-2">{metric}</label>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <div className='flex flex-column gap-1'>
+                                      <label className='font-bold'>Charge</label>
+                                      <InputNumber
+                                        placeholder="Charge"
+                                        value={branch.deliveryConfiguration?.chargePerDistance.charge}
+                                        onChange={(e) => handleDeliveryConfiguration(branchIndex, 'chargePerDistance.charge', e.value)}
+                                      />
+                                  </div>
+                                </div>
+                              </div>
+                              <div className='p-2'>
+                                <Row>
+                                  <label className="font-bold">
+                                    Shipment Range
+                                  </label>
+                                </Row>
+                                
+                                <div className="flex flex-wrap gap-3 p-2">
+                                  <div className='flex flex-column gap-1'>
+                                    <label className='font-bold'>Distance</label>
+                                    <InputNumber
+                                      placeholder="Distance Value"
+                                      value={branch.deliveryConfiguration?.shipmentRange.value}
+                                      onChange={(e) => handleDeliveryConfiguration(branchIndex, 'shipmentRange.value', e.value)}
+                                    />
+                                  </div>
+
+                                  {metrics.map((metric, idx) => (
+                                    <div className="flex align-items-center" key={idx}>
+                                      <RadioButton
+                                        inputId={`shipment-metric-${idx}`}
+                                        name={`shipment-metric-${branchIndex}`}
+                                        value={metric}
+                                        checked={branch.deliveryConfiguration?.shipmentRange?.metric === metric}
+                                        onChange={(e) => handleDeliveryConfiguration(branchIndex, 'shipmentRange.metric', metric)}
+                                      />
+                                      <label htmlFor={`shipment-metric-${idx}`} className="ml-2">{metric}</label>
+                                    </div>
+                                  ))}
+                                </div>
+                            </div>
+                            <div className='p-2'>
+                                <Row>
+                                  <label className="font-bold">
+                                    Minimum Charge
+                                  </label>
+                                </Row>
+
+                                <InputNumber
+                                  placeholder="Distance Value"
+                                  value={branch.deliveryConfiguration?.minCharge}
+                                  onChange={(e) => handleDeliveryConfiguration(branchIndex, 'minCharge', e.value)}
+                                />
+                            </div>
+                            </Col>
+
+                            <Button
+                              type="button"
+                              className="btn btn-primary btn-sm ml-2"
+                              onClick={() => setEditingBranch(null)}
+                            >
+                              Save
+                            </Button>
                           </div>
                         </div>
                       ) : (

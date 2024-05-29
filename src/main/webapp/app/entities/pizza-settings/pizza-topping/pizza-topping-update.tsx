@@ -18,6 +18,8 @@ import {getEntities as getToppingGroups, createEntity as createToppingGroup} fro
 import Attachment from "app/shared/components/attachment/attachment";
 import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
 import Select from "react-select";
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 export const PizzaToppingUpdate = () => {
   const dispatch = useAppDispatch();
@@ -98,7 +100,8 @@ export const PizzaToppingUpdate = () => {
   }
 
   const handleAddImage = (imageType, imageInfo) => {
-    setPizzaTopping((prevState) => ({...prevState, [imageType]:imageInfo }))
+    console.log(imageInfo, 'imageInfo')
+    setPizzaTopping((prevState) => ({...prevState, [imageType]:transformAttachmentStructure(imageInfo, 'toIAttachment')[0]}))
   }
 
   const handleRemoveImage = (imageType) => {
@@ -184,19 +187,17 @@ export const PizzaToppingUpdate = () => {
 
                 <div className={"d-flex flex-column my-2"}>
                   <Label >Topping Image</Label>
-                  <Attachment
-                    onAddImage={(imageInfo) => handleAddImage("image", imageInfo)}
-                    onRemoveImage={() => handleRemoveImage("image")}
-                    image={pizzaTopping?.image}
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => handleAddImage("image", files)}
+                    defaultValues={transformAttachmentStructure(pizzaTopping?.image ? [pizzaTopping?.image]: [], 'toFileLibraryListItem')}
                   />
                 </div>
 
                 <div className={"d-flex flex-column my-2"}>
                   <Label >Topping Icon</Label>
-                  <Attachment
-                    onAddImage={(imageInfo) => handleAddImage("icon", imageInfo)}
-                    onRemoveImage={() => handleRemoveImage("icon")}
-                    image={pizzaTopping?.icon}
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => handleAddImage("icon", files)}
+                    defaultValues={transformAttachmentStructure(pizzaTopping?.icon ? [pizzaTopping?.icon]: [], 'toFileLibraryListItem')}
                   />
                 </div>
 

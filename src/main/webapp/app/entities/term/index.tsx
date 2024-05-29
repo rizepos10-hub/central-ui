@@ -7,7 +7,7 @@ import UpdateItemRestaurantCategory from "app/entities/term/restaurant-Item-cate
 import UpdateMenuCategory from "app/entities/term/Menu-Category/update-menu-category";
 import DeleteItemRestaurantCategoryDialog from "app/entities/term/restaurant-Item-category/delete-item-restaurant-category-dialog";
 import DeleteMenuCategoryDialog from "app/entities/term/Menu-Category/delete-menu-category-dialog";
-import MenuCategoriesTest from "app/entities/term/Menu-Category/menu-categories";
+import MenuCategories from "app/entities/term/Menu-Category/menu-categories";
 import RestaurantItemCategory from "app/entities/term/restaurant-Item-category/item-restaurant-categories";
 
 import RetailItemCategory from "app/entities/term/retail-item-category/retail-item-categories"
@@ -26,7 +26,7 @@ const TermRoutes = () => (
     <Route path="retail-items/new" element={<UpdateRetailItemCategory />} />
 
 
-    <Route path="menus" element={<MenuCategoriesTest />} />
+    <Route path="menus" element={<MenuCategories />} />
     <Route path="menus/new" element={<UpdateMenuCategory />} />
 
     <Route path=":id">

@@ -28,6 +28,8 @@ import VariantBranchPrice from "app/shared/components/item/variant-branch-price"
 import { IDiscount } from "app/shared/model/discount.model";
 import { IAddon } from "app/shared/model/ADDON/addon.model";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 
 
@@ -377,10 +379,8 @@ export const RegularItemUpdate = () => {
                                         <label className={'text-xl mt-2 font-bold'}>
                                           <Translate contentKey={'items.update.image'}>Image</Translate>
                                         </label>
-                                        <Attachment
-                                          image={variant?.attachments?.[0]}
-                                          onRemoveImage={() =>  handleVariantFieldChange(variantIndex,'attachments', [])}
-                                          onAddImage={(imageInfo) =>  handleVariantFieldChange(variantIndex,'attachments', [imageInfo])}
+                                        <MediaLibrary 
+                                          handleFilesSelectCallback={(files) => handleVariantFieldChange(variantIndex,'attachments',transformAttachmentStructure(files, 'toIAttachment'))}
                                         />
                                       </div>
                                     </Col>

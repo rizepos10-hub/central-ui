@@ -1,0 +1,77 @@
+{
+  "tempApp": {
+    "layoutSettings": {
+      "home": {
+        "title": "Layout Settings",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Layout Setting",
+        "createOrEditLabel": "Create or edit a Layout Setting",
+        "search": "Search for Layout Setting",
+        "notFound": "No Layout Settings found"
+      },
+      "created": "A new Layout Setting is created with identifier {{ param }}",
+      "updated": "A Layout Setting is updated with identifier {{ param }}",
+      "deleted": "A Layout Setting is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Layout Setting {{ id }}?"
+      },
+      "detail": {
+        "title": "Layout Setting"
+      },
+      "id": "ID",
+      "digitsAfterDecimal": "Digits After Decimal",
+      "itemPerRow": "Item Per Row",
+      "showDeliveryTips": "Show Delivery Tips",
+      "scheduleOrders": "Schedule Orders",
+      "hideModalDescription": "Hide Modal Description",
+      "hideItemDescription": "Hide Item Description",
+      "currencySymbolPosition": "Currency Symbol Position",
+      "orderTaking": "Order Taking",
+      "domain": "Domain",
+      "logo": "Logo",
+      "tabs": {
+        "navbar": {
+          "label": "Navbar",
+          "logo": "Logo",
+          "phone": "Phone Number",
+          "slogan": "Slogan"
+        },
+        "contactInfo": {
+          "label": "Contact Information",
+          "phone": "Phone",
+          "socials": {
+            "label": "Social Media Links",
+            "INSTAGRAM": "Instagram",
+            "FACEBOOK": "Facebook",
+            "TWITTER": "Twitter",
+            "YOUTUBE": "Youtube",
+            "TIKTOK": "Tiktok",
+            "LINKEDIN": "Linked In"
+          }
+        },
+        "slider": {
+          "label": "Slider",
+          "preview": "Preview",
+          "images": "Images"
+        },
+        "specialProducts": {
+          "label": "Special Products",
+          "products": "Special Products",
+          "title": "Title",
+          "subtitle_1": "Subtitle line one",
+          "subtitle_2": "Subtitle line two",
+          "description": "Description",
+          "buttonText": "Button Text"
+        },
+        "restaurantCategories": {
+          "label": "Restaurant Categories",
+          "categories": "Restaurant Categories"
+        },
+        "retailCategories": {
+          "label": "Retail Categories",
+          "categories": "Retail Categories"
+        }
+      }
+    }
+  }
+}

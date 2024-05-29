@@ -23,6 +23,9 @@ import { getEntities as getRestaurantItems } from 'app/entities/item/restaurant/
 import {InputTextarea} from "primereact/inputtextarea";
 import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
+import { getEntities as getTags } from "app/entities/tag/tag.reducer";
+import MediaLibrary from '../media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -51,6 +54,7 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
 
   const accountingGroupsOptions = useAppSelector(state => state.accountingGroup.entities);
   const addonsOptions = useAppSelector(state => state.addon.entities);
+  const tags = useAppSelector(state => state.tag.entities);
   const addonGroupsOptions = useAppSelector(state => state.addonGroups.entities);
   const productionCenterOptions = useAppSelector(state => state.productionCenter.entities);
   const discountList = useAppSelector(state => state.discount.entities);
@@ -60,8 +64,8 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
     onFieldChange('attachments', []);
   };
 
-  const addImage = (newImage) => {
-    onFieldChange('attachments', [newImage]);
+  const addImage = (files) => {
+    onFieldChange('attachments', transformAttachmentStructure(files, 'toIAttachment'));
   };
 
   const handleCheckboxChange = (addonGroupIndex: number) => {
@@ -87,6 +91,32 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
 
   useEffect(() => {
 
+    dispatch(getTags({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      }));
+    dispatch(getDiscounts({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getProductionCenters({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getAccountingGroups({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+  }, []);
+
+  useEffect(() => {
     if(isVariableItem){
       dispatch(getDiscounts({
         page: paginationState.activePage - 1,
@@ -100,8 +130,7 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
-      }));
-      dispatch(
+      }));dispatch(
         getRestaurantItems({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
@@ -124,28 +153,8 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
-
     }
-
-    dispatch(getDiscounts({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-
-    dispatch(getProductionCenters({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-
-    dispatch(getAccountingGroups({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-
-  }, []);
+  }, [isRestaurantItem, isRetailItem, isVariableItem]);
 
   const [openedAddonModal, setOpenedAddonModal] = useState(false);
   const openImportAddonModal = () => {
@@ -171,14 +180,13 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
   const handleImportAddonModalClose = () => {
     setOpenedAddonModal(false);
   };
-  console.log(item, 'itemitem')
 
   return (
     <div>
       <Row>
         <FormGroup className={'d-flex flex-column gap-3'}>
           <Col md="7">
-          {!isSimplePizza ? (
+            {!isSimplePizza ? (
               <div className={'d-flex flex-column gap-2 mt-2'}>
                 <label className={'text-xl font-bold'}>
                   <Translate contentKey={'items.update.name'}>Name</Translate>
@@ -193,7 +201,7 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                   onChange={e => onFieldChange('name', e.target.value)}
                 />
               </div>
-          ) : null}
+            ) : null}
 
             <div className={'d-flex flex-column gap-2 mt-2'}>
               <label className={'text-xl font-bold'}>
@@ -250,35 +258,52 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
               />
             </div>
 
-          {isVariableItem ?
+            <div className={'d-flex flex-column gap-2 mt-2'}>
+              <label className={'text-xl font-bold'}>
+                <Translate contentKey="items.update.tags">Tags</Translate>
+              </label>
+              <Select
+                value={item?.tags}
+                isMulti={true}
+                options={tags}
+                getOptionLabel={option => option.name}
+                getOptionValue={option => option.id}
+                onChange={selectedTags => onFieldChange('tags', selectedTags)}
+              />
+            </div>
+
+            {isVariableItem ?
               <DiscountDropdown
                 discounts={item?.discounts}
                 handleChange={onFieldChange}
               />
-         : null}
+              : null}
 
-          <Row className={'my-3'}>
-            <Col md={'7'}>
-              <div className={'d-flex flex-column mt-2'}>
-                <label className={'text-xl mt-2 font-bold'}>
-                  <Translate contentKey={'items.update.image'}>Image</Translate>
-                </label>
-                <Attachment image={item?.attachments?.[0]} onRemoveImage={removeImage} onAddImage={addImage} />
-              </div>
-            </Col>
-          </Row>
+            <Row className={'my-3'}>
+              <Col md={'7'}>
+                <div className={'d-flex flex-column mt-2'}>
+                  <label className={'text-xl mt-2 font-bold'}>
+                    <Translate contentKey={'items.update.image'}>Image</Translate>
+                  </label>
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => addImage(files)}
+                    defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
+                  />
+                </div>
+              </Col>
+            </Row>
 
-          {isRestaurantItem ? (
-            <>
-              {openedAddonModal && (
-                <AddonImportModal
-                  showModal={openedAddonModal}
-                  handleSave={handleImportAddonModalSave}
-                  handleClose={handleImportAddonModalClose}
-                  itemOptions={restaurantItemsOptions}
-                />
-              )}
-              <Row className={'my-3'}>
+            {isRestaurantItem ? (
+              <>
+                {openedAddonModal && (
+                  <AddonImportModal
+                    showModal={openedAddonModal}
+                    handleSave={handleImportAddonModalSave}
+                    handleClose={handleImportAddonModalClose}
+                    itemOptions={restaurantItemsOptions}
+                  />
+                )}
+                <Row className={'my-3'}>
                   <div className={'d-flex flex-column gap-2 mt-2'}>
                     <label className={'text-xl font-bold'}>
                       <Translate contentKey={'items.update.addons'}>Addons</Translate>
@@ -302,27 +327,27 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                       </Button>
                     </div>
                   </div>
-              </Row>
-              <Row>
-                <div className="mt-2">
-                  <label className={'text-xl font-bold'}>
-                    <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
-                  </label>
-                  <div className="col-md-6">
-                    <Select
-                      isMulti={true}
-                      value={item?.addonGroups?.map(group => ({
-                        id: group.addonGroup?.id,
-                        name: group.addonGroup?.name,
-                      }))}
-                      getOptionLabel={option => option?.name}
-                      getOptionValue={option => option?.id}
-                      options={addonGroupsOptions}
-                      onChange={handleAddonGroupChange}
-                    />
-                  </div>
-                  <Table>
-                    <thead>
+                </Row>
+                <Row>
+                  <div className="mt-2">
+                    <label className={'text-xl font-bold'}>
+                      <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
+                    </label>
+                    <div className="col-md-6">
+                      <Select
+                        isMulti={true}
+                        value={item?.addonGroups?.map(group => ({
+                          id: group.addonGroup?.id,
+                          name: group.addonGroup?.name,
+                        }))}
+                        getOptionLabel={option => option?.name}
+                        getOptionValue={option => option?.id}
+                        options={addonGroupsOptions}
+                        onChange={handleAddonGroupChange}
+                      />
+                    </div>
+                    <Table>
+                      <thead>
                       <tr>
                         <th>
                           <Translate contentKey={'items.update.name'}>Name</Translate>
@@ -331,8 +356,8 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                           <Translate contentKey={'items.update.required'}>Required</Translate>
                         </th>
                       </tr>
-                    </thead>
-                    <tbody>
+                      </thead>
+                      <tbody>
                       {item?.addonGroups?.map((group, index) => (
                         <tr key={index}>
                           <td>{group?.addonGroup?.name}</td>
@@ -341,12 +366,12 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
                           </td>
                         </tr>
                       ))}
-                    </tbody>
-                  </Table>
-                </div>
-              </Row>
-            </>
-          ) : null}
+                      </tbody>
+                    </Table>
+                  </div>
+                </Row>
+              </>
+            ) : null}
           </Col>
         </FormGroup>
       </Row>

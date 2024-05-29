@@ -16,6 +16,9 @@ import {
 import {SelectButton} from "primereact/selectbutton";
 import {Checkbox} from "primereact/checkbox";
 import Attachment from "app/shared/components/attachment/attachment";
+import { InputText } from 'primereact/inputtext';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -90,6 +93,19 @@ export const UiSettingsUpdate = () => {
                     id="UiSettings-orderTaking"
                     value={UiSettingsEntity.orderTaking || null}
                     onChange={e => dispatch(changeEntityField({name: 'orderTaking',value: e.target.value}))}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="UiSettings-domain">
+                    <strong>
+                    {translate('tempApp.UiSettings.domain')}
+                    </strong>
+                  </Label>
+                  <InputText
+                    id="UiSettings-domain"
+                    value={UiSettingsEntity.domain || null}
+                    onChange={e => dispatch(changeEntityField({name: 'domain',value: e.target.value}))}
                   />
                 </div>
 
@@ -177,10 +193,9 @@ export const UiSettingsUpdate = () => {
                       {translate('tempApp.UiSettings.logo')}
                     </strong>
                   </Label>
-                  <Attachment
-                    image={UiSettingsEntity.logo}
-                    onRemoveImage={() => dispatch(changeEntityField({name: 'logo',value: null}))}
-                    onAddImage={(imageInfo) => dispatch(changeEntityField({name: 'logo',value: imageInfo}))}
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => dispatch(changeEntityField({name: 'logo',value: transformAttachmentStructure(files, 'toIAttachment')[0]}))}
+                    defaultValues={transformAttachmentStructure(UiSettingsEntity.logo ? [UiSettingsEntity.logo] : [], 'toFileLibraryListItem')} 
                   />
                 </div>
 

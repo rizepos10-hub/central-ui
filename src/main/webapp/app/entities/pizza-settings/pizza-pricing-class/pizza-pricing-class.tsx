@@ -25,7 +25,7 @@ const reverseMapping: { [key: string]: string } = {};
   reverseMapping[value] = key;
 });
 
-export const PizzaPricingClass = () => {
+const PizzaPricingClass = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();

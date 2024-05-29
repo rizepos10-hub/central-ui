@@ -15,8 +15,10 @@ import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-uti
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {InputNumber} from "primereact/inputnumber";
 import {IFloorPlanTable} from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
 
-export const FloorPlanTableUpdate = () => {
+const FloorPlanTableUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id } = useParams<'id'>();
@@ -190,11 +192,9 @@ export const FloorPlanTableUpdate = () => {
                   <label  className={"mt-2"}>
                     <Translate contentKey={"tempApp.table.image"}>Image</Translate>
                   </label>
-                  <Attachment
-                    image={floorPlanTable.image}
-                    onRemoveImage={removeImage}
-                    onAddImage={addImage}
-                    type={null}
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => addImage(transformAttachmentStructure(files, 'toIAttachment')[0])}
+                    defaultValues={transformAttachmentStructure(floorPlanTable.image ? [floorPlanTable.image] : [], 'toFileLibraryListItem')}
                   />
                 </div>
               </FormGroup>

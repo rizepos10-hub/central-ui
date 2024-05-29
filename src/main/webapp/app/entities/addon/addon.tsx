@@ -1,21 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, {  useEffect } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
+import { Translate, translate, } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
-import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
-import { IAddon } from 'app/shared/model/ADDON/addon.model';
-import { searchEntities, getEntities } from './addon.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
 import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
 import ImportButton from "app/shared/components/data-import/data-import";
+import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
+import { filterEntities } from "app/entities/addon/addon.reducer";
+import _ from "lodash";
+import { InputText } from "primereact/inputtext";
+
+
+const initialState = {
+  first: 0,
+  rows: 20,
+  page: 0,
+  sortField: null,
+  sortOrder: null,
+  query: '',
+  filters: {
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  }
+};
+
 
 export const Addon = () => {
   const dispatch = useAppDispatch();
@@ -23,90 +34,60 @@ export const Addon = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [search, setSearch] = useState('');
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
 
   const addonList = useAppSelector(state => state.addon.entities);
   const loading = useAppSelector(state => state.addon.loading);
   const totalItems = useAppSelector(state => state.addon.totalItems);
-  const importSuccess = useAppSelector(state => state.dataImport.importSuccess);
+  const [searchParam, setSearchParams]=  useSearchParams();
+  const query = JSON.parse(searchParam.get("query")) || initialState;
 
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  });
+
+
 
   const getAllEntities = () => {
-    if (search) {
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    } else {
-      dispatch(
-        getEntities({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
+    const updatedQuery = applyMatchModeMap(query);
+    dispatch(
+      filterEntities({
+        query: updatedQuery,
+      })
+    );
   };
-
-
-
-
-
-  const sortEntities = () => {
-    getAllEntities();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
-  };
-
-  useEffect(() => {
-    sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search, importSuccess]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = params.get('page');
-    const sort = params.get(SORT);
-    if (page && sort) {
-      const sortSplit = sort.split(',');
-      setPaginationState({
-        ...paginationState,
-        activePage: +page,
-        sort: sortSplit[0],
-        order: sortSplit[1],
-      });
-    }
-  }, [location.search]);
-
-
 
   const handleSyncList = () => {
-    sortEntities();
+    getAllEntities();
   };
 
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  useEffect(() => {
+    getAllEntities();
+  }, [searchParam]);
+
+
+
+
+  const onSort = (event) => {
+    const queryParams = JSON.stringify(event);
+    setSearchParams({query: queryParams}, {replace: true})
   };
 
 
-  const priceBodyTemplate = (item) => {
-    const price = item.price
-    return formatCurrency(price);
+  const onFilter  = (event: any) => {
+    event['first'] = 0;
+    event['page'] = 0;
+    const queryParams = JSON.stringify(event);
+    setSearchParams({query: queryParams}, {replace: true});
+  }
+
+
+
+  const onPage = (event) => {
+    const queryParams = JSON.stringify(event);
+    setSearchParams({query: queryParams}, {replace: true})
   };
+
+
 
   const nameColumnTemplate = rowData => {
-    const editUrl = `/addon/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/addon/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -114,7 +95,7 @@ export const Addon = () => {
     );
   };
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/addon/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/addon/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
@@ -123,7 +104,7 @@ export const Addon = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/addon/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/addon/${rowData.id}/delete`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
@@ -166,13 +147,21 @@ export const Addon = () => {
 
 
 
+
+
   return (
     <div>
 
-        <DataTable value={addonList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20} showGridlines>
-          <Column field="name" header={translate('addons.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('addons.view.table.search.name')}  sortable  />
-          <Column field="price" header={translate('addons.view.table.fields.price')} sortable body={priceBodyTemplate} />
+      <DataTable
+        value={addonList} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
+        paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
+        filterDelay={500}
+        onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
+      >
+          <Column field="name" header={translate('addons.view.table.fields.name')}
+                  filter
+                  body={nameColumnTemplate} filterPlaceholder={translate('addons.view.table.search.name')}  sortable  />
+          <Column field="price" header={translate('addons.view.table.fields.price')} sortable  />
           <Column
             field="discounts"
             header={translate('addons.view.table.fields.discounts')}

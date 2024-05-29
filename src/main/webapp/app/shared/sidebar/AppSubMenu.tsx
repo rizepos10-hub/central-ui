@@ -10,7 +10,7 @@ import {AUTHORITIES} from "app/config/constants";
 const AppSubMenu = (props) => {
     const { layoutState, setBreadcrumbs } = useContext(LayoutContext);
     const tooltipRef = useRef<Tooltip | null>(null);
-
+    const authorities = useAppSelector(state => state.authentication.account.authorities);
 
   useEffect(() => {
         if (tooltipRef.current) {
@@ -52,6 +52,11 @@ const AppSubMenu = (props) => {
       <MenuProvider>
         {<ul className="layout-menu">
           {props?.model?.map((item, i) => {
+            const hasAccess = item?.role?.some(role => authorities?.includes(role));
+            if (!hasAccess) {
+              return null;
+            }
+
             return !item?.seperator ? (
               <AppMenuitem item={item} root={true} index={i} key={item?.label}/>
             ) : (
