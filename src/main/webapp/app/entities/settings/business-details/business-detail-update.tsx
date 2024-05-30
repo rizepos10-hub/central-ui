@@ -462,6 +462,31 @@ export const BusinessDetailUpdate = () => {
 
               />
 
+              <h4>Contact Details</h4>
+              <ValidatedField
+                label={'Email'}
+                id="details-address-email"
+                name="email"
+                data-cy="value"
+                type="text"
+                validate={{
+                  maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
+                }}
+                onChange={handleFieldChange}
+              />
+              <ValidatedField
+                label={'Phone Number'}
+                id="details-address-phone-number"
+                name="phone_number"
+                data-cy="value"
+                type="text"
+                validate={{
+                  maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
+                }}
+                onChange={handleFieldChange}
+              />
+          
+
               {!isNew && <><h4>Opening Hours By Branch</h4><Alert color="warning">Please ensure that opening hours are
                 provided in the following format: HH:mm:ss</Alert>
                 <div>
