@@ -199,6 +199,32 @@ export const UiSettingsUpdate = () => {
                   />
                 </div>
 
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="UiSettings-email">
+                    <strong>
+                    {translate('tempApp.UiSettings.email')}
+                    </strong>
+                  </Label>
+                  <InputText
+                    id="UiSettings-email"
+                    value={UiSettingsEntity.email || null}
+                    onChange={e => dispatch(changeEntityField({name: 'email',value: e.target.value}))}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="UiSettings-phoneNumber">
+                    <strong>
+                    {translate('tempApp.UiSettings.phoneNumber')}
+                    </strong>
+                  </Label>
+                  <InputText
+                    id="UiSettings-phoneNumber"
+                    value={UiSettingsEntity.phoneNumber || null}
+                    onChange={e => dispatch(changeEntityField({name: 'phoneNumber',value: e.target.value}))}
+                  />
+                </div>
+
               </FormGroup>
 
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/online-ordering/settings" replace color="info">
