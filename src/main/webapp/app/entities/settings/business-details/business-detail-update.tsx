@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {  useNavigate } from 'react-router-dom';
-import {Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert, Card} from 'reactstrap';
+import { Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert, Card, Spinner } from 'reactstrap';
 import {Card as PrimeCard} from 'primereact/card'
 import {  Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -22,6 +22,8 @@ import SearchPredictions from 'app/shared/components/google/search-predictions';
 import usePlacesService from "react-google-autocomplete/lib/usePlacesAutocompleteService";
 import _ from 'lodash';
 import { RadioButton } from 'primereact/radiobutton';
+import { Dialog } from "primereact/dialog";
+import BranchPaymentConfig from "app/entities/settings/business-details/branch-payment-config";
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
@@ -37,7 +39,6 @@ export const BusinessDetailUpdate = () => {
   const updateSuccess = useAppSelector(state => state.businessDetail.updateSuccess);
 
   const isNew = businessDetailEntity === undefined;
-
 
   const [businessDetailsState, setBusinessDetailsState] = useState<IBusinessDetail>({
     businessName: '',
@@ -59,7 +60,7 @@ export const BusinessDetailUpdate = () => {
 
   // key for geocode
   setKey(GOOGLE_MAPS_API_KEY)
-  
+
   const {
     placesService,
     placePredictions,
@@ -115,15 +116,31 @@ export const BusinessDetailUpdate = () => {
 
 
   const [editingBranch, setEditingBranch] = useState(null);
+  const [editingBranchPayments, setEditingBranchPayments] = useState(null);
+  const [editPaymentIndex, setEditingPaymentIndex] = useState(null);
 
 
+  const showDialog = (branch, index) => {
+    setEditingBranchPayments(branch.paymentConfigurations)
+    setEditingPaymentIndex(index)
+  }
 
+  const hideDialog = () => {
+    setEditingBranchPayments(null)
+  }
 
   const handleBranchNameChange = (branchIndex, newName) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].name = newName;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
+
+  const handleBranchPaymentConfigChange = (branchIndex, newConfigurations ) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].paymentConfigurations = newConfigurations;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
+
+  }
 
   const handleWholesaleFlag = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
@@ -149,12 +166,12 @@ export const BusinessDetailUpdate = () => {
     branch.address[field] = value;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
-  
+
 
   const handleBranchAddressFieldChange = (branchIndex, updates) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     const branch = newData[branchIndex];
-  
+
     if (!branch.address) {
       branch.address = {
         street: "",
@@ -166,11 +183,11 @@ export const BusinessDetailUpdate = () => {
         latitude: 0,
       };
     }
-  
+
     Object.keys(updates).forEach(field => {
       branch.address[field] = updates[field];
     });
-  
+
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -197,10 +214,7 @@ export const BusinessDetailUpdate = () => {
 
     }
 
-
-
     setBusinessDetailsState(businessDetailEntity)
-    console.log("logged")
 
 
 
@@ -259,10 +273,6 @@ export const BusinessDetailUpdate = () => {
   };
 
 
-  const defaultValues = isNew ? {}  : {
-          ...businessDetailEntity,
-       };
-
 
 
 
@@ -270,6 +280,13 @@ export const BusinessDetailUpdate = () => {
 
   console.log(selectedAttachments, 'selectedAttachments');
 
+
+  const handleSavePayments = () => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[editPaymentIndex].paymentConfigurations = editingBranchPayments;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
+    hideDialog();
+  }
 
 
   const handleOpeningHourInputChange = (branchIndex, dayIndex, hourIndex, field, value) => {
@@ -310,7 +327,7 @@ export const BusinessDetailUpdate = () => {
   };
 
   const metrics = [Metric.KILOMETERS, Metric.MILES, Metric.NEUTRAL];
-  
+
   const handleDeliveryConfiguration = (branchIndex, field, value) => {
     setBusinessDetailsState(prevState => {
       const newState = _.cloneDeep(prevState);
@@ -339,9 +356,16 @@ export const BusinessDetailUpdate = () => {
   };
 
 
+  const dialogFooterTemplate = () => {
+    return <PrimeButton label="Save" type={"submit"} icon="pi pi-check" onClick={() => handleSavePayments()} />;
+  };
 
 
-  console.log(businessDetailEntity, 'businessDetailEntity');
+  if(loading){
+    return <Spinner />
+  }
+
+  console.log(businessDetailsState, 'businessDetailsState');
 
   return (
     <div>
@@ -509,8 +533,8 @@ export const BusinessDetailUpdate = () => {
 
                           <label className="font-bold my-2">Branch Address</label>
                           <div className='d-flex flex-column'>
-                              
-                            <SearchPredictions 
+
+                            <SearchPredictions
                               placeHolder="Search for an address"
                               handleInputChange={(e) => searchPredictionsChangeHandler(e, branchIndex)}
                               searchTerm={branch.address?.fullAddress || ''}
@@ -531,7 +555,7 @@ export const BusinessDetailUpdate = () => {
                                 <Marker position={{lat: branch.address?.latitude || 0 , lng: branch.address?.longitude || 0}} />
                               </Map>
                             </APIProvider>
-                           
+
                             <label className="font-bold">Street</label>
                             <InputText
                               type="text"
@@ -584,7 +608,7 @@ export const BusinessDetailUpdate = () => {
                                       <InputNumber
                                         placeholder="Distance Value"
                                         value={branch.deliveryConfiguration?.chargePerDistance.distance.value}
-                                        onChange={(e) => 
+                                        onChange={(e) =>
                                           handleDeliveryConfiguration(branchIndex, 'chargePerDistance.distance.value', e.value)
                                         }
                                       />
@@ -620,7 +644,7 @@ export const BusinessDetailUpdate = () => {
                                     Shipment Range
                                   </label>
                                 </Row>
-                                
+
                                 <div className="flex flex-wrap gap-3 p-2">
                                   <div className='flex flex-column gap-1'>
                                     <label className='font-bold'>Distance</label>
@@ -675,6 +699,7 @@ export const BusinessDetailUpdate = () => {
                             <h2>{branch.name}</h2>
                             <div className="d-flex flex-column">
                               <h4>Branch Address</h4>
+
                               <strong>Is Wholesale:</strong><Checkbox checked={branch?.wholesale} disabled />
                               <p><strong>Street:</strong> {branch.address?.street}</p>
                               <p><strong>City:</strong> {branch.address?.city}</p>
@@ -683,6 +708,20 @@ export const BusinessDetailUpdate = () => {
                             </div>
                           </div>
 
+                          <div className={"ml-auto"}>
+                            <PrimeButton  label="Payment Configs" type={"button"} icon="pi pi-external-link" onClick={() => showDialog(branch, branchIndex)} />
+                          </div>
+                          <Dialog
+                            header="payment config" visible={editingBranchPayments} style={{ width: '75vw' }} maximizable
+                            modal  draggable={false} contentStyle={{ height: '300px' }} onHide={hideDialog}
+                            footer={dialogFooterTemplate}
+                          >
+                            <BranchPaymentConfig
+                              editingBranchPayments={editingBranchPayments}
+                              setEditingBranchPayments={setEditingBranchPayments}
+                            />
+                          </Dialog>
+                          &nbsp;
                           <Button
                             type="button"
                             className="h-3rem"
