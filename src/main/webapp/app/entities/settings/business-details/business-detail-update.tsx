@@ -23,9 +23,9 @@ import usePlacesService from "react-google-autocomplete/lib/usePlacesAutocomplet
 import _ from 'lodash';
 import { RadioButton } from 'primereact/radiobutton';
 import { Dialog } from "primereact/dialog";
-import BranchPaymentConfig from "app/entities/settings/business-details/branch-payment-config";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import BranchPaymentConfig from "app/entities/settings/business-details/branch-payment-config";
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
@@ -41,7 +41,6 @@ export const BusinessDetailUpdate = () => {
   const updateSuccess = useAppSelector(state => state.businessDetail.updateSuccess);
 
   const isNew = businessDetailEntity === undefined;
-
 
   const [businessDetailsState, setBusinessDetailsState] = useState<IBusinessDetail>({
     businessName: '',
