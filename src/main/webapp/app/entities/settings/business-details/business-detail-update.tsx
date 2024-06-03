@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {  useNavigate } from 'react-router-dom';
-import {Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert, Card} from 'reactstrap';
+import { Button, Row, Col, FormText, Table, ListGroup, ListGroupItem, Alert, Card, Spinner } from "reactstrap";
 import {Card as PrimeCard} from 'primereact/card'
 import {  Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
