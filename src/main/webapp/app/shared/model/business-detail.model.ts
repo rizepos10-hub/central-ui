@@ -34,6 +34,7 @@ export interface IBranchDetails {
   wholesale: boolean;
   deliveryConfiguration: IDeliveryConfiguration | null
   phone?: string;
+  paymentConfigurations?: IPaymentConfigurations[];
 }
 
 export interface IDeliveryConfiguration {
@@ -63,6 +64,25 @@ export interface businessDayDetails {
   address: IAddress;
 }
 
+export interface IPaymentConfigurations {
+  active: boolean;
+  defaultSelected: boolean;
+  environment: "TEST" | "PROD";
+  gateway?: string;
+  moduleCode?: string;
+  integrationKeys?: IIntegrationKey;
+}
+
+export interface IIntegrationKey {
+  apiUrl?: string;
+  lightboxUrl?: string;
+  sslAddToken?: string;
+  sslGetToken?: string;
+  sslMerchantId?: string;
+  sslPin?: string;
+  sslTransactionType?: string;
+  sslUserId?: string;
+}
 export const defaultValue: Readonly<IBusinessDetail> = {
   id: null,
   businessName: null,
