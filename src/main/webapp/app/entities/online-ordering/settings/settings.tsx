@@ -69,6 +69,19 @@ export const UiSettingsUpdate = () => {
             <form onSubmit={saveEntity}>
               <FormGroup>
                 <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="UiSettings-applicationName">
+                    <strong>
+                    {translate('tempApp.UiSettings.applicationName')}
+                    </strong>
+                  </Label>
+                  <InputText
+                    id="UiSettings-applicationName"
+                    value={UiSettingsEntity.applicationName || null}
+                    onChange={e => dispatch(changeEntityField({name: 'applicationName',value: e.target.value}))}
+                  />
+                </div>
+                
+                <div className={"d-flex flex-column mb-3"}>
                   <Label htmlFor="UiSettings-currencySymbolPosition">
                     <strong>
                     {translate('tempApp.UiSettings.currencySymbolPosition')}
