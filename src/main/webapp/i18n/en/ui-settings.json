@@ -19,6 +19,7 @@
         "title": "Ui Setting"
       },
       "id": "ID",
+      "applicationName": "Application Name",
       "digitsAfterDecimal": "Digits After Decimal",
       "itemPerRow": "Item Per Row",
       "showDeliveryTips": "Show Delivery Tips",

@@ -16,6 +16,7 @@ export interface IUiSettings {
   logo?: IAttachment;
   email?: string;
   phoneNumber?: string;
+  applicationName?: string;
 }
 
 export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT"];
