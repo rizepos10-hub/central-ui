@@ -77,7 +77,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
 
     onRouteChange(location);
 
-    const unlisten = () => {};
+    const unlisten = () => { };
 
     return unlisten;
   }, [location, layoutConfig]);
@@ -103,7 +103,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
       item?.command({ originalEvent: event, item });
     }
 
-    if(item?.to){
+    if (item?.to) {
       navigate(item.to)
     }
 
@@ -154,7 +154,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
   ) : null;
   const subMenu =
     item?.items && item?.visible !== false ? (
-      <ul ref={submenuRef}>
+      <ul ref={submenuRef} className='px-0'>
         {item?.items.map((child, i) => {
           if (child.role && child.role.length > 0) {
             const hasAccess = child.role.some(role => userRole.includes(role));

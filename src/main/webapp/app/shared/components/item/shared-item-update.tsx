@@ -185,7 +185,7 @@ export const SharedItemUpdate = ({item, onFieldChange}: SharedItemProps) => {
     <div>
       <Row>
         <FormGroup className={'d-flex flex-column gap-3'}>
-          <Col md="7">
+          <Col md="12">
             {!isSimplePizza ? (
               <div className={'d-flex flex-column gap-2 mt-2'}>
                 <label className={'text-xl font-bold'}>
