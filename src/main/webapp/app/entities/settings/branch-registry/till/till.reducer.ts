@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
+import { createAction, createAsyncThunk, createSlice, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import {
@@ -12,10 +12,15 @@ import {
 import { ITill, defaultValue } from "app/shared/model/till.model";
 import { IFilters } from "app/shared/model/filter-state.model";
 import { getSummaryReportByTill } from "app/modules/analytics/reports/end-of-day/end-of-day.reducer";
+import { RolePermissions } from "app/shared/model/user.model";
 
 
+interface EntityWithReport<T> extends EntityState<T> {
+  report: any;
+}
 
-const initialState: EntityState<ITill> = {
+
+const initialState: EntityWithReport<ITill> = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -23,6 +28,7 @@ const initialState: EntityState<ITill> = {
   updating: false,
   totalItems: 0,
   updateSuccess: false,
+  report: {}
 };
 
 const apiUrl = 'api/tills';
@@ -49,21 +55,11 @@ export const getEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-export const getEntityAndGetReportByTill = createAsyncThunk(
-  'till/fetch_entity_and_report',
-  async ( {id, registryId } : { id: string, registryId: string }, { dispatch }) => {
-    const requestUrl = `${apiUrl}/${id}`;
-    const response = await axios.get<ITill>(requestUrl);
-    const till = response.data;
-
-    dispatch(getSummaryReportByTill({
-      fromDate: till.startDate,
-      toDate: till.endDate,
-      tillId: till.id,
-      registryId
-    }));
-
-    return response;
+export const getEntityAReport = createAsyncThunk(
+  'till/fetch_entity_report',
+  async ( id: string | number) => {
+    const requestUrl = `${apiUrl}/${id}/report`;
+    return await axios.get<ITill>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
@@ -123,8 +119,13 @@ export const changeEntityField = createAction<ChangeFieldPayload<Pick<ITill, 'na
 
 // slice
 
-export const TillSlice = createEntitySlice({
+export const TillSlice = createSlice({
   name: 'till',
+  reducers: {
+    reset() {
+      return initialState;
+    },
+  },
   initialState,
   extraReducers(builder) {
     builder
@@ -137,9 +138,9 @@ export const TillSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntity, getEntityAndGetReportByTill), (state, action) => {
+      .addMatcher(isFulfilled(getEntity, getEntityAReport), (state, action) => {
         state.loading = false;
-        state.entity = action.payload.data;
+        state.report = action.payload.data;
       })
       .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
         const { data, headers } = action.payload;
@@ -156,7 +157,7 @@ export const TillSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities, getEntityAndGetReportByTill), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, getEntityAReport), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
