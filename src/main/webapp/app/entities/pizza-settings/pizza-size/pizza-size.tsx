@@ -145,7 +145,7 @@ export const PizzaSize = () => {
           totalRecords={totalItems}
           rows={20}
         >
-          <Column rowReorder className={"w-2rem py-5"} />
+          <Column rowReorder />
           <Column field="name"  header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
 
 
