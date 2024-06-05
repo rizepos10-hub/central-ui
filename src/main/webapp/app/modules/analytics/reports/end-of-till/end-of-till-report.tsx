@@ -1,7 +1,10 @@
 import React, { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/config/store";
-import { getEntity, getEntityAndGetReportByTill } from "app/entities/settings/branch-registry/till/till.reducer";
+import {
+  getEntity,
+  getEntityAReport
+} from "app/entities/settings/branch-registry/till/till.reducer";
 import { Button } from "reactstrap";
 import TillDetails from "app/modules/analytics/reports/end-of-till/till-details";
 import EndOfTillSales from "app/modules/analytics/reports/end-of-till/end-of-till-sales";
@@ -14,12 +17,12 @@ const EndOfTillReport = () => {
   const dispatch = useAppDispatch();
   const till = useAppSelector(state => state.till.entity);
   const branchRegistry = useAppSelector(state => state.branchRegistry.entity);
-  const summaryReport :ISummaryReport = useAppSelector(state => state.summaryReport.reportByTill);
+  const summaryReport :ISummaryReport = useAppSelector(state => state.till.report);
 
-
+  console.log(summaryReport, "tilltiill")
   useEffect(() => {
-    dispatch(getEntityAndGetReportByTill({ id: tillId, registryId: id }));
-
+    dispatch(getEntityAReport(tillId));
+    dispatch(getEntity(tillId));
   }, []);
 
   return (
@@ -36,27 +39,25 @@ const EndOfTillReport = () => {
         <TillDetails till={till} />
       </div>
 
-      {summaryReport?.totalSales &&
-        <EndOfTillSales data={summaryReport.totalSales} title={"Total Sales"} />
-      }
+        <EndOfTillSales title={"Total Sales"} />
 
-      {summaryReport?.totalSalesByOrderOption["DineIn"] &&
-        <EndOfTillSales data={summaryReport.totalSales} title={"Dine In Sales"} />
-      }
+      {/* {summaryReport?.totalSalesByOrderOption["DineIn"] && */}
+      {/*   <EndOfTillSales data={summaryReport.totalSales} title={"Dine In Sales"} /> */}
+      {/* } */}
 
-      {summaryReport?.totalSalesByOrderOption["Delivery"] &&
-        <EndOfTillSales data={summaryReport.totalSales} title={"Delivery Sales"} />
-      }
+      {/* {summaryReport?.totalSalesByOrderOption["Delivery"] && */}
+      {/*   <EndOfTillSales data={summaryReport.totalSales} title={"Delivery Sales"} /> */}
+      {/* } */}
 
-      {summaryReport?.totalSalesByOrderOption["PickUp"] &&
-        <EndOfTillSales data={summaryReport.totalSales} title={"Pick Up Sales"} />
-      }
+      {/* {summaryReport?.totalSalesByOrderOption["PickUp"] && */}
+      {/*   <EndOfTillSales data={summaryReport.totalSales} title={"Pick Up Sales"} /> */}
+      {/* } */}
 
-      {summaryReport?.totalSalesByOrderOption["WalkIn"] &&
-        <EndOfTillSales data={summaryReport.totalSales} title={"Walk In Sales"} />
-      }
+      {/* {summaryReport?.totalSalesByOrderOption["WalkIn"] && */}
+      {/*   <EndOfTillSales data={summaryReport.totalSales} title={"Walk In Sales"} /> */}
+      {/* } */}
 
-      {summaryReport?.totalReceived && <EndOfTillTotalReceived totalReceived={summaryReport.totalReceived} />}
+      {/* {summaryReport?.totalReceived && <EndOfTillTotalReceived totalReceived={summaryReport.totalReceived} />} */}
     </div>
   );
 }
