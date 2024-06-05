@@ -104,6 +104,7 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
               <span className={"fw-bold"}>Value (%)</span>
               <InputNumber
                 placeholder="Enter value"
+                maxFractionDigits={2}
                 value={taxEntity.value || null}
                 onChange={(e) => handleChange('value', e.value)}
               />
