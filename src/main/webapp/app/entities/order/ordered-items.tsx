@@ -99,97 +99,107 @@
 
 
     return (
-      <div >
-
-          <div>
-            {list && list.length > 0 ? (
-              <DataTable value={list}   resizableColumns showGridlines columnResizeMode="expand" tableStyle={{ minWidth: '70rem' }} className="mt-4">
-
-                <Column field="amount" header={translate('orders.details.common.qty')}  />
-                <Column field="itemName" body={nameBodyTemplate}  header={translate('orders.details.itemsCard.table.name')}  />
-                <Column body={(rowData) => rowData.taxValue ? "T" : "N"}  header={translate('orders.details.common.taxes')}  />
-                {/* <Column field="returnedAmount" headerStyle={{width: '158px'}}  header={translate('orders.details.common.returnedQuantity')} /> */}
-                {/* <Column body={(rowData) => rowData.amount - (rowData?.returnedAmount || 0)}  headerStyle={{width: '148px'}} header={translate('orders.details.common.totalQuantity')}  /> */}
-                {/* <Column body={(rowDate) => calculateDiscount(rowDate)} header={translate('orders.details.common.discount')} /> */}
-                {/* <Column field="price" header={translate('orders.details.common.price')} /> */}
-                <Column body={(rowData) => calculateTotalItemPriceWithAddonsAndDiscounts(rowData).toFixed(2)} header={translate('orders.details.common.amount')}  />
-              </DataTable>
-
-            ) : (
-              <div><Translate contentKey={'orders.details.itemsCard.emptyMessage'}>No items available.</Translate></div>
-            )}
-          </div>
-
-        { list.length > 0 &&
-          <Col md={6}>
-            <div className="d-flex justify-content-between my-2">
-            <Card className="mt-3 p-3">
-              <Table>
-                <tbody>
-                <tr>
-                  <td>
-                    <strong>{translate('orders.details.common.subtotal')}</strong>
-                  </td>
-                  <td className="text-center">{calculateAllItemsPrice().toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>{translate('orders.details.common.taxes')}</strong>
-                  </td>
-                  <td className="text-center">{calculateAllTaxValues().toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>{translate('orders.details.common.total')}</strong>
-                  </td>
-                  <td className="text-center">{(calculateAllItemsPrice() + calculateAllTaxValues()).toFixed(2)}</td>
-                </tr>
-                </tbody>
-              </Table>
-              {/* <div className="d-flex justify-content-between my-2"> */}
-              {/*   <div> */}
-              {/*     <strong>{translate('orders.details.common.subtotal')}</strong> */}
-              {/*   </div> */}
-              {/*   <div className="text-center">{calculateAllItemsPriceBeforeDiscount().toFixed(2)}</div> */}
-              {/* </div> */}
-              {/* <div className="d-flex justify-content-between my-2"> */}
-              {/*   <div> */}
-              {/*     <strong>{translate('orders.details.common.totalDiscounts')}</strong> */}
-              {/*   </div> */}
-              {/*   <div className="text-center">{calculateSubtractedDiscounts().toFixed(2)}</div> */}
-              {/* </div> */}
-              {/* <div className="d-flex justify-content-between my-2"> */}
-              {/*   <div> */}
-              {/*     <strong>{translate('orders.details.common.subtotal')}</strong> */}
-              {/*   </div> */}
-              {/*   <div className="text-center">{calculateAllItemsPrice().toFixed(2)}</div> */}
-              {/* </div> */}
-              {/* <div className="d-flex justify-content-between my-2"> */}
-              {/*   <div> */}
-              {/*     <strong>{translate('orders.details.common.taxes')}</strong> */}
-              {/*   </div> */}
-              {/*   <div className="text-center">{calculateAllTaxValues().toFixed(2)}</div> */}
-              {/* </div> */}
-              {/* <div className="d-flex justify-content-between my-2"> */}
-              {/*   <div> */}
-              {/*     <strong>{translate('orders.details.common.paid')}</strong> */}
-              {/*   </div> */}
-              {/*   <div className="text-center">{totalPayments.toFixed(2)}</div> */}
-              {/* </div> */}
-              {/* <div className="d-flex justify-content-between my-2"> */}
-              {/*   <div> */}
-              {/*     <strong>{translate('orders.details.common.remaining')}</strong> */}
-              {/*   </div> */}
-              {/*   <div className="text-center">{(calculateAllItemsPrice() - totalPayments).toFixed(2) }</div> */}
-              {/* </div> */}
-            </Card>
-            <Card>
-              <div className="text-center">{(calculateAllItemsPrice() + calculateAllTaxValues()).toFixed(2)}</div>
-            </Card>
-              <div></div>
+      <div>
+        <div>
+          {list && list.length > 0 ? (
+            <DataTable
+              value={list}
+              resizableColumns
+              showGridlines
+              columnResizeMode="expand"
+              tableStyle={{ minWidth: '70rem' }}
+              className="mt-4"
+            >
+              <Column field="amount" header={translate('orders.details.common.qty')} />
+              <Column field="itemName" body={nameBodyTemplate} header={translate('orders.details.itemsCard.table.name')} />
+              <Column body={rowData => (rowData.taxValue ? 'T' : 'N')} header={translate('orders.details.common.taxes')} />
+              {/* <Column field="returnedAmount" headerStyle={{width: '158px'}}  header={translate('orders.details.common.returnedQuantity')} /> */}
+              {/* <Column body={(rowData) => rowData.amount - (rowData?.returnedAmount || 0)}  headerStyle={{width: '148px'}} header={translate('orders.details.common.totalQuantity')}  /> */}
+              {/* <Column body={(rowDate) => calculateDiscount(rowDate)} header={translate('orders.details.common.discount')} /> */}
+              {/* <Column field="price" header={translate('orders.details.common.price')} /> */}
+              <Column
+                body={rowData => calculateTotalItemPriceWithAddonsAndDiscounts(rowData).toFixed(2)}
+                header={translate('orders.details.common.amount')}
+              />
+            </DataTable>
+          ) : (
+            <div>
+              <Translate contentKey={'orders.details.itemsCard.emptyMessage'}>No items available.</Translate>
             </div>
-          </Col>
-        }
+          )}
+        </div>
+
+        {list.length > 0 && (
+          <Row>
+            <Col md={7}>
+              <Card className="mt-3 p-3">
+                <Table>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <strong>{translate('orders.details.common.subtotal')}</strong>
+                      </td>
+                      <td className="text-center">{calculateAllItemsPrice().toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>{translate('orders.details.common.taxes')}</strong>
+                      </td>
+                      <td className="text-center">{calculateAllTaxValues().toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>{translate('orders.details.common.total')}</strong>
+                      </td>
+                      <td className="text-center">{(calculateAllItemsPrice() + calculateAllTaxValues()).toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </Table>
+                {/* <div className="d-flex justify-content-between my-2"> */}
+                {/*   <div> */}
+                {/*     <strong>{translate('orders.details.common.subtotal')}</strong> */}
+                {/*   </div> */}
+                {/*   <div className="text-center">{calculateAllItemsPriceBeforeDiscount().toFixed(2)}</div> */}
+                {/* </div> */}
+                {/* <div className="d-flex justify-content-between my-2"> */}
+                {/*   <div> */}
+                {/*     <strong>{translate('orders.details.common.totalDiscounts')}</strong> */}
+                {/*   </div> */}
+                {/*   <div className="text-center">{calculateSubtractedDiscounts().toFixed(2)}</div> */}
+                {/* </div> */}
+                {/* <div className="d-flex justify-content-between my-2"> */}
+                {/*   <div> */}
+                {/*     <strong>{translate('orders.details.common.subtotal')}</strong> */}
+                {/*   </div> */}
+                {/*   <div className="text-center">{calculateAllItemsPrice().toFixed(2)}</div> */}
+                {/* </div> */}
+                {/* <div className="d-flex justify-content-between my-2"> */}
+                {/*   <div> */}
+                {/*     <strong>{translate('orders.details.common.taxes')}</strong> */}
+                {/*   </div> */}
+                {/*   <div className="text-center">{calculateAllTaxValues().toFixed(2)}</div> */}
+                {/* </div> */}
+                {/* <div className="d-flex justify-content-between my-2"> */}
+                {/*   <div> */}
+                {/*     <strong>{translate('orders.details.common.paid')}</strong> */}
+                {/*   </div> */}
+                {/*   <div className="text-center">{totalPayments.toFixed(2)}</div> */}
+                {/* </div> */}
+                {/* <div className="d-flex justify-content-between my-2"> */}
+                {/*   <div> */}
+                {/*     <strong>{translate('orders.details.common.remaining')}</strong> */}
+                {/*   </div> */}
+                {/*   <div className="text-center">{(calculateAllItemsPrice() - totalPayments).toFixed(2) }</div> */}
+                {/* </div> */}
+              </Card>
+            </Col>
+            {/* <Col md={6} className={"mt-3"}> */}
+            {/*   <Card> */}
+            {/*     <div className="text-center">{(calculateAllItemsPrice() + calculateAllTaxValues()).toFixed(2)}</div> */}
+            {/*   </Card> */}
+            {/* </Col> */}
+          </Row>
+        )}
       </div>
     );
   };
