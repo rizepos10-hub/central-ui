@@ -33,9 +33,9 @@ const EndOfTillSales = ({  title }) => {
             <tr>
               <td></td>
               <td colSpan={2}>
-                <span className="text-primary" title="No Tax ($0.00) + Hst ($5.68)">
+                <span  onClick={handleClick}  className="text-primary cursor-pointer" title="No Tax ($0.00) + Hst ($5.68)">
                   Tax (2 taxes)
-                  <i onClick={handleClick} className="pi pi-angle-up cursor-pointer"></i>
+                  <i className="pi pi-angle-up "></i>
                 </span>
               </td>
               <td colSpan={2} className="text-right">
