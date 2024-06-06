@@ -60,7 +60,7 @@ const AuditLogs = ({ entityId} :AuditLogsProps) => {
 
 
   return (
-    <>
+    <div className="h-75 overflow-auto">
       <h4>Audit Logs</h4>
       <ol className="list-group list-group-numbered">
         {logs.length === 0 ? (
@@ -102,7 +102,7 @@ const AuditLogs = ({ entityId} :AuditLogsProps) => {
           </ModalBody>
         </Modal>
       ) : null}
-    </>
+    </div>
   );
 }
 
