@@ -333,6 +333,25 @@ export const BusinessDetailUpdate = () => {
   const handleDeliveryConfiguration = (branchIndex, field, value) => {
     setBusinessDetailsState(prevState => {
       const newState = _.cloneDeep(prevState);
+  
+      // Check if deliveryConfiguration is null and initialize it if necessary
+      if (!newState.branchDetails[branchIndex].deliveryConfiguration) {
+        newState.branchDetails[branchIndex].deliveryConfiguration = {
+          chargePerDistance: {
+            charge: 0,
+            distance: {
+              metric: undefined,
+              value: 0,
+            }
+          },
+          shipmentRange: {
+            metric: undefined,
+            value: 0,
+          },
+          minCharge: 0,
+        };
+      }
+  
       _.set(newState.branchDetails[branchIndex].deliveryConfiguration, field, value);
       return newState;
     });
