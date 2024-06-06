@@ -11,6 +11,8 @@ import {getSortState, Translate} from "react-jhipster";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {ITvDisplay} from "app/shared/model/TV/tv-display.model";
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 export const TvDisplayUpdate = () => {
   const dispatch = useAppDispatch();
@@ -78,7 +80,7 @@ export const TvDisplayUpdate = () => {
             <p>Loading...</p>
           ) : (
             <form onSubmit={saveEntity}>
-              <FormGroup>
+              <FormGroup className='flex flex-column gap-2'>
                 <div className={"d-flex flex-column gap-0"}>
                   <label  className={"mt-5"}>
                     <Translate contentKey={"tempApp.tvDisplay.name"}>Name</Translate>
@@ -91,6 +93,12 @@ export const TvDisplayUpdate = () => {
                     value={tvDisplay.name || ''}
                     onChange={handleChange}
                   />
+                </div>
+                <div>
+                    <MediaLibrary
+                      handleFilesSelectCallback={(files) => dispatch(changeEntityField({name: 'attachments', value: transformAttachmentStructure(files, 'toIAttachment')}))}
+                      defaultValues={transformAttachmentStructure(tvDisplay.attachments ? tvDisplay.attachments : [], 'toFileLibraryListItem')}
+                    />
                 </div>
 
               </FormGroup>
