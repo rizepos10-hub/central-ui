@@ -98,6 +98,7 @@ export const TvDisplayUpdate = () => {
                     <MediaLibrary
                       handleFilesSelectCallback={(files) => dispatch(changeEntityField({name: 'attachments', value: transformAttachmentStructure(files, 'toIAttachment')}))}
                       defaultValues={transformAttachmentStructure(tvDisplay.attachments ? tvDisplay.attachments : [], 'toFileLibraryListItem')}
+                      multiSelect
                     />
                 </div>
 
