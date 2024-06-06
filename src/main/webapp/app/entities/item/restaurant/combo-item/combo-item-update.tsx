@@ -1,29 +1,29 @@
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, Spinner, FormGroup, Table, Card, CardBody, CardHeader} from 'reactstrap';
-import {getSortState, translate, Translate, ValidatedField} from 'react-jhipster';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Button, Row, Col, Spinner, FormGroup, Table, Card, CardBody, CardHeader } from 'reactstrap';
+import { getSortState, translate, Translate, ValidatedField } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import {Button as PrimeButton} from "primereact/button"
+import { Button as PrimeButton } from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './combo-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
-import {IComboItem} from "app/shared/model/ITEM/restaurant/combo-item.model";
-import {Steps} from "primereact/steps";
-import {MenuItem} from "primereact/menuitem";
+import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
+import { Steps } from "primereact/steps";
+import { MenuItem } from "primereact/menuitem";
 import Select from "react-select";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {InputNumber} from "primereact/inputnumber";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { InputNumber } from "primereact/inputnumber";
 import ComboItemSelection from "app/entities/item/restaurant/combo-item/combo-item-selection";
 import ComboItemAddonDropDown from "app/entities/item/restaurant/combo-item/combo-item-addon";
-import {TabPanel, TabView} from "primereact/tabview";
+import { TabPanel, TabView } from "primereact/tabview";
 import Visibility from "app/shared/Visibility/Visibility";
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
-import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
-import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
+import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
+import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
@@ -76,7 +76,7 @@ export const ComboItemUpdate = () => {
       variants: [
         {
           ...(prev.variants && prev?.variants?.[0] ? prev.variants[0] : {}),
-          [fieldName]:  value,
+          [fieldName]: value,
         }
       ]
     }))
@@ -93,7 +93,7 @@ export const ComboItemUpdate = () => {
             ...prev.variants[variantIndex]?.branchVariantDetails,
             [branchId]: {
               ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
-              branch: {id: branchId},
+              branch: { id: branchId },
               [priceType]: price,
             },
           },
@@ -251,9 +251,9 @@ export const ComboItemUpdate = () => {
   }
 
   useEffect(() => {
-    if(isNew){
+    if (isNew) {
       dispatch(reset())
-    }else{
+    } else {
       dispatch(getEntity(id));
     }
 
@@ -270,19 +270,19 @@ export const ComboItemUpdate = () => {
     }));
 
     dispatch(getMixAndMatchRules({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
 
-  },[id, isNew]);
+  }, [id, isNew]);
 
   useEffect(() => {
 
-    if(!isNew){
+    if (!isNew) {
       setComboItem(comboItemEntity);
-    }else{
+    } else {
       setComboItem({
         ...comboItemEntity,
         itemType: "RESTAURANT",
@@ -291,7 +291,7 @@ export const ComboItemUpdate = () => {
       })
     }
     const comboItemId = comboItemEntity?.id
-    if(updateSuccess){
+    if (updateSuccess) {
       console.log("helloooo")
       handleNavigate(comboItemId);
     }
@@ -322,7 +322,7 @@ export const ComboItemUpdate = () => {
 
 
 
-  if(loading){
+  if (loading) {
     return <Spinner />
   }
 
@@ -335,107 +335,107 @@ export const ComboItemUpdate = () => {
           </h2>
         </Col>
       </Row>
-        <div className={"d-flex flex-row"}>
-            <Col md={9}>
-              <Card>
-              <TabView>
-                <TabPanel header={translate('items.update.tabs.details.label')}>
-                  <Row>
-                    <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
+      <div className={"d-flex row"}>
+        <Col md={9}>
+          <Card>
+            <TabView>
+              <TabPanel header={translate('items.update.tabs.details.label')}>
+                <Row>
+                  <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
 
-                      <Col md="9" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                    <div className={`d-flex flex-column p-3  bg-white `} >
 
-                        {isModalOpen ?<ComboItemSelection
-                          isOpen={isModalOpen}
-                          onAddItems={handleAddItems}
-                          toggleModal={toggleModal}
-                          comboPackages={comboItem?.variants?.[0]?.comboPackages}
-                        /> : null}
+                      {isModalOpen ? <ComboItemSelection
+                        isOpen={isModalOpen}
+                        onAddItems={handleAddItems}
+                        toggleModal={toggleModal}
+                        comboPackages={comboItem?.variants?.[0]?.comboPackages}
+                      /> : null}
 
-                        <SharedItemUpdate
-                          item={comboItem}
-                          onFieldChange={handleFieldChange}
-                        />
+                      <SharedItemUpdate
+                        item={comboItem}
+                        onFieldChange={handleFieldChange}
+                      />
 
-                        <Row>
-                          <Col md="7">
+                      <Row>
+                        <Col md="7">
 
-                            <DiscountDropdown
-                              discounts={comboItem?.variants?.[0]?.discounts}
-                              handleChange={handleComboVariantChange}
-                            />
+                          <DiscountDropdown
+                            discounts={comboItem?.variants?.[0]?.discounts}
+                            handleChange={handleComboVariantChange}
+                          />
 
-                            <div className={"d-flex flex-column gap-2"}>
-                              <label className={"text-xl font-bold"}>
-                                <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
-                              </label>
-                              <Select
-                                value={comboItem?.variants?.[0]?.mixAndMatchRule}
-                                options={mixAndMatchRuleList}
-                                getOptionLabel={option => option.name}
-                                getOptionValue={option => option.id}
-                                onChange={(mixAndMatchRule) => handleComboVariantChange('mixAndMatchRule', mixAndMatchRule)}
-                              />
-                            </div>
-                          </Col>
-                        </Row>
-
-                        <Col md="4">
-                          <div className={"d-flex flex-column gap-2 mt-3"}>
+                          <div className={"d-flex flex-column gap-2"}>
                             <label className={"text-xl font-bold"}>
-                              <Translate contentKey={'items.update.price'}>Price</Translate>
+                              <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                             </label>
-                            <InputNumber
-                              name="price"
-                              id="price"
-                              required={true}
-                              min={0}
-                              maxFractionDigits={2}
-                              placeholder={translate('items.update.placeholders.itemPrice')}
-                              value={comboItem?.variants?.[0]?.price}
-                              onChange={(e) => handleComboVariantChange("price",e.value)}
+                            <Select
+                              value={comboItem?.variants?.[0]?.mixAndMatchRule}
+                              options={mixAndMatchRuleList}
+                              getOptionLabel={option => option.name}
+                              getOptionValue={option => option.id}
+                              onChange={(mixAndMatchRule) => handleComboVariantChange('mixAndMatchRule', mixAndMatchRule)}
                             />
                           </div>
                         </Col>
+                      </Row>
 
-                        <Col md="4">
-                          <div className={"d-flex flex-column gap-2 mt-2"}>
-                            <label className={"text-xl font-bold"}>
-                              <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                            </label>
-                            <InputNumber
-                              name="sale-price"
-                              id="sale-price"
-                              placeholder="Variant Sale Price"
-                              min={0}
-                              size={6}
-                              maxFractionDigits={2}
-                              value={comboItem?.variants?.[0]?.salePrice}
-                              onChange={(e) => handleComboVariantChange( 'salePrice', e.value)}
-                            />
-                          </div>
-                        </Col>
+                      <Col md="4">
+                        <div className={"d-flex flex-column gap-2 mt-3"}>
+                          <label className={"text-xl font-bold"}>
+                            <Translate contentKey={'items.update.price'}>Price</Translate>
+                          </label>
+                          <InputNumber
+                            name="price"
+                            id="price"
+                            required={true}
+                            min={0}
+                            maxFractionDigits={2}
+                            placeholder={translate('items.update.placeholders.itemPrice')}
+                            value={comboItem?.variants?.[0]?.price}
+                            onChange={(e) => handleComboVariantChange("price", e.value)}
+                          />
+                        </div>
+                      </Col>
+
+                      <Col md="4">
+                        <div className={"d-flex flex-column gap-2 mt-2"}>
+                          <label className={"text-xl font-bold"}>
+                            <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                          </label>
+                          <InputNumber
+                            name="sale-price"
+                            id="sale-price"
+                            placeholder="Variant Sale Price"
+                            min={0}
+                            size={6}
+                            maxFractionDigits={2}
+                            value={comboItem?.variants?.[0]?.salePrice}
+                            onChange={(e) => handleComboVariantChange('salePrice', e.value)}
+                          />
+                        </div>
+                      </Col>
 
 
-                       <VariantBranchPrice
+                      <VariantBranchPrice
                         branchVariantDetails={comboItem?.variants?.[0].branchVariantDetails}
                         branchList={branchList}
                         handleBranchPriceChange={handleBranchPriceChange}
                         variantIndex={0}
                         itemVariantType={"RESTAURANT"}
-                       />
+                      />
 
 
-                        <Row>
-                          <FormGroup>
-                            <h3><Translate contentKey={'items.update.combo.title'}>Combo</Translate></h3>
-                            <div className="d-flex justify-content-end mr-4">
-                              <Button color="primary" onClick={toggleModal}>
-                                <Translate contentKey={'items.update.combo.addItem'}>Add Item</Translate>
-                              </Button>
-                            </div>
-                            <Table>
-                              <thead>
+                      <Row>
+                        <FormGroup>
+                          <h3><Translate contentKey={'items.update.combo.title'}>Combo</Translate></h3>
+                          <div className="d-flex justify-content-end mr-4">
+                            <Button color="primary" onClick={toggleModal}>
+                              <Translate contentKey={'items.update.combo.addItem'}>Add Item</Translate>
+                            </Button>
+                          </div>
+                          <Table>
+                            <thead>
                               <tr>
                                 <th><Translate contentKey={'items.update.combo.itemName'}>Item Name</Translate></th>
                                 <th><Translate contentKey={'items.update.combo.itemVariants'}>Item Variants</Translate></th>
@@ -443,14 +443,14 @@ export const ComboItemUpdate = () => {
                                 <th><Translate contentKey={'items.update.combo.addons'}>Addons</Translate></th>
                                 <th><Translate contentKey={'items.update.combo.delete'}>Delete</Translate></th>
                               </tr>
-                              </thead>
-                              <tbody>
+                            </thead>
+                            <tbody>
                               {comboItem?.variants?.[0]?.comboPackages?.map((comboPackage: any, index) => {
                                 console.log(comboPackage, 'comboPackagecomboPackage')
                                 return (
                                   <tr key={index}>
                                     <td><p>{comboPackage.item?.name}
-                                      {comboPackage?.pizzaPackage?
+                                      {comboPackage?.pizzaPackage ?
                                         <div className={"d-flex"}>
                                           <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.pizzaSize?.name}&nbsp;</span>
                                           <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.crustType?.name}&nbsp;</span>
@@ -462,7 +462,7 @@ export const ComboItemUpdate = () => {
                                     <td>
                                       <InputNumber
                                         name={`quantity_${comboPackage?.variant?.id}`}
-                                        placeholder={translate('items.update.combo.quantityPlaceholder', {variantName: comboPackage?.variant?.name})}
+                                        placeholder={translate('items.update.combo.quantityPlaceholder', { variantName: comboPackage?.variant?.name })}
                                         value={comboPackage.amount}
                                         min={0}
                                         onChange={(e) => handleComboAmountChange(index, e.value)}
@@ -474,8 +474,8 @@ export const ComboItemUpdate = () => {
                                           itemAddons={comboPackage.item?.addons}
                                           variantAddons={comboPackage?.variant?.addons}
                                           selectedComboAddons={comboPackage?.addons}
-                                          onIncrement={(addonIndex) => handleAddonAmountChange(index, addonIndex,"increment")}
-                                          onDecrement={(addonIndex) => handleAddonAmountChange(index, addonIndex,"decrement")}
+                                          onIncrement={(addonIndex) => handleAddonAmountChange(index, addonIndex, "increment")}
+                                          onDecrement={(addonIndex) => handleAddonAmountChange(index, addonIndex, "decrement")}
                                           onAddAddon={(addon) => handleAddComboAddon(index, addon)}
                                           onDeleteAddon={(addonIndex) => handleDeleteComboAddon(index, addonIndex)}
                                         />
@@ -492,54 +492,58 @@ export const ComboItemUpdate = () => {
                                   </tr>
                                 )
                               })}
-                              </tbody>
-                            </Table>
-                          </FormGroup>
-                        </Row>
-                      </Col>
-                    </FormGroup>
-                  </Row>
-                </TabPanel>
-                <TabPanel header={translate('items.update.tabs.visibility.label')}>
-                  <Visibility
-                    initialState={comboItem.visibility}
-                    title={translate('items.update.tabs.visibility.titles.combo')}
-                    onStateChanged={(visibility)=>setComboItem(prev => {
-                      return {...prev, visibility}
-                    })}
-                  />
-                </TabPanel>
+                            </tbody>
+                          </Table>
+                        </FormGroup>
+                      </Row>
+                    </div>
+                  </FormGroup>
+                </Row>
+              </TabPanel>
+              <TabPanel header={translate('items.update.tabs.visibility.label')}>
+                <Visibility
+                  initialState={comboItem.visibility}
+                  title={translate('items.update.tabs.visibility.titles.combo')}
+                  onStateChanged={(visibility) => setComboItem(prev => {
+                    return { ...prev, visibility }
+                  })}
+                />
+              </TabPanel>
 
-                <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
-                  <ItemLoyaltyTab excludedFromLoyaltyPoints={comboItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
-                </TabPanel>
-              </TabView>
-              </Card>
-            </Col>
-            <Col md={3}>
-              <Card>
-                <CardHeader>Actions</CardHeader>
-                <div className={'d-flex gap-3 mt-2'}>
-                  <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
-                           color="info">
-                    <FontAwesomeIcon icon="arrow-left"/>
-                    &nbsp;
-                    <span className="d-none d-md-inline">
-                                <Translate contentKey="entity.action.back">Back</Translate>
-                            </span>
-                  </Button>
-                  &nbsp;
-                  <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                          disabled={updating}>
-                    <FontAwesomeIcon icon="save"/>
-                    &nbsp;
-                    <Translate contentKey="entity.action.save">Save</Translate>
-                  </Button>
-                </div>
-              </Card>
-              {comboItemEntity?.id &&  <AuditLogs entityId={comboItemEntity?.id} />}
-            </Col>
-        </div>
+              <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                <ItemLoyaltyTab excludedFromLoyaltyPoints={comboItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
+              </TabPanel>
+            </TabView>
+          </Card>
+        </Col>
+        <Col md={3} style={{
+          position: 'sticky',
+          top: '0',
+          height: '90vh',
+        }}>
+          <Card>
+            <CardHeader>Actions</CardHeader>
+            <div className={'d-flex gap-3 mt-2'}>
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
+                color="info">
+                <FontAwesomeIcon icon="arrow-left" />
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
+              </Button>
+              &nbsp;
+              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+            </div>
+          </Card>
+          {comboItemEntity?.id && <AuditLogs entityId={comboItemEntity?.id} />}
+        </Col>
+      </div>
     </form>
   );
 };

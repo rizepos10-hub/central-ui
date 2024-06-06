@@ -252,9 +252,9 @@ export const RegularItemUpdate = () => {
 
                       <Row>
 
-                        <FormGroup className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
+                        <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
 
-                          <Col md="12" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                          <Col md="12" className={`d-flex flex-column p-3  bg-white `} >
 
                             <SharedItemUpdate item={regularItem} onFieldChange={handleFieldChange} />
 
@@ -424,7 +424,11 @@ export const RegularItemUpdate = () => {
             </CardBody>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={3} style={{ 
+            position: 'sticky',
+            top: '0',
+            height: '90vh',
+           }}>
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
