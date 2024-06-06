@@ -217,6 +217,7 @@ export const TaxProfileUpdate = () => {
                             <FormGroup>
                               <InputNumber
                                 id="itemUnitPriceMin"
+                                maxFractionDigits={2}
                                 value={condition.min as number || null}
                                 onChange={e => handleConditionChange(e.value, index, 'min')}
                               />
@@ -236,6 +237,7 @@ export const TaxProfileUpdate = () => {
                             <FormGroup>
                               <InputNumber
                                 id="itemUnitPriceMax"
+                                maxFractionDigits={2}
                                 value={condition.max as number || null}
                                 onChange={e => handleConditionChange(e.value, index, 'max')}
                               />

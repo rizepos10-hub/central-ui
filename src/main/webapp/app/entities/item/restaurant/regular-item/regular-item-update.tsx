@@ -1,27 +1,27 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Card, CardBody, CardHeader, Col, FormGroup, Row, Spinner, Table} from 'reactstrap';
-import {getSortState, translate, Translate} from 'react-jhipster';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Button, Card, CardBody, CardHeader, Col, FormGroup, Row, Spinner, Table } from 'reactstrap';
+import { getSortState, translate, Translate } from 'react-jhipster';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {useAppDispatch, useAppSelector} from 'app/config/store';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {createEntity, getEntity, reset, updateEntity} from './regular-item.reducer';
+import { createEntity, getEntity, reset, updateEntity } from './regular-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
-import {IRegularItem, IRegularItemVariant} from "app/shared/model/ITEM/restaurant/regular-item.model";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {InputNumber} from "primereact/inputnumber";
-import {InputText} from "primereact/inputtext";
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
+import { IRegularItem, IRegularItemVariant } from "app/shared/model/ITEM/restaurant/regular-item.model";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { InputNumber } from "primereact/inputnumber";
+import { InputText } from "primereact/inputtext";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import Select from "react-select";
-import {Accordion, AccordionTab} from "primereact/accordion";
-import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
+import { Accordion, AccordionTab } from "primereact/accordion";
+import { ItemVariantType } from "app/shared/model/ENUMS/item-variant-type.model";
 import Visibility from 'app/shared/Visibility/Visibility';
-import {TabPanel, TabView} from "primereact/tabview";
+import { TabPanel, TabView } from "primereact/tabview";
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
-import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
-import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
+import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
+import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import Attachment from "app/shared/components/attachment/attachment";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
@@ -93,7 +93,7 @@ export const RegularItemUpdate = () => {
   };
 
 
-  const handleBranchPriceChange = useCallback((variantIndex, branchId, priceType, price ) => {
+  const handleBranchPriceChange = useCallback((variantIndex, branchId, priceType, price) => {
     setRegularItem((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -102,7 +102,7 @@ export const RegularItemUpdate = () => {
           ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
           [branchId]: {
             ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
-            branch: {id: branchId},
+            branch: { id: branchId },
             [priceType]: price,
           },
         },
@@ -112,7 +112,7 @@ export const RegularItemUpdate = () => {
         variants: updatedVariants,
       };
     });
-  },[]);
+  }, []);
 
 
 
@@ -142,9 +142,9 @@ export const RegularItemUpdate = () => {
   };
 
   useEffect(() => {
-    if(isNew){
+    if (isNew) {
       dispatch(reset())
-    }else{
+    } else {
       dispatch(getEntity(id));
     }
 
@@ -166,16 +166,16 @@ export const RegularItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-  },[id, isNew]);
+  }, [id, isNew]);
 
   useEffect(() => {
 
-    if(!isNew){
+    if (!isNew) {
       setRegularItem(regularItemEntity);
     }
 
     const regularItemId = regularItemEntity?.id
-    if(updateSuccess){
+    if (updateSuccess) {
       handleNavigate(regularItemId);
     }
 
@@ -202,7 +202,7 @@ export const RegularItemUpdate = () => {
 
   const handleDeleteVariant = (variantIndex) => {
     const isConfirmed = window.confirm(translate('items.update.deleteVariantMessage'));
-    if(isConfirmed){
+    if (isConfirmed) {
       setRegularItem((prev) => {
         const updatedVariants = [...prev.variants];
         updatedVariants.splice(variantIndex, 1);
@@ -227,7 +227,7 @@ export const RegularItemUpdate = () => {
   );
 
 
-  if(loading){
+  if (loading) {
     return <Spinner />
   }
 
@@ -235,7 +235,7 @@ export const RegularItemUpdate = () => {
     <form onSubmit={saveEntity}>
       <div className={"d-flex flex-row"}>
         <Col md={9}>
-          <Card>
+          <Card className='p-0'>
             <CardBody>
               <Row>
                 <Col md={12}>
@@ -244,16 +244,17 @@ export const RegularItemUpdate = () => {
                       <Row>
                         <Col md="8">
                           <h2>
-                            {isNew ? translate('items.update.tabs.details.titles.create.variable') : translate('items.update.tabs.details.titles.edit.variable')}
+                            {/* {isNew ? translate('items.update.tabs.details.titles.create.variable') : translate('items.update.tabs.details.titles.edit.variable')} */}
+                            {isNew ? translate('items.update.tabs.details.titles.create.variable') : `Edit ${regularItem.name}`} 
                           </h2>
                         </Col>
                       </Row>
 
                       <Row>
 
-                        <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
+                        <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
 
-                          <Col md="12" className={`d-flex flex-column p-3  bg-white mt-3 `} >
+                          <Col md="12" className={`d-flex flex-column p-3  bg-white `} >
 
                             <SharedItemUpdate item={regularItem} onFieldChange={handleFieldChange} />
 
@@ -366,7 +367,7 @@ export const RegularItemUpdate = () => {
                                           options={mixAndMatchRuleList}
                                           getOptionLabel={option => option.name}
                                           getOptionValue={option => option.id}
-                                          onChange={(mixAndMatchRule) => handleVariantFieldChange(variantIndex,'mixAndMatchRule', mixAndMatchRule)}
+                                          onChange={(mixAndMatchRule) => handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)}
                                         />
                                       </div>
 
@@ -379,20 +380,20 @@ export const RegularItemUpdate = () => {
                                         <label className={'text-xl mt-2 font-bold'}>
                                           <Translate contentKey={'items.update.image'}>Image</Translate>
                                         </label>
-                                        <MediaLibrary 
-                                          handleFilesSelectCallback={(files) => handleVariantFieldChange(variantIndex,'attachments',transformAttachmentStructure(files, 'toIAttachment'))}
+                                        <MediaLibrary
+                                          handleFilesSelectCallback={(files) => handleVariantFieldChange(variantIndex, 'attachments', transformAttachmentStructure(files, 'toIAttachment'))}
                                         />
                                       </div>
                                     </Col>
                                   </Row>
 
-                                 <VariantBranchPrice
-                                  branchList={branchList}
-                                  handleBranchPriceChange={handleBranchPriceChange}
-                                  variantIndex={variantIndex}
-                                  branchVariantDetails={variant.branchVariantDetails}
-                                  itemVariantType={"RESTAURANT"}
-                                 />
+                                  <VariantBranchPrice
+                                    branchList={branchList}
+                                    handleBranchPriceChange={handleBranchPriceChange}
+                                    variantIndex={variantIndex}
+                                    branchVariantDetails={variant.branchVariantDetails}
+                                    itemVariantType={"RESTAURANT"}
+                                  />
 
                                 </AccordionTab>
                               </Accordion>
@@ -406,13 +407,13 @@ export const RegularItemUpdate = () => {
                       <Visibility
                         initialState={regularItem.visibility}
                         title={translate('items.update.tabs.visibility.titles.variable')}
-                        onStateChanged={(visibility)=>setRegularItem(prev => {
-                          return {...prev, visibility}
-                        })}/>
+                        onStateChanged={(visibility) => setRegularItem(prev => {
+                          return { ...prev, visibility }
+                        })} />
                     </TabPanel>
 
                     <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
-                      <ItemLoyaltyTab excludedFromLoyaltyPoints={regularItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
+                      <ItemLoyaltyTab excludedFromLoyaltyPoints={regularItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
                     </TabPanel>
 
 
@@ -423,28 +424,32 @@ export const RegularItemUpdate = () => {
             </CardBody>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={3} style={{ 
+            position: 'sticky',
+            top: '0',
+            height: '90vh',
+           }}>
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"  replace
-                      color="info">
-                <FontAwesomeIcon icon="arrow-left"/>
+              <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" replace
+                color="info">
+                <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
-                                <Translate contentKey="entity.action.back">Back</Translate>
-                            </span>
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
               </Button>
               &nbsp;
               <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                      disabled={updating}>
-                <FontAwesomeIcon icon="save"/>
+                disabled={updating}>
+                <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
             </div>
           </Card>
-          {regularItem?.id &&  <AuditLogs entityId={regularItem?.id} />}
+          {regularItem?.id && <AuditLogs entityId={regularItem?.id} />}
         </Col>
       </div>
     </form>

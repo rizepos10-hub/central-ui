@@ -399,6 +399,10 @@ const AppMenu = () => {
           label: 'Sales Reports',
           items: [
             {
+              label: 'General Report',
+              to: '/analytics/sales',
+            },
+            {
               label: 'Individual Performance',
               to: '/analytics/sales-report/individual-performance',
             },
@@ -480,10 +484,6 @@ const AppMenu = () => {
         {
           label: 'End Of Day',
           to: '/analytics/endofday',
-        },
-        {
-          label: 'Sales Report',
-          to: '/analytics/sales',
         },
         {
           label: 'Report',

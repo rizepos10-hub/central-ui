@@ -15,7 +15,7 @@ const DiscountDropdown = ({discounts, handleChange, variantIndex, handleVariantC
   const discountList = useAppSelector(state => state.discount.entities);
 
   return (
-    <div className={'d-flex flex-column gap-2 my-3'}>
+    <div className={'d-flex flex-column gap-2'}>
       <label className={'text-xl font-bold'}>
         <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
       </label>

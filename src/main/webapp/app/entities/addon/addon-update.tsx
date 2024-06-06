@@ -151,8 +151,12 @@ export const AddonUpdate = () => {
                 <InputNumber
                   id="addon-price"
                   value={addonEntity.price || null}
-                  onChange={e => dispatch(changeEntityField({ name: 'price', value: e.value }))}
+                  onChange={e => dispatch(changeEntityField({ name: 'price', value: parseFloat(e.value.toString()) }))}
+                  mode="decimal"
+                  minFractionDigits={2}
+                  maxFractionDigits={2}
                 />
+
               </div>
 
               <div className={'d-flex flex-column mt-3'}>

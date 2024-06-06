@@ -39,6 +39,8 @@
         "price": "Price",
         "discount": "Discount",
         "quantity": "Quantity",
+        "qty": "QTY",
+        "taxes": "Taxes",
         "returnedQuantity": "Returned Quantity",
         "totalQuantity": "Total Quantity",
         "total": "Total"

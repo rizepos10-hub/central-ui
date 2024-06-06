@@ -1,4 +1,5 @@
 import {IDimension} from "app/shared/model/TV/tv.model";
+import { IAttachment } from "../attachment.model";
 
 
 interface IPosition {
@@ -17,6 +18,7 @@ export interface ITvDisplay {
   dimensions?:IDimension;
   name?: string;
   subScreens?: IDisplaySubScreen[];
+  attachments?: IAttachment[];
 }
 
 export const defaultValue: Readonly<ITvDisplay> = {};

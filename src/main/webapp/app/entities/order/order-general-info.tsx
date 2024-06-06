@@ -4,6 +4,7 @@ import React, {useEffect} from "react";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import {IBranch} from "app/shared/model/branch.model";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
+import { Tag } from "primereact/tag";
 
 const OrderGeneralInfo = ({order}) => {
   const dispatch = useAppDispatch();
@@ -15,7 +16,23 @@ const OrderGeneralInfo = ({order}) => {
 
   useEffect(() => {
     dispatch(getBranches({}));
-  }, [])
+  }, []);
+
+  const getSeverity = (status) => {
+    switch (status) {
+      case 'PAID':
+        return 'success';
+
+      case 'UNPAID':
+        return 'danger';
+
+      default:
+        return null;
+    }
+  };
+  const statusBodyTemplate = () => {
+    return <Tag value={order?.paymentStatus} severity={getSeverity(order?.paymentStatus)}></Tag>;
+  };
 
   return (
     <Table>
@@ -23,7 +40,8 @@ const OrderGeneralInfo = ({order}) => {
       <tr>
         <th>Order Time</th>
         <th>POS User</th>
-        <th>Order Status</th>
+        <th>Processing Status</th>
+        <th>Payment Status</th>
         <th>Branch</th>
       </tr>
       </thead>
@@ -36,7 +54,10 @@ const OrderGeneralInfo = ({order}) => {
             {order?.createdBy}
           </td>
           <td>
-            {order?.status}
+            {order?.processingStatus}
+          </td>
+          <td>
+            {statusBodyTemplate()}
           </td>
           <td>
             {getBranchName(order?.branchId)}

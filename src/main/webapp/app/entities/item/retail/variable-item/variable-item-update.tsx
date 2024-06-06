@@ -1,41 +1,41 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Card, CardBody, CardHeader, Col, FormGroup, Row, Spinner, Table} from 'reactstrap';
-import {getSortState, translate, Translate} from 'react-jhipster';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Button, Card, CardBody, CardHeader, Col, FormGroup, Row, Spinner, Table } from 'reactstrap';
+import { getSortState, translate, Translate } from 'react-jhipster';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {useAppDispatch, useAppSelector} from 'app/config/store';
-import {Button as PrimeButton} from "primereact/button"
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { Button as PrimeButton } from "primereact/button"
 
-import {createEntity, getEntity, reset, updateEntity} from './variable-item.reducer';
+import { createEntity, getEntity, reset, updateEntity } from './variable-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
-import {IVariableItem, IVariableItemVariant} from "app/shared/model/ITEM/retail/variable-item.model";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {InputNumber} from "primereact/inputnumber";
-import {InputText} from "primereact/inputtext";
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
+import { IVariableItem, IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { InputNumber } from "primereact/inputnumber";
+import { InputText } from "primereact/inputtext";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import Select from "react-select";
-import {getEntities as getAttributes} from "app/entities/item/retail/attributes/retail-attribute.reducer";
-import {ITaxonomy} from "app/shared/model/taxonomy.model";
-import {ITerm} from "app/shared/model/term.model";
+import { getEntities as getAttributes } from "app/entities/item/retail/attributes/retail-attribute.reducer";
+import { ITaxonomy } from "app/shared/model/taxonomy.model";
+import { ITerm } from "app/shared/model/term.model";
 import {
   getEntities as getAttributeValues,
   reset as resetAttributeValues
 } from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
-import {Accordion, AccordionTab} from "primereact/accordion";
+import { Accordion, AccordionTab } from "primereact/accordion";
 import AsyncSelect from "react-select/async";
-import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
-import {isEqual} from "lodash";
+import { ItemVariantType } from "app/shared/model/ENUMS/item-variant-type.model";
+import { isEqual } from "lodash";
 import Visibility from 'app/shared/Visibility/Visibility';
-import {TabPanel, TabView} from "primereact/tabview";
+import { TabPanel, TabView } from "primereact/tabview";
 import ItemStockTab from "app/shared/components/item/item-stock-tab";
-import {IExchangeMeasure} from "app/shared/model/ITEM/retail/simple-item.model";
-import {getEntities as getMeasures} from "app/entities/item-measure/item-measure.reducer";
+import { IExchangeMeasure } from "app/shared/model/ITEM/retail/simple-item.model";
+import { getEntities as getMeasures } from "app/entities/item-measure/item-measure.reducer";
 import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
-import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
-import {getEntities as getMixAndMatchRules} from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
+import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
+import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
@@ -108,8 +108,8 @@ export const VariableItemUpdate = () => {
 
   const filteredMeasures = useMemo(() => {
     const exchangeMeasuresIds = variableItem?.measures?.map((exMeasure) => exMeasure.itemMeasure.id);
-    return measureList.filter(m => m.id !== variableItem?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id) )
-  }, [measureList?.length, variableItem?.baseMeasure?.id, variableItem?.measures?.length]) ;
+    return measureList.filter(m => m.id !== variableItem?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id))
+  }, [measureList?.length, variableItem?.baseMeasure?.id, variableItem?.measures?.length]);
 
   const isAttributeAddButtonDisabled =
     filteredAvailableAttributes()?.length === 0 ||
@@ -151,12 +151,12 @@ export const VariableItemUpdate = () => {
   };
 
   const handleBaseMeasureChange = (baseMeasure) => {
-    if(!variableItem?.measures || variableItem?.measures?.length === 0){
-      setVariableItem(prev => ({...prev, baseMeasure}))
-    }else{
+    if (!variableItem?.measures || variableItem?.measures?.length === 0) {
+      setVariableItem(prev => ({ ...prev, baseMeasure }))
+    } else {
       setVariableItem(prevState => {
         const updatedMeasures = prevState.measures.filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
-          .map((exMeasure) => ({...exMeasure, exchangeRate: null}));
+          .map((exMeasure) => ({ ...exMeasure, exchangeRate: null }));
         return {
           ...prevState,
           baseMeasure,
@@ -239,7 +239,7 @@ export const VariableItemUpdate = () => {
     });
   };
 
-  const handleBranchPriceChange = (variantIndex, branchId, priceType, price ) => {
+  const handleBranchPriceChange = (variantIndex, branchId, priceType, price) => {
     setVariableItem((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -248,7 +248,7 @@ export const VariableItemUpdate = () => {
           ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
           [branchId]: {
             ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
-            branch: {id: branchId},
+            branch: { id: branchId },
             [priceType]: price,
           },
         },
@@ -285,7 +285,7 @@ export const VariableItemUpdate = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-    setItemAttribute((prevState) => ({...prevState, attributeTax: selectedOption}))
+    setItemAttribute((prevState) => ({ ...prevState, attributeTax: selectedOption }))
   };
 
   const handleAttributeTermChange = (index, selectedTerms) => {
@@ -377,9 +377,9 @@ export const VariableItemUpdate = () => {
   };
 
   useEffect(() => {
-    if(isNew){
+    if (isNew) {
       dispatch(reset())
-    }else{
+    } else {
       dispatch(getEntity(id));
     }
 
@@ -413,15 +413,15 @@ export const VariableItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-  },[id, isNew]);
+  }, [id, isNew]);
 
   useEffect(() => {
 
-    if(!isNew){
+    if (!isNew) {
       setVariableItem(variableItemEntity);
     }
     const variableItemId = variableItemEntity?.id
-    if(updateSuccess){
+    if (updateSuccess) {
       handleNavigate(variableItemId);
     }
 
@@ -475,7 +475,7 @@ export const VariableItemUpdate = () => {
 
   const handleDeleteVariant = (variantIndex) => {
     const isConfirmed = window.confirm(translate('items.update.deleteVariantMessage'));
-    if(isConfirmed){
+    if (isConfirmed) {
       setVariableItem((prev) => {
         const updatedVariants = [...prev.variants];
         updatedVariants.splice(variantIndex, 1);
@@ -488,7 +488,7 @@ export const VariableItemUpdate = () => {
   };
   const handleRemoveAttribute = (attributeIndex) => {
     const isConfirmed = window.confirm("Are you sure?");
-    if(isConfirmed){
+    if (isConfirmed) {
       setVariableItem((prev) => {
         const updateAttributes = [...prev.attributes];
         updateAttributes.splice(attributeIndex, 1);
@@ -543,7 +543,7 @@ export const VariableItemUpdate = () => {
 
 
 
-  if(loading){
+  if (loading) {
     return <Spinner />
   }
 
@@ -554,7 +554,7 @@ export const VariableItemUpdate = () => {
           <Card>
             <CardBody>
               <Row>
-                <Col md={10}>
+                <div>
                   <TabView>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
                       <Row>
@@ -566,15 +566,11 @@ export const VariableItemUpdate = () => {
                       </Row>
 
                       <Row>
-
-                        <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
-
-                          <Col md="8" className={`d-flex flex-column p-3  bg-white mt-3 `} >
-
+                        <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
+                          <div className={`d-flex flex-column p-3  bg-white w-100`} >
                             <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange} />
 
                             <Row className={"mb-3"} >
-
                               <Row>
                                 <Col md="4">
                                   <div className={"d-flex flex-column gap-2"}>
@@ -592,12 +588,12 @@ export const VariableItemUpdate = () => {
                                   </div>
                                 </Col>
 
-
-                                <Col md="3" >
+                                <Col md="3">
                                   <Button color="primary" disabled={isAttributeAddButtonDisabled} className={"mt-5"} onClick={handleAddAttribute}>
                                     <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
                                   </Button>
                                 </Col>
+
                                 <Col md={"12"} className={"mt-2"}>
                                   <Accordion multiple >
                                     {variableItem?.attributes?.map((attribute, index) => (
@@ -621,12 +617,11 @@ export const VariableItemUpdate = () => {
                                       </AccordionTab>
                                     ))}
                                   </Accordion>
-
-
                                 </Col>
+
                               </Row>
                             </Row>
-                          </Col>
+                          </div>
                         </FormGroup>
                       </Row>
                     </TabPanel>
@@ -744,7 +739,7 @@ export const VariableItemUpdate = () => {
                                           options={mixAndMatchRuleList}
                                           getOptionLabel={option => option.name}
                                           getOptionValue={option => option.id}
-                                          onChange={(mixAndMatchRule) => handleVariantFieldChange(variantIndex,'mixAndMatchRule', mixAndMatchRule)}
+                                          onChange={(mixAndMatchRule) => handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)}
                                         />
                                       </div>
 
@@ -770,15 +765,15 @@ export const VariableItemUpdate = () => {
                       <Visibility
                         initialState={variableItem.visibility}
                         title={translate('items.update.tabs.visibility.titles.variable')}
-                        onStateChanged={(visibility)=>setVariableItem(prev => {
-                          return {...prev, visibility}
-                        })}/>
+                        onStateChanged={(visibility) => setVariableItem(prev => {
+                          return { ...prev, visibility }
+                        })} />
                     </TabPanel>
                     <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
-                      <ItemLoyaltyTab excludedFromLoyaltyPoints={variableItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange}/>
+                      <ItemLoyaltyTab excludedFromLoyaltyPoints={variableItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
                     </TabPanel>
                     <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
-                      <ItemStockTab variants={variableItem?.variants} itemId={variableItem.id}/>
+                      <ItemStockTab variants={variableItem?.variants} itemId={variableItem.id} />
                     </TabPanel>
                     <TabPanel header={translate('items.update.measures')}>
                       <Row className={"mb-3 d-flex flex-column gap-3"} >
@@ -799,35 +794,35 @@ export const VariableItemUpdate = () => {
 
                           <Table>
                             <thead>
-                            <tr>
-                              <th >Measure</th>
-                              <th className="w-1">Exchange Rate</th>
-                            </tr>
+                              <tr>
+                                <th >Measure</th>
+                                <th className="w-1">Exchange Rate</th>
+                              </tr>
                             </thead>
                             <thead>
-                            <tr>
-                              <td>
-                                <Select
-                                  value={measureToAdd?.itemMeasure || null}
-                                  isDisabled={!variableItem?.baseMeasure}
-                                  options={filteredMeasures}
-                                  getOptionValue={option => option.id}
-                                  getOptionLabel={option => option.name}
-                                  onChange={(itemMeasure) => setMeasureToAdd(prev => ({...prev, itemMeasure}))}
-                                />
-                              </td>
-                              <td>
-                                <InputNumber
-                                  value={measureToAdd?.exchangeRate}
-                                  disabled={!measureToAdd?.itemMeasure}
-                                  onChange={(e) => setMeasureToAdd(prev => ({...prev, exchangeRate: e.value}))}
-                                />
-                              </td>
-                              <td>
-                                <Button
-                                  disabled={!measureToAdd?.exchangeRate} onClick={handleAddMeasure} color="primary"  className={"mb-2"} >Add</Button>
-                              </td>
-                            </tr>
+                              <tr>
+                                <td>
+                                  <Select
+                                    value={measureToAdd?.itemMeasure || null}
+                                    isDisabled={!variableItem?.baseMeasure}
+                                    options={filteredMeasures}
+                                    getOptionValue={option => option.id}
+                                    getOptionLabel={option => option.name}
+                                    onChange={(itemMeasure) => setMeasureToAdd(prev => ({ ...prev, itemMeasure }))}
+                                  />
+                                </td>
+                                <td>
+                                  <InputNumber
+                                    value={measureToAdd?.exchangeRate}
+                                    disabled={!measureToAdd?.itemMeasure}
+                                    onChange={(e) => setMeasureToAdd(prev => ({ ...prev, exchangeRate: e.value }))}
+                                  />
+                                </td>
+                                <td>
+                                  <Button
+                                    disabled={!measureToAdd?.exchangeRate} onClick={handleAddMeasure} color="primary" className={"mb-2"} >Add</Button>
+                                </td>
+                              </tr>
                             </thead>
                           </Table>
                         </Col>
@@ -835,32 +830,32 @@ export const VariableItemUpdate = () => {
                         <Col md="8">
                           <Table>
                             <thead>
-                            <tr>
-                              <th><Translate contentKey={'items.update.measure'}>Measure</Translate></th>
-                              <th><Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate></th>
-                              <th>Remove</th>
-                            </tr>
+                              <tr>
+                                <th><Translate contentKey={'items.update.measure'}>Measure</Translate></th>
+                                <th><Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate></th>
+                                <th>Remove</th>
+                              </tr>
                             </thead>
                             <tbody>
-                            {variableItem?.measures?.map((exMeasure, index) => (
-                              <tr key={index}>
-                                <td>
-                                  {exMeasure?.itemMeasure?.name}
-                                </td>
-                                <td>
-                                  <InputNumber
-                                    value={exMeasure?.exchangeRate}
-                                    required
-                                    onChange={(e) => handleMeasuresChange(index, e.value)}
-                                  />
-                                </td>
-                                <td>
-                                  <PrimeButton type={"button"} onClick={() => handleRemoveMeasure(index)} severity={"danger"} >
-                                    <Translate contentKey={'items.update.remove'}>Remove</Translate>
-                                  </PrimeButton>
-                                </td>
-                              </tr>
-                            ))}
+                              {variableItem?.measures?.map((exMeasure, index) => (
+                                <tr key={index}>
+                                  <td>
+                                    {exMeasure?.itemMeasure?.name}
+                                  </td>
+                                  <td>
+                                    <InputNumber
+                                      value={exMeasure?.exchangeRate}
+                                      required
+                                      onChange={(e) => handleMeasuresChange(index, e.value)}
+                                    />
+                                  </td>
+                                  <td>
+                                    <PrimeButton type={"button"} onClick={() => handleRemoveMeasure(index)} severity={"danger"} >
+                                      <Translate contentKey={'items.update.remove'}>Remove</Translate>
+                                    </PrimeButton>
+                                  </td>
+                                </tr>
+                              ))}
                             </tbody>
                           </Table>
                         </Col>
@@ -868,33 +863,37 @@ export const VariableItemUpdate = () => {
                     </TabPanel>
 
                   </TabView>
-                </Col>
+                </div>
               </Row>
             </CardBody>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={3} style={{
+          position: 'sticky',
+          top: '0',
+          height: '90vh',
+        }}>
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"  replace
-                      color="info">
-                <FontAwesomeIcon icon="arrow-left"/>
+              <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" replace
+                color="info">
+                <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
-                                <Translate contentKey="entity.action.back">Back</Translate>
-                            </span>
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
               </Button>
               &nbsp;
               <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                      disabled={updating}>
-                <FontAwesomeIcon icon="save"/>
+                disabled={updating}>
+                <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
             </div>
           </Card>
-          {variableItemEntity?.id &&  <AuditLogs entityId={variableItemEntity?.id} />}
+          {variableItemEntity?.id && <AuditLogs entityId={variableItemEntity?.id} />}
         </Col>
       </div>
     </form>

@@ -567,8 +567,8 @@ export const OnlineOrderingMenuUpdate = () => {
             <Button color="primary" onClick={toggleEditModal}>
               <FontAwesomeIcon icon="pencil-alt" />{' '}
               <span className="d-none d-md-inline">
-            <Translate contentKey="menus.shared.update.edit.buttons.edit">Edit</Translate>
-          </span>
+                <Translate contentKey="menus.shared.update.edit.buttons.edit">Edit</Translate>
+              </span>
             </Button>
             <Button onClick={() => dispatch(sendEvent(id))} className="btn-success ms-2" style={{ fontFamily: 'fantasy' }}>
               <Translate contentKey="menus.shared.update.edit.buttons.trigger">Trigger</Translate>
@@ -587,9 +587,7 @@ export const OnlineOrderingMenuUpdate = () => {
             <Translate contentKey="menus.shared.update.edit.updatedAt">Updated At</Translate>:{' '}
             {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
           </p>
-          <p>
-           Layout: {menuEntity.itemType ? menuEntity.itemType : ''}
-          </p>
+          <p>Layout: {menuEntity.itemType ? menuEntity.itemType : ''}</p>
           <p>
             <Translate contentKey="menus.shared.update.edit.url">Menu URl</Translate>: {menuEntity.menuUrl ? menuEntity.menuUrl : ''}
           </p>
@@ -599,10 +597,8 @@ export const OnlineOrderingMenuUpdate = () => {
         </CardBody>
       </Card>
 
-
       <>
         <>
-
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -612,7 +608,6 @@ export const OnlineOrderingMenuUpdate = () => {
               </ModalHeader>
               <ModalBody>
                 <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-
                   <ValidatedField
                     label={translate('menus.shared.update.name')}
                     id="menu-name"
@@ -630,17 +625,14 @@ export const OnlineOrderingMenuUpdate = () => {
                     name="menuUrl"
                     data-cy="menuUrl"
                     type="text"
-
                   />
                   <div className="mb-3">
                     {translate('menus.shared.update.branches')}
-                    <Select defaultValue={initialBranches}
-                            onChange={handleBranchChange} options={branchList} />
+                    <Select defaultValue={initialBranches} onChange={handleBranchChange} options={branchList} />
                   </div>
-
                   <div className="my-3">
                     Layout
-                    <SelectButton value={itemType} onChange={(e) => setItemType(e.value)} options={ITEM_TYPE_OPTIONS} />
+                    <SelectButton value={itemType} onChange={e => setItemType(e.value)} options={ITEM_TYPE_OPTIONS} />
                   </div>
                   <ValidatedField
                     id="menu-category"
@@ -648,55 +640,52 @@ export const OnlineOrderingMenuUpdate = () => {
                     data-cy="category"
                     label={translate('menus.shared.update.category')}
                     type="select"
-                    required
-                    value={selectedCategory}
+                    value={selectedCategory || ''}
                     onChange={handleCategoryChange}
                   >
+                    <option value=""></option>
                     {menuCategories
-                      ? menuCategories.map((otherEntity) => (
-                        <option key={otherEntity.id} value={otherEntity.name}>
-                          {otherEntity.name}
-                        </option>
-                      ))
+                      ? menuCategories.map(otherEntity => (
+                          <option key={otherEntity.id} value={otherEntity.name}>
+                            {otherEntity.name}
+                          </option>
+                        ))
                       : null}
-
                   </ValidatedField>
-                  <Button  id="cancel-save" data-cy="entityCreateCancelButton" onClick={toggleEditModal} replace color="info">
-                    <FontAwesomeIcon icon="arrow-left"/>
+                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={toggleEditModal} replace color="info">
+                    <FontAwesomeIcon icon="arrow-left" />
                     &nbsp;
                     <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.back">Back</Translate>
-                        </span>
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </span>
                   </Button>
                   &nbsp;
-                  <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                          disabled={updating}>
-                    <FontAwesomeIcon icon="save"/>
+                  <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <FontAwesomeIcon icon="save" />
                     &nbsp;
                     <Translate contentKey="entity.action.save">Save</Translate>
                   </Button>
                 </ValidatedForm>
-
               </ModalBody>
               {!isNew && (
                 <>
-                  <br/>
-                  <ModalFooter>
-
-                  </ModalFooter>
+                  <br />
+                  <ModalFooter></ModalFooter>
                 </>
               )}
-            </Modal>)}
+            </Modal>
+          )}
           <div>
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-
               <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
-                <ModalHeader toggle={toggleModal}><Translate contentKey={'menus.online.update.addItemModal.title'}>Add New Item</Translate></ModalHeader>
+                <ModalHeader toggle={toggleModal}>
+                  <Translate contentKey={'menus.online.update.addItemModal.title'}>Add New Item</Translate>
+                </ModalHeader>
                 <ModalBody>
                   <Row>
                     <Col md="3">
                       <ListGroup>
-                        {Object.keys(groupedMenuItems).map((termName) => (
+                        {Object.keys(groupedMenuItems).map(termName => (
                           <ListGroupItem
                             key={termName}
                             tag="button"
@@ -715,21 +704,23 @@ export const OnlineOrderingMenuUpdate = () => {
                           <h3>{activeTerm}</h3>
                           <Row className="justify-content-center mt-4">
                             {groupedMenuItems[activeTerm]
-                              .filter((item) => !menuItems.some((menuItem) => menuItem.id === item.id && menuItem.id !== null))
-                              .map((item) => (
+                              .filter(item => !menuItems.some(menuItem => menuItem.id === item.id && menuItem.id !== null))
+                              .map(item => (
                                 <Col key={item.id} sm="6" md="4" lg="3" className="mb-4">
                                   <div
-                                    style={{cursor: 'pointer'}}
+                                    style={{ cursor: 'pointer' }}
                                     onClick={() => {
-                                      if (selectedItems?.some((selectedItem) => selectedItem.id === item.id)) {
-                                        setSelectedItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
+                                      if (selectedItems?.some(selectedItem => selectedItem.id === item.id)) {
+                                        setSelectedItems(prevItems => prevItems.filter(i => i.id !== item.id));
                                       } else {
-                                        setSelectedItems((prevItems) => [...prevItems, item]);
+                                        setSelectedItems(prevItems => [...prevItems, item]);
                                       }
                                     }}
                                   >
                                     <Card
-                                      className={`border-4 shadow-sm h-100 ${selectedItems?.some((selectedItem) => selectedItem.id === item.id) ? 'border-primary bg-primary' : ''}`}
+                                      className={`border-4 shadow-sm h-100 ${
+                                        selectedItems?.some(selectedItem => selectedItem.id === item.id) ? 'border-primary bg-primary' : ''
+                                      }`}
                                     >
                                       <CardBody>
                                         <h6>{item.name}</h6>
@@ -743,7 +734,11 @@ export const OnlineOrderingMenuUpdate = () => {
                           </Row>
                         </>
                       ) : (
-                        <p><Translate contentKey={'menus.online.update.addItemModal.message'}>Please select a term to view its items.</Translate></p>
+                        <p>
+                          <Translate contentKey={'menus.online.update.addItemModal.message'}>
+                            Please select a term to view its items.
+                          </Translate>
+                        </p>
                       )}
                     </Col>
                   </Row>
@@ -760,7 +755,9 @@ export const OnlineOrderingMenuUpdate = () => {
 
               <div className="col-12">
                 <div className="card">
-                  <h5><Translate contentKey={'menus.online.update.title'}>Menu Items View</Translate></h5>
+                  <h5>
+                    <Translate contentKey={'menus.online.update.title'}>Menu Items View</Translate>
+                  </h5>
                   <DataView
                     value={filteredValue ?? menuItems}
                     layout={layout}
@@ -772,20 +769,16 @@ export const OnlineOrderingMenuUpdate = () => {
                     itemTemplate={itemTemplate}
                     header={dataViewHeader}
                   />
-
                 </div>
               </div>
               <div className="text-start ">
-
-                <Button  color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                   <FontAwesomeIcon icon="save" /> <Translate contentKey="entity.action.save">Save</Translate>
                 </Button>
               </div>
-
             </ValidatedForm>
           </div>
-          <>
-          </>
+          <></>
         </>
       </>
     </div>

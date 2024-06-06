@@ -69,6 +69,19 @@ export const UiSettingsUpdate = () => {
             <form onSubmit={saveEntity}>
               <FormGroup>
                 <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="UiSettings-applicationName">
+                    <strong>
+                    {translate('tempApp.UiSettings.applicationName')}
+                    </strong>
+                  </Label>
+                  <InputText
+                    id="UiSettings-applicationName"
+                    value={UiSettingsEntity.applicationName || null}
+                    onChange={e => dispatch(changeEntityField({name: 'applicationName',value: e.target.value}))}
+                  />
+                </div>
+                
+                <div className={"d-flex flex-column mb-3"}>
                   <Label htmlFor="UiSettings-currencySymbolPosition">
                     <strong>
                     {translate('tempApp.UiSettings.currencySymbolPosition')}
@@ -196,6 +209,32 @@ export const UiSettingsUpdate = () => {
                   <MediaLibrary
                     handleFilesSelectCallback={(files) => dispatch(changeEntityField({name: 'logo',value: transformAttachmentStructure(files, 'toIAttachment')[0]}))}
                     defaultValues={transformAttachmentStructure(UiSettingsEntity.logo ? [UiSettingsEntity.logo] : [], 'toFileLibraryListItem')} 
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="UiSettings-email">
+                    <strong>
+                    {translate('tempApp.UiSettings.email')}
+                    </strong>
+                  </Label>
+                  <InputText
+                    id="UiSettings-email"
+                    value={UiSettingsEntity.email || null}
+                    onChange={e => dispatch(changeEntityField({name: 'email',value: e.target.value}))}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="UiSettings-phoneNumber">
+                    <strong>
+                    {translate('tempApp.UiSettings.phoneNumber')}
+                    </strong>
+                  </Label>
+                  <InputText
+                    id="UiSettings-phoneNumber"
+                    value={UiSettingsEntity.phoneNumber || null}
+                    onChange={e => dispatch(changeEntityField({name: 'phoneNumber',value: e.target.value}))}
                   />
                 </div>
 

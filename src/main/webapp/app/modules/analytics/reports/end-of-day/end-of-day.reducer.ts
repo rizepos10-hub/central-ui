@@ -25,8 +25,8 @@ const apiUrl = 'api/report/sales-summary';
 
 export const getSummaryReportByTill = createAsyncThunk(
   'summaryReport/fetch_summary_report',
-  async ({ fromDate, toDate, registryId, tillId }: { fromDate: any; toDate: any; tillId: string, registryId: string }) => {
-      const modifiedUrl = `${apiUrl}?fromDate=${fromDate}&toDate=${toDate}&registryId=${registryId}&tillId=${tillId}`;
+  async ({ tillId }: { tillId: string }) => {
+      const modifiedUrl = `${apiUrl}&tillId=${tillId}`;
 
       return await axios.post<ISummaryReport>(modifiedUrl);
   },

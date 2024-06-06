@@ -19,6 +19,7 @@
         "title": "Ui Setting"
       },
       "id": "ID",
+      "applicationName": "Application Name",
       "digitsAfterDecimal": "Digits After Decimal",
       "itemPerRow": "Item Per Row",
       "showDeliveryTips": "Show Delivery Tips",
@@ -28,7 +29,9 @@
       "currencySymbolPosition": "Currency Symbol Position",
       "orderTaking": "Order Taking",
       "domain": "Domain",
-      "logo": "Logo"
+      "logo": "Logo",
+      "email": "Email",
+      "phoneNumber": "Phone Number"
     }
   }
 }

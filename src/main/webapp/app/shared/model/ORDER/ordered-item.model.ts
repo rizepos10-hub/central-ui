@@ -14,6 +14,17 @@ export interface IOrderedItem extends IOrderAudit {
   addons?: IOrderedAddon[];
   variantId?: string;
   orderId?: string;
+  taxValue?: number;
+  variantCount?: number;
+  selectedRetailAttributes?: orderSelectedRetailAttributes[];
+}
+
+interface orderSelectedRetailAttributes {
+  attributeId?: string;
+  attributeName?: string;
+  valueId?: string;
+  valueName?: string;
+
 }
 
 export const defaultValue: Readonly<IOrderedItem> = {};

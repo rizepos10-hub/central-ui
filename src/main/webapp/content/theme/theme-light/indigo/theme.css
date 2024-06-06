@@ -2658,7 +2658,7 @@
     color: #334155;
     border: 1px solid #e2e8f0;
     border-width: 1px 0 1px 0;
-    padding: 1rem 1rem;
+    padding: 0.5rem 1rem;
     font-weight: 700;
   }
   .p-datatable .p-datatable-footer {
@@ -2671,9 +2671,9 @@
   }
   .p-datatable .p-datatable-thead > tr > th {
     text-align: left;
-    padding: 1rem 1rem;
-    border: 1px solid #e2e8f0;
-    border-width: 0 0 1px 0;
+    padding: 0.5rem 1rem;
+    border: 1px ridge #d7d7d7 !important;
+    border-width: 0 1px 0 0 !important; 
     font-weight: 700;
     color: #334155;
     background: #f8fafc;
@@ -2726,16 +2726,22 @@
     box-shadow: inset 0 0 0 0.15rem #c7d2fe;
     outline: 0 none;
   }
-  .p-datatable .p-datatable-tbody > tr {
+  .p-datatable .p-datatable-tbody > tr:nth-child(odd) {
     background: #ffffff;
+    color: #1e293b;
+    transition: box-shadow 0.2s;
+  }
+  
+  .p-datatable .p-datatable-tbody > tr:nth-child(even) {
+    background: #f1f5f9;
     color: #1e293b;
     transition: box-shadow 0.2s;
   }
   .p-datatable .p-datatable-tbody > tr > td {
     text-align: left;
-    border: 1px solid #e2e8f0;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border: 1px ridge #d7d7d7 !important;
+    border-width: 0 1px 0 0 !important; 
+    padding: 0.5rem 1rem;
   }
   .p-datatable .p-datatable-tbody > tr > td .p-row-toggler,
 .p-datatable .p-datatable-tbody > tr > td .p-row-editor-init,
@@ -2841,7 +2847,10 @@
     border-width: 0 1px 1px 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-thead > tr > th {
-    border-width: 1px 0 1px 1px;
+    /* border-width: 1px 0 1px 1px; */
+    border: 1px ridge #d7d7d7 !important;
+    border-width: 0 1px 0 0 !important; 
+    padding: 0.5rem 1rem;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-thead > tr > th:last-child {
     border-width: 1px;
@@ -3749,7 +3758,7 @@
     color: #334155;
   }
   .p-accordion .p-accordion-content {
-    padding: 1.25rem;
+    padding: 0.5rem;
     border: 1px solid #e2e8f0;
     background: #ffffff;
     color: #1e293b;

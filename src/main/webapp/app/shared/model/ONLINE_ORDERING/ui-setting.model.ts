@@ -14,6 +14,9 @@ export interface IUiSettings {
   showDeliveryTips?: boolean,
   scheduleOrders?: boolean,
   logo?: IAttachment;
+  email?: string;
+  phoneNumber?: string;
+  applicationName?: string;
 }
 
 export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT"];

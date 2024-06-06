@@ -392,7 +392,7 @@ export const SimpleItemUpdate = () => {
 
       <div className={"d-flex flex-row"}>
     <Col md={9}>
-      <Card>
+      <Card className='p-0'>
         <CardBody>
           <Row>
             <Col md={10}>
@@ -408,11 +408,11 @@ export const SimpleItemUpdate = () => {
 
                   <Row>
 
-                    <FormGroup  className={`${isNew ? "d-flex bg-white mt-3" : ""}`}>
+                    <FormGroup  className={`${isNew ? "d-flex bg-white" : ""}`}>
 
-                      <Col md="12" className={`d-flex flex-column p-3  bg-white mt-3 gap-3`} >
+                      <Col md="12" className={`d-flex flex-column p-3  bg-white gap-3`} >
 
-                        <Col md="7">
+                        <Col className='p-0'>
                           <div className={"d-flex flex-column gap-2"}>
                             <label className={"text-xl font-bold"}>
                               <Translate contentKey={'items.update.sku'}>SKU</Translate>
@@ -430,7 +430,8 @@ export const SimpleItemUpdate = () => {
 
                         <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange} />
 
-                          <Col md="7">
+                        <Row className="">
+                          <Col md="6">
                             <div className={"d-flex flex-column gap-2"}>
                               <label className={"text-xl font-bold"}>
                                 <Translate contentKey={'items.update.price'}>Price</Translate>
@@ -449,7 +450,7 @@ export const SimpleItemUpdate = () => {
                             </div>
                           </Col>
 
-                          <Col md="7">
+                          <Col md="6">
                             <div className={"d-flex flex-column gap-2"}>
                               <label className={"text-xl font-bold"}>
                                 <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
@@ -465,6 +466,7 @@ export const SimpleItemUpdate = () => {
                               />
                             </div>
                           </Col>
+                        </Row>
 
 
                         <VariantBranchPrice
@@ -674,7 +676,11 @@ export const SimpleItemUpdate = () => {
             </CardBody>
           </Card>
         </Col>
-              <Col md={3}>
+              <Col md={3} style={{
+                position: 'sticky',
+                top: '0',
+                height: '90vh',
+              }}>
                 <Card>
                   <CardHeader>Actions</CardHeader>
                   <div className={'d-flex gap-3 mt-2'}>

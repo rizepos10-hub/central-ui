@@ -1,9 +1,8 @@
-import { Translate } from 'react-jhipster';
 import React from 'react';
 import { Table } from 'reactstrap';
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
 
-const EndOfTillTotalReceived = ({ totalReceived }: { totalReceived: ISummaryReport['totalReceived'] }) => {
+const SummaryReportTotalReceived = ({ totalReceived }: { totalReceived: ISummaryReport['totalReceived'] }) => {
   return (
     <Table striped bordered size={'lg'}>
       <thead>
@@ -30,4 +29,4 @@ const EndOfTillTotalReceived = ({ totalReceived }: { totalReceived: ISummaryRepo
   );
 };
 
-export default EndOfTillTotalReceived;
+export default SummaryReportTotalReceived;
