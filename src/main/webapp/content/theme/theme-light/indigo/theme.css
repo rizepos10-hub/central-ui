@@ -1090,7 +1090,7 @@
     font-size: 1rem;
     color: #1e293b;
     background: #ffffff;
-    padding: 0.75rem 0.75rem;
+    padding: 0.3rem 0.3rem;
     border: 1px solid #cbd5e1;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
     appearance: none;
@@ -1795,7 +1795,7 @@
     color: #ffffff;
     background: #6366f1;
     border: 1px solid #6366f1;
-    padding: 0.75rem 1.25rem;
+    padding: 0.4rem 0.75rem;
     font-size: 1rem;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
     border-radius: 6px;
@@ -3724,7 +3724,7 @@
   }
 
   .p-accordion .p-accordion-header .p-accordion-header-link {
-    padding: 1.25rem;
+    padding: 0.8rem;
     border: 1px solid #e2e8f0;
     color: #64748b;
     background: #f8fafc;

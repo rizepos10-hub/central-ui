@@ -19,7 +19,7 @@ const InputTextFilter = ({ field, placeholder = "Search", style, classname, onCh
   };
 
   return (
-    <span className="p-input-icon-right">
+    <div className="position-relative">
       <InputText
         id={field}
         onKeyDown={onKeyDown}
@@ -28,11 +28,22 @@ const InputTextFilter = ({ field, placeholder = "Search", style, classname, onCh
         value={value || ''}
         name={field}
         style={style}
-        className={classname}
+        className={`${classname} w-100 pe-5`}
         onChange={handleChange}
       />
-      <i className="pi pi-search" />
-    </span>
+      <div style={{
+        position: 'absolute',
+        top: '0rem',
+        right: '0.5rem',
+        fontSize: '1.5rem',
+        color: '#1c140a',
+        borderLeft: '1px solid #eff3f8',
+        paddingLeft: '0.5rem',
+        paddingRight: '0.5rem',
+      }}>
+        <i className="pi pi-search" />
+      </div>
+    </div>
   );
 };
 

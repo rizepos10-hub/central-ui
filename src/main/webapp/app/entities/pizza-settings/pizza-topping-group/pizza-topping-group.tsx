@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import {  getSortState } from 'react-jhipster';
+import { getSortState } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import {getEntities} from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {FilterMatchMode} from "primereact/api";
+import { getEntities, updateAllEntities } from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { FilterMatchMode } from "primereact/api";
 
 export const PizzaToppingGroup = () => {
   const dispatch = useAppDispatch();
@@ -21,6 +21,7 @@ export const PizzaToppingGroup = () => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
+  const [sizeList, setSizeList] = useState([]);
 
   const pizzaToppingGroups = useAppSelector(state => state.toppingGroup.entities);
   const loading = useAppSelector(state => state.toppingGroup.loading);
@@ -50,6 +51,13 @@ export const PizzaToppingGroup = () => {
   }, [paginationState.activePage, paginationState.order, paginationState.sort]);
 
 
+  useEffect(() => {
+    if(pizzaToppingGroups.length > 0){
+      const sortedSizes = pizzaToppingGroups?.slice()?.sort((size1, size2) => size1.order - size2.order)
+      setSizeList(sortedSizes);
+    }
+
+  }, [ pizzaToppingGroups?.length])
 
 
 
@@ -57,8 +65,11 @@ export const PizzaToppingGroup = () => {
     getAllEntities();
   };
 
-
-
+  const handleSave = () => {
+    const newSizesList = sizeList?.map((size, index) => ({...size, order: index}))
+    console.log(newSizesList, 'newSizesList')
+    dispatch(updateAllEntities(newSizesList))
+  }
 
 
   const nameColumnTemplate = rowData => {
@@ -73,7 +84,7 @@ export const PizzaToppingGroup = () => {
     const editUrl = `/pizza-topping-group/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
       </Link>
     );
   };
@@ -82,7 +93,7 @@ export const PizzaToppingGroup = () => {
     const deleteUrl = `/pizza-topping-group/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
       </Link>
     );
   };
@@ -100,6 +111,11 @@ export const PizzaToppingGroup = () => {
         <Button label="Add New Topping Group" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
+
+        <Button className={"btn btn-primary"} onClick={handleSave} disabled={loading} >
+          Save
+        </Button>
+
       </div>
     </div>
   );
@@ -109,21 +125,29 @@ export const PizzaToppingGroup = () => {
 
   return (
     <div>
+      <DataTable
+        value={sizeList}
+        editMode="row"
+        header={header}
+        removableSort
+        reorderableRows
+        filters={filters}
+        filterDisplay="row"
+        paginator
+        onRowReorder={(e) => setSizeList(e.value)}
+        totalRecords={totalItems}
+        rows={20}
+      >
 
-        <DataTable value={pizzaToppingGroups} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
-                   rows={20}>
-          <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+        <Column rowReorder />
+        <Column field="name" header="Name" filter body={nameColumnTemplate} filterPlaceholder={"Search by name"} sortable />
+        <Column header="Edit" body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+        <Column header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-
-        </DataTable>
-      </div>
+      </DataTable>
+    </div>
   );
 };
 

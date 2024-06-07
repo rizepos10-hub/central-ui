@@ -55,6 +55,17 @@ export const updateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const updateAllEntities = createAsyncThunk(
+  'pizzaSize/update_entities',
+  async (entity: ITopping[], thunkAPI) => {
+    const result = await axios.put<ITopping>(`${apiUrl}`, (entity));
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+
 export const partialUpdateEntity = createAsyncThunk(
   'topping-group/partial_update_entity',
   async (entity: ITopping, thunkAPI) => {

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button, Card, CardBody, CardHeader, Col, FormGroup, Row, Spinner, Table } from 'reactstrap';
+import { Button as PrimeButton } from 'primereact/button';
 import { getSortState, translate, Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -220,9 +221,9 @@ export const RegularItemUpdate = () => {
       e.stopPropagation()
     }} className={"d-flex gap-3 ml-2"}>
       <label className={"mt-2"}><strong>{regularItem?.variants?.[variantIndex]?.name}</strong></label>
-      <Button className={"ml-auto"} color="danger" onClick={() => handleDeleteVariant(variantIndex)}>
+      <PrimeButton className={"ml-auto"} severity='danger' onClick={() => handleDeleteVariant(variantIndex)}>
         <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
-      </Button>
+      </PrimeButton>
     </div>
   );
 
@@ -233,7 +234,7 @@ export const RegularItemUpdate = () => {
 
   return (
     <form onSubmit={saveEntity}>
-      <div className={"d-flex flex-row"}>
+      <div className={"d-flex row"}>
         <Col md={9}>
           <Card className='p-0'>
             <CardBody>
@@ -241,14 +242,11 @@ export const RegularItemUpdate = () => {
                 <Col md={12}>
                   <TabView>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
-                      <Row>
-                        <Col md="8">
-                          <h2>
-                            {/* {isNew ? translate('items.update.tabs.details.titles.create.variable') : translate('items.update.tabs.details.titles.edit.variable')} */}
-                            {isNew ? translate('items.update.tabs.details.titles.create.variable') : `Edit ${regularItem.name}`} 
-                          </h2>
-                        </Col>
-                      </Row>
+                      <div className='w-100'>
+                        <div className='text-xl font-semibold'>
+                          {isNew ? translate('items.update.tabs.details.titles.create.variable') : `Edit ${regularItem.name}`}
+                        </div>
+                      </div>
 
                       <Row>
 
@@ -265,22 +263,21 @@ export const RegularItemUpdate = () => {
                     </TabPanel>
                     <TabPanel header={translate('items.update.variants')} >
                       <Col md="5" className={"d-flex gap-3"}>
-
-                        <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
+                        <PrimeButton color="primary" onClick={handleAddVariant}>
                           <Translate contentKey={'items.update.addSingleVariant'}>Add Variant</Translate>
-                        </Button>
+                        </PrimeButton>
                       </Col>
+
                       <Col md={"12"} className={"mt-2"}>
                         <Row className={"mt-2"}>
-
                           {regularItem?.variants?.map((variant, variantIndex) => (
-                            <Col md={"12"} key={variantIndex} className={"mt-2"}>
-                              <Accordion multiple >
+                            <div key={variantIndex} className={"mt-2"}>
+                              <Accordion multiple className='p-0'>
                                 <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
                                   <Row>
                                     <Col md="4">
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                        <label className={"font-semibold"}>
                                           <Translate contentKey={'items.update.name'}>Name</Translate>
                                         </label>
                                         <InputText
@@ -298,7 +295,7 @@ export const RegularItemUpdate = () => {
 
                                     <Col md="4">
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label htmlFor="price" className={"text-xl font-bold"}>
+                                        <label htmlFor="price" className={"font-semibold"}>
                                           <Translate contentKey={'items.update.price'}>Price</Translate>
                                         </label>
                                         <InputNumber
@@ -319,7 +316,7 @@ export const RegularItemUpdate = () => {
 
                                     <Col md="4">
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                        <label className={"font-semibold"}>
                                           <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
                                         </label>
                                         <InputNumber
@@ -339,7 +336,7 @@ export const RegularItemUpdate = () => {
                                   <Row>
                                     <Col md="7">
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                        <label className={"font-semibold"}>
                                           <Translate contentKey={'items.update.addons'}>Addons</Translate>
                                         </label>
                                         <Select
@@ -359,7 +356,7 @@ export const RegularItemUpdate = () => {
                                       />
 
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                        <label className={"font-semibold"}>
                                           <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                         </label>
                                         <Select
@@ -397,7 +394,7 @@ export const RegularItemUpdate = () => {
 
                                 </AccordionTab>
                               </Accordion>
-                            </Col>
+                            </div>
                           ))}
                         </Row>
                       </Col>
@@ -424,35 +421,34 @@ export const RegularItemUpdate = () => {
             </CardBody>
           </Card>
         </Col>
-        <Col md={3} style={{ 
-            position: 'sticky',
-            top: '0',
-            height: '90vh',
-           }}>
+        <Col md={3} style={{
+          position: 'sticky',
+          top: '0',
+          height: '90vh',
+        }}>
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" replace
-                color="info">
+              <PrimeButton onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity='secondary'>
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </span>
-              </Button>
+              </PrimeButton>
               &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
                 disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
+              </PrimeButton>
             </div>
           </Card>
           {regularItem?.id && <AuditLogs entityId={regularItem?.id} />}
         </Col>
       </div>
-    </form>
+    </form >
   );
 };
 

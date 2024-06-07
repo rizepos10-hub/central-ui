@@ -16,7 +16,7 @@ const DiscountDropdown = ({discounts, handleChange, variantIndex, handleVariantC
 
   return (
     <div className={'d-flex flex-column gap-2'}>
-      <label className={'text-xl font-bold'}>
+      <label className={'font-semibold'}>
         <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
       </label>
       <Select

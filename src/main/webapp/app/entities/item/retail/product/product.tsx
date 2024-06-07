@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
-import {getSortState, translate, Translate} from 'react-jhipster';
+import { getSortState, translate, Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
-import {Column} from "primereact/column";
-import {ISimpleItem} from "app/shared/model/ITEM/retail/simple-item.model";
-import {SummarizeText} from "app/shared/util/SummarizeText";
+import { Column } from "primereact/column";
+import { ISimpleItem } from "app/shared/model/ITEM/retail/simple-item.model";
+import { SummarizeText } from "app/shared/util/SummarizeText";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap, updateTableFilters } from "app/shared/util/filter-match-model-util";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
@@ -16,17 +16,18 @@ import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import AttributeFilter from "app/shared/components/filter/attribute-filter";
 import { filterEntities, getEntities } from "app/entities/item/retail/product/product.reducer";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
+import { Accordion, AccordionTab } from "primereact/accordion";
 
 
 export const Product = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const products :IProduct[] = useAppSelector(state => state.product.entities)
+  const products: IProduct[] = useAppSelector(state => state.product.entities)
   const loading = useAppSelector(state => state.product.loading);
   const totalItems = useAppSelector(state => state.product.totalItems);
 
-  const [searchParams, setSearchParams]=  useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
   const [localFilters, setLocalFilters] = useState(query?.filters);
   const filteredAttributes = localFilters?.["attributes.attributeTerms.id"]?.constraints || [];
@@ -59,24 +60,24 @@ export const Product = () => {
 
   const onSort = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true })
   };
 
   const onFilter = (newFilters) => {
-      const newFilters1 = updateTableFilters(newFilters);
-      setLocalFilters(newFilters1);
-      query['first'] = 0;
-      query['page'] = 0;
-      query.filters = updateTableFilters({ ...localFilters });
-      const queryParams = JSON.stringify(query);
-      setSearchParams({query: queryParams}, {replace: true});
-      getAllEntities();
+    const newFilters1 = updateTableFilters(newFilters);
+    setLocalFilters(newFilters1);
+    query['first'] = 0;
+    query['page'] = 0;
+    query.filters = updateTableFilters({ ...localFilters });
+    const queryParams = JSON.stringify(query);
+    setSearchParams({ query: queryParams }, { replace: true });
+    getAllEntities();
   };
 
 
   const onPage = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true })
   };
 
   const handleFilterValueChange = useCallback((field, value) => {
@@ -107,11 +108,11 @@ export const Product = () => {
 
 
   const nameColumnTemplate = rowData => {
-    const itemVariantType  = rowData.itemVariantType // "RETAIL_VARIABLE" | "RETAIL_SIMPLE"
+    const itemVariantType = rowData.itemVariantType // "RETAIL_VARIABLE" | "RETAIL_SIMPLE"
     const editUrl = itemVariantType === "RETAIL_SIMPLE" ?
       `/retail/simple/${rowData.id}/edit`
       :
-      `/retail/variable/${rowData.id}/edit` ;
+      `/retail/variable/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -119,72 +120,65 @@ export const Product = () => {
     );
   };
   const editColumnTemplate = (rowData) => {
-    const itemVariantType  = rowData.itemVariantType // "RETAIL_VARIABLE" | "RETAIL_SIMPLE"
+    const itemVariantType = rowData.itemVariantType // "RETAIL_VARIABLE" | "RETAIL_SIMPLE"
     const editUrl = itemVariantType === "RETAIL_SIMPLE" ?
       `/retail/simple/${rowData.id}/edit`
       :
-      `/retail/variable/${rowData.id}/delete` ;
+      `/retail/variable/${rowData.id}/delete`;
 
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
       </Link>
     );
   };
 
   const deleteColumnTemplate = (rowData: IProduct) => {
-    const itemVariantType  = rowData.itemVariantType // "RETAIL_VARIABLE" | "RETAIL_SIMPLE"
+    const itemVariantType = rowData.itemVariantType // "RETAIL_VARIABLE" | "RETAIL_SIMPLE"
     const deleteUrl = itemVariantType === "RETAIL_SIMPLE" ?
       `/retail/simple/${rowData.id}/delete`
       :
-      `/retail/variable/${rowData.id}/delete` ;
+      `/retail/variable/${rowData.id}/delete`;
     return (
       <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
       </Link>
     );
   };
   const handleCreate = (type: "simple" | "variable") => {
-      navigate(`/retail/${type}/new`)
+    navigate(`/retail/${type}/new`)
   }
 
   const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <div className="ms-auto">
-        <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate('items.view.actions.createVariable')} raised onClick={() => handleCreate("variable")} disabled={loading}>
-          &nbsp;
-        </Button>
-        <Button label={translate('items.view.actions.createSimple')} raised onClick={() => handleCreate("simple")} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
+    <div className="flex align-items-center justify-content-end gap-2">
+      <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised color="info" onClick={handleSyncList} disabled={loading}>
+        <FontAwesomeIcon icon="sync" spin={loading} />{' '}
+      </Button>
+      <Button label={translate('items.view.actions.createVariable')} raised onClick={() => handleCreate("variable")} disabled={loading}>
+      </Button>
+      <Button label={translate('items.view.actions.createSimple')} raised onClick={() => handleCreate("simple")} disabled={loading}>
+      </Button>
     </div>
   );
 
 
   return (
     <div>
-      <h2>Products</h2>
-      <div className="d-flex gap-3">
-
-        <div className={'d-flex flex-column  gap-3'}>
-          <SharedFilter filteredAttributes={filteredAttributes} onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
-        </div>
-
-        <div className={'ml-auto'}>
-
-        </div>
-      </div>
-      <div className={'d-flex flex-row justify-content-center mt-1 mb-3'}>
-        <Button type={'button'} severity={"info"} label={'Clear Filters'} onClick={handleClear} />
-        &nbsp;
-        &nbsp;
-        <Button type={'submit'} label={'Search'} onClick={() => onFilter(localFilters)} />
-      </div>
+      <Accordion
+        activeIndex={0}
+      >
+        <AccordionTab header='Filters'>
+          <div className="d-flex flex-column gap-3">
+            <div className="d-flex gap-3">
+              <SharedFilter filteredAttributes={filteredAttributes} onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
+            </div>
+            <div className={'d-flex gap-2 justify-content-center'}>
+              <Button type={'button'} severity={"info"} label={'Clear Filters'} onClick={handleClear} />
+              <Button type={'submit'} label={'Search'} onClick={() => onFilter(localFilters)} />
+            </div>
+          </div>
+        </AccordionTab>
+      </Accordion>
 
       <DataTable
         value={products} lazy filterDisplay="row" dataKey="id" paginator
