@@ -125,7 +125,7 @@ export const VariableItemUpdate = () => {
     if (fromMenuId) {
       navigate(`/menu/${fromMenuId}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
     } else {
-      navigate("/retail/variable");
+      navigate("/product");
     }
   }
 
@@ -507,9 +507,9 @@ export const VariableItemUpdate = () => {
     }} className={"d-flex gap-3 ml-2 w-full"}>
       <label className={"mt-2"}><strong>{variableItem?.attributes?.[attributeIndex]?.attributeTax?.name}</strong></label>
 
-      <Button className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
+      <PrimeButton className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
         <Translate contentKey={'items.update.removeAttribute'}>Remove Attribute</Translate>
-      </Button>
+      </PrimeButton>
     </div>
   )
 
@@ -549,7 +549,7 @@ export const VariableItemUpdate = () => {
 
   return (
     <form onSubmit={saveEntity}>
-      <div className={"d-flex flex-row"}>
+      <div className={"d-flex row"}>
         <Col md={9}>
           <Card>
             <CardBody>
@@ -557,24 +557,22 @@ export const VariableItemUpdate = () => {
                 <div>
                   <TabView>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
-                      <Row>
-                        <Col md="8">
-                          <h2>
-                            {isNew ? translate('items.update.tabs.details.titles.create.variable') : translate('items.update.tabs.details.titles.edit.variable')}
-                          </h2>
-                        </Col>
-                      </Row>
+                      <div className='w-100'>
+                        <div className='text-xl font-semibold'>
+                          {isNew ? translate('items.update.tabs.details.titles.create.variable') : <span>Edit {variableItem.name}</span>}
+                        </div>
+                      </div>
 
                       <Row>
                         <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
-                          <div className={`d-flex flex-column p-3  bg-white w-100`} >
+                          <div className={`d-flex flex-column p-1 bg-white w-100`} >
                             <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange} />
 
                             <Row className={"mb-3"} >
                               <Row>
                                 <Col md="4">
                                   <div className={"d-flex flex-column gap-2"}>
-                                    <label className={"text-xl font-bold"}>
+                                    <label className={"font-semibold"}>
                                       <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
                                     </label>
                                     <Select
@@ -589,9 +587,9 @@ export const VariableItemUpdate = () => {
                                 </Col>
 
                                 <Col md="3">
-                                  <Button color="primary" disabled={isAttributeAddButtonDisabled} className={"mt-5"} onClick={handleAddAttribute}>
+                                  <PrimeButton color="primary" disabled={isAttributeAddButtonDisabled} className={"mt-5"} onClick={handleAddAttribute}>
                                     <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
-                                  </Button>
+                                  </PrimeButton>
                                 </Col>
 
                                 <Col md={"12"} className={"mt-2"}>
@@ -653,7 +651,7 @@ export const VariableItemUpdate = () => {
                                   <Row>
                                     <Col md="4">
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                        <label className={"font-semibold"}>
                                           <Translate contentKey={'items.update.name'}>Name</Translate>
                                         </label>
                                         <InputText
@@ -669,7 +667,7 @@ export const VariableItemUpdate = () => {
 
                                     <Col md="4">
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                        <label className={"font-semibold"}>
                                           <Translate contentKey={'items.update.sku'}>SKU</Translate>
                                         </label>
                                         <InputText
@@ -685,7 +683,7 @@ export const VariableItemUpdate = () => {
 
                                     <Col md="4">
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label htmlFor="price" className={"text-xl font-bold"}>
+                                        <label htmlFor="price" className={"font-semibold"}>
                                           <Translate contentKey={'items.update.price'}>Price</Translate>
                                         </label>
                                         <InputNumber
@@ -705,7 +703,7 @@ export const VariableItemUpdate = () => {
 
                                     <Col md="4">
                                       <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                        <label className={"font-semibold"}>
                                           <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
                                         </label>
                                         <InputNumber
@@ -731,7 +729,7 @@ export const VariableItemUpdate = () => {
                                       />
 
                                       <div className={"d-flex flex-column gap-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                        <label className={"font-semibold"}>
                                           <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                         </label>
                                         <Select
@@ -779,7 +777,7 @@ export const VariableItemUpdate = () => {
                       <Row className={"mb-3 d-flex flex-column gap-3"} >
                         <Col md="12" className={"d-flex gap-3 mb-3"}>
                           <div className={"d-flex flex-column gap-2 w-6 mt-3"}>
-                            <label className={"text-xl font-bold"}>
+                            <label className={"font-semibold"}>
                               <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
                             </label>
                             <Select
@@ -876,21 +874,20 @@ export const VariableItemUpdate = () => {
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" replace
-                color="info">
+              <PrimeButton onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity='secondary'>
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </span>
-              </Button>
+              </PrimeButton>
               &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
                 disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
+              </PrimeButton>
             </div>
           </Card>
           {variableItemEntity?.id && <AuditLogs entityId={variableItemEntity?.id} />}

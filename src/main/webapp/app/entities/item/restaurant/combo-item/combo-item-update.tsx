@@ -318,32 +318,26 @@ export const ComboItemUpdate = () => {
   };
 
 
-
-
-
-
   if (loading) {
     return <Spinner />
   }
 
   return (
     <form onSubmit={saveEntity}>
-      <Row>
-        <Col md="8">
-          <h2>
-            {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.combo'}>Create New Combo Item</Translate> : <Translate contentKey={'items.update.tabs.details.titles.edit.combo'}>Edit Combo Item</Translate>}
-          </h2>
-        </Col>
-      </Row>
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card>
             <TabView>
               <TabPanel header={translate('items.update.tabs.details.label')}>
+                <div className='w-100'>
+                  <div className='text-xl font-semibold'>
+                    {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.combo'}>Create New Combo Item</Translate> : <span>Edit {comboItem.name}</span>}
+                  </div>
+                </div>
                 <Row>
                   <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
 
-                    <div className={`d-flex flex-column p-3  bg-white `} >
+                    <div className={`d-flex flex-column p-3  bg-white w-100`} >
 
                       {isModalOpen ? <ComboItemSelection
                         isOpen={isModalOpen}
@@ -358,7 +352,7 @@ export const ComboItemUpdate = () => {
                       />
 
                       <Row>
-                        <Col md="7">
+                        <Col md="12">
 
                           <DiscountDropdown
                             discounts={comboItem?.variants?.[0]?.discounts}
@@ -366,7 +360,7 @@ export const ComboItemUpdate = () => {
                           />
 
                           <div className={"d-flex flex-column gap-2"}>
-                            <label className={"text-xl font-bold"}>
+                            <label className={"font-semibold"}>
                               <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                             </label>
                             <Select
@@ -382,7 +376,7 @@ export const ComboItemUpdate = () => {
 
                       <Col md="4">
                         <div className={"d-flex flex-column gap-2 mt-3"}>
-                          <label className={"text-xl font-bold"}>
+                          <label className={"font-semibold"}>
                             <Translate contentKey={'items.update.price'}>Price</Translate>
                           </label>
                           <InputNumber
@@ -400,7 +394,7 @@ export const ComboItemUpdate = () => {
 
                       <Col md="4">
                         <div className={"d-flex flex-column gap-2 mt-2"}>
-                          <label className={"text-xl font-bold"}>
+                          <label className={"font-semibold"}>
                             <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
                           </label>
                           <InputNumber
@@ -430,9 +424,9 @@ export const ComboItemUpdate = () => {
                         <FormGroup>
                           <h3><Translate contentKey={'items.update.combo.title'}>Combo</Translate></h3>
                           <div className="d-flex justify-content-end mr-4">
-                            <Button color="primary" onClick={toggleModal}>
+                            <PrimeButton color="primary" onClick={toggleModal}>
                               <Translate contentKey={'items.update.combo.addItem'}>Add Item</Translate>
-                            </Button>
+                            </PrimeButton>
                           </div>
                           <Table>
                             <thead>
@@ -482,12 +476,12 @@ export const ComboItemUpdate = () => {
                                       </div>
                                     </td>
                                     <td>
-                                      <Button
-                                        color="danger"
+                                      <PrimeButton
+                                        severity='danger'
                                         onClick={() => handleDeleteComboPackage(index)}
                                       >
                                         <Translate contentKey={'items.update.combo.delete'}>Delete</Translate>
-                                      </Button>
+                                      </PrimeButton>
                                     </td>
                                   </tr>
                                 )
@@ -524,21 +518,20 @@ export const ComboItemUpdate = () => {
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
-                color="info">
+              <PrimeButton id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} severity='secondary'>
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </span>
-              </Button>
+              </PrimeButton>
               &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
                 disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
+              </PrimeButton>
             </div>
           </Card>
           {comboItemEntity?.id && <AuditLogs entityId={comboItemEntity?.id} />}

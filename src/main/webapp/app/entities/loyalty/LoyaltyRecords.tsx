@@ -224,7 +224,7 @@ export const LoyaltyRecords = () => {
         </CardHeader>
           <CardBody className={"d-flex gap-3 flex-lg-row  flex-md-column flex-sm-column"}>
             <div className={"d-flex flex-column gap-2"}>
-              <label className={"text-xl font-bold"}>
+              <label className={"font-semibold"}>
                 Cash To Point Exchange
               </label>
               <InputNumber
@@ -239,7 +239,7 @@ export const LoyaltyRecords = () => {
             </div>
 
             <div className={"d-flex flex-column gap-2"}>
-              <label className={"text-xl font-bold"}>
+              <label className={"font-semibold"}>
                 Point To Cash Exchange
               </label>
               <InputNumber
