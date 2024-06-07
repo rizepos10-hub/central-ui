@@ -1,87 +1,33 @@
 export interface ISummaryReport {
-  totalSales: {
-    orders: number;
-    subTotal: number;
-    discount: number;
-    appliedCoupon: number;
-    deliveryCharge: number;
-    deliveryTAX: number;
-    refunds: number;
-    netSales: number;
-    totalTAX: number;
-    grossSales: number;
-    totalTip: number;
-    hst: number;
-    gst: number;
-  };
-  totalReceived: {
-    paymentType: string;
-    tip: number;
-    amount: number;
-    refund: number;
-    received: number;
-  }[];
+  totalSales: ISalesSummary;
+  totalReceived: IReceivedSummary[];
   totalSalesByOrderOption: {
-    WalkIn: {
-      orders: number;
-      subTotal: number;
-      discount: number;
-      appliedCoupon: number;
-      deliveryCharge: number;
-      deliveryTAX: number;
-      refunds: number;
-      netSales: number;
-      totalTAX: number;
-      grossSales: number;
-      totalTip: number;
-      hst: number;
-      gst: number;
-    };
-    DineIn: {
-      orders: number;
-      subTotal: number;
-      discount: number;
-      appliedCoupon: number;
-      deliveryCharge: number;
-      deliveryTAX: number;
-      refunds: number;
-      netSales: number;
-      totalTAX: number;
-      grossSales: number;
-      totalTip: number;
-      hst: number;
-      gst: number;
-    };
-    PickUp: {
-      orders: number;
-      subTotal: number;
-      discount: number;
-      appliedCoupon: number;
-      deliveryCharge: number;
-      deliveryTAX: number;
-      refunds: number;
-      netSales: number;
-      totalTAX: number;
-      grossSales: number;
-      totalTip: number;
-      hst: number;
-      gst: number;
-    };
-    Delivery: {
-      orders: number;
-      subTotal: number;
-      discount: number;
-      appliedCoupon: number;
-      deliveryCharge: number;
-      deliveryTAX: number;
-      refunds: number;
-      netSales: number;
-      totalTAX: number;
-      grossSales: number;
-      totalTip: number;
-      hst: number;
-      gst: number;
-    };
+    [orderOption: string]: ISalesSummary;
   };
 }
 
+export interface ISalesSummary {
+  orders: number;
+  subTotal: number;
+  discount: number;
+  appliedCoupon: number;
+  deliveryCharge: number;
+  deliveryTAX: number;
+  refunds: number;
+  netSales: number;
+  totalTAX: number;
+  grossSales: number;
+  totalTip: number;
+  taxes: {
+    [taxType: string]: number;
+  };
+}
+
+
+export interface IReceivedSummary {
+  paymentType: string;
+  tip: number;
+  amount: number;
+  refund: number;
+  received: number;
+}

@@ -3,8 +3,10 @@ import { Col, Container, Row, Table } from 'reactstrap';
 import { ISummaryReport } from "app/shared/model/report-summary.model";
 
 const GenericSalesReport = ({  title, report }: {title: string; report: ISummaryReport["totalSales"] }) => {
+  if(!report) return;
+
   const { orders, subTotal, discount, appliedCoupon, deliveryCharge, deliveryTAX,
-    refunds, netSales, totalTAX, grossSales, totalTip, hst, gst } = report;
+    refunds, netSales, totalTAX, grossSales, totalTip,taxes} = report;
 
   const [show, setShow] = useState(false);
 
@@ -21,7 +23,7 @@ const GenericSalesReport = ({  title, report }: {title: string; report: ISummary
           <tr>
             <th colSpan={2}>New sales (orders)</th>
             <th></th>
-            <th colSpan={2} className="text-right">
+            <th colSpan={2} className="col-4 text-right">
               {orders}
             </th>
           </tr>
@@ -44,7 +46,7 @@ const GenericSalesReport = ({  title, report }: {title: string; report: ISummary
             <td colSpan={2}>
                 <span onClick={handleClick} className="text-primary cursor-pointer"
                       title="No Tax ($0.00) + Hst ($5.68)">
-                  Tax (2 taxes)
+                  Tax ({Object.keys(taxes).length})
                   <i className="pi pi-angle-up "></i>
                 </span>
             </td>
@@ -52,20 +54,13 @@ const GenericSalesReport = ({  title, report }: {title: string; report: ISummary
               {totalTAX}
             </td>
           </tr>
-          <tr className={`${!show && "hidden"}`}>
-            <td></td>
-            <td colSpan={3}>
-              No Tax
-            </td>
-            <td className="text-right">$0.00</td>
-          </tr>
-          <tr className={`${!show && "hidden"}`}>
-            <td></td>
-            <td colSpan={3}>
-              Hst
-            </td>
-            <td className="text-right">$5.00</td>
-          </tr>
+          {Object.entries(taxes).map(([taxType, amount]) => (
+            <tr key={taxType} className={`${!show && "hidden"}`}>
+              <td></td>
+              <td colSpan={3}>{taxType}</td>
+              <td className="text-right">{amount}</td>
+            </tr>
+          ))}
           <tr>
             <th>Discounts</th>
             <th colSpan={2}></th>

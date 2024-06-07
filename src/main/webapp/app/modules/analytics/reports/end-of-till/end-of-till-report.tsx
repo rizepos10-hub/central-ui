@@ -5,7 +5,7 @@ import {
   getEntity,
   getEntityAReport
 } from "app/entities/settings/branch-registry/till/till.reducer";
-import { Button } from "reactstrap";
+import { Button, Spinner } from "reactstrap";
 import TillDetails from "app/modules/analytics/reports/end-of-till/till-details";
 import GenericSalesReport from "app/shared/components/report/generic-sales-report";
 ;
@@ -16,15 +16,18 @@ const EndOfTillReport = () => {
   const { id, tillId } = useParams();
   const dispatch = useAppDispatch();
   const till = useAppSelector(state => state.till.entity);
-  const branchRegistry = useAppSelector(state => state.branchRegistry.entity);
   const summaryReport :ISummaryReport = useAppSelector(state => state.till.report);
+  const loading :ISummaryReport = useAppSelector(state => state.till.loading);
 
   useEffect(() => {
-    dispatch(getEntityAReport(tillId));
     dispatch(getEntity(tillId));
+    dispatch(getEntityAReport(tillId));
   }, []);
 
-  console.log(summaryReport, "summaryReportsummaryReport")
+  if(loading){
+    return <Spinner />
+  }
+
 
   return (
     <div className={'bg-white p-5'}>
@@ -32,7 +35,7 @@ const EndOfTillReport = () => {
       <div className="p-3 rounded-3 border bg-gray-300 border-2 border-gray-300 shadow-sm bg-gradient">
         <Button
           tag={Link}
-          to={`/analytics/register-closure/${id}/${tillId}/orders?registry=${branchRegistry.name}&from=${till.startDate}&to=${till.endDate}`}
+          to={`/analytics/register-closure/${id}/${tillId}/orders?registry=${till?.registry?.name}&from=${till.startDate}&to=${till.endDate}`}
           className="btn btn--pill btn--well"
         >
           View full details
@@ -44,25 +47,15 @@ const EndOfTillReport = () => {
       </div>
 
 
-      { summaryReport.totalSales &&
-        <GenericSalesReport title={'Total Sales'} report={summaryReport.totalSales} />
-      }
+        <GenericSalesReport title={'Total Sales'} report={summaryReport?.totalSales} />
 
-      {summaryReport?.totalSalesByOrderOption?.["DineIn"] &&
-        <GenericSalesReport report={summaryReport.totalSalesByOrderOption["DineIn"]} title={"Dine In Sales"} />
-      }
+        <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["DineIn"]} title={"Dine In Sales"} />
 
-      {summaryReport?.totalSalesByOrderOption?.["Delivery"] &&
-        <GenericSalesReport report={summaryReport.totalSalesByOrderOption["Delivery"]} title={"Delivery Sales"} />
-      }
+        <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["Delivery"]} title={"Delivery Sales"} />
 
-      {summaryReport?.totalSalesByOrderOption?.["PickUp"] &&
-        <GenericSalesReport report={summaryReport.totalSalesByOrderOption["PickUp"]} title={"Pick Up Sales"} />
-      }
+        <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["PickUp"]} title={"Pick Up Sales"} />
 
-      {summaryReport?.totalSalesByOrderOption?.["WalkIn"] &&
-        <GenericSalesReport report={summaryReport.totalSalesByOrderOption["WalkIn"]} title={"Walk In Sales"} />
-      }
+        <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["WalkIn"]} title={"Walk In Sales"} />
 
       {summaryReport?.totalReceived && <EndOfTillTotalReceived totalReceived={summaryReport.totalReceived} />}
     </div>
