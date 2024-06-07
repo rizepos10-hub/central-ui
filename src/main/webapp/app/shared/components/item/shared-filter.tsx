@@ -37,54 +37,46 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
   };
 
   return (
-    <form>
-      <div className={'d-flex flex-row flex-wrap gap-4'}>
-        <div className={'d-flex flex-column flex-1 gap-3'}>
-          <div className={'d-flex flex-column'}>
-            <Label className={'font-semibold'}>Name</Label>
-            <InputTextFilter onKeyDown={handleKeyDown} value={filters?.name?.value} size={30} field={'name'} onChange={onInputChange} />
-          </div>
-
-          <div className={'d-flex flex-column'}>
-            <Label className={'font-semibold'}>SKU</Label>
-            <InputTextFilter
-              onKeyDown={handleKeyDown}
-              value={filters?.['variants.sku']?.value}
-              size={30}
-              field={'variants.sku'}
-              onChange={onInputChange}
-            />
-          </div>
+    <form className='w-100 d-flex flex-column gap-3'>
+      <div className={'row'}>
+        <div className={'col-3 d-flex flex-column gap-1'}>
+          <Label className={'font-semibold'}>Name</Label>
+          <InputTextFilter onKeyDown={handleKeyDown} value={filters?.name?.value} size={30} field={'name'} onChange={onInputChange} />
         </div>
 
-        <div className={'d-flex flex-row flex-1 gap-3'}>
-          <div className={'d-flex flex-column'}>
-            <Label className={'font-semibold'}>Category</Label>
-            <DropDownFilter
-              style={{ minWidth: '18rem' }}
-              placeholder={'Select Category'}
-              dropDownOptionType={isRetailITem ? 'RETAIL_CATEGORY' : 'RESTAURANT_CATEGORY'}
-              selectedOption={filters?.['categories.id']?.value}
-              fieldName={'categories.id'}
-              handleDropdownChange={handleDropdownChange}
-            />
-          </div>
-          <div className={'d-flex flex-column'}>
-            <Label className={'font-semibold'}>Base Measure</Label>
-            <DropDownFilter
-              style={{ minWidth: '18rem' }}
-              dropDownOptionType={'MEASURE'}
-              placeholder={'Select Measure'}
-              selectedOption={filters?.['baseMeasure.id']?.value}
-              fieldName={'baseMeasure.id'}
-              handleDropdownChange={handleDropdownChange}
-            />
-          </div>
-          <div className={'d-flex flex-column flex-1 gap-3'}>
-              <AttributeFilter filteredAttributes={filteredAttributes} onFilterValueChange={onFilterValueChange} />
-          </div>
+        <div className={'col-3 d-flex flex-column gap-1'}>
+          <Label className={'font-semibold'}>SKU</Label>
+          <InputTextFilter
+            onKeyDown={handleKeyDown}
+            value={filters?.['variants.sku']?.value}
+            size={30}
+            field={'variants.sku'}
+            onChange={onInputChange}
+          />
+        </div>
+        <div className={'col-3 d-flex flex-column gap-1'}>
+          <Label className={'font-semibold'}>Category</Label>
+          <DropDownFilter
+            placeholder={'Select Category'}
+            dropDownOptionType={isRetailITem ? 'RETAIL_CATEGORY' : 'RESTAURANT_CATEGORY'}
+            selectedOption={filters?.['categories.id']?.value}
+            fieldName={'categories.id'}
+            handleDropdownChange={handleDropdownChange}
+          />
+        </div>
+        <div className={'col-3 d-flex flex-column gap-1'}>
+          <Label className={'font-semibold'}>Base Measure</Label>
+          <DropDownFilter
+            dropDownOptionType={'MEASURE'}
+            placeholder={'Select Measure'}
+            selectedOption={filters?.['baseMeasure.id']?.value}
+            fieldName={'baseMeasure.id'}
+            handleDropdownChange={handleDropdownChange}
+          />
         </div>
       </div>
+
+      <AttributeFilter filteredAttributes={filteredAttributes} onFilterValueChange={onFilterValueChange} />
     </form>
   );
 };

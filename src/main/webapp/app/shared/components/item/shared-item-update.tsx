@@ -184,12 +184,12 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
   return (
     <div>
       <Row>
-        <FormGroup className={'d-flex flex-column gap-3'}>
+        <FormGroup className={'d-flex flex-column gap-1'}>
           <Col md="12">
             <div className='row'>
               {!isSimplePizza ? (
-                <div className={'d-flex flex-column gap-2 mt-2 col'}>
-                  <label className={'text-xl font-bold'}>
+                <div className={'d-flex flex-column gap-1  col'}>
+                  <label className={'font-semibold'}>
                     <Translate contentKey={'items.update.name'}>Name</Translate>
                   </label>
                   <InputText
@@ -204,8 +204,8 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                 </div>
               ) : null}
 
-              <div className={'d-flex flex-column gap-2 mt-2 col'}>
-                <label className={'text-xl font-bold'}>
+              <div className={'d-flex flex-column gap-1  col'}>
+                <label className={'font-semibold'}>
                   <Translate contentKey={'items.update.description'}>Description</Translate>
                 </label>
                 <InputTextarea
@@ -219,8 +219,8 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
             </div>
 
             <div className='row'>
-              <div className={'d-flex flex-column gap-2 col'}>
-                <label className={'text-xl font-bold'}>
+              <div className={'d-flex flex-column gap-1 col'}>
+                <label className={'font-semibold'}>
                   <Translate contentKey="items.update.productionCenter">Production Center</Translate>
                 </label>
                 <Select
@@ -233,8 +233,8 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                 />
               </div>
 
-              <div className={'d-flex flex-column gap-2 col'}>
-                <label className={'text-xl font-bold'}>
+              <div className={'d-flex flex-column gap-1 col'}>
+                <label className={'font-semibold'}>
                   <Translate contentKey="items.update.accountingGroups">Accounting Groups</Translate>
                 </label>
                 <Select
@@ -257,8 +257,8 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                 : null}
             </div>
             <div className='row'>
-              <div className={'d-flex flex-column gap-2 mt-2 col'}>
-                <label className={'text-xl font-bold'}>
+              <div className={'d-flex flex-column gap-1  col'}>
+                <label className={'font-semibold'}>
                   <Translate contentKey="items.update.categories">Categories</Translate>
                 </label>
                 <Select
@@ -271,8 +271,8 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                 />
               </div>
 
-              <div className={'d-flex flex-column gap-2 mt-2 col'}>
-                <label className={'text-xl font-bold'}>
+              <div className={'d-flex flex-column gap-1  col'}>
+                <label className={'font-semibold'}>
                   <Translate contentKey="items.update.tags">Tags</Translate>
                 </label>
                 <Select
@@ -286,10 +286,10 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
               </div>
             </div>
 
-            <Row className={'my-3'}>
+            <Row className={''}>
               <Col md={'7'}>
-                <div className={'d-flex flex-column mt-2'}>
-                  <label className={'text-xl mt-2 font-bold'}>
+                <div className={'d-flex flex-column '}>
+                  <label className={'font-semibold'}>
                     <Translate contentKey={'items.update.image'}>Image</Translate>
                   </label>
                   <MediaLibrary
@@ -312,8 +312,8 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                 )}
                 <Row className={'my-3'}>
                   <div className='row'>
-                    <div className={'d-flex flex-column gap-2 col-10'}>
-                      <label className={'text-xl font-bold'}>
+                    <div className={'d-flex flex-column gap-1 col-10'}>
+                      <label className={'font-semibold'}>
                         <Translate contentKey={'items.update.addons'}>Addons</Translate>
                       </label>
                       <Select
@@ -325,7 +325,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                         onChange={selectedAddons => onFieldChange('addons', selectedAddons)}
                       />
                     </div>
-                    <div className={'d-flex flex-column gap-2 flex-end justify-content-end col-2 pe-0'}>
+                    <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
                       <div>
                         <Button onClick={openImportAddonModal}>
                           <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
@@ -335,8 +335,8 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   </div>
                 </Row>
                 <Row>
-                  <div className="mt-2">
-                    <label className={'text-xl font-bold'}>
+                  <div className="">
+                    <label className={'font-semibold'}>
                       <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
                     </label>
                     <div className="">

@@ -20,7 +20,7 @@ const AttributeFilter = ({
   }, [attributesList, filteredAttributes]);
 
 
-  const handleAttributeValues = useCallback( (attributeId, callback) => {
+  const handleAttributeValues = useCallback((attributeId, callback) => {
     if (!attributeId) return;
     dispatch(getAttributeValues({ id: attributeId, size: 10, sort: 'asc', page: 0 }))
       .then((response: any) => {
@@ -42,7 +42,7 @@ const AttributeFilter = ({
       });
   }, []);
 
-  const addAttrDropDown =  (attributeId) => {
+  const addAttrDropDown = (attributeId) => {
     handleAttributeValues(attributeId, (newConstraint) => {
       const updatedFilters = {
         operator: "AND",
@@ -86,22 +86,20 @@ const AttributeFilter = ({
 
 
   return (
-    <div className={"d-flex flex-column gap-1 mb-3"}>
-      <div className={"d-flex flex-row gap-1"}>
-        <Button disabled={filteredAvailableAttributes.length <= 0} size={"small"}
-                icon="pi pi-plus"
-                name="plusBtn"
-                style={{position: "absolute", marginLeft: "5.5rem", background: "none", height: '20px', width: "20px"}}
-                id="plusBtn"
-                type={"button"}
-                onClick={() => addAttrDropDown(filteredAvailableAttributes?.[0]?.id)}
-                rounded outlined  text aria-label="Filter" />
+    <div className={"d-flex gap-2"}>
+      <div className={"d-flex gap-0 justify-content-center align-items-baseline"}>
         <Label htmlFor="plusBtn" className={'font-semibold'}>Attributes</Label>
-
-
+        <Button disabled={filteredAvailableAttributes.length <= 0} size={"small"}
+          icon="pi pi-plus"
+          name="plusBtn"
+          id="plusBtn"
+          className="p-0"
+          type={"button"}
+          onClick={() => addAttrDropDown(filteredAvailableAttributes?.[0]?.id)}
+          rounded outlined text aria-label="Filter" />
       </div>
-      <div className={" d-flex flex-column gap-3"} style={{ maxHeight: "500px", minWidth: '33rem', minHeight: '200px', overflowY: "auto" }}>
 
+      <div className={""}>
         {filteredAttributes.length > 0 ? attributesListing : (
           <AttributeDropdownFilter
             defaultAttribute={null}
