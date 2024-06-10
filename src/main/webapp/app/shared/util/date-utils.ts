@@ -1,8 +1,9 @@
 import dayjs from 'dayjs';
 
-import { APP_LOCAL_DATETIME_FORMAT } from 'app/config/constants';
+import { APP_LOCAL_DATETIME_FORMAT, APP_LOCAL_TIME_FORMAT } from "app/config/constants";
 import {format} from "date-fns";
 
+export const convertDateTimeFromServerTimeOnly = (date: string | number | Date | dayjs.Dayjs) => date ? dayjs(date).format(APP_LOCAL_TIME_FORMAT) : null;
 
 export const convertDateTimeFromServer = (date: string | number | Date | dayjs.Dayjs) => date ? dayjs(date).format(APP_LOCAL_DATETIME_FORMAT) : null;
 

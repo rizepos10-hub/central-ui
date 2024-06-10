@@ -458,6 +458,10 @@ const AppMenu = () => {
           to: '/analytics/register-closure',
         },
         {
+          label: 'Shift Report',
+          to: '/analytics/shift-report',
+        },
+        {
           label: 'Shift Closures',
           to: '/analytics/shift-closure',
         },
