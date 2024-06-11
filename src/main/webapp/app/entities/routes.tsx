@@ -62,6 +62,7 @@ import Product from "app/entities/item/retail/product";
 import Tag from "app/entities/tag";
 import TagGroup from "app/entities/tag-group";
 import BranchRegistry from "app/entities/settings/branch-registry";
+import Brand from "app/entities/brand";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -132,6 +133,8 @@ export default () => {
         <Route path="tag/*" element={<Tag />} />
         <Route path="tag-group/*" element={<TagGroup />} />
 
+
+        <Route path="brand/*" element={<Brand />} />
 
         <Route path="currencies/*" element={<CurrencySettings />} />
 

@@ -126,6 +126,7 @@
       "price": "Price",
       "salePrice": "Sale Price",
       "branchPrices": "Branch Prices",
+      "brand": "Brand",
       "branch": "Branch",
       "selectAttribute": "Select Attribute",
       "addAttribute": "Add Attribute",
