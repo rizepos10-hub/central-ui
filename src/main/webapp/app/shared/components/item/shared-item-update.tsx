@@ -26,6 +26,7 @@ import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import { getEntities as getTags } from "app/entities/tag/tag.reducer";
 import MediaLibrary from '../media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { getEntities as getBrands } from "app/entities/brand/brand.reducer";
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -55,6 +56,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
   const accountingGroupsOptions = useAppSelector(state => state.accountingGroup.entities);
   const addonsOptions = useAppSelector(state => state.addon.entities);
   const tags = useAppSelector(state => state.tag.entities);
+  const brands = useAppSelector(state => state.brand.entities);
   const addonGroupsOptions = useAppSelector(state => state.addonGroups.entities);
   const productionCenterOptions = useAppSelector(state => state.productionCenter.entities);
   const discountList = useAppSelector(state => state.discount.entities);
@@ -153,6 +155,12 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
       }));
+
+      dispatch(getBrands({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      }))
     }
   }, [isRestaurantItem, isRetailItem, isVariableItem]);
 
@@ -186,7 +194,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
       <Row>
         <FormGroup className={'d-flex flex-column gap-1'}>
           <Col md="12">
-            <div className='row'>
+            <div className="row">
               {!isSimplePizza ? (
                 <div className={'d-flex flex-column gap-1  col'}>
                   <label className={'font-semibold'}>
@@ -286,6 +294,24 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
               </div>
             </div>
 
+            {isRetailItem ? (
+              <div className="row">
+                <div className={'d-flex flex-column gap-2 mt-2 col-6'}>
+                <label className={'text-xl font-bold'}>
+                  <Translate contentKey="items.update.brand">brand</Translate>
+                </label>
+                <Select
+                  value={item?.brand}
+                  isClearable
+                  options={brands}
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                  onChange={brand => onFieldChange("brand", brand )}
+                />
+              </div>
+              </div>
+            ) : null}
+
             <Row className={''}>
               <Col md={'7'}>
                 <div className={'d-flex flex-column '}>
@@ -312,8 +338,8 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                 )}
                 <Row className={'my-3'}>
                   <div className='row'>
-                    <div className={'d-flex flex-column gap-1 col-10'}>
-                      <label className={'font-semibold'}>
+                    <div className={'d-flex flex-column gap-2 col-10'}>
+                      <label className={'text-xl font-semibold'}>
                         <Translate contentKey={'items.update.addons'}>Addons</Translate>
                       </label>
                       <Select

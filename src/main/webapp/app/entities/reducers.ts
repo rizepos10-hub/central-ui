@@ -23,6 +23,7 @@ import menuCategory from 'app/entities/term/Menu-Category/menu-category.reducer'
 
 import tagGroup from "app/entities/tag-group/tag-group.reducer"
 import tag from "app/entities/tag/tag.reducer"
+import brand from "app/entities/brand/brand.reducer";
 
 
 import taxProfiles from 'app/entities/settings/tax-profile/tax-profile.reducer';
@@ -143,6 +144,7 @@ const entitiesReducers = {
   tag,
   branchRegistry,
   till,
+  brand,
   ...onlineOrderingReducers
 
 

@@ -71,7 +71,7 @@ const AppMenu = () => {
           to: '/tag',
         },
         {
-          label: 'Tag Groups',
+          label: 'Brand Groups',
           to: '/tag-group',
         },
       ],
@@ -187,7 +187,7 @@ const AppMenu = () => {
         {
           label: 'Brands',
           role: ['ROLE_ADMINISTRATOR'],
-          to: '/brands',
+          to: '/brand',
         },
         {
           label: 'Menus',
