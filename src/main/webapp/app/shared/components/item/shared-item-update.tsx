@@ -255,14 +255,13 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                 />
               </div>
 
-              {isVariableItem ?
-                <div className='col'>
-                  <DiscountDropdown
-                    discounts={item?.discounts}
-                    handleChange={onFieldChange}
-                  />
+
+
+              {isVariableItem ? (
+                <div className="col">
+                  <DiscountDropdown discounts={item?.discounts} handleChange={onFieldChange} />
                 </div>
-                : null}
+              ) : null}
             </div>
             <div className='row'>
               <div className={'d-flex flex-column gap-1  col'}>
@@ -319,7 +318,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                     <Translate contentKey={'items.update.image'}>Image</Translate>
                   </label>
                   <MediaLibrary
-                    handleFilesSelectCallback={(files) => addImage(files)}
+                    handleFilesSelectCallback={files => addImage(files)}
                     defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
                   />
                 </div>
