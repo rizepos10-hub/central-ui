@@ -9,6 +9,7 @@ import {IAddon} from "app/shared/model/ADDON/addon.model";
 import {IAddonGroup} from "app/shared/model/ADDON/addon-groups.model";
 import { IDiscount } from "app/shared/model/discount.model";
 import { ITag } from "app/shared/model/TAG/tag.model";
+import { IBrand } from "app/shared/model/brand.model";
 
 export interface IItem {
   id?: string;
@@ -20,6 +21,7 @@ export interface IItem {
   itemType?: "RESTAURANT" | "RETAIL";
   stock?: number;
   tags?: ITag[];
+  brand?: IBrand;
   addons?: IAddon[];
   addonGroups?: {
     required?: boolean,
