@@ -194,7 +194,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
       <Row>
         <FormGroup className={'d-flex flex-column gap-1'}>
           <Col md="12">
-            <div className='row'>
+            <div className="row">
               {!isSimplePizza ? (
                 <div className={'d-flex flex-column gap-1  col'}>
                   <label className={'font-semibold'}>
@@ -296,7 +296,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
             {isRetailItem ? (
               <div className="row">
                 <div className={'d-flex flex-column gap-2 mt-2 col-6'}>
-                <label className={'text-xl font-bold'}>
+                <label className={'text-xl font-semibold'}>
                   <Translate contentKey="items.update.brand">brand</Translate>
                 </label>
                 <Select
