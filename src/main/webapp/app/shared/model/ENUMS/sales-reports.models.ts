@@ -3,8 +3,8 @@ export enum SalesReportsTypes {
   Category = "CATEGORY",
   Branch = "BRANCH",
   User = "USER",
-  Customer = "CUSTOMER"
-
+  Customer = "CUSTOMER",
+  Tag = "TAG"
 }
 
 export enum SalesReportsMeasures {

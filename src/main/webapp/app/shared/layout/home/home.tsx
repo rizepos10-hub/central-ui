@@ -185,50 +185,69 @@ export default function Home() {
     );
   };
 
+  const setAllLoading = (value) => {
+    setLoading((prev) => ({
+      ...prev,
+      chartsData: value,
+      topFieldsData: value,
+      topItemsData: value,
+      recentSalesData: value,
+    }));
+  };
+
+  const setSingleLoading = (index, value) => {
+    const keys = ['chartsData', 'topFieldsData', 'topItemsData', 'recentSalesData'];
+    setLoading((prev) => ({
+      ...prev,
+      [keys[index]]: value,
+    }));
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setAllLoading(true);
 
-        setLoading({
-          ...loading,
-          topFieldsData: true,
-          topItemsData: true,
-          recentSalesData: true,
+        const promises = [
+          fetchTopCategories(),
+          fetchTopFields(fromDate, toDate),
+          fetchTopItems(5),
+          fetchRecentSales(),
+        ];
+
+        const results = await Promise.allSettled(promises);
+
+        results.forEach((result, index) => {
+          if (result.status === 'fulfilled') {
+            switch (index) {
+              case 0:
+                setTopCategories(result.value);
+                break;
+              case 1:
+                setTopFields(result.value);
+                break;
+              case 2:
+                setBestSellers(result.value);
+                break;
+              case 3:
+                setRecentSales(result.value);
+                break;
+              default:
+                break;
+            }
+          } else {
+            console.error('Error fetching data:', result.reason);
+          }
+          setSingleLoading(index, false);
         });
 
-
-        const topCategoriesData = await fetchTopCategories();
-        setTopCategories(topCategoriesData);
-
-        const topFieldsData = await fetchTopFields(fromDate, toDate);
-        setTopFields(topFieldsData);
-        setLoading({ ...loading, topFieldsData: false });
-
-
-        const topItemsData = await fetchTopItems(5);
-        setBestSellers(topItemsData);
-        setLoading({ ...loading, topItemsData: false });
-
-
-        const recentSalesData = await fetchRecentSales();
-        setRecentSales(recentSalesData);
-        setLoading({ ...loading, recentSalesData: false });
-
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }finally {
-        setLoading({
-          ...loading,
-          topFieldsData: false,
-          topItemsData: false,
-          recentSalesData: false,
-        });
+      } finally {
+        setAllLoading(false);
       }
     };
 
     fetchData();
   }, []);
-
   useEffect(() => {
     const fetchYearData = async () => {
       setLoading({...loading, chartsData: true})
