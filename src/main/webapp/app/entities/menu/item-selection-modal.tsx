@@ -6,6 +6,7 @@ import {getSortState, translate, Translate} from 'react-jhipster';
 import { ITEMS_PER_PAGE_Summary } from 'app/shared/util/pagination.constants';
 import { getEntities, searchEntities,reset } from 'app/entities/item/all-items.reducer';
 import Select from "react-select";
+import { Tag } from "primereact/tag";
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -35,8 +36,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState('');
-  console.log("itemList", itemList)
-  console.log("item loading", loading)
 
 
   const handlePageChange = (newPage: number) => {
@@ -143,7 +142,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
         <Translate contentKey={'menus.pos.update.modals.item.title'}>Add Existing Items</Translate>
       </ModalHeader>
       <ModalBody>
-
         <FormGroup>
           <Label for="searchItem">
             <Translate contentKey={'menus.pos.update.modals.item.search'}>Search Item</Translate>
@@ -155,53 +153,75 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
             <Translate contentKey={'menus.pos.update.modals.item.filter'}>Filter By Category</Translate>
           </Label>
           <div>
-          <Select
-            id="searchCategory"
-            value={selectedCategory}
-            onChange={(selectedOption) => setSelectedCategory(selectedOption)}
-            options={categoriesOption}
-            isClearable={true}
-          />
+            <Select
+              id="searchCategory"
+              value={selectedCategory}
+              onChange={selectedOption => setSelectedCategory(selectedOption)}
+              options={categoriesOption}
+              isClearable={true}
+            />
           </div>
         </FormGroup>
         <table className="table">
           <thead>
-          <tr>
-            <th><Translate contentKey={'menus.pos.update.modals.item.table.id'}>ID</Translate></th>
-            <th><Translate contentKey={'menus.pos.update.modals.item.table.name'}>Name</Translate></th>
-            <th><Translate contentKey={'menus.pos.update.modals.item.table.action'}>Action</Translate></th>
-          </tr>
+            <tr>
+              <th>
+                <Translate contentKey={'menus.pos.update.modals.item.table.category'}>Category</Translate>
+              </th>
+              <th>
+                <Translate contentKey={'menus.pos.update.modals.item.table.menu'}>Menu</Translate>
+              </th>
+              <th>
+                <Translate contentKey={'menus.pos.update.modals.item.table.name'}>Name</Translate>
+              </th>
+              <th>
+                <Translate contentKey={'menus.pos.update.modals.item.table.action'}>Action</Translate>
+              </th>
+            </tr>
           </thead>
           <tbody>
-          {loading && <div className="d-flex my-5">
-            <Spinner />
-          </div>
-          }
-          {getCurrentPageItems().map((item) => (
-            <tr key={item.id}>
-              <td>{item.id}</td>
-              <td>{item.name}</td>
-              <td>
-                <Button
-                  color={isItemSelected(item.id) ? 'danger' : 'primary'}
-                  onClick={() => handleToggleSelect(item)}
-                >
-                  {isItemSelected(item.id) ?
-                    translate('menus.pos.update.modals.item.buttons.unselect') :
-                    translate('menus.pos.update.modals.item.buttons.select')}
-                </Button>
-              </td>
-            </tr>
-          ))}
+            {loading && (
+              <div className="d-flex my-5">
+                <Spinner />
+              </div>
+            )}
+            {getCurrentPageItems().map(item => (
+              <tr key={item.id}>
+                <td>
+                  {item.categories && item.categories.length > 0
+                    ? item.categories.map((cat, index) => (
+                        <React.Fragment key={index}>
+                          <Tag value={cat.name} />
+                          {index < item.categories.length - 1 && <span style={{ margin: '0 5px' }}>&nbsp;</span>}
+                        </React.Fragment>
+                      ))
+                    : 'Uncategorized'}
+                </td>
+
+                <td>{item.menu?.[0]?.name}</td>
+                <td>
+                  <div>
+                    <div>{item.name}</div>
+                    <span style={{ fontSize: '0.9em', color: 'gray' }}>
+                      {item?.variants?.length > 0
+                        ? `${item.variants.length} ${item.variants.length > 1 ? 'variants' : 'variant'}`
+                        : 'No variants'}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <Button color={isItemSelected(item.id) ? 'danger' : 'primary'} onClick={() => handleToggleSelect(item)}>
+                    {isItemSelected(item.id)
+                      ? translate('menus.pos.update.modals.item.buttons.unselect')
+                      : translate('menus.pos.update.modals.item.buttons.select')}
+                  </Button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
         <div className="d-flex justify-content-center mt-3">
-          <Button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            color="primary"
-            className="mr-2"
-          >
+          <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} color="primary" className="mr-2">
             <Translate contentKey={'menus.pos.update.modals.item.buttons.previous'}>Previous</Translate>
           </Button>
           <span>Page {currentPage}</span>
