@@ -263,7 +263,7 @@ export const RegularItemUpdate = () => {
                     </TabPanel>
                     <TabPanel header={translate('items.update.variants')} >
                       <Col md="5" className={"d-flex gap-3"}>
-                        <PrimeButton color="primary" onClick={handleAddVariant}>
+                        <PrimeButton color="primary" type="button" onClick={handleAddVariant}>
                           <Translate contentKey={'items.update.addSingleVariant'}>Add Variant</Translate>
                         </PrimeButton>
                       </Col>

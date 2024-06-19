@@ -630,7 +630,7 @@ export const VariableItemUpdate = () => {
                           <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
                         </Button>
 
-                        <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
+                        <Button color="primary" type={"button"} className={"mt-5"} onClick={handleAddVariant}>
                           <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
                         </Button>
                       </Col>
