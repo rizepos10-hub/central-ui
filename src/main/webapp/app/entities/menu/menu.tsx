@@ -35,7 +35,6 @@ export const Menu = () => {
   const totalItems = useAppSelector(state => state.menu.totalItems);
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    'category.name': { value: null, matchMode: FilterMatchMode.EQUALS },
     'branch.name': {value: null, matchMode: FilterMatchMode.STARTS_WITH}
   });
 
@@ -97,36 +96,15 @@ export const Menu = () => {
     }
   }, [location.search]);
 
-console.log(menuList, 'menu list')
 
   const handleSyncList = () => {
     sortEntities();
   };
 
-  const categoryNames = new Set(menuList.filter(cat => cat.category?.name !== undefined || null).map((menu) => menu.category?.name));
   const branchNames = new Set(menuList.filter(item => item.branch?.name !== undefined || null).map((menu) => menu.branch?.name));
-  const categoryFilterOptions = Array.from(categoryNames)
-    .map((categoryName) => ({
-    label: categoryName,
-    value: categoryName,
-  }));
+
   const branchFilterOptions = Array.from(branchNames).map((branchName) => ({label: branchName, value: branchName}));
 
-  const categoryFilter = (
-    <Dropdown
-      value={filters['category.name']?.value}
-      options={categoryFilterOptions}
-      onChange={(e) => {
-        const updatedFilters = {
-          ...filters,
-          'category.name': { value: e.value, matchMode: FilterMatchMode.EQUALS },
-        };
-        setFilters(updatedFilters);
-      }}
-      placeholder={translate('menus.shared.view.table.select.category')}
-    />
-
-  );
   const branchFilter = (
     <Dropdown
       value={filters['branch.name']?.value}
@@ -177,7 +155,6 @@ console.log(menuList, 'menu list')
     </div>
   );
 
-  console.log(menuList, 'menuList')
 
   return (
     <div>
@@ -209,16 +186,7 @@ console.log(menuList, 'menu list')
             sortable
             body={(rowData) => format(new Date(rowData.lastModifiedDate), 'yyyy-MM-dd HH:mm:ss')}
           />
-          <Column
-            field="category.name"
-            header={translate('menus.shared.view.table.fields.category')}
-            sortable
-            filter
-            filterElement={categoryFilter}
-            filterField={"category.name"}
-            sortField={"category.name"}
-            body={(rowData) => (rowData.category ? <span>{rowData.category.name}</span> : null)}
-          ></Column>
+
           <Column header="Edit" body={editColumnTemplate} headerStyle={{ width: '5%' }} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
           <Column header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '5%' }} bodyStyle={{ textAlign: 'center', overflow: 'visible' }} />
 
