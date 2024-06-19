@@ -17,6 +17,7 @@ import AttributeFilter from "app/shared/components/filter/attribute-filter";
 import { filterEntities, getEntities } from "app/entities/item/retail/product/product.reducer";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import { Accordion, AccordionTab } from "primereact/accordion";
+import ImportButton from "app/shared/components/data-import/data-import";
 
 
 export const Product = () => {
@@ -145,25 +146,33 @@ export const Product = () => {
       </Link>
     );
   };
+
   const handleCreate = (type: "simple" | "variable") => {
     navigate(`/retail/${type}/new`)
   }
 
   const header = (
-    <div className="flex align-items-center justify-content-end gap-2">
+    <div className="bg-dark bg-opacity-10 mb-3 p-4 d-flex justify-content-between">
+      <span className="text-xl">
+        Add, view and edit your products in one place.
+      </span>
+    <div className="flex align-items-center justify-content-end gap-3">
       <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised color="info" onClick={handleSyncList} disabled={loading}>
         <FontAwesomeIcon icon="sync" spin={loading} />{' '}
       </Button>
+      <ImportButton type={"REGULAR_RESTAURANT"} />
       <Button label={translate('items.view.actions.createVariable')} raised onClick={() => handleCreate("variable")} disabled={loading}>
       </Button>
       <Button label={translate('items.view.actions.createSimple')} raised onClick={() => handleCreate("simple")} disabled={loading}>
       </Button>
+    </div>
     </div>
   );
 
 
   return (
     <div>
+      {header}
       <Accordion
         activeIndex={0}
       >
@@ -185,7 +194,6 @@ export const Product = () => {
         first={query.first} rows={query?.rows} totalRecords={totalItems} onPage={onPage}
         onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder}
         onFilter={onFilter} filters={query.filters} loading={loading} tableStyle={{ minWidth: '75rem' }}
-        header={header}
         removableSort
         showGridlines
         className={"mt-3"}
