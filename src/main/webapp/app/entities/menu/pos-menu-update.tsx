@@ -35,7 +35,6 @@ import { MdDeleteOutline, MdModeEditOutline } from 'react-icons/md';
 import Select from 'react-select';
 import MenuPosPreview from 'app/entities/menu/menu-pos-preview';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { getEntities as getMenuCategories } from 'app/entities/term/Menu-Category/menu-category.reducer';
 import { InputText } from 'primereact/inputtext';
 import { isEqual } from 'lodash';
 import { InputNumber } from 'primereact/inputnumber';
@@ -47,7 +46,6 @@ function MenuUpdate() {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const menuCategories = useAppSelector(state => state.menuCategory.entities);
   const menuEntity = useAppSelector(state => state.menu.entity);
   const loading = useAppSelector(state => state.menu.loading);
   const updating = useAppSelector(state => state.menu.updating);
@@ -58,7 +56,6 @@ function MenuUpdate() {
   );
 
   // For Menu Edit Modal
-  const [selectedCategory, setSelectedCategory] = useState({ id: '', name: '' });
   const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
   const initialBranches = { label: menuEntity?.branch?.name, value: menuEntity?.branch?.id };
   const [selectedBranches, setSelectedBranches] = useState<any>();
@@ -662,7 +659,6 @@ function MenuUpdate() {
   };
 
   const renderSubScreens = (subscreens, mainScreenIndex) => {
-
     if (!subscreens || subscreens.length === 0) {
       return null;
     }
@@ -831,7 +827,6 @@ function MenuUpdate() {
     return <div className="mt-3">{renderSubScreens(currentSubScreens, selectedMainScreenIndex)}</div>;
   };
 
-
   const handleNavigateToSubScreen = subscreen => {
     setSubScreenStack(prev => [...prev, subscreen]);
 
@@ -864,15 +859,7 @@ function MenuUpdate() {
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
-      })
-    );
-    dispatch(
-      getMenuCategories({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      })
-    );
+      }));
 
     return () => {
       reset();
@@ -889,9 +876,7 @@ function MenuUpdate() {
         branch: menuEntity.branch,
         menuScreens: menuEntity.menuScreens,
       };
-      if (menuEntity?.category) {
-        setSelectedCategory(menuEntity.category);
-      }
+
       if (menuEntity?.branch) {
         setSelectedBranches({ label: menuEntity?.branch?.name, value: menuEntity?.branch?.id });
       }
@@ -971,12 +956,7 @@ function MenuUpdate() {
           ...menuEntity,
           createdDate: convertDateTimeFromServer(menuEntity.createdDate),
           lastModifiedDate: convertDateTimeFromServer(menuEntity.lastModifiedDate),
-          category: selectedCategory,
         };
-
-  const handleCategoryChange = selectedCtgry => {
-    setSelectedCategory(selectedCtgry);
-  };
 
   const handleBranchChange = selectedBranches => {
     setSelectedBranches(selectedBranches);
@@ -998,7 +978,6 @@ function MenuUpdate() {
       ...restValues,
       name: data.name,
       branch: { id: selectedBranches.value },
-      category: selectedCategory,
       menuScreens: data.menuScreens,
       item: data?.item?.map(item => ({ id: item.id })),
     };
@@ -1074,9 +1053,6 @@ function MenuUpdate() {
           </p>
           <p>
             <Translate contentKey="menus.shared.update.edit.url">Menu URl</Translate>: {menuEntity.menuUrl ? menuEntity.menuUrl : ''}
-          </p>
-          <p>
-            <Translate contentKey="menus.shared.update.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
           </p>
         </CardBody>
       </Card>
@@ -1367,16 +1343,6 @@ function MenuUpdate() {
               <div className="mb-3">
                 {translate('menus.shared.update.branches')}
                 <Select defaultValue={initialBranches} onChange={handleBranchChange} options={branchList} />
-              </div>
-              <div className="mb-3">
-                {translate('menus.shared.update.category')}
-                <Select
-                  value={selectedCategory}
-                  onChange={handleCategoryChange}
-                  options={menuCategories}
-                  getOptionLabel={option => option.name}
-                  getOptionValue={option => option.id}
-                />
               </div>
               <Button
                 id="cancel-save"

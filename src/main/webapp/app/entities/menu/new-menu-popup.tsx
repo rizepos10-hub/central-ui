@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { createEntity, getEntity, reset, updateEntity } from 'app/entities/menu/menu.reducer';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
-import { getEntities as getMenuCategories } from 'app/entities/term/Menu-Category/menu-category.reducer';
 import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 import { MenuTypeModel } from 'app/shared/model/ENUMS/menu-type.model';
 
@@ -52,7 +51,6 @@ const NewMenuPopup = () => {
       dispatch(getEntity(id));
     }
     dispatch(getBranches({}));
-    dispatch(getMenuCategories({}));
   }, []);
 
   useEffect(() => {
@@ -63,20 +61,16 @@ const NewMenuPopup = () => {
     }
   }, [newMenu, updateSuccess]);
 
-  console.log(terms, 'termos');
-
-  console.log(newMenu, 'newMenu');
 
   const saveEntity = values => {
     values.createdDate = convertDateTimeToServer(values.createdDate);
     values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate);
 
-    const { category, ...restValues } = values;
+    const {  ...restValues } = values;
 
     const entity = {
       ...menuEntity,
       ...restValues,
-      // category: selectedCategory ? terms.find((it) => it.name === selectedCategory) : null,
       branch: { id: selectedBranches.value },
       type: selectedType,
     };
@@ -98,16 +92,14 @@ const NewMenuPopup = () => {
           ...menuEntity,
           createdDate: convertDateTimeFromServer(menuEntity.createdDate),
           lastModifiedDate: convertDateTimeFromServer(menuEntity.lastModifiedDate),
-          category: selectedCategory,
         };
 
-  const handleBranchChange = selectedBranches => {
-    console.log(selectedBranches, 'lol branch');
-    setSelectedBranches(selectedBranches);
+  const handleBranchChange = branches => {
+    setSelectedBranches(branches);
   };
 
-  const handleTypeChange = selectedType => {
-    setSelectedType(selectedType?.value);
+  const handleTypeChange = type => {
+    setSelectedType(type?.value);
   };
 
   return (
@@ -137,26 +129,7 @@ const NewMenuPopup = () => {
             {translate('menus.shared.update.type')}
             <Select defaultValue={initialType} onChange={handleTypeChange} options={menuTypeOptions} />
           </div>
-          <ValidatedField
-            id="menu-category"
-            name="category"
-            data-cy="category"
-            label={translate('menus.shared.update.category')}
-            type="select"
-            value={selectedCategory}
-            onChange={handleCategoryChange}
-          >
-            <option value=""></option>
-            {terms ? (
-              terms.map(otherEntity => (
-                <option key={otherEntity.id} value={otherEntity.name}>
-                  {otherEntity.name}
-                </option>
-              ))
-            ) : (
-              <option value={null}>No categories found</option>
-            )}
-          </ValidatedField>
+
           <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/menu" replace color="info">
             <FontAwesomeIcon icon="arrow-left" />
             &nbsp;
