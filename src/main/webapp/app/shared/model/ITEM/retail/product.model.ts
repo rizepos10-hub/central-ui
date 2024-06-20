@@ -4,7 +4,7 @@ import { IAttributes, IExchangeMeasure, ISimpleItemVariant } from "app/shared/mo
 import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
 
 export interface IProduct extends IItem{
-  variants?: IVariableItemVariant[] | ISimpleItemVariant[];
+  variants?: IVariableItemVariant[];
   attributes?: IAttributes[];
   baseMeasure?: IItemMeasure;
   measures?: IExchangeMeasure[];

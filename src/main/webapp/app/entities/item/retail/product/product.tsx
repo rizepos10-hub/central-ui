@@ -109,11 +109,7 @@ export const Product = () => {
 
 
   const nameColumnTemplate = rowData => {
-    const itemVariantType = rowData.itemVariantType // "RETAIL_VARIABLE" | "RETAIL_SIMPLE"
-    const editUrl = itemVariantType === "RETAIL_SIMPLE" ?
-      `/retail/simple/${rowData.id}/edit`
-      :
-      `/retail/variable/${rowData.id}/edit`;
+    const editUrl = `/product/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -121,11 +117,7 @@ export const Product = () => {
     );
   };
   const editColumnTemplate = (rowData) => {
-    const itemVariantType = rowData.itemVariantType // "RETAIL_VARIABLE" | "RETAIL_SIMPLE"
-    const editUrl = itemVariantType === "RETAIL_SIMPLE" ?
-      `/retail/simple/${rowData.id}/edit`
-      :
-      `/retail/variable/${rowData.id}/delete`;
+    const editUrl = `/product/${rowData.id}/edit`;
 
     return (
       <Link to={editUrl}>
@@ -135,11 +127,7 @@ export const Product = () => {
   };
 
   const deleteColumnTemplate = (rowData: IProduct) => {
-    const itemVariantType = rowData.itemVariantType // "RETAIL_VARIABLE" | "RETAIL_SIMPLE"
-    const deleteUrl = itemVariantType === "RETAIL_SIMPLE" ?
-      `/retail/simple/${rowData.id}/delete`
-      :
-      `/retail/variable/${rowData.id}/delete`;
+    const deleteUrl = `/product/${rowData.id}/delete`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
@@ -147,8 +135,8 @@ export const Product = () => {
     );
   };
 
-  const handleCreate = (type: "simple" | "variable") => {
-    navigate(`/retail/${type}/new`)
+  const handleCreate = () => {
+    navigate(`/product/new`)
   }
 
   const header = (
@@ -161,9 +149,7 @@ export const Product = () => {
         <FontAwesomeIcon icon="sync" spin={loading} />{' '}
       </Button>
       <ImportButton type={"REGULAR_RESTAURANT"} />
-      <Button label={translate('items.view.actions.createVariable')} raised onClick={() => handleCreate("variable")} disabled={loading}>
-      </Button>
-      <Button label={translate('items.view.actions.createSimple')} raised onClick={() => handleCreate("simple")} disabled={loading}>
+      <Button label={translate('items.view.actions.createItem')} raised onClick={handleCreate} disabled={loading}>
       </Button>
     </div>
     </div>

@@ -40,6 +40,7 @@
       "actions": {
         "refreshList": "Refresh List",
         "createSimple": "Create New Simple Item",
+        "createItem": "Create New Item",
         "createVariable": "Create New Variable Item",
         "createRegular": "Create New Regular Item",
         "createCombo": "Create New Combo Item",
@@ -114,6 +115,7 @@
       "sku": "SKU",
       "selectDiscounts": "Select Discounts",
       "attributes": "Attributes",
+      "itemType": "Item Type",
       "discounts": "Discounts",
       "mixAndMatchRule": "Mix And Match Rule",
       "WholesalePrices": "Wholesale Prices",
