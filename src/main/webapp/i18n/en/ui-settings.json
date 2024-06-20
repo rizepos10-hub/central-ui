@@ -19,10 +19,11 @@
         "title": "Ui Setting"
       },
       "id": "ID",
-      "applicationName": "Application Name",
+      "applicationName": "Website Title",
       "digitsAfterDecimal": "Digits After Decimal",
       "itemPerRow": "Item Per Row",
       "showDeliveryTips": "Show Delivery Tips",
+      "orderConfirmation": "Enable Order Confirmation",
       "scheduleOrders": "Schedule Orders",
       "hideModalDescription": "Hide Modal Description",
       "hideItemDescription": "Hide Item Description",

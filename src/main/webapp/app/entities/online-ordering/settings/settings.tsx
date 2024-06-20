@@ -184,6 +184,17 @@ export const UiSettingsUpdate = () => {
                     onChange={e => dispatch(changeEntityField({ name: 'showDeliveryTips', value: e.checked }))}
                   />
                 </div>
+          
+                <div className={'d-flex flex-column mb-3'}>
+                  <Label htmlFor="UiSettings-orderConfirmation">
+                    <strong>{translate('tempApp.UiSettings.orderConfirmation')}</strong>
+                  </Label>
+                  <Checkbox
+                    id="UiSettings-orderConfirmation"
+                    checked={UiSettingsEntity.orderConfirmation || null}
+                    onChange={e => dispatch(changeEntityField({ name: 'orderConfirmation', value: e.checked }))}
+                  />
+                </div>
 
                 <div className={'d-flex flex-column mb-3'}>
                   <Label htmlFor="UiSettings-logo">
