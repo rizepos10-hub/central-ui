@@ -124,8 +124,8 @@ export default () => {
         <Route path="restaurant/combo/*" element={<ComboItem />} />
 
         <Route path="retail/attributes/*" element={<RetailAttributes />} />
-        <Route path="retail/simple/*" element={<SimpleItem />} />
-        <Route path="retail/variable/*" element={<VariableItem />} />
+        {/* <Route path="retail/simple/*" element={<SimpleItem />} /> */}
+        {/* <Route path="retail/variable/*" element={<VariableItem />} /> */}
         <Route path="product/*" element={<Product />} />
 
         <Route path="item-measure/*" element={<ItemMeasure />} />
