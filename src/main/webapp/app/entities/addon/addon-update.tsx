@@ -19,8 +19,8 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { InputNumber } from "primereact/inputnumber";
 import { ITag } from "app/shared/model/TAG/tag.model";
 import { getEntities as getTags } from "app/entities/tag/tag.reducer";
-import { getEntities as getAccountingGroups } from "app/entities/settings/accounting-group/accounting-group.reducer";
-import { IAccountingGroup } from "app/shared/model/TAX/accounting-group.model";
+import { getEntities as getProfileGroups } from "app/entities/settings/profile-group/profile-group.reducer";
+import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 
 
 export const AddonUpdate = () => {
@@ -37,7 +37,7 @@ export const AddonUpdate = () => {
   const updateSuccess = useAppSelector(state => state.addon.updateSuccess);
   const discounts = useAppSelector(state => state.discount.entities);
   const tags = useAppSelector(state => state.tag.entities);
-  const accountingGroups = useAppSelector(state => state.accountingGroup.entities);
+  const profileGroups = useAppSelector(state => state.profileGroup.entities);
 
 
   const [paginationState, setPaginationState] = useState(
@@ -73,7 +73,7 @@ export const AddonUpdate = () => {
         sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-    dispatch(getAccountingGroups({
+    dispatch(getProfileGroups({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -160,19 +160,19 @@ export const AddonUpdate = () => {
               </div>
 
               <div className={'d-flex flex-column mt-3'}>
-                <Label for="addon-accountingGroup">
-                  <Translate contentKey={'addons.update.accountingGroup'}>Accounting Group</Translate>
+                <Label for="addon-profileGroup">
+                  <Translate contentKey={'addons.update.profileGroup'}>Profile Group</Translate>
                 </Label>
                 <Select
-                  value={addonEntity?.accountingGroups}
-                  options={accountingGroups}
-                  id="addon-accountingGroup"
+                  value={addonEntity?.profileGroups}
+                  options={profileGroups}
+                  id="addon-profileGroup"
 
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
-                  onChange={selectedAccountingGroups => dispatch(changeEntityField({
-                    name: 'accountingGroups',
-                    value: [selectedAccountingGroups]
+                  onChange={selectedProfileGroups => dispatch(changeEntityField({
+                    name: 'profileGroups',
+                    value: [selectedProfileGroups]
                   }))}
                 />
               </div>

@@ -11,7 +11,7 @@
         "title": "Categories",
         "fields": {
           "name": "Name",
-          "accountingGroups": "Accounting Groups",
+          "profileGroups": "Profile Groups",
           "image": "Image",
           "edit": "Edit",
           "delete": "Delete"
@@ -23,7 +23,7 @@
         },
         "search": {
           "name": "Search by Name",
-          "accountingGroups": "Search by Acc. Groups"
+          "profileGroups": "Search by Acc. Groups"
         }
       }
     },
@@ -49,7 +49,7 @@
         }
       },
       "name": "Name",
-      "accountingGroups": "Accounting Groups",
+      "profileGroups": "Profile Groups",
       "parents": "Parents",
       "image": "Item Image"
     }

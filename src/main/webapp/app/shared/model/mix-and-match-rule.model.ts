@@ -1,4 +1,4 @@
-import {IAccountingGroup} from "app/shared/model/TAX/accounting-group.model";
+import {IProfileGroup} from "app/shared/model/TAX/profile-group.model";
 import {IDiscount} from "app/shared/model/discount.model";
 
 
@@ -15,7 +15,7 @@ export interface IMixAndMatchRule {
 
 type Rule = {
   aboveQuantity?: number;
-  accountingGroup?: IAccountingGroup;
+  profileGroup?: IProfileGroup;
 }
 
 export interface IQuantityConfigurationProperties {

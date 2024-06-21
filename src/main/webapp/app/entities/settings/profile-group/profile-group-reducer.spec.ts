@@ -13,9 +13,9 @@ import reducer, {
   updateEntity,
   partialUpdateEntity,
   reset,
-} from './accounting-group.reducer';
+} from './profile-group.reducer';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
-import { IAccountingGroup, defaultValue } from 'app/shared/model/TAX/accounting-group.model';
+import { IProfileGroup, defaultValue } from 'app/shared/model/TAX/profile-group.model';
 
 describe('Entities reducer tests', () => {
   function isEmpty(element): boolean {
@@ -26,7 +26,7 @@ describe('Entities reducer tests', () => {
     }
   }
 
-  const initialState: EntityState<IAccountingGroup> = {
+  const initialState: EntityState<IProfileGroup> = {
     loading: false,
     errorMessage: null,
     entities: [],

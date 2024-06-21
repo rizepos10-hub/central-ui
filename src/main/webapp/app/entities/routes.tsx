@@ -18,7 +18,7 @@ import Term from './term';
 import Order from './order';
 import Tax from './settings/tax';
 import TaxesProfile from './settings/tax-profile';
-import AccountingGroups from './settings/accounting-group';
+import ProfileGroups from './settings/profile-group';
 import VoidReasons from './settings/void-reason';
 
 import BranchPosUser from './branch-pos-user';
@@ -89,7 +89,7 @@ export default () => {
 
         <Route path="tax/*" element={<Tax />} />
         <Route path="tax-profiles/*" element={<TaxesProfile />} />
-        <Route path="accounting-groups/*" element={<AccountingGroups />} />
+        <Route path="profile-groups/*" element={<ProfileGroups />} />
 
         <Route path="printer/*" element={<Printer />} />
         <Route path="printing-profiles/*" element={<PrintingProfiles />} />

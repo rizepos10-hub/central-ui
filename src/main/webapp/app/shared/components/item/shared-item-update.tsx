@@ -8,7 +8,7 @@ import { getEntities as getRestaurantItemCategories } from 'app/entities/term/re
 import { getEntities as getRetailItemCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import { getEntities as getAddons } from "app/entities/addon/addon.reducer";
 import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
-import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-group/accounting-group.reducer';
+import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 import { getEntities as getAddonGroups } from "app/entities/addon-groups/addon-groups.reducer";
 import { ItemStatus } from 'app/shared/model/ENUMS/item-status.model';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
@@ -53,7 +53,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
     isRetailItem ? useAppSelector(state => state.retailCategory.entities) :
       useAppSelector(state => state.restaurantCategory.entities);
 
-  const accountingGroupsOptions = useAppSelector(state => state.accountingGroup.entities);
+  const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
   const addonsOptions = useAppSelector(state => state.addon.entities);
   const tags = useAppSelector(state => state.tag.entities);
   const brands = useAppSelector(state => state.brand.entities);
@@ -110,7 +110,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-    dispatch(getAccountingGroups({
+    dispatch(getProfileGroups({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -243,15 +243,15 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
 
               <div className={'d-flex flex-column gap-1 col'}>
                 <label className={'font-semibold'}>
-                  <Translate contentKey="items.update.accountingGroups">Accounting Groups</Translate>
+                  <Translate contentKey="items.update.profileGroups">Profile Groups</Translate>
                 </label>
                 <Select
-                  value={item?.accountingGroups}
+                  value={item?.profileGroups}
                   isClearable
-                  options={accountingGroupsOptions}
+                  options={profileGroupsOptions}
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
-                  onChange={accountingGroup => onFieldChange('accountingGroups', accountingGroup ? [accountingGroup] : [])}
+                  onChange={profileGroup => onFieldChange('profileGroups', profileGroup ? [profileGroup] : [])}
                 />
               </div>
 

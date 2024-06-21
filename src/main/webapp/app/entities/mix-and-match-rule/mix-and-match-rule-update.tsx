@@ -16,8 +16,8 @@ import {InputNumber} from "primereact/inputnumber";
 import {Checkbox} from "primereact/checkbox";
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
-import {IAccountingGroup} from "app/shared/model/TAX/accounting-group.model";
-import {getEntities as getAccountingGroups} from "app/entities/settings/accounting-group/accounting-group.reducer";
+import {IProfileGroup} from "app/shared/model/TAX/profile-group.model";
+import {getEntities as getProfileGroups} from "app/entities/settings/profile-group/profile-group.reducer";
 
 interface INewQuantityRule extends IQuantityConfigurationProperties {
   quantity?: number;
@@ -42,7 +42,7 @@ export const MixAndMatchRuleUpdate = () => {
 
   const mixAndMatchRuleEntity :IMixAndMatchRule = useAppSelector(state => state.mixAndMatchRule.entity);
   const discountList = useAppSelector(state => state.discount.entities);
-  const accountingGroupList :IAccountingGroup[] = useAppSelector(state => state.accountingGroup.entities);
+  const profileGroupList :IProfileGroup[] = useAppSelector(state => state.profileGroup.entities);
   const loading = useAppSelector(state => state.mixAndMatchRule.loading);
   const updating = useAppSelector(state => state.mixAndMatchRule.updating);
   const updateSuccess = useAppSelector(state => state.mixAndMatchRule.updateSuccess);
@@ -74,7 +74,7 @@ export const MixAndMatchRuleUpdate = () => {
     dispatch(getDiscounts({
 
     }));
-    dispatch(getAccountingGroups({
+    dispatch(getProfileGroups({
 
     }))
   }, []);
@@ -270,11 +270,11 @@ export const MixAndMatchRuleUpdate = () => {
                             }),
                           }}
                           isDisabled={!mixAndMatchRule?.rules?.[0]?.aboveQuantity}
-                          value={mixAndMatchRule?.rules?.[0]?.accountingGroup}
-                          options={accountingGroupList}
+                          value={mixAndMatchRule?.rules?.[0]?.profileGroup}
+                          options={profileGroupList}
                           getOptionLabel={option => option.name}
                           getOptionValue={option => option.id}
-                          onChange={(selectedOption) => handleRuleChange('accountingGroup', selectedOption)}
+                          onChange={(selectedOption) => handleRuleChange('profileGroup', selectedOption)}
                         />
                         <span className="p-inputgroup-addon">Accounting group</span>
                       </div>

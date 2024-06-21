@@ -8,9 +8,9 @@ import {
   EntityState,
   serializeAxiosError,
 } from "app/shared/reducers/reducer.utils";
-import { IAccountingGroup, defaultValue } from 'app/shared/model/TAX/accounting-group.model';
+import { IProfileGroup, defaultValue } from 'app/shared/model/TAX/profile-group.model';
 
-const initialState: EntityState<IAccountingGroup> = {
+const initialState: EntityState<IProfileGroup> = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -25,29 +25,29 @@ const apiSearchUrl = 'api/_search/accounting-groups';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('accounting-group/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
+export const searchEntities = createAsyncThunk('profile-group/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IAccountingGroup[]>(requestUrl);
+  return axios.get<IProfileGroup[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('accounting-group/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+export const getEntities = createAsyncThunk('profile-group/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
-  return axios.get<IAccountingGroup[]>(requestUrl);
+  return axios.get<IProfileGroup[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
-  'accounting-group/fetch_entity',
+  'profile-group/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-    return await  axios.get<IAccountingGroup>(requestUrl);
+    return await  axios.get<IProfileGroup>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
 
 export const createEntity = createAsyncThunk(
-  'accounting-group/create_entity',
-  async (entity: IAccountingGroup, thunkAPI) => {
-    const result = await axios.post<IAccountingGroup>(apiUrl, cleanEntity(entity));
+  'profile-group/create_entity',
+  async (entity: IProfileGroup, thunkAPI) => {
+    const result = await axios.post<IProfileGroup>(apiUrl, cleanEntity(entity));
     // thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -55,9 +55,9 @@ export const createEntity = createAsyncThunk(
 );
 
 export const updateEntity = createAsyncThunk(
-  'accounting-group/update_entity',
-  async (entity: IAccountingGroup, thunkAPI) => {
-    const result = await axios.put<IAccountingGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  'profile-group/update_entity',
+  async (entity: IProfileGroup, thunkAPI) => {
+    const result = await axios.put<IProfileGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     // thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -65,9 +65,9 @@ export const updateEntity = createAsyncThunk(
 );
 
 export const partialUpdateEntity = createAsyncThunk(
-  'accounting-group/partial_update_entity',
-  async (entity: IAccountingGroup, thunkAPI) => {
-    const result = await axios.patch<IAccountingGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  'profile-group/partial_update_entity',
+  async (entity: IProfileGroup, thunkAPI) => {
+    const result = await axios.patch<IProfileGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -75,21 +75,21 @@ export const partialUpdateEntity = createAsyncThunk(
 );
 
 export const deleteEntity = createAsyncThunk(
-  'accounting-group/delete_entity',
+  'profile-group/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IAccountingGroup>(requestUrl);
+    const result = await axios.delete<IProfileGroup>(requestUrl);
     // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
 );
 
-export const changeEntityField = createAction<{ fieldName: keyof IAccountingGroup; value: IAccountingGroup[keyof IAccountingGroup] }>('tax/change-entity-field');
+export const changeEntityField = createAction<{ fieldName: keyof IProfileGroup; value: IProfileGroup[keyof IProfileGroup] }>('tax/change-entity-field');
 
 // slice
 
-export const AccountingGroupSlice = createEntitySlice({
+export const ProfileGroupSlice = createEntitySlice({
   name: 'accounting-group',
   initialState,
   extraReducers(builder) {
@@ -135,7 +135,7 @@ export const AccountingGroupSlice = createEntitySlice({
   },
 });
 
-export const { reset } = AccountingGroupSlice.actions;
+export const { reset } = ProfileGroupSlice.actions;
 
 // Reducer
-export default AccountingGroupSlice.reducer;
+export default ProfileGroupSlice.reducer;
