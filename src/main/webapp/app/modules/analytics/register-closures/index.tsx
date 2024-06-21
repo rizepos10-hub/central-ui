@@ -5,7 +5,7 @@ import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import BranchRegistry from "app/entities/settings/branch-registry/branch-registry";
 import BranchRegistryUpdate from 'app/entities/settings/branch-registry/branch-registry-update';
 import EndOfTillReport from "app/modules/analytics/reports/end-of-till/end-of-till-report";
-import CustomDateOrder from "app/entities/order/custom-date-order";
+import RegisterClosureOrder from "app/entities/order/register-closure-order";
 
 const RegisterClosuresRoutes = () => (
   <ErrorBoundaryRoutes>
@@ -13,7 +13,7 @@ const RegisterClosuresRoutes = () => (
     <Route path=":id">
       <Route path="edit" element={<BranchRegistryUpdate isRegisterClosure  />} />
       <Route path="edit/:tillId" element={<EndOfTillReport  />} />
-      <Route path=":tillId/orders" element={<CustomDateOrder  />} />
+      <Route path=":tillId/orders" element={<RegisterClosureOrder  />} />
     </Route>
   </ErrorBoundaryRoutes>
 );

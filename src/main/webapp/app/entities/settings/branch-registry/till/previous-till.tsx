@@ -28,11 +28,12 @@ export const PreviousTill = ({ registryId, isRegisterClosure }: { registryId: st
     first: 0,
     rows: 20,
     page: 0,
-    sortField: null,
-    sortOrder: null,
+    sortField: "endDate",
+    sortOrder: -1,
     query: '',
     filters: {
       'registry.id': { value: registryId, matchMode: FilterMatchMode.EQUALS },
+
       status: { value: "CLOSED", matchMode: FilterMatchMode.STARTS_WITH },
       startDate: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
       endDate: { value: null, matchMode: FilterMatchMode.ENDS_WITH },
@@ -111,7 +112,7 @@ export const PreviousTill = ({ registryId, isRegisterClosure }: { registryId: st
         onSelectionChange={(e) => navigate(`/analytics/register-closure/${id}/edit/${e.value.id}`)}
         totalRecords={totalItems} rows={20} lazy first={lazyState.first} onSort={onSort}
 
-        onPage={onPage} sortField={lazyState.sortField} sortOrder={lazyState.sortOrder} showGridlines
+        onPage={onPage} sortField={lazyState.sortField}  showGridlines
       >
         <Column field="status" header="Status" />
         <Column field="openAmount" header="Open Amount" editor={options => InputNumberEditor(options)} />
