@@ -389,7 +389,7 @@ export const ProductUpdate = () => {
   console.log(product, 'product')
 
   const handleNavigate = (productId) => {
-    navigate(`/retail/variable/${productId}/edit` + location.search);
+    navigate(`/product/${productId}/edit` + location.search);
   };
 
   useEffect(() => {
