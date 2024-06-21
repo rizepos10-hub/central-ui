@@ -276,6 +276,48 @@ export const ProductUpdate = () => {
     });
   };
 
+  // const handleHideItemPerBranchSimple = (branchId) => {
+  //   setProduct((prev) => {
+  //     const updatedVariants = [...prev.variants];
+  //     updatedVariants[0] = {
+  //       ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
+  //       branchVariantDetails: {
+  //         ...(prev.variants[0]?.branchVariantDetails || {}),
+  //         [branchId]: {
+  //           ...(prev.variants?.[0]?.branchVariantDetails?.[branchId]),
+  //           hideItem: !prev?.variants?.[0]?.branchVariantDetails?.[branchId]?.hideItem,
+  //         },
+  //       },
+  //     };
+  //     console.log(prev)
+  //     console.log(updatedVariants)
+  //     return {
+  //       ...prev,
+  //       variants: updatedVariants,
+  //     };
+  //   });
+  // }
+
+  const handleHideItemPerBranch = (branchId, variantIndex) => {
+    setProduct((prev) => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
+            hideItem: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.hideItem,
+          },
+        },
+      };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  }
+
 
   const handleAddAttribute = () => {
 
@@ -389,7 +431,7 @@ export const ProductUpdate = () => {
   console.log(product, 'product')
 
   const handleNavigate = (productId) => {
-    navigate(`/retail/variable/${productId}/edit` + location.search);
+    navigate(`/product/${productId}/edit` + location.search);
   };
 
   useEffect(() => {
@@ -766,6 +808,7 @@ export const ProductUpdate = () => {
                                                 variantIndex={variantIndex}
                                                 branchVariantDetails={variant.branchVariantDetails}
                                                 itemVariantType={'RETAIL'}
+                                                handleHideItemPerBranch={handleHideItemPerBranch}
                                               />
                                             </AccordionTab>
                                           </Accordion>
@@ -821,6 +864,7 @@ export const ProductUpdate = () => {
                                     branchList={branchList}
                                     handleBranchPriceChange={handleBranchPriceChange}
                                     handleSaveWholesalePrices={handleSaveWholesalePrices}
+                                    handleHideItemPerBranch={handleHideItemPerBranch}
                                   />
 
                                   <Row>

@@ -1,5 +1,5 @@
 
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 
@@ -17,36 +17,36 @@ import {
   ModalBody,
   ModalHeader, Container, Nav, NavItem, NavLink, TabContent, TabPane, Alert
 } from 'reactstrap';
-import {Button as PrimeButton, Button as deleteButton} from 'primereact/button';
+import { Button as PrimeButton, Button as deleteButton } from 'primereact/button';
 
-import {getSortState, isNumber, TextFormat, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import { getSortState, isNumber, TextFormat, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
+import { mapIdList, overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ITerm } from 'app/shared/model/term.model';
 import { getEntities as getTerms } from 'app/entities/term/Menu-Category/menu-category.reducer';
 import { IMenu } from 'app/shared/model/menu.model';
-import {getEntity, updateEntity, createEntity, reset, sendEvent, duplicateMenu} from './menu.reducer';
-import {faTimes} from "@fortawesome/free-solid-svg-icons";
-import {getEntities as getItems } from "app/entities/item/all-items.reducer";
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
+import { getEntity, updateEntity, createEntity, reset, sendEvent, duplicateMenu } from './menu.reducer';
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import { getEntities as getItems } from "app/entities/item/all-items.reducer";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import Select from "react-select";
-import {APP_DATE_FORMAT} from "app/config/constants";
-import {DataView, DataViewLayoutOptions} from "primereact/dataview";
-import {Dropdown, DropdownChangeEvent} from "primereact/dropdown";
-import {InputText} from "primereact/inputtext";
-import {Demo} from "app/shared/sidebar/types/demo";
-import {Rating} from "primereact/rating";
+import { APP_DATE_FORMAT } from "app/config/constants";
+import { DataView, DataViewLayoutOptions } from "primereact/dataview";
+import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
+import { InputText } from "primereact/inputtext";
+import { Demo } from "app/shared/sidebar/types/demo";
+import { Rating } from "primereact/rating";
 import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
-import {Skeleton} from "primereact/skeleton";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {toast} from "react-toastify";
-import {OrderList} from "primereact/orderlist";
-import {ItemRoute} from "app/shared/model/ENUMS/item-route.model";
-import {IItem} from "app/shared/model/ITEM/item.model";
+import { Skeleton } from "primereact/skeleton";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { toast } from "react-toastify";
+import { OrderList } from "primereact/orderlist";
+import { ItemRoute } from "app/shared/model/ENUMS/item-route.model";
+import { IItem } from "app/shared/model/ITEM/item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { SelectButton } from "primereact/selectbutton";
 
@@ -69,10 +69,10 @@ export const OnlineOrderingMenuUpdate = () => {
   const errorMessage = useAppSelector(state => state.menu.errorMessage);
 
 
-  const ITEM_TYPE_OPTIONS = ["RETAIL","RESTAURANT"];
+  const ITEM_TYPE_OPTIONS = ["RETAIL", "RESTAURANT"];
   const [itemType, setItemType] = useState<"RETAIL" | "RESTAURANT">("RETAIL")
   const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
-  const initialBranches = {label : menuEntity?.branch?.name , value: menuEntity?.branch?.id}
+  const initialBranches = { label: menuEntity?.branch?.name, value: menuEntity?.branch?.id }
 
 
 
@@ -232,13 +232,13 @@ export const OnlineOrderingMenuUpdate = () => {
     }));
 
 
-    if(updateSuccess){
+    if (updateSuccess) {
       handleRefresh()
     }
     return () => {
       dispatch(reset())
     }
-  }, [refresh, selectedItems,navigate]);
+  }, [refresh, selectedItems, navigate]);
 
 
 
@@ -254,19 +254,19 @@ export const OnlineOrderingMenuUpdate = () => {
     }
 
 
-    if(updateSuccess){
+    if (updateSuccess) {
       handleRefresh()
     }
 
-    if (menuEntity?.category){
+    if (menuEntity?.category) {
       setSelectedCategory(menuEntity.category.name)
     }
 
-    if (menuEntity?.itemType){
+    if (menuEntity?.itemType) {
       setItemType(menuEntity.itemType)
     }
-    if (menuEntity?.branch){
-      setSelectedBranches({label: menuEntity?.branch?.name , value: menuEntity?.branch?.id})
+    if (menuEntity?.branch) {
+      setSelectedBranches({ label: menuEntity?.branch?.name, value: menuEntity?.branch?.id })
     }
 
     onFilter();
@@ -317,7 +317,7 @@ export const OnlineOrderingMenuUpdate = () => {
       ...restValues,
       itemType,
       category: selectedCategory ? menuCategories.find((it) => it.name === selectedCategory) : null,
-      item: [...filteredMenuItems, ...itemIds].map(item => ({id: item.id})),
+      item: [...filteredMenuItems, ...itemIds].map(item => ({ id: item.id })),
       branch: { id: selectedBranches.value }
     };
 
@@ -371,7 +371,7 @@ export const OnlineOrderingMenuUpdate = () => {
 
 
 
-  if(errorMessage) {
+  if (errorMessage) {
     return (
       <Alert color="warning" className="mt-4">
         {errorMessage}
@@ -420,7 +420,7 @@ export const OnlineOrderingMenuUpdate = () => {
         onChange={(e) => setSelectedTerm(e.value)}
       />
 
-      <Button color="primary"  onClick={toggleModal} disabled={allItemsPresent()}>
+      <Button color="primary" onClick={toggleModal} disabled={allItemsPresent()}>
         Add Item
       </Button>
       <DataViewLayoutOptions layout={layout} onChange={(e) => setLayout(e.value)} />
@@ -434,9 +434,9 @@ export const OnlineOrderingMenuUpdate = () => {
         <div className="flex flex-column md:flex-row align-items-center p-3 w-full">
           {data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url ?
             <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url}
-                alt={data.name}
-                className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5"/>
-          : null}
+              alt={data.name}
+              className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
+            : null}
           <div className="flex-1 flex flex-column align-items-center text-center md:text-left">
             <div className="font-bold text-2xl">{data.name}</div>
             <div className="mb-2">{data.desc}</div>
@@ -474,16 +474,16 @@ export const OnlineOrderingMenuUpdate = () => {
           >
             <div className="flex flex-column align-items-center text-center mb-3">
 
-                {/* <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url} */}
-                {/*      alt={data.name} */}
-                {/*      className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5"/> */}
+              {/* <img src={data?.attachments && data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url} */}
+              {/*      alt={data.name} */}
+              {/*      className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5"/> */}
               <ImageDisplay
                 imageType={"product"}
-                imageUrl={data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url }
+                imageUrl={data?.attachments?.[0]?.url || data?.variants?.[0]?.attachments?.[0]?.url}
                 className={"my-4 md:my-0 w-9 md:w-10rem rounded"}
                 height={100}
                 width={100}
-                />
+              />
               <div className="text-2xl font-bold">{data.name}</div>
               <div className="mb-3">{data.desc || "no description"}</div>
               {/* <Rating value={data.rating} readOnly cancel={false} /> */}
@@ -518,7 +518,7 @@ export const OnlineOrderingMenuUpdate = () => {
 
     if (isConfirmed) {
       dispatch(duplicateMenu(id))
-        .then((result:any) => {
+        .then((result: any) => {
           if (result?.payload?.id) {
             navigate(`/menu/${result?.payload?.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
           } else {
@@ -560,7 +560,7 @@ export const OnlineOrderingMenuUpdate = () => {
 
   return (
     <div>
-      <Card>
+      {/* <Card>
         <div className="d-flex justify-content-between align-items-center p-3">
           <h1>{menuEntity.name}</h1>
           <div>
@@ -595,164 +595,159 @@ export const OnlineOrderingMenuUpdate = () => {
             <Translate contentKey="menus.shared.update.category">Category</Translate>: {menuEntity.category ? menuEntity.category.name : ''}
           </p>
         </CardBody>
-      </Card>
-
-      <>
-        <>
-          {loading ? (
+      </Card> */}
+      <Modal isOpen={isEditModalOpen} toggle={toggleEditModal} className="modal-lg">
+        <ModalHeader toggle={toggleEditModal}>
+          <Translate contentKey="menus.shared.update.edit.title">Edit Menu</Translate>
+        </ModalHeader>
+        <ModalBody>
+          <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
+            <ValidatedField
+              label={translate('menus.shared.update.name')}
+              id="menu-name"
+              name="name"
+              data-cy="name"
+              type="text"
+              validate={{
+                required: { value: true, message: translate('entity.validation.required') },
+                maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
+              }}
+            />
+            <ValidatedField
+              label={translate('menus.shared.update.url')}
+              id="menu-menuUrl"
+              name="menuUrl"
+              data-cy="menuUrl"
+              type="text"
+            />
+            <div className="mb-3">
+              {translate('menus.shared.update.branches')}
+              <Select defaultValue={initialBranches} onChange={handleBranchChange} options={branchList} />
+            </div>
+            <div className="my-3">
+              Layout
+              <SelectButton value={itemType} onChange={e => setItemType(e.value)} options={ITEM_TYPE_OPTIONS} />
+            </div>
+            <ValidatedField
+              id="menu-category"
+              name="category"
+              data-cy="category"
+              label={translate('menus.shared.update.category')}
+              type="select"
+              value={selectedCategory || ''}
+              onChange={handleCategoryChange}
+            >
+              <option value=""></option>
+              {menuCategories
+                ? menuCategories.map(otherEntity => (
+                  <option key={otherEntity.id} value={otherEntity.name}>
+                    {otherEntity.name}
+                  </option>
+                ))
+                : null}
+            </ValidatedField>
+            <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={toggleEditModal} replace color="info">
+              <FontAwesomeIcon icon="arrow-left" />
+              &nbsp;
+              <span className="d-none d-md-inline">
+                <Translate contentKey="entity.action.back">Back</Translate>
+              </span>
+            </Button>
+            &nbsp;
+            <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <FontAwesomeIcon icon="save" />
+              &nbsp;
+              <Translate contentKey="entity.action.save">Save</Translate>
+            </Button>
+          </ValidatedForm>
+        </ModalBody>
+        {!isNew && (
+          <>
+            <br />
+            <ModalFooter></ModalFooter>
+          </>
+        )}
+      </Modal>
+      <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
+        <ModalHeader toggle={toggleModal}>
+          <Translate contentKey={'menus.online.update.addItemModal.title'}>Add New Item</Translate>
+        </ModalHeader>
+        <ModalBody>
+          <Row>
+            <Col md="3">
+              <ListGroup>
+                {Object.keys(groupedMenuItems).map(termName => (
+                  <ListGroupItem
+                    key={termName}
+                    tag="button"
+                    action
+                    onClick={() => setActiveTerm(termName)}
+                    active={termName === activeTerm}
+                  >
+                    {termName}
+                  </ListGroupItem>
+                ))}
+              </ListGroup>
+            </Col>
+            <Col md="9">
+              {activeTerm ? (
+                <>
+                  <h3>{activeTerm}</h3>
+                  <Row className="justify-content-center mt-4">
+                    {groupedMenuItems[activeTerm]
+                      .filter(item => !menuItems.some(menuItem => menuItem.id === item.id && menuItem.id !== null))
+                      .map(item => (
+                        <Col key={item.id} sm="6" md="4" lg="3" className="mb-4">
+                          <div
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => {
+                              if (selectedItems?.some(selectedItem => selectedItem.id === item.id)) {
+                                setSelectedItems(prevItems => prevItems.filter(i => i.id !== item.id));
+                              } else {
+                                setSelectedItems(prevItems => [...prevItems, item]);
+                              }
+                            }}
+                          >
+                            <Card
+                              className={`border-4 shadow-sm h-100 ${selectedItems?.some(selectedItem => selectedItem.id === item.id) ? 'border-primary bg-primary' : ''
+                                }`}
+                            >
+                              <CardBody>
+                                <h6>{item.name}</h6>
+                                {/* <p>{item.desc}</p> */}
+                                <p>{item.categories?.[0]?.name}</p>
+                              </CardBody>
+                            </Card>
+                          </div>
+                        </Col>
+                      ))}
+                  </Row>
+                </>
+              ) : (
+                <p>
+                  <Translate contentKey={'menus.online.update.addItemModal.message'}>
+                    Please select a term to view its items.
+                  </Translate>
+                </p>
+              )}
+            </Col>
+          </Row>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={toggleModal}>
+            <Translate contentKey={'entity.action.cancel'}>Cancel</Translate>
+          </Button>
+          <Button color="primary" onClick={handleAddItem}>
+            <Translate contentKey={'menus.online.update.addItemModal.addItem'}>Add Item</Translate>
+          </Button>
+        </ModalFooter>
+      </Modal>
+      {/* {loading ? (
             <p>Loading...</p>
           ) : (
-            <Modal isOpen={isEditModalOpen} toggle={toggleEditModal} className="modal-lg">
-              <ModalHeader toggle={toggleEditModal}>
-                <Translate contentKey="menus.shared.update.edit.title">Edit Menu</Translate>
-              </ModalHeader>
-              <ModalBody>
-                <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-                  <ValidatedField
-                    label={translate('menus.shared.update.name')}
-                    id="menu-name"
-                    name="name"
-                    data-cy="name"
-                    type="text"
-                    validate={{
-                      required: { value: true, message: translate('entity.validation.required') },
-                      maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                    }}
-                  />
-                  <ValidatedField
-                    label={translate('menus.shared.update.url')}
-                    id="menu-menuUrl"
-                    name="menuUrl"
-                    data-cy="menuUrl"
-                    type="text"
-                  />
-                  <div className="mb-3">
-                    {translate('menus.shared.update.branches')}
-                    <Select defaultValue={initialBranches} onChange={handleBranchChange} options={branchList} />
-                  </div>
-                  <div className="my-3">
-                    Layout
-                    <SelectButton value={itemType} onChange={e => setItemType(e.value)} options={ITEM_TYPE_OPTIONS} />
-                  </div>
-                  <ValidatedField
-                    id="menu-category"
-                    name="category"
-                    data-cy="category"
-                    label={translate('menus.shared.update.category')}
-                    type="select"
-                    value={selectedCategory || ''}
-                    onChange={handleCategoryChange}
-                  >
-                    <option value=""></option>
-                    {menuCategories
-                      ? menuCategories.map(otherEntity => (
-                          <option key={otherEntity.id} value={otherEntity.name}>
-                            {otherEntity.name}
-                          </option>
-                        ))
-                      : null}
-                  </ValidatedField>
-                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={toggleEditModal} replace color="info">
-                    <FontAwesomeIcon icon="arrow-left" />
-                    &nbsp;
-                    <span className="d-none d-md-inline">
-                      <Translate contentKey="entity.action.back">Back</Translate>
-                    </span>
-                  </Button>
-                  &nbsp;
-                  <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                    <FontAwesomeIcon icon="save" />
-                    &nbsp;
-                    <Translate contentKey="entity.action.save">Save</Translate>
-                  </Button>
-                </ValidatedForm>
-              </ModalBody>
-              {!isNew && (
-                <>
-                  <br />
-                  <ModalFooter></ModalFooter>
-                </>
-              )}
-            </Modal>
-          )}
-          <div>
+          )} */}
+      {/* <div>
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              <Modal isOpen={isModalOpen} toggle={toggleModal} className="modal- modal-lg">
-                <ModalHeader toggle={toggleModal}>
-                  <Translate contentKey={'menus.online.update.addItemModal.title'}>Add New Item</Translate>
-                </ModalHeader>
-                <ModalBody>
-                  <Row>
-                    <Col md="3">
-                      <ListGroup>
-                        {Object.keys(groupedMenuItems).map(termName => (
-                          <ListGroupItem
-                            key={termName}
-                            tag="button"
-                            action
-                            onClick={() => setActiveTerm(termName)}
-                            active={termName === activeTerm}
-                          >
-                            {termName}
-                          </ListGroupItem>
-                        ))}
-                      </ListGroup>
-                    </Col>
-                    <Col md="9">
-                      {activeTerm ? (
-                        <>
-                          <h3>{activeTerm}</h3>
-                          <Row className="justify-content-center mt-4">
-                            {groupedMenuItems[activeTerm]
-                              .filter(item => !menuItems.some(menuItem => menuItem.id === item.id && menuItem.id !== null))
-                              .map(item => (
-                                <Col key={item.id} sm="6" md="4" lg="3" className="mb-4">
-                                  <div
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() => {
-                                      if (selectedItems?.some(selectedItem => selectedItem.id === item.id)) {
-                                        setSelectedItems(prevItems => prevItems.filter(i => i.id !== item.id));
-                                      } else {
-                                        setSelectedItems(prevItems => [...prevItems, item]);
-                                      }
-                                    }}
-                                  >
-                                    <Card
-                                      className={`border-4 shadow-sm h-100 ${
-                                        selectedItems?.some(selectedItem => selectedItem.id === item.id) ? 'border-primary bg-primary' : ''
-                                      }`}
-                                    >
-                                      <CardBody>
-                                        <h6>{item.name}</h6>
-                                        {/* <p>{item.desc}</p> */}
-                                        <p>{item.categories?.[0]?.name}</p>
-                                      </CardBody>
-                                    </Card>
-                                  </div>
-                                </Col>
-                              ))}
-                          </Row>
-                        </>
-                      ) : (
-                        <p>
-                          <Translate contentKey={'menus.online.update.addItemModal.message'}>
-                            Please select a term to view its items.
-                          </Translate>
-                        </p>
-                      )}
-                    </Col>
-                  </Row>
-                </ModalBody>
-                <ModalFooter>
-                  <Button color="secondary" onClick={toggleModal}>
-                    <Translate contentKey={'entity.action.cancel'}>Cancel</Translate>
-                  </Button>
-                  <Button color="primary" onClick={handleAddItem}>
-                    <Translate contentKey={'menus.online.update.addItemModal.addItem'}>Add Item</Translate>
-                  </Button>
-                </ModalFooter>
-              </Modal>
-
               <div className="col-12">
                 <div className="card">
                   <h5>
@@ -777,10 +772,79 @@ export const OnlineOrderingMenuUpdate = () => {
                 </Button>
               </div>
             </ValidatedForm>
+          </div> */}
+      <div className="">
+        <div className="card p-1">
+          <div className="d-flex align-items-center justify-content-between">
+            <div className="d-flex align-items-center gap-3">
+              <h1 className="fs-3 fw-bold">John Doe</h1>
+              <p className="text-muted">Admin</p>
+            </div>
+            <div className="mt-3 mt-md-0 d-flex gap-2">
+              <PrimeButton label="Edit" className="p-button-outlined" />
+              <PrimeButton label="Trigger" />
+              <PrimeButton label="Duplicate" className="p-button-secondary" />
+            </div>
           </div>
-          <></>
-        </>
-      </>
+          <hr />
+          <div className="row g-3 p-1">
+            <div className="col-3">
+              <p className="text-muted">Created At</p>
+              <p className="fw-semibold">06/01/2024 14:03</p>
+            </div>
+            <div className="col-3">
+              <p className="text-muted">Updated At</p>
+              <p className="fw-semibold">13/06/2024 15:20</p>
+            </div>
+            <div className="col-3">
+              <p className="text-muted">Layout</p>
+              <p className="fw-semibold">RETAIL</p>
+            </div>
+            <div className="col-3">
+              <p className="text-muted">Menu URL</p>
+              <p className="fw-semibold">32</p>
+            </div>
+          </div>
+        </div>
+        <div className='card p-0'>
+          <div className="card mb-4 p-1">
+            <div className="d-flex justify-content-between align-items-center">
+              <h2 className="fs-3 fw-bold">Menu Items View</h2>
+              <div className="d-flex align-items-center gap-2">
+                <Dropdown value={selectedCategory} options={[]} onChange={(e) => setSelectedCategory(e.value)} placeholder="Select a Category" />
+                <PrimeButton label="Add Item" />
+                <i className="pi pi-list p-button-outlined" />
+                <i className="pi pi-th-large p-button-outlined" />
+                {/* <PrimeButton className="p-button-outlined" icon="pi pi-th-large" size='small'/> */}
+              </div>
+            </div>
+          </div>
+          <div className="row g-3">
+            {Array.from({ length: 9 }).map((_, index) => (
+              <div className="col-3 d-flex justify-content-center container mt-5" key={index}>
+                <div className="card p-3 bg-white"><i className="fa fa-apple"></i>
+                  <div className="about-product text-center mt-2">
+                    <img src="https://i.imgur.com/3VTaSeb.png" width="300" />
+                    <div>
+                      <h4>Believing is seeing</h4>
+                      <h6 className="mt-0 text-black-50">Apple pro display XDR</h6>
+                    </div>
+                  </div>
+                  <div className="stats mt-2">
+                    <div className="d-flex justify-content-between p-price"><span>Pro Display XDR</span><span>$5,999</span></div>
+                    <div className="d-flex justify-content-between p-price"><span>Pro stand</span><span>$999</span></div>
+                    <div className="d-flex justify-content-between p-price"><span>Vesa Mount Adapter</span><span>$199</span></div>
+                  </div>
+                  <div className="d-flex justify-content-between total font-weight-bold mt-4"><span>Total</span><span>$7,197.00</span></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="d-flex justify-content-center p-1">
+            <PrimeButton label="Save" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
