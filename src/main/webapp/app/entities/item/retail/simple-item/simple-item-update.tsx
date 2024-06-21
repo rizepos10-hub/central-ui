@@ -188,7 +188,6 @@ export const SimpleItemUpdate = () => {
   }
 
 
-
   const handleBaseMeasureChange = (baseMeasure) => {
     if (!simpleItem?.measures || simpleItem?.measures?.length === 0) {
       setSimpleItem(prev => ({ ...prev, baseMeasure }))
