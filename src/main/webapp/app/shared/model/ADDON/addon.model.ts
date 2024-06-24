@@ -10,7 +10,7 @@ export interface IAddon {
   price?: number;
   discounts?: IDiscount[] | null;
   tags?: ITag[];
-  profileGroups?: IProfileGroup[];
+  accountingGroups?: IProfileGroup[];
 }
 
 export const defaultValue: Readonly<IAddon> = {};

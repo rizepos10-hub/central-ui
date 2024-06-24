@@ -97,9 +97,9 @@ export const UpdateItemRestaurantCategory = () => {
       setSelectedAttachments(categoryEntity.attachments.map(attachment => ({ id: attachment.id, url: attachment.url })));
     }
 
-    if (categoryEntity?.profileGroups) {
-      setSelectedProfileGroups(categoryEntity.profileGroups?.map(group => ({ label: group.name, value : group.id })));
-      setProfileGroupsToSave(categoryEntity.profileGroups?.map(group => ({  id : group.id })));
+    if (categoryEntity?.accountingGroups) {
+      setSelectedProfileGroups(categoryEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
+      setProfileGroupsToSave(categoryEntity.accountingGroups?.map(group => ({  id : group.id })));
     }
 
     if(categoryEntity?.parents && categoryEntity.parents.length > 0){

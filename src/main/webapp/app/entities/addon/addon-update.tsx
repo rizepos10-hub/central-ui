@@ -164,14 +164,14 @@ export const AddonUpdate = () => {
                   <Translate contentKey={'addons.update.profileGroup'}>Profile Group</Translate>
                 </Label>
                 <Select
-                  value={addonEntity?.profileGroups}
+                  value={addonEntity?.accountingGroups}
                   options={profileGroups}
                   id="addon-profileGroup"
 
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
                   onChange={selectedProfileGroups => dispatch(changeEntityField({
-                    name: 'profileGroups',
+                    name: 'accountingGroups',
                     value: [selectedProfileGroups]
                   }))}
                 />

@@ -33,7 +33,7 @@ export interface IItem {
   visibility?: IVisibility[] | null;
   attachments?: IAttachment[] | null;
   terms?: ITerm[] | null;
-  profileGroups?: IProfileGroup[] | null;
+  accountingGroups?: IProfileGroup[] | null;
   productionCenter?: IProductionCenter | null;
 
 }

@@ -15,7 +15,7 @@ export interface IMixAndMatchRule {
 
 type Rule = {
   aboveQuantity?: number;
-  profileGroup?: IProfileGroup;
+  accountingGroup?: IProfileGroup;
 }
 
 export interface IQuantityConfigurationProperties {

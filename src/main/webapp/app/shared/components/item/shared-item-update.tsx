@@ -246,12 +246,12 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   <Translate contentKey="items.update.profileGroups">Profile Groups</Translate>
                 </label>
                 <Select
-                  value={item?.profileGroups}
+                  value={item?.accountingGroups}
                   isClearable
                   options={profileGroupsOptions}
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
-                  onChange={profileGroup => onFieldChange('profileGroups', profileGroup ? [profileGroup] : [])}
+                  onChange={profileGroup => onFieldChange('accountingGroups', profileGroup ? [profileGroup] : [])}
                 />
               </div>
 

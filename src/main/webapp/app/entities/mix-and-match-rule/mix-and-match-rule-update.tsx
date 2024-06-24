@@ -270,13 +270,13 @@ export const MixAndMatchRuleUpdate = () => {
                             }),
                           }}
                           isDisabled={!mixAndMatchRule?.rules?.[0]?.aboveQuantity}
-                          value={mixAndMatchRule?.rules?.[0]?.profileGroup}
+                          value={mixAndMatchRule?.rules?.[0]?.accountingGroup}
                           options={profileGroupList}
                           getOptionLabel={option => option.name}
                           getOptionValue={option => option.id}
-                          onChange={(selectedOption) => handleRuleChange('profileGroup', selectedOption)}
+                          onChange={(selectedOption) => handleRuleChange('accountingGroup', selectedOption)}
                         />
-                        <span className="p-inputgroup-addon">Accounting group</span>
+                        <span className="p-inputgroup-addon">Profile Group</span>
                       </div>
                     </div>
                   </div>
