@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, updateEntity, createEntity, changeEntityField,reset } from './accounting-group.reducer';
+import { getEntity, updateEntity, createEntity, changeEntityField,reset } from './profile-group.reducer';
 import { getEntities as getTaxProfiles } from 'app/entities/settings/tax-profile/tax-profile.reducer';
 import Select from "react-select";
 import { InputText } from "primereact/inputtext";
@@ -10,21 +10,21 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {getSortState, Translate} from "react-jhipster";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import { IAccountingGroup} from "app/shared/model/TAX/accounting-group.model";
+import { IProfileGroup} from "app/shared/model/TAX/profile-group.model";
 
-export const AccountingGroupUpdate = () => {
+export const ProfileGroupUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const accountingGroup :IAccountingGroup = useAppSelector(state => state.accountingGroup.entity);
-  const loading = useAppSelector(state => state.accountingGroup.loading);
-  const updating = useAppSelector(state => state.accountingGroup.updating);
-  const updateSuccess = useAppSelector(state => state.accountingGroup.updateSuccess);
+  const profileGroup :IProfileGroup = useAppSelector(state => state.profileGroup.entity);
+  const loading = useAppSelector(state => state.profileGroup.loading);
+  const updating = useAppSelector(state => state.profileGroup.updating);
+  const updateSuccess = useAppSelector(state => state.profileGroup.updateSuccess);
   const taxProfilesList = useAppSelector(state => state.taxProfiles.entities);
 
-  const handleChange = <K extends keyof IAccountingGroup>(fieldName: K, value: IAccountingGroup[K]) => {
+  const handleChange = <K extends keyof IProfileGroup>(fieldName: K, value: IProfileGroup[K]) => {
     dispatch(changeEntityField({ fieldName, value }));
   };
 
@@ -35,13 +35,13 @@ export const AccountingGroupUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/accounting-groups')
+    navigate('/profile-groups')
   }
 
 
   const handleSubmit = () => {
     const entity = {
-         ...accountingGroup
+         ...profileGroup
     };
 
     if (isNew) {
@@ -82,7 +82,7 @@ export const AccountingGroupUpdate = () => {
 
   return (
     <div>
-      <h2>{isNew ? `Add New Accounting Groups` : `Edit Accounting Groups ${accountingGroup.name}` }</h2>
+      <h2>{isNew ? `Add New Profile Groups` : `Edit Profile Groups ${profileGroup.name}` }</h2>
       <Row>
         <Col md="8"  className="d-flex flex-column p-3  bg-white">
       <FormGroup>
@@ -90,7 +90,7 @@ export const AccountingGroupUpdate = () => {
             <Label htmlFor="name">Name</Label>
             <InputText
               id="name"
-              value={accountingGroup.name}
+              value={profileGroup.name}
               onChange={(e) => handleChange('name', e.target.value)}
             />
           </div>
@@ -99,7 +99,7 @@ export const AccountingGroupUpdate = () => {
           <Label htmlFor="accountingId">Accounting ID</Label>
             <InputText
               id="accountingId"
-              value={accountingGroup.accountingId}
+              value={profileGroup.accountingId}
               onChange={(e) => handleChange('accountingId', e.target.value)}
             />
           </div>
@@ -109,11 +109,11 @@ export const AccountingGroupUpdate = () => {
             <Select
               id="profiles"
               options={taxProfilesList}
-              value={accountingGroup.profiles}
+              value={profileGroup.profiles}
               getOptionValue={option => option.id}
               getOptionLabel={option => option.name}
               isMulti={true}
-              onChange={(profiles)  => handleChange('profiles', profiles as IAccountingGroup["profiles"])}
+              onChange={(profiles)  => handleChange('profiles', profiles as IProfileGroup["profiles"])}
               isClearable={true}
             />
           </div>
@@ -121,7 +121,7 @@ export const AccountingGroupUpdate = () => {
       </FormGroup>
         </Col>
         <div className="d-flex justify-content-start align-items-center  mt-7">
-          <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/accounting-groups" replace color="info">
+          <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/profile-groups" replace color="info">
             <FontAwesomeIcon icon="arrow-left" />
             &nbsp;
             <span className="d-none d-md-inline">
@@ -139,4 +139,4 @@ export const AccountingGroupUpdate = () => {
   );
 };
 
-export default AccountingGroupUpdate;
+export default ProfileGroupUpdate;

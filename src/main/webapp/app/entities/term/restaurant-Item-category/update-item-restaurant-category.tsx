@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getTaxonomies } from 'app/entities/taxonomy/taxonomy.reducer';
 
 import { getEntity, updateEntity, createEntity, reset } from './item-restaurant-category.reducer';
-import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-group/accounting-group.reducer';
+import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
@@ -50,11 +50,11 @@ export const UpdateItemRestaurantCategory = () => {
   );
 
 
-  const accountingGroupsOptions = useAppSelector(state => state.accountingGroup.entities).map(category => ({ value: category.id, label: category.name }));
+  const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities).map(category => ({ value: category.id, label: category.name }));
 
-  const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
+  const [profileGroupsToSave, setProfileGroupsToSave] = useState([])
 
-  const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
+  const [selectedProfileGroups, setSelectedProfileGroups] = useState('');
   const [selectedParents, setSelectedParents] :any = useState();
 
   const [parentsToSave, setParentsToSave] :any = useState([]);
@@ -79,7 +79,7 @@ export const UpdateItemRestaurantCategory = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-    dispatch(getAccountingGroups({
+    dispatch(getProfileGroups({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -99,8 +99,8 @@ export const UpdateItemRestaurantCategory = () => {
     }
 
     if (categoryEntity?.accountingGroups) {
-      setSelectedAccountingGroups(categoryEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
-      setAccountingGroupsToSave(categoryEntity.accountingGroups?.map(group => ({  id : group.id })));
+      setSelectedProfileGroups(categoryEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
+      setProfileGroupsToSave(categoryEntity.accountingGroups?.map(group => ({  id : group.id })));
     }
 
     if(categoryEntity?.parents && categoryEntity.parents.length > 0){
@@ -120,9 +120,9 @@ export const UpdateItemRestaurantCategory = () => {
       prevAttachments.filter((attachment) => attachment.id !== attachmentId)
     );
   };
-  const handleAccountingGroupsChange = selectedAccounting => {
-    setSelectedAccountingGroups(selectedAccounting);
-    setAccountingGroupsToSave([{id: selectedAccounting.value}])
+  const handleProfileGroupsChange = selectedAccounting => {
+    setSelectedProfileGroups(selectedAccounting);
+    setProfileGroupsToSave([{id: selectedAccounting.value}])
   };
 
   const handleParentsChange = selectedParent => {
@@ -174,7 +174,7 @@ export const UpdateItemRestaurantCategory = () => {
     const entity = {
       ...categoryEntity,
       ...values,
-      accountingGroups: accountingGroupsToSave,
+      accountingGroups: profileGroupsToSave,
       parents: parentsToSave,
       attachments: selectedAttachments,
 
@@ -212,17 +212,17 @@ export const UpdateItemRestaurantCategory = () => {
             <p>Loading...</p>
           ) : (
             <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {/* {!isNew ? ( */}
-              {/*   <ValidatedField */}
+              {/* {! isNew ? ( */}
+              {/*    <ValidatedField */}
               {/*     name="id" */}
               {/*     required */}
               {/*     readOnly */}
               {/*     id="category-id" */}
-              {/*     label={translate('global.field.id')} */}
-              {/*     validate={{ required: true }} */}
-              {/*   /> */}
-              {/* ) : null} */}
-              <ValidatedField
+              {/*     label={translate('global. field.id')} */}
+              {/*     validate={{ required: tru e }} */}
+              {/*    /> */}
+              {/* )  : null} */}
+               <ValidatedField
                 label={translate('itemCategories.update.name')}
                 id="category-name"
                 name="name"
@@ -232,28 +232,28 @@ export const UpdateItemRestaurantCategory = () => {
                   required: { value: true, message: translate('common.validation.required') },
                 }}
               />
-              {/* <ValidatedField */}
-              {/*   id="category-taxonomy" */}
-              {/*   name="taxonomy" */}
-              {/*   data-cy="taxonomy" */}
-              {/*   label={'Category'} */}
-              {/*   type="select" */}
-              {/*   readOnly={true} */}
-              {/*   required */}
-              {/* > */}
-              {/*   { taxonomies && */}
+              {/* <V alidatedField */}
+              {/*    id="category-taxonomy" */}
+              {/*    name="taxonomy" */}
+              {/*    data-cy="taxonomy" */}
+              {/*    label={'Category'} */}
+              {/*    type="select" */}
+              {/*    readOnly={true} */}
+              {/*    required */}
+              {/* > * /}
+              {/*    { taxonomies && */}
               {/*     taxonomies */}
-              {/*       .filter((otherEntity) => otherEntity.name === "Item Category") */}
-              {/*       .map((filteredEntity) => ( */}
-              {/*         <option value={filteredEntity.id} key={filteredEntity.id}> */}
-              {/*           {filteredEntity.name} */}
+              {/*       .filter((otherEntity) = > otherEntity.name === "Item Category") */}
+              {/*       .map((filteredEntity) = > ( */}
+              {/*         <option value={filter edEntity.id} key={filteredEntity.id}> */}
+              {/*           {filteredEntity.nam e} */}
               {/*         </option> */}
               {/*       ) */}
-              {/*   )} */}
-              {/* </ValidatedField> */}
+              {/*    )} */}
+              {/* < / ValidatedField> */}
               <div className="mb-3">
-              <Translate contentKey="itemCategories.update.accountingGroups">Accounting Groups</Translate>
-              <Select  value={selectedAccountingGroups} isClearable onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
+              <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
+              <Select  value={selectedProfileGroups} isClearable onChange={handleProfileGroupsChange} options={profileGroupsOptions} />
               </div>
 
               <div className="mb-3">

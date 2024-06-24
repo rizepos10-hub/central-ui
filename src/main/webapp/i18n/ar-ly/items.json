@@ -93,7 +93,7 @@
       "description": "Description",
       "productionCenter": "Production Center",
       "categories": "Categories",
-      "accountingGroups": "Accounting Groups",
+      "profileGroups": "Profile Groups",
       "excludedFromLoyalty": "Excluded From Loyalty Points",
       "image": "Image",
       "sku": "SKU",

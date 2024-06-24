@@ -595,9 +595,9 @@ const AppMenu = () => {
           ],
         },
         {
-          label: 'Accounting Groups ',
+          label: 'Profile Groups ',
           role: ['ROLE_ADMINISTRATOR'],
-          to: '/accounting-groups',
+          to: '/profile-groups',
         },
         {
           label: 'Units of Measures',

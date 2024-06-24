@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getTaxonomies } from 'app/entities/taxonomy/taxonomy.reducer';
 
 import { getEntity, updateEntity, createEntity, reset } from './retail-item-category.reducer';
-import { getEntities as getAccountingGroups } from 'app/entities/settings/accounting-group/accounting-group.reducer';
+import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 
 import {uploadImage} from "app/entities/attachment/attachment.reducer";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
@@ -49,11 +49,11 @@ export const UpdateItemRestaurantCategory = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const accountingGroupsOptions = useAppSelector(state => state.accountingGroup.entities).map(category => ({ value: category.id, label: category.name }));
+  const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities).map(category => ({ value: category.id, label: category.name }));
 
-  const [accountingGroupsToSave, setAccountingGroupsToSave] = useState([])
+  const [profileGroupsToSave, setProfileGroupsToSave] = useState([])
 
-  const [selectedAccountingGroups, setSelectedAccountingGroups] = useState('');
+  const [selectedProfileGroups, setSelectedProfileGroups] = useState('');
   const [selectedParents, setSelectedParents] :any = useState();
 
   const [parentsToSave, setParentsToSave] :any = useState([]);
@@ -78,7 +78,7 @@ export const UpdateItemRestaurantCategory = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-    dispatch(getAccountingGroups({
+    dispatch(getProfileGroups({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -98,8 +98,8 @@ export const UpdateItemRestaurantCategory = () => {
     }
 
     if (categoryEntity?.accountingGroups) {
-      setSelectedAccountingGroups(categoryEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
-      setAccountingGroupsToSave(categoryEntity.accountingGroups?.map(group => ({  id : group.id })));
+      setSelectedProfileGroups(categoryEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
+      setProfileGroupsToSave(categoryEntity.accountingGroups?.map(group => ({  id : group.id })));
     }
 
     if(categoryEntity?.parents && categoryEntity.parents.length > 0){
@@ -119,9 +119,9 @@ export const UpdateItemRestaurantCategory = () => {
       prevAttachments.filter((attachment) => attachment.id !== attachmentId)
     );
   };
-  const handleAccountingGroupsChange = selectedAccounting => {
-    setSelectedAccountingGroups(selectedAccounting);
-    setAccountingGroupsToSave([{id: selectedAccounting.value}])
+  const handleProfileGroupsChange = selectedAccounting => {
+    setSelectedProfileGroups(selectedAccounting);
+    setProfileGroupsToSave([{id: selectedAccounting.value}])
   };
 
   const handleParentsChange = selectedParent => {
@@ -173,7 +173,7 @@ export const UpdateItemRestaurantCategory = () => {
     const entity = {
       ...categoryEntity,
       ...values,
-      accountingGroups: accountingGroupsToSave,
+      profileGroups: profileGroupsToSave,
       parents: parentsToSave,
       attachments: selectedAttachments,
 
@@ -251,8 +251,8 @@ export const UpdateItemRestaurantCategory = () => {
               {/*   )} */}
               {/* </ValidatedField> */}
               <div className="mb-3">
-              <Translate contentKey="itemCategories.update.accountingGroups">Accounting Groups</Translate>
-              <Select  value={selectedAccountingGroups} isClearable  onChange={handleAccountingGroupsChange} options={accountingGroupsOptions} />
+              <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
+              <Select  value={selectedProfileGroups} isClearable  onChange={handleProfileGroupsChange} options={profileGroupsOptions} />
               </div>
 
               <div className="mb-3">
