@@ -8,10 +8,10 @@ export enum SalesReportsTypes {
 }
 
 export enum SalesReportsMeasures {
-  Revenue = "REVENUE",
-  Sale_Count = "SALE_COUNT",
-  Returns = "RETURNS",
-  Tax = "TAX"
+  REVENUE = "Revenue",
+  SALE_COUNT = "Sale Count",
+  RETURNS = "Returns",
+  TAX = "Tax"
 }
 
 export enum SalesReportsPeriods {

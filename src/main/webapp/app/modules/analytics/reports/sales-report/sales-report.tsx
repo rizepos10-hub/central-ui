@@ -86,16 +86,17 @@ type formRequest = {
 }
 
 const reportTypesOptions = Object.entries(SalesReportsTypes).map(([key,val]) => ({label: key, value: val}));
-const reportMeasuresOptions = Object.entries(SalesReportsMeasures).map(([key,val]) => ({label: key, value: val}));
+const reportMeasuresOptions = Object.entries(SalesReportsMeasures).map(([key,label]) => ({label, value: key}));
 
 export const SalesReport = () => {
   const dispatch = useAppDispatch();
   const { reportType } = useParams();
 
   console.log(reportType, 'reportTypereportType')
+  console.log(reportMeasuresOptions, 'reportMeasuresOptions')
 
   const initialSelectedType = reportTypesOptions?.[0]?.value;
-  const initialSelectedMeasure = reportType ? SalesReportsMeasures.Revenue : reportMeasuresOptions?.[0]?.value;
+  const initialSelectedMeasure = reportType ? SalesReportsMeasures.REVENUE : reportMeasuresOptions?.[0]?.value;
 
   const [selectedType, setSelectedType] = useState(initialSelectedType);
   const [selectedMeasure, setSelectedMeasure] = useState(initialSelectedMeasure);
@@ -175,6 +176,7 @@ export const SalesReport = () => {
 
 
   const handleMeasureChange = (e) => {
+    console.log(e, "hahahha")
     const measure = e.value;
     setSelectedMeasure(measure)
   };
@@ -337,7 +339,7 @@ export const SalesReport = () => {
         </div>
           <div className="d-flex flex-column gap-1">
           <label>Measure Type</label>
-          <Dropdown options={reportMeasuresOptions} onChange={handleMeasureChange} value={selectedMeasure} />
+          <Dropdown options={reportMeasuresOptions} optionLabel={"label"} optionValue={"value"} onChange={handleMeasureChange} value={selectedMeasure} />
     </div>
         </>
           : null}

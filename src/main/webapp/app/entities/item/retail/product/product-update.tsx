@@ -58,6 +58,16 @@ const defaultSpecialPrices = {
   "RETAIL": { ...defaultItemPriceNumber }
 };
 
+const itemTypes = [
+  {
+    label: "RETAIL SIMPLE",
+    value: ItemVariantType.RETAIL_SIMPLE,
+  },
+  {
+    label: "RETAIL VARIABLE",
+    value:   ItemVariantType.RETAIL_VARIABLE,
+  }
+]
 
 export const ProductUpdate = () => {
   const dispatch = useAppDispatch();
@@ -75,10 +85,7 @@ export const ProductUpdate = () => {
   const measureList = useAppSelector(state => state.itemMeasure.entities);
   const discountList = useAppSelector(state => state.discount.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
-  const itemTypes = [
-    ItemVariantType.RETAIL_SIMPLE,
-    ItemVariantType.RETAIL_VARIABLE
-  ]
+
   const location = useLocation();
 
 
@@ -649,6 +656,8 @@ export const ProductUpdate = () => {
                                 value={product?.itemVariantType}
                                 options={itemTypes}
                                 allowEmpty={false}
+                                optionValue={"value"}
+                                optionLabel={"label"}
                                 onChange={option => {
                                   handleFieldChange('itemVariantType', option.value);
                                 }}
