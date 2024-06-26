@@ -147,7 +147,7 @@ const AppMenu = () => {
         },
         {
           label: 'Menu',
-          to: '/menu?type=POS',
+          to: '/menu?type=POS&menuType=RESTAURANT',
         },
       ],
     },
@@ -192,7 +192,7 @@ const AppMenu = () => {
         {
           label: 'Menus',
           role: ['ROLE_ADMINISTRATOR'],
-          to: '/menu?type=POS',
+          to: '/menu?type=POS&menuType=RETAIL',
         },
       ],
     },
@@ -499,11 +499,15 @@ const AppMenu = () => {
       label: 'Online Ordering',
       role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-tablet',
-      to: '/menu?type=ONLINE_ORDERING',
+      to: '/menu?type=ONLINE_ORDERING&menuType=RETAIL',
       items: [
         {
-          label: 'Menu',
-          to: '/menu?type=ONLINE_ORDERING',
+          label: 'Retail Menus',
+          to: '/menu?type=ONLINE_ORDERING&menuType=RETAIL',
+        },
+        {
+          label: 'Restaurant Menus',
+          to: '/menu?type=ONLINE_ORDERING&menuType=RESTAURANT',
         },
         {
           label: 'Users',

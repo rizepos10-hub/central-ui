@@ -1,0 +1,316 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import {
+    Button,
+    Modal,
+    ModalFooter,
+    ModalBody,
+    ModalHeader
+} from 'reactstrap';
+import { Button as PrimeButton } from 'primereact/button';
+import { getSortState, TextFormat, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { convertDateTimeFromServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { IMenu } from 'app/shared/model/menu.model';
+import { updateEntity, createEntity, reset, sendEvent, duplicateMenu, getEntity } from './menu.reducer';
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { getEntities as getTerms } from 'app/entities/term/Menu-Category/menu-category.reducer';
+import { getEntities as getItems } from "app/entities/item/all-items.reducer";
+import Select from "react-select";
+import { IItem } from "app/shared/model/ITEM/item.model";
+import { SelectButton } from "primereact/selectbutton";
+import { TabPanel, TabView } from 'primereact/tabview';
+import MenuTable from './components/menu-table';
+import { APP_DATE_FORMAT } from 'app/config/constants';
+import MenuScreens from './components/menu-screens';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+import MenuUpdate from './menu-update';
+
+const MenuInstance = () => {
+    const dispatch = useAppDispatch();
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const params = new URLSearchParams(location.search);
+
+    const { id } = useParams<'id'>();
+    const isNew = id === undefined;
+
+    const menuEntity: IMenu = useAppSelector(state => state.menu.entity);
+    const menuCategories = useAppSelector(state => state.menuCategory.entities)
+    const loading = useAppSelector(state => state.menu.loading);
+    const updating = useAppSelector(state => state.menu.updating);
+    const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
+    const errorMessage = useAppSelector(state => state.menu.errorMessage);
+    // const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
+
+    // const initialBranches = { label: menuEntity?.branch?.name, value: menuEntity?.branch?.id }
+    // const ITEM_TYPE_OPTIONS = ["RETAIL", "RESTAURANT"];
+
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedBranches, setSelectedBranches] = useState<any>();
+    const [itemsToExclude, setItemsToExclude] = useState<IItem[]>([]);
+    const [itemsToInclude, setItemsToInclude] = useState<IItem[]>([]);
+    const [itemType, setItemType] = useState<"RETAIL" | "RESTAURANT">("RETAIL")
+    const [selectedName, setSelectedName] = useState("");
+
+    const [data, setData]: any = useState({
+        name: '',
+        branch: '',
+        menuScreens: [],
+    });
+    const [refresh, setRefresh] = useState(false)
+    const [paginationState, setPaginationState] = useState(
+        overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+    );
+
+    const searchParams = new URLSearchParams(location.search)
+    useEffect(() => {
+        if (isNew) {
+            dispatch(reset());
+        } else {
+            dispatch(getEntity({
+                id,
+                page: parseInt(searchParams.get("page"), 10) - 1 || 0,
+                size: parseInt(searchParams.get("size"), 10) || 10,
+                category: searchParams.get("categoryId") || '',
+                name: searchParams.get("name") || '',
+            }));
+        }
+        dispatch(getBranches({
+            page: paginationState.activePage - 1,
+            size: paginationState.itemsPerPage,
+            sort: `${paginationState.sort},${paginationState.order}`,
+        }))
+        dispatch(getTerms({
+            page: paginationState.activePage - 1,
+            size: paginationState.itemsPerPage,
+            sort: `${paginationState.sort},${paginationState.order}`,
+        }));
+        dispatch(getItems({
+            page: paginationState.activePage - 1,
+            size: paginationState.itemsPerPage,
+            sort: `${paginationState.sort},${paginationState.order}`,
+        }));
+
+
+        if (updateSuccess) {
+            setRefresh(prev => !prev)
+        }
+        return () => {
+            dispatch(reset())
+        }
+    }, [
+        refresh,
+        navigate,
+        searchParams.get("page"),
+        searchParams.get("size"),
+        searchParams.get("categoryId"),
+        searchParams.get("name"),
+    ]);
+
+    useEffect(() => {
+        if (menuEntity) {
+            const newData = {
+                name: menuEntity.name,
+                branch: menuEntity.branch,
+                menuScreens: menuEntity.menuScreens,
+            };
+            setData(newData);
+        }
+        if (updateSuccess) {
+            setRefresh(prev => !prev)
+        }
+
+        if (menuEntity?.itemType) {
+            setItemType(menuEntity.itemType)
+        }
+        if (menuEntity?.branch) {
+            setSelectedBranches({ label: menuEntity?.branch?.name, value: menuEntity?.branch?.id })
+        }
+
+        return () => {
+            reset()
+        }
+
+    }, [updateSuccess, menuEntity]);
+
+    const saveEntity = ({
+        type
+    }: {
+        type?: "POS" | "ONLINE_ORDERING";
+    } = { type: menuEntity.type }) => {
+        const entity = {
+            ...menuEntity,
+            itemType,
+            type : type || menuEntity.type,
+            items: [],
+            excludedItems: itemsToExclude.filter(exclude => !itemsToInclude.some(include => include.id === exclude.id)).map(item => ({ id: item.id })),
+            menuScreens: data.menuScreens,
+            name: selectedName,
+            branch: {
+                id: selectedBranches.value
+            },
+        };
+
+        if (isNew) {
+            dispatch(createEntity(entity));
+        } else {
+            dispatch(updateEntity(entity));
+        }
+        setIsModalOpen(false)
+    };
+
+
+    const handleDuplicateAction = () => {
+        const isConfirmed = window.confirm('Are you sure you want to duplicate this menu?');
+
+        if (isConfirmed) {
+            dispatch(duplicateMenu(id)).then((result: any) => {
+                if (result?.payload?.id) {
+                    navigate(`/menu/${result?.payload?.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
+                }
+            });
+        }
+    };
+
+    const handleTransferToPOSAction = () => {
+        const isConfirmed = window.confirm('Are you sure you want to duplicate this menu?');
+
+        if (isConfirmed) {
+            if (menuEntity.type === 'ONLINE_ORDERING') {
+                saveEntity({ type: 'POS' });
+                navigate(`/menu/${menuEntity.id}/POS/edit?page=1&sort=id,asc`);
+            } else {
+                saveEntity({ type: 'ONLINE_ORDERING' });
+                navigate(`/menu/${menuEntity.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
+            }
+        }
+    }
+
+    const handleExcludeItemFromMenu = (itemId) => {
+        const itemToExclude = menuEntity.items.find(item => item.id === itemId);
+        if (itemsToExclude.some(item => item.id === itemId)) {
+            setItemsToExclude(prevItems => prevItems.filter(item => item.id !== itemId));
+            return;
+        }
+        if (!itemToExclude) {
+            return;
+        }
+        setItemsToExclude(prev => [...prev, itemToExclude]);
+    }
+
+    const handleIncludeItemFromMenu = (itemId) => {
+        const itemToInclude = menuEntity.excludedItems.find(item => item.id === itemId);
+        if (itemsToInclude.some(item => item.id === itemId)) {
+            setItemsToInclude(prevItems => prevItems.filter(item => item.id !== itemId));
+            return;
+        }
+        if (!itemToInclude) {
+            return;
+        }
+        setItemsToInclude(prev => [...prev, itemToInclude]);
+    }
+
+    return (
+        <div>
+            {menuEntity.id && (
+                <MenuUpdate
+                    menuEntity={menuEntity}
+                    setIsModalOpen={setIsModalOpen}
+                    isModalOpen={isModalOpen}
+                    saveEntity={saveEntity}
+                    updating={updating}
+                    selectedBranches={selectedBranches}
+                    setSelectedBranches={setSelectedBranches}
+                    itemType={itemType}
+                    setItemType={setItemType}
+                    selectedName={selectedName}
+                    setSelectedName={setSelectedName}
+                />
+            )}
+
+            <div className="">
+                <div className="card p-1">
+                    <div className="row g-3 p-1 align-items-end">
+                        <div className="col-3">
+                            <p className="text-muted">Menu</p>
+                            <p className="fs-5 fw-bold py-0">{menuEntity.name}</p>
+                        </div>
+                        <div className="col-2">
+                            <p className="text-muted">Created At</p>
+                            <p className="fs-5 fw-semibold">
+                                {menuEntity.createdDate ? <TextFormat value={menuEntity.createdDate} type="date" format={APP_DATE_FORMAT} /> : null}
+                            </p>
+                        </div>
+                        <div className="col-2">
+                            <p className="text-muted">Updated At</p>
+                            <p className="fs-5 fw-semibold">
+                                {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
+                            </p>
+                        </div>
+                        <div className="col-2">
+                            <p className="text-muted">Layout</p>
+                            <p className="fs-5 fw-semibold">{menuEntity.itemType}</p>
+                        </div>
+                        <div className="col-3 mt-3 mt-md-0 d-flex gap-2">
+                            <PrimeButton label="Edit" className="p-button-outlined p-1" onClick={() => setIsModalOpen(prev => !prev)} style={{
+                                height: '2.5rem',
+                            }} />
+                            <PrimeButton label="Trigger" className='p-1' onClick={() => { dispatch(sendEvent(id)) }} style={{
+                                height: '2.5rem',
+                            }} />
+                            <PrimeButton label="Duplicate" className="p-button-secondary p-1" onClick={handleDuplicateAction} style={{
+                                height: '2.5rem',
+                            }} />
+                            <PrimeButton label={`Transfer to ${menuEntity.type === 'POS' ? 'Online Ordering' : 'POS'}`} className="p-button-secondary p-1" onClick={handleTransferToPOSAction} style={{
+                                height: '2.5rem',
+                            }} />
+                        </div>
+                    </div>
+                </div>
+                {menuEntity.itemType === 'RETAIL' ? (
+                    <TabView>
+                        <TabPanel header="Items">
+                            <MenuTable
+                                items={menuEntity.items || []}
+                                menuCategories={menuCategories}
+                                saveItems={() => saveEntity()}
+                                handleCheckboxChange={handleExcludeItemFromMenu}
+                                checkedItems={itemsToExclude}
+                                branchId={menuEntity.branch?.id}
+                                type="Excluded"
+                            />
+                        </TabPanel>
+                        <TabPanel header="Excluded Items">
+                            <MenuTable
+                                items={menuEntity.excludedItems || []}
+                                menuCategories={menuCategories}
+                                saveItems={() => saveEntity()}
+                                handleCheckboxChange={handleIncludeItemFromMenu}
+                                checkedItems={itemsToInclude}
+                                branchId={menuEntity.branch?.id}
+                                type="Included"
+                            />
+                        </TabPanel>
+                    </TabView>
+                ) : (
+                    <MenuScreens
+                        menu={menuEntity}
+                        data={data}
+                        setData={setData}
+                        saveEntity={saveEntity}
+                        reset={reset}
+                        loading={loading}
+                        updating={updating}
+                    />
+                )}
+            </div>
+        </div >
+    )
+}
+
+export default MenuInstance

@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import { translate } from 'react-jhipster';
 import { toast } from 'react-toastify';
 import { isFulfilledAction, isRejectedAction } from 'app/shared/reducers/reducer.utils';
@@ -105,7 +106,7 @@ export default () => next => action => {
     } else {
       toast.error(error.message || 'Unknown error!');
     }
-  } else if (error && error.response.status !== 401) {
+  } else if (error && error.response?.status !== 401) {
     toast.error(error.message || 'Unknown error!');
   }
   return next(action);

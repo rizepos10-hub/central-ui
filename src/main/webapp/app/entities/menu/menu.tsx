@@ -10,12 +10,14 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IMenu } from 'app/shared/model/menu.model';
-import { searchEntities, getEntities } from './menu.reducer';
+import { searchEntities, getEntities, createEntity } from './menu.reducer';
 import { DataTable } from 'primereact/datatable';
-import {Column} from "primereact/column";
-import {format} from "date-fns";
-import {FilterMatchMode} from "primereact/api";
-import {Dropdown} from "primereact/dropdown";
+import { Column } from "primereact/column";
+import { format } from "date-fns";
+import { FilterMatchMode } from "primereact/api";
+import { Dropdown } from "primereact/dropdown";
+import MenuUpdate from './menu-update';
+import { convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 
 export const Menu = () => {
   const dispatch = useAppDispatch();
@@ -27,22 +29,26 @@ export const Menu = () => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const menuList = useAppSelector(state => state.menu.entities);
   const loading = useAppSelector(state => state.menu.loading);
+  const updating = useAppSelector(state => state.menu.updating);
   const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
 
   const totalItems = useAppSelector(state => state.menu.totalItems);
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    'branch.name': {value: null, matchMode: FilterMatchMode.STARTS_WITH}
+    'branch.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH }
   });
 
   const params = new URLSearchParams(location.search);
   const menuType = params.get("type");
+  const itemType = params.get("menuType") as "RETAIL" | "RESTAURANT" | null;
 
-
-
+  const [selectedBranches, setSelectedBranches] = useState<any>();
+  const [selectedItemType, setSelectedItemType] = useState(itemType);
+  const [selectedName, setSelectedName] = useState("");
 
   const getAllEntities = () => {
 
@@ -61,7 +67,8 @@ export const Menu = () => {
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
-          type: menuType
+          type: menuType,
+          itemType
         })
       );
     }
@@ -79,10 +86,9 @@ export const Menu = () => {
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search,menuType,updateSuccess]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, search, menuType, updateSuccess, itemType]);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
     const page = params.get('page');
     const sort = params.get(SORT);
     if (page && sort) {
@@ -103,7 +109,7 @@ export const Menu = () => {
 
   const branchNames = new Set(menuList.filter(item => item.branch?.name !== undefined || null).map((menu) => menu.branch?.name));
 
-  const branchFilterOptions = Array.from(branchNames).map((branchName) => ({label: branchName, value: branchName}));
+  const branchFilterOptions = Array.from(branchNames).map((branchName) => ({ label: branchName, value: branchName }));
 
   const branchFilter = (
     <Dropdown
@@ -124,7 +130,7 @@ export const Menu = () => {
     const editUrl = `/menu/${rowData.id}/${menuType}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver', marginLeft: '0.5rem'}} />
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.5rem' }} />
       </Link>
     );
   };
@@ -133,7 +139,7 @@ export const Menu = () => {
     const deleteUrl = `/menu/${rowData.id}/delete?type=${menuType}&page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red' ,  marginLeft: '-0.6rem'}} />
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '-0.6rem' }} />
       </Link>
     );
   };
@@ -148,7 +154,7 @@ export const Menu = () => {
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("menus.shared.view.table.buttons.createNewMenu")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("menus.shared.view.table.buttons.createNewMenu")} raised onClick={() => setIsModalOpen(true)} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -156,18 +162,48 @@ export const Menu = () => {
   );
 
 
+  const saveEntity = values => {
+    values.createdDate = convertDateTimeToServer(values.createdDate);
+    values.lastModifiedDate = convertDateTimeToServer(values.lastModifiedDate);
+
+    const entity = {
+      ...values,
+      branch: { id: selectedBranches?.value },
+      type: menuType,
+      itemType: selectedItemType
+    };
+
+    dispatch(createEntity(entity)).then((res) => {
+      setIsModalOpen(false);
+      const response = res.payload
+      navigate(`/menu/${(res.payload as any).data.id}/${menuType}/edit?page=1&sort=sort=id,asc`);
+    });
+  };
+
   return (
-    <div>
-
+    <>
+      <MenuUpdate
+        menuEntity={menuList}
+        setIsModalOpen={setIsModalOpen}
+        isModalOpen={isModalOpen}
+        saveEntity={saveEntity}
+        updating={updating}
+        selectedName={selectedName}
+        setSelectedName={setSelectedName}
+        selectedBranches={selectedBranches}
+        setSelectedBranches={setSelectedBranches}
+        itemType={selectedItemType}
+        setItemType={setSelectedItemType}
+      />
+      <div>
         <DataTable value={menuList} header={header} editMode="row"
-                   loading={loading} filters={filters} filterDisplay="row"
-                   paginator totalRecords={totalItems} rows={20}>
-
+          loading={loading} filters={filters} filterDisplay="row"
+          paginator totalRecords={totalItems} rows={20}>
           <Column
             header={translate('menus.shared.view.table.fields.name')}
             field="name"
             sortable
-            filterPlaceholder={translate('menus.shared.view.table.search.name')}  filter
+            filterPlaceholder={translate('menus.shared.view.table.search.name')} filter
             body={(rowData) => (
               <Link to={`/menu/${rowData.id}/${menuType}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}>{rowData.name}</Link>)}
             style={{ width: '20%' }}
@@ -186,14 +222,11 @@ export const Menu = () => {
             sortable
             body={(rowData) => format(new Date(rowData.lastModifiedDate), 'yyyy-MM-dd HH:mm:ss')}
           />
-
-          <Column header="Edit" body={editColumnTemplate} headerStyle={{ width: '5%' }} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+          <Column header="Edit" body={editColumnTemplate} headerStyle={{ width: '5%' }} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
           <Column header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '5%' }} bodyStyle={{ textAlign: 'center', overflow: 'visible' }} />
-
-
         </DataTable>
-
-    </div>
+      </div>
+    </>
   );
 };
 
