@@ -27,8 +27,8 @@ export const searchEntities = createAsyncThunk('menu/search_entity', async ({ qu
   return axios.get<IMenu[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('menu/fetch_entity_list', async ({ page, size, sort,type }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&type=${type}&size=${size}&sort=${sort}` : `?type=${type}`}cacheBuster=${new Date().getTime()}`;
+export const getEntities = createAsyncThunk('menu/fetch_entity_list', async ({ page, size, sort, type, itemType }: {page?: number; size?: number; sort?: string; type?: string;itemType: string} ) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&type=${type}&size=${size}&sort=${sort}&itemType=${itemType}&` : `?type=${type}&itemType=${itemType}&`}cacheBuster=${new Date().getTime()}`;
   return axios.get<IMenu[]>(requestUrl);
 });
 
@@ -45,8 +45,8 @@ export const sendEvent = createAsyncThunk(
 
 export const getEntity = createAsyncThunk(
   'menu/fetch_entity',
-  async (id: string | number) => {
-    const requestUrl = `${apiUrl}/${id}`;
+  async ({ id, page, size, category, name }: { id: string | number; page?: string | number; size?: string | number; category?: string; name?: string }) => {
+    const requestUrl = `${apiUrl}/${id}?page=${page}&size=${size}&category=${category}&name=${name}`;
     return axios.get<IMenu>(requestUrl);
   },
   { serializeError: serializeAxiosError }
@@ -99,7 +99,9 @@ export const partialUpdateEntity = createAsyncThunk(
   'menu/partial_update_entity',
   async (entity: IMenu, thunkAPI) => {
     const result = await axios.patch<IMenu>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    thunkAPI.dispatch(getEntities({
+      itemType: entity.itemType,
+    }));
     return result;
   },
   { serializeError: serializeAxiosError }

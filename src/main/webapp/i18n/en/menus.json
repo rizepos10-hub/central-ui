@@ -80,7 +80,9 @@
             "table": {
               "id": "Id",
               "name": "Name",
-              "action": "Action"
+              "action": "Action",
+              "category": "Category",
+              "menu": "Menu"
             },
             "buttons": {
               "select": "Select",

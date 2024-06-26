@@ -17,18 +17,15 @@ export const MenuDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
+    dispatch(getEntity({id}));
     setLoadModal(true);
   }, []);
 
   const menuEntity = useAppSelector(state => state.menu.entity);
   const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
 
-  const params = new URLSearchParams(location.search);
-  const menuType = params.get("type");
-
   const handleClose = () => {
-    navigate(`/menu?type=${menuType}`);
+    navigate(-1);
   };
 
   useEffect(() => {

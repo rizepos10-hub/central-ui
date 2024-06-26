@@ -11,6 +11,11 @@ export interface IMenu {
   category?: ITerm;
   branches?: IBranch[] | null;
   items?: IItem[];
+  menuScreens?: any[];
+  excludedItems?: IItem[];
+  itemType?: "RETAIL" | "RESTAURANT" | null;
+  branch?: IBranch;
+  type?: "POS" | "ONLINE_ORDERING";
 }
 
 export const defaultValue: Readonly<IMenu> = {};
