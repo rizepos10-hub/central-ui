@@ -88,10 +88,6 @@ const AppMenu = () => {
           to: '/category/restaurant-items',
         },
         {
-          label: 'Menu Categories',
-          to: '/category/menus'
-        },
-        {
           label: 'Products',
           items: [
             {
@@ -160,10 +156,6 @@ const AppMenu = () => {
         {
           label: 'Categories',
           to: '/category/retail-items',
-        },
-        {
-          label: 'Menu Categories',
-          to: '/category/menus'
         },
         {
           label: 'Products',

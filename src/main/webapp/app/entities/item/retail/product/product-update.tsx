@@ -149,13 +149,26 @@ export const ProductUpdate = () => {
   }
 
   const handleFieldChange = useCallback((fieldName, value) => {
-    setProduct((prevState) => ({
-      ...prevState,
-      [fieldName]: value,
-    }));
-  }, [])
+    setProduct((prevState) => {
+      const updatedProduct = {
+        ...prevState,
+        [fieldName]: value,
+      };
+
+      if (updatedProduct.itemVariantType === "RETAIL_SIMPLE" && fieldName === "name") {
+        const updatedVariant = prevState.variants?.[0]
+          ? { ...prevState.variants[0], name: value }
+          : { name: value };
+
+        updatedProduct.variants = [updatedVariant, ...(prevState.variants?.slice(1) ?? [])];
+      }
+
+      return updatedProduct;
+    });
+  }, []);
 
   const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
+    console.log("helloooo111o", value, variantIndex)
     setProduct((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
