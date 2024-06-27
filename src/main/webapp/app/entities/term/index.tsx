@@ -26,8 +26,8 @@ const TermRoutes = () => (
     <Route path="retail-items/new" element={<UpdateRetailItemCategory />} />
 
 
-    <Route path="menus" element={<MenuCategories />} />
-    <Route path="menus/new" element={<UpdateMenuCategory />} />
+    {/* <Route path="menus" element={<MenuCategories />} /> */}
+    {/* <Route path="menus/new" element={<UpdateMenuCategory />} /> */}
 
     <Route path=":id">
 
@@ -40,8 +40,8 @@ const TermRoutes = () => (
       <Route path="retail-items/delete" element={<DeleteRetailItemCategoryDialog />} />
 
       {/* menu  category edit or delete */}
-      <Route path="menus/edit" element={<UpdateMenuCategory />} />
-      <Route path="menus/delete" element={<DeleteMenuCategoryDialog />} />
+      {/* <Route path="menus/edit" element={<UpdateMenuCategory />} /> */}
+      {/* <Route path="menus/delete" element={<DeleteMenuCategoryDialog />} /> */}
 
 
     </Route>

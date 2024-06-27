@@ -9,11 +9,13 @@ import { useParams } from 'react-router-dom';
 import { translate, Translate } from 'react-jhipster';
 import GenericSalesReport from 'app/shared/components/report/generic-sales-report';
 import EndOfTillTotalReceived from 'app/shared/components/report/summary-report-total-received';
+import RelatedTills from 'app/modules/analytics/reports/end-of-day/related-tills';
 
 const EndOfDayReport = () => {
   const dispatch = useAppDispatch();
   const { id } = useParams();
 
+  const [endOfDay, setEndOfDay] = useState(null);
   const [salesData, setSalesData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,9 +26,9 @@ const EndOfDayReport = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/end-of-day/${id}`);
-      console.log(data, 'kamak');
       const reportData = JSON.parse(data.report);
 
+      setEndOfDay(data);
       setSalesData(reportData);
       setLoading(false);
     } catch (error) {
@@ -101,11 +103,10 @@ const EndOfDayReport = () => {
     return <Spinner />;
   }
 
-  console.log(salesData, 'salesDta');
 
   return (
     <>
-      <div className="container mt-5">
+      <div className="container my-5">
         <div className="text-center">
           <h4>
             <Translate contentKey={'analytics.endOfDay.report.title'}>End OF Day Report</Translate>
@@ -122,7 +123,7 @@ const EndOfDayReport = () => {
         {/*   <UnclosedOrders openedOrders={salesData.openedOrders} /> */}
         {/* </div> */}
 
-        <GenericSalesReport title={translate('analytics.report.totalSales')} report={salesData.totalSales} />
+        <GenericSalesReport title={translate('analytics.report.totalSales')} report={salesData?.totalSales} />
 
         <EndOfTillTotalReceived totalReceived={salesData.totalReceived} />
         <GenericSalesReport title={translate('analytics.report.dineIn')} report={salesData.totalSalesByOrderOption?.DineIn} />
@@ -130,49 +131,15 @@ const EndOfDayReport = () => {
         <GenericSalesReport title={translate('analytics.report.delivery')} report={salesData.totalSalesByOrderOption?.Delivery} />
         <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />
       </div>
+
+      {endOfDay?.fromDate && endOfDay?.toDate && (
+        <div className="container py-3 mt-3 bg-white">
+          <h3>Related Tills</h3>
+          <RelatedTills fromDate={endOfDay?.fromDate} toDate={endOfDay?.toDate} />
+        </div>
+      )}
     </>
   );
 };
 
 export default EndOfDayReport;
-
-// prev total received
-
-// <div className="row mt-5">
-//   <div className="col-md-12">
-//     <h3><Translate contentKey={'analytics.report.totalReceived'}>Total Received</Translate></h3>
-//     <table className="table table-bordered table-lg">
-//       <thead>
-//       <tr className="bg-light">
-//         <th><Translate contentKey={'analytics.report.payment'}>PAYMENT</Translate></th>
-//         <th><Translate contentKey={'analytics.report.tip'}>TIP</Translate></th>
-//         <th><Translate contentKey={'analytics.report.amount'}>AMOUNT</Translate></th>
-//         <th><Translate contentKey={'analytics.report.refund'}>REFUND</Translate></th>
-//         <th><Translate contentKey={'analytics.report.received'}>RECEIVED</Translate></th>
-//       </tr>
-//       </thead>
-//       <tbody>
-//       {salesData && salesData?.totalReceived?.map((item, index) => (
-//         <tr key={index}>
-//           <td>{item.paymentType}</td>
-//           <td className="text-end p-4">{`$ ${item.tip ? item.tip?.(2) : 0}`}</td>
-//           <td className="text-end p-4">{`$ ${item.amount?.toFixed(2)}`}</td>
-//           <td className="text-end p-4">{`$ ${item.refund ? item.refund?.toFixed(2) : 0}`}</td>
-//           <td className="text-end">{`$ ${item.received.toFixed(2)}`}</td>
-//         </tr>
-//       ))}
-//       <tr>
-//         <td><Translate contentKey={'analytics.report.total'}>TOTAL</Translate></td>
-//         <td
-//           className="text-end p-4">{`$ ${calculateTotal(salesData.totalReceived?.map((item) => item.tip + 0))?.toFixed(2)}`}</td>
-//         <td
-//           className="text-end p-4">{`$ ${calculateTotal(salesData.totalReceived?.map((item) => item.amount))?.toFixed(2)}`}</td>
-//         <td
-//           className="text-end p-4">{`$ ${calculateTotal(salesData.totalReceived?.map((item) => item.refund + 0))?.toFixed(2)}`}</td>
-//         <td
-//           className="text-end">{`$ ${calculateTotal(salesData.totalReceived?.map((item) => item.received))?.toFixed(2)}`}</td>
-//       </tr>
-//       </tbody>
-//     </table>
-//   </div>
-// </div>
