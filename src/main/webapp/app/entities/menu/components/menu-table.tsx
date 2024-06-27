@@ -15,7 +15,8 @@ const MenuTable = ({
     handleCheckboxChange,
     checkedItems,
     branchId,
-    type
+    type,
+    totalPages
 }: {
     items?: IItem[];
     saveItems?: () => void;
@@ -24,6 +25,7 @@ const MenuTable = ({
     checkedItems?: IItem[];
     branchId?: string;
     type?: string;
+    totalPages?: number;
 }) => {
     const [itemName, setItemName] = useState<string>('');
 
@@ -138,7 +140,9 @@ const MenuTable = ({
                             ))}
                         </tbody>
                     </table>
-                    {type === 'Excluded' && <PaginationFilter totalPages={10} />}
+                    <div className='d-flex justify-content-center w-100'>
+                        {type === 'Excluded' && <PaginationFilter totalPages={totalPages || 10} />}
+                    </div>
                 </div>
 
             </div>

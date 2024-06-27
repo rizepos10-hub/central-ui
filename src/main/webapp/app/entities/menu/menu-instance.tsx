@@ -43,13 +43,8 @@ const MenuInstance = () => {
     const loading = useAppSelector(state => state.menu.loading);
     const updating = useAppSelector(state => state.menu.updating);
     const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
-    const errorMessage = useAppSelector(state => state.menu.errorMessage);
-    // const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
-
-    // const initialBranches = { label: menuEntity?.branch?.name, value: menuEntity?.branch?.id }
-    // const ITEM_TYPE_OPTIONS = ["RETAIL", "RESTAURANT"];
-
-
+    
+    const [totalPages, setTotalPages] = useState<number>(0)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBranches, setSelectedBranches] = useState<any>();
     const [itemsToExclude, setItemsToExclude] = useState<IItem[]>([]);
@@ -78,7 +73,13 @@ const MenuInstance = () => {
                 size: parseInt(searchParams.get("size"), 10) || 10,
                 category: searchParams.get("categoryId") || '',
                 name: searchParams.get("name") || '',
-            }));
+            })).then(res => {
+                const { headers } = res.payload as any;
+                const totalCount = headers['x-total-count']
+                if (headers['x-total-count']) {
+                    setTotalPages(Math.floor(totalCount / 10))
+                }
+            });
         }
         dispatch(getBranches({
             page: paginationState.activePage - 1,
@@ -146,7 +147,7 @@ const MenuInstance = () => {
         const entity = {
             ...menuEntity,
             itemType,
-            type : type || menuEntity.type,
+            type: type || menuEntity.type,
             items: [],
             excludedItems: itemsToExclude.filter(exclude => !itemsToInclude.some(include => include.id === exclude.id)).map(item => ({ id: item.id })),
             menuScreens: data.menuScreens,
@@ -283,6 +284,7 @@ const MenuInstance = () => {
                                 checkedItems={itemsToExclude}
                                 branchId={menuEntity.branch?.id}
                                 type="Excluded"
+                                totalPages={totalPages}
                             />
                         </TabPanel>
                         <TabPanel header="Excluded Items">
@@ -294,6 +296,7 @@ const MenuInstance = () => {
                                 checkedItems={itemsToInclude}
                                 branchId={menuEntity.branch?.id}
                                 type="Included"
+                                totalPages={totalPages}
                             />
                         </TabPanel>
                     </TabView>
