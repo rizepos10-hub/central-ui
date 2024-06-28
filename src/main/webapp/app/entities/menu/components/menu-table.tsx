@@ -1,3 +1,4 @@
+import { useAppDispatch, useAppSelector } from 'app/config/store'
 import ImageDisplay from 'app/shared/components/image/image-display'
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter'
 import { IItem } from 'app/shared/model/ITEM/item.model'
@@ -6,7 +7,8 @@ import { Button } from 'primereact/button'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import { getEntity } from '../menu.reducer'
 
 const MenuTable = ({
     items,
@@ -16,7 +18,6 @@ const MenuTable = ({
     checkedItems,
     branchId,
     type,
-    totalPages
 }: {
     items?: IItem[];
     saveItems?: () => void;
@@ -25,19 +26,25 @@ const MenuTable = ({
     checkedItems?: IItem[];
     branchId?: string;
     type?: string;
-    totalPages?: number;
 }) => {
-    const [itemName, setItemName] = useState<string>('');
+    const dispatch = useAppDispatch();
 
+    const [itemName, setItemName] = useState<string>('');
+    const [totalPages, setTotalPages] = useState<number>(0)
+
+    const params = useParams()
     const navigate = useNavigate();
+
+    const loading = useAppSelector(state => state.menu.loading);
+
     const searchParams = new URLSearchParams(location.search);
 
     const initialRender = useRef(true);
 
     const createQueryString = useCallback((name, value) => {
-        const params = new URLSearchParams(searchParams);
-        params.set(name, value);
-        return `?${params.toString()}`;
+        const sParams = new URLSearchParams(searchParams);
+        sParams.set(name, value);
+        return `?${sParams.toString()}`;
     }, [searchParams]);
 
     const handleCategoryChange = (e) => {
@@ -64,6 +71,27 @@ const MenuTable = ({
         debouncedItemNameNavigate(itemName);
     }, [itemName, debouncedItemNameNavigate]);
 
+    useEffect(() => {
+        dispatch(getEntity({
+            id: params?.id,
+            page: parseInt(searchParams.get("page"), 10) - 1 || 0,
+            size: parseInt(searchParams.get("size"), 10) || 10,
+            category: searchParams.get("categoryId") || '',
+            name: searchParams.get("name") || '',
+        })).then(res => {
+            const { headers } = res.payload as any;
+            const totalCount = headers['x-total-count']
+            if (headers['x-total-count']) {
+                setTotalPages(Math.floor(totalCount / 10))
+            }
+        });
+    }, [
+        navigate,
+        searchParams.get("page"),
+        searchParams.get("size"),
+        searchParams.get("categoryId"),
+        searchParams.get("name"),
+    ]);
 
     function getPriceForBranch(data) {
         let foundPrice = null;
@@ -114,31 +142,43 @@ const MenuTable = ({
                         <thead>
                             <tr>
                                 <th scope="col">Select</th>
-                                <th scope="col">Product</th>
                                 <th scope="col">Category</th>
+                                <th scope="col">Product</th>
                                 <th scope="col">Price</th>
                                 <th scope="col">Image</th>
+                                <th scope="col">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {items.map((item: IItem) => (
-                                <tr key={item.id}>
-                                    <td>
-                                        <input
-                                            type="checkbox"
-                                            onChange={(e) => handleCheckboxChange(item.id)}
-                                            checked={checkedItems.some(i => i.id === item.id)}
-                                        />
-                                    </td>
-                                    <td>{item.categories?.[0]?.name}</td>
-                                    <td>{item.name}</td>
-                                    <td>${getPriceForBranch(item) ?? item.variants?.[0]?.price}</td>
-                                    <td>
-                                        <ImageDisplay height='50px' width='50px' imageUrl={item.attachments[0]?.url} imageType={"product"} />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
+                        {loading ? <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }} /> : (
+                            <tbody>
+                                {items.map((item: IItem) => (
+                                    <tr key={item.id}>
+                                        <td>
+                                            <input
+                                                type="checkbox"
+                                                onChange={(e) => handleCheckboxChange(item.id)}
+                                                checked={checkedItems.some(i => i.id === item.id)}
+                                            />
+                                        </td>
+                                        <td>{item.categories?.[0]?.name}</td>
+                                        <td>{item.name}</td>
+                                        <td>${getPriceForBranch(item) ?? item.variants?.[0]?.price}</td>
+                                        <td>
+                                            <ImageDisplay height='50px' width='50px' imageUrl={item.attachments[0]?.url} imageType={"product"} />
+                                        </td>
+                                        <td>
+                                            <Button
+                                                label="View"
+                                                className=""
+                                                onClick={() => {
+                                                    navigate(`/product/${item.id}/edit`);
+                                                }}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        )}
                     </table>
                     <div className='d-flex justify-content-center w-100'>
                         {type === 'Excluded' && <PaginationFilter totalPages={totalPages || 10} />}
