@@ -26,6 +26,7 @@ import { Dialog } from "primereact/dialog";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import BranchPaymentConfig from "app/entities/settings/business-details/branch-payment-config";
+import { InputSwitch } from 'primereact/inputswitch';
 
 export const BusinessDetailUpdate = () => {
   const dispatch = useAppDispatch();
@@ -166,6 +167,12 @@ export const BusinessDetailUpdate = () => {
       };
     }
     branch.address[field] = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
+  };
+
+  const handleCODChange = (branchIndex, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].activeCOD = value;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData}));
   };
 
@@ -387,6 +394,7 @@ export const BusinessDetailUpdate = () => {
   }
 
   console.log(businessDetailsState, 'businessDetailsState');
+  {console.log(businessDetailsState?.branchDetails[0])}
 
   return (
     <div>
@@ -704,6 +712,17 @@ export const BusinessDetailUpdate = () => {
                             </div>
                             </Col>
 
+                            <div className='p-2'>
+                                <Row>
+                                  <label className="font-bold">
+                                    Cash on Delivery
+                                  </label>
+                                </Row>
+                                <InputSwitch 
+                                  checked={branch?.activeCOD}
+                                  onChange={(e) => handleCODChange(branchIndex, e.value)}
+                                />
+                            </div>
                             <Button
                               type="button"
                               className="btn btn-primary btn-sm ml-2"

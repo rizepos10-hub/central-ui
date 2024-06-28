@@ -18,19 +18,22 @@ export interface ILayoutSettings {
     retailCategorySetting: {
         categories: ITerm[],
         showImages: boolean,
-        layout: Layout
+        layout: Layout,
+        title: string,
     },
     restuarantCategorySetting: {
         categories: ITerm[],
         showImages: boolean,
-        layout: Layout
+        layout: Layout,
+        title: string,
     },
     sliderSettings: ISliderSettings[];
     productSetting: {
         FEATURED: {
             items: IItem[],
             showImages: boolean,
-            layout: Layout
+            layout: Layout,
+            title: string,
         }
     }
 }
@@ -66,19 +69,22 @@ export const defaultLayoutValue: Readonly<ILayoutSettings> = {
     retailCategorySetting: {
         categories: [],
         showImages: false,
-        layout: Layout.layoutOne
+        layout: Layout.layoutOne,
+        title: ""
     },
     restuarantCategorySetting: {
         categories: [],
         showImages: false,
-        layout: Layout.layoutOne
+        layout: Layout.layoutOne,
+        title: ""
     },
     sliderSettings: [],
     productSetting: {
         FEATURED: {
             items: [],
             showImages: false,
-            layout: Layout.layoutOne
+            layout: Layout.layoutOne,
+            title: ""
         }
     }
 }

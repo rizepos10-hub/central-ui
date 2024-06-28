@@ -25,9 +25,10 @@ interface LazyTableState {
   modifiedDate?: boolean;
 }
 
-const CustomDateOrder = () => {
+const RegisterClosureOrder = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const {tillId} = useParams();
   const [searchParams] = useSearchParams();
   const from = searchParams.get('from');
   const to = searchParams.get('to');
@@ -100,6 +101,7 @@ const CustomDateOrder = () => {
       orderStatus: lazyState.filters.status?.value || '',
       first: lazyState.first,
       sequenceId: lazyState.filters.id?.value || '',
+      tillId,
       page: lazyState.page,
       customerPhone: lazyState.filters['customer.phone']?.value || '',
       customerEmail: lazyState.filters['customer.email']?.value || '',
@@ -329,4 +331,4 @@ const CustomDateOrder = () => {
   );
 };
 
-export default CustomDateOrder;
+export default RegisterClosureOrder;

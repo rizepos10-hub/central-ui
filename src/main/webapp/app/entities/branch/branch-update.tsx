@@ -21,7 +21,6 @@ export const BranchUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const menus = useAppSelector(state => state.menu.entities);
   const branchEntity = useAppSelector(state => state.branch.entity);
   const loading = useAppSelector(state => state.branch.loading);
   const updating = useAppSelector(state => state.branch.updating);
@@ -37,8 +36,6 @@ export const BranchUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-
-    dispatch(getMenus({}));
   }, []);
 
   useEffect(() => {
@@ -48,7 +45,7 @@ export const BranchUpdate = () => {
   }, [updateSuccess]);
 
   const saveEntity = values => {
-    console.log('clicked')
+
     const entity = {
       ...branchEntity,
       ...values,

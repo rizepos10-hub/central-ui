@@ -25,7 +25,7 @@ export const searchEntities = createAsyncThunk('branch-pos-user/search_entity', 
   return axios.get<IUser[]>(requestUrl);
 });
 
-export const getEntities :any = createAsyncThunk('branch-pos-user/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+export const getEntities  = createAsyncThunk('branch-pos-user/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = '/api/users/branch';
 
   console.log('Fetching user entities with parameters:', { page, size, sort, requestUrl });

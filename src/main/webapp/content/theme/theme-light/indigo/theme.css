@@ -9,7 +9,7 @@
   --text-color-secondary:#64748b;
   --primary-color:#6366f1;
   --primary-color-text:#ffffff;
-  --font-family:Poppins, sans-serif;
+  --font-family: "roboto";
   --surface-0: #ffffff;
   --surface-50: #FAFAFA;
   --surface-100: #F5F5F5;
@@ -1090,7 +1090,7 @@
     font-size: 1rem;
     color: #1e293b;
     background: #ffffff;
-    padding: 0.75rem 0.75rem;
+    padding: 0.3rem 0.3rem;
     border: 1px solid #cbd5e1;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
     appearance: none;
@@ -1795,7 +1795,7 @@
     color: #ffffff;
     background: #6366f1;
     border: 1px solid #6366f1;
-    padding: 0.75rem 1.25rem;
+    padding: 0.4rem 0.75rem;
     font-size: 1rem;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
     border-radius: 6px;
@@ -2673,7 +2673,7 @@
     text-align: left;
     padding: 0.5rem 1rem;
     border: 1px ridge #d7d7d7 !important;
-    border-width: 0 1px 0 0 !important; 
+    border-width: 0 1px 0 0 !important;
     font-weight: 700;
     color: #334155;
     background: #f8fafc;
@@ -2731,7 +2731,7 @@
     color: #1e293b;
     transition: box-shadow 0.2s;
   }
-  
+
   .p-datatable .p-datatable-tbody > tr:nth-child(even) {
     background: #f1f5f9;
     color: #1e293b;
@@ -2740,7 +2740,7 @@
   .p-datatable .p-datatable-tbody > tr > td {
     text-align: left;
     border: 1px ridge #d7d7d7 !important;
-    border-width: 0 1px 0 0 !important; 
+    border-width: 0 1px 0 0 !important;
     padding: 0.5rem 1rem;
   }
   .p-datatable .p-datatable-tbody > tr > td .p-row-toggler,
@@ -2849,7 +2849,7 @@
   .p-datatable.p-datatable-gridlines .p-datatable-thead > tr > th {
     /* border-width: 1px 0 1px 1px; */
     border: 1px ridge #d7d7d7 !important;
-    border-width: 0 1px 0 0 !important; 
+    border-width: 0 1px 0 0 !important;
     padding: 0.5rem 1rem;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-thead > tr > th:last-child {
@@ -3724,7 +3724,7 @@
   }
 
   .p-accordion .p-accordion-header .p-accordion-header-link {
-    padding: 1.25rem;
+    padding: 0.8rem;
     border: 1px solid #e2e8f0;
     color: #64748b;
     background: #f8fafc;

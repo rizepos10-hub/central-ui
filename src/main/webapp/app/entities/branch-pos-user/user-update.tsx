@@ -325,6 +325,7 @@ export const UserUpdate = () => {
                 id="userName"
                 name="userName"
                 value={user.userName || ''}
+                readOnly={!isNew}
                 onChange={handleInputChange}
                 required
                 placeholder={translate("posUsers.update.placeholders.username")}

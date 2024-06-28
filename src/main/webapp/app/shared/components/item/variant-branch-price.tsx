@@ -7,6 +7,7 @@ import { IRegularItemVariant } from 'app/shared/model/ITEM/restaurant/regular-it
 import { translate, Translate } from 'react-jhipster';
 import { IBranch } from 'app/shared/model/branch.model';
 import WholesalePrices from 'app/shared/components/item/wholsale-prices-modal';
+import { Checkbox } from 'primereact/checkbox';
 
 interface BranchPriceComponentProps<T extends IVariableItemVariant | IRegularItemVariant> {
   variantIndex: number;
@@ -15,6 +16,7 @@ interface BranchPriceComponentProps<T extends IVariableItemVariant | IRegularIte
   handleBranchPriceChange: (variantIndex: number, branchId: string, field: string, value: number) => void;
   itemVariantType: 'RETAIL' | 'RESTAURANT';
   handleSaveWholesalePrices?: (prices: number, branchId: string) => void;
+  handleHideItemPerBranch?: (branchId: string, variantIndex: number) => void;
 }
 
 const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant>({
@@ -24,6 +26,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
   branchVariantDetails,
   itemVariantType,
   handleSaveWholesalePrices,
+  handleHideItemPerBranch
 }: BranchPriceComponentProps<T>) => {
   const isRetail = itemVariantType === 'RETAIL';
   const [pricesModal, setPricesModal] = useState({
@@ -68,6 +71,12 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
 
             {isRetail && branchList.some(branch => branch.wholesale) ? (
               <th>
+                <Translate contentKey={'items.update.hideItem'}>Hide Item</Translate>
+              </th>
+            ) : null}
+
+            {isRetail && branchList.some(branch => branch.wholesale) ? (
+              <th>
                 <Translate contentKey={'items.update.WholesalePrices'}>Wholesale Prices</Translate>
               </th>
             ) : null}
@@ -105,6 +114,17 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   onChange={e => handleBranchPriceChange(variantIndex, branch.id, 'salePrice', e.value)}
                 />
               </td>
+
+              {isRetail && (
+                <td>
+                  <Checkbox
+                    name={`hideItem_${branch.id}`}
+                    value={branchVariantDetails?.[branch.id]?.hideItem}
+                    onChange={() => handleHideItemPerBranch(branch.id, variantIndex)}
+                    checked={branchVariantDetails?.[branch.id]?.hideItem}
+                  />
+                </td>
+              )}
 
               {isRetail && branch.wholesale && (
                 <td>

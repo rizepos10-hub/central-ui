@@ -77,7 +77,7 @@ export const OrderDetail = () => {
           <Card className={'w-full'}>
             <Col className="mt-3">
               {filteredOrderEntity.customer ? (
-                <Card className="border p-3 mt-lg-3 cursor-pointer" style={{ height: '28.5rem' }} onClick={navigateCustomer}>
+                <Card className="border p-3 mt-lg-3 cursor-pointer"  onClick={navigateCustomer}>
                   <OrderCustomerDetail
                     email={filteredOrderEntity.customer.email}
                     firstName={filteredOrderEntity.customer.firstName}

@@ -18,7 +18,7 @@ import Term from './term';
 import Order from './order';
 import Tax from './settings/tax';
 import TaxesProfile from './settings/tax-profile';
-import AccountingGroups from './settings/accounting-group';
+import ProfileGroups from './settings/profile-group';
 import VoidReasons from './settings/void-reason';
 
 import BranchPosUser from './branch-pos-user';
@@ -62,6 +62,7 @@ import Product from "app/entities/item/retail/product";
 import Tag from "app/entities/tag";
 import TagGroup from "app/entities/tag-group";
 import BranchRegistry from "app/entities/settings/branch-registry";
+import Brand from "app/entities/brand";
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -88,7 +89,7 @@ export default () => {
 
         <Route path="tax/*" element={<Tax />} />
         <Route path="tax-profiles/*" element={<TaxesProfile />} />
-        <Route path="accounting-groups/*" element={<AccountingGroups />} />
+        <Route path="profile-groups/*" element={<ProfileGroups />} />
 
         <Route path="printer/*" element={<Printer />} />
         <Route path="printing-profiles/*" element={<PrintingProfiles />} />
@@ -123,8 +124,8 @@ export default () => {
         <Route path="restaurant/combo/*" element={<ComboItem />} />
 
         <Route path="retail/attributes/*" element={<RetailAttributes />} />
-        <Route path="retail/simple/*" element={<SimpleItem />} />
-        <Route path="retail/variable/*" element={<VariableItem />} />
+        {/* <Route path="retail/simple/*" element={<SimpleItem />} /> */}
+        {/* <Route path="retail/variable/*" element={<VariableItem />} /> */}
         <Route path="product/*" element={<Product />} />
 
         <Route path="item-measure/*" element={<ItemMeasure />} />
@@ -132,6 +133,8 @@ export default () => {
         <Route path="tag/*" element={<Tag />} />
         <Route path="tag-group/*" element={<TagGroup />} />
 
+
+        <Route path="brand/*" element={<Brand />} />
 
         <Route path="currencies/*" element={<CurrencySettings />} />
 

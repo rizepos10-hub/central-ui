@@ -23,7 +23,6 @@ const AppSidebar = () => {
                 </Link>
                 <button className="layout-sidebar-anchor p-link z-2 mb-2" type="button" onClick={anchor}></button>
             </div>
-
             <div className="layout-menu-container">
                 <MenuProvider>
                     <AppMenu />

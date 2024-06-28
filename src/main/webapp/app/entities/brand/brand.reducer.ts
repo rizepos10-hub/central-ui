@@ -7,47 +7,55 @@ import {
   createEntitySlice,
   EntityState,
   serializeAxiosError,
+  ChangeFieldPayload
 } from "app/shared/reducers/reducer.utils";
-import { IAccountingGroup, defaultValue } from 'app/shared/model/TAX/accounting-group.model';
+import { IBrand } from "app/shared/model/brand.model";
+import { IAddon } from "app/shared/model/ADDON/addon.model";
 
-const initialState: EntityState<IAccountingGroup> = {
+const initialState: EntityState<IBrand> = {
   loading: false,
   errorMessage: null,
   entities: [],
-  entity: defaultValue,
+  entity: {},
   updating: false,
   totalItems: 0,
   updateSuccess: false,
 };
 
-const apiUrl = 'api/accounting-groups';
-const apiSearchUrl = 'api/_search/accounting-groups';
+const apiUrl = 'api/brands';
+
+const apiSearchUrl = 'api/_search/brands';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('accounting-group/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
+export const searchEntities = createAsyncThunk('brand/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IAccountingGroup[]>(requestUrl);
+  return axios.get<IBrand[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('accounting-group/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
-  return axios.get<IAccountingGroup[]>(requestUrl);
+export const filterEntities = createAsyncThunk('brand/filter_entity_list', async ({ query }: IQueryParams) => {
+  return axios.post<IAddon[]>(apiSearchUrl, query);
+});
+
+
+export const getEntities = createAsyncThunk('brand/fetch_entity_list', async ({ id, page, size, sort }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : '?'}`;
+  return axios.get<IBrand[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
-  'accounting-group/fetch_entity',
+  'brand/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-    return await  axios.get<IAccountingGroup>(requestUrl);
+    return axios.get<IBrand>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
 
 export const createEntity = createAsyncThunk(
-  'accounting-group/create_entity',
-  async (entity: IAccountingGroup, thunkAPI) => {
-    const result = await axios.post<IAccountingGroup>(apiUrl, cleanEntity(entity));
+  'brand/create_entity',
+  async (entity: IBrand, thunkAPI) => {
+    const result = await axios.post<IBrand>(apiUrl, cleanEntity(entity));
     // thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -55,19 +63,18 @@ export const createEntity = createAsyncThunk(
 );
 
 export const updateEntity = createAsyncThunk(
-  'accounting-group/update_entity',
-  async (entity: IAccountingGroup, thunkAPI) => {
-    const result = await axios.put<IAccountingGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    // thunkAPI.dispatch(getEntities({}));
+  'brand/update_entity',
+  async (entity: IBrand, thunkAPI) => {
+    const result = await axios.put<IBrand>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     return result;
   },
   { serializeError: serializeAxiosError }
 );
 
 export const partialUpdateEntity = createAsyncThunk(
-  'accounting-group/partial_update_entity',
-  async (entity: IAccountingGroup, thunkAPI) => {
-    const result = await axios.patch<IAccountingGroup>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  'brand/partial_update_entity',
+  async (entity: IBrand, thunkAPI) => {
+    const result = await axios.patch<IBrand>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -75,28 +82,28 @@ export const partialUpdateEntity = createAsyncThunk(
 );
 
 export const deleteEntity = createAsyncThunk(
-  'accounting-group/delete_entity',
+  'brand/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IAccountingGroup>(requestUrl);
+    const result = await axios.delete<IBrand>(requestUrl);
     // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
 );
 
-export const changeEntityField = createAction<{ fieldName: keyof IAccountingGroup; value: IAccountingGroup[keyof IAccountingGroup] }>('tax/change-entity-field');
+export const changeEntityField = createAction<ChangeFieldPayload<IBrand>>('brand/change-entity-field');
 
 // slice
 
-export const AccountingGroupSlice = createEntitySlice({
-  name: 'accounting-group',
+export const BrandSlice = createEntitySlice({
+  name: 'brand-slice',
   initialState,
   extraReducers(builder) {
     builder
       .addCase(changeEntityField, (state, action) => {
-        const { fieldName, value } = action.payload;
-        state.entity[fieldName] = value;
+        const {name, value} = action.payload;
+        state.entity[name] = value;
       })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
@@ -107,8 +114,9 @@ export const AccountingGroupSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities, filterEntities), (state, action) => {
         const { data, headers } = action.payload;
+
         return {
           ...state,
           loading: false,
@@ -122,7 +130,7 @@ export const AccountingGroupSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
@@ -135,7 +143,7 @@ export const AccountingGroupSlice = createEntitySlice({
   },
 });
 
-export const { reset } = AccountingGroupSlice.actions;
+export const { reset } = BrandSlice.actions;
 
 // Reducer
-export default AccountingGroupSlice.reducer;
+export default BrandSlice.reducer;

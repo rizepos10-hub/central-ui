@@ -3,15 +3,15 @@ export enum SalesReportsTypes {
   Category = "CATEGORY",
   Branch = "BRANCH",
   User = "USER",
-  Customer = "CUSTOMER"
-
+  Customer = "CUSTOMER",
+  Tag = "TAG"
 }
 
 export enum SalesReportsMeasures {
-  Revenue = "REVENUE",
-  Sale_Count = "SALE_COUNT",
-  Returns = "RETURNS",
-  Tax = "TAX"
+  REVENUE = "Revenue",
+  SALE_COUNT = "Sale Count",
+  RETURNS = "Returns",
+  TAX = "Tax"
 }
 
 export enum SalesReportsPeriods {

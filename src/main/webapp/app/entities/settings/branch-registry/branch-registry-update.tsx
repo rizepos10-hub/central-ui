@@ -20,11 +20,9 @@ const BranchRegistryUpdate = ({ isRegisterClosure }: { isRegisterClosure?: boole
   const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
   const loading = useAppSelector(state => state.branchRegistry.loading);
   const updateTillSuccess = useAppSelector(state => state.till.updateSuccess);
-  const [showModal, setShowModal] = useState(false);
 
   const closeTillRequested = branchRegistry.openTill?.status === "CLOSE_REQUESTED";
 
-  const toggleModal = () => setShowModal(prev => !prev);
 
   const handleCloseTill = () => dispatch(closeTill(branchRegistry?.openTill?.id));
 
@@ -45,15 +43,17 @@ const BranchRegistryUpdate = ({ isRegisterClosure }: { isRegisterClosure?: boole
       <Card>
         <div className="d-flex justify-content-between align-items-center p-3">
           <h1>{branchRegistry.name}</h1>
-          <div>
-            <Button
-              disabled={closeTillRequested}
-              onClick={!branchRegistry?.openTill?.status ? toggleModal : handleCloseTill}
-              className="btn-success ms-2"
-            >
-              {!branchRegistry.openTill ? 'Activate Till' : closeTillRequested ? 'Close Requested' : 'Request Close'}
-            </Button>
-          </div>
+          {branchRegistry.openTill ?
+            <div>
+              <Button
+                disabled={closeTillRequested}
+                onClick={handleCloseTill}
+                className="btn-success ms-2"
+              >
+                {closeTillRequested ? "Close Requested" : "Request Close"}
+              </Button>
+            </div> : null}
+
         </div>
         <CardBody>
           <p>
@@ -74,7 +74,7 @@ const BranchRegistryUpdate = ({ isRegisterClosure }: { isRegisterClosure?: boole
 
       <PreviousTill isRegisterClosure={isRegisterClosure} registryId={id} />
 
-      {showModal && <ActivateTillModal registryId={id} toggle={toggleModal} isOpen={showModal} />}
+      {/* {showModal && <ActivateTillModal registryId={id} toggle={toggleModal} isOpen={showModal} />} */}
 
       <div className={'mt-3'}>
         <Button

@@ -9,7 +9,7 @@ const ItemLoyaltyTab = ({excludedFromLoyaltyPoints, onFieldChange}) => {
     <Row className={"my-3" } >
       <Col md={"4"}>
         <div className={"d-flex my-3 gap-2"}>
-          <label className={"text-xl font-bold"}>
+          <label className={"font-semibold"}>
             <Translate contentKey="items.update.excludedFromLoyalty">Excluded From Loyalty Points</Translate>
           </label>
           <Checkbox

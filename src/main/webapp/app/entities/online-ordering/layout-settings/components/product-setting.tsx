@@ -10,6 +10,7 @@ import LayoutOne from './items/layout-one/layout-one';
 import { ILayoutSettings } from 'app/shared/model/ONLINE_ORDERING/layout-settings';
 import { changeLayoutField } from '../../settings/settings.reducer';
 import { debounce } from 'lodash';
+import { InputText } from 'primereact/inputtext';
 
 const ProductSetting = ({
     productSetting
@@ -42,6 +43,19 @@ const ProductSetting = ({
     return (
         <div>
             <Row>
+                <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="UiSettings-domain">
+                        <strong>title</strong>
+                    </Label>
+                    <InputText
+                        id="UiSettings-domain"
+                        value={productSetting.FEATURED.title || ''}
+                        onChange={e => dispatch(changeLayoutField({
+                            name: "productSetting",
+                            value: { ...productSetting, FEATURED: { ...productSetting.FEATURED, title: e.target.value } }
+                        }))}
+                    />
+                </div>
                 <MultiSelect
                     value={productSetting.FEATURED.items}
                     onChange={(e) => {

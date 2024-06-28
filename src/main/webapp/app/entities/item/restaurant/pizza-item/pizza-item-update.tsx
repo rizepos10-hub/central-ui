@@ -455,13 +455,6 @@ export const PizzaItemUpdate = () => {
 
   return (
     <div>
-      <Row>
-        <Col md="8">
-          <h2>
-            {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.pizza'}>Create New Pizza Item</Translate> : <Translate contentKey={'items.update.tabs.details.titles.edit.pizza'}>Edit Pizza Item</Translate>}
-          </h2>
-        </Col>
-      </Row>
       {isNew ?
         <div className="card">
           <Steps
@@ -509,13 +502,18 @@ export const PizzaItemUpdate = () => {
                   <CardBody className='p-1'>
                     <TabView>
                       <TabPanel header={translate('items.update.tabs.details.label')}>
+                        <div className='w-100'>
+                          <div className='text-xl font-semibold'>
+                            {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.pizza'}>Create New Pizza Item</Translate> : <span>Edit {pizzaItem.name}</span>}
+                          </div>
+                        </div>
                         <FormGroup className={`${isNew ? "d-flex justify-content-center bg-white" : ""}`}>
 
                           <div className={`d-flex flex-column p-3  bg-white gap-3`} >
                             {!pizzaItem?.variants?.[0]?.multiple ?
                               <Row>
                                 <div className={"d-flex flex-column gap-2"}>
-                                  <label className={"text-xl font-bold"}>
+                                  <label className={"font-semibold"}>
                                     <Translate contentKey={'items.update.pizza.predefined'}>Predefined Pizza</Translate>
                                   </label>
                                   <Select
@@ -535,7 +533,7 @@ export const PizzaItemUpdate = () => {
                               {!pizzaItem?.variants?.[0]?.multiple ?
                                 <Col md="4">
                                   <div className={"d-flex flex-column gap-2"}>
-                                    <label className={"text-xl font-bold"}>
+                                    <label className={"font-semibold"}>
                                       <Translate contentKey={"items.update.pizza.itemPricing"}>Item Pricing</Translate>
                                     </label>
                                     <Select
@@ -551,7 +549,7 @@ export const PizzaItemUpdate = () => {
 
                               <Col md="4">
                                 <div className={"d-flex flex-column gap-2"}>
-                                  <label className={"text-xl font-bold"}>
+                                  <label className={"font-semibold"}>
                                     <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
                                   </label>
                                   <Select
@@ -567,7 +565,7 @@ export const PizzaItemUpdate = () => {
 
                               <Col md="4">
                                 <div className={"d-flex flex-column gap-2"}>
-                                  <label className={"text-xl font-bold"}>
+                                  <label className={"font-semibold"}>
                                     <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                   </label>
                                   <Select

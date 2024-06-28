@@ -35,6 +35,7 @@ export interface IBranchDetails {
   deliveryConfiguration: IDeliveryConfiguration | null
   phone?: string;
   paymentConfigurations?: IPaymentConfigurations[];
+  activeCOD?: boolean;
 }
 
 export interface IDeliveryConfiguration {

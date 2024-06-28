@@ -3,6 +3,8 @@ export interface ICustomer {
   id?: string;
   orderCount?: number | null;
   phone?: string;
+  fax?: string;
+  mobileNumber?: string;
   status?: string | null;
   firstName?: string;
   lastName?: string;

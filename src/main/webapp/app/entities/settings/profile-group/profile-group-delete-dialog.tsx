@@ -5,9 +5,9 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './accounting-group.reducer';
+import { getEntity, deleteEntity } from './profile-group.reducer';
 
-export const AccountingGroupDeleteDialog = () => {
+export const ProfileGroupDeleteDialog = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
@@ -21,11 +21,11 @@ export const AccountingGroupDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const accountingGroupsEntity = useAppSelector(state => state.accountingGroup.entity);
-  const updateSuccess = useAppSelector(state => state.accountingGroup.updateSuccess);
+  const profileGroupsEntity = useAppSelector(state => state.profileGroup.entity);
+  const updateSuccess = useAppSelector(state => state.profileGroup.updateSuccess);
 
   const handleClose = () => {
-    navigate('/accounting-groups' + location.search);
+    navigate('/profile-groups' + location.search);
   };
 
   useEffect(() => {
@@ -36,17 +36,17 @@ export const AccountingGroupDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(accountingGroupsEntity.id));
+    dispatch(deleteEntity(profileGroupsEntity.id));
   };
 
   return (
     <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="accounting-groupsDeleteDialogHeading">
+      <ModalHeader toggle={handleClose} data-cy="profile-groupsDeleteDialogHeading">
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="tempApp.accounting-groups.delete.question">
-        <Translate contentKey="tempApp.accounting-groups.delete.question" interpolate={{ id: accountingGroupsEntity.id }}>
-          Are you sure you want to delete this AccountingGroup?
+      <ModalBody id="tempApp.profile-groups.delete.question">
+        <Translate contentKey="tempApp.profile-groups.delete.question" interpolate={{ id: profileGroupsEntity.id }}>
+          Are you sure you want to delete this ProfileGroup?
         </Translate>
       </ModalBody>
       <ModalFooter>
@@ -55,7 +55,7 @@ export const AccountingGroupDeleteDialog = () => {
           &nbsp;
           <Translate contentKey="entity.action.cancel">Cancel</Translate>
         </Button>
-        <Button id="jhi-confirm-delete-accounting-groups" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+        <Button id="jhi-confirm-delete-profile-groups" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
           <FontAwesomeIcon icon="trash" />
           &nbsp;
           <Translate contentKey="entity.action.delete">Delete</Translate>
@@ -65,4 +65,4 @@ export const AccountingGroupDeleteDialog = () => {
   );
 };
 
-export default AccountingGroupDeleteDialog;
+export default ProfileGroupDeleteDialog;

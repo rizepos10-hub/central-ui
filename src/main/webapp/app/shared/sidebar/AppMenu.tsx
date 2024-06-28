@@ -71,7 +71,7 @@ const AppMenu = () => {
           to: '/tag',
         },
         {
-          label: 'Tag Groups',
+          label: 'Brand Groups',
           to: '/tag-group',
         },
       ],
@@ -86,10 +86,6 @@ const AppMenu = () => {
         {
           label: 'Categories',
           to: '/category/restaurant-items',
-        },
-        {
-          label: 'Menu Categories',
-          to: '/category/menus'
         },
         {
           label: 'Products',
@@ -147,7 +143,7 @@ const AppMenu = () => {
         },
         {
           label: 'Menu',
-          to: '/menu?type=POS',
+          to: '/menu?type=POS&menuType=RESTAURANT',
         },
       ],
     },
@@ -160,10 +156,6 @@ const AppMenu = () => {
         {
           label: 'Categories',
           to: '/category/retail-items',
-        },
-        {
-          label: 'Menu Categories',
-          to: '/category/menus'
         },
         {
           label: 'Products',
@@ -187,12 +179,12 @@ const AppMenu = () => {
         {
           label: 'Brands',
           role: ['ROLE_ADMINISTRATOR'],
-          to: '/brands',
+          to: '/brand',
         },
         {
           label: 'Menus',
           role: ['ROLE_ADMINISTRATOR'],
-          to: '/menu?type=POS',
+          to: '/menu?type=POS&menuType=RETAIL',
         },
       ],
     },
@@ -458,6 +450,10 @@ const AppMenu = () => {
           to: '/analytics/register-closure',
         },
         {
+          label: 'Shift Report',
+          to: '/analytics/shift-report',
+        },
+        {
           label: 'Shift Closures',
           to: '/analytics/shift-closure',
         },
@@ -495,11 +491,15 @@ const AppMenu = () => {
       label: 'Online Ordering',
       role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-tablet',
-      to: '/menu?type=ONLINE_ORDERING',
+      to: '/menu?type=ONLINE_ORDERING&menuType=RETAIL',
       items: [
         {
-          label: 'Menu',
-          to: '/menu?type=ONLINE_ORDERING',
+          label: 'Retail Menus',
+          to: '/menu?type=ONLINE_ORDERING&menuType=RETAIL',
+        },
+        {
+          label: 'Restaurant Menus',
+          to: '/menu?type=ONLINE_ORDERING&menuType=RESTAURANT',
         },
         {
           label: 'Users',
@@ -591,9 +591,9 @@ const AppMenu = () => {
           ],
         },
         {
-          label: 'Accounting Groups ',
+          label: 'Profile Groups ',
           role: ['ROLE_ADMINISTRATOR'],
-          to: '/accounting-groups',
+          to: '/profile-groups',
         },
         {
           label: 'Units of Measures',

@@ -39,6 +39,8 @@ import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-r
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
+import MediaLibrary from "app/shared/components/media-library/media-library";
+import { transformAttachmentStructure } from "app/shared/util/attachment-utils";
 
 
 const defaultItemPriceNumber = {
@@ -125,7 +127,7 @@ export const VariableItemUpdate = () => {
     if (fromMenuId) {
       navigate(`/menu/${fromMenuId}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
     } else {
-      navigate("/retail/variable");
+      navigate("/product");
     }
   }
 
@@ -148,6 +150,10 @@ export const VariableItemUpdate = () => {
         variants: updatedVariants,
       };
     });
+  };
+
+  const addImage = (variantIndex, files) => {
+    handleVariantFieldChange(variantIndex, 'attachments', transformAttachmentStructure(files, 'toIAttachment'));
   };
 
   const handleBaseMeasureChange = (baseMeasure) => {
@@ -507,9 +513,9 @@ export const VariableItemUpdate = () => {
     }} className={"d-flex gap-3 ml-2 w-full"}>
       <label className={"mt-2"}><strong>{variableItem?.attributes?.[attributeIndex]?.attributeTax?.name}</strong></label>
 
-      <Button className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
+      <PrimeButton className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
         <Translate contentKey={'items.update.removeAttribute'}>Remove Attribute</Translate>
-      </Button>
+      </PrimeButton>
     </div>
   )
 
@@ -549,7 +555,7 @@ export const VariableItemUpdate = () => {
 
   return (
     <form onSubmit={saveEntity}>
-      <div className={"d-flex flex-row"}>
+      <div className={'d-flex row'}>
         <Col md={9}>
           <Card>
             <CardBody>
@@ -557,24 +563,22 @@ export const VariableItemUpdate = () => {
                 <div>
                   <TabView>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
-                      <Row>
-                        <Col md="8">
-                          <h2>
-                            {isNew ? translate('items.update.tabs.details.titles.create.variable') : translate('items.update.tabs.details.titles.edit.variable')}
-                          </h2>
-                        </Col>
-                      </Row>
+                      <div className="w-100">
+                        <div className="text-xl font-semibold">
+                          {isNew ? translate('items.update.tabs.details.titles.create.variable') : <span>Edit {variableItem.name}</span>}
+                        </div>
+                      </div>
 
                       <Row>
-                        <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
-                          <div className={`d-flex flex-column p-3  bg-white w-100`} >
+                        <FormGroup className={`${isNew ? 'd-flex bg-white' : ''}`}>
+                          <div className={`d-flex flex-column p-1 bg-white w-100`}>
                             <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange} />
 
-                            <Row className={"mb-3"} >
+                            <Row className={'mb-3'}>
                               <Row>
                                 <Col md="4">
-                                  <div className={"d-flex flex-column gap-2"}>
-                                    <label className={"text-xl font-bold"}>
+                                  <div className={'d-flex flex-column gap-2'}>
+                                    <label className={'font-semibold'}>
                                       <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
                                     </label>
                                     <Select
@@ -583,77 +587,84 @@ export const VariableItemUpdate = () => {
                                       isClearable
                                       getOptionValue={option => option.id}
                                       getOptionLabel={option => option.name}
-                                      onChange={(attribute) => handleItemAttributeSelect(attribute)}
+                                      onChange={attribute => handleItemAttributeSelect(attribute)}
                                     />
                                   </div>
                                 </Col>
 
                                 <Col md="3">
-                                  <Button color="primary" disabled={isAttributeAddButtonDisabled} className={"mt-5"} onClick={handleAddAttribute}>
+                                  <PrimeButton
+                                    color="primary"
+                                    disabled={isAttributeAddButtonDisabled}
+                                    className={'mt-5'}
+                                    onClick={handleAddAttribute}
+                                  >
                                     <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
-                                  </Button>
+                                  </PrimeButton>
                                 </Col>
 
-                                <Col md={"12"} className={"mt-2"}>
-                                  <Accordion multiple >
+                                <Col md={'12'} className={'mt-2'}>
+                                  <Accordion multiple>
                                     {variableItem?.attributes?.map((attribute, index) => (
                                       <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
-                                        <div className={"d-flex gap-3"}>
-                                          <label className={"mt-2"}>{translate('items.update.name')}: {attribute?.attributeTax?.name}</label>
-                                          <Col md={"9"}>
+                                        <div className={'d-flex gap-3'}>
+                                          <label className={'mt-2'}>
+                                            {translate('items.update.name')}: {attribute?.attributeTax?.name}
+                                          </label>
+                                          <Col md={'9'}>
                                             <AsyncSelect
                                               value={attribute?.attributeTerms}
                                               isMulti
                                               getOptionLabel={option => option.name}
                                               getOptionValue={option => option.id}
-                                              onChange={(selectedOptions) => handleAttributeTermChange(index, selectedOptions)}
+                                              onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
                                               isLoading={loadingAttributesValues}
                                               onFocus={() => loadOptions(attribute?.attributeTax?.id)}
                                               defaultOptions={attributeValuesList}
                                             />
-
                                           </Col>
                                         </div>
                                       </AccordionTab>
                                     ))}
                                   </Accordion>
                                 </Col>
-
                               </Row>
                             </Row>
                           </div>
                         </FormGroup>
                       </Row>
                     </TabPanel>
-                    <TabPanel header={translate('items.update.variants')} >
-                      <Col md="5" className={"d-flex gap-3"}>
-
-                        <Button color="primary" className={"mt-5"} onClick={generateCombinations}>
+                    <TabPanel header={translate('items.update.variants')}>
+                      <Col md="5" className={'d-flex gap-3'}>
+                        <Button color="primary" className={'mt-5'} onClick={generateCombinations}>
                           <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
                         </Button>
 
-                        <Button color="primary" className={"mt-5"} onClick={handleAddVariant}>
+                        <Button color="primary" type={'button'} className={'mt-5'} onClick={handleAddVariant}>
                           <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
                         </Button>
                       </Col>
-                      <Col md={"12"} className={"mt-2"}>
-                        <Row className={"mt-2"}>
-                          {pricesModal?.show && pricesModal?.variantIndex !== null &&
+                      <Col md={'12'} className={'mt-2'}>
+                        <Row className={'mt-2'}>
+                          {pricesModal?.show && pricesModal?.variantIndex !== null && (
                             <WholesalePrices
                               toggle={handleShowPricesModal}
                               isOpen={pricesModal?.show}
-                              branchWholesalePrices={variableItem?.variants?.[pricesModal?.variantIndex]?.branchVariantDetails?.[pricesModal?.branchId]?.wholesalePrices}
+                              branchWholesalePrices={
+                                variableItem?.variants?.[pricesModal?.variantIndex]?.branchVariantDetails?.[pricesModal?.branchId]
+                                  ?.wholesalePrices
+                              }
                               savePrices={handleSaveWholesalePrices}
                             />
-                          }
+                          )}
                           {variableItem?.variants?.map((variant, variantIndex) => (
-                            <Col md={"12"} key={variantIndex} className={"mt-2"}>
-                              <Accordion multiple >
-                                <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
+                            <Col md={'12'} key={variantIndex} className={'mt-2'}>
+                              <Accordion multiple>
+                                <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex}>
                                   <Row>
                                     <Col md="4">
-                                      <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                        <label className={'font-semibold'}>
                                           <Translate contentKey={'items.update.name'}>Name</Translate>
                                         </label>
                                         <InputText
@@ -662,14 +673,14 @@ export const VariableItemUpdate = () => {
                                           required={true}
                                           placeholder={translate('items.update.placeholders.variantName')}
                                           value={variant?.name}
-                                          onChange={(e) => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                                          onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
                                         />
                                       </div>
                                     </Col>
 
                                     <Col md="4">
-                                      <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                        <label className={'font-semibold'}>
                                           <Translate contentKey={'items.update.sku'}>SKU</Translate>
                                         </label>
                                         <InputText
@@ -678,34 +689,34 @@ export const VariableItemUpdate = () => {
                                           required={true}
                                           placeholder="Variant Sku"
                                           value={variant?.sku}
-                                          onChange={(e) => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
+                                          onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
                                         />
                                       </div>
                                     </Col>
 
                                     <Col md="4">
-                                      <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label htmlFor="price" className={"text-xl font-bold"}>
+                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                        <label htmlFor="price" className={'font-semibold'}>
                                           <Translate contentKey={'items.update.price'}>Price</Translate>
                                         </label>
                                         <InputNumber
                                           name="price"
                                           id="price"
-                                          inputId={"price"}
-                                          inputClassName={"w-1"}
+                                          inputId={'price'}
+                                          inputClassName={'w-1'}
                                           required={true}
                                           placeholder="Variant Price"
                                           value={variant?.price}
                                           min={0}
                                           maxFractionDigits={2}
-                                          onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
+                                          onChange={e => handleVariantFieldChange(variantIndex, 'price', e.value)}
                                         />
                                       </div>
                                     </Col>
 
                                     <Col md="4">
-                                      <div className={"d-flex flex-column gap-2 mt-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                        <label className={'font-semibold'}>
                                           <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
                                         </label>
                                         <InputNumber
@@ -715,7 +726,7 @@ export const VariableItemUpdate = () => {
                                           min={0}
                                           maxFractionDigits={2}
                                           value={variant?.salePrice}
-                                          onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
+                                          onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
                                         />
                                       </div>
                                     </Col>
@@ -723,15 +734,28 @@ export const VariableItemUpdate = () => {
 
                                   <Row>
                                     <Col md="7">
+                                      <div className={'d-flex flex-column '}>
+                                        <label className={'font-semibold'}>
+                                          <Translate contentKey={'items.update.image'}>Image</Translate>
+                                        </label>
+                                        <MediaLibrary
+                                          handleFilesSelectCallback={files => addImage(variantIndex, files)}
+                                          defaultValues={transformAttachmentStructure(variant?.attachments, 'toFileLibraryListItem')}
+                                        />
+                                      </div>
+                                    </Col>
+                                  </Row>
 
+                                  <Row>
+                                    <Col md="7">
                                       <DiscountDropdown
                                         discounts={variant.discounts}
                                         handleVariantChange={handleVariantFieldChange}
                                         variantIndex={variantIndex}
                                       />
 
-                                      <div className={"d-flex flex-column gap-2"}>
-                                        <label className={"text-xl font-bold"}>
+                                      <div className={'d-flex flex-column gap-2'}>
+                                        <label className={'font-semibold'}>
                                           <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                         </label>
                                         <Select
@@ -739,10 +763,11 @@ export const VariableItemUpdate = () => {
                                           options={mixAndMatchRuleList}
                                           getOptionLabel={option => option.name}
                                           getOptionValue={option => option.id}
-                                          onChange={(mixAndMatchRule) => handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)}
+                                          onChange={mixAndMatchRule =>
+                                            handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)
+                                          }
                                         />
                                       </div>
-
                                     </Col>
                                   </Row>
 
@@ -751,9 +776,8 @@ export const VariableItemUpdate = () => {
                                     handleBranchPriceChange={handleBranchPriceChange}
                                     variantIndex={variantIndex}
                                     branchVariantDetails={variant.branchVariantDetails}
-                                    itemVariantType={"RETAIL"}
+                                    itemVariantType={'RETAIL'}
                                   />
-
                                 </AccordionTab>
                               </Accordion>
                             </Col>
@@ -765,21 +789,27 @@ export const VariableItemUpdate = () => {
                       <Visibility
                         initialState={variableItem.visibility}
                         title={translate('items.update.tabs.visibility.titles.variable')}
-                        onStateChanged={(visibility) => setVariableItem(prev => {
-                          return { ...prev, visibility }
-                        })} />
+                        onStateChanged={visibility =>
+                          setVariableItem(prev => {
+                            return { ...prev, visibility };
+                          })
+                        }
+                      />
                     </TabPanel>
                     <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
-                      <ItemLoyaltyTab excludedFromLoyaltyPoints={variableItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
+                      <ItemLoyaltyTab
+                        excludedFromLoyaltyPoints={variableItem?.excludedFromLoyaltyPoints}
+                        onFieldChange={handleFieldChange}
+                      />
                     </TabPanel>
                     <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
                       <ItemStockTab variants={variableItem?.variants} itemId={variableItem.id} />
                     </TabPanel>
                     <TabPanel header={translate('items.update.measures')}>
-                      <Row className={"mb-3 d-flex flex-column gap-3"} >
-                        <Col md="12" className={"d-flex gap-3 mb-3"}>
-                          <div className={"d-flex flex-column gap-2 w-6 mt-3"}>
-                            <label className={"text-xl font-bold"}>
+                      <Row className={'mb-3 d-flex flex-column gap-3'}>
+                        <Col md="12" className={'d-flex gap-3 mb-3'}>
+                          <div className={'d-flex flex-column gap-2 w-6 mt-3'}>
+                            <label className={'font-semibold'}>
                               <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
                             </label>
                             <Select
@@ -795,7 +825,7 @@ export const VariableItemUpdate = () => {
                           <Table>
                             <thead>
                               <tr>
-                                <th >Measure</th>
+                                <th>Measure</th>
                                 <th className="w-1">Exchange Rate</th>
                               </tr>
                             </thead>
@@ -808,19 +838,25 @@ export const VariableItemUpdate = () => {
                                     options={filteredMeasures}
                                     getOptionValue={option => option.id}
                                     getOptionLabel={option => option.name}
-                                    onChange={(itemMeasure) => setMeasureToAdd(prev => ({ ...prev, itemMeasure }))}
+                                    onChange={itemMeasure => setMeasureToAdd(prev => ({ ...prev, itemMeasure }))}
                                   />
                                 </td>
                                 <td>
                                   <InputNumber
                                     value={measureToAdd?.exchangeRate}
                                     disabled={!measureToAdd?.itemMeasure}
-                                    onChange={(e) => setMeasureToAdd(prev => ({ ...prev, exchangeRate: e.value }))}
+                                    onChange={e => setMeasureToAdd(prev => ({ ...prev, exchangeRate: e.value }))}
                                   />
                                 </td>
                                 <td>
                                   <Button
-                                    disabled={!measureToAdd?.exchangeRate} onClick={handleAddMeasure} color="primary" className={"mb-2"} >Add</Button>
+                                    disabled={!measureToAdd?.exchangeRate}
+                                    onClick={handleAddMeasure}
+                                    color="primary"
+                                    className={'mb-2'}
+                                  >
+                                    Add
+                                  </Button>
                                 </td>
                               </tr>
                             </thead>
@@ -831,26 +867,28 @@ export const VariableItemUpdate = () => {
                           <Table>
                             <thead>
                               <tr>
-                                <th><Translate contentKey={'items.update.measure'}>Measure</Translate></th>
-                                <th><Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate></th>
+                                <th>
+                                  <Translate contentKey={'items.update.measure'}>Measure</Translate>
+                                </th>
+                                <th>
+                                  <Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate>
+                                </th>
                                 <th>Remove</th>
                               </tr>
                             </thead>
                             <tbody>
                               {variableItem?.measures?.map((exMeasure, index) => (
                                 <tr key={index}>
-                                  <td>
-                                    {exMeasure?.itemMeasure?.name}
-                                  </td>
+                                  <td>{exMeasure?.itemMeasure?.name}</td>
                                   <td>
                                     <InputNumber
                                       value={exMeasure?.exchangeRate}
                                       required
-                                      onChange={(e) => handleMeasuresChange(index, e.value)}
+                                      onChange={e => handleMeasuresChange(index, e.value)}
                                     />
                                   </td>
                                   <td>
-                                    <PrimeButton type={"button"} onClick={() => handleRemoveMeasure(index)} severity={"danger"} >
+                                    <PrimeButton type={'button'} onClick={() => handleRemoveMeasure(index)} severity={'danger'}>
                                       <Translate contentKey={'items.update.remove'}>Remove</Translate>
                                     </PrimeButton>
                                   </td>
@@ -861,36 +899,36 @@ export const VariableItemUpdate = () => {
                         </Col>
                       </Row>
                     </TabPanel>
-
                   </TabView>
                 </div>
               </Row>
             </CardBody>
           </Card>
         </Col>
-        <Col md={3} style={{
-          position: 'sticky',
-          top: '0',
-          height: '90vh',
-        }}>
+        <Col
+          md={3}
+          style={{
+            position: 'sticky',
+            top: '0',
+            height: '90vh',
+          }}
+        >
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <Button onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" replace
-                color="info">
+              <PrimeButton onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity="secondary">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </span>
-              </Button>
+              </PrimeButton>
               &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                disabled={updating}>
+              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
+              </PrimeButton>
             </div>
           </Card>
           {variableItemEntity?.id && <AuditLogs entityId={variableItemEntity?.id} />}
