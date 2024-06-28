@@ -177,6 +177,24 @@ export const CustomerUpdate = () => {
                 </div>
 
                 <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="customer-mobileNumber">{translate('customers.update.mobileNumber')}</Label>
+                  <InputText
+                    id="customer-mobileNumber"
+                    value={customerEntity?.mobileNumber || null}
+                    onChange={e => dispatch(changeEntityField({name: 'mobileNumber', value: e.target.value}))}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="customer-fax">{translate('customers.update.fax')}</Label>
+                  <InputText
+                    id="customer-fax"
+                    value={customerEntity?.fax || null}
+                    onChange={e => dispatch(changeEntityField({name: 'fax', value: e.target.value}))}
+                  />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
                   <Label htmlFor="customer-phone">{translate('customers.update.email')}</Label>
                   <InputText
                     id="customer-email"
