@@ -132,7 +132,7 @@ const MenuTable = ({
                         <div></div>
                     )}
                     <div className="d-flex align-items-center gap-2">
-                        <Button label={`${type === 'Excluded' ? 'Include' : type === 'Included' ? "Exclude" : "Save"}`} onClick={saveItems} />
+                        <Button label={`${type === 'Excluded' ? 'Exclude' : type === 'Included' ? "Include" : "Save"}`} onClick={saveItems} />
                     </div>
                 </div>
             </div>
