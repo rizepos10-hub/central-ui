@@ -1,67 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import { Button, Row, Col, FormText } from 'reactstrap';
-import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import { Button, Row, Col, } from 'reactstrap';
+import {getSortState, Translate,} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntities as getTaxonomies } from 'app/entities/taxonomy/taxonomy.reducer';
 
-import { getEntity, updateEntity, createEntity, reset } from './retail-item-category.reducer';
+import { getEntity, updateEntity, createEntity, reset, changeEntityField } from "./retail-item-category.reducer";
 import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 
-import {uploadImage} from "app/entities/attachment/attachment.reducer";
-import {faTrashAlt} from "@fortawesome/free-solid-svg-icons";
+
 import Select from "react-select";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import {getEntities} from "app/entities/term/retail-item-category/retail-item-category.reducer";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { ITerm } from "app/shared/model/term.model";
+import { InputText } from "primereact/inputtext";
 
 export const UpdateItemRestaurantCategory = () => {
   const dispatch = useAppDispatch();
-
   const navigate = useNavigate();
-
   const location = useLocation();
-
-
   const { id } = useParams<'id'>();
-
-  console.log(id, 'identity')
   const isNew = id === undefined;
-
-  const categories = useAppSelector(state => state.retailCategory.entities).map((category) => ({label: category.name, value: category.id}))
-  const categoryEntity = useAppSelector(state => state.retailCategory.entity);
+  const categories = useAppSelector(state => state.retailCategory.entities)
+  const categoryEntity: ITerm = useAppSelector(state => state.retailCategory.entity);
   const loading = useAppSelector(state => state.retailCategory.loading);
   const updating = useAppSelector(state => state.retailCategory.updating);
   const updateSuccess = useAppSelector(state => state.retailCategory.updateSuccess);
-  const newTerm = useAppSelector(state => state.retailCategory.entity)
+  const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
 
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [uploadImageStatus, setUploadImageStatus] = useState('idle');
-
-  const [selectedAttachments, setSelectedAttachments] = useState([])
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-
-  const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities).map(category => ({ value: category.id, label: category.name }));
-
-  const [profileGroupsToSave, setProfileGroupsToSave] = useState([])
-
-  const [selectedProfileGroups, setSelectedProfileGroups] = useState('');
-  const [selectedParents, setSelectedParents] :any = useState();
-
-  const [parentsToSave, setParentsToSave] :any = useState([]);
-
-
-
-
-  console.log(categoryEntity, 'categoryEntity')
 
 
 
@@ -93,93 +68,36 @@ export const UpdateItemRestaurantCategory = () => {
 
   useEffect(() => {
 
-    if (categoryEntity?.attachments) {
-      setSelectedAttachments(categoryEntity.attachments.map(attachment => ({ id: attachment.id, url: attachment.url })));
+    if (updateSuccess) {
+      navigate(`/category/${categoryEntity.id}/retail-items/edit?page=1&sort=id,asc`)
     }
 
-    if (categoryEntity?.accountingGroups) {
-      setSelectedProfileGroups(categoryEntity.accountingGroups?.map(group => ({ label: group.name, value : group.id })));
-      setProfileGroupsToSave(categoryEntity.accountingGroups?.map(group => ({  id : group.id })));
-    }
+  }, [updateSuccess]);
 
-    if(categoryEntity?.parents && categoryEntity.parents.length > 0){
-      setSelectedParents({label : categoryEntity.parents[0]?.name, value: categoryEntity.parents[0]?.id})
-      setParentsToSave(categoryEntity?.parents?.map(group => ({  id : group?.id })));
 
-    }
-    const {id: newTermId} = newTerm
-    if (updateSuccess && newTermId) {
-      navigate(`/category/${newTermId}/retail-items/edit?page=1&sort=id,asc`)
-    }
-
-  }, [updateSuccess, categoryEntity?.attachments]);
-
-  const removeAttachment = (attachmentId) => {
-    setSelectedAttachments((prevAttachments) =>
-      prevAttachments.filter((attachment) => attachment.id !== attachmentId)
-    );
-  };
-  const handleProfileGroupsChange = selectedAccounting => {
-    setSelectedProfileGroups(selectedAccounting);
-    setProfileGroupsToSave([{id: selectedAccounting.value}])
+  const handleProfileGroupsChange = (profileGroups) => {
+   dispatch(changeEntityField({
+     name: "accountingGroups",
+     value: [profileGroups]
+   }))
   };
 
   const handleParentsChange = selectedParent => {
-    setSelectedParents(selectedParent);
-    setParentsToSave([{id: selectedParent.value}])
+    dispatch(changeEntityField({
+      name: "parents",
+      value: selectedParent ? [selectedParent] : []
+    }))
   };
 
 
-  const handleImageChange = async (event) => {
-    const file = event.target.files[0];
 
-    if (!file) {
-      console.error('No image selected.');
-      return null;
-    }
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      setUploadImageStatus('uploading');
-      const response: any = await dispatch(uploadImage(formData));
-      const imageUrl = response?.payload?.url;
-      const imageInfo = {
-        id: response?.payload?.id,
-        name: response?.payload?.name,
-        path: response?.payload?.path,
-        size: response?.payload?.size,
-        type: response?.payload?.type,
-        createdAt: response?.payload?.createdAt,
-        updatedAt: response?.payload?.updatedAt,
-        url: imageUrl,
-      };
-      setSelectedAttachments((prevAttachments) => [ imageInfo]);
-      setUploadImageStatus('success');
-      console.log(imageInfo, 'helloi')
 
-      return imageInfo;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setUploadImageStatus('error');
-
-      return null;
-    }
-
-  };
-
-  console.log(categoryEntity, 'categoryEntity')
-
-  const saveEntity = values => {
+  const saveEntity = (e) => {
+    e.preventDefault();
     const entity = {
       ...categoryEntity,
-      ...values,
-      profileGroups: profileGroupsToSave,
-      parents: parentsToSave,
-      attachments: selectedAttachments,
-
     };
 
-    console.log(entity, 'entity saved')
     if (isNew) {
       dispatch(createEntity(entity));
     } else {
@@ -187,15 +105,9 @@ export const UpdateItemRestaurantCategory = () => {
     }
   };
 
-  const defaultValues = () =>
-    isNew
-      ? {
-        category: '',
-      }
-      : {
-        ...categoryEntity,
-      };
-  console.log(categories, 'categories')
+
+
+
   return (
     <div>
       <Row >
@@ -210,83 +122,78 @@ export const UpdateItemRestaurantCategory = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
-              {/* {!isNew ? ( */}
-              {/*   <ValidatedField */}
-              {/*     name="id" */}
-              {/*     required */}
-              {/*     readOnly */}
-              {/*     id="category-id" */}
-              {/*     label={translate('global.field.id')} */}
-              {/*     validate={{ required: true }} */}
-              {/*   /> */}
-              {/* ) : null} */}
-              <ValidatedField
-                label={translate('itemCategories.update.name')}
-                id="category-name"
-                name="name"
-                data-cy="name"
-                type="text"
-                validate={{
-                  required: { value: true, message: translate('common.validation.required') },
-                }}
-              />
-              {/* <ValidatedField */}
-              {/*   id="category-taxonomy" */}
-              {/*   name="taxonomy" */}
-              {/*   data-cy="taxonomy" */}
-              {/*   label={'Category'} */}
-              {/*   type="select" */}
-              {/*   readOnly={true} */}
-              {/*   required */}
-              {/* > */}
-              {/*   { taxonomies && */}
-              {/*     taxonomies */}
-              {/*       .filter((otherEntity) => otherEntity.name === "Item Category") */}
-              {/*       .map((filteredEntity) => ( */}
-              {/*         <option value={filteredEntity.id} key={filteredEntity.id}> */}
-              {/*           {filteredEntity.name} */}
-              {/*         </option> */}
-              {/*       ) */}
-              {/*   )} */}
-              {/* </ValidatedField> */}
-              <div className="mb-3">
-              <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
-              <Select  value={selectedProfileGroups} isClearable  onChange={handleProfileGroupsChange} options={profileGroupsOptions} />
-              </div>
+            <form onSubmit={saveEntity}>
 
-              <div className="mb-3">
-                <Translate contentKey="itemCategories.update.parents">Parents</Translate>
-                <Select  value={selectedParents} isClearable onChange={handleParentsChange} options={categories} />
-              </div>
-              <div className="mb-3">
-              <MediaLibrary
-                  handleFilesSelectCallback={(files) => setSelectedAttachments((prevAttachments) => [transformAttachmentStructure(files, 'toIAttachment')[0]])}
-                  defaultValues={transformAttachmentStructure(selectedAttachments ? selectedAttachments : [], 'toFileLibraryListItem')}
-              />
+              <div className="mb-3 d-flex flex-column">
+                <Translate contentKey="itemCategories.update.name">Name</Translate>
+                <InputText
+                  name={"name"}
+                  id={"category-name"}
+                  required
+                  value={categoryEntity.name}
+                  onChange={e => dispatch(changeEntityField({ name: "name", value: e.target.value }))}
+                />
               </div>
 
 
+                <div className="mb-3">
+                  <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
+                  <Select
+                    value={categoryEntity.accountingGroups}
+                    isClearable
+                    onChange={handleProfileGroupsChange}
+                    options={profileGroupsOptions}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                  />
+                </div>
 
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/category/retail-items" replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
+                <div className="mb-3">
+                  <Translate contentKey="itemCategories.update.parents">Parents</Translate>
+                  <Select
+                    value={categoryEntity?.parents || []}
+                    isClearable
+                    onChange={handleParentsChange}
+                    options={categories}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                  />
+                </div>
+                <div className="mb-3">
+                  <MediaLibrary
+                    handleFilesSelectCallback={(files) => {
+                      const newAttachment = transformAttachmentStructure(files, 'toIAttachment')[0];
+                      dispatch(changeEntityField({
+                        name: 'attachments',
+                        value: newAttachment ? [newAttachment] : []
+                      }));
+                    }}
+                    defaultValues={transformAttachmentStructure(categoryEntity.attachments || [], 'toFileLibraryListItem')}
+                  />
+                </div>
+
+
+                <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/category/retail-items"
+                        replace color="info">
+                  <FontAwesomeIcon icon="arrow-left" />
+                  &nbsp;
+                  <span className="d-none d-md-inline">
                   <Translate contentKey="entity.action.back">Back</Translate>
                 </span>
-              </Button>
-              &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
+                </Button>
                 &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-            </ValidatedForm>
-          )}
+                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                        disabled={updating}>
+                  <FontAwesomeIcon icon="save" />
+                  &nbsp;
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+            </form>
+            )}
         </Col>
       </Row>
     </div>
-  );
+);
 };
 
 export default UpdateItemRestaurantCategory;
