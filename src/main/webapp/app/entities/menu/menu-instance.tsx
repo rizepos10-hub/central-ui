@@ -33,8 +33,6 @@ const MenuInstance = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const params = new URLSearchParams(location.search);
-
     const { id } = useParams<'id'>();
     const isNew = id === undefined;
 
@@ -43,8 +41,8 @@ const MenuInstance = () => {
     const loading = useAppSelector(state => state.menu.loading);
     const updating = useAppSelector(state => state.menu.updating);
     const updateSuccess = useAppSelector(state => state.menu.updateSuccess);
-    
-    const [totalPages, setTotalPages] = useState<number>(0)
+
+    // const [totalPages, setTotalPages] = useState<number>(0)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBranches, setSelectedBranches] = useState<any>();
     const [itemsToExclude, setItemsToExclude] = useState<IItem[]>([]);
@@ -57,60 +55,21 @@ const MenuInstance = () => {
         branch: '',
         menuScreens: [],
     });
-    const [refresh, setRefresh] = useState(false)
     const [paginationState, setPaginationState] = useState(
         overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
     );
 
     const searchParams = new URLSearchParams(location.search)
     useEffect(() => {
-        if (isNew) {
-            dispatch(reset());
-        } else {
-            dispatch(getEntity({
-                id,
-                page: parseInt(searchParams.get("page"), 10) - 1 || 0,
-                size: parseInt(searchParams.get("size"), 10) || 10,
-                category: searchParams.get("categoryId") || '',
-                name: searchParams.get("name") || '',
-            })).then(res => {
-                const { headers } = res.payload as any;
-                const totalCount = headers['x-total-count']
-                if (headers['x-total-count']) {
-                    setTotalPages(Math.floor(totalCount / 10))
-                }
-            });
-        }
-        dispatch(getBranches({
-            page: paginationState.activePage - 1,
-            size: paginationState.itemsPerPage,
-            sort: `${paginationState.sort},${paginationState.order}`,
+        dispatch(getEntity({
+            id,
+            page: parseInt(searchParams.get("page"), 10) - 1 || 0,
+            size: parseInt(searchParams.get("size"), 10) || 10,
+            category: searchParams.get("categoryId") || '',
+            name: searchParams.get("name") || '',
         }))
-        dispatch(getTerms({
-            page: paginationState.activePage - 1,
-            size: paginationState.itemsPerPage,
-            sort: `${paginationState.sort},${paginationState.order}`,
-        }));
-        dispatch(getItems({
-            page: paginationState.activePage - 1,
-            size: paginationState.itemsPerPage,
-            sort: `${paginationState.sort},${paginationState.order}`,
-        }));
-
-
-        if (updateSuccess) {
-            setRefresh(prev => !prev)
-        }
-        return () => {
-            dispatch(reset())
-        }
     }, [
-        refresh,
-        navigate,
-        searchParams.get("page"),
-        searchParams.get("size"),
-        searchParams.get("categoryId"),
-        searchParams.get("name"),
+        navigate
     ]);
 
     useEffect(() => {
@@ -121,9 +80,6 @@ const MenuInstance = () => {
                 menuScreens: menuEntity.menuScreens,
             };
             setData(newData);
-        }
-        if (updateSuccess) {
-            setRefresh(prev => !prev)
         }
 
         if (menuEntity?.itemType) {
@@ -136,7 +92,6 @@ const MenuInstance = () => {
         return () => {
             reset()
         }
-
     }, [updateSuccess, menuEntity]);
 
     const saveEntity = ({
@@ -284,7 +239,7 @@ const MenuInstance = () => {
                                 checkedItems={itemsToExclude}
                                 branchId={menuEntity.branch?.id}
                                 type="Excluded"
-                                totalPages={totalPages}
+                            // totalPages={totalPages}
                             />
                         </TabPanel>
                         <TabPanel header="Excluded Items">
@@ -296,11 +251,11 @@ const MenuInstance = () => {
                                 checkedItems={itemsToInclude}
                                 branchId={menuEntity.branch?.id}
                                 type="Included"
-                                totalPages={totalPages}
+                            // totalPages={totalPages}
                             />
                         </TabPanel>
                     </TabView>
-                ) : (
+                ) : menuEntity.itemType === 'RESTAURANT' && (
                     <MenuScreens
                         menu={menuEntity}
                         data={data}

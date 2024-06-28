@@ -38,8 +38,6 @@ const MenuUpdate = ({
     const ITEM_TYPE_OPTIONS = ["RETAIL", "RESTAURANT"];
     const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
 
-    const initialBranches = { label: menuEntity?.branch?.name, value: menuEntity?.branch?.id }
-
     useEffect(() => {
         dispatch(getBranches({}));
         if (menuEntity.name) {
