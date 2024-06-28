@@ -1,8 +1,14 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
-import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
+import {
+  IQueryParams,
+  createEntitySlice,
+  EntityState,
+  serializeAxiosError,
+  ChangeFieldPayload
+} from "app/shared/reducers/reducer.utils";
 import { ITerm, defaultValue } from 'app/shared/model/term.model';
 
 const initialState: EntityState<ITerm> = {
@@ -87,6 +93,7 @@ export const deleteEntity = createAsyncThunk(
 );
 
 
+export const changeEntityField = createAction<ChangeFieldPayload<ITerm>>('retail-category/change-entity-field');
 
 
 
@@ -97,6 +104,10 @@ export const RestaurantCategorySlice = createEntitySlice({
   initialState,
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { name, value } = action.payload;
+        state.entity[name] = value
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
