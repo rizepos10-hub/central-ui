@@ -57,7 +57,7 @@ export const TransferRequestUpdate = () => {
 
   const filteredStockItems = useMemo(() => {
     return stockItemsList.filter(stockConfig => !transferRequest.transferItems?.some(TRItem => TRItem.item.variantId === stockConfig.variantId))
-  }, [transferRequest.transferItems?.length, stockItemsList]);
+  }, [transferRequest.transferItems?.length, stockItemsList, transferRequest.source?.id]);
 
   // filtering the destination if the selected source if from type sales location because we cant transfer from sales location to a sales location
   const destinationOptions = transferRequest?.source?.type === "SALES_LOCATION" ?
@@ -139,7 +139,7 @@ export const TransferRequestUpdate = () => {
   const filterItems = (inputValue: string) => {
     return filteredStockItems.filter((i) => {
         return (
-          i.description.toLowerCase().includes(inputValue.toLowerCase())
+          i?.itemName?.toLowerCase().includes(inputValue.toLowerCase())
         )
       }
     );
@@ -246,7 +246,7 @@ export const TransferRequestUpdate = () => {
                             <td>
                               <AsyncSelect
                                 cacheOptions
-                                loadOptions={loadItems}
+                                loadOptions={ loadItems}
                                 defaultOptions={filteredStockItems}
                                 getOptionValue={option => option.variantId}
                                 getOptionLabel={option => option.itemName}
