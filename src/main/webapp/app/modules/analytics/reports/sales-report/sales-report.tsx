@@ -92,7 +92,9 @@ export const SalesReport = () => {
   console.log(reportMeasuresOptions, 'reportMeasuresOptions');
 
   const initialSelectedType = reportTypesOptions?.[0]?.value;
-  const initialSelectedMeasure = reportType ? SalesReportsMeasures.REVENUE : reportMeasuresOptions?.[0]?.value;
+  const initialSelectedMeasure = reportType
+    ? Object.keys(SalesReportsMeasures).find(key => SalesReportsMeasures[key] === SalesReportsMeasures.REVENUE)
+    : reportMeasuresOptions?.[0]?.value;
 
   const [selectedType, setSelectedType] = useState(initialSelectedType);
   const [selectedMeasure, setSelectedMeasure] = useState(initialSelectedMeasure);
