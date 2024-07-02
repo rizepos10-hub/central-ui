@@ -10,7 +10,7 @@ import { Dropdown } from "primereact/dropdown";
 import { getEntities as getUsers} from "app/entities/branch-pos-user/user.reducer";
 import userClock, { filterEntities, getEntityReport } from "app/modules/analytics/user-clock/user-clock.reducer";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
-import { convertDateTimeFromServerTimeOnly } from "app/shared/util/date-utils";
+import { convertDateTimeFromServer, convertDateTimeFromServerTimeOnly } from "app/shared/util/date-utils";
 import GenericSalesReport from "app/shared/components/report/generic-sales-report";
 import SummaryReportTotalReceived from "app/shared/components/report/summary-report-total-received";
 import { Link } from "react-router-dom";
@@ -44,6 +44,7 @@ const ShiftReport = () => {
   const [filterState, setFilterState] = useState(initialState);
   const [selectedShift, setSelectedShift] = useState<IUserClock |null>(null);
 
+  console.log(userClocks, "userClocksuserClocks")
 
 
   useEffect(() => {
@@ -102,7 +103,7 @@ const ShiftReport = () => {
       return (
         <div className="flex align-items-center">
           <div>
-            {convertDateTimeFromServerTimeOnly(option.instantClockedIn)} - {convertDateTimeFromServerTimeOnly(option.instantClockedOut)}
+            {convertDateTimeFromServer(option.instantClockedIn)} - {convertDateTimeFromServer(option.instantClockedOut)}
           </div>
         </div>
       );
@@ -115,7 +116,7 @@ const ShiftReport = () => {
       return (
         <div className="flex align-items-center">
           <div>
-            {convertDateTimeFromServerTimeOnly(option.instantClockedIn)} - {convertDateTimeFromServerTimeOnly(option.instantClockedOut)}
+            {convertDateTimeFromServer(option.instantClockedIn)} - {convertDateTimeFromServer(option.instantClockedOut)}
           </div>
         </div>
       );
@@ -169,7 +170,6 @@ const ShiftReport = () => {
             id={'shifts'}
             style={{ minWidth: '12rem' }}
             options={userClocks}
-            disabled={!userClocks || userClocks?.length === 0}
             optionLabel={'instantClockedIn'}
             value={selectedShift}
             loading={loadingClocks}
