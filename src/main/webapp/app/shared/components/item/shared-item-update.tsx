@@ -352,7 +352,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                     </div>
                     <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
                       <div>
-                        <Button onClick={openImportAddonModal}>
+                        <Button type="button" onClick={openImportAddonModal}>
                           <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
                         </Button>
                       </div>

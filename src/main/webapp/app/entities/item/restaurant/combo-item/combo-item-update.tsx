@@ -424,7 +424,7 @@ export const ComboItemUpdate = () => {
                         <FormGroup>
                           <h3><Translate contentKey={'items.update.combo.title'}>Combo</Translate></h3>
                           <div className="d-flex justify-content-end mr-4">
-                            <PrimeButton color="primary" onClick={toggleModal}>
+                            <PrimeButton type={"button"} color="primary" onClick={toggleModal}>
                               <Translate contentKey={'items.update.combo.addItem'}>Add Item</Translate>
                             </PrimeButton>
                           </div>
@@ -477,6 +477,7 @@ export const ComboItemUpdate = () => {
                                     </td>
                                     <td>
                                       <PrimeButton
+                                        type={"button"}
                                         severity='danger'
                                         onClick={() => handleDeleteComboPackage(index)}
                                       >
@@ -518,7 +519,7 @@ export const ComboItemUpdate = () => {
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <PrimeButton id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} severity='secondary'>
+              <PrimeButton type={"button"} id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} severity='secondary'>
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">

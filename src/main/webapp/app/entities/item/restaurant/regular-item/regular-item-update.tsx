@@ -221,7 +221,7 @@ export const RegularItemUpdate = () => {
       e.stopPropagation()
     }} className={"d-flex gap-3 ml-2"}>
       <label className={"mt-2"}><strong>{regularItem?.variants?.[variantIndex]?.name}</strong></label>
-      <PrimeButton className={"ml-auto"} severity='danger' onClick={() => handleDeleteVariant(variantIndex)}>
+      <PrimeButton type={"button"} className={"ml-auto"} severity='danger' onClick={() => handleDeleteVariant(variantIndex)}>
         <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
       </PrimeButton>
     </div>
@@ -427,7 +427,7 @@ export const RegularItemUpdate = () => {
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <PrimeButton onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity='secondary'>
+              <PrimeButton onClick={handleBackClick} type={"button"} id="cancel-save" data-cy="entityCreateCancelButton" severity='secondary'>
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
