@@ -129,6 +129,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
               {isRetail && branch.wholesale && (
                 <td>
                   <Button
+                    type={"button"}
                     raised
                     onClick={e => {
                       e.stopPropagation();

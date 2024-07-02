@@ -519,6 +519,7 @@ export const SimpleItemUpdate = () => {
                                     />
                                   </div>
                                   <PrimeButton
+                                    type="button"
                                     color="primary" className={"mt-5"} onClick={handleAddAttribute}
                                     disabled={isAttributeAddButtonDisabled}
                                   >
@@ -623,6 +624,7 @@ export const SimpleItemUpdate = () => {
                         </div>
                         <div className='col-2'>
                           <PrimeButton
+                            type="button"
                             disabled={!measureToAdd?.exchangeRate}
                             onClick={handleAddMeasure}
                             color="primary"
@@ -684,7 +686,7 @@ export const SimpleItemUpdate = () => {
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <PrimeButton onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"
+              <PrimeButton type="button" onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"
                 severity='secondary'>
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

@@ -585,7 +585,7 @@ export const ProductUpdate = () => {
     }} className={"d-flex gap-3 ml-2 w-full"}>
       <label className={"mt-2"}><strong>{product?.attributes?.[attributeIndex]?.attributeTax?.name}</strong></label>
 
-      <PrimeButton className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
+      <PrimeButton type="button" className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
         <Translate contentKey={'items.update.removeAttribute'}>Remove Attribute</Translate>
       </PrimeButton>
     </div>
@@ -612,7 +612,7 @@ export const ProductUpdate = () => {
           />
         )
       })}
-      <Button className={"ml-auto"} color="danger" onClick={() => handleDeleteVariant(variantIndex)}>
+      <Button type="button" className={"ml-auto"} color="danger" onClick={() => handleDeleteVariant(variantIndex)}>
         <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
       </Button>
     </div>
@@ -666,6 +666,7 @@ export const ProductUpdate = () => {
                                 <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
                               </label>
                               <SelectButton
+                                type="button"
                                 value={product?.itemVariantType}
                                 options={itemTypes}
                                 allowEmpty={false}
@@ -686,7 +687,7 @@ export const ProductUpdate = () => {
                                     <Translate contentKey={'items.update.variants'}>Variants</Translate>
                                   </label>
                                   <Col md="5" className={'d-flex gap-3'}>
-                                    <Button color="primary" className={'mt-5'} onClick={generateCombinations}>
+                                    <Button type="button" color="primary" className={'mt-5'} onClick={generateCombinations}>
                                       <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
                                     </Button>
 
@@ -934,6 +935,7 @@ export const ProductUpdate = () => {
                                 <Col md="3">
                                   <PrimeButton
                                     color="primary"
+                                    type="button"
                                     disabled={isAttributeAddButtonDisabled}
                                     className={'mt-5'}
                                     onClick={handleAddAttribute}
@@ -1036,6 +1038,7 @@ export const ProductUpdate = () => {
                                 </td>
                                 <td>
                                   <Button
+                                    type="button"
                                     disabled={!measureToAdd?.exchangeRate}
                                     onClick={handleAddMeasure}
                                     color="primary"
@@ -1102,7 +1105,7 @@ export const ProductUpdate = () => {
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <PrimeButton onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity="secondary">
+              <PrimeButton type="button" onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity="secondary">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
@@ -1110,7 +1113,7 @@ export const ProductUpdate = () => {
                 </span>
               </PrimeButton>
               &nbsp;
-              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="button" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>

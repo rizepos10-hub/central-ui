@@ -489,7 +489,7 @@ export const PizzaItemUpdate = () => {
               {/* <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Single'} onChange={handleMultipleClick} options={multipleOptions} /> */}
             </div>
             <div className={"ml-auto"}>
-              <Button onClick={handleNextClick}><Translate contentKey={'items.update.pizza.createNewPizzaSteps.next'}>Next</Translate></Button>
+              <Button type={"button"} onClick={handleNextClick}><Translate contentKey={'items.update.pizza.createNewPizzaSteps.next'}>Next</Translate></Button>
             </div>
           </div>
         </div> : null}
@@ -625,7 +625,7 @@ export const PizzaItemUpdate = () => {
                                           ))}
                                           <tr>
                                             <td colSpan={2}>
-                                              <Button color="primary" onClick={addNewBaseDetail}>
+                                              <Button type={"button"} color="primary" onClick={addNewBaseDetail}>
                                                 <Translate contentKey={'items.update.pizza.add'}>Add</Translate>
                                               </Button>
                                             </td>
@@ -812,7 +812,7 @@ export const PizzaItemUpdate = () => {
                                       ))}
                                       <tr>
                                         <td colSpan={2}>
-                                          <Button color="primary" onClick={addNewMultiplePizzaDetail}>
+                                          <Button type={"button"} color="primary" onClick={addNewMultiplePizzaDetail}>
                                             <Translate contentKey={'items.update.pizza.add'}>Add</Translate>
                                           </Button>
                                         </td>
@@ -851,7 +851,7 @@ export const PizzaItemUpdate = () => {
                 <Card>
                   <CardHeader>Actions</CardHeader>
                   <div className={'d-flex gap-3 mt-2'}>
-                    <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
+                    <Button type={"button"} id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
                       color="info">
                       <FontAwesomeIcon icon="arrow-left" />
                       &nbsp;
