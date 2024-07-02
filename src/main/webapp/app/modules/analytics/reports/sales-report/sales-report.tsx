@@ -188,12 +188,11 @@ export const SalesReport = () => {
       field={property}
       body={rowData => {
         const value = rowData[property];
-        return typeof value === 'number' ? `${formatPrice(value, exchange)} ` : value;
+        return selectedMeasure === "SALE_COUNT" && property === "returns" ? value : typeof value === 'number' ? `${formatPrice(value, exchange)} ` : value;
       }}
     />
   ));
 
-  console.log(sortedHeaderSlots, 'sortedHeaderSlots');
 
   const datatableHeaders = propertiesToDisplay.map((property, index) => <Column key={property} header={capitalizeFirstLetter(property)} />);
 
