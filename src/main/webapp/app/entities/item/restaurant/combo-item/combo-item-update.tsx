@@ -27,6 +27,7 @@ import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-r
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
+import { preventEnterSubmit } from "app/shared/util/form-utils";
 
 
 export const ComboItemUpdate = () => {
@@ -323,7 +324,7 @@ export const ComboItemUpdate = () => {
   }
 
   return (
-    <form onSubmit={saveEntity}>
+    <form onSubmit={saveEntity}  onKeyDown={preventEnterSubmit}>
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card>

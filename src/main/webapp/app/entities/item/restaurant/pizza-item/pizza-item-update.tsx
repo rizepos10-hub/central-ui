@@ -33,6 +33,7 @@ import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
 import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import { preventEnterSubmit } from "app/shared/util/form-utils";
 
 const items: MenuItem[] = [
   {
@@ -495,7 +496,7 @@ export const PizzaItemUpdate = () => {
         </div> : null}
       <Row>
         {activeIndex === 1 || !isNew ?
-          <form onSubmit={saveEntity}>
+          <form onSubmit={saveEntity}  onKeyDown={preventEnterSubmit}>
             <div className={"d-flex row"}>
               <Col md={9}>
                 <Card className='p-0'>

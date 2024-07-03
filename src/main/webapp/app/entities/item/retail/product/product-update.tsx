@@ -43,6 +43,7 @@ import { transformAttachmentStructure } from "app/shared/util/attachment-utils";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
 import { SelectButton } from "primereact/selectbutton";
+import { preventEnterSubmit } from "app/shared/util/form-utils";
 
 
 const defaultItemPriceNumber = {
@@ -625,8 +626,10 @@ export const ProductUpdate = () => {
     return <Spinner />
   }
 
+
+
   return (
-    <form onSubmit={saveEntity}>
+    <form onSubmit={saveEntity} onKeyDown={preventEnterSubmit}>
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card>
@@ -1113,7 +1116,7 @@ export const ProductUpdate = () => {
                 </span>
               </PrimeButton>
               &nbsp;
-              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="button" disabled={updating}>
+              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
