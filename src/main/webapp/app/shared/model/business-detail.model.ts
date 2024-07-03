@@ -40,17 +40,24 @@ export interface IBranchDetails {
 
 export interface IDeliveryConfiguration {
   chargePerDistance: {
-    distance: {
-      value: number;
-      metric: Metric;
-    },
+    distance: IDistance,
     charge: number;
   };
-  shipmentRange: {
-    value: number;
-    metric: Metric;
-  };
+  shipmentRange: IDistance;
   minCharge: number;
+  definedChargeRules: IChargeRule[];
+}
+
+export interface IChargeRule {
+  minDistance: IDistance;
+  maxDistance: IDistance;
+  orderAmount: number;
+  charge: number;
+}
+
+export interface IDistance {
+  value: number;
+  metric: Metric;
 }
 
 export enum Metric {

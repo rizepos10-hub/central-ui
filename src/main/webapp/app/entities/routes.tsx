@@ -46,6 +46,7 @@ import VariableItem from "app/entities/item/retail/variable-item";
 import Loyalty from "app/entities/loyalty";
 
 import CurrencySettings from "app/entities/settings/currency";
+import ZonesSettings from 'app/entities/settings/zones';
 import Tv from "app/entities/settings/tv-config/tv";
 import TvDisplay from "app/entities/settings/tv-config/tv-display";
 
@@ -63,6 +64,7 @@ import Tag from "app/entities/tag";
 import TagGroup from "app/entities/tag-group";
 import BranchRegistry from "app/entities/settings/branch-registry";
 import Brand from "app/entities/brand";
+import Branches from './branches/branch';
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -77,6 +79,7 @@ export default () => {
         <Route path="back-office-user/*" element={<BackOfficeUser />} />
         <Route path="branch-pos-user/*" element={<BranchPosUser />} />
 
+        <Route path="branches/*" element={<Branches />} />
         <Route path="discount/*" element={<Discount />} />
         <Route path="customer/*" element={<Customer />} />
         <Route path="loyalty/*" element={<Loyalty />}/>
@@ -137,6 +140,7 @@ export default () => {
         <Route path="brand/*" element={<Brand />} />
 
         <Route path="currencies/*" element={<CurrencySettings />} />
+        <Route path="zones/*" element={<ZonesSettings/>} />
 
         <Route path="tv/*" element={<Tv />} />
         <Route path="tv-display/*" element={<TvDisplay />} />
