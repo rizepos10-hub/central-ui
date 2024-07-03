@@ -38,9 +38,10 @@
       "lastName": "Last Name",
       "phone": "Phone Number",
       "mobileNumber": "Mobile Number",
-      "fax": "FAX", 
+      "fax": "FAX",
       "email": "Email",
-      "loyaltyRecord": "Loyalty Record"
+      "loyaltyRecord": "Loyalty Record",
+      "businessName": "Business Name"
     }
   }
 }

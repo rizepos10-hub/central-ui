@@ -10,7 +10,10 @@ export interface ICustomer {
   lastName?: string;
   email?: string;
   image?: string;
-  wholesalePriceLines?: IWholesalePriceLine
+  wholesalePriceLines?: IWholesalePriceLine;
+  businessDetails?: {
+    businessName: string;
+  }
 }
 
 export interface IWholesalePriceLine {

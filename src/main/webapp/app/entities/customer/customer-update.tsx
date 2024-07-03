@@ -13,14 +13,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import {ICustomer, IWholesalePriceLine} from 'app/shared/model/CUSTOMER/customer.model';
-import {getEntity, updateEntity, createEntity, reset, updatePrices, getPricesForCustomer} from './customer.reducer';
+import {getEntity, updateEntity, createEntity, reset,changeEntityField, updatePrices, getPricesForCustomer} from './customer.reducer';
 import {Card as PrimeCard} from 'primereact/card'
 import {filterOrders} from "app/entities/order/order.reducer";
 import Order from "app/entities/order/order";
 import {getEntities} from "app/entities/loyalty/loyalty-records.reducer";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {InputNumber} from "primereact/inputnumber";
-import {changeEntityField} from "app/entities/discount/discount.reducer";
 import {InputText} from "primereact/inputtext";
 import {Dropdown} from "primereact/dropdown";
 
@@ -131,146 +130,170 @@ export const CustomerUpdate = () => {
 
   return (
     <div>
-      <Row >
+      <Row>
         <Col md="8">
           <h2 id="tempApp.customer.home.createOrEditLabel" data-cy="CustomerCreateUpdateHeading">
-            {isNew? <Translate contentKey="customers.update.create.title">Create New Customer</Translate> : <Translate contentKey="customers.update.edit.title">Edit Customer</Translate>}
+            {isNew ? (
+              <Translate contentKey="customers.update.create.title">Create New Customer</Translate>
+            ) : (
+              <Translate contentKey="customers.update.edit.title">Edit Customer</Translate>
+            )}
           </h2>
         </Col>
       </Row>
-      <Row >
-        <Col md="8"  className="d-flex flex-column p-3">
+      <Row>
+        <Col md="8" className="d-flex flex-column p-3">
           <PrimeCard>
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form onSubmit={saveEntity}>
-              <FormGroup>
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="customer-firstName">{translate('customers.update.firstName')}</Label>
-                  <InputText
-                    id="customer-firstName"
-                    value={customerEntity?.firstName || null}
-                    onChange={e => dispatch(changeEntityField({name: 'firstName', value: e.target.value}))}
-                    required
-                  />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="customer-lastName">{translate('customers.update.lastName')}</Label>
-                  <InputText
-                    id="customer-lastName"
-                    value={customerEntity?.lastName || null}
-                    onChange={e => dispatch(changeEntityField({name: 'lastName', value: e.target.value}))}
-                    required
-                  />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="customer-phone">{translate('customers.update.phone')}</Label>
-                  <InputText
-                    id="customer-phone"
-                    value={customerEntity?.phone || null}
-                    onChange={e => dispatch(changeEntityField({name: 'phone', value: e.target.value}))}
-                    required
-                  />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="customer-mobileNumber">{translate('customers.update.mobileNumber')}</Label>
-                  <InputText
-                    id="customer-mobileNumber"
-                    value={customerEntity?.mobileNumber || null}
-                    onChange={e => dispatch(changeEntityField({name: 'mobileNumber', value: e.target.value}))}
-                  />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="customer-fax">{translate('customers.update.fax')}</Label>
-                  <InputText
-                    id="customer-fax"
-                    value={customerEntity?.fax || null}
-                    onChange={e => dispatch(changeEntityField({name: 'fax', value: e.target.value}))}
-                  />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="customer-phone">{translate('customers.update.email')}</Label>
-                  <InputText
-                    id="customer-email"
-                    value={customerEntity?.email || null}
-                    onChange={e => dispatch(changeEntityField({name: 'email', value: e.target.value}))}
-                    required
-                  />
-                </div>
-
-                {!isNew && <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="customer-phone">{translate('customers.update.loyaltyRecord')}</Label>
-                  <InputNumber
-                    id="customer-loyaltyRecord"
-                    value={loyaltyRecord?.points ?? null}
-                    disabled
-                  />
-                </div>}
-
-                {wholeSaleBranches?.length > 0 ?
-                  <>
-                  <h4>Wholesale Price</h4>
-                  <Table>
-                  <thead>
-                  <tr>
-                  <th><Translate contentKey={'items.update.branch'}>Branch</Translate></th>
-            <th>Price Line</th>
-            </tr>
-            </thead>
-            <tbody>
-          {wholeSaleBranches.map(branch => {
-            return (
-            <tr key={branch.id}>
-            <td>{branch.name}</td>
-            <td>
-              <Dropdown
-                placeholder={"Enter Price Line"}
-                value={customerEntity?.wholesalePriceLines?.[branch.id]}
-                options={priceLineOptions}
-                style={{minWidth: '15rem'}}
-                onChange={event => handleBranchPriceChange(branch.id, event.target.value)}
-              />
-            </td>
-          </tr>
-          )
-          })}
-        </tbody>
-      </Table>
-      </> : null}
-
-                <h4>Customer Orders</h4>
-                {customerEntity?.id && (
-                  <div>
-                    <Order customer={customerEntity?.id} />
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <form onSubmit={saveEntity}>
+                <FormGroup>
+                  <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="customer-firstName">{translate('customers.update.firstName')}</Label>
+                    <InputText
+                      id="customer-firstName"
+                      value={customerEntity?.firstName || null}
+                      onChange={e => dispatch(changeEntityField({ name: 'firstName', value: e.target.value }))}
+                      required
+                    />
                   </div>
-                )}
-              </FormGroup>
 
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to={fromLocation ? fromLocation : "/customer"} replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
+                  <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="customer-lastName">{translate('customers.update.lastName')}</Label>
+                    <InputText
+                      id="customer-lastName"
+                      value={customerEntity?.lastName || null}
+                      onChange={e => dispatch(changeEntityField({ name: 'lastName', value: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="customer-phone">{translate('customers.update.phone')}</Label>
+                    <InputText
+                      id="customer-phone"
+                      value={customerEntity?.phone || null}
+                      onChange={e => dispatch(changeEntityField({ name: 'phone', value: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="customer-mobileNumber">{translate('customers.update.mobileNumber')}</Label>
+                    <InputText
+                      id="customer-mobileNumber"
+                      value={customerEntity?.mobileNumber || null}
+                      onChange={e => dispatch(changeEntityField({ name: 'mobileNumber', value: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="customer-fax">{translate('customers.update.fax')}</Label>
+                    <InputText
+                      id="customer-fax"
+                      value={customerEntity?.fax || null}
+                      onChange={e => dispatch(changeEntityField({ name: 'fax', value: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="customer-phone">{translate('customers.update.email')}</Label>
+                    <InputText
+                      id="customer-email"
+                      value={customerEntity?.email || null}
+                      onChange={e => dispatch(changeEntityField({ name: 'email', value: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  {!isNew && (
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="customer-phone">{translate('customers.update.loyaltyRecord')}</Label>
+                      <InputNumber id="customer-loyaltyRecord" value={loyaltyRecord?.points ?? null} disabled />
+                    </div>
+                  )}
+                  <>
+                    <h4>Additional Information</h4>
+                  <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="customer-businessName">{translate('customers.update.businessName')}</Label>
+                    <InputText
+                      id="customer-businessName"
+                      value={customerEntity?.businessDetails?.businessName || ""}
+                      onChange={e => dispatch(changeEntityField({ name: 'businessDetails', value: {
+                        ...customerEntity.businessDetails,
+                          businessName: e.target.value
+                        }}))}
+                    />
+                  </div>
+                    </>
+
+                  {wholeSaleBranches?.length > 0 ? (
+                    <>
+                      <h4>Wholesale Price</h4>
+                      <Table>
+                        <thead>
+                          <tr>
+                            <th>
+                              <Translate contentKey={'items.update.branch'}>Branch</Translate>
+                            </th>
+                            <th>Price Line</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {wholeSaleBranches.map(branch => {
+                            return (
+                              <tr key={branch.id}>
+                                <td>{branch.name}</td>
+                                <td>
+                                  <Dropdown
+                                    placeholder={'Enter Price Line'}
+                                    value={customerEntity?.wholesalePriceLines?.[branch.id]}
+                                    options={priceLineOptions}
+                                    style={{ minWidth: '15rem' }}
+                                    onChange={event => handleBranchPriceChange(branch.id, event.target.value)}
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </Table>
+                    </>
+                  ) : null}
+
+                  <h4>Customer Orders</h4>
+                  {customerEntity?.id && (
+                    <div>
+                      <Order customer={customerEntity?.id} />
+                    </div>
+                  )}
+                </FormGroup>
+                <Button
+                  tag={Link}
+                  id="cancel-save"
+                  data-cy="entityCreateCancelButton"
+                  to={fromLocation ? fromLocation : '/customer'}
+                  replace
+                  color="info"
+                >
+                  <FontAwesomeIcon icon="arrow-left" />
+                  &nbsp;
+                  <span className="d-none d-md-inline">
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </span>
+                </Button>
                 &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-            </form>
-          )}
+                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                  <FontAwesomeIcon icon="save" />
+                  &nbsp;
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+              </form>
+            )}
           </PrimeCard>
         </Col>
       </Row>
-
     </div>
   );
 };

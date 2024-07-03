@@ -108,7 +108,7 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-export const changeEntityField = createAction<{ name: string; value: any }>('discount/change-entity-field');
+export const changeEntityField = createAction<{ name: string; value: any }>('customer/change-entity-field');
 
 // slice
 
