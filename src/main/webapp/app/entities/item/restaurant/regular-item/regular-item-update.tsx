@@ -31,6 +31,7 @@ import { IAddon } from "app/shared/model/ADDON/addon.model";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { preventEnterSubmit } from "app/shared/util/form-utils";
 
 
 
@@ -233,7 +234,7 @@ export const RegularItemUpdate = () => {
   }
 
   return (
-    <form onSubmit={saveEntity}>
+    <form onSubmit={saveEntity}  onKeyDown={preventEnterSubmit}>
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card className='p-0'>
