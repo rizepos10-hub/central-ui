@@ -92,7 +92,9 @@ export const SalesReport = () => {
   console.log(reportMeasuresOptions, 'reportMeasuresOptions');
 
   const initialSelectedType = reportTypesOptions?.[0]?.value;
-  const initialSelectedMeasure = reportType ? SalesReportsMeasures.REVENUE : reportMeasuresOptions?.[0]?.value;
+  const initialSelectedMeasure = reportType
+    ? Object.keys(SalesReportsMeasures).find(key => SalesReportsMeasures[key] === SalesReportsMeasures.REVENUE)
+    : reportMeasuresOptions?.[0]?.value;
 
   const [selectedType, setSelectedType] = useState(initialSelectedType);
   const [selectedMeasure, setSelectedMeasure] = useState(initialSelectedMeasure);
@@ -186,12 +188,11 @@ export const SalesReport = () => {
       field={property}
       body={rowData => {
         const value = rowData[property];
-        return typeof value === 'number' ? `${formatPrice(value, exchange)} ` : value;
+        return selectedMeasure === "SALE_COUNT" && property === "returns" ? value : typeof value === 'number' ? `${formatPrice(value, exchange)} ` : value;
       }}
     />
   ));
 
-  console.log(sortedHeaderSlots, 'sortedHeaderSlots');
 
   const datatableHeaders = propertiesToDisplay.map((property, index) => <Column key={property} header={capitalizeFirstLetter(property)} />);
 

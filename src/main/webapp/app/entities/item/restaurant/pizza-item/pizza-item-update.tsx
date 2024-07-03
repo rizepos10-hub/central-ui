@@ -33,6 +33,7 @@ import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
 import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
 import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import { preventEnterSubmit } from "app/shared/util/form-utils";
 
 const items: MenuItem[] = [
   {
@@ -489,13 +490,13 @@ export const PizzaItemUpdate = () => {
               {/* <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Single'} onChange={handleMultipleClick} options={multipleOptions} /> */}
             </div>
             <div className={"ml-auto"}>
-              <Button onClick={handleNextClick}><Translate contentKey={'items.update.pizza.createNewPizzaSteps.next'}>Next</Translate></Button>
+              <Button type={"button"} onClick={handleNextClick}><Translate contentKey={'items.update.pizza.createNewPizzaSteps.next'}>Next</Translate></Button>
             </div>
           </div>
         </div> : null}
       <Row>
         {activeIndex === 1 || !isNew ?
-          <form onSubmit={saveEntity}>
+          <form onSubmit={saveEntity}  onKeyDown={preventEnterSubmit}>
             <div className={"d-flex row"}>
               <Col md={9}>
                 <Card className='p-0'>
@@ -625,7 +626,7 @@ export const PizzaItemUpdate = () => {
                                           ))}
                                           <tr>
                                             <td colSpan={2}>
-                                              <Button color="primary" onClick={addNewBaseDetail}>
+                                              <Button type={"button"} color="primary" onClick={addNewBaseDetail}>
                                                 <Translate contentKey={'items.update.pizza.add'}>Add</Translate>
                                               </Button>
                                             </td>
@@ -812,7 +813,7 @@ export const PizzaItemUpdate = () => {
                                       ))}
                                       <tr>
                                         <td colSpan={2}>
-                                          <Button color="primary" onClick={addNewMultiplePizzaDetail}>
+                                          <Button type={"button"} color="primary" onClick={addNewMultiplePizzaDetail}>
                                             <Translate contentKey={'items.update.pizza.add'}>Add</Translate>
                                           </Button>
                                         </td>
@@ -851,7 +852,7 @@ export const PizzaItemUpdate = () => {
                 <Card>
                   <CardHeader>Actions</CardHeader>
                   <div className={'d-flex gap-3 mt-2'}>
-                    <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
+                    <Button type={"button"} id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
                       color="info">
                       <FontAwesomeIcon icon="arrow-left" />
                       &nbsp;

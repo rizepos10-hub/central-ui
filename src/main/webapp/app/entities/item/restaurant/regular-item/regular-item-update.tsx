@@ -31,6 +31,7 @@ import { IAddon } from "app/shared/model/ADDON/addon.model";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { preventEnterSubmit } from "app/shared/util/form-utils";
 
 
 
@@ -221,7 +222,7 @@ export const RegularItemUpdate = () => {
       e.stopPropagation()
     }} className={"d-flex gap-3 ml-2"}>
       <label className={"mt-2"}><strong>{regularItem?.variants?.[variantIndex]?.name}</strong></label>
-      <PrimeButton className={"ml-auto"} severity='danger' onClick={() => handleDeleteVariant(variantIndex)}>
+      <PrimeButton type={"button"} className={"ml-auto"} severity='danger' onClick={() => handleDeleteVariant(variantIndex)}>
         <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
       </PrimeButton>
     </div>
@@ -233,7 +234,7 @@ export const RegularItemUpdate = () => {
   }
 
   return (
-    <form onSubmit={saveEntity}>
+    <form onSubmit={saveEntity}  onKeyDown={preventEnterSubmit}>
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card className='p-0'>
@@ -427,7 +428,7 @@ export const RegularItemUpdate = () => {
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <PrimeButton onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity='secondary'>
+              <PrimeButton onClick={handleBackClick} type={"button"} id="cancel-save" data-cy="entityCreateCancelButton" severity='secondary'>
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
