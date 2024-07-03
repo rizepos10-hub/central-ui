@@ -547,7 +547,7 @@ const AppMenu = () => {
         {
           label: 'Branches',
           role: ['ROLE_ADMINISTRATOR'],
-          to: '/branch',
+          to: '/branches',
         },
         {
           label: 'Registers',
@@ -675,6 +675,11 @@ const AppMenu = () => {
           label: 'Payment methods ',
           role: ['ROLE_ADMINISTRATOR'],
           to: '/payment-methods',
+        },
+        {
+          label: 'Zones Settings',
+          role: ['ROLE_ADMINISTRATOR'],
+          to: '/zones',
         },
 
         {
