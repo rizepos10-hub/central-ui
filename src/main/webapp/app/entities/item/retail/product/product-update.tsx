@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Button as PrimeButton } from "primereact/button"
 
-import { createEntity, getEntity, reset, updateEntity } from '../variable-item/variable-item.reducer';
+import { createEntity, getEntity, reset, updateEntity } from './product.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
@@ -77,10 +77,10 @@ export const ProductUpdate = () => {
 
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
-  const productEntity = useAppSelector(state => state.variableRetailItem.entity);
-  const loading = useAppSelector(state => state.variableRetailItem.loading);
-  const updating = useAppSelector(state => state.variableRetailItem.updating);
-  const updateSuccess = useAppSelector(state => state.variableRetailItem.updateSuccess);
+  const productEntity = useAppSelector(state => state.product.entity);
+  const loading = useAppSelector(state => state.product.loading);
+  const updating = useAppSelector(state => state.product.updating);
+  const updateSuccess = useAppSelector(state => state.product.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
   const measureList = useAppSelector(state => state.itemMeasure.entities);
