@@ -1,24 +1,25 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label} from 'reactstrap';
+import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
 import { Translate, translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {getEntity, updateEntity, reset, changeEntityField} from './settings.reducer';
-import {InputNumber} from "primereact/inputnumber";
+import { getEntity, updateEntity, reset, changeEntityField } from './settings.reducer';
+import { InputNumber } from "primereact/inputnumber";
 import {
   currencySymbolPositionOptions,
   IUiSettings,
   orderTakingOptions
 } from "app/shared/model/ONLINE_ORDERING/ui-setting.model";
-import {SelectButton} from "primereact/selectbutton";
-import {Checkbox} from "primereact/checkbox";
+import { SelectButton } from "primereact/selectbutton";
+import { Checkbox } from "primereact/checkbox";
 import Attachment from "app/shared/components/attachment/attachment";
 import { InputText } from 'primereact/inputtext';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import Tiptap from 'app/shared/components/tiptap/tiptap';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -184,7 +185,7 @@ export const UiSettingsUpdate = () => {
                     onChange={e => dispatch(changeEntityField({ name: 'showDeliveryTips', value: e.checked }))}
                   />
                 </div>
-          
+
                 <div className={'d-flex flex-column mb-3'}>
                   <Label htmlFor="UiSettings-orderConfirmation">
                     <strong>{translate('tempApp.UiSettings.orderConfirmation')}</strong>
@@ -253,10 +254,14 @@ export const UiSettingsUpdate = () => {
                   <Label htmlFor="UiSettings-privacyPolicy">
                     <strong>{translate('tempApp.UiSettings.privacyPolicy')}</strong>
                   </Label>
-                  <InputText
+                  {/* <InputText
                     id="UiSettings-privacyPolicy"
                     value={UiSettingsEntity.privacyPolicy || null}
                     onChange={e => dispatch(changeEntityField({ name: 'privacyPolicy', value: e.target.value }))}
+                  /> */}
+                  <Tiptap
+                    content={UiSettingsEntity.privacyPolicy || null}
+                    onChange={val => dispatch(changeEntityField({ name: 'privacyPolicy', value: val }))}
                   />
                 </div>
 
