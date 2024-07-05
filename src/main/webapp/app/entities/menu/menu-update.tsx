@@ -16,8 +16,6 @@ const MenuUpdate = ({
     updating,
     selectedBranches,
     setSelectedBranches,
-    itemType,
-    setItemType,
     selectedName,
     setSelectedName,
 }: {
@@ -28,8 +26,6 @@ const MenuUpdate = ({
     updating: any;
     selectedBranches: any;
     setSelectedBranches: any;
-    itemType: "RETAIL" | "RESTAURANT" | undefined;
-    setItemType: React.Dispatch<React.SetStateAction<"RETAIL" | "RESTAURANT" | undefined>>;
     selectedName: string;
     setSelectedName: React.Dispatch<React.SetStateAction<string>>;
 }) => {
@@ -68,7 +64,6 @@ const MenuUpdate = ({
                     <div className="mb-3">
                         {translate('menus.shared.update.branches')}
                         <Select
-                            // defaultValue={initialBranches}
                             onChange={(e) => setSelectedBranches({
                                 label: e.label,
                                 value: e.value
@@ -81,17 +76,6 @@ const MenuUpdate = ({
                             name='branch'
                             id='branch'
                             data-cy='branch'
-                        />
-                    </div>
-                    <div className="my-3">
-                        Layout
-                        <SelectButton
-                            value={itemType}
-                            onChange={e => setItemType(e.value)}
-                            options={ITEM_TYPE_OPTIONS}
-                            name='itemType'
-                            id='itemType'
-                            data-cy='itemType'
                         />
                     </div>
                     <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => setIsModalOpen(prev => !prev)} replace='true' color="info">

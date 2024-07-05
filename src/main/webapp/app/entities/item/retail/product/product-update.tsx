@@ -319,7 +319,7 @@ export const ProductUpdate = () => {
   //   });
   // }
 
-  const handleHideItemPerBranch = (branchId, variantIndex) => {
+  const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
     setProduct((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -328,7 +328,7 @@ export const ProductUpdate = () => {
           ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
           [branchId]: {
             ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
-            hideItem: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.hideItem,
+            [field]: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.[field],
           },
         },
       };

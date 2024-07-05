@@ -17,6 +17,7 @@ export interface IBranchVariantDetails {
     salePrice: number;
     wholesalePrices?: IItemPriceNumber;
     hideItem?: boolean;
+    hideOnline?: boolean;
   };
 }
 interface IAttributes {
