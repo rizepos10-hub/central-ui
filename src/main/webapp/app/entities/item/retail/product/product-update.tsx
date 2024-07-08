@@ -204,17 +204,8 @@ export const ProductUpdate = () => {
     setMeasureToAdd({})
   };
 
-  const handleShowPricesModal = (branchId, variantIndex) => {
-    setPricesModal(prev => ({
-      ...prev,
-      show: !prev.show,
-      branchId,
-      variantIndex
-    }));
-  };
 
-  const handleSaveWholesalePrices = (prices) => {
-    const { variantIndex, branchId } = pricesModal;
+  const handleSaveWholesalePrices = (variantIndex, branchId, prices) => {
     setProduct((prev) => {
       const updatedVariants = prev.variants.map((variant, index) => {
         console.log(variantIndex, 'variantsds')
@@ -700,17 +691,7 @@ export const ProductUpdate = () => {
                                   </Col>
                                   <Col md={'12'} className={'mt-2'}>
                                     <Row className={'mt-2'}>
-                                      {pricesModal?.show && pricesModal?.variantIndex !== null && (
-                                        <WholesalePrices
-                                          toggle={handleShowPricesModal}
-                                          isOpen={pricesModal?.show}
-                                          branchWholesalePrices={
-                                            product?.variants?.[pricesModal?.variantIndex]?.branchVariantDetails?.[pricesModal?.branchId]
-                                              ?.wholesalePrices
-                                          }
-                                          savePrices={handleSaveWholesalePrices}
-                                        />
-                                      )}
+
                                       {product?.variants?.map((variant, variantIndex) => (
                                         <Col md={'12'} key={variantIndex} className={'mt-2'}>
                                           <Accordion multiple>
@@ -835,6 +816,7 @@ export const ProductUpdate = () => {
                                                 branchVariantDetails={variant.branchVariantDetails}
                                                 itemVariantType={'RETAIL'}
                                                 handleHideItemPerBranch={handleHideItemPerBranch}
+                                                handleSaveWholesalePrices={handleSaveWholesalePrices}
                                               />
                                             </AccordionTab>
                                           </Accordion>
