@@ -13,6 +13,7 @@ import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { filterEntities } from 'app/entities/addon/addon.reducer';
 import { Dropdown } from 'primereact/dropdown';
 import { getEntities } from 'app/entities/addon-groups/addon-groups.reducer';
+import { IAddonGroup } from "app/shared/model/ADDON/addon-groups.model";
 
 const initialState = {
   first: 0,
@@ -205,6 +206,7 @@ export const Addon = () => {
 
         <Column
           field="addonGroups"
+          body={(rowData) => rowData?.addonGroups?.map((grp: IAddonGroup) => grp.name).join(" | ")}
           header={translate('addons.view.table.fields.addonGroups')}
           filter
           filterPlaceholder={translate('addons.view.table.search.addonGroups')}
