@@ -49,7 +49,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
         ...prevState,
         filters: {
           ...prevState.filters,
-          groupId: { value: selectedGroup.id, matchMode: FilterMatchMode.EQUALS }
+          groupId: { value: selectedGroup?.id, matchMode: FilterMatchMode.EQUALS }
         }
       }))
   }
@@ -125,6 +125,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
               <Select
                 options={addonGroupsOptions}
                 isLoading={loadingAddonGroupsOptions}
+                isClearable
                 getOptionLabel={option => option?.name}
                 getOptionValue={option => option?.id}
                 onChange={handleAddonGroupFilterChange}
