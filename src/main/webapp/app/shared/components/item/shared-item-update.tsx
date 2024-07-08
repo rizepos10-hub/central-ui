@@ -1,4 +1,4 @@
-import React, { useState, useEffect, } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { Button, Row, Col, Table, Input, FormGroup } from 'reactstrap';
 import { getSortState, Translate, translate, ValidatedField } from 'react-jhipster';
@@ -6,35 +6,35 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getRestaurantItemCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
 import { getEntities as getRetailItemCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
-import { getEntities as getAddons } from "app/entities/addon/addon.reducer";
+import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
 import { getEntities as getProductionCenters } from 'app/entities/location/production-center/production-center.reducer';
 import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
-import { getEntities as getAddonGroups } from "app/entities/addon-groups/addon-groups.reducer";
+import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
 import { ItemStatus } from 'app/shared/model/ENUMS/item-status.model';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import { InputText } from "primereact/inputtext";
-import Select, { ActionMeta, MultiValue } from "react-select";
-import { IItem } from "app/shared/model/ITEM/item.model";
-import Attachment from "app/shared/components/attachment/attachment";
-import { Checkbox } from "primereact/checkbox";
-import { cloneDeep } from "lodash";
-import AddonImportModal from "./addon-import-modal";
+import { InputText } from 'primereact/inputtext';
+import Select, { ActionMeta, MultiValue } from 'react-select';
+import { IItem } from 'app/shared/model/ITEM/item.model';
+import Attachment from 'app/shared/components/attachment/attachment';
+import { Checkbox } from 'primereact/checkbox';
+import { cloneDeep } from 'lodash';
+import AddonImportModal from './addon-import-modal';
 import { getEntities as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
-import { InputTextarea } from "primereact/inputtextarea";
-import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
-import DiscountDropdown from "app/shared/components/item/discount-dropdown";
-import { getEntities as getTags } from "app/entities/tag/tag.reducer";
+import { InputTextarea } from 'primereact/inputtextarea';
+import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
+import DiscountDropdown from 'app/shared/components/item/discount-dropdown';
+import { getEntities as getTags } from 'app/entities/tag/tag.reducer';
 import MediaLibrary from '../media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
-import { getEntities as getBrands } from "app/entities/brand/brand.reducer";
+import { getEntities as getBrands } from 'app/entities/brand/brand.reducer';
+import SharedAddon from 'app/shared/components/item/addon';
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
 type SharedItemProps = {
-  item: IItem,
-  onFieldChange: OnFieldChangeFunction,
-}
-
+  item: IItem;
+  onFieldChange: OnFieldChangeFunction;
+};
 
 export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
   const dispatch = useAppDispatch();
@@ -43,96 +43,83 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-  const isRestaurantItem = item?.itemType === "RESTAURANT";
-  const isVariableItem = item?.itemVariantType === "RESTAURANT_VARIABLE" || item?.itemVariantType === "RETAIL_VARIABLE";
+  const isRestaurantItem = item?.itemType === 'RESTAURANT';
+  const isVariableItem = item?.itemVariantType === 'RESTAURANT_VARIABLE' || item?.itemVariantType === 'RETAIL_VARIABLE';
 
-  const isRetailItem = item?.itemType === "RETAIL";
+  const isRetailItem = item?.itemType === 'RETAIL';
   const isSimplePizza = isRestaurantItem && item?.variants?.[0]?.multiple === false;
 
-  const itemCategoriesOptions =
-    isRetailItem ? useAppSelector(state => state.retailCategory.entities) :
-      useAppSelector(state => state.restaurantCategory.entities);
+  const itemCategoriesOptions = isRetailItem
+    ? useAppSelector(state => state.retailCategory.entities)
+    : useAppSelector(state => state.restaurantCategory.entities);
 
   const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
-  const addonsOptions = useAppSelector(state => state.addon.entities);
   const tags = useAppSelector(state => state.tag.entities);
   const brands = useAppSelector(state => state.brand.entities);
-  const addonGroupsOptions = useAppSelector(state => state.addonGroups.entities);
   const productionCenterOptions = useAppSelector(state => state.productionCenter.entities);
   const discountList = useAppSelector(state => state.discount.entities);
-
 
   const removeImage = () => {
     onFieldChange('attachments', []);
   };
 
-  const addImage = (files) => {
+  const addImage = files => {
     onFieldChange('attachments', transformAttachmentStructure(files, 'toIAttachment'));
   };
 
-  const handleCheckboxChange = (addonGroupIndex: number) => {
-    const updatedAddonGroups = cloneDeep([...item.addonGroups]);
-    updatedAddonGroups[addonGroupIndex].required = !updatedAddonGroups[addonGroupIndex].required;
-    onFieldChange('addonGroups', updatedAddonGroups);
-  };
-
-  const handleAddonGroupChange = (selectedAddonGroups: MultiValue<{ id: string; name: string; }>, actionMeta: ActionMeta<{ id: string; name: string; }>) => {
-
-    const existingAddonGroupsMap = new Map(item?.addonGroups?.map((group) => [group.addonGroup?.id, group]));
-
-    const updatedAddonGroups = selectedAddonGroups.map((selectedGroup) => {
-      const existingGroup = existingAddonGroupsMap.get(selectedGroup?.id);
-      return {
-        required: existingGroup ? existingGroup.required : false,
-        addonGroup: selectedGroup,
-      };
-    });
-    onFieldChange('addonGroups', updatedAddonGroups);
-  };
-
-
   useEffect(() => {
+    dispatch(
+      getTags({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
+    dispatch(
+      getDiscounts({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
 
-    dispatch(getTags({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-    dispatch(getDiscounts({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+    dispatch(
+      getProductionCenters({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
 
-    dispatch(getProductionCenters({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-
-    dispatch(getProfileGroups({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-
+    dispatch(
+      getProfileGroups({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
   }, []);
 
   useEffect(() => {
     if (isVariableItem) {
-      dispatch(getDiscounts({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }));
+      dispatch(
+        getDiscounts({
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
     }
 
     if (isRestaurantItem) {
-      dispatch(getRestaurantItemCategories({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      })); dispatch(
+      dispatch(
+        getRestaurantItemCategories({
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
+      dispatch(
         getRestaurantItems({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
@@ -140,54 +127,30 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
         })
       );
       dispatch(getAddonGroups({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }))
-      dispatch(getAddons({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }))
-    } else if (isRetailItem) {
-      dispatch(getRetailItemCategories({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }));
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
 
-      dispatch(getBrands({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }))
+    } else if (isRetailItem) {
+      dispatch(
+        getRetailItemCategories({
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
+
+      dispatch(
+        getBrands({
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        })
+      );
     }
   }, [isRestaurantItem, isRetailItem, isVariableItem]);
-
-  const [openedAddonModal, setOpenedAddonModal] = useState(false);
-  const openImportAddonModal = () => {
-    setOpenedAddonModal(true);
-  };
-  const restaurantItemsOptions = useAppSelector(state => state.restaurantItems.entities);
-
-  const handleImportAddonModalSave = (option: IItem) => {
-    const addons = item.addons || [];
-    const extraAddons = option.addons;
-    const uniqueAddonIds = Array.from(new Set([...addons, ...extraAddons].map(addon => addon.id)));
-    const mergedAddons = uniqueAddonIds.map(id => [...addons, ...extraAddons].find(addon => addon.id === id));
-
-    const addonGroups = item.addonGroups || [];
-    const extraAddonGroups = option.addonGroups;
-    const uniqueAddonGroupIds = Array.from(new Set([...addonGroups, ...extraAddonGroups]));
-    const mergedAddonGroups = uniqueAddonGroupIds.map(id => [...addonGroups, ...extraAddonGroups].find(addonGroup => addonGroup.addonGroup.id === id));
-
-    onFieldChange('addonGroups', mergedAddonGroups);
-    onFieldChange('addons', mergedAddons);
-  };
-
-  const handleImportAddonModalClose = () => {
-    setOpenedAddonModal(false);
-  };
 
   return (
     <div>
@@ -226,7 +189,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
               </div>
             </div>
 
-            <div className='row'>
+            <div className="row">
               <div className={'d-flex flex-column gap-1 col'}>
                 <label className={'font-semibold'}>
                   <Translate contentKey="items.update.productionCenter">Production Center</Translate>
@@ -255,15 +218,13 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                 />
               </div>
 
-
-
               {isVariableItem ? (
                 <div className="col">
                   <DiscountDropdown discounts={item?.discounts} handleChange={onFieldChange} />
                 </div>
               ) : null}
             </div>
-            <div className='row'>
+            <div className="row">
               <div className={'d-flex flex-column gap-1  col'}>
                 <label className={'font-semibold'}>
                   <Translate contentKey="items.update.categories">Categories</Translate>
@@ -296,18 +257,18 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
             {isRetailItem ? (
               <div className="row">
                 <div className={'d-flex flex-column gap-2 mt-2 col-6'}>
-                <label className={'text-xl font-semibold'}>
-                  <Translate contentKey="items.update.brand">brand</Translate>
-                </label>
-                <Select
-                  value={item?.brand}
-                  isClearable
-                  options={brands}
-                  getOptionLabel={option => option.name}
-                  getOptionValue={option => option.id}
-                  onChange={brand => onFieldChange("brand", brand )}
-                />
-              </div>
+                  <label className={'text-xl font-semibold'}>
+                    <Translate contentKey="items.update.brand">brand</Translate>
+                  </label>
+                  <Select
+                    value={item?.brand}
+                    isClearable
+                    options={brands}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    onChange={brand => onFieldChange('brand', brand)}
+                  />
+                </div>
               </div>
             ) : null}
 
@@ -325,84 +286,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
               </Col>
             </Row>
 
-            {isRestaurantItem ? (
-              <>
-                {openedAddonModal && (
-                  <AddonImportModal
-                    showModal={openedAddonModal}
-                    handleSave={handleImportAddonModalSave}
-                    handleClose={handleImportAddonModalClose}
-                    itemOptions={restaurantItemsOptions}
-                  />
-                )}
-                <Row className={'my-3'}>
-                  <div className='row'>
-                    <div className={'d-flex flex-column gap-2 col-10'}>
-                      <label className={'text-xl font-semibold'}>
-                        <Translate contentKey={'items.update.addons'}>Addons</Translate>
-                      </label>
-                      <Select
-                        value={item?.addons}
-                        isMulti={true}
-                        options={addonsOptions}
-                        getOptionLabel={option => option.name}
-                        getOptionValue={option => option.id}
-                        onChange={selectedAddons => onFieldChange('addons', selectedAddons)}
-                      />
-                    </div>
-                    <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
-                      <div>
-                        <Button type="button" onClick={openImportAddonModal}>
-                          <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Row>
-                <Row>
-                  <div className="">
-                    <label className={'font-semibold'}>
-                      <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
-                    </label>
-                    <div className="">
-                      <Select
-                        isMulti={true}
-                        value={item?.addonGroups?.map(group => ({
-                          id: group.addonGroup?.id,
-                          name: group.addonGroup?.name,
-                        }))}
-                        getOptionLabel={option => option?.name}
-                        getOptionValue={option => option?.id}
-                        options={addonGroupsOptions}
-                        onChange={handleAddonGroupChange}
-                      />
-                    </div>
-                    <Table>
-                      <thead>
-                        <tr>
-                          <th>
-                            <Translate contentKey={'items.update.name'}>Name</Translate>
-                          </th>
-                          <th>
-                            <Translate contentKey={'items.update.required'}>Required</Translate>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {item?.addonGroups?.map((group, index) => (
-                          <tr key={index}>
-                            <td>{group?.addonGroup?.name}</td>
-                            <td>
-                              <Checkbox checked={group?.required} onChange={e => handleCheckboxChange(index)} />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                  </div>
-                </Row>
-              </>
-            ) : null}
+            {isRestaurantItem ? <SharedAddon onFieldChange={onFieldChange} addons={item.addons} addonGroups={item.addonGroups} /> : null}
           </Col>
         </FormGroup>
       </Row>

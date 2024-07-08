@@ -44,10 +44,8 @@ export const Menu = () => {
 
   const params = new URLSearchParams(location.search);
   const menuType = params.get("type");
-  const itemType = params.get("menuType") as "RETAIL" | "RESTAURANT" | null;
 
   const [selectedBranches, setSelectedBranches] = useState<any>();
-  const [selectedItemType, setSelectedItemType] = useState(itemType);
   const [selectedName, setSelectedName] = useState("");
 
   const getAllEntities = () => {
@@ -68,7 +66,6 @@ export const Menu = () => {
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
           type: menuType,
-          itemType
         })
       );
     }
@@ -86,7 +83,7 @@ export const Menu = () => {
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search, menuType, updateSuccess, itemType]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, search, menuType, updateSuccess]);
 
   useEffect(() => {
     const page = params.get('page');
@@ -170,12 +167,10 @@ export const Menu = () => {
       ...values,
       branch: { id: selectedBranches?.value },
       type: menuType,
-      itemType: selectedItemType
     };
 
     dispatch(createEntity(entity)).then((res) => {
       setIsModalOpen(false);
-      const response = res.payload
       navigate(`/menu/${(res.payload as any).data.id}/${menuType}/edit?page=1&sort=sort=id,asc`);
     });
   };
@@ -192,8 +187,6 @@ export const Menu = () => {
         setSelectedName={setSelectedName}
         selectedBranches={selectedBranches}
         setSelectedBranches={setSelectedBranches}
-        itemType={selectedItemType}
-        setItemType={setSelectedItemType}
       />
       <div>
         <DataTable value={menuList} header={header} editMode="row"

@@ -19,8 +19,13 @@ const AppMenu = () => {
       label: 'POS',
       role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-desktop',
-      to: '/branch-registry',
+      to: '/menu?type=POS',
       items: [
+        {
+          label: 'Menus',
+          role: ['ROLE_ADMINISTRATOR'],
+          to: '/menu?type=POS',
+        },
         {
           label: 'Branch Registry',
           role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
@@ -141,10 +146,6 @@ const AppMenu = () => {
           label: 'Addons',
           to: '/addon',
         },
-        {
-          label: 'Menu',
-          to: '/menu?type=POS&menuType=RESTAURANT',
-        },
       ],
     },
     {
@@ -180,11 +181,6 @@ const AppMenu = () => {
           label: 'Brands',
           role: ['ROLE_ADMINISTRATOR'],
           to: '/brand',
-        },
-        {
-          label: 'Menus',
-          role: ['ROLE_ADMINISTRATOR'],
-          to: '/menu?type=POS&menuType=RETAIL',
         },
       ],
     },
@@ -306,21 +302,6 @@ const AppMenu = () => {
         },
       ],
     },
-
-    // {
-    //   label: 'Menus',
-    //   role: ['ROLE_ADMINISTRATOR'],
-    //   icon: 'pi pi-bars',
-    //   items: [
-    //     {
-    //       label: 'Category',
-    //       to: '/category/menus'
-    //     },
-    //
-    //
-    //   ]
-    // },
-
     {
       label: 'Orders',
       role: ['ROLE_ADMINISTRATOR'],
@@ -491,15 +472,11 @@ const AppMenu = () => {
       label: 'Online Ordering',
       role: ['ROLE_ADMINISTRATOR'],
       icon: 'pi pi-tablet',
-      to: '/menu?type=ONLINE_ORDERING&menuType=RETAIL',
+      to: '/menu?type=ONLINE_ORDERING',
       items: [
         {
-          label: 'Retail Menus',
-          to: '/menu?type=ONLINE_ORDERING&menuType=RETAIL',
-        },
-        {
-          label: 'Restaurant Menus',
-          to: '/menu?type=ONLINE_ORDERING&menuType=RESTAURANT',
+          label: 'Menus',
+          to: '/menu?type=ONLINE_ORDERING',
         },
         {
           label: 'Users',

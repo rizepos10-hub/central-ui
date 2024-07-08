@@ -7,6 +7,7 @@
         "fields": {
           "name": "Name",
           "price": "Price",
+          "addonGroups": "Group",
           "discounts": "Discounts",
           "edit": "Edit",
           "delete": "Delete"

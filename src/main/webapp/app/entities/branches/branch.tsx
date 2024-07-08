@@ -22,12 +22,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Translate } from 'react-jhipster';
 import BranchPaymentConfig from '../settings/business-details/branch-payment-config';
 import { Dialog } from 'primereact/dialog';
+import Select from 'react-select'
+import { getEntities as getZones } from 'app/entities/settings/zones/zones.reducer'
 
 export const Branches = () => {
   const dispatch = useAppDispatch();
 
   const businessDetailEntities = useAppSelector(state => state.businessDetail.entities);
   const businessDetailEntity = businessDetailEntities[0]
+  const zones = useAppSelector(state => state.zones.entities)
 
   const updating = useAppSelector(state => state.businessDetail.updating);
 
@@ -70,6 +73,7 @@ export const Branches = () => {
 
   useEffect(() => {
     dispatch(getEntities({})).then((res: any) => setBusinessDetailsState(res.payload.data[0]));
+    dispatch(getZones({}))
   }, []);
 
   const handleGeocode = (e: MapMouseEvent, branchIndex) => {
@@ -210,6 +214,17 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleZoneChange = (selectedZones, branchIndex) => {
+    setBusinessDetailsState((prev) => ({
+      ...prev, branchDetails: prev.branchDetails.map((branch, i) => {
+        if (i === branchIndex) {
+          return { ...branch, zones: selectedZones.map(zone => ({ id: zone.id, name: zone.name })) };
+        }
+        return branch;
+      })
+    }));
+  }
+
   useEffect(() => {
     if (selectedPlace) {
       selectePlaceHandler(selectedPlace, activeIndex);
@@ -348,6 +363,17 @@ export const Branches = () => {
                       setEditingBranchPayments={setEditingBranchPayments}
                     />
                   </Dialog>
+
+                  <label className="font-bold mt-3">Zones</label>
+                  <Select
+                    value={branch.zones}
+                    isMulti={true}
+                    options={zones}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    onChange={(e) => handleZoneChange(e, activeIndex)}
+                  />
+
                 </div>
               </TabPanel>
               <TabPanel header="Address">

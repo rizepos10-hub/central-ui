@@ -9,6 +9,7 @@ import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {IItemMeasure} from "app/shared/model/item-measure.model";
 import {IExchangeMeasure, IItemPriceNumber} from "app/shared/model/ITEM/retail/simple-item.model";
 import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
+import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 
 export interface IBranchVariantDetails {
   [key: string]: {
@@ -17,6 +18,7 @@ export interface IBranchVariantDetails {
     salePrice: number;
     wholesalePrices?: IItemPriceNumber;
     hideItem?: boolean;
+    hideOnline?: boolean;
   };
 }
 interface IAttributes {
@@ -29,6 +31,7 @@ export interface IVariableItemVariant {
   name?: string | null;
   attachments?: IAttachment[];
   discounts?: IDiscount[];
+  accountingGroups?: IProfileGroup[];
   sku?: string;
   price?: number;
   salePrice?: number;
