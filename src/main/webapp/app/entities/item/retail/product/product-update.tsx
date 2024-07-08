@@ -86,6 +86,7 @@ export const ProductUpdate = () => {
   const measureList = useAppSelector(state => state.itemMeasure.entities);
   const discountList = useAppSelector(state => state.discount.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
+  const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
 
   const location = useLocation();
 
@@ -379,6 +380,7 @@ export const ProductUpdate = () => {
       if (index === product?.attributes?.length) {
         const newVariant = {
           name: product?.name || '',
+          accountingGroups: product?.accountingGroups || [],
           attachments: [],
           discounts: [],
           sku: '',
@@ -425,6 +427,7 @@ export const ProductUpdate = () => {
         {
           name: product?.name,
           attachments: [],
+          accountingGroups: prev?.accountingGroups || [],
           discounts: [],
           sku: '',
           price: null,
@@ -664,8 +667,8 @@ export const ProductUpdate = () => {
                                 value={product?.itemVariantType}
                                 options={itemTypes}
                                 allowEmpty={false}
-                                optionValue={"value"}
-                                optionLabel={"label"}
+                                optionValue={'value'}
+                                optionLabel={'label'}
                                 onChange={option => {
                                   handleFieldChange('itemVariantType', option.value);
                                 }}
@@ -691,7 +694,6 @@ export const ProductUpdate = () => {
                                   </Col>
                                   <Col md={'12'} className={'mt-2'}>
                                     <Row className={'mt-2'}>
-
                                       {product?.variants?.map((variant, variantIndex) => (
                                         <Col md={'12'} key={variantIndex} className={'mt-2'}>
                                           <Accordion multiple>
@@ -786,13 +788,27 @@ export const ProductUpdate = () => {
 
                                               <Row>
                                                 <Col md="7">
+                                                  <div className={'d-flex flex-column gap-2 mt-3'}>
+                                                    <label className={'font-semibold'}>
+                                                      <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
+                                                    </label>
+                                                    <Select
+                                                      value={variant?.accountingGroups}
+                                                      isClearable
+                                                      options={profileGroupsOptions}
+                                                      getOptionLabel={option => option.name}
+                                                      getOptionValue={option => option.id}
+                                                      onChange={profileGroup => handleVariantFieldChange(variantIndex,'accountingGroups', profileGroup ? [profileGroup] : [])}
+                                                    />
+                                                  </div>
+
                                                   <DiscountDropdown
                                                     discounts={variant.discounts}
                                                     handleVariantChange={handleVariantFieldChange}
                                                     variantIndex={variantIndex}
                                                   />
 
-                                                  <div className={'d-flex flex-column gap-2'}>
+                                                  <div className={'d-flex flex-column gap-2 mt-3'}>
                                                     <label className={'font-semibold'}>
                                                       <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                                     </label>
