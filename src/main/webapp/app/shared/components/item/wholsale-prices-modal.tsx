@@ -45,12 +45,11 @@ const WholesalePrices = ({toggle, isOpen, branchWholesalePrices,savePrices} :mod
   return (
     <Modal size="l" isOpen={isOpen} toggle={toggle} >
       <ModalHeader toggle={toggle}>
-        Quantity Config
+        Wholesale Prices
       </ModalHeader>
       <FormGroup>
 
         <ModalBody>
-          <h5 className="font-semibold">Wholesale Prices</h5>
           <div className={"d-flex flex-column gap-1"}>
           {Object.keys(wholeSalePrices).map((priceKey, index) => (
             <>

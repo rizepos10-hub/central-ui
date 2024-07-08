@@ -15,7 +15,7 @@ interface BranchPriceComponentProps<T extends IVariableItemVariant | IRegularIte
   branchList: IBranch[];
   handleBranchPriceChange: (variantIndex: number, branchId: string, field: string, value: number) => void;
   itemVariantType: 'RETAIL' | 'RESTAURANT';
-  handleSaveWholesalePrices?: (prices: number, branchId: string) => void;
+  handleSaveWholesalePrices?: (variantIndex: number, branchId: string, prices: number) => void;
   handleHideItemPerBranch?: (branchId: string, variantIndex: number, field: 'hideItem' | 'hideOnline') => void;
 }
 
@@ -49,7 +49,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
           toggle={handleShowPricesModal}
           isOpen={pricesModal?.show}
           branchWholesalePrices={branchVariantDetails?.[pricesModal?.branchId]?.wholesalePrices}
-          savePrices={prices => handleSaveWholesalePrices(prices, pricesModal.branchId)}
+          savePrices={prices => handleSaveWholesalePrices(variantIndex, pricesModal.branchId, prices)}
         />
       )}
       <h4>
