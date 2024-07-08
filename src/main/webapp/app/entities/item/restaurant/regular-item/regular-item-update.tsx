@@ -49,6 +49,8 @@ export const RegularItemUpdate = () => {
   const updating = useAppSelector(state => state.regularItem.updating);
   const updateSuccess = useAppSelector(state => state.regularItem.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
+  const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
+
   const discountList = useAppSelector(state => state.discount.entities);
   const addonList = useAppSelector(state => state.addon.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
@@ -126,6 +128,7 @@ export const RegularItemUpdate = () => {
         ...(prev.variants || []),
         {
           name: regularItem?.name,
+          accountingGroups: prev?.accountingGroups || [],
           attachments: [],
           discounts: [],
           sku: '',
@@ -234,45 +237,42 @@ export const RegularItemUpdate = () => {
   }
 
   return (
-    <form onSubmit={saveEntity}  onKeyDown={preventEnterSubmit}>
-      <div className={"d-flex row"}>
+    <form onSubmit={saveEntity} onKeyDown={preventEnterSubmit}>
+      <div className={'d-flex row'}>
         <Col md={9}>
-          <Card className='p-0'>
+          <Card className="p-0">
             <CardBody>
               <Row>
                 <Col md={12}>
                   <TabView>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
-                      <div className='w-100'>
-                        <div className='text-xl font-semibold'>
+                      <div className="w-100">
+                        <div className="text-xl font-semibold">
                           {isNew ? translate('items.update.tabs.details.titles.create.variable') : `Edit ${regularItem.name}`}
                         </div>
                       </div>
 
                       <Row>
-
-                        <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
-
-                          <Col md="12" className={`d-flex flex-column p-3  bg-white `} >
-
+                        <FormGroup className={`${isNew ? 'd-flex bg-white' : ''}`}>
+                          <Col md="12" className={`d-flex flex-column p-3  bg-white `}>
                             <SharedItemUpdate item={regularItem} onFieldChange={handleFieldChange} />
 
-                            <Col md="5" className={"d-flex gap-3"}>
+                            <Col md="5" className={'d-flex gap-3'}>
                               <PrimeButton color="primary" type="button" onClick={handleAddVariant}>
                                 <Translate contentKey={'items.update.addSingleVariant'}>Add Variant</Translate>
                               </PrimeButton>
                             </Col>
 
-                            <Col md={"12"} className={"mt-2"}>
-                              <Row className={"mt-2"}>
+                            <Col md={'12'} className={'mt-2'}>
+                              <Row className={'mt-2'}>
                                 {regularItem?.variants?.map((variant, variantIndex) => (
-                                  <div key={variantIndex} className={"mt-2"}>
-                                    <Accordion multiple className='p-0'>
-                                      <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex} >
+                                  <div key={variantIndex} className={'mt-2'}>
+                                    <Accordion multiple className="p-0">
+                                      <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex}>
                                         <Row>
                                           <Col md="4">
-                                            <div className={"d-flex flex-column gap-2 mt-2"}>
-                                              <label className={"font-semibold"}>
+                                            <div className={'d-flex flex-column gap-2 mt-2'}>
+                                              <label className={'font-semibold'}>
                                                 <Translate contentKey={'items.update.name'}>Name</Translate>
                                               </label>
                                               <InputText
@@ -281,37 +281,35 @@ export const RegularItemUpdate = () => {
                                                 required={true}
                                                 placeholder={translate('items.update.placeholders.variantName')}
                                                 value={variant?.name}
-                                                onChange={(e) => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                                                onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
                                               />
                                             </div>
                                           </Col>
 
-
-
                                           <Col md="4">
-                                            <div className={"d-flex flex-column gap-2 mt-2"}>
-                                              <label htmlFor="price" className={"font-semibold"}>
+                                            <div className={'d-flex flex-column gap-2 mt-2'}>
+                                              <label htmlFor="price" className={'font-semibold'}>
                                                 <Translate contentKey={'items.update.price'}>Price</Translate>
                                               </label>
                                               <InputNumber
                                                 name="price"
                                                 id="price"
-                                                inputId={"price"}
-                                                inputClassName={"w-1"}
+                                                inputId={'price'}
+                                                inputClassName={'w-1'}
                                                 required={true}
                                                 placeholder="Variant Price"
                                                 value={variant?.price}
                                                 size={6}
                                                 min={0}
                                                 maxFractionDigits={2}
-                                                onChange={(e) => handleVariantFieldChange(variantIndex, 'price', e.value)}
+                                                onChange={e => handleVariantFieldChange(variantIndex, 'price', e.value)}
                                               />
                                             </div>
                                           </Col>
 
                                           <Col md="4">
-                                            <div className={"d-flex flex-column gap-2 mt-2"}>
-                                              <label className={"font-semibold"}>
+                                            <div className={'d-flex flex-column gap-2 mt-2'}>
+                                              <label className={'font-semibold'}>
                                                 <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
                                               </label>
                                               <InputNumber
@@ -322,7 +320,7 @@ export const RegularItemUpdate = () => {
                                                 size={6}
                                                 maxFractionDigits={2}
                                                 value={variant?.salePrice}
-                                                onChange={(e) => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
+                                                onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
                                               />
                                             </div>
                                           </Col>
@@ -330,8 +328,23 @@ export const RegularItemUpdate = () => {
 
                                         <Row>
                                           <Col md="7">
-                                            <div className={"d-flex flex-column gap-2 mt-2"}>
-                                              <label className={"font-semibold"}>
+                                            <div className={'d-flex flex-column gap-2 mt-2'}>
+                                              <label className={'font-semibold'}>
+                                                <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
+                                              </label>
+                                              <Select
+                                                value={variant?.accountingGroups}
+                                                isClearable
+                                                options={profileGroupsOptions}
+                                                getOptionLabel={option => option.name}
+                                                getOptionValue={option => option.id}
+                                                onChange={profileGroup => handleVariantFieldChange(variantIndex,'accountingGroups', profileGroup ? [profileGroup] : [])}
+                                              />
+                                            </div>
+
+
+                                            <div className={'d-flex flex-column gap-2 mt-2'}>
+                                              <label className={'font-semibold'}>
                                                 <Translate contentKey={'items.update.addons'}>Addons</Translate>
                                               </label>
                                               <Select
@@ -340,7 +353,7 @@ export const RegularItemUpdate = () => {
                                                 isMulti
                                                 getOptionLabel={option => option.name}
                                                 getOptionValue={option => option.id}
-                                                onChange={(addons) => handleVariantFieldChange(variantIndex, 'addons', addons as IAddon[])}
+                                                onChange={addons => handleVariantFieldChange(variantIndex, 'addons', addons as IAddon[])}
                                               />
                                             </div>
 
@@ -350,8 +363,8 @@ export const RegularItemUpdate = () => {
                                               variantIndex={variantIndex}
                                             />
 
-                                            <div className={"d-flex flex-column gap-2 mt-2"}>
-                                              <label className={"font-semibold"}>
+                                            <div className={'d-flex flex-column gap-2 mt-2'}>
+                                              <label className={'font-semibold'}>
                                                 <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                               </label>
                                               <Select
@@ -359,10 +372,11 @@ export const RegularItemUpdate = () => {
                                                 options={mixAndMatchRuleList}
                                                 getOptionLabel={option => option.name}
                                                 getOptionValue={option => option.id}
-                                                onChange={(mixAndMatchRule) => handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)}
+                                                onChange={mixAndMatchRule =>
+                                                  handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)
+                                                }
                                               />
                                             </div>
-
                                           </Col>
                                         </Row>
 
@@ -373,7 +387,13 @@ export const RegularItemUpdate = () => {
                                                 <Translate contentKey={'items.update.image'}>Image</Translate>
                                               </label>
                                               <MediaLibrary
-                                                handleFilesSelectCallback={(files) => handleVariantFieldChange(variantIndex, 'attachments', transformAttachmentStructure(files, 'toIAttachment'))}
+                                                handleFilesSelectCallback={files =>
+                                                  handleVariantFieldChange(
+                                                    variantIndex,
+                                                    'attachments',
+                                                    transformAttachmentStructure(files, 'toIAttachment')
+                                                  )
+                                                }
                                               />
                                             </div>
                                           </Col>
@@ -384,9 +404,8 @@ export const RegularItemUpdate = () => {
                                           handleBranchPriceChange={handleBranchPriceChange}
                                           variantIndex={variantIndex}
                                           branchVariantDetails={variant.branchVariantDetails}
-                                          itemVariantType={"RESTAURANT"}
+                                          itemVariantType={'RESTAURANT'}
                                         />
-
                                       </AccordionTab>
                                     </Accordion>
                                   </div>
@@ -398,37 +417,48 @@ export const RegularItemUpdate = () => {
                       </Row>
                     </TabPanel>
 
-
                     <TabPanel header={translate('items.update.tabs.visibility.label')}>
                       <Visibility
                         initialState={regularItem.visibility}
                         title={translate('items.update.tabs.visibility.titles.variable')}
-                        onStateChanged={(visibility) => setRegularItem(prev => {
-                          return { ...prev, visibility }
-                        })} />
+                        onStateChanged={visibility =>
+                          setRegularItem(prev => {
+                            return { ...prev, visibility };
+                          })
+                        }
+                      />
                     </TabPanel>
 
                     <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
-                      <ItemLoyaltyTab excludedFromLoyaltyPoints={regularItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
+                      <ItemLoyaltyTab
+                        excludedFromLoyaltyPoints={regularItem?.excludedFromLoyaltyPoints}
+                        onFieldChange={handleFieldChange}
+                      />
                     </TabPanel>
-
-
-
                   </TabView>
                 </Col>
               </Row>
             </CardBody>
           </Card>
         </Col>
-        <Col md={3} style={{
-          position: 'sticky',
-          top: '0',
-          height: '90vh',
-        }}>
+        <Col
+          md={3}
+          style={{
+            position: 'sticky',
+            top: '0',
+            height: '90vh',
+          }}
+        >
           <Card>
             <CardHeader>Actions</CardHeader>
             <div className={'d-flex gap-3 mt-2'}>
-              <PrimeButton onClick={handleBackClick} type={"button"} id="cancel-save" data-cy="entityCreateCancelButton" severity='secondary'>
+              <PrimeButton
+                onClick={handleBackClick}
+                type={'button'}
+                id="cancel-save"
+                data-cy="entityCreateCancelButton"
+                severity="secondary"
+              >
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
@@ -436,8 +466,7 @@ export const RegularItemUpdate = () => {
                 </span>
               </PrimeButton>
               &nbsp;
-              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                disabled={updating}>
+              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
@@ -447,7 +476,7 @@ export const RegularItemUpdate = () => {
           {regularItem?.id && <AuditLogs entityId={regularItem?.id} />}
         </Col>
       </div>
-    </form >
+    </form>
   );
 };
 
