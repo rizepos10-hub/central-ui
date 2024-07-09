@@ -176,7 +176,10 @@ export const RegularItemUpdate = () => {
   useEffect(() => {
 
     if (!isNew) {
-      setRegularItem(regularItemEntity);
+      setRegularItem({
+        ...regularItemEntity,
+        variants: regularItemEntity?.variants?.slice()?.sort((a, b) => a.id.localeCompare(b.id)),
+      });
     }
 
     const regularItemId = regularItemEntity?.id
