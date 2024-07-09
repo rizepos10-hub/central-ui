@@ -25,7 +25,7 @@ import {
 import { Accordion, AccordionTab } from "primereact/accordion";
 import AsyncSelect from "react-select/async";
 import { ItemVariantType } from "app/shared/model/ENUMS/item-variant-type.model";
-import { isEqual } from "lodash";
+import _, { isEqual } from "lodash";
 import Visibility from 'app/shared/Visibility/Visibility';
 import { TabPanel, TabView } from "primereact/tabview";
 import ItemStockTab from "app/shared/components/item/item-stock-tab";
@@ -491,7 +491,10 @@ export const ProductUpdate = () => {
   useEffect(() => {
 
     if (!isNew) {
-      setProduct(productEntity);
+      setProduct({
+        ...productEntity,
+        variants: productEntity?.variants?.slice()?.sort((a, b) => a.id.localeCompare(b.id)),
+      });
     }
     const productId = productEntity?.id
     if (updateSuccess) {
@@ -620,6 +623,9 @@ export const ProductUpdate = () => {
     return <Spinner />
   }
 
+  const sortedVariants = [...(product?.variants || [])].sort((a, b) => {
+    return a.id.localeCompare(b.id);
+  });
 
 
   return (
@@ -694,7 +700,7 @@ export const ProductUpdate = () => {
                                   </Col>
                                   <Col md={'12'} className={'mt-2'}>
                                     <Row className={'mt-2'}>
-                                      {product?.variants?.map((variant, variantIndex) => (
+                                      {(product?.variants)?.map((variant, variantIndex) => (
                                         <Col md={'12'} key={variantIndex} className={'mt-2'}>
                                           <Accordion multiple>
                                             <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex}>
