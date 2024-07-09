@@ -27,6 +27,8 @@ import MenuScreens from './components/menu-screens';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import MenuUpdate from './menu-update';
+import { Dialog } from "primereact/dialog";
+import Visibility from "app/shared/Visibility/Visibility";
 
 const MenuInstance = () => {
     const dispatch = useAppDispatch();
@@ -44,6 +46,7 @@ const MenuInstance = () => {
 
     // const [totalPages, setTotalPages] = useState<number>(0)
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showVisibility, setShowVisibility] = useState(false);
     const [selectedBranches, setSelectedBranches] = useState<any>();
     const [selectedName, setSelectedName] = useState("");
 
@@ -72,6 +75,7 @@ const MenuInstance = () => {
                 name: menuEntity.name,
                 branch: menuEntity.branch,
                 menuScreens: menuEntity.menuScreens,
+                visibilities: menuEntity.visibilities
             };
             setData(newData);
         }
@@ -98,6 +102,7 @@ const MenuInstance = () => {
             branch: {
                 id: selectedBranches.value
             },
+            visibilities: data.visibilities
         };
 
         if (isNew) {
@@ -183,6 +188,23 @@ const MenuInstance = () => {
                             <PrimeButton label={`Transfer to ${menuEntity.type === 'POS' ? 'Online Ordering' : 'POS'}`} className="p-button-secondary p-1" onClick={handleTransferToPOSAction} style={{
                                 height: '2.5rem',
                             }} />
+
+                            <PrimeButton label={`Visibility`} className="p-button-secondary p-1" onClick={() => setShowVisibility(prev => !prev)} style={{
+                                height: '2.5rem',
+                            }} />
+                            <Dialog
+                              visible={showVisibility}
+                              style={{ width: '50vw' }}
+                              onHide={() => setShowVisibility(false)}
+                            >
+                                <Visibility
+                                  initialState={data.visibilities}
+                                  title={"Menu Visibility"}
+                                  onStateChanged={(visibilities) => setData(prev => {
+                                      return { ...prev, visibilities }
+                                  })}
+                                />
+                            </Dialog>
                         </div>
                     </div>
                 </div>
