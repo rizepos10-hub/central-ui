@@ -27,8 +27,8 @@ export const searchEntities = createAsyncThunk('menu/search_entity', async ({ qu
   return axios.get<IMenu[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('menu/fetch_entity_list', async ({ page, size, sort, type, itemType }: {page?: number; size?: number; sort?: string; type?: string;itemType: string} ) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&type=${type}&size=${size}&sort=${sort}&itemType=${itemType}&` : `?type=${type}&itemType=${itemType}&`}cacheBuster=${new Date().getTime()}`;
+export const getEntities = createAsyncThunk('menu/fetch_entity_list', async ({ page, size, sort, type }: { page?: number; size?: number; sort?: string; type?: string; }) => {
+  const requestUrl = `${apiUrl}${sort ? `?itemType=RESTAURANT&page=${page}&type=${type}&size=${size}&sort=${sort}&` : `?type=${type}&`}cacheBuster=${new Date().getTime()}`;
   return axios.get<IMenu[]>(requestUrl);
 });
 
@@ -99,9 +99,7 @@ export const partialUpdateEntity = createAsyncThunk(
   'menu/partial_update_entity',
   async (entity: IMenu, thunkAPI) => {
     const result = await axios.patch<IMenu>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({
-      itemType: entity.itemType,
-    }));
+    thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }

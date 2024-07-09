@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Button as PrimeButton } from "primereact/button"
 
-import { createEntity, getEntity, reset, updateEntity } from '../variable-item/variable-item.reducer';
+import { createEntity, getEntity, reset, updateEntity } from './product.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
@@ -77,15 +77,16 @@ export const ProductUpdate = () => {
 
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
-  const productEntity = useAppSelector(state => state.variableRetailItem.entity);
-  const loading = useAppSelector(state => state.variableRetailItem.loading);
-  const updating = useAppSelector(state => state.variableRetailItem.updating);
-  const updateSuccess = useAppSelector(state => state.variableRetailItem.updateSuccess);
+  const productEntity = useAppSelector(state => state.product.entity);
+  const loading = useAppSelector(state => state.product.loading);
+  const updating = useAppSelector(state => state.product.updating);
+  const updateSuccess = useAppSelector(state => state.product.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
   const attributesList = useAppSelector(state => state.retailAttribute.entities);
   const measureList = useAppSelector(state => state.itemMeasure.entities);
   const discountList = useAppSelector(state => state.discount.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
+  const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
 
   const location = useLocation();
 
@@ -204,17 +205,8 @@ export const ProductUpdate = () => {
     setMeasureToAdd({})
   };
 
-  const handleShowPricesModal = (branchId, variantIndex) => {
-    setPricesModal(prev => ({
-      ...prev,
-      show: !prev.show,
-      branchId,
-      variantIndex
-    }));
-  };
 
-  const handleSaveWholesalePrices = (prices) => {
-    const { variantIndex, branchId } = pricesModal;
+  const handleSaveWholesalePrices = (variantIndex, branchId, prices) => {
     setProduct((prev) => {
       const updatedVariants = prev.variants.map((variant, index) => {
         console.log(variantIndex, 'variantsds')
@@ -319,7 +311,7 @@ export const ProductUpdate = () => {
   //   });
   // }
 
-  const handleHideItemPerBranch = (branchId, variantIndex) => {
+  const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
     setProduct((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -328,7 +320,7 @@ export const ProductUpdate = () => {
           ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
           [branchId]: {
             ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
-            hideItem: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.hideItem,
+            [field]: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.[field],
           },
         },
       };
@@ -388,6 +380,7 @@ export const ProductUpdate = () => {
       if (index === product?.attributes?.length) {
         const newVariant = {
           name: product?.name || '',
+          accountingGroups: product?.accountingGroups || [],
           attachments: [],
           discounts: [],
           sku: '',
@@ -434,6 +427,7 @@ export const ProductUpdate = () => {
         {
           name: product?.name,
           attachments: [],
+          accountingGroups: prev?.accountingGroups || [],
           discounts: [],
           sku: '',
           price: null,
@@ -673,8 +667,8 @@ export const ProductUpdate = () => {
                                 value={product?.itemVariantType}
                                 options={itemTypes}
                                 allowEmpty={false}
-                                optionValue={"value"}
-                                optionLabel={"label"}
+                                optionValue={'value'}
+                                optionLabel={'label'}
                                 onChange={option => {
                                   handleFieldChange('itemVariantType', option.value);
                                 }}
@@ -700,17 +694,6 @@ export const ProductUpdate = () => {
                                   </Col>
                                   <Col md={'12'} className={'mt-2'}>
                                     <Row className={'mt-2'}>
-                                      {pricesModal?.show && pricesModal?.variantIndex !== null && (
-                                        <WholesalePrices
-                                          toggle={handleShowPricesModal}
-                                          isOpen={pricesModal?.show}
-                                          branchWholesalePrices={
-                                            product?.variants?.[pricesModal?.variantIndex]?.branchVariantDetails?.[pricesModal?.branchId]
-                                              ?.wholesalePrices
-                                          }
-                                          savePrices={handleSaveWholesalePrices}
-                                        />
-                                      )}
                                       {product?.variants?.map((variant, variantIndex) => (
                                         <Col md={'12'} key={variantIndex} className={'mt-2'}>
                                           <Accordion multiple>
@@ -805,13 +788,27 @@ export const ProductUpdate = () => {
 
                                               <Row>
                                                 <Col md="7">
+                                                  <div className={'d-flex flex-column gap-2 mt-3'}>
+                                                    <label className={'font-semibold'}>
+                                                      <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
+                                                    </label>
+                                                    <Select
+                                                      value={variant?.accountingGroups}
+                                                      isClearable
+                                                      options={profileGroupsOptions}
+                                                      getOptionLabel={option => option.name}
+                                                      getOptionValue={option => option.id}
+                                                      onChange={profileGroup => handleVariantFieldChange(variantIndex,'accountingGroups', profileGroup ? [profileGroup] : [])}
+                                                    />
+                                                  </div>
+
                                                   <DiscountDropdown
                                                     discounts={variant.discounts}
                                                     handleVariantChange={handleVariantFieldChange}
                                                     variantIndex={variantIndex}
                                                   />
 
-                                                  <div className={'d-flex flex-column gap-2'}>
+                                                  <div className={'d-flex flex-column gap-2 mt-3'}>
                                                     <label className={'font-semibold'}>
                                                       <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                                     </label>
@@ -835,6 +832,7 @@ export const ProductUpdate = () => {
                                                 branchVariantDetails={variant.branchVariantDetails}
                                                 itemVariantType={'RETAIL'}
                                                 handleHideItemPerBranch={handleHideItemPerBranch}
+                                                handleSaveWholesalePrices={handleSaveWholesalePrices}
                                               />
                                             </AccordionTab>
                                           </Accordion>

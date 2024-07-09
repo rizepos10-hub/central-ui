@@ -265,26 +265,26 @@ export const PurchaseOrder = () => {
         onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
       >
         <Column field="id" header={translate('tempApp.purchaseOrder.view.table.fields.id')} body={idColumnTemplate} filter
-                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.id')}  sortable  />
+                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.id')}    />
 
         <Column field="datePlaced" header={translate('tempApp.purchaseOrder.view.table.fields.datePlaced')} filter
                 body={(rowData) => rowData?.datePlaced?.split("T")?.[0]}  showFilterMenu={false}
                 filterElement={<Calendar  value={new Date(query?.filters?.datePlaced?.value)} onChange={(e) => handleFilterDateChange(e, 'datePlaced')}  />}
-                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.datePlaced')}  sortable  />
+                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.datePlaced')}    />
 
         <Column field="dateDelivered" header={translate('tempApp.purchaseOrder.view.table.fields.dateDelivered')}
                 body={(rowData) => rowData?.dateDelivered?.split("T")?.[0]} filter showFilterMenu={false}
                 filterElement={<Calendar  value={query?.filters?.dateDelivered?.value} onChange={(e) => handleFilterDateChange(e, 'dateDelivered')}  />}
-                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.dateDelivered')}  sortable  />
+                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.dateDelivered')}    />
 
         <Column field="warehouse.name" header={translate('tempApp.purchaseOrder.view.table.fields.warehouse')} filter showFilterMenu={false}
-                filterElement={() => filterTemplate("warehouse")}   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.warehouse')}  sortable  />
+                filterElement={() => filterTemplate("warehouse")}   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.warehouse')}    />
 
         <Column field="supplier.name" header={translate('tempApp.purchaseOrder.view.table.fields.supplier')} filter showFilterMenu={false}
-                filterElement={() => filterTemplate("supplier")}   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.supplier')}  sortable  />
+                filterElement={() => filterTemplate("supplier")}   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.supplier')}    />
 
         <Column field="status" header={translate('tempApp.purchaseOrder.view.table.fields.status')} filter showFilterMenu={false}
-                filterElement={() => filterTemplate("status")}  body={statusBodyTemplate}  sortable  />
+                filterElement={() => filterTemplate("status")}  body={statusBodyTemplate}    />
 
         <Column header={translate('tempApp.purchaseOrder.view.table.fields.actions')}  body={actionsColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                 bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />

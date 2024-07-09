@@ -27,6 +27,8 @@ import MenuScreens from './components/menu-screens';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import MenuUpdate from './menu-update';
+import { Dialog } from "primereact/dialog";
+import Visibility from "app/shared/Visibility/Visibility";
 
 const MenuInstance = () => {
     const dispatch = useAppDispatch();
@@ -44,10 +46,8 @@ const MenuInstance = () => {
 
     // const [totalPages, setTotalPages] = useState<number>(0)
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showVisibility, setShowVisibility] = useState(false);
     const [selectedBranches, setSelectedBranches] = useState<any>();
-    const [itemsToExclude, setItemsToExclude] = useState<IItem[]>([]);
-    const [itemsToInclude, setItemsToInclude] = useState<IItem[]>([]);
-    const [itemType, setItemType] = useState<"RETAIL" | "RESTAURANT">("RETAIL")
     const [selectedName, setSelectedName] = useState("");
 
     const [data, setData]: any = useState({
@@ -55,9 +55,6 @@ const MenuInstance = () => {
         branch: '',
         menuScreens: [],
     });
-    const [paginationState, setPaginationState] = useState(
-        overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-    );
 
     const searchParams = new URLSearchParams(location.search)
     useEffect(() => {
@@ -78,13 +75,11 @@ const MenuInstance = () => {
                 name: menuEntity.name,
                 branch: menuEntity.branch,
                 menuScreens: menuEntity.menuScreens,
+                visibilities: menuEntity.visibilities
             };
             setData(newData);
         }
 
-        if (menuEntity?.itemType) {
-            setItemType(menuEntity.itemType)
-        }
         if (menuEntity?.branch) {
             setSelectedBranches({ label: menuEntity?.branch?.name, value: menuEntity?.branch?.id })
         }
@@ -101,21 +96,19 @@ const MenuInstance = () => {
     } = { type: menuEntity.type }) => {
         const entity = {
             ...menuEntity,
-            itemType,
             type: type || menuEntity.type,
-            items: [],
-            excludedItems: itemsToExclude.filter(exclude => !itemsToInclude.some(include => include.id === exclude.id)).map(item => ({ id: item.id })),
             menuScreens: data.menuScreens,
             name: selectedName,
             branch: {
                 id: selectedBranches.value
             },
+            visibilities: data.visibilities
         };
 
         if (isNew) {
-            dispatch(createEntity(entity));
+            dispatch(createEntity(entity)).then(() => dispatch(getEntity({ id })));
         } else {
-            dispatch(updateEntity(entity));
+            dispatch(updateEntity(entity)).then(() => dispatch(getEntity({ id })));
         }
         setIsModalOpen(false)
     };
@@ -134,7 +127,7 @@ const MenuInstance = () => {
     };
 
     const handleTransferToPOSAction = () => {
-        const isConfirmed = window.confirm('Are you sure you want to duplicate this menu?');
+        const isConfirmed = window.confirm('Are you sure you want to transfer this menu to POS?');
 
         if (isConfirmed) {
             if (menuEntity.type === 'ONLINE_ORDERING') {
@@ -145,30 +138,6 @@ const MenuInstance = () => {
                 navigate(`/menu/${menuEntity.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
             }
         }
-    }
-
-    const handleExcludeItemFromMenu = (itemId) => {
-        const itemToExclude = menuEntity.items.find(item => item.id === itemId);
-        if (itemsToExclude.some(item => item.id === itemId)) {
-            setItemsToExclude(prevItems => prevItems.filter(item => item.id !== itemId));
-            return;
-        }
-        if (!itemToExclude) {
-            return;
-        }
-        setItemsToExclude(prev => [...prev, itemToExclude]);
-    }
-
-    const handleIncludeItemFromMenu = (itemId) => {
-        const itemToInclude = menuEntity.excludedItems.find(item => item.id === itemId);
-        if (itemsToInclude.some(item => item.id === itemId)) {
-            setItemsToInclude(prevItems => prevItems.filter(item => item.id !== itemId));
-            return;
-        }
-        if (!itemToInclude) {
-            return;
-        }
-        setItemsToInclude(prev => [...prev, itemToInclude]);
     }
 
     return (
@@ -182,8 +151,6 @@ const MenuInstance = () => {
                     updating={updating}
                     selectedBranches={selectedBranches}
                     setSelectedBranches={setSelectedBranches}
-                    itemType={itemType}
-                    setItemType={setItemType}
                     selectedName={selectedName}
                     setSelectedName={setSelectedName}
                 />
@@ -208,11 +175,7 @@ const MenuInstance = () => {
                                 {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
                             </p>
                         </div>
-                        <div className="col-2">
-                            <p className="text-muted">Layout</p>
-                            <p className="fs-5 fw-semibold">{menuEntity.itemType}</p>
-                        </div>
-                        <div className="col-3 mt-3 mt-md-0 d-flex gap-2">
+                        <div className="col-5 mt-3 mt-md-0 d-flex gap-2">
                             <PrimeButton label="Edit" className="p-button-outlined p-1" onClick={() => setIsModalOpen(prev => !prev)} style={{
                                 height: '2.5rem',
                             }} />
@@ -225,47 +188,35 @@ const MenuInstance = () => {
                             <PrimeButton label={`Transfer to ${menuEntity.type === 'POS' ? 'Online Ordering' : 'POS'}`} className="p-button-secondary p-1" onClick={handleTransferToPOSAction} style={{
                                 height: '2.5rem',
                             }} />
+
+                            <PrimeButton label={`Visibility`} className="p-button-secondary p-1" onClick={() => setShowVisibility(prev => !prev)} style={{
+                                height: '2.5rem',
+                            }} />
+                            <Dialog
+                              visible={showVisibility}
+                              style={{ width: '50vw' }}
+                              onHide={() => setShowVisibility(false)}
+                            >
+                                <Visibility
+                                  initialState={data.visibilities}
+                                  title={"Menu Visibility"}
+                                  onStateChanged={(visibilities) => setData(prev => {
+                                      return { ...prev, visibilities }
+                                  })}
+                                />
+                            </Dialog>
                         </div>
                     </div>
                 </div>
-                {menuEntity.itemType === 'RETAIL' ? (
-                    <TabView>
-                        <TabPanel header="Items">
-                            <MenuTable
-                                items={menuEntity.items || []}
-                                menuCategories={menuCategories}
-                                saveItems={() => saveEntity()}
-                                handleCheckboxChange={handleExcludeItemFromMenu}
-                                checkedItems={itemsToExclude}
-                                branchId={menuEntity.branch?.id}
-                                type="Excluded"
-                            // totalPages={totalPages}
-                            />
-                        </TabPanel>
-                        <TabPanel header="Excluded Items">
-                            <MenuTable
-                                items={menuEntity.excludedItems || []}
-                                menuCategories={menuCategories}
-                                saveItems={() => saveEntity()}
-                                handleCheckboxChange={handleIncludeItemFromMenu}
-                                checkedItems={itemsToInclude}
-                                branchId={menuEntity.branch?.id}
-                                type="Included"
-                            // totalPages={totalPages}
-                            />
-                        </TabPanel>
-                    </TabView>
-                ) : menuEntity.itemType === 'RESTAURANT' && (
-                    <MenuScreens
-                        menu={menuEntity}
-                        data={data}
-                        setData={setData}
-                        saveEntity={saveEntity}
-                        reset={reset}
-                        loading={loading}
-                        updating={updating}
-                    />
-                )}
+                <MenuScreens
+                    menu={menuEntity}
+                    data={data}
+                    setData={setData}
+                    saveEntity={saveEntity}
+                    reset={reset}
+                    loading={loading}
+                    updating={updating}
+                />
             </div>
         </div >
     )

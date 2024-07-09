@@ -4,6 +4,9 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 
 import { IProduct, defaultValue } from "app/shared/model/ITEM/retail/product.model";
+import { IVariableItem } from "app/shared/model/ITEM/retail/variable-item.model";
+import { cleanEntity } from "app/shared/util/entity-utils";
+import { ISimpleItem } from "app/shared/model/ITEM/retail/simple-item.model";
 const initialState: EntityState<IProduct> = {
   loading: false,
   errorMessage: null,
@@ -33,6 +36,36 @@ export const getEntity = createAsyncThunk(
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
     return axios.get<IProduct>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const createEntity = createAsyncThunk(
+  'product/create_entity',
+  async (entity: IProduct, thunkAPI) => {
+    const result = await axios.post<IProduct>(apiUrl, cleanEntity(entity));
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const updateEntity = createAsyncThunk(
+  'product/update_entity',
+  async (entity: IProduct, thunkAPI) => {
+    const result = await axios.put<IProduct>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+    thunkAPI.dispatch(getEntity(entity.id));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const partialUpdateEntity = createAsyncThunk(
+  'product/partial_update_entity',
+  async (entity: IProduct, thunkAPI) => {
+    const result = await axios.patch<IProduct>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+    thunkAPI.dispatch(getEntities({}));
+    return result;
   },
   { serializeError: serializeAxiosError }
 );
@@ -75,12 +108,18 @@ export const ProductSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+        state.updating = false;
+        state.loading = false;
+        state.updateSuccess = true;
+        state.entity = action.payload.data;
+      })
       .addMatcher(isPending(getEntities, getEntity, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending( deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
