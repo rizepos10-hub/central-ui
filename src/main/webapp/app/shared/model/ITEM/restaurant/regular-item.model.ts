@@ -5,6 +5,7 @@ import {IBranch} from "app/shared/model/branch.model";
 import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
 import { IAddon } from "app/shared/model/ADDON/addon.model";
 import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
+import { IMenu } from "../../menu.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -29,6 +30,7 @@ export interface IRegularItemVariant {
 
 export interface IRegularItem extends IItem{
   variants?: IRegularItemVariant[];
+  menus?: IMenu[];
 }
 
 export const defaultValue: Readonly<IRegularItem> = {};

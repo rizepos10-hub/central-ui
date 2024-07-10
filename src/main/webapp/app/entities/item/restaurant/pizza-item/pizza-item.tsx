@@ -115,6 +115,24 @@ export const PizzaItem = () => {
       </Link>
     );
   };
+
+  const MenusTemplate = (rowData) => {
+    const menus = []
+    rowData?.rowData?.menus?.forEach(menu => {
+      menus.push({
+        name: menu.name,
+        id: menu.id,
+        type: menu.type,
+      })
+    })
+
+    return <div>{menus.map((menu, idx) => (
+      <Link key={idx} to={`/menu/${menu.id}/${menu.type}/edit?page=1&sort=id,asc`}>
+        {menu.name} {idx === menus.length - 1 ? '' : ' | '}
+      </Link>
+    ))}</div>
+  };
+
   const handleCreate = () => {
     navigate('/restaurant/pizza/new')
   }
@@ -170,6 +188,11 @@ export const PizzaItem = () => {
               height={50}
               width={50}
             />} />
+                    
+          <Column header={translate('items.view.fields.menus')} body={(rowData) =>
+            <MenusTemplate rowData={rowData} />}
+          />
+        
           <Column field="desc" header={translate('items.view.fields.description')} />
 
           <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
