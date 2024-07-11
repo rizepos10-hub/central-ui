@@ -434,7 +434,8 @@ export const ProductUpdate = () => {
           salePrice: null,
           branchVariantDetails: {},
           attributeValues: {},
-          specialPrices: { ...defaultSpecialPrices }
+          specialPrices: { ...defaultSpecialPrices },
+          createdDate: new Date().toISOString(),
         },
       ],
     }));
@@ -493,7 +494,7 @@ export const ProductUpdate = () => {
     if (!isNew) {
       setProduct({
         ...productEntity,
-        variants: productEntity?.variants?.slice()?.sort((a, b) => a.id.localeCompare(b.id)),
+        variants: productEntity?.variants?.slice()?.sort((a, b) => a?.createdDate?.localeCompare(b?.createdDate)),
       });
     }
     const productId = productEntity?.id
@@ -622,10 +623,6 @@ export const ProductUpdate = () => {
   if (loading) {
     return <Spinner />
   }
-
-  const sortedVariants = [...(product?.variants || [])].sort((a, b) => {
-    return a.id.localeCompare(b.id);
-  });
 
 
   return (

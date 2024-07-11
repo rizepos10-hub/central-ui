@@ -136,6 +136,7 @@ export const RegularItemUpdate = () => {
           salePrice: null,
           branchVariantDetails: {},
           attributeValues: {},
+          createdDate: new Date().toISOString(),
         },
       ],
     }));
@@ -178,7 +179,8 @@ export const RegularItemUpdate = () => {
     if (!isNew) {
       setRegularItem({
         ...regularItemEntity,
-        variants: regularItemEntity?.variants?.slice()?.sort((a, b) => a.id.localeCompare(b.id)),
+        variants: regularItemEntity?.variants?.slice()?.sort((a, b) => a?.createdDate?.localeCompare(b?.createdDate)),
+
       });
     }
 
