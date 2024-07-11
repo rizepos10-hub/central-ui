@@ -155,7 +155,7 @@ export const CustomerUpdate = () => {
                       id="customer-firstName"
                       value={customerEntity?.firstName || null}
                       onChange={e => dispatch(changeEntityField({ name: 'firstName', value: e.target.value }))}
-                      required
+                      required={!customerEntity?.businessDetails?.businessName}
                     />
                   </div>
 
@@ -165,7 +165,6 @@ export const CustomerUpdate = () => {
                       id="customer-lastName"
                       value={customerEntity?.lastName || null}
                       onChange={e => dispatch(changeEntityField({ name: 'lastName', value: e.target.value }))}
-                      required
                     />
                   </div>
 
@@ -175,7 +174,6 @@ export const CustomerUpdate = () => {
                       id="customer-phone"
                       value={customerEntity?.phone || null}
                       onChange={e => dispatch(changeEntityField({ name: 'phone', value: e.target.value }))}
-                      required
                     />
                   </div>
 
@@ -203,7 +201,6 @@ export const CustomerUpdate = () => {
                       id="customer-email"
                       value={customerEntity?.email || null}
                       onChange={e => dispatch(changeEntityField({ name: 'email', value: e.target.value }))}
-                      required
                     />
                   </div>
 
@@ -224,6 +221,7 @@ export const CustomerUpdate = () => {
                         ...customerEntity.businessDetails,
                           businessName: e.target.value
                         }}))}
+                      required={!customerEntity?.firstName}
                     />
                   </div>
                     </>
