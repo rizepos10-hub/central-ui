@@ -19,7 +19,7 @@ import Attachment from "app/shared/components/attachment/attachment";
 import { InputText } from 'primereact/inputtext';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
-import Tiptap from 'app/shared/components/tiptap/tiptap';
+import { Editor } from 'primereact/editor';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -52,6 +52,25 @@ export const UiSettingsUpdate = () => {
     e.preventDefault();
     dispatch(updateEntity(UiSettingsEntity));
   };
+
+  const quillHeader = (
+    <span className="ql-formats">
+      <select className="ql-size">
+        <option value="small"></option>
+        <option selected></option>
+        <option value="large"></option>
+        <option value="huge"></option>
+      </select>
+      <button className="ql-bold"></button>
+      <button className="ql-italic"></button>
+      <button className="ql-underline"></button>
+      <select className="ql-color"></select>
+      <button className="ql-align" value=""></button>
+      <button className="ql-align" value="center"></button>
+      <button className="ql-align" value="right"></button>
+      <button className="ql-list" value="bullet"></button>
+    </span>
+  );
 
   return (
     <div>
@@ -254,14 +273,13 @@ export const UiSettingsUpdate = () => {
                   <Label htmlFor="UiSettings-privacyPolicy">
                     <strong>{translate('tempApp.UiSettings.privacyPolicy')}</strong>
                   </Label>
-                  {/* <InputText
-                    id="UiSettings-privacyPolicy"
+                  <Editor
                     value={UiSettingsEntity.privacyPolicy || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'privacyPolicy', value: e.target.value }))}
-                  /> */}
-                  <Tiptap
-                    content={UiSettingsEntity.privacyPolicy || null}
-                    onChange={val => dispatch(changeEntityField({ name: 'privacyPolicy', value: val }))}
+                    onTextChange={e => dispatch(changeEntityField({ name: 'privacyPolicy', value: e.htmlValue }))}
+                    style={{
+                      minHeight: '400px',
+                    }}
+                    headerTemplate={quillHeader}
                   />
                 </div>
 

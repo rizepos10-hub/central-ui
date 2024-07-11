@@ -25,7 +25,7 @@ import {
 import { Accordion, AccordionTab } from "primereact/accordion";
 import AsyncSelect from "react-select/async";
 import { ItemVariantType } from "app/shared/model/ENUMS/item-variant-type.model";
-import { isEqual } from "lodash";
+import _, { isEqual } from "lodash";
 import Visibility from 'app/shared/Visibility/Visibility';
 import { TabPanel, TabView } from "primereact/tabview";
 import ItemStockTab from "app/shared/components/item/item-stock-tab";
@@ -434,7 +434,8 @@ export const ProductUpdate = () => {
           salePrice: null,
           branchVariantDetails: {},
           attributeValues: {},
-          specialPrices: { ...defaultSpecialPrices }
+          specialPrices: { ...defaultSpecialPrices },
+          createdDate: new Date().toISOString(),
         },
       ],
     }));
@@ -491,7 +492,10 @@ export const ProductUpdate = () => {
   useEffect(() => {
 
     if (!isNew) {
-      setProduct(productEntity);
+      setProduct({
+        ...productEntity,
+        variants: productEntity?.variants?.slice()?.sort((a, b) => a?.createdDate?.localeCompare(b?.createdDate)),
+      });
     }
     const productId = productEntity?.id
     if (updateSuccess) {
@@ -621,7 +625,6 @@ export const ProductUpdate = () => {
   }
 
 
-
   return (
     <form onSubmit={saveEntity} onKeyDown={preventEnterSubmit}>
       <div className={'d-flex row'}>
@@ -674,9 +677,138 @@ export const ProductUpdate = () => {
                                 }}
                               />
                             </div>
-                            {/*
-                             Showing the fields based on if the item is variable or single here.
-                             */}
+
+                            {/* Showing the fields based on if the item is variable or single here.*/}
+
+                            {isSingleItem && (
+                              <Row>
+                                <Col md="6">
+                                  <div className={'d-flex flex-column gap-2'}>
+                                    <label className={'font-semibold'}>
+                                      <Translate contentKey={'items.update.price'}>Price</Translate>
+                                    </label>
+                                    <InputNumber
+                                      name="price"
+                                      id="price"
+                                      required={true}
+                                      min={0}
+                                      maxFractionDigits={2}
+                                      inputClassName={'w-1'}
+                                      placeholder={translate('items.update.placeholders.itemPrice')}
+                                      value={product?.variants?.[0]?.price}
+                                      onChange={e => handleVariantFieldChange(0, 'price', e.value)}
+                                    />
+                                  </div>
+                                </Col>
+
+                                <Col md="6">
+                                  <div className={'d-flex flex-column gap-2'}>
+                                    <label className={'font-semibold'}>
+                                      <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                    </label>
+                                    <InputNumber
+                                      name="sale-price"
+                                      id="sale-price"
+                                      min={0}
+                                      maxFractionDigits={2}
+                                      placeholder={translate('items.update.placeholders.itemSalePrice')}
+                                      value={product?.variants?.[0]?.salePrice}
+                                      onChange={e => handleVariantFieldChange(0, 'salePrice', e.value)}
+                                    />
+                                  </div>
+                                </Col>
+
+                                <VariantBranchPrice
+                                  itemVariantType={'RETAIL'}
+                                  branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
+                                  variantIndex={0}
+                                  branchList={branchList}
+                                  handleBranchPriceChange={handleBranchPriceChange}
+                                  handleSaveWholesalePrices={handleSaveWholesalePrices}
+                                  handleHideItemPerBranch={handleHideItemPerBranch}
+                                />
+
+                                <Row>
+                                  <Col md="7">
+                                    <DiscountDropdown
+                                      discounts={product?.variants?.[0]?.discounts}
+                                      variantIndex={0}
+                                      handleVariantChange={handleVariantFieldChange}
+                                    />
+
+                                    <div className={'d-flex flex-column gap-2 mt-2'}>
+                                      <label className={'font-semibold'}>
+                                        <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                      </label>
+                                      <Select
+                                        value={product?.variants?.[0]?.mixAndMatchRule}
+                                        options={mixAndMatchRuleList}
+                                        getOptionLabel={option => option.name}
+                                        getOptionValue={option => option.id}
+                                        onChange={mixAndMatchRule => handleVariantFieldChange(0, 'mixAndMatchRule', mixAndMatchRule)}
+                                      />
+                                    </div>
+                                  </Col>
+                                </Row>
+                              </Row>
+                            )}
+
+                            <Row>
+                              <Col md="4">
+                                <div className={'d-flex flex-column gap-2'}>
+                                  <label className={'font-semibold'}>
+                                    <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
+                                  </label>
+                                  <Select
+                                    value={itemAttribute?.attributeTax || null}
+                                    options={filteredAvailableAttributes()}
+                                    isClearable
+                                    getOptionValue={option => option.id}
+                                    getOptionLabel={option => option.name}
+                                    onChange={attribute => handleItemAttributeSelect(attribute)}
+                                  />
+                                </div>
+                              </Col>
+
+                              <Col md="3">
+                                <PrimeButton
+                                  color="primary"
+                                  type="button"
+                                  disabled={isAttributeAddButtonDisabled}
+                                  className={'mt-5'}
+                                  onClick={handleAddAttribute}
+                                >
+                                  <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
+                                </PrimeButton>
+                              </Col>
+
+                              <Col md={'12'} className={'mt-2'}>
+                                <Accordion multiple>
+                                  {product?.attributes?.map((attribute, index) => (
+                                    <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
+                                      <div className={'d-flex gap-3'}>
+                                        <label className={'mt-2'}>
+                                          {translate('items.update.name')}: {attribute?.attributeTax?.name}
+                                        </label>
+                                        <Col md={'9'}>
+                                          <AsyncSelect
+                                            value={attribute?.attributeTerms}
+                                            isMulti
+                                            getOptionLabel={option => option.name}
+                                            getOptionValue={option => option.id}
+                                            onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
+                                            isLoading={loadingAttributesValues}
+                                            onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                                            defaultOptions={attributeValuesList}
+                                          />
+                                        </Col>
+                                      </div>
+                                    </AccordionTab>
+                                  ))}
+                                </Accordion>
+                              </Col>
+                            </Row>
+
                             <Row className={'mb-3'}>
                               {isVariableItem && (
                                 <Row>
@@ -694,7 +826,7 @@ export const ProductUpdate = () => {
                                   </Col>
                                   <Col md={'12'} className={'mt-2'}>
                                     <Row className={'mt-2'}>
-                                      {product?.variants?.map((variant, variantIndex) => (
+                                      {(product?.variants)?.map((variant, variantIndex) => (
                                         <Col md={'12'} key={variantIndex} className={'mt-2'}>
                                           <Accordion multiple>
                                             <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex}>
@@ -843,134 +975,8 @@ export const ProductUpdate = () => {
                                 </Row>
                               )}
 
-                              {isSingleItem && (
-                                <Row>
-                                  <Col md="6">
-                                    <div className={'d-flex flex-column gap-2'}>
-                                      <label className={'font-semibold'}>
-                                        <Translate contentKey={'items.update.price'}>Price</Translate>
-                                      </label>
-                                      <InputNumber
-                                        name="price"
-                                        id="price"
-                                        required={true}
-                                        min={0}
-                                        maxFractionDigits={2}
-                                        inputClassName={'w-1'}
-                                        placeholder={translate('items.update.placeholders.itemPrice')}
-                                        value={product?.variants?.[0]?.price}
-                                        onChange={e => handleVariantFieldChange(0, 'price', e.value)}
-                                      />
-                                    </div>
-                                  </Col>
 
-                                  <Col md="6">
-                                    <div className={'d-flex flex-column gap-2'}>
-                                      <label className={'font-semibold'}>
-                                        <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                                      </label>
-                                      <InputNumber
-                                        name="sale-price"
-                                        id="sale-price"
-                                        min={0}
-                                        maxFractionDigits={2}
-                                        placeholder={translate('items.update.placeholders.itemSalePrice')}
-                                        value={product?.variants?.[0]?.salePrice}
-                                        onChange={e => handleVariantFieldChange(0, 'salePrice', e.value)}
-                                      />
-                                    </div>
-                                  </Col>
 
-                                  <VariantBranchPrice
-                                    itemVariantType={'RETAIL'}
-                                    branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
-                                    variantIndex={0}
-                                    branchList={branchList}
-                                    handleBranchPriceChange={handleBranchPriceChange}
-                                    handleSaveWholesalePrices={handleSaveWholesalePrices}
-                                    handleHideItemPerBranch={handleHideItemPerBranch}
-                                  />
-
-                                  <Row>
-                                    <Col md="7">
-                                      <DiscountDropdown
-                                        discounts={product?.variants?.[0]?.discounts}
-                                        variantIndex={0}
-                                        handleVariantChange={handleVariantFieldChange}
-                                      />
-
-                                      <div className={'d-flex flex-column gap-2 mt-2'}>
-                                        <label className={'font-semibold'}>
-                                          <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
-                                        </label>
-                                        <Select
-                                          value={product?.variants?.[0]?.mixAndMatchRule}
-                                          options={mixAndMatchRuleList}
-                                          getOptionLabel={option => option.name}
-                                          getOptionValue={option => option.id}
-                                          onChange={mixAndMatchRule => handleVariantFieldChange(0, 'mixAndMatchRule', mixAndMatchRule)}
-                                        />
-                                      </div>
-                                    </Col>
-                                  </Row>
-                                </Row>
-                              )}
-
-                              <Row>
-                                <Col md="4">
-                                  <div className={'d-flex flex-column gap-2'}>
-                                    <label className={'font-semibold'}>
-                                      <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
-                                    </label>
-                                    <Select
-                                      value={itemAttribute?.attributeTax || null}
-                                      options={filteredAvailableAttributes()}
-                                      isClearable
-                                      getOptionValue={option => option.id}
-                                      getOptionLabel={option => option.name}
-                                      onChange={attribute => handleItemAttributeSelect(attribute)}
-                                    />
-                                  </div>
-                                </Col>
-
-                                <Col md="3">
-                                  <PrimeButton
-                                    color="primary"
-                                    type="button"
-                                    disabled={isAttributeAddButtonDisabled}
-                                    className={'mt-5'}
-                                    onClick={handleAddAttribute}
-                                  >
-                                    <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
-                                  </PrimeButton>
-                                </Col>
-
-                                <Col md={'12'} className={'mt-2'}>
-                                  <Accordion multiple>
-                                    {product?.attributes?.map((attribute, index) => (
-                                      <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
-                                        <div className={'d-flex gap-3'}>
-                                          <label className={'mt-2'}>
-                                            {translate('items.update.name')}: {attribute?.attributeTax?.name}
-                                          </label>
-                                          <Col md={'9'}>
-                                            <AsyncSelect
-                                              value={attribute?.attributeTerms}
-                                              isMulti
-                                              getOptionLabel={option => option.name}
-                                              getOptionValue={option => option.id}
-                                              onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
-                                              isLoading={loadingAttributesValues}
-                                              onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                                              defaultOptions={attributeValuesList}
-                                            />
-                                          </Col>
-                                        </div>
-                                      </AccordionTab>
-                                    ))}
-                                  </Accordion>
-                                </Col>
-                              </Row>
                             </Row>
                           </div>
                         </FormGroup>

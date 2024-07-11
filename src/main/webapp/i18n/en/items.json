@@ -19,6 +19,7 @@
         "id": "Id",
         "name": "Name",
         "image": "Image",
+        "menus": "Menus",
         "description": "Description",
         "inStock": "In Stock",
         "edit": "Edit",

@@ -248,7 +248,18 @@ export const Branches = () => {
   const saveEntity = () => {
     const entity: IBusinessDetail = {
       ...businessDetailEntity,
-      branchDetails: businessDetailsState?.branchDetails,
+      // change the coordinates sent inside every zone in the branches in the array
+      branchDetails: businessDetailsState?.branchDetails?.map(branch => {
+        return {
+          ...branch, zones: branch.zones?.map(zone => {
+            return {
+              ...zone, coordinates: zone.coordinates?.map(coordinate => {
+                return { x: coordinate.x, y: coordinate.y };
+              })
+            };
+          })
+        };
+      }),
     };
 
     if (isNew) {
@@ -387,7 +398,7 @@ export const Branches = () => {
                         gestureHandling={'greedy'}
                         disableDefaultUI={true}
                         onClick={(e) => handleGeocode(e, branchIndex)}
-                        center={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }}
+                        defaultCenter={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }}
                       >
                         <Marker position={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }} />
 
@@ -742,7 +753,7 @@ export const Branches = () => {
           </div>
         ))}
 
-        <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" disabled={updating} onClick={saveEntity} className='mt-2'>
+        <Button color="primary" id="save-entity" type='button' data-cy="entityCreateSaveButton" disabled={updating} onClick={saveEntity} className='mt-2'>
           <FontAwesomeIcon icon="save" />
           &nbsp;
           <Translate contentKey="entity.action.save">Save</Translate>
