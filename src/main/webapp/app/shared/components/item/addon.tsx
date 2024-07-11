@@ -115,6 +115,49 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
 
   return (
     <>
+      <Row>
+        <div className="">
+          <label className={'font-semibold'}>
+            <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
+          </label>
+          <div className="">
+            <Select
+              isMulti={true}
+              value={addonGroups?.map(group => ({
+                id: group?.addonGroup?.id,
+                name: group?.addonGroup?.name,
+              }))}
+              getOptionLabel={option => option?.name}
+              getOptionValue={option => option?.id}
+              options={addonGroupsOptions}
+              onChange={handleAddonGroupChange}
+            />
+          </div>
+          <Table>
+            <thead>
+              <tr>
+                <th>
+                  <Translate contentKey={'items.update.name'}>Name</Translate>
+                </th>
+                <th>
+                  <Translate contentKey={'items.update.required'}>Required</Translate>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {addonGroups?.map((group, index) => (
+                <tr key={index}>
+                  <td>{group?.addonGroup?.name}</td>
+                  <td>
+                    <Checkbox checked={group?.required} onChange={e => handleCheckboxChange(index)} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
+      </Row>
+
       <Row className={'my-3'}>
         <div className="row">
           <div className={'d-flex flex-row gap-4'}>
@@ -164,49 +207,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
           itemOptions={restaurantItemsOptions}
         />
       )}
-
-      <Row>
-        <div className="">
-          <label className={'font-semibold'}>
-            <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
-          </label>
-          <div className="">
-            <Select
-              isMulti={true}
-              value={addonGroups?.map(group => ({
-                id: group?.addonGroup?.id,
-                name: group?.addonGroup?.name,
-              }))}
-              getOptionLabel={option => option?.name}
-              getOptionValue={option => option?.id}
-              options={addonGroupsOptions}
-              onChange={handleAddonGroupChange}
-            />
-          </div>
-          <Table>
-            <thead>
-              <tr>
-                <th>
-                  <Translate contentKey={'items.update.name'}>Name</Translate>
-                </th>
-                <th>
-                  <Translate contentKey={'items.update.required'}>Required</Translate>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {addonGroups?.map((group, index) => (
-                <tr key={index}>
-                  <td>{group?.addonGroup?.name}</td>
-                  <td>
-                    <Checkbox checked={group?.required} onChange={e => handleCheckboxChange(index)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div>
-      </Row>
     </>
   );
 };
