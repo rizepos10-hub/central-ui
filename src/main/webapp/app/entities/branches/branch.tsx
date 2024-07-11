@@ -398,7 +398,7 @@ export const Branches = () => {
                         gestureHandling={'greedy'}
                         disableDefaultUI={true}
                         onClick={(e) => handleGeocode(e, branchIndex)}
-                        center={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }}
+                        defaultCenter={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }}
                       >
                         <Marker position={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }} />
 
