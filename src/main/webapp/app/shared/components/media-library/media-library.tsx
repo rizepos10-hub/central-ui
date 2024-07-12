@@ -22,94 +22,14 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     defaultValues
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false)
-    const [page, setPage] = useState<number>(0)
-    const [totalPages, setTotalPages] = useState<number>(0)
-    const [isLoading, setIsLoading] = useState<boolean>(false)
+
     const [selectedItems, setSelectedItems] = useState<Array<FileLibraryListItem>>([]);
-    const dispatch = useAppDispatch()
-
-    // const attachments: IAttachment[] = useAppSelector(state => state.attachment.entities);
-    const [attachments, setAttachments] = useState<IAttachment[]>([])
-    const memoizedAttachments = useMemo(() => attachments, [attachments]);
-
-
-    const fetchAttachments = (pageNumber: number) => {
-        setIsLoading(true)
-        dispatch(getEntities({
-            page: pageNumber,
-            size: sizePerPage,
-            sort: 'updatedAt,desc'
-        })).then(res => {
-            // @ts-expect-error -- unknown type ;
-            const newAttachments = res.payload.data as IAttachment[];
-            if (newAttachments.length > 0) {
-                const { headers } = res.payload as any;
-                const totalCount = headers['x-total-count']
-                if (headers['x-total-count']) {
-                    setTotalPages(Math.floor(totalCount / sizePerPage))
-                }
-                if (pageNumber === 0) {
-                    setAttachments(newAttachments)
-                } else {
-                    setAttachments(prev => [...prev, ...newAttachments])
-                }
-            }
-
-        }).finally(() => {
-            setIsLoading(false)
-        })
-    }
-
-    useEffect(() => {
-        if (attachments.length !== 0) {
-            fetchAttachments(page)
-        }
-    }, [page])
 
     useEffect(() => {
         if (defaultValues) {
             setSelectedItems(defaultValues)
         }
     }, [defaultValues]);
-
-    const handleLoadMore = () => {
-        setPage(prev => prev + 1)
-    }
-
-    const fileUploadCallback = async (file: File) => {
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            await dispatch(uploadImage(formData));
-            return true;
-        } catch (error) {
-            toast.error(error || 'Unknown error!');
-            return false;
-        }
-    }
-
-    const finishUploadCallback = () => {
-        setAttachments([]);
-    };
-
-    // fetch the images again with the new uploaded image
-    useEffect(() => {
-        if (attachments.length === 0) {
-            fetchAttachments(0)
-        }
-    }, [attachments]);
-
-    const filesSelectCallback = (files: FileLibraryListItem[]) => {
-        handleFilesSelectCallback(files)
-        setIsOpen(prev => !prev)
-    }
-
-    const filesDeleteCallback = async (files: FileLibraryListItem[]) => {
-        const idsToDelete = files.map(att => att._id) as IAttachment['id'][]
-        await dispatch(deleteEntities(idsToDelete))
-        fetchAttachments(0)
-    }
 
     return (
         <>
@@ -143,6 +63,134 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     </div>
                 ))}
             </div>
+            {isOpen && (
+                <MediaLibraryTest
+                    handleFilesSelectCallback={handleFilesSelectCallback}
+                    defaultValues={defaultValues}
+                    sizePerPage={sizePerPage}
+                    isOpen={isOpen}
+                    setIsOpen={setIsOpen}
+                    multiSelect={multiSelect}
+                    selectedItems={selectedItems}
+                    setSelectedItems={setSelectedItems}
+                />
+            )}
+        </>
+    )
+}
+
+const MediaLibraryTest = ({
+    handleFilesSelectCallback,
+    defaultValues,
+    sizePerPage,
+    isOpen,
+    setIsOpen,
+    multiSelect,
+    selectedItems,
+    setSelectedItems
+}: {
+    handleFilesSelectCallback: (files: FileLibraryListItem[]) => void;
+    defaultValues?: FileLibraryListItem[];
+    sizePerPage?: number;
+    isOpen: boolean;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    multiSelect?: boolean;
+    selectedItems: FileLibraryListItem[];
+    setSelectedItems: React.Dispatch<React.SetStateAction<FileLibraryListItem[]>>;
+}) => {
+    const [attachments, setAttachments] = useState<IAttachment[]>([])
+    const memoizedAttachments = useMemo(() => attachments, [attachments]);
+
+    const [page, setPage] = useState<number>(0)
+    const [totalPages, setTotalPages] = useState<number>(0)
+    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [searchValue, setSearchValue] = useState<string>('');
+    const dispatch = useAppDispatch()
+
+    const fetchAttachments = (pageNumber: number) => {
+        setIsLoading(true)
+        dispatch(getEntities({
+            page: pageNumber,
+            size: sizePerPage,
+            sort: 'updatedAt,desc',
+            name: searchValue
+        })).then(res => {
+            // @ts-expect-error -- unknown type ;
+            const newAttachments = res.payload.data as IAttachment[];
+            if (newAttachments.length > 0) {
+                const { headers } = res.payload as any;
+                const totalCount = headers['x-total-count']
+                if (headers['x-total-count']) {
+                    setTotalPages(Math.floor(totalCount / sizePerPage))
+                }
+                if (pageNumber === 0) {
+                    setAttachments(newAttachments)
+                } else {
+                    setAttachments(prev => [...prev, ...newAttachments])
+                }
+            }
+
+        }).finally(() => {
+            setIsLoading(false)
+        })
+    }
+    useEffect(() => {
+        if (attachments.length !== 0) {
+            fetchAttachments(page)
+        }
+    }, [page])
+
+    // fetch the images again with the new uploaded image
+    useEffect(() => {
+        if (attachments.length === 0) {
+            fetchAttachments(0)
+        }
+    }, [attachments]);
+
+    const filesSelectCallback = (files: FileLibraryListItem[]) => {
+        handleFilesSelectCallback(files)
+        setIsOpen(prev => !prev)
+    }
+
+    const filesDeleteCallback = async (files: FileLibraryListItem[]) => {
+        const idsToDelete = files.map(att => att._id) as IAttachment['id'][]
+        await dispatch(deleteEntities(idsToDelete))
+        fetchAttachments(0)
+    }
+
+    const handleLoadMore = () => {
+        setPage(prev => prev + 1)
+    }
+
+    const fileUploadCallback = async (file: File) => {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            await dispatch(uploadImage(formData));
+            return true;
+        } catch (error) {
+            toast.error(error || 'Unknown error!');
+            return false;
+        }
+    }
+
+    const finishUploadCallback = () => {
+        setAttachments([]);
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            fetchAttachments(0)
+        }, 500);
+
+        return () => {
+            clearTimeout(timeout);
+        }
+    }, [searchValue])
+
+    return (
+        <>
             <ReactMediaLibrary
                 fileLibraryList={
                     memoizedAttachments.map(item => ({
@@ -174,6 +222,17 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                 )}
                 selectedItems={selectedItems}
                 setSelectedItems={setSelectedItems}
+                topBarComponent={() => (
+                    <div className="d-flex align-items-center justify-content-center w-100 my-1">  
+                        <input
+                            type="text"
+                            placeholder="Search"
+                            className="p-1"
+                            onChange={(e) => setSearchValue(e.target.value)}
+                            value={searchValue}
+                        />
+                    </div>
+                )}
             />
         </>
     )
