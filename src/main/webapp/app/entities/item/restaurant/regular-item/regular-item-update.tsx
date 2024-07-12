@@ -221,8 +221,6 @@ export const RegularItemUpdate = () => {
     if (!isNew) {
       setRegularItem({
         ...regularItemEntity,
-        variants: regularItemEntity?.variants?.slice()?.sort((a, b) => a?.createdDate?.localeCompare(b?.createdDate)),
-
       });
     }
 
