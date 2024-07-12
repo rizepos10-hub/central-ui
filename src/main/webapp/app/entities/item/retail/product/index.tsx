@@ -4,8 +4,8 @@ import { Route } from 'react-router-dom';
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 
 import Product from './product';
-import ProductUpdate from "app/entities/item/retail/product/product-update";
-import ProductDeleteDialog from "app/entities/item/retail/product/product-delete-dialog";
+import ProductUpdate from 'app/entities/item/retail/product/product-update';
+import ProductDeleteDialog from 'app/entities/item/retail/product/product-delete-dialog';
 
 const AddonRoutes = () => (
   <ErrorBoundaryRoutes>

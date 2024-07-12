@@ -30,6 +30,7 @@ export interface IVariableItemVariant {
   id?: string | null;
   name?: string | null;
   attachments?: IAttachment[];
+  order?: number;
   discounts?: IDiscount[];
   accountingGroups?: IProfileGroup[];
   sku?: string;
