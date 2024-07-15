@@ -545,8 +545,20 @@ export const ProductUpdate = () => {
 
   const saveEntity = e => {
     e.preventDefault();
+
+    const updatedVariants =  product?.variants.map((variant, index) => {
+      if (index !== 0 && variant.order === 0) {
+        return {
+          ...variant,
+          order: index
+        };
+      }
+      return variant;
+    });
+
     const entity = {
       ...product,
+      variants: updatedVariants
     };
     console.table(entity)
     if (isNew) {
