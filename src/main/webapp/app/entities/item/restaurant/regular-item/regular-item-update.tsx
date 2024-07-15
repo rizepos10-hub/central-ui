@@ -235,8 +235,19 @@ export const RegularItemUpdate = () => {
   const saveEntity = e => {
     e.preventDefault();
 
+    const updatedVariants =  regularItem?.variants.map((variant, index) => {
+      if (index !== 0 && variant.order === 0) {
+        return {
+          ...variant,
+          order: index
+        };
+      }
+      return variant;
+    });
+
     const entity = {
       ...regularItem,
+      variants: updatedVariants
     };
 
     if (isNew) {
@@ -245,6 +256,7 @@ export const RegularItemUpdate = () => {
       dispatch(updateEntity(entity));
     }
   };
+
 
 
 
