@@ -20,6 +20,7 @@ export interface IRegularItemVariant {
   name?: string | null;
   attachments?: IAttachment[];
   accountingGroups?: IProfileGroup[];
+  order?: number;
   discounts?: IDiscount[];
   addons?: IAddon[];
   price?: number;
