@@ -340,12 +340,14 @@ export const ComboItemUpdate = () => {
 
                     <div className={`d-flex flex-column p-3  bg-white w-100`} >
 
-                      {isModalOpen ? <ComboItemSelection
+                      {isModalOpen ?
+                        <ComboItemSelection
                         isOpen={isModalOpen}
                         onAddItems={handleAddItems}
                         toggleModal={toggleModal}
                         comboPackages={comboItem?.variants?.[0]?.comboPackages}
-                      /> : null}
+                      />
+                        : null}
 
                       <SharedItemUpdate
                         item={comboItem}
