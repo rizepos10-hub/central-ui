@@ -19,6 +19,8 @@ type SharedAddonProps = {
   addonGroups: IItem['addonGroups'];
 };
 
+
+
 const initialState = {
   first: 0,
   rows: 1000,
@@ -32,6 +34,9 @@ const initialState = {
 };
 
 const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) => {
+
+  const currencySettingsEntity = useAppSelector(state => state.currencySettings.entity);
+
   const dispatch = useAppDispatch();
   const [openedAddonModal, setOpenedAddonModal] = useState(false);
   const [filterAddonState, setFilterAddonState] = useState(initialState);
@@ -184,7 +189,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                 isLoading={loadingAddonOptions}
                 isDisabled={loadingAddonOptions}
                 options={addonOptions}
-                getOptionLabel={option => option.name}
+                getOptionLabel={option => option.price ? `${option.name} ${option.price}` : option.name}
                 getOptionValue={option => option.id}
                 onChange={selectedAddons => onFieldChange('addons', selectedAddons as IAddon[])}
               />

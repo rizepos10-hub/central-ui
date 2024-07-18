@@ -41,9 +41,7 @@ const ComboItemSelection = ({isOpen,onAddItems,toggleModal, comboPackages}) => {
   const [activeCategory, setActiveCategory] = useState('');
 
   const { groupedMenuItems, itemMap } = useMemo(() => {
-    const itemsInComboPackages = comboPackages?.map((comboPackage: IComboPackage) => comboPackage?.item?.id);
-    const filteredItemsList = itemList.filter(item => !itemsInComboPackages?.includes(item.id))
-    const groupedItems = filteredItemsList.reduce((groups, item) => {
+    const groupedItems = itemList.reduce((groups, item) => {
       const categoryName = item.categories[0]?.name || 'Uncategorized';
       if (!groups[categoryName]) {
         groups[categoryName] = [];
@@ -52,12 +50,16 @@ const ComboItemSelection = ({isOpen,onAddItems,toggleModal, comboPackages}) => {
       return groups;
     }, {});
 
-    const itemMap = filteredItemsList.reduce((map, item) => {
+    const itemIdMap = itemList.reduce((map, item) => {
       map[item.id] = item;
       return map;
     }, {});
 
-    return { groupedMenuItems: groupedItems, itemMap: itemMap };
+    const sortedGroups = Object.entries(groupedItems)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
+
+    return { groupedMenuItems: sortedGroups,  itemMap: itemIdMap };
   }, [itemList]);
 
   const handleVariantSelection = (item, variant) => {
