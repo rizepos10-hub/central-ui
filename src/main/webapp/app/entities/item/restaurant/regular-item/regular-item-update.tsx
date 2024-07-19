@@ -66,6 +66,9 @@ export const RegularItemUpdate = () => {
     variants: []
   });
 
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
   const handleBackClick = () => {
     const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
     if (fromMenuId) {
@@ -142,6 +145,45 @@ export const RegularItemUpdate = () => {
     }));
   };
 
+  const handleDragOver = (event, index) => {
+    event.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+
+  const handleDrop = (droppedIndex: number) => {
+    if (draggedIndex === null || draggedIndex === droppedIndex) return;
+
+    const reorderedVariants = Array.from(regularItem.variants);
+    const [reorderedVariant] = reorderedVariants.splice(draggedIndex, 1);
+    reorderedVariants.splice(droppedIndex, 0, reorderedVariant);
+
+    const updatedVariants = reorderedVariants.map((variant, index) => {
+      if (index === droppedIndex) {
+        return { ...variant, order: droppedIndex };
+      } else if (index >= droppedIndex && index < draggedIndex) {
+        return { ...variant, order: index + 1 };
+      } else if (index <= droppedIndex && index > draggedIndex) {
+        return { ...variant, order: index - 1 };
+      } else {
+        return variant;
+      }
+    });
+
+    setRegularItem(prev =>({
+      ...prev,
+      variants: updatedVariants
+    }));
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+
 
   const handleNavigate = (RegularItemId) => {
     navigate(`/restaurant/regular/${RegularItemId}/edit` + location.search);
@@ -179,8 +221,6 @@ export const RegularItemUpdate = () => {
     if (!isNew) {
       setRegularItem({
         ...regularItemEntity,
-        variants: regularItemEntity?.variants?.slice()?.sort((a, b) => a?.createdDate?.localeCompare(b?.createdDate)),
-
       });
     }
 
@@ -195,8 +235,19 @@ export const RegularItemUpdate = () => {
   const saveEntity = e => {
     e.preventDefault();
 
+    const updatedVariants =  regularItem?.variants.map((variant, index) => {
+      if (index !== 0 && variant.order === 0) {
+        return {
+          ...variant,
+          order: index
+        };
+      }
+      return variant;
+    });
+
     const entity = {
       ...regularItem,
+      variants: updatedVariants
     };
 
     if (isNew) {
@@ -205,6 +256,7 @@ export const RegularItemUpdate = () => {
       dispatch(updateEntity(entity));
     }
   };
+
 
 
 
@@ -271,9 +323,18 @@ export const RegularItemUpdate = () => {
                             <Col md={'12'} className={'mt-2'}>
                               <Row className={'mt-2'}>
                                 {regularItem?.variants?.map((variant, variantIndex) => (
-                                  <div key={variantIndex} className={'mt-2'}>
-                                    <Accordion multiple className="p-0">
-                                      <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex}>
+                                  <div
+                                    key={variantIndex}
+                                    className={` mt-2 pi pi-bars p-draggable d-flex ${dragOverIndex === variantIndex && 'border-top border-primary'}`}
+                                    draggable
+                                    onDragStart={() => setDraggedIndex(variantIndex)}
+                                    onDragOver={e => handleDragOver(e, variantIndex)}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={() => handleDrop(variantIndex)}
+                                  >
+                                    <Accordion multiple className="p-0 flex-1 ml-1">
+                                      <i style={{ fontSize: '2.5rem' }} />
+                                      <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)}>
                                         <Row>
                                           <Col md="4">
                                             <div className={'d-flex flex-column gap-2 mt-2'}>
@@ -343,10 +404,15 @@ export const RegularItemUpdate = () => {
                                                 options={profileGroupsOptions}
                                                 getOptionLabel={option => option.name}
                                                 getOptionValue={option => option.id}
-                                                onChange={profileGroup => handleVariantFieldChange(variantIndex,'accountingGroups', profileGroup ? [profileGroup] : [])}
+                                                onChange={profileGroup =>
+                                                  handleVariantFieldChange(
+                                                    variantIndex,
+                                                    'accountingGroups',
+                                                    profileGroup ? [profileGroup] : []
+                                                  )
+                                                }
                                               />
                                             </div>
-
 
                                             <div className={'d-flex flex-column gap-2 mt-2'}>
                                               <label className={'font-semibold'}>

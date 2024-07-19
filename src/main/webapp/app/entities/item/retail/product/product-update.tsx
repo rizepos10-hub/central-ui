@@ -44,6 +44,7 @@ import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
 import { SelectButton } from "primereact/selectbutton";
 import { preventEnterSubmit } from "app/shared/util/form-utils";
+import { Column } from "primereact/column";
 
 
 const defaultItemPriceNumber = {
@@ -115,11 +116,8 @@ export const ProductUpdate = () => {
     attributeTerms: ITerm[];
   } | null>(null);
 
-  const [pricesModal, setPricesModal] = useState({
-    show: false,
-    branchId: '',
-    variantIndex: null
-  });
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
 
   const filteredAvailableAttributes = () => {
@@ -436,10 +434,50 @@ export const ProductUpdate = () => {
           attributeValues: {},
           specialPrices: { ...defaultSpecialPrices },
           createdDate: new Date().toISOString(),
+          order: prev.variants.length
         },
       ],
     }));
   };
+
+  const handleDragOver = (event, index) => {
+    event.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+
+  const handleDrop = (droppedIndex: number) => {
+    if (draggedIndex === null || draggedIndex === droppedIndex) return;
+
+    const reorderedVariants = Array.from(product.variants);
+    const [reorderedVariant] = reorderedVariants.splice(draggedIndex, 1);
+    reorderedVariants.splice(droppedIndex, 0, reorderedVariant);
+
+    const updatedVariants = reorderedVariants.map((variant, index) => {
+      if (index === droppedIndex) {
+        return { ...variant, order: droppedIndex };
+      } else if (index >= droppedIndex && index < draggedIndex) {
+        return { ...variant, order: index + 1 };
+      } else if (index <= droppedIndex && index > draggedIndex) {
+        return { ...variant, order: index - 1 };
+      } else {
+        return variant;
+      }
+    });
+
+    setProduct(prev => ({
+      ...prev,
+      variants: updatedVariants
+    }));
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+
 
 
 
@@ -494,7 +532,7 @@ export const ProductUpdate = () => {
     if (!isNew) {
       setProduct({
         ...productEntity,
-        variants: productEntity?.variants?.slice()?.sort((a, b) => a?.createdDate?.localeCompare(b?.createdDate)),
+        variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
       });
     }
     const productId = productEntity?.id
@@ -507,8 +545,20 @@ export const ProductUpdate = () => {
 
   const saveEntity = e => {
     e.preventDefault();
+
+    const updatedVariants =  product?.variants.map((variant, index) => {
+      if (index !== 0 && variant.order === 0) {
+        return {
+          ...variant,
+          order: index
+        };
+      }
+      return variant;
+    });
+
     const entity = {
       ...product,
+      variants: updatedVariants
     };
     console.table(entity)
     if (isNew) {
@@ -592,10 +642,13 @@ export const ProductUpdate = () => {
 
 
   const VariantAccordionHeader = (variantIndex) => (
-    <div onClick={(e) => {
+    <div
+      onClick={(e) => {
       e.preventDefault();
       e.stopPropagation()
-    }} className={"d-flex gap-3 ml-2"}>
+    }}
+      className={"d-flex gap-3 ml-2 p-draggable "}
+    >
       <label className={"mt-2"}><strong>{product?.variants?.[variantIndex]?.name}</strong></label>
       {product?.attributes?.map((attribute, index) => {
         return (
@@ -826,10 +879,22 @@ export const ProductUpdate = () => {
                                   </Col>
                                   <Col md={'12'} className={'mt-2'}>
                                     <Row className={'mt-2'}>
-                                      {(product?.variants)?.map((variant, variantIndex) => (
-                                        <Col md={'12'} key={variantIndex} className={'mt-2'}>
-                                          <Accordion multiple>
-                                            <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)} key={variantIndex}>
+                                      {product?.variants?.map((variant, variantIndex) => (
+                                        <Col
+                                          md={'12'}
+                                          key={variantIndex}
+                                          className={` mt-2 pi pi-bars p-draggable d-flex ${
+                                            dragOverIndex === variantIndex && 'border-top border-primary'
+                                          }`}
+                                          draggable
+                                          onDragStart={() => setDraggedIndex(variantIndex)}
+                                          onDragOver={e => handleDragOver(e, variantIndex)}
+                                          onDragLeave={handleDragLeave}
+                                          onDrop={() => handleDrop(variantIndex)}
+                                        >
+                                          <Accordion multiple className="flex-1 ml-1">
+                                            <i style={{ fontSize: '2.5rem' }} />
+                                            <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)}>
                                               <Row>
                                                 <Col md="4">
                                                   <div className={'d-flex flex-column gap-2 mt-2'}>
@@ -930,7 +995,13 @@ export const ProductUpdate = () => {
                                                       options={profileGroupsOptions}
                                                       getOptionLabel={option => option.name}
                                                       getOptionValue={option => option.id}
-                                                      onChange={profileGroup => handleVariantFieldChange(variantIndex,'accountingGroups', profileGroup ? [profileGroup] : [])}
+                                                      onChange={profileGroup =>
+                                                        handleVariantFieldChange(
+                                                          variantIndex,
+                                                          'accountingGroups',
+                                                          profileGroup ? [profileGroup] : []
+                                                        )
+                                                      }
                                                     />
                                                   </div>
 
@@ -974,9 +1045,6 @@ export const ProductUpdate = () => {
                                   </Col>
                                 </Row>
                               )}
-
-
-
                             </Row>
                           </div>
                         </FormGroup>
