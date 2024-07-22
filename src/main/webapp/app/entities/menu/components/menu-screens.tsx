@@ -335,7 +335,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             >
                                 <div className="d-flex flex-column p-1 cursor-pointer card p-3">
                                     <div className={'d-flex'}>
-                                        <span className="m-0">{item.componentType}</span>
+                                        <span className="m-0">{item?.componentType}</span>
                                         <div className="ml-auto">
                                             <MdModeEditOutline size={20} onClick={() => openEditModal(item, index, 'sub')} />
                                             &nbsp;
@@ -345,14 +345,14 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
                                     <div
                                         onClick={() => {
-                                            if (item.componentType === 'SUB_SCREENS') {
+                                            if (item?.componentType === 'SUB_SCREENS') {
                                                 handleNavigateToSubScreen(item);
                                             }
                                         }}
                                     >
-                                        <h4 className="m-0 mb-2">{item.name}</h4>
+                                        <h4 className="m-0 mb-2">{item?.name}</h4>
                                         <div className="d-flex align-items-center">
-                                            <Button style={{ backgroundColor: item.backgroundColor, width: '55px', height: '30px', marginRight: '10px' }} />
+                                            <Button style={{ backgroundColor: item?.backgroundColor, width: '55px', height: '30px', marginRight: '10px' }} />
                                         </div>
                                     </div>
                                 </div>
@@ -1081,9 +1081,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                 &nbsp;
                                                 <MdDeleteOutline size={20} color={'red'} onClick={() => handleRemoveMainScreen(index, mainScreen.name)} />
                                             </div>
-                                            <h5 className="m-0 mr-3 mb-2">{mainScreen.name}</h5>
+                                            <h5 className="m-0 mr-3 mb-2">{mainScreen?.name}</h5>
                                             <div className="d-flex flex-row justify-content-between">
-                                                <Button style={{ backgroundColor: mainScreen.backgroundColor, width: '55px', height: '30px' }} />
+                                                <Button style={{ backgroundColor: mainScreen?.backgroundColor, width: '55px', height: '30px' }} />
                                             </div>
                                         </div>
                                     </Card>
