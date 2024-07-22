@@ -208,7 +208,7 @@ export const Layout =  (props: ChildContainerProps) => {
         </div> }
         <div className={isAuthenticated ? 'layout-content-wrapper' : ''}>
         {isAuthenticated && <AppTopbar ref={topbarRef}/>}
-        <ToastContainer position={toast.POSITION.TOP_LEFT} className="toastify-container" toastClassName="toastify-toast" />
+        <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toastify-container" toastClassName="toastify-toast" />
           <ErrorBoundary>
             {/* <Header */}
             {/*   isAuthenticated={isAuthenticated} */}
