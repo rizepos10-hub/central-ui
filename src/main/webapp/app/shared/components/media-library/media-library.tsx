@@ -1,12 +1,15 @@
 import React, { ReactElement, useEffect, useMemo, useState } from 'react'
 import { FileLibrarySelectedItems, ReactMediaLibrary } from 'react-media-library-cloud-links'
-import { useAppDispatch, useAppSelector } from '../../../config/store';
+import { useAppDispatch } from '../../../config/store';
 import { deleteEntities, getEntities, uploadImage } from '../../../entities/attachment/attachment.reducer';
 import { IAttachment } from '../../model/attachment.model';
 import { toast } from 'react-toastify';
 import { FileLibraryListItem } from 'react-media-library-cloud-links';
 import { Card } from 'primereact/card';
+import { useDropzone } from 'react-dropzone'
+import { Spinner } from 'reactstrap';
 import { Button } from 'primereact/button';
+import { TiDelete } from "react-icons/ti";
 
 interface MediaLibraryProps {
     sizePerPage?: number
@@ -21,36 +24,84 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     handleFilesSelectCallback,
     defaultValues
 }) => {
-    const [isOpen, setIsOpen] = useState<boolean>(false)
-
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [attachments, setAttachments] = useState<IAttachment[]>([]);
     const [selectedItems, setSelectedItems] = useState<Array<FileLibraryListItem>>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+
+    const dispatch = useAppDispatch();
+
+    const onDrop = acceptedFiles => {
+        setAttachments(acceptedFiles);
+        fileUploadCallback(acceptedFiles);
+    };
+
+    const fileUploadCallback = async (files: File[]) => {
+        const formData = new FormData();
+
+        for (const file of files) {
+            formData.append('file', file);
+        }
+
+        try {
+            setLoading(true);
+            await dispatch(uploadImage(formData)).then((res) => {
+                const response = res.payload as any;
+                setAttachments([]);
+                setSelectedItems(files.map(file => ({
+                    _id: file.name,
+                    name: file.name,
+                    path: file.name,
+                    size: file.size,
+                    type: file.type,
+                    updatedAt: new Date().toISOString(),
+                    thumbnailUrl: response?.url,
+                })));
+            });
+            setLoading(false);
+            return true;
+        } catch (error) {
+            toast.error(error || 'Unknown error!');
+            setLoading(false);
+            return false;
+        }
+    };
+
+    const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
     useEffect(() => {
         if (defaultValues) {
-            setSelectedItems(defaultValues)
+            setSelectedItems(defaultValues);
         }
     }, [defaultValues]);
 
+    const handleClick = (e) => {
+        e.stopPropagation();
+        setIsOpen(prev => !prev);
+    };
+
+    const handleRemove = (index) => {
+        const newSelectedItems = selectedItems.filter((_, i) => i !== index);
+        setSelectedItems(newSelectedItems);
+        handleFilesSelectCallback(newSelectedItems);
+    };
+
     return (
         <>
-            <Button
-                onClick={() => setIsOpen(prev => !prev)}
-                type='button'
-                text
-                raised
-                style={{
-                    maxWidth: '120px',
-                    padding: '0.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
+            <div
+                {...getRootProps({
+                    onClick: handleClick
+                })}
+                className="dropzone p-5 border border-primary rounded"
+                style={{ textAlign: 'center' }}
             >
-                Select Media
-            </Button>
+                <input {...getInputProps()} />
+                <p>Drag n drop some files here, or click to open the media library</p>
+                {loading && <Spinner style={{ width: '3rem', height: '3rem' }} />}
+            </div>
             <div className="d-flex flex-wrap gap-3 my-3">
                 {selectedItems.map((item, index) => (
-                    <div key={index}>
+                    <div key={index} style={{ position: 'relative' }}>
                         <img
                             src={item.thumbnailUrl}
                             alt={item.name}
@@ -59,6 +110,16 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                                 maxWidth: '100px',
                                 maxHeight: '100px',
                             }}
+                        />
+                        <TiDelete
+                            onClick={() => handleRemove(index)}
+                            style={{
+                                position: 'absolute',
+                                top: '-0.5rem',
+                                right: '-0.5rem'
+                            }}
+                            className='cursor-pointer text-bg-light'
+                            size={20}
                         />
                     </div>
                 ))}
@@ -73,11 +134,13 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     multiSelect={multiSelect}
                     selectedItems={selectedItems}
                     setSelectedItems={setSelectedItems}
+                    attachments={attachments}
+                    setAttachments={setAttachments}
                 />
             )}
         </>
-    )
-}
+    );
+};
 
 const MediaLibraryTest = ({
     handleFilesSelectCallback,
@@ -87,7 +150,9 @@ const MediaLibraryTest = ({
     setIsOpen,
     multiSelect,
     selectedItems,
-    setSelectedItems
+    setSelectedItems,
+    attachments,
+    setAttachments
 }: {
     handleFilesSelectCallback: (files: FileLibraryListItem[]) => void;
     defaultValues?: FileLibraryListItem[];
@@ -97,8 +162,9 @@ const MediaLibraryTest = ({
     multiSelect?: boolean;
     selectedItems: FileLibraryListItem[];
     setSelectedItems: React.Dispatch<React.SetStateAction<FileLibraryListItem[]>>;
+    attachments: IAttachment[];
+    setAttachments: React.Dispatch<React.SetStateAction<IAttachment[]>>;
 }) => {
-    const [attachments, setAttachments] = useState<IAttachment[]>([])
     const memoizedAttachments = useMemo(() => attachments, [attachments]);
 
     const [page, setPage] = useState<number>(0)
@@ -148,6 +214,7 @@ const MediaLibraryTest = ({
     }, [attachments]);
 
     const filesSelectCallback = (files: FileLibraryListItem[]) => {
+        setSelectedItems(files)
         handleFilesSelectCallback(files)
         setIsOpen(prev => !prev)
     }
@@ -223,7 +290,7 @@ const MediaLibraryTest = ({
                 selectedItems={selectedItems}
                 setSelectedItems={setSelectedItems}
                 topBarComponent={() => (
-                    <div className="d-flex align-items-center justify-content-center w-100 my-1">  
+                    <div className="d-flex align-items-center justify-content-center w-100 my-1">
                         <input
                             type="text"
                             placeholder="Search"
