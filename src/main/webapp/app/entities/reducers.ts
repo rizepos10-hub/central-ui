@@ -54,6 +54,7 @@ import allItems from 'app/entities/item/all-items.reducer';
 import itemMeasure from 'app/entities/item-measure/item-measure.reducer'
 import product from 'app/entities/item/retail/product/product.reducer';
 import zones from "app/entities/settings/zones/zones.reducer"
+import variant from "app/entities/variant/variant.reducer";
 
 import tv from "app/entities/settings/tv-config/tv/tv.reducer"
 import tvDisplay from "app/entities/settings/tv-config/tv-display/tv-display.reducer"
@@ -147,6 +148,7 @@ const entitiesReducers = {
   till,
   brand,
   zones,
+  variant,
   ...onlineOrderingReducers
 
 
