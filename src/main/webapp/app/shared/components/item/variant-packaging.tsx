@@ -22,7 +22,7 @@ const VariantPackaging = ({
     variant: IVariableItemVariant;
     handleVariantFieldChange: any;
 }) => {
-    const [showInputs, setShowInputs] = useState<boolean>(variant?.variantPackage?.variantId ? true : false);
+    const [showInputs, setShowInputs] = useState<boolean>(variant?.variantPackage ? true : false);
 
     const dispatch = useAppDispatch();
 
@@ -46,7 +46,7 @@ const VariantPackaging = ({
     };
 
     const handleDeleteInput = () => {
-        handleVariantFieldChange(variantIndex, 'variantPackage', {})
+        handleVariantFieldChange(variantIndex, 'variantPackage', null)
         setShowInputs(false)
     }
 
