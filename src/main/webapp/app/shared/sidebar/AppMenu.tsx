@@ -435,6 +435,10 @@ const AppMenu = () => {
           to: '/analytics/shift-report',
         },
         {
+          label: 'Employee Hours',
+          to: '/analytics/employee-hours-report',
+        },
+        {
           label: 'Shift Closures',
           to: '/analytics/shift-closure',
         },
