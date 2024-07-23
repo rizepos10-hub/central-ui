@@ -45,7 +45,7 @@ import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item
 import { SelectButton } from "primereact/selectbutton";
 import { preventEnterSubmit } from "app/shared/util/form-utils";
 import { Column } from "primereact/column";
-
+import { getEntities as getVariants } from "app/entities/variant/variant.reducer";
 
 const defaultItemPriceNumber = {
   "PRICE_1": null,
@@ -67,7 +67,7 @@ const itemTypes = [
   },
   {
     label: "RETAIL VARIABLE",
-    value:   ItemVariantType.RETAIL_VARIABLE,
+    value: ItemVariantType.RETAIL_VARIABLE,
   }
 ]
 
@@ -88,6 +88,7 @@ export const ProductUpdate = () => {
   const discountList = useAppSelector(state => state.discount.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
+  const variantsList = useAppSelector(state => state.variant.entities);
 
   const location = useLocation();
 
@@ -181,6 +182,18 @@ export const ProductUpdate = () => {
       };
     });
   };
+
+  // variantPackage is like this 
+  // variantPackage: [ 
+  //   { 
+  //     variant: {  
+  //       id: '1',  
+  //       name: 'Variant 1',  
+  //       ...
+  //     },  
+  //     quantity: 1,
+  //  }
+
 
   const addImage = (variantIndex, files) => {
     handleVariantFieldChange(variantIndex, 'attachments', transformAttachmentStructure(files, 'toIAttachment'));
@@ -546,7 +559,7 @@ export const ProductUpdate = () => {
   const saveEntity = e => {
     e.preventDefault();
 
-    const updatedVariants =  product?.variants.map((variant, index) => {
+    const updatedVariants = product?.variants.map((variant, index) => {
       if (index !== 0 && variant.order === 0) {
         return {
           ...variant,
@@ -644,9 +657,9 @@ export const ProductUpdate = () => {
   const VariantAccordionHeader = (variantIndex) => (
     <div
       onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation()
-    }}
+        e.preventDefault();
+        e.stopPropagation()
+      }}
       className={"d-flex gap-3 ml-2 p-draggable "}
     >
       <label className={"mt-2"}><strong>{product?.variants?.[variantIndex]?.name}</strong></label>
@@ -670,7 +683,24 @@ export const ProductUpdate = () => {
     </div>
   )
 
+  const loadVariantOptions = async (inputValue) => {
+    if (!inputValue) return [];
 
+    try {
+      const response = await dispatch(getVariants({
+        query: inputValue,
+      }));
+      const payload = response.payload as any;
+      const data = payload?.data;
+      return data?.map(item => ({
+        variantId: item?.id,
+        name: item?.name
+      }))
+    } catch (error) {
+      console.error('Error loading options:', error);
+      return [];
+    }
+  };
 
 
   if (loading) {
@@ -883,9 +913,8 @@ export const ProductUpdate = () => {
                                         <Col
                                           md={'12'}
                                           key={variantIndex}
-                                          className={` mt-2 pi pi-bars p-draggable d-flex ${
-                                            dragOverIndex === variantIndex && 'border-top border-primary'
-                                          }`}
+                                          className={` mt-2 pi pi-bars p-draggable d-flex ${dragOverIndex === variantIndex && 'border-top border-primary'
+                                            }`}
                                           draggable
                                           onDragStart={() => setDraggedIndex(variantIndex)}
                                           onDragOver={e => handleDragOver(e, variantIndex)}
@@ -984,7 +1013,7 @@ export const ProductUpdate = () => {
                                               </Row>
 
                                               <Row>
-                                                <Col md="7">
+                                                <Col md="12">
                                                   <div className={'d-flex flex-column gap-2 mt-3'}>
                                                     <label className={'font-semibold'}>
                                                       <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
@@ -1024,6 +1053,49 @@ export const ProductUpdate = () => {
                                                         handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)
                                                       }
                                                     />
+                                                  </div>
+                                                  <div className={'d-flex flex-column gap-2 mt-2 w-100'}>
+                                                    <label className={'font-semibold'}>
+                                                      <Translate contentKey={'items.update.variantPackage.title'}>Packaging</Translate>
+                                                    </label>
+                                                    <div className='d-flex gap-2'>
+                                                      <div className={'d-flex flex-column gap-2 w-100'}>
+                                                        <label className={'font-semibold'}>
+                                                          <Translate contentKey={'items.update.variantPackage.variant'}>Variant</Translate>
+                                                        </label>
+                                                        <AsyncSelect
+                                                          value={variant?.variantPackage}
+                                                          defaultOptions
+                                                          getOptionLabel={option => option.name}
+                                                          getOptionValue={option => option.variantId}
+                                                          loadOptions={loadVariantOptions}
+                                                          className="w-100"
+                                                          cacheOptions
+                                                          onChange={(val) => {
+                                                            handleVariantFieldChange(variantIndex, 'variantPackage', {
+                                                              ...variant?.variantPackage,
+                                                              variantId: val?.variantId,
+                                                              name: val?.name
+                                                            })
+                                                          }}
+                                                        />
+                                                      </div>
+                                                      <div className={'d-flex flex-column gap-2 w-100'}>
+                                                        <label className={'font-semibold'}>
+                                                          <Translate contentKey={'items.update.variantPackage.quantity'}>Quantity</Translate>
+                                                        </label>
+                                                        <InputNumber
+                                                          onChange={(e) => handleVariantFieldChange(variantIndex, 'variantPackage', {
+                                                            ...variant?.variantPackage,
+                                                            quantity: e.value
+                                                          })}
+                                                          value={variant?.variantPackage?.quantity || 1}
+                                                          style={{
+                                                            height: '2.5rem'
+                                                          }}
+                                                        />
+                                                      </div>
+                                                    </div>
                                                   </div>
                                                 </Col>
                                               </Row>
