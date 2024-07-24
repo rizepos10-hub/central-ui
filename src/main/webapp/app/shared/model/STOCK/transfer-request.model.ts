@@ -1,6 +1,7 @@
 import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
 import {IStockOrderedItem} from "app/shared/model/STOCK/order-Item.model";
 import {ISalesLocation} from "app/shared/model/STOCK/sales-location.model";
+import { CostLine } from "./purchase-order.model";
 
 export interface ITransferRequest {
   id?: string;
@@ -8,6 +9,7 @@ export interface ITransferRequest {
   destination?: IWarehouse | ISalesLocation;
   transferItems?: ITRItem[];
   status?: "PLACED" | "CONFIRMED"
+  costLines?: CostLine[];
 }
 
 export interface ITRItem{
