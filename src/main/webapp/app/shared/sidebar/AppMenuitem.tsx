@@ -17,7 +17,6 @@ const AppMenuitem = (props: AppMenuItemProps) => {
   const menuitemRef = useRef<HTMLLIElement>(null);
   const item = props.item;
   const key = props.parentKey ? props.parentKey + '-' + props.index : String(props.index);
-  // console.log(key, 'keyyyyy')
   const path = location.pathname;
   const parts = path.split('/');
   const lastPath = parts[parts.length - 1];
@@ -42,15 +41,44 @@ const AppMenuitem = (props: AppMenuItemProps) => {
   }, [layoutState]);
 
   useEffect(() => {
-    console.log(location.pathname, 'location.pathname')
-
     const onRouteChange = () => {
-      console.log(path + location.search, 'firstRoute')
 
-      const isRouteActive =
-        (item.to && location.pathname + location.search === item.to) ||
-        path + location.search === item.to ||
-        path?.substring(1) === item.to;
+      const isRouteActive = (item.to && pathMatchesAndOptionallyQuery(item.to, location.pathname, location.search));
+
+      function pathMatchesAndOptionallyQuery(baseRoute: string | undefined, currentPath: string, currentSearch = ''): boolean {
+        // after login /login is redirecting to / but the path is still /login, so treat it as / to activate the route
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        const normalizePath = (path: string): string => {
+          if (path.endsWith('/login')) {
+            return path.replace('/login', '/');
+          }
+          return path;
+        };
+
+        if (!baseRoute) {
+          return false;
+        }
+
+        try {
+          // Normalize current and base routes before creating URL objects
+          const normalizedBaseRoute = normalizePath(baseRoute);
+          const normalizedCurrentPath = normalizePath(currentPath);
+
+          const baseURL = new URL(normalizedBaseRoute, window.location.origin);
+          const currentURL = new URL(normalizedCurrentPath + currentSearch, window.location.origin);
+
+          // Extend the comparison to consider base paths with subpaths
+          const isBasePathActive = currentURL.pathname.startsWith(baseURL.pathname) &&
+            (currentURL.pathname[baseURL.pathname.length] === '/' ||
+              currentURL.pathname.length === baseURL.pathname.length);
+
+          // Check if normalized paths match according to the base path and if query strings are either equal or baseRoute has no query string
+          return isBasePathActive && (baseURL.search === currentURL.search || baseURL.search === '');
+        } catch (error) {
+          console.error('Error comparing routes:', error);
+          return false;
+        }
+      }
 
       if (isRouteActive) {
         setActiveMenu(key);
@@ -60,7 +88,6 @@ const AppMenuitem = (props: AppMenuItemProps) => {
         }
       }
     };
-
     onRouteChange();
 
     return () => {
@@ -89,7 +116,6 @@ const AppMenuitem = (props: AppMenuItemProps) => {
       return;
     }
 
-    console.log(item, 'itemClick', event)
 
     // navigate with hover
     if (props.root && isHorizontal()) {
@@ -152,6 +178,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
       {item?.badge}
     </span>
   ) : null;
+
   const subMenu =
     item?.items && item?.visible !== false ? (
       <ul ref={submenuRef} className='px-0'>
@@ -162,13 +189,11 @@ const AppMenuitem = (props: AppMenuItemProps) => {
               return null;
             }
           }
-          // console.log(userRole, 'userRole');
 
           return <AppMenuitem item={child} index={i} className={child.badgeClass} parentKey={key} key={child.label} />;
         })}
       </ul>
     ) : null;
-
   return (
     <li ref={menuitemRef} className={classNames({ 'layout-root-menuitem': props.root, 'active-menuitem': active })}>
       {props.root && item?.visible !== false && <div className="layout-menuitem-root-text">{item?.label}</div>}

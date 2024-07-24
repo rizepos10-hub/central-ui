@@ -68,13 +68,13 @@ const RelatedTills = ({ fromDate, toDate }: RelatedTillsProps) => {
     <div>
       <div>
         <div className="d-flex flex-column gap-1 col-4">
-          <label>Choose Registry</label>
+          <label>Choose Register</label>
           <Dropdown
             options={branchRegistries}
             loading={loadingRegistry}
             onChange={handleSelectRegistry}
             value={selectedRegistry}
-            placeholder={'Choose registry'}
+            placeholder={'Choose register'}
             optionLabel={'name'}
           />
         </div>

@@ -27,9 +27,9 @@ const AppMenu = () => {
           to: '/menu?type=POS',
         },
         {
-          label: 'Branch Registry',
+          label: 'Branch Register',
           role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
-          to: '/branch-registry',
+          to: '/branch-register',
         },
         {
           label: 'Switch Register',
@@ -433,6 +433,10 @@ const AppMenu = () => {
         {
           label: 'Shift Report',
           to: '/analytics/shift-report',
+        },
+        {
+          label: 'Employee Hours',
+          to: '/analytics/employee-hours-report',
         },
         {
           label: 'Shift Closures',
