@@ -9,6 +9,7 @@ import {FilterMatchMode} from "primereact/api";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import { filterEntities } from "app/entities/brand/brand.reducer";
 import ImageDisplay from "app/shared/components/image/image-display";
+import { translate } from "react-jhipster";
 
 
 
@@ -116,13 +117,15 @@ export const Brand = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Brands</span>
+      <span className="text-xl text-900 font-bold">
+        {translate("tempApp.brand.home.title")}
+      </span>
       <div className="ms-auto">
-        <Button label={"Refresh List"} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={"Create New Brand"} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("tempApp.brand.createTitle")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -143,12 +146,17 @@ export const Brand = () => {
         filterDelay={500}
         onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
       >
-        <Column field="name" header={"Name"}
-                filter
-                body={nameColumnTemplate} filterPlaceholder={"Search by name"}  sortable  />
+        <Column
+          field="name"
+          header={translate("tempApp.brand.name")}
+          filter
+          body={nameColumnTemplate}
+          filterPlaceholder={translate("tempApp.brand.searchByName")}
+          sortable
+        />
 
         <Column
-          header={"image"}
+          header={translate("tempApp.brand.image")}
           body={rowData => (
             <ImageDisplay
               imageType={'product'}
@@ -160,11 +168,19 @@ export const Brand = () => {
         />
 
 
-        <Column header={"Edit"}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+        <Column
+          header={translate("common.edit")}
+          body={editColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }}
+        />
 
-        <Column  header={"Delete"} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                 bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+        <Column
+          header={translate("common.delete")}
+          body={deleteColumnTemplate}
+          headerStyle={{ width: '1%',  }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
 
 
       </DataTable>

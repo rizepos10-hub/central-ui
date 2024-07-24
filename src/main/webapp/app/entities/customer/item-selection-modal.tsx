@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, ModalHeader, ModalBody, Input, Label, FormGroup, Button, ModalFooter, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { getSortState } from 'react-jhipster';
+import { getSortState, translate } from "react-jhipster";
 import { ITEMS_PER_PAGE_Summary } from 'app/shared/util/pagination.constants';
 import { getEntities, searchEntities } from 'app/entities/item/restaurant/restaurant-item.reducer';
 
@@ -89,19 +89,19 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   return (
     <Modal size="lg" isOpen={isOpen} toggle={toggle}>
-      <ModalHeader toggle={toggle}>Add Existing Variants</ModalHeader>
+      <ModalHeader toggle={toggle}>{translate('customers.itemSelection.title')}</ModalHeader>
       <ModalBody>
         <FormGroup>
-          <Label for="searchVariant">Search Variant</Label>
+          <Label for="searchVariant">{translate('customers.itemSelection.searchVariant')}</Label>
           <Input type="text" id="searchVariant" value={searchTerm} onChange={handleSearchInputChange} />
         </FormGroup>
         <table className="table">
           <thead>
           <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Selected Variant</th>
-            <th>Action</th>
+            <th>{translate('customers.itemSelection.id')}</th>
+            <th>{translate('customers.itemSelection.name')}</th>
+            <th>{translate('customers.itemSelection.selectedVariant')}t</th>
+            <th>{translate('customers.itemSelection.action')}</th>
 
           </tr>
           </thead>
@@ -148,7 +148,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
             color="primary"
             className="mr-2"
           >
-            Previous
+            {translate('customers.itemSelection.previous')}
           </Button>
           <span>Page {paginationState.activePage}</span>
           <Button
@@ -162,13 +162,13 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
             color="primary"
             className="ml-2"
           >
-            Next
+            {translate('customers.itemSelection.next')}
           </Button>
         </div>
       </ModalBody>
       <ModalFooter>
         <Button color="primary" onClick={toggle}>
-          Save
+          {translate('customers.itemSelection.save')}
         </Button>
       </ModalFooter>
     </Modal>
