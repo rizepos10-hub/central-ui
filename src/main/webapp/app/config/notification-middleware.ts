@@ -17,6 +17,7 @@ export default () => next => action => {
    */
   if (isFulfilledAction(action) && payload && payload.headers) {
     const headers = payload?.headers;
+    const entityName = payload?.data?.name;
     let alert: string | null = null;
     let alertParams: string | null = null;
     headers &&
@@ -29,7 +30,7 @@ export default () => next => action => {
       });
     if (alert) {
       const alertParam = alertParams;
-      toast.success(translate(alert, { param: alertParam }));
+      toast.success(translate(alert, { param: entityName ?? alertParam}));
     }
   }
 

@@ -23,7 +23,7 @@
     },
     "delete": {
       "title": "Confirm Delete Operation",
-      "question": "Are you sure you want to delete Addon {{ id }}"
+      "question": "Are you sure you want to delete Addon {{ param }}"
     },
     "update": {
       "id": "ID",

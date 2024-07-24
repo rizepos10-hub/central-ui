@@ -1,0 +1,34 @@
+{
+  "tempApp": {
+    "brand": {
+      "home": {
+        "title": "Brands",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Brand",
+        "createOrEditLabel": "Create or edit a Brand",
+        "search": "Search for Brand",
+        "notFound": "No Brands found"
+      },
+      "created": "A new Brand is created with identifier {{ param }}",
+      "updated": "A Brand is updated with identifier {{ param }}",
+      "deleted": "A Brand is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Brand {{ id }}?"
+      },
+      "detail": {
+        "title": "Brand"
+      },
+      "searchByName": "Search By Name",
+      "createTitle": "Create New Brand",
+      "editTitle": "Edit Brand",
+      "id": "ID",
+      "name": "Name",
+      "image": "Image",
+      "desc": "Desc",
+      "discount": "Brand Discount",
+      "price": "Price",
+      "discounts": "Discounts",
+      "item": "Item"
+    }
+  }
+}

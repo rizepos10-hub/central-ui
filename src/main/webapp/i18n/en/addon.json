@@ -9,11 +9,11 @@
         "search": "Search for Addon",
         "notFound": "No Addons found"
       },
-      "created": "A new Addon is created with identifier {{ param }}",
-      "updated": "A Addon is updated with identifier {{ param }}",
-      "deleted": "A Addon is deleted with identifier {{ param }}",
+      "created": "Addon {{ param }} is created successfully",
+      "updated": "Addon {{ param }} is updated successfully",
+      "deleted": "Addon {{ param }} is deleted successfully",
       "delete": {
-        "question": "Are you sure you want to delete Addon {{ id }}?"
+        "question": "Are you sure you want to delete Addon {{ param }}?"
       },
       "detail": {
         "title": "Addon"

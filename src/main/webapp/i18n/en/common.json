@@ -1,5 +1,8 @@
 {
   "common": {
+    "delete": "Delete",
+    "edit": "Edit",
+    "refreshList": "Refresh List",
     "buttons": {
       "save": "Save",
       "back": "Back",

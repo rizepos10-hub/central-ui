@@ -1,5 +1,16 @@
 {
   "customers": {
+    "itemSelection": {
+      "title": "Add Variants",
+      "searchVariant": "Search Variant",
+      "id": "ID",
+      "name": "Name",
+      "selectedVariant": "Selected Variant",
+      "action": "Action",
+      "next": "Next",
+      "previous": "Previous",
+      "save": "Save"
+    },
     "view": {
       "title": "Customers View",
       "table": {
