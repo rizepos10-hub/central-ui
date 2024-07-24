@@ -27,9 +27,9 @@ const AppMenu = () => {
           to: '/menu?type=POS',
         },
         {
-          label: 'Branch Registry',
+          label: 'Branch Register',
           role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
-          to: '/branch-registry',
+          to: '/branch-register',
         },
         {
           label: 'Switch Register',

@@ -126,7 +126,7 @@ const RegisterClosureOrder = () => {
     });
   }, []);
 
-  const header = `Orders from ${convertDateTimeFromServer(from)} to  ${convertDateTimeFromServer(to)} for ${registry} registry`
+  const header = `Orders from ${convertDateTimeFromServer(from)} to  ${convertDateTimeFromServer(to)} for ${registry} register`
 
   return (
     <div className="p-3 mb-2" style={{ background: 'var(--surface-card)', borderRadius: '10px' }}>
