@@ -7,7 +7,7 @@ const TillDetails = ({ till }: { till: ITill }) => {
         <div className={"flex flex-row mt-3"}>
           <div className="col-6">
             <div className="row">
-              <div className="col-3 font-bold">Registry:</div>
+              <div className="col-3 font-bold">Register:</div>
               <div className="col-6">{till.registry?.name}</div>
             </div>
             <div className="row">
