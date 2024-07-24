@@ -38,7 +38,7 @@ const ActivateTillModal = ({ toggle, isOpen, registryId }: modalProps) => {
 
   return (
     <Modal size="l" isOpen={isOpen} toggle={toggle} backdrop="static">
-      <ModalHeader toggle={toggle}>Activate Registry</ModalHeader>
+      <ModalHeader toggle={toggle}>Activate Register</ModalHeader>
       <FormGroup>
         <ModalBody>
           <div className={'d-flex  gap-3 mt-2'}>

@@ -145,7 +145,7 @@ export const BranchRegistry = ({isRegisterClosure} : { isRegisterClosure?: boole
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Branch Registry</span>
+      <span className="text-xl text-900 font-bold">Branch Register</span>
       <div className="ms-auto">
         <Button label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
