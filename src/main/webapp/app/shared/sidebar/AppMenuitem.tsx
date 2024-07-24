@@ -54,20 +54,28 @@ const AppMenuitem = (props: AppMenuItemProps) => {
           }
           return path;
         };
-      
+
         if (!baseRoute) {
           return false;
         }
-      
+
         try {
+          // Normalize current and base routes before creating URL objects
           const normalizedBaseRoute = normalizePath(baseRoute);
           const normalizedCurrentPath = normalizePath(currentPath);
-      
+
           const baseURL = new URL(normalizedBaseRoute, window.location.origin);
           const currentURL = new URL(normalizedCurrentPath + currentSearch, window.location.origin);
-      
-          return baseURL.pathname === currentURL.pathname && (baseURL.search === currentURL.search || baseURL.search === '');
+
+          // Extend the comparison to consider base paths with subpaths
+          const isBasePathActive = currentURL.pathname.startsWith(baseURL.pathname) &&
+            (currentURL.pathname[baseURL.pathname.length] === '/' ||
+              currentURL.pathname.length === baseURL.pathname.length);
+
+          // Check if normalized paths match according to the base path and if query strings are either equal or baseRoute has no query string
+          return isBasePathActive && (baseURL.search === currentURL.search || baseURL.search === '');
         } catch (error) {
+          console.error('Error comparing routes:', error);
           return false;
         }
       }
