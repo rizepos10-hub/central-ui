@@ -30,7 +30,9 @@
       "enabled": "Enabled",
       "activated": "Activated",
       "password": "Password",
-      "pinCode": "Pin Code"
+      "pinCode": "Pin Code",
+      "activateRole": "Activate Role",
+      "deactivateRole": "Deactivate Role"
     }
   }
 }

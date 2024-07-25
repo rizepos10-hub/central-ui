@@ -85,6 +85,10 @@ export const AddonUpdate = () => {
     if (updateSuccess) {
       handleClose();
     }
+
+    return () => {
+      dispatch(reset());
+    }
   }, [updateSuccess]);
 
   const saveEntity = (e) => {
@@ -121,9 +125,9 @@ export const AddonUpdate = () => {
           <Col md="8">
             <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
               {isNew ? (
-                <Translate contentKey={'addons.update.create.title'}>Create New Addon</Translate>
+                <Translate contentKey={'tempApp.addon.createNewAddon'}>Create New Addon</Translate>
               ) : (
-                <Translate contentKey={'addons.update.edit.title'}>Edit Addon</Translate>
+                <Translate contentKey={'tempApp.addon.editAddon'}>Edit Addon</Translate>
               )}
             </h2>
           </Col>
@@ -133,20 +137,20 @@ export const AddonUpdate = () => {
             <form onSubmit={saveEntity}>
               <div className={'d-flex flex-column'}>
                 <Label for="addon-name">
-                  <Translate contentKey={'addons.update.name'}>Name</Translate>
+                  <Translate contentKey={'tempApp.addon.name'}>Name</Translate>
                 </Label>
                 <InputText name="name" required={true} id="addon-name" value={addonEntity.name || ''}
                            onChange={handleChange} />
               </div>
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-desc">
-                  <Translate contentKey={'addons.update.description'}>Description</Translate>
+                  <Translate contentKey={'tempApp.addon.description'}>Description</Translate>
                 </Label>
                 <InputTextarea name="desc" id="addon-desc" value={addonEntity.desc || ''} onChange={handleChange} />
               </div>
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-price">
-                  <Translate contentKey={'addons.update.price'}>Price</Translate>
+                  <Translate contentKey={'tempApp.addon.price'}>Price</Translate>
                 </Label>
                 <InputNumber
                   id="addon-price"
@@ -161,7 +165,7 @@ export const AddonUpdate = () => {
 
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-profileGroup">
-                  <Translate contentKey={'addons.update.profileGroup'}>Profile Group</Translate>
+                  <Translate contentKey={'tempApp.addon.profileGroup'}>Profile Group</Translate>
                 </Label>
                 <Select
                   value={addonEntity?.accountingGroups}
@@ -179,7 +183,7 @@ export const AddonUpdate = () => {
 
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-tags">
-                  <Translate contentKey={'addons.update.tags'}>Tags</Translate>
+                  <Translate contentKey={'tempApp.addon.tags'}>Tags</Translate>
                 </Label>
                 <Select
                   value={addonEntity?.tags}
@@ -196,7 +200,7 @@ export const AddonUpdate = () => {
               </div>
               <div className={'d-flex flex-column my-3'}>
                 <Label for="addon-discount">
-                  <Translate contentKey={'addons.update.discount'}>Discounts</Translate>
+                  <Translate contentKey={'tempApp.addon.discount'}>Discounts</Translate>
                 </Label>
                 <Select
                   value={addonEntity.discounts}
