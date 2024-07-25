@@ -45,7 +45,7 @@ import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item
 import { SelectButton } from "primereact/selectbutton";
 import { preventEnterSubmit } from "app/shared/util/form-utils";
 import { Column } from "primereact/column";
-
+import VariantPackaging from 'app/shared/components/item/variant-packaging';
 
 const defaultItemPriceNumber = {
   "PRICE_1": null,
@@ -67,7 +67,7 @@ const itemTypes = [
   },
   {
     label: "RETAIL VARIABLE",
-    value:   ItemVariantType.RETAIL_VARIABLE,
+    value: ItemVariantType.RETAIL_VARIABLE,
   }
 ]
 
@@ -88,6 +88,7 @@ export const ProductUpdate = () => {
   const discountList = useAppSelector(state => state.discount.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
+  const variantsList = useAppSelector(state => state.variant.entities);
 
   const location = useLocation();
 
@@ -181,6 +182,18 @@ export const ProductUpdate = () => {
       };
     });
   };
+
+  // variantPackage is like this 
+  // variantPackage: [ 
+  //   { 
+  //     variant: {  
+  //       id: '1',  
+  //       name: 'Variant 1',  
+  //       ...
+  //     },  
+  //     quantity: 1,
+  //  }
+
 
   const addImage = (variantIndex, files) => {
     handleVariantFieldChange(variantIndex, 'attachments', transformAttachmentStructure(files, 'toIAttachment'));
@@ -546,7 +559,7 @@ export const ProductUpdate = () => {
   const saveEntity = e => {
     e.preventDefault();
 
-    const updatedVariants =  product?.variants.map((variant, index) => {
+    const updatedVariants = product?.variants.map((variant, index) => {
       if (index !== 0 && variant.order === 0) {
         return {
           ...variant,
@@ -644,9 +657,9 @@ export const ProductUpdate = () => {
   const VariantAccordionHeader = (variantIndex) => (
     <div
       onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation()
-    }}
+        e.preventDefault();
+        e.stopPropagation()
+      }}
       className={"d-flex gap-3 ml-2 p-draggable "}
     >
       <label className={"mt-2"}><strong>{product?.variants?.[variantIndex]?.name}</strong></label>
@@ -669,9 +682,6 @@ export const ProductUpdate = () => {
       </Button>
     </div>
   )
-
-
-
 
   if (loading) {
     return <Spinner />
@@ -770,6 +780,13 @@ export const ProductUpdate = () => {
                                     />
                                   </div>
                                 </Col>
+
+                                <VariantPackaging
+                                  product={product}
+                                  variantIndex={0}
+                                  variant={product?.variants?.[0]}
+                                  handleVariantFieldChange={handleVariantFieldChange}
+                                />
 
                                 <VariantBranchPrice
                                   itemVariantType={'RETAIL'}
@@ -883,9 +900,8 @@ export const ProductUpdate = () => {
                                         <Col
                                           md={'12'}
                                           key={variantIndex}
-                                          className={` mt-2 pi pi-bars p-draggable d-flex ${
-                                            dragOverIndex === variantIndex && 'border-top border-primary'
-                                          }`}
+                                          className={` mt-2 pi pi-bars p-draggable d-flex ${dragOverIndex === variantIndex && 'border-top border-primary'
+                                            }`}
                                           draggable
                                           onDragStart={() => setDraggedIndex(variantIndex)}
                                           onDragOver={e => handleDragOver(e, variantIndex)}
@@ -984,7 +1000,7 @@ export const ProductUpdate = () => {
                                               </Row>
 
                                               <Row>
-                                                <Col md="7">
+                                                <Col md="12">
                                                   <div className={'d-flex flex-column gap-2 mt-3'}>
                                                     <label className={'font-semibold'}>
                                                       <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
@@ -1025,6 +1041,12 @@ export const ProductUpdate = () => {
                                                       }
                                                     />
                                                   </div>
+                                                  <VariantPackaging
+                                                    product={product}
+                                                    variantIndex={variantIndex}
+                                                    variant={variant}
+                                                    handleVariantFieldChange={handleVariantFieldChange}
+                                                  />
                                                 </Col>
                                               </Row>
 

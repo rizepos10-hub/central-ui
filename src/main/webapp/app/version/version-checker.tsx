@@ -48,7 +48,7 @@ function VersionUpdateChecker() {
   };
 
 
-  return <ToastContainer position="top-left" className="toastify-container" toastClassName="toastify-toast" />;
+  return <ToastContainer position="bottom-right" className="toastify-container" toastClassName="toastify-toast" />;
 }
 
 export default VersionUpdateChecker;

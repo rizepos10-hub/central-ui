@@ -1,26 +1,33 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label, Input, Table, Card, CardHeader, CardBody} from 'reactstrap';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Button, Row, Col, FormGroup, Label, Input, Table, Card, CardHeader, CardBody } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {getEntity, createEntity, reset, updateEntity} from './transfer-request.reducer';
-import {ITransferRequest, ITRItem} from "app/shared/model/STOCK/transfer-request.model";
-import {getEntities as getWarehouses} from "app/entities/inventory/warehouse/warehouse.reducer";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState} from "react-jhipster";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import  {searchEntities as getStockItems} from "app/entities/inventory/stock-config/stock-quantity.reducer";
+import { getEntity, createEntity, reset, updateEntity } from './transfer-request.reducer';
+import { ITransferRequest, ITRItem } from "app/shared/model/STOCK/transfer-request.model";
+import { getEntities as getWarehouses } from "app/entities/inventory/warehouse/warehouse.reducer";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { getSortState } from "react-jhipster";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { searchEntities as getStockItems } from "app/entities/inventory/stock-config/stock-quantity.reducer";
+import { getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
 import Select from "react-select";
 import AsyncSelect from "react-select/async";
-import {InputNumber} from "primereact/inputnumber";
-import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {SelectButton} from "primereact/selectbutton";
+import { InputNumber } from "primereact/inputnumber";
+import { IPurchaseConfig } from "app/shared/model/STOCK/purchase-config.model";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { SelectButton } from "primereact/selectbutton";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import { ISupplier } from 'app/shared/model/STOCK/supplier.model';
+import { CostLine, IPurchaseOrder } from 'app/shared/model/STOCK/purchase-order.model';
+import { Calendar } from 'primereact/calendar';
+import { InputTextarea } from 'primereact/inputtextarea';
+import { toLocalISOString } from 'app/shared/util/date-utils';
+import { format } from 'date-fns';
 
 const statusOptions = [
   "PLACED",
@@ -43,17 +50,17 @@ export const TransferRequestUpdate = () => {
   const updateSuccess = useAppSelector(state => state.transferRequest.updateSuccess);
   const stockItemsList = useAppSelector(state => state.stockQuantity.entities);
 
-  console.log(stockItemsList, 'stockItemsList')
-  const [transferRequest, setTransferRequest] = useState<ITransferRequest>({
+  const supplierList = useAppSelector(state => state.supplier.entities);
 
-  });
-
+  const [transferRequest, setTransferRequest] = useState<ITransferRequest>({});
   const [transferRequestItem, setTransferRequestItem] = useState<ITRItem>();
+  const [costLines, setCostLines] = useState<CostLine | null>()
+
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-  const warehousesAndSalesLocations = [...(warehouseList || []),...(salesLocationList || [])];
+  const warehousesAndSalesLocations = [...(warehouseList || []), ...(salesLocationList || [])];
 
   const filteredStockItems = useMemo(() => {
     return stockItemsList.filter(stockConfig => !transferRequest.transferItems?.some(TRItem => TRItem.item.variantId === stockConfig.variantId))
@@ -69,18 +76,26 @@ export const TransferRequestUpdate = () => {
 
   const isConfirmed = transferRequestEntity?.status === "CONFIRMED"
 
-  const isDisabled = !transferRequest.source || isConfirmed ;
+  const isDisabled = !transferRequest.source || isConfirmed;
 
   const handleClose = () => {
     navigate('/inventory/transfer-request' + location.search);
   };
 
-  const handleAdd = () => {
-    setTransferRequest((prevState) => ({
-      ...prevState,
-      transferItems: [...(prevState.transferItems || []), transferRequestItem]
-    }));
-    setTransferRequestItem(null);
+  const handleAdd = (type) => {
+    if (type === "costLine") {
+      setTransferRequest((prevState) => ({
+        ...prevState,
+        costLines: [...(prevState.costLines || []), costLines]
+      }))
+      setCostLines({});
+    } else {
+      setTransferRequest((prevState) => ({
+        ...prevState,
+        transferItems: [...(prevState.transferItems || []), transferRequestItem]
+      }));
+      setTransferRequestItem(null);
+    }
   };
 
 
@@ -89,20 +104,21 @@ export const TransferRequestUpdate = () => {
       ...selectedItem,
       name: selectedItem.itemName
     }
-    setTransferRequestItem(prevState => ({...prevState, item: itemToTransfer}))
+    setTransferRequestItem(prevState => ({ ...prevState, item: itemToTransfer }))
   }
 
-  console.log(transferRequestItem, 'transferRequestItem')
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
     } else {
       dispatch(getEntity(id));
     }
+
     dispatch(getWarehouses({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`}));
+      sort: `${paginationState.sort},${paginationState.order}`
+    }));
 
     dispatch(getSalesLocations({
       page: paginationState.activePage - 1,
@@ -110,18 +126,22 @@ export const TransferRequestUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-
-
+    dispatch(getSuppliers({
+      page: 0,
+      size: 500,
+      sort: 'asc',
+    }));
   }, []);
 
   useEffect(() => {
-    {query &&
-      dispatch(getStockItems({
-        query,
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }));
+    {
+      query &&
+        dispatch(getStockItems({
+          query,
+          page: paginationState.activePage - 1,
+          size: paginationState.itemsPerPage,
+          sort: `${paginationState.sort},${paginationState.order}`,
+        }));
     }
   }, [query])
 
@@ -131,17 +151,17 @@ export const TransferRequestUpdate = () => {
     if (updateSuccess) {
       handleClose();
     }
-    if(transferRequestEntity){
+    if (transferRequestEntity) {
       setTransferRequest(transferRequestEntity)
     }
   }, [updateSuccess, transferRequestEntity?.id]);
 
   const filterItems = (inputValue: string) => {
     return filteredStockItems.filter((i) => {
-        return (
-          i?.itemName?.toLowerCase().includes(inputValue.toLowerCase())
-        )
-      }
+      return (
+        i?.itemName?.toLowerCase().includes(inputValue.toLowerCase())
+      )
+    }
     );
   };
 
@@ -160,19 +180,19 @@ export const TransferRequestUpdate = () => {
   };
 
 
-  const deleteColumnTemplate = (rowData, index) => {
-    const {rowIndex} = index
-    const handleClick = () =>  {
+  const deleteColumnTemplate = (rowData, index, field) => {
+    const { rowIndex } = index
+    const handleClick = () => {
       setTransferRequest((prevState) => {
-        const updatedItems = prevState?.transferItems?.filter((_, i) => i !== rowIndex);
+        const updatedField = prevState?.[field]?.filter((_, i) => i !== rowIndex);
         return {
           ...prevState,
-          transferItems: updatedItems
+          [field]: updatedField
         }
-      });
+      })
     }
     return (
-      <FontAwesomeIcon onClick={handleClick} icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+      <FontAwesomeIcon onClick={handleClick} icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
     );
   };
 
@@ -185,9 +205,48 @@ export const TransferRequestUpdate = () => {
 
     if (isNew) {
       dispatch(createEntity(entity));
-    }else{
+    } else {
       dispatch(updateEntity(entity))
     }
+  };
+
+  const filterSuppliers = (inputValue: string) => {
+    return supplierList.filter((sup) => {
+      return (
+        sup.name.toLowerCase().includes(inputValue.toLowerCase())
+      )
+    }
+    );
+  };
+
+
+  const loadSuppliers = (
+    inputValue: string,
+    callback: (options: ISupplier[]) => void
+  ) => {
+    setTimeout(() => {
+      try {
+        const filteredOptions = filterSuppliers(inputValue);
+        callback(filteredOptions);
+      } catch (error) {
+        console.error('Error loading suppliers:', error);
+      }
+    }, 1000);
+  };
+
+  const handleDateChange = (field, e) => {
+    const date = new Date(e.value);
+    const isoDateString = toLocalISOString(date);
+    if (field === "costDate") {
+      setCostLines((prevState) => ({ ...prevState, costDate: isoDateString }))
+    } else if (field === "dateDelivered" || field === "datePlaced") {
+      setTransferRequest(prevState => ({ ...prevState, [field]: date }));
+    }
+  };
+
+  const handleCostLineChange = e => {
+    const { name, value } = e.target;
+    setCostLines(prevState => ({ ...prevState, [name]: value }));
   };
 
   return (
@@ -246,7 +305,7 @@ export const TransferRequestUpdate = () => {
                             <td>
                               <AsyncSelect
                                 cacheOptions
-                                loadOptions={ loadItems}
+                                loadOptions={loadItems}
                                 defaultOptions={filteredStockItems}
                                 getOptionValue={option => option.variantId}
                                 getOptionLabel={option => option.itemName}
@@ -324,7 +383,95 @@ export const TransferRequestUpdate = () => {
                       {transferRequestEntity.status !== 'CONFIRMED' ? (
                         <Column
                           header={'Delete'}
-                          body={deleteColumnTemplate}
+                          body={(rowData, index) => deleteColumnTemplate(rowData, index, 'transferItems')}
+                          headerStyle={{ width: '1%' }}
+                          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+                        />
+                      ) : null}
+                    </DataTable>
+                  </Row>
+
+                  <Row className={'mt-3'}>
+                    <h3>Cost Lines</h3>
+                    {!isDisabled ? (
+                      <Table>
+                        <tbody>
+                          <tr>
+                            <td>Supplier</td>
+                            <td>Cost</td>
+                            <td>Cost Date</td>
+                            <td>Comments</td>
+                          </tr>
+                          <tr>
+                            <td className={'w-2'}>
+                              <AsyncSelect
+                                cacheOptions
+                                loadOptions={loadSuppliers}
+                                defaultOptions={supplierList}
+                                getOptionValue={(option: ISupplier) => option.id}
+                                getOptionLabel={option => option.name}
+                                name={'supplier'}
+                                onChange={supplier => setCostLines(prevState => ({ ...prevState, supplier }))}
+                                value={costLines?.supplier || null}
+                                isDisabled={isDisabled}
+                              />
+                            </td>
+                            <td className={'w-1'}>
+                              <InputNumber
+                                value={costLines?.cost}
+                                disabled={isDisabled}
+                                onChange={e =>
+                                  setCostLines(prevState => ({
+                                    ...prevState,
+                                    cost: e.value,
+                                  }))
+                                }
+                              />
+                            </td>
+                            <td className={'w-1'}>
+                              <Calendar
+                                name="costDate"
+                                id="costDate"
+                                disabled={isDisabled}
+                                onSelect={e => handleDateChange('costDate', e)}
+                                value={new Date(costLines?.costDate)}
+                              />
+                            </td>
+                            <td className={'w-1'}>
+                              <InputTextarea
+                                name={'comment'}
+                                disabled={isDisabled}
+                                value={costLines?.comment || ''}
+                                onChange={handleCostLineChange}
+                              />
+                            </td>
+                            <td className={'w-2'}>
+                              <Button disabled={!costLines} color={'success'} onClick={() => handleAdd('costLine')}>
+                                Add
+                              </Button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </Table>
+                    ) : null}
+
+                    <DataTable
+                      value={transferRequest?.costLines}
+                      editMode="row"
+                      header={'Cost Lines'}
+                      removableSort
+                      paginator
+                      totalRecords={transferRequest?.costLines?.length}
+                      rows={20}
+                    >
+                      <Column field="supplier.name" header={'Supplier'} />
+                      <Column field="cost" header={'Cost'} />
+                      <Column field="costDate" header={'Cost Date'} body={(rowData) => format(new Date(rowData?.costDate), 'yyyy-MM-dd')} />
+                      <Column field="comment" header={'Comment'} />
+                      {!isDisabled ? (
+                        <Column
+                          header={'Delete'}
+                          body={(rowData, index) => deleteColumnTemplate(rowData, index, 'costLines')}
                           headerStyle={{ width: '1%' }}
                           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
                         />
@@ -364,7 +511,7 @@ export const TransferRequestUpdate = () => {
                   </div>
                 </Card>
 
-                {transferRequestEntity?.id &&  <AuditLogs entityId={transferRequestEntity?.id} />}
+                {transferRequestEntity?.id && <AuditLogs entityId={transferRequestEntity?.id} />}
               </Col>
             </form>
           </Row>

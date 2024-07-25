@@ -45,11 +45,11 @@ export const AddonDeleteDialog = () => {
   return (
     <Modal isOpen toggle={handleClose}>
       <ModalHeader toggle={handleClose} data-cy="addonDeleteDialogHeading">
-        <Translate contentKey="addonGroups.delete.title">Confirm delete operation</Translate>
+        <Translate contentKey="common.deleteTitle">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.addon.delete.question">
-        <Translate contentKey="addonGroups.delete.question" interpolate={{ id: addonGroupEntity.id }}>
-          Are you sure you want to delete this Addon?
+        <Translate contentKey="tempApp.addonGroup.delete.question" interpolate={{ id: addonGroupEntity.id }}>
+          Are you sure you want to delete this Addon Group?
         </Translate>
       </ModalBody>
       <ModalFooter>

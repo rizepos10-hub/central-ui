@@ -119,6 +119,11 @@
       "itemType": "Item Type",
       "discounts": "Discounts",
       "mixAndMatchRule": "Mix And Match Rule",
+      "variantPackage" : { 
+        "title": "Packaging",
+        "variant": "Variant",
+        "quantity": "Quantity"
+      },
       "WholesalePrices": "Wholesale Prices",
       "hideItem": "Hide Item POS",
       "hideOnline": "Hide Item Online",

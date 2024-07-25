@@ -44,6 +44,7 @@ import {IInventoryItem, IInventoryItemVariant} from "app/shared/model/STOCK/inve
 import _ from "lodash";
 import {applyMatchModeMap} from "app/shared/util/filter-match-model-util";
 import AuditLogs from "app/shared/components/logs/audit-logs";
+import { format } from 'date-fns';
 
 
 const statusOptions = [
@@ -666,7 +667,7 @@ export const PurchaseOrderUpdate = () => {
                   >
                     <Column field="supplier.name" header={'Supplier'} />
                     <Column field="cost" header={'Cost'} />
-                    <Column field="costDate" header={'Cost Date'} />
+                    <Column field="costDate" header={'Cost Date'} body={(rowData) => format(new Date(rowData?.costDate), 'yyyy-MM-dd')} />
                     <Column field="comment" header={'Comment'} />
                     {!isDisabled ? (
                       <Column

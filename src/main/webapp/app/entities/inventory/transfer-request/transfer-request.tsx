@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
+import { Translate, translate, getSortState } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getEntities } from './transfer-request.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {FilterMatchMode} from "primereact/api";
-import {IPurchaseOrder} from "app/shared/model/STOCK/purchase-order.model";
-import {Tag} from "primereact/tag";
-import {Dropdown} from "primereact/dropdown";
-import {ITransferRequest} from "app/shared/model/STOCK/transfer-request.model";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { FilterMatchMode } from "primereact/api";
+import { Tag } from "primereact/tag";
+import { Dropdown } from "primereact/dropdown";
+import { ITransferRequest } from "app/shared/model/STOCK/transfer-request.model";
 
 export const TransferRequest = () => {
   const dispatch = useAppDispatch();
@@ -27,11 +26,11 @@ export const TransferRequest = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const transferRequestList :ITransferRequest[] = useAppSelector(state => state.transferRequest.entities);
+  const transferRequestList: ITransferRequest[] = useAppSelector(state => state.transferRequest.entities);
   const loading = useAppSelector(state => state.transferRequest.loading);
   const totalItems = useAppSelector(state => state.transferRequest.totalItems);
   const [filters, setFilters] = useState({
-     status: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    status: { value: null, matchMode: FilterMatchMode.CONTAINS },
     "source.name": { value: null, matchMode: FilterMatchMode.CONTAINS },
     "destination.name": { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
@@ -57,10 +56,6 @@ export const TransferRequest = () => {
     }
   };
 
-
-
-
-
   const sortEntities = () => {
     getAllEntities();
     const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
@@ -72,10 +67,6 @@ export const TransferRequest = () => {
   useEffect(() => {
     sortEntities();
   }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
-
-
-
-
 
   const handleSyncList = () => {
     sortEntities();
@@ -107,7 +98,7 @@ export const TransferRequest = () => {
     ];
 
     const handleDropdownChange = (e) => {
-      setFilters((prev :any) => ({
+      setFilters((prev: any) => ({
         ...prev,
         status: { value: e.value, matchMode: 'equals' }
       }));
@@ -136,7 +127,7 @@ export const TransferRequest = () => {
     const editUrl = `/inventory/transfer-request/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
       </Link>
     );
   };
@@ -145,7 +136,7 @@ export const TransferRequest = () => {
     const deleteUrl = `/inventory/transfer-request/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
       </Link>
     );
   };
@@ -168,42 +159,38 @@ export const TransferRequest = () => {
   );
 
 
-
-
   return (
+    <div>
+      <DataTable
+        showGridlines
+        value={transferRequestList}
+        editMode="row"
+        header={header}
+        removableSort
+        filters={filters}
+        filterDisplay="row"
+        paginator
+        loading={loading}
+        totalRecords={totalItems}
+        rows={20}
+      >
+        <Column field="source.name" header={translate('tempApp.transferRequest.view.table.fields.source')} filter body={nameColumnTemplate}
+          filterPlaceholder={translate('tempApp.transferRequest.view.table.search.source')} sortable />
+        <Column field="destination.name" header={translate('tempApp.transferRequest.view.table.fields.destination')}
+          filter filterPlaceholder={translate('tempApp.transferRequest.view.table.search.destination')} sortable />
 
-      <div >
-        <DataTable
-          showGridlines
-          value={transferRequestList}
-          editMode="row"
-          header={header}
-          removableSort
-          filters={filters}
-          filterDisplay="row"
-          paginator
-          loading={loading}
-          totalRecords={totalItems}
-          rows={20}
-        >
-          <Column field="source.name" header={translate('tempApp.transferRequest.view.table.fields.source')} filter body={nameColumnTemplate}
-                  filterPlaceholder={translate('tempApp.transferRequest.view.table.search.source')}  sortable  />
-          <Column field="destination.name" header={translate('tempApp.transferRequest.view.table.fields.destination')}
-                  filter filterPlaceholder={translate('tempApp.transferRequest.view.table.search.destination')} sortable />
-
-          <Column field="status" header={translate('tempApp.purchaseOrder.view.table.fields.status')} filter
-                  filterElement={statusFilterTemplate}  body={statusBodyTemplate}  sortable  />
-
-
-          <Column header={translate('tempApp.transferRequest.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          <Column  header={translate('tempApp.transferRequest.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+        <Column field="status" header={translate('tempApp.purchaseOrder.view.table.fields.status')} filter
+          filterElement={statusFilterTemplate} body={statusBodyTemplate} sortable />
 
 
-        </DataTable>
-      </div>
+        <Column header={translate('tempApp.transferRequest.view.table.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+
+        <Column header={translate('tempApp.transferRequest.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+
+      </DataTable>
+    </div>
   );
 };
 

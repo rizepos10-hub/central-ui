@@ -73,7 +73,11 @@ export const BrandUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ? 'Create New brand' : 'Edit brand Group'}</h2>
+          <h2> {isNew ? (
+            <Translate contentKey={'tempApp.brand.createTitle'}>Create New Brand</Translate>
+          ) : (
+            <Translate contentKey={'tempApp.brand.editTitle'}>Edit Brand</Translate>
+          )}</h2>
         </Col>
       </Row>
       <Row>
@@ -85,7 +89,10 @@ export const BrandUpdate = () => {
               <>
                 <form onSubmit={saveEntity}>
                   <div className={"d-flex flex-column"}>
-                    <Label for="name">Name</Label>
+                    <Label for="name">
+                      <Translate contentKey={'tempApp.brand.name'}/>
+                    </Label>
+
                     <InputText type="text" name="name" required={true} id="name" value={brandEntity?.name}
                                onChange={handleChange} />
                   </div>

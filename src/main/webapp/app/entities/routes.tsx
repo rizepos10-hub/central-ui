@@ -137,6 +137,7 @@ export default () => {
         <Route path="tag-group/*" element={<TagGroup />} />
 
 
+        <Route path="supplier/*" element={<Supplier />} />
         <Route path="brand/*" element={<Brand />} />
 
         <Route path="currencies/*" element={<CurrencySettings />} />
