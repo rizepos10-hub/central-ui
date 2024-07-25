@@ -1,8 +1,12 @@
 {
   "common": {
     "delete": "Delete",
+    "name": "Name",
+    "addons": "Addons",
+    "deleteTitle": "Confirm delete operation",
     "edit": "Edit",
     "refreshList": "Refresh List",
+    "selectOne": "Select One",
     "buttons": {
       "save": "Save",
       "back": "Back",
@@ -10,6 +14,9 @@
       "delete": "Delete",
       "yes": "Yes",
       "no": "No"
+    },
+    "search": {
+      "name": "Name"
     },
     "validation": {
       "required": "This field is required"

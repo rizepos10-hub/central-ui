@@ -123,7 +123,7 @@ export const Addon = () => {
         onChange={handleGroupFilter}
         showFilterClear
         loading={loadingGroups}
-        placeholder="Select One"
+        placeholder={translate("common.selectOne")}
         className="p-column-filter"
         showClear
         style={{ minWidth: '12rem' }}
@@ -136,13 +136,13 @@ export const Addon = () => {
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">
-        <Translate contentKey={'addons.view.table.title'}>Addons</Translate>
+        <Translate contentKey={'tempApp.addon.addons'}>Addons</Translate>
       </span>
       <div className="ms-auto">
         <ImportButton type={'ADDON'} />
         &nbsp;
         <Button
-          label={translate('addons.view.table.buttons.refreshList')}
+          label={translate('common.refreshList')}
           severity="secondary"
           raised
           className="me-5"
@@ -153,7 +153,7 @@ export const Addon = () => {
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate('addons.view.table.buttons.createNewAddon')} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate('tempApp.addon.createNewAddon')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -197,36 +197,36 @@ export const Addon = () => {
       >
         <Column
           field="name"
-          header={translate('addons.view.table.fields.name')}
+          header={translate('tempApp.addon.name')}
           filter
           body={nameColumnTemplate}
-          filterPlaceholder={translate('addons.view.table.search.name')}
+          filterPlaceholder={translate('tempApp.addon.searchName')}
           sortable
         />
 
         <Column
           field="addonGroups"
           body={(rowData) => rowData?.addonGroups?.map((grp: IAddonGroup) => grp.name).join(" | ")}
-          header={translate('addons.view.table.fields.addonGroups')}
+          header={translate('tempApp.addon.addonGroups')}
           filter
-          filterPlaceholder={translate('addons.view.table.search.addonGroups')}
+          filterPlaceholder={translate('tempApp.addon.searchAddonGroups')}
           filterElement={addonGroupRowFilterTemplate}
           showFilterMenu={false}
           sortable
         />
 
-        <Column field="price" header={translate('addons.view.table.fields.price')} sortable />
-        <Column field="discounts" header={translate('addons.view.table.fields.discounts')} body={renderDiscounts} sortable />
+        <Column field="price" header={translate('tempApp.addon.price')} sortable />
+        <Column field="discounts" header={translate('tempApp.addon.discounts')} body={renderDiscounts} sortable />
 
         <Column
-          header={translate('addons.view.table.fields.edit')}
+          header={translate('common.edit')}
           body={editColumnTemplate}
           headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
         />
 
         <Column
-          header={translate('addons.view.table.fields.delete')}
+          header={translate('common.delete')}
           body={deleteColumnTemplate}
           headerStyle={{ width: '1%' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}

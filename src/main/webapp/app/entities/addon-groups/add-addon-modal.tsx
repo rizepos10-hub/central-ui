@@ -77,13 +77,13 @@ export const CreateAddonModal = ({isOpen, toggle}) => {
         <FormGroup>
         <ModalHeader>
             <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-              <Translate contentKey={'addons.update.create.title'}>Create New Addon</Translate>
+              <Translate contentKey={'tempApp.addon.createNewAddon'}>Create New Addon</Translate>
             </h2>
         </ModalHeader>
           <PrimeCard>
               <div className={"d-flex flex-column"}>
                 <Label for="addon-name">
-                  <Translate contentKey={'addons.update.name'}>Addon Name</Translate>
+                  <Translate contentKey={'tempApp.addon.name'}>Addon Name</Translate>
                 </Label>
                 <InputText
                   type="text"
@@ -96,7 +96,7 @@ export const CreateAddonModal = ({isOpen, toggle}) => {
               </div>
               <div className={"d-flex flex-column mt-2"}>
                 <Label for="addon-name-name">
-                  <Translate contentKey={'addons.update.description'}>Addon Description</Translate>
+                  <Translate contentKey={'tempApp.addon.description'}>Addon Description</Translate>
                 </Label>
                 <InputText
                   type="text"
@@ -109,7 +109,7 @@ export const CreateAddonModal = ({isOpen, toggle}) => {
 
               <div className={"d-flex flex-column mt-2"}>
                 <Label for="addon-name-name">
-                  <Translate contentKey={'addons.update.price'}>Addon Price</Translate>
+                  <Translate contentKey={'tempApp.addon.price'}>Addon Price</Translate>
                 </Label>
                 <InputNumber
                   name="price"
@@ -121,7 +121,7 @@ export const CreateAddonModal = ({isOpen, toggle}) => {
               </div>
 
               <div className="mb-3 mt-2">
-                <Translate contentKey="addons.update.discount">Discount</Translate>
+                <Translate contentKey="tempApp.addon.discount">Discount</Translate>
                 <Select isMulti={true}
                         value={addon?.discounts}
                         options={discountsOptions}
@@ -130,10 +130,10 @@ export const CreateAddonModal = ({isOpen, toggle}) => {
           </PrimeCard>
         <ModalFooter>
           <Button color="secondary" onClick={toggle}>
-            Cancel
+            <Translate contentKey="common.buttons.cancel">Cancel</Translate>
           </Button>
           <Button color="primary" type='submit'>
-            Create Addon
+            <Translate contentKey="tempApp.addon.createAddon">Create Addon</Translate>
           </Button>
         </ModalFooter>
       </FormGroup>
