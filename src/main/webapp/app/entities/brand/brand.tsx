@@ -118,14 +118,14 @@ export const Brand = () => {
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">
-        {translate("tempApp.brand.home.title")}
+        {translate("tempApp.brands")}
       </span>
       <div className="ms-auto">
         <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("tempApp.brand.createTitle")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("tempApp.createNewBrand")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -148,15 +148,15 @@ export const Brand = () => {
       >
         <Column
           field="name"
-          header={translate("tempApp.brand.name")}
+          header={translate("common.name")}
           filter
           body={nameColumnTemplate}
-          filterPlaceholder={translate("tempApp.brand.searchByName")}
+          filterPlaceholder={translate("common.search.name")}
           sortable
         />
 
         <Column
-          header={translate("tempApp.brand.image")}
+          header={translate("common.image")}
           body={rowData => (
             <ImageDisplay
               imageType={'product'}

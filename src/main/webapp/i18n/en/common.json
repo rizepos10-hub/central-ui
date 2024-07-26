@@ -1,12 +1,19 @@
 {
   "common": {
-    "delete": "Delete",
     "name": "Name",
+    "image": "Image",
+    "branch": "Branch",
+    "email": "Email",
+    "phone": "Phone",
+    "branches": "Branches",
+    "delete": "Delete",
     "addons": "Addons",
     "deleteTitle": "Confirm delete operation",
     "edit": "Edit",
     "refreshList": "Refresh List",
     "selectOne": "Select One",
+    "additionalInfo": "Additional Information",
+    "enabled": "Enabled",
     "buttons": {
       "save": "Save",
       "back": "Back",
@@ -16,7 +23,10 @@
       "no": "No"
     },
     "search": {
-      "name": "Name"
+      "name": "Search Name",
+      "email": "Search Email",
+      "branch": "Search Branch",
+      "phone": "Search Phone"
     },
     "validation": {
       "required": "This field is required"

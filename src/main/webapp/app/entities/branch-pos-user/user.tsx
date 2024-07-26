@@ -149,13 +149,13 @@
     console.log(userList, 'userList')
     const header = (
       <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-        <span className="text-xl text-900 font-bold"><Translate contentKey={'posUsers.user.table.title'}/></span>
+        <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.posUsers'}/></span>
         <div className="ms-auto">
-          <Button label={translate("posUsers.user.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={getUsers} disabled={loading}>
+          <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={getUsers} disabled={loading}>
             &nbsp;
             <FontAwesomeIcon icon="sync" spin={loading} />{' '}
           </Button>
-          <Button label={translate("posUsers.user.table.buttons.createNewUser")} raised onClick={handleCreate} disabled={loading}>
+          <Button label={translate("tempApp.createNewUser")} raised onClick={handleCreate} disabled={loading}>
             &nbsp;
           </Button>
         </div>
@@ -174,19 +174,19 @@
                      globalFilterFields={['firstName', 'lastName' ]} loading={loading}
                      filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
             <Column
-              field="name" header={translate("posUsers.user.table.fields.name")} filter
-              filterElement={ <InputText  placeholder={translate("posUsers.user.table.search.name")} onChange={handleNameFilterChange}/> }
+              field="name" header={translate("common.name")} filter
+              filterElement={ <InputText  placeholder={translate("common.search.name")} onChange={handleNameFilterChange}/> }
               filterField="name" body={nameColumnTemplate} sortable
             />
 
 
-            <Column field="email" header={translate("posUsers.user.table.fields.email")} filter filterPlaceholder={translate("posUsers.user.table.search.email")}  sortable   />
+            <Column field="email" header={translate("common.email")} filter filterPlaceholder={translate("common.search.email")}  sortable   />
 
             <Column
               field="branches"
               sortable
               filter
-              header={translate("posUsers.user.table.fields.branches")}
+              header={translate("common.branches")}
               body={(data) => data?.branches?.map((branch) => branch.name).join(" | ")}
               filterElement={
                 <Dropdown
@@ -195,7 +195,7 @@
                   onChange={(e) => {
                     handleBranchFilter(e.value);
                   }}
-                  placeholder={translate("posUsers.user.table.search.branch")}
+                  placeholder={translate("common.search.branch")}
                 />
               }
             />
@@ -203,11 +203,11 @@
 
 
 
-            <Column field="authorities" header={translate("posUsers.user.table.fields.authorities")} body={(rowData) => rowData.authorities.join('|')}  sortable   />
+            <Column field="authorities" header={translate("tempApp.authorities")} body={(rowData) => rowData.authorities.join('|')}  sortable   />
 
 
-            <Column header={translate("posUsers.user.table.fields.activated")} body={activeColumnTemplate} style={{width: '10%'}}   />
-            <Column header={translate("posUsers.user.table.fields.edit")}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+            <Column header={translate("tempApp.activated")} body={activeColumnTemplate} style={{width: '10%'}}   />
+            <Column header={translate("common.edit")}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                     bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
             {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}
