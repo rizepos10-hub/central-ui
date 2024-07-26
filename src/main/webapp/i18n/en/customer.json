@@ -1,31 +1,27 @@
 {
   "tempApp": {
     "customer": {
-      "home": {
-        "title": "Customers",
-        "refreshListLabel": "Refresh list",
-        "createLabel": "Create a new Customer",
-        "createOrEditLabel": "Create or edit a Customer",
-        "search": "Search for Customer",
-        "notFound": "No Customers found"
-      },
       "created": "A new Customer is created with identifier {{ param }}",
       "updated": "A Customer is updated with identifier {{ param }}",
       "deleted": "A Customer is deleted with identifier {{ param }}",
       "delete": {
         "question": "Are you sure you want to delete Customer {{ id }}?"
-      },
-      "detail": {
-        "title": "Customer"
-      },
-      "id": "ID",
-      "orderCount": "Order Count",
-      "name": "Name",
-      "email": "Email",
-      "phone": "Phone Number",
-      "status": "Status",
-      "firstName": "First Name",
-      "lastName": "Last Name"
-    }
+      }
+    },
+    "id": "ID",
+    "orderCount": "Order Count",
+    "createNewCustomer": "Create New Customer",
+    "editCustomer": "Edit Customer",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone Number",
+    "fax": "Fax",
+    "businessName": "Business Name",
+    "mobileNumber": "Mobile Number",
+    "loyaltyRecord": "Loyalty Record",
+    "status": "Status",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "customerOrders": "Customer Orders"
   }
 }

@@ -62,7 +62,7 @@ export const DiscountUpdate = () => {
       <Row>
         <Col md="8">
           <h2 id="tempApp.discount.home.createOrEditLabel" data-cy="DiscountCreateUpdateHeading">
-            {isNew ? "Create New Discount" : "Edit Discount"}
+            {isNew ? `${translate("tempApp.createNewDiscount")}` : `${translate("tempApp.editDiscount")}`}
           </h2>
         </Col>
       </Row>
@@ -74,7 +74,7 @@ export const DiscountUpdate = () => {
             <form onSubmit={saveEntity}>
               <FormGroup>
               <div className={"d-flex flex-column mb-3"}>
-                <Label htmlFor="discount-value">{translate('tempApp.discount.value')}</Label>
+                <Label htmlFor="discount-value">{translate('tempApp.value')}</Label>
                 <InputNumber
                   id="discount-value"
                   value={discountEntity.value || null}
@@ -84,7 +84,7 @@ export const DiscountUpdate = () => {
               </div>
 
               <div className="d-flex flex-column">
-                <Label htmlFor="discount-type">{translate('tempApp.discount.type')}</Label>
+                <Label htmlFor="discount-type">{translate('tempApp.type')}</Label>
                 <Select
                   id="discount-type"
                   name={"type"}

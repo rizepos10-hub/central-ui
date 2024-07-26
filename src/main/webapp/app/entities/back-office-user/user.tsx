@@ -119,13 +119,13 @@ export const User = () => {
   console.log(userList, 'userList')
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'backOfficeUsers.user.table.title'}/></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.backOfficeUsers'}/></span>
       <div className="ms-auto">
-        <Button label={translate("backOfficeUsers.user.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={getUsers} disabled={loading}>
+        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={getUsers} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("backOfficeUsers.user.buttons.createNewUser")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("tempApp.createNewUser")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -138,17 +138,17 @@ export const User = () => {
                    globalFilterFields={['firstName', 'lastName' ]} loading={loading} className="datatable-responsive"
                    filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
           <Column
-            field="name" header={translate("backOfficeUsers.user.table.fields.name")} filter
-            filterElement={ <InputText  placeholder={translate("backOfficeUsers.user.table.search.name")} onChange={handleNameFilterChange}/> }
+            field="name" header={translate("common.name")} filter
+            filterElement={ <InputText  placeholder={translate("common.search.name")} onChange={handleNameFilterChange}/> }
             filterField="name" body={nameColumnTemplate} sortable
           />
 
-          <Column field="username" header={translate("backOfficeUsers.user.table.fields.username")} filter filterPlaceholder={translate("backOfficeUsers.user.table.search.username")}  sortable   />
+          <Column field="username" header={translate("tempApp.username")} filter filterPlaceholder={translate("tempApp.searchUsername")}  sortable   />
 
-          <Column field="email" header={translate("backOfficeUsers.user.table.fields.email")} filter filterPlaceholder={translate("backOfficeUsers.user.table.search.email")}  sortable   />
+          <Column field="email" header={translate("common.email")} filter filterPlaceholder={translate("common.search.email")}  sortable   />
 
-          <Column header={translate("backOfficeUsers.user.table.fields.enabled")} body={activeColumnTemplate} style={{width: '10%'}}   />
-          <Column header={translate("backOfficeUsers.user.table.fields.edit")}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate("common.enabled")} body={activeColumnTemplate} style={{width: '10%'}}   />
+          <Column header={translate("common.edit")}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
           {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}
