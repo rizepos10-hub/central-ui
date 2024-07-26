@@ -38,6 +38,7 @@ export interface IBranchDetails {
   paymentConfigurations?: IPaymentConfigurations[];
   activeCOD?: boolean;
   zones: IZone[];
+  hideRetailShop?: boolean;
 }
 
 export interface IDeliveryConfiguration {
