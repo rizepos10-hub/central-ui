@@ -221,18 +221,18 @@ export const Customer = () => {
                    filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
 
           <Column
-            field="name" header={translate('customers.view.table.fields.name')} filter
-            filterElement={ <InputText  placeholder={translate('customers.view.table.search.name')} onChange={handleNameFilterChange}/> }
+            field="name" header={translate('common.name')} filter
+            filterElement={ <InputText  placeholder={translate('common.search.name')} onChange={handleNameFilterChange}/> }
             filterField="name" body={nameColumnTemplate} sortable
           />
 
-          <Column field="email" header={translate('customers.view.table.fields.email')} filter filterPlaceholder={translate('customers.view.table.search.email')}  sortable   />
-          <Column field="phone" header={translate('customers.view.table.fields.phone')}  filter filterPlaceholder={translate('customers.view.table.search.phone')}  sortable  />
+          <Column field="email" header={translate('common.email')} filter filterPlaceholder={translate('common.search.email')}  sortable   />
+          <Column field="phone" header={translate('common.phone')}  filter filterPlaceholder={translate('common..search.phone')}  sortable  />
 
-          <Column header={translate('customers.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('common.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header={translate('customers.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 

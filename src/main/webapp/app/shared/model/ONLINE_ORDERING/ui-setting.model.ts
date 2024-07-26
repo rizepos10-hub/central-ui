@@ -1,4 +1,5 @@
 import {IAttachment} from "app/shared/model/attachment.model";
+import { IBranchDetails } from "../business-detail.model";
 import { ILayoutSettings, defaultLayoutValue } from "./layout-settings";
 
 export interface IUiSettings {
@@ -20,6 +21,7 @@ export interface IUiSettings {
   phoneNumber?: string;
   applicationName?: string;
   orderConfirmation?: boolean;
+  branchDetail?: IBranchDetails[];
 }
 
 export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT"];

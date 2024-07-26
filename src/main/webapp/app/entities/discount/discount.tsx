@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Input, InputGroup, FormGroup, Form, Row, Col, Table } from 'reactstrap';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {Button as PrimeButton} from "primereact/button"
+import { Button as PrimeButton } from 'primereact/button';
 
-import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IDiscount } from 'app/shared/model/discount.model';
 import { searchEntities, getEntities } from './discount.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 
 export const Discount = () => {
   const dispatch = useAppDispatch();
@@ -115,8 +112,7 @@ export const Discount = () => {
     });
   };
 
-  console.log(discountList, 'lisdis')
-
+  console.log(discountList, 'lisdis');
 
   const handleSyncList = () => {
     sortEntities();
@@ -124,66 +120,77 @@ export const Discount = () => {
 
   const valueColumnTemplate = rowData => {
     const editUrl = `/discount/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.value}
-      </Link>
-    );
-  }
+    return <Link to={editUrl}>{rowData.value}</Link>;
+  };
 
-
-  const editColumnTemplate = (rowData) => {
+  const editColumnTemplate = rowData => {
     const editUrl = `/discount/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
       </Link>
     );
   };
 
-  const deleteColumnTemplate = (rowData) => {
+  const deleteColumnTemplate = rowData => {
     const deleteUrl = `/discount/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
       </Link>
     );
   };
   const handleCreate = () => {
-    navigate('/discount/new')
-  }
+    navigate('/discount/new');
+  };
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Discounts</span>
+      <span className="text-xl text-900 font-bold">{translate('tempApp.discounts')}</span>
       <div className="ms-auto">
-        <PrimeButton label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <PrimeButton
+          label="Refresh List"
+          severity="secondary"
+          raised
+          className="me-5"
+          color="info"
+          onClick={handleSyncList}
+          disabled={loading}
+        >
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </PrimeButton>
-        <PrimeButton label="Create new Discount" raised onClick={handleCreate} disabled={loading}>
+        <PrimeButton label={translate('tempApp.createNewDiscount')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </PrimeButton>
       </div>
     </div>
   );
   return (
+    <div className="table-responsive">
+      <DataTable value={discountList} editMode="row" showGridlines header={header} paginator totalRecords={totalItems} rows={20}>
+        <Column field="value" header={translate('tempApp.value')} body={valueColumnTemplate} sortable />
+        <Column
+          field="type"
+          sortable
+          header={translate('tempApp.value')}
+          body={rowData => (rowData.type === 'PERCENTAGE' ? '%' : rowData.type)}
+        />
 
-      <div className="table-responsive">
-        <DataTable value={discountList} editMode="row" showGridlines header={header}  paginator totalRecords={totalItems} rows={20}>
+        <Column
+          header={translate('common.edit')}
+          body={editColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
 
-          <Column field="value" header="Value" body={valueColumnTemplate} sortable  />
-          <Column field="type" sortable header="Type" body={(rowData) => rowData.type === "PERCENTAGE" ? "%" : rowData.type} />
-
-
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-
-        </DataTable>
-      </div>
+        <Column
+          header={translate('common.delete')}
+          body={deleteColumnTemplate}
+          headerStyle={{ width: '1%' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
+      </DataTable>
+    </div>
   );
 };
 

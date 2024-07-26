@@ -134,9 +134,9 @@ export const CustomerUpdate = () => {
         <Col md="8">
           <h2 id="tempApp.customer.home.createOrEditLabel" data-cy="CustomerCreateUpdateHeading">
             {isNew ? (
-              <Translate contentKey="customers.update.create.title">Create New Customer</Translate>
+              <Translate contentKey="tempApp.createNewCustomer">Create New Customer</Translate>
             ) : (
-              <Translate contentKey="customers.update.edit.title">Edit Customer</Translate>
+              <Translate contentKey="tempApp.editCustomer">Edit Customer</Translate>
             )}
           </h2>
         </Col>
@@ -150,7 +150,7 @@ export const CustomerUpdate = () => {
               <form onSubmit={saveEntity}>
                 <FormGroup>
                   <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="customer-firstName">{translate('customers.update.firstName')}</Label>
+                    <Label htmlFor="customer-firstName">{translate('tempApp.firstName')}</Label>
                     <InputText
                       id="customer-firstName"
                       value={customerEntity?.firstName || null}
@@ -160,7 +160,7 @@ export const CustomerUpdate = () => {
                   </div>
 
                   <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="customer-lastName">{translate('customers.update.lastName')}</Label>
+                    <Label htmlFor="customer-lastName">{translate('tempApp.lastName')}</Label>
                     <InputText
                       id="customer-lastName"
                       value={customerEntity?.lastName || null}
@@ -169,7 +169,7 @@ export const CustomerUpdate = () => {
                   </div>
 
                   <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="customer-phone">{translate('customers.update.phone')}</Label>
+                    <Label htmlFor="customer-phone">{translate('tempApp.phone')}</Label>
                     <InputText
                       id="customer-phone"
                       value={customerEntity?.phone || null}
@@ -178,7 +178,7 @@ export const CustomerUpdate = () => {
                   </div>
 
                   <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="customer-mobileNumber">{translate('customers.update.mobileNumber')}</Label>
+                    <Label htmlFor="customer-mobileNumber">{translate('tempApp.mobileNumber')}</Label>
                     <InputText
                       id="customer-mobileNumber"
                       value={customerEntity?.mobileNumber || null}
@@ -187,7 +187,7 @@ export const CustomerUpdate = () => {
                   </div>
 
                   <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="customer-fax">{translate('customers.update.fax')}</Label>
+                    <Label htmlFor="customer-fax">{translate('tempApp.fax')}</Label>
                     <InputText
                       id="customer-fax"
                       value={customerEntity?.fax || null}
@@ -196,7 +196,7 @@ export const CustomerUpdate = () => {
                   </div>
 
                   <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="customer-phone">{translate('customers.update.email')}</Label>
+                    <Label htmlFor="customer-phone">{translate('tempApp.email')}</Label>
                     <InputText
                       id="customer-email"
                       value={customerEntity?.email || null}
@@ -206,14 +206,14 @@ export const CustomerUpdate = () => {
 
                   {!isNew && (
                     <div className={'d-flex flex-column mb-3'}>
-                      <Label htmlFor="customer-phone">{translate('customers.update.loyaltyRecord')}</Label>
+                      <Label htmlFor="customer-phone">{translate('tempApp.loyaltyRecord')}</Label>
                       <InputNumber id="customer-loyaltyRecord" value={loyaltyRecord?.points ?? null} disabled />
                     </div>
                   )}
                   <>
-                    <h4>Additional Information</h4>
+                    <h4>{translate("common.additionalInfo")}</h4>
                   <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="customer-businessName">{translate('customers.update.businessName')}</Label>
+                    <Label htmlFor="customer-businessName">{translate('tempApp.businessName')}</Label>
                     <InputText
                       id="customer-businessName"
                       value={customerEntity?.businessDetails?.businessName || ""}
@@ -233,7 +233,7 @@ export const CustomerUpdate = () => {
                         <thead>
                           <tr>
                             <th>
-                              <Translate contentKey={'items.update.branch'}>Branch</Translate>
+                              <Translate contentKey={'common.branch'}>Branch</Translate>
                             </th>
                             <th>Price Line</th>
                           </tr>
@@ -260,7 +260,7 @@ export const CustomerUpdate = () => {
                     </>
                   ) : null}
 
-                  <h4>Customer Orders</h4>
+                  <h4>{translate("tempApp.customerOrders")}</h4>
                   {customerEntity?.id && (
                     <div>
                       <Order customer={customerEntity?.id} />
