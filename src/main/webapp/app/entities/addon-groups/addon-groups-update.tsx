@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
-import { getSortState, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import { getSortState, Translate,} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
@@ -93,7 +93,7 @@ export const AddonGroupUpdate = () => {
       handleClose();
     }
     return () => {
-      reset();
+      dispatch(reset());
     };
   }, [updateSuccess, addonGroupsEntity.id]);
 
@@ -116,9 +116,9 @@ export const AddonGroupUpdate = () => {
         <Col md="8">
           <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
             {isNew ? (
-              <Translate contentKey={'addonGroups.update.create.title'}>Create New Addon Group</Translate>
+              <Translate contentKey={'tempApp.addonGroup.createNewAddonGroup'}>Create New Addon Group</Translate>
             ) : (
-              <Translate contentKey={'addonGroups.update.edit.title'}>Edit Addon Group</Translate>
+              <Translate contentKey={'tempApp.addonGroup.editAddonGroup'}>Edit Addon Group</Translate>
             )}
           </h2>
         </Col>
@@ -131,7 +131,9 @@ export const AddonGroupUpdate = () => {
             ) : (
               <>
                 <div className={'d-flex justify-content-end'}>
-                  <PrimeButton onClick={handleShowModal}>Create And Add Addon</PrimeButton>
+                  <PrimeButton onClick={handleShowModal}>
+                    <Translate contentKey={'tempApp.addonGroup.createAndAddAddon'}>Create And Add Addon</Translate>
+                  </PrimeButton>
                 </div>
 
                 <CreateAddonModal isOpen={showModal} toggle={handleShowModal} />
@@ -140,7 +142,7 @@ export const AddonGroupUpdate = () => {
                   <FormGroup className={"d-flex flex-column gap-3"}>
                     <div className={'d-flex flex-column'}>
                       <Label for="addon-group-name">
-                        <Translate contentKey={'addons.update.name'}>Addon Name</Translate>
+                        <Translate contentKey={'common.name'}>Addon Name</Translate>
                       </Label>
                       <InputText
                         type="text"
@@ -152,7 +154,7 @@ export const AddonGroupUpdate = () => {
                       />
                     </div>
                     <div className="mb-3">
-                      <Translate contentKey="addonGroups.update.addons">Addons</Translate>
+                      <Translate contentKey="common.addons">Addons</Translate>
                       <Select
                         isMulti={true}
                         value={addonGroup?.addons}

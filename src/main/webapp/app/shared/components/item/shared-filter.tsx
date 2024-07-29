@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Col, Label } from 'reactstrap';
 import InputTextFilter from 'app/shared/components/filter/input-text-filter';
 import { IFilters, ILazyState } from 'app/shared/model/filter-state.model';
@@ -7,6 +7,7 @@ import { FilterMatchMode } from 'primereact/api';
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
 import _ from 'lodash';
 import AttributeFilter from 'app/shared/components/filter/attribute-filter';
+import { Checkbox } from 'primereact/checkbox';
 
 type SharedFilterProps = {
   handleSearch: (query: IFilters) => void;
@@ -17,6 +18,7 @@ type SharedFilterProps = {
 };
 
 const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, filteredAttributes }: SharedFilterProps) => {
+  const [showImagesFilter, setShowImagesFilter] = useState(false);
   const isRetailITem = itemType === 'RETAIL';
   // const filters: IFilters = query.filters;
 
@@ -35,6 +37,14 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
       handleSearch(filters);
     }
   };
+
+  useEffect(() => {
+    if (showImagesFilter) {
+      onFilterValueChange('attachments', { value: [] as any, matchMode: FilterMatchMode.NOT_EQUALS });
+    } else {
+      onFilterValueChange('attachments', { value: null as any, matchMode: FilterMatchMode.CUSTOM });
+    }
+  }, [showImagesFilter])
 
   return (
     <form className='w-100 d-flex flex-column gap-3'>
@@ -74,8 +84,16 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
             handleDropdownChange={handleDropdownChange}
           />
         </div>
+        <div className={'col-3 d-flex gap-1'}>
+          <div className={'d-flex gap-2'}>
+            <Checkbox
+              checked={filters?.['attachments']?.matchMode === FilterMatchMode.NOT_EQUALS}
+              onChange={(e) => setShowImagesFilter(e.checked)}
+            />
+          </div>
+          <Label className={'font-semibold'}>Show Only Images</Label>
+        </div>
       </div>
-
       <AttributeFilter filteredAttributes={filteredAttributes} onFilterValueChange={onFilterValueChange} />
     </form>
   );

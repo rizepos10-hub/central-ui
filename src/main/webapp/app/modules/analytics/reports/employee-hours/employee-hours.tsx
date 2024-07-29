@@ -24,7 +24,7 @@ import { format, intervalToDuration } from "date-fns";
 
 const initialState = {
     first: 0,
-    rows: 20,
+    rows: 500,
     page: 0,
     sortField: null,
     sortOrder: null,
@@ -104,6 +104,37 @@ const EmployeeHoursReport = () => {
         return <span>{formattedDuration}</span>;
     }
 
+    const footerTemplate = (data) => {
+        const user = data.username;
+        const userInstances = userClocks.filter(clock => clock.username === user);
+
+        let totalSeconds = 0;
+
+        userInstances.forEach(clock => {
+            const clockIn = new Date(clock.instantClockedIn);
+            const clockOut = new Date(clock.instantClockedOut);
+
+            const duration = intervalToDuration({ start: clockIn, end: clockOut });
+            totalSeconds += duration.hours * 3600 + duration.minutes * 60 + duration.seconds;
+        });
+
+        const totalHours = Math.floor(totalSeconds / 3600);
+        const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+        const totalSecs = totalSeconds % 60;
+
+        const formattedTotalTime = `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}:${String(totalSecs).padStart(2, '0')}`;
+
+        return (
+            <React.Fragment>
+                <td colSpan={5}>
+                    <div className="flex justify-content-end font-bold w-full">
+                        Total Hours : {formattedTotalTime}
+                    </div>
+                </td>
+            </React.Fragment>
+        );
+    };
+
     return (
         <div className={'bg-white p-5'}>
             <h1>Employee Hours Report</h1>
@@ -126,7 +157,7 @@ const EmployeeHoursReport = () => {
                                 },
                             })
                         }
-                        placeholder={'Select User'}
+                        placeholder={'Select Branch'}
                     />
 
                     <label htmlFor="date">Date Range</label>
@@ -150,14 +181,37 @@ const EmployeeHoursReport = () => {
             {userClocks?.length > 0 ?
                 <div className={"mt-3"}>
                     <DataTable
-                        value={userClocks} lazy filterDisplay="row" dataKey="id" paginator
-                        first={query.first} rows={query?.rows} totalRecords={20} onPage={onPage}
-                        sortField={query.sortField} sortOrder={query.sortOrder}
-                        filters={query.filters} loading={loadingClocks} tableStyle={{ minWidth: '75rem' }}
+                        value={userClocks}
+                        rowGroupMode="subheader"
+                        groupRowsBy="username"
+                        sortMode="single"
+                        sortField="username"
+                        sortOrder={1}
+                        scrollable
+                        scrollHeight="400px"
+                        tableStyle={{ minWidth: '50rem' }}
+                        rowGroupFooterTemplate={footerTemplate}
+                    >
+
+                        {/* <DataTable
+                        value={userClocks} 
+                        lazy
+                         filterDisplay="row"
+                          dataKey="id"
+                           paginator
+                        first={query.first}
+                         rows={query?.rows}
+                          totalRecords={50}
+                           onPage={onPage}
+                        sortField={query.sortField}
+                         sortOrder={query.sortOrder}
+                        filters={query.filters}
+                         loading={loadingClocks} 
+                         tableStyle={{ minWidth: '75rem' }}
                         removableSort
                         showGridlines
                         className={"mt-3"}
-                    >
+                    > */}
                         <Column
                             field="username"
                             header={translate('items.view.fields.name')}

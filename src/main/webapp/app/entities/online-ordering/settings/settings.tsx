@@ -20,6 +20,8 @@ import { InputText } from 'primereact/inputtext';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { Editor } from 'primereact/editor';
+import { TabPanel, TabView } from 'primereact/tabview';
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -29,10 +31,12 @@ export const UiSettingsUpdate = () => {
   const loading = useAppSelector(state => state.uiSettings.loading);
   const updating = useAppSelector(state => state.uiSettings.updating);
   const updateSuccess = useAppSelector(state => state.uiSettings.updateSuccess);
+  const branchList = useAppSelector(state => state.branch.entities);
 
 
   useEffect(() => {
     dispatch(getEntity());
+    dispatch(getBranches({}));
   }, []);
 
   useEffect(() => {
@@ -71,6 +75,18 @@ export const UiSettingsUpdate = () => {
       <button className="ql-list" value="bullet"></button>
     </span>
   );
+
+  const handleBranchHideRetailShop = (branchIndex, checked, branchId) => {
+    const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.branchDetail));
+    newData[branchIndex] = {
+      ...newData[branchIndex], 
+      hideRetailShop: checked,
+      branchId,
+    };
+    console.log(branchIndex)
+    console.log(newData)
+    dispatch(changeEntityField({ name: 'branchDetail', value: newData }));
+  };
 
   return (
     <div>
@@ -267,6 +283,22 @@ export const UiSettingsUpdate = () => {
                     value={UiSettingsEntity.cookie || null}
                     onChange={e => dispatch(changeEntityField({ name: 'cookie', value: e.target.value }))}
                   />
+                </div>
+
+                <div className={'d-flex flex-column mb-3'}>
+                  <TabView className='w-100' scrollable>
+                    {branchList?.map((branch, index) => (
+                      <TabPanel header={branch.name} key={index}>
+                        <div className="d-flex mb-3">
+                          <label className="font-bold">Hide Retail Shop</label>
+                          <Checkbox
+                            checked={UiSettingsEntity.branchDetail[index]?.hideRetailShop || false}
+                            onChange={(e) => handleBranchHideRetailShop(index, e.checked, branch.id)}
+                          />
+                        </div>
+                      </TabPanel>
+                    ))}
+                  </TabView>
                 </div>
 
                 <div className={'d-flex flex-column mb-3'}>

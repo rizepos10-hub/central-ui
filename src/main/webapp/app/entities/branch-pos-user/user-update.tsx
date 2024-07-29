@@ -282,7 +282,7 @@ export const UserUpdate = () => {
     <div>
         <div className="col-8">
           <h2>
-            {isNew ? <Translate contentKey={'posUsers.update.create.title'}/> : <Translate contentKey={'posUsers.update.edit.title'}/>}
+            {isNew ? <Translate contentKey={'tempApp.createNewUser'}/> : <Translate contentKey={'tempApp.editUser'}/>}
           </h2>
         </div>
         <div className="col-8">
@@ -292,7 +292,7 @@ export const UserUpdate = () => {
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="firstName">
-                <Translate contentKey={'posUsers.update.firstName'}/>
+                <Translate contentKey={'tempApp.firstName'}/>
               </label>
               <InputText
                 id="firstName"
@@ -300,12 +300,12 @@ export const UserUpdate = () => {
                 value={user.firstName || ''}
                 onChange={handleInputChange}
                 required
-                placeholder={translate("posUsers.update.placeholders.firstName")}
+                placeholder={translate("tempApp.firstName")}
               />
             </div>
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="lastName">
-                <Translate contentKey={'posUsers.update.lastName'}/>
+                <Translate contentKey={'tempApp.lastName'}/>
               </label>
               <InputText
                 id="lastName"
@@ -313,13 +313,13 @@ export const UserUpdate = () => {
                 value={user.lastName || ''}
                 onChange={handleInputChange}
                 required
-                placeholder={translate("posUsers.update.placeholders.lastName")}
+                placeholder={translate("tempApp.lastName")}
               />
             </div>
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="userName">
-                <Translate contentKey={'posUsers.update.username'}/>
+                <Translate contentKey={'tempApp.username'}/>
               </label>
               <InputText
                 id="userName"
@@ -334,7 +334,7 @@ export const UserUpdate = () => {
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="email">
-                <Translate contentKey={'posUsers.update.email'}/>
+                <Translate contentKey={'tempApp.email'}/>
               </label>
               <InputText
                 id="email"
@@ -342,13 +342,13 @@ export const UserUpdate = () => {
                 value={user.email}
                 onChange={handleInputChange}
                 required
-                placeholder={translate("posUsers.update.placeholders.email")}
+                placeholder={translate("tempApp.email")}
               />
             </div>
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="pinCode">
-                <Translate contentKey={'posUsers.update.pinCode'}/>&nbsp;<label className="text-sm"> (3 digits)</label>
+                <Translate contentKey={'tempApp.pinCode'}/>&nbsp;<label className="text-sm"> (3 digits)</label>
               </label>
               <InputText
                 id="pinCode"
@@ -359,14 +359,14 @@ export const UserUpdate = () => {
                 pattern="[0-9]{3}"
                 minLength={3}
                 maxLength={3}
-                placeholder={translate("posUsers.update.placeholders.pinCode")}
+                placeholder={translate("tempApp.pinCode")}
 
 
               />
             </div>
              <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="password">
-                <Translate contentKey={'posUsers.update.password'}/>
+                <Translate contentKey={'tempApp.password'}/>
               </label>
               <InputText
                 id="password"
@@ -375,13 +375,13 @@ export const UserUpdate = () => {
                 value={user.password}
                 onChange={handlePasswordChange}
                 required={isNew ? true : false}
-                placeholder={translate("posUsers.update.placeholders.password")}
+                placeholder={translate("tempApp.password")}
 
               />
             </div>
 
             <div className="mb-3">
-              <Translate contentKey={'posUsers.update.authorities'}/>
+              <Translate contentKey={'tempApp.authorities'}/>
               <Select  defaultValue={initialAuthorities}
                        value={selectedAuthorities}
                        onChange={handleAuthoritiesChange}
@@ -389,7 +389,7 @@ export const UserUpdate = () => {
             </div>
 
             <div className="mb-3">
-              <Translate contentKey={'posUsers.update.branches'}/>
+              <Translate contentKey={'common.branches'}/>
               <Select  defaultValue={initialBranches}
                        value={selectedBranches}
                        isMulti
@@ -398,7 +398,7 @@ export const UserUpdate = () => {
             </div>
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="activated">
-                <Translate contentKey={'posUsers.update.activated'}/>
+                <Translate contentKey={'tempApp.activated'}/>
               </label>
               <Checkbox
                 inputId={`activated-${user.activated}`}

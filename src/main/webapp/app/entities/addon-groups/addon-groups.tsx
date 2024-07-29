@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
+import { Translate, translate, getSortState,} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { APP_DATE_FORMAT, APP_LOCAL_DATE_FORMAT } from 'app/config/constants';
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+import {  ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { searchEntities, getEntities } from './addon-groups.reducer';
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
-import {Chip} from "primereact/chip";
 import {FilterMatchMode} from "primereact/api";
 
 export const AddonGroups = () => {
@@ -125,16 +122,16 @@ export const AddonGroups = () => {
   const handleCreate = () => {
     navigate('/addon-groups/new')
   }
-  console.log(addonGroupsList, 'addonGroupsList')
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'addonGroups.view.table.title'}>Addon Groups</Translate></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.addonGroup.title'}>Addon Groups</Translate></span>
       <div className="ms-auto">
-        <Button label={translate('addonGroups.view.table.buttons.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate('common.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate('addonGroups.view.table.buttons.createNewAddonGroup')} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate('tempApp.addonGroup.createNewAddonGroup')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -146,16 +143,17 @@ export const AddonGroups = () => {
   return (
     <div>
 
-        <DataTable value={addonGroupsList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"
+        <DataTable value={addonGroupsList} editMode="row" header={header} loading={loading} removableSort   filters={filters} filterDisplay="row"
                    paginator totalRecords={totalItems} rows={20} showGridlines>
-          <Column field="name" header={translate('addonGroups.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('addonGroups.view.table.search.name')}  sortable  />
+          <Column field="name" header={translate('common.name')} filter body={nameColumnTemplate}
+                  filterPlaceholder={translate('common.search.name')}  sortable  />
 
-          <Column field="addons" header={translate('addonGroups.view.table.fields.addons')}  body={(rowData) => rowData.addons.map(addon => addon.name).join(" | ")}   sortable  />
+          <Column field="addons" header={translate('tempApp.addon.addons')}  body={(rowData) => rowData.addons.map(addon => addon.name).join(" | ")}   sortable  />
 
-          <Column header={translate('addonGroups.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('common.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header={translate('addonGroups.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 

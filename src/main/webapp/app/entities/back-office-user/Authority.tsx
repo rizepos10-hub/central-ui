@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from "app/config/store";
 import { getRoles, updateRoles } from "app/entities/back-office-user/user.reducer";
 import { Checkbox } from "primereact/checkbox";
 import { Label } from "reactstrap";
+import { translate } from "react-jhipster";
 
 
 
@@ -114,7 +115,9 @@ function Authorities({id}) {
             <h5>{role.groupName}</h5>
             <div className={'d-flex flex-column gap-2'}>
               <div className={'d-flex flex-row gap-2'}>
-                <Label htmlFor="role-checkbox" >{role.assigned ? 'Deactivate Role' : 'Activate Role'}</Label>
+                <Label htmlFor="role-checkbox" >
+                  {role.assigned ? `${translate("tempApp.deactivateRole")}` : `${translate("tempApp.activateRole")}`}
+                </Label>
                 <Checkbox
                   id="role-checkbox"
                   value={role.assigned}
@@ -124,7 +127,9 @@ function Authorities({id}) {
               </div>
 
               <div className={'d-flex flex-row gap-2'}>
-                <Label htmlFor="authorities-checkbox">{areAllRolesAuthoritiesAssigned(role.groupName) ? ' Uncheck All Authorities' : 'Check All Authorities'}</Label>
+                <Label htmlFor="authorities-checkbox">
+                  {areAllRolesAuthoritiesAssigned(role.groupName) ? `${translate("tempApp.uncheckAllAuthorities")}` : `${translate("tempApp.checkAllAuthorities")}` }
+                </Label>
                 <Checkbox
                   id="authorities-checkbox"
                   checked={areAllRolesAuthoritiesAssigned(role.groupName)}
