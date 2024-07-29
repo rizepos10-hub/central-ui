@@ -1,0 +1,39 @@
+{
+  "tempApp": {
+    "purchaseOrder": {
+      "created": "A new Purchase Order is created with identifier {{ param }}",
+      "updated": "A Purchase Order is updated with identifier {{ param }}",
+      "deleted": "A Purchase Order is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Purchase Order",
+        "question": "Are you sure you want to delete purchase order {{ id }}"
+      },
+      "search": {
+        "supplier": "Search Supplier",
+        "warehouse": "Search Warehouse"
+      },
+      "title": "Purchase Orders",
+      "addNew": "Add New Purchase Order",
+      "view": "View Purchase Order",
+      "edit": "Edit Purchase Order",
+      "supplier": "Supplier",
+      "selectSupplier": "Select Supplier",
+      "warehouse": "Warehouse",
+      "selectWarehouse": "Select Warehouse",
+      "delivery": "Delivery",
+      "orderDate": "Order Date",
+      "deliveryDate": "Delivery Date",
+      "orderLines": "Order Lines",
+      "comments": "Comments",
+      "comment": "Comment",
+      "costDate": "Cost Date",
+      "cost": "Cost",
+      "costLines": "Cost Lines",
+      "returnItems": "Return Items",
+      "splitAndComplete": "Split & Complete Order",
+      "PLACED": "PLACED",
+      "costPrice": "Cost Price",
+      "receivedQuantity": "Received Quantity"
+    }
+  }
+}
