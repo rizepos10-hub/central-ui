@@ -7,8 +7,14 @@ export interface IServiceCharge {
   lastModifiedBy?: string;
   lastModifiedDate?: string;
   branch?: IBranch;
-  key?: "SERVICE_CHARGE";
+  key?: ServiceChargeKey;
   value?: IServiceChargeValue;
+}
+
+export enum ServiceChargeKey {
+  SHIPPING_FEE = "SHIPPING_FEE",
+  WRAPPING_FEE = "WRAPPING_FEE",
+  GRATUITY = "GRATUITY"
 }
 
 export interface IServiceChargeValue {

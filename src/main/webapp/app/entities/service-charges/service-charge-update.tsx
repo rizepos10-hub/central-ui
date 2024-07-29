@@ -1,15 +1,16 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label} from 'reactstrap';
+import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
 import { Translate, translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {getEntity, updateEntity, createEntity, reset, changeEntityField} from './service-charge.reducer';
-import Select from "react-select";
-import {InputNumber} from "primereact/inputnumber";
-import {DiscountType} from "app/shared/model/ENUMS/discount-type.model";
+import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './service-charge.reducer';
+import { InputNumber } from "primereact/inputnumber";
+import { Dropdown } from 'primereact/dropdown';
+import { ServiceChargeApplicableOn, ServiceChargeKey, ServiceChargeSettingType, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
+import { InputText } from 'primereact/inputtext';
 
 export const ServiceChargeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -17,11 +18,10 @@ export const ServiceChargeUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const discountEntity = useAppSelector(state => state.discount.entity);
-  const loading = useAppSelector(state => state.discount.loading);
-  const updating = useAppSelector(state => state.discount.updating);
-  const updateSuccess = useAppSelector(state => state.discount.updateSuccess);
-  const discountTypeValuesOptions = Object.keys(DiscountType).map(opt => ({label: opt, value: opt}));
+  const serviceChargeEntity = useAppSelector(state => state.serviceCharge.entity);
+  const loading = useAppSelector(state => state.serviceCharge.loading);
+  const updating = useAppSelector(state => state.serviceCharge.updating);
+  const updateSuccess = useAppSelector(state => state.serviceCharge.updateSuccess);
 
   useEffect(() => {
     if (!isNew) {
@@ -41,58 +41,132 @@ export const ServiceChargeUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/discount' + location.search);
+    navigate('/service-charge' + location.search);
   };
 
   const saveEntity = (e) => {
     e.preventDefault();
     if (isNew) {
-      dispatch(createEntity(discountEntity));
+      dispatch(createEntity(serviceChargeEntity));
     } else {
-      dispatch(updateEntity(discountEntity));
+      dispatch(updateEntity(serviceChargeEntity));
     }
   };
+
+  const serviceChargeKeys = Object.keys(ServiceChargeKey).map(key => ({ label: key, value: ServiceChargeKey[key] }));
+  const whenToApplyOptions = Object.keys(ServiceChargeWhenToApply).map(key => ({ label: key, value: ServiceChargeWhenToApply[key] }));
+  const typeOptions = Object.keys(ServiceChargeSettingType).map(key => ({ label: key, value: ServiceChargeSettingType[key] }));
+  const applicableOnOptions = Object.keys(ServiceChargeApplicableOn).map(key => ({ label: key, value: ServiceChargeApplicableOn[key] }));
 
   return (
     <div>
       <Row>
         <Col md="8">
-          <h2 id="tempApp.discount.home.createOrEditLabel" data-cy="DiscountCreateUpdateHeading">
-            {isNew ? "Create New Discount" : "Edit Discount"}
+          <h2 id="service-charge.home.createOrEditLabel" data-cy="ServiceChargeCreateUpdateHeading">
+            {isNew ? "Create New Service Charge" : "Edit Service Charge"}
           </h2>
         </Col>
       </Row>
       <Row>
-        <Col md="8"  className="d-flex flex-column p-3  bg-white">
+        <Col md="12" className="d-flex flex-column p-3 bg-white">
           {loading ? (
             <p>Loading...</p>
           ) : (
             <form onSubmit={saveEntity}>
               <FormGroup>
-              <div className={"d-flex flex-column mb-3"}>
-                <Label htmlFor="discount-value">{translate('tempApp.discount.value')}</Label>
-                <InputNumber
-                  id="discount-value"
-                  value={discountEntity.value || null}
-                  onChange={e => dispatch(changeEntityField({name: 'value',value: e.value}))}
-                  required
-                />
-              </div>
+                <div className={"d-flex gap-2 w-100"}>
+                  <div className={"d-flex flex-column mb-3 w-100"}>
+                    <Label htmlFor="service-charge-key">{translate('service-charge.key')}</Label>
+                    <Dropdown
+                      value={serviceChargeEntity.key}
+                      options={serviceChargeKeys}
+                      placeholder="Select a Key"
+                      showClear
+                      style={{ minWidth: '12rem' }}
+                    />
+                  </div>
+                  <div className={"d-flex flex-column mb-3 w-100"}>
+                    <Label htmlFor="service-charge-name">{translate('service-charge.name')}</Label>
+                    <InputText
+                      id="service-charge-name"
+                      value={serviceChargeEntity.value?.name || ''}
+                      onChange={(e) => dispatch(changeEntityField({ name: 'value.name', value: e.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
 
-              <div className="d-flex flex-column">
-                <Label htmlFor="discount-type">{translate('tempApp.discount.type')}</Label>
-                <Select
-                  id="discount-type"
-                  name={"type"}
-                  required
-                  options={discountTypeValuesOptions}
-                  value={discountEntity?.type ? {label: discountEntity?.type, value: discountEntity?.type} : null}
-                  onChange={(selectedType: {label: string, value: string}) => dispatch(changeEntityField({name: 'type', value: selectedType?.value}))}
-                />
-              </div>
+                <div className={"d-flex gap-2 w-100"}>
+                  <div className={"d-flex flex-column mb-3 w-100"}>
+                    <Label htmlFor="service-charge-type">{translate('service-charge.settings.type')}</Label>
+                    <Dropdown
+                      value={serviceChargeEntity.value?.setting?.type}
+                      options={typeOptions}
+                      placeholder="Select a Setting"
+                      showClear
+                      style={{ minWidth: '12rem' }}
+                    />
+                  </div>
+                  <div className={"d-flex flex-column mb-3 w-100"}>
+                    <Label htmlFor="service-charge-applicableOn">{translate('service-charge.applicableOn')}</Label>
+                    <Dropdown
+                      value={serviceChargeEntity.value?.setting?.applicableOn}
+                      options={applicableOnOptions}
+                      placeholder="Select a Applicable On"
+                      showClear
+                      style={{ minWidth: '12rem' }}
+                    />
+                  </div>
+                </div>
+
+                <div className={"d-flex gap-2 w-100"}>
+                  <div className={"d-flex flex-column mb-3 w-100"}>
+                    <Label htmlFor="service-charge-whenToApply">{translate('service-charge.whenToApply')}</Label>
+                    <Dropdown
+                      value={serviceChargeEntity.value?.whenToApply}
+                      options={whenToApplyOptions}
+                      placeholder="Select a When To Apply"
+                      showClear
+                      style={{ minWidth: '12rem' }}
+                    />
+                  </div>
+                  <div className={"d-flex flex-column mb-3 w-100"}>
+                    <Label htmlFor="service-charge-minCharge">{translate('service-charge.minCharge')}</Label>
+                    <InputNumber
+                      id="service-charge-minCharge"
+                      value={serviceChargeEntity.value?.minCharge || 0}
+                      onChange={(e) => dispatch(changeEntityField({ name: 'value.minCharge', value: e.value }))}
+                      required
+                      maxFractionDigits={2}
+                    />
+                  </div>
+                </div>
+
+                <div className={"d-flex gap-2 w-100"}>
+                  <div className={"d-flex flex-column mb-3 w-100"}>
+                    <Label htmlFor="service-charge-maxCharge">{translate('service-charge.maxCharge')}</Label>
+                    <InputNumber
+                      id="service-charge-maxCharge"
+                      value={serviceChargeEntity.value?.maxCharge || 0}
+                      onChange={(e) => dispatch(changeEntityField({ name: 'value.maxCharge', value: e.value }))}
+                      required
+                      maxFractionDigits={2}
+                    />
+                  </div>
+                  <div className={"d-flex flex-column mb-3 w-100"}>
+                    <Label htmlFor="service-charge-charge">{translate('service-charge.charge')}</Label>
+                    <InputNumber
+                      id="service-charge-charge"
+                      value={serviceChargeEntity.value?.charge || 0}
+                      onChange={(e) => dispatch(changeEntityField({ name: 'value.charge', value: e.value }))}
+                      required
+                      maxFractionDigits={2}
+                    />
+                  </div>
+                </div>
               </FormGroup>
 
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/discount" replace color="info">
+              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/service-charge" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">

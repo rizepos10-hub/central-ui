@@ -65,7 +65,7 @@ import TagGroup from "app/entities/tag-group";
 import BranchRegistry from "app/entities/settings/branch-registry";
 import Brand from "app/entities/brand";
 import Branches from './branches/branch';
-import ServiceCharge from './service-charges/service-charge';
+import ServiceCharge from './service-charges/index';
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 

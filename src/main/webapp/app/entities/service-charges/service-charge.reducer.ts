@@ -26,7 +26,7 @@ export const searchEntities = createAsyncThunk('settings/search_entity', async (
 });
 
 export const getEntities = createAsyncThunk('settings/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+  const requestUrl = `${apiUrl}${sort ? `/by-key?key=GRATUITY&page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IServiceCharge[]>(requestUrl);
 });
 
