@@ -106,13 +106,13 @@ export const SalesLocation = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.salesLocation.view.table.title'}>SalesLocations</Translate></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.salesLocation.title'}>Sales Locations</Translate></span>
       <div className="ms-auto">
-        <Button label={translate("tempApp.salesLocation.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("tempApp.salesLocation.view.table.buttons.createNewSalesLocation")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("tempApp.salesLocation.createNew")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -127,13 +127,13 @@ export const SalesLocation = () => {
 
         <DataTable value={salesLocationList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20} showGridlines>
-          <Column field="name" header={translate('tempApp.salesLocation.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('tempApp.salesLocation.view.table.search.name')}  sortable  />
+          <Column field="name" header={translate('common.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('common.search.name')}  sortable  />
 
 
-          <Column header={translate('tempApp.salesLocation.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('common.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header={translate('tempApp.salesLocation.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 

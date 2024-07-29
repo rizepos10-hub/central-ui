@@ -9,7 +9,7 @@ import { getEntity, updateEntity, createEntity, reset } from './sales-location.r
 import {InputText} from "primereact/inputtext";
 import {ISalesLocation} from "app/shared/model/STOCK/sales-location.model";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {Translate} from "react-jhipster";
+import { translate, Translate } from "react-jhipster";
 import Select from "react-select";
 import {IBranch} from "app/shared/model/branch.model";
 
@@ -85,7 +85,7 @@ export const SalesLocationUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Sales Location" : "Edit Sales Location"}</h2>
+          <h2>{isNew ?  `${translate("tempApp.salesLocation.createNew")}` :  `${translate("tempApp.salesLocation.edit")}`}</h2>
         </Col>
       </Row>
       <Row>
@@ -96,7 +96,9 @@ export const SalesLocationUpdate = () => {
             <form onSubmit={saveEntity}>
               <FormGroup>
                 <div className={"d-flex flex-column"}>
-                  <Label for="name">Name</Label>
+                  <Label for="name">
+                    <Translate contentKey={"common.name"} />
+                  </Label>
                   <InputText
                     type="text"
                     name="name"
@@ -108,7 +110,9 @@ export const SalesLocationUpdate = () => {
                 </div>
 
                 <div className={"d-flex flex-column mt-2"}>
-                  <Label for="location">Location</Label>
+                  <Label for="location">
+                    <Translate contentKey={"common.location"} />
+                  </Label>
                   <InputText
                     type="text"
                     name="location"
@@ -120,7 +124,9 @@ export const SalesLocationUpdate = () => {
 
                 <div className={"d-flex flex-column"}>
                   <label className={"mt-2"}>
-                    <Translate contentKey={"tempApp.table.branch"}>Branch</Translate>
+                    <Translate contentKey={"tempApp.table.branch"}>
+                      Branch
+                    </Translate>
                   </label>
                   <Select
                     options={branchList}
@@ -135,12 +141,12 @@ export const SalesLocationUpdate = () => {
               </FormGroup>
               <Button tag={Link} to="/inventory/sales-location" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
+                &nbsp;   <Translate contentKey={"common.back"} />
               </Button>
               &nbsp;
               <Button color="primary" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;Save
+                &nbsp; <Translate contentKey={"common.save"} />
               </Button>
             </form>
           )}

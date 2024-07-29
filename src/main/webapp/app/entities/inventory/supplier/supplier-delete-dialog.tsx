@@ -45,7 +45,7 @@ export const SupplierDeleteDialog = () => {
         <Translate contentKey="tempApp.supplier.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="suppliers.delete.question">
-        <Translate contentKey="tempApp.supplier.delete.question" interpolate={{ id: supplierEntity.id }}>
+        <Translate contentKey="tempApp.supplier.delete.question" interpolate={{ param: supplierEntity.name }}>
           Are you sure you want to delete this Supplier?
         </Translate>
       </ModalBody>

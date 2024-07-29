@@ -108,34 +108,22 @@ export const Supplier = () => {
   const handleCreate = () => {
     navigate('/inventory/supplier/new')
   }
-  console.log(supplierList, 'supplierlist')
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.supplier.view.table.title'}>Suppliers</Translate></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.supplier.title'}>Suppliers</Translate></span>
       <div className="ms-auto">
-        <Button label={translate("tempApp.supplier.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("tempApp.supplier.view.table.buttons.createNewSupplier")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("tempApp.supplier.createNew")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
     </div>
   );
-  const renderDiscounts = rowData => {
-    const discounts = rowData.discounts || [];
-    return discounts.map((discount, index) => (
-      <>
-      <Chip
-        key={index}
-        label={discount.type === 'PERCENTAGE' ? `${discount.value}%` : `${discount.value} ${discount.type}`}
-        className="p-mr-2 p-mb-2"
-      />
-      </>
 
-    ));
-  };
 
 
 
@@ -154,20 +142,20 @@ export const Supplier = () => {
           totalRecords={totalItems}
           rows={20}
         >
-          <Column field="name" header={translate('tempApp.supplier.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('tempApp.supplier.view.table.search.name')}  sortable  />
-          <Column field="address" header={translate('tempApp.supplier.view.table.fields.address')}
-                  filter filterPlaceholder={translate('tempApp.supplier.view.table.search.address')} sortable />
+          <Column field="name" header={translate('common.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('common.search.name')}  sortable  />
+          <Column field="address" header={translate('common.address')}
+                  filter filterPlaceholder={translate('common.search.address')} sortable />
 
-          <Column field="email" header={translate('tempApp.supplier.view.table.fields.email')}
-                  filter filterPlaceholder={translate('tempApp.supplier.view.table.search.email')}  sortable   />
+          <Column field="email" header={translate('common.email')}
+                  filter filterPlaceholder={translate('common.search.email')}  sortable   />
 
-          <Column field="phoneNumber" header={translate('tempApp.supplier.view.table.fields.phone')}
-                  filter filterPlaceholder={translate('tempApp.supplier.view.table.search.phone')}  sortable  />
+          <Column field="phoneNumber" header={translate('common.phone')}
+                  filter filterPlaceholder={translate('common.search.phone')}  sortable  />
 
-          <Column header={translate('tempApp.supplier.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('common.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header={translate('tempApp.supplier.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 
