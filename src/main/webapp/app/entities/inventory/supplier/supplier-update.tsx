@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, updateEntity, createEntity, reset } from './supplier.reducer';
 import {InputText} from "primereact/inputtext";
 import {ISupplier} from "app/shared/model/STOCK/supplier.model";
+import { translate, Translate } from "react-jhipster";
 
 export const SupplierUpdate = () => {
   const dispatch = useAppDispatch();
@@ -72,7 +73,7 @@ export const SupplierUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Supplier" : "Edit Supplier"}</h2>
+          <h2>{isNew ?  `${translate("tempApp.supplier.createNew")}` : `${translate("tempApp.supplier.edit")}`}</h2>
         </Col>
       </Row>
       <Row>
@@ -83,7 +84,9 @@ export const SupplierUpdate = () => {
             <form onSubmit={saveEntity}>
               <FormGroup>
                 <div className={"d-flex flex-column"}>
-                  <Label for="name">Name</Label>
+                  <Label for="name">
+                    <Translate contentKey={"common.name"} />
+                  </Label>
                   <InputText
                     type="text"
                     name="name"
@@ -95,7 +98,7 @@ export const SupplierUpdate = () => {
                 </div>
 
                 <div className={"d-flex flex-column mt-2"}>
-                  <Label for="address">Address</Label>
+                  <Translate contentKey={"common.address"} />
                   <InputText
                     type="text"
                     name="address"
@@ -107,9 +110,13 @@ export const SupplierUpdate = () => {
 
 
                 <div className={"d-flex flex-column gap-2 mt-2"}>
-                  <strong><label className={"text-xl"}>Contact Information</label></strong>
+                  <strong><label className={"text-xl"}>
+                    <Translate contentKey={"common.contactInformation"} />
+                  </label></strong>
                   <div className={"d-flex flex-column"}>
-                  <Label for="email">Email</Label>
+                  <Label for="email">
+                    <Translate contentKey={"common.email"} />
+                  </Label>
                   <InputText
                     type="email"
                     name="email"
@@ -120,7 +127,9 @@ export const SupplierUpdate = () => {
                   </div>
 
                   <div className={"d-flex flex-column"}>
-                    <Label for="phoneNumber">Phone Number</Label>
+                    <Label for="phoneNumber">
+                      <Translate contentKey={"common.phone"} />
+                    </Label>
                     <InputText
                       name="phoneNumber"
                       id="phoneNumber"
@@ -132,12 +141,12 @@ export const SupplierUpdate = () => {
               </FormGroup>
               <Button tag={Link} to="/inventory/supplier" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
+                &nbsp;<Translate contentKey={"common.back"} />
               </Button>
               &nbsp;
               <Button color="primary" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;Save
+                &nbsp;<Translate contentKey={"common.save"} />
               </Button>
             </form>
           )}

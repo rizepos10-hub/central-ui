@@ -23,6 +23,7 @@ import Select from "react-select";
 import {Calendar} from "primereact/calendar";
 import {toLocalISOString} from "app/shared/util/date-utils";
 import {applyMatchModeMap} from "app/shared/util/filter-match-model-util";
+import { Spinner } from "reactstrap";
 
 const initialState = {
   first: 0,
@@ -199,7 +200,7 @@ export const PurchaseOrder = () => {
         optionValue={"id"}
         value={query?.filters?.[field !== 'status' ? `${field}.id` : field]?.value}
         onChange={handleDropdownChange}
-        placeholder={translate("tempApp.purchaseOrder.view.table.search.status")}
+        placeholder={translate("common.search.points")}
       />
     );
   };
@@ -241,19 +242,22 @@ export const PurchaseOrder = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.purchaseOrder.view.table.title'}>PurchaseOrders</Translate></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.purchaseOrder.title'}>PurchaseOrders</Translate></span>
       <div className="ms-auto">
-        <Button label={translate("tempApp.purchaseOrder.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("tempApp.purchaseOrder.view.table.buttons.createNewPurchaseOrder")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("tempApp.purchaseOrder.addNew")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
     </div>
   );
 
+  if(loading){
+    return <Spinner />
+  }
 
 
 
@@ -264,32 +268,32 @@ export const PurchaseOrder = () => {
         paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
         onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
       >
-        <Column field="id" header={translate('tempApp.purchaseOrder.view.table.fields.id')} body={idColumnTemplate} filter
-                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.id')}    />
+        <Column field="id" header={translate('common.id')} body={idColumnTemplate} filter
+                filterPlaceholder={translate('common.search.id')}    />
 
-        <Column field="datePlaced" header={translate('tempApp.purchaseOrder.view.table.fields.datePlaced')} filter
+        <Column field="datePlaced" header={translate('common.datePlaced')} filter
                 body={(rowData) => rowData?.datePlaced?.split("T")?.[0]}  showFilterMenu={false}
                 filterElement={<Calendar  value={new Date(query?.filters?.datePlaced?.value)} onChange={(e) => handleFilterDateChange(e, 'datePlaced')}  />}
-                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.datePlaced')}    />
+                filterPlaceholder={translate('common.search.datePlaced')}    />
 
-        <Column field="dateDelivered" header={translate('tempApp.purchaseOrder.view.table.fields.dateDelivered')}
+        <Column field="dateDelivered" header={translate('common.dateDelivered')}
                 body={(rowData) => rowData?.dateDelivered?.split("T")?.[0]} filter showFilterMenu={false}
                 filterElement={<Calendar  value={query?.filters?.dateDelivered?.value} onChange={(e) => handleFilterDateChange(e, 'dateDelivered')}  />}
-                filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.dateDelivered')}    />
+                filterPlaceholder={translate('common.search.dateDelivered')}    />
 
-        <Column field="warehouse.name" header={translate('tempApp.purchaseOrder.view.table.fields.warehouse')} filter showFilterMenu={false}
-                filterElement={() => filterTemplate("warehouse")}   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.warehouse')}    />
+        <Column field="warehouse.name" header={translate('tempApp.purchaseOrder.warehouse')} filter showFilterMenu={false}
+                filterElement={() => filterTemplate("warehouse")}   filterPlaceholder={translate('tempApp.purchaseOrder.search.warehouse')}    />
 
-        <Column field="supplier.name" header={translate('tempApp.purchaseOrder.view.table.fields.supplier')} filter showFilterMenu={false}
-                filterElement={() => filterTemplate("supplier")}   filterPlaceholder={translate('tempApp.purchaseOrder.view.table.search.supplier')}    />
+        <Column field="supplier.name" header={translate('tempApp.purchaseOrder.supplier')} filter showFilterMenu={false}
+                filterElement={() => filterTemplate("supplier")}   filterPlaceholder={translate('tempApp.purchaseOrder.search.supplier')}    />
 
-        <Column field="status" header={translate('tempApp.purchaseOrder.view.table.fields.status')} filter showFilterMenu={false}
+        <Column field="status" header={translate('common.status')} filter showFilterMenu={false}
                 filterElement={() => filterTemplate("status")}  body={statusBodyTemplate}    />
 
-        <Column header={translate('tempApp.purchaseOrder.view.table.fields.actions')}  body={actionsColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+        <Column header={translate('common.actions')}  body={actionsColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                 bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-        <Column  header={translate('tempApp.purchaseOrder.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+        <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
       </DataTable>

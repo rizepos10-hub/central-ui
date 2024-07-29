@@ -365,7 +365,15 @@ export const PurchaseOrderUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ? 'Add New Purchase Order' : isDisabled ? 'View Purchase Order' : 'Edit Purchase Order'}</h2>
+          <h2>
+            {isNew ?
+            `${translate("tempApp.purchaseOrder.addNew")}`
+              :
+            isDisabled ?
+          `${translate("tempApp.purchaseOrder.view")}`
+              :
+          `${translate("tempApp..purchaseOrder.edit")}`}
+          </h2>
         </Col>
       </Row>
       {loading ? (
@@ -379,13 +387,13 @@ export const PurchaseOrderUpdate = () => {
                   <Col md={4} className={'d-flex flex-column gap-2'}>
                     <div className={'d-flex gap-2 mt-2'}>
                       <Label for="supplier" className={'mt-2'}>
-                        Supplier
+                        <Translate contentKey={"tempApp.purchaseOrder.supplier"} />
                       </Label>
                       <Select
                         options={supplierList}
                         name="supplier"
                         id="supplier"
-                        placeholder={'Select supplier'}
+                        placeholder={translate("tempApp.purchaseOrder.selectSupplier")}
                         value={purchaseOrder?.supplier}
                         isDisabled={isOrderReceived}
                         getOptionLabel={(option: ISupplier) => option.name}
@@ -396,12 +404,12 @@ export const PurchaseOrderUpdate = () => {
 
                     <div className={'d-flex gap-2 mt-2'}>
                       <Label for="warehouse" className={'mt-2'}>
-                        warehouse
+                        <Translate contentKey={"tempApp.purchaseOrder.warehouse"} />
                       </Label>
                       <Select
                         name="warehouse"
                         id="warehouse"
-                        placeholder={'Select warehouse'}
+                        placeholder={translate("tempApp.purchaseOrder.selectWarehouse")}
                         options={warehouseList}
                         value={purchaseOrder?.warehouse}
                         isDisabled={isOrderReceived || !purchaseOrder?.supplier}
@@ -415,7 +423,7 @@ export const PurchaseOrderUpdate = () => {
                   <Col md={4} className={'d-flex flex-column gap-2'}>
                     <div className={'d-flex gap-2 mt-2'}>
                       <Label for="delivery" className={'mt-2'}>
-                        Delivery
+                        <Translate contentKey={"tempApp.purchaseOrder.delivery"} />
                       </Label>
                       <InputText
                         name="delivery"
@@ -428,7 +436,7 @@ export const PurchaseOrderUpdate = () => {
 
                     <div className={'d-flex gap-2 mt-2'}>
                       <Label for="address" className={'mt-2'}>
-                        Address
+                        <Translate contentKey={"common.address"} />
                       </Label>
                       <InputText name="address" id="address" value={purchaseOrder?.address} disabled={isDisabled} onChange={handleChange} />
                     </div>
@@ -437,7 +445,7 @@ export const PurchaseOrderUpdate = () => {
                   <Col md={4} className={'d-flex flex-column gap-2'}>
                     <div className={'d-flex gap-2  mt-2'}>
                       <Label for="datePlaced" className={'mt-2'}>
-                        Order Date
+                        <Translate contentKey={"tempApp.purchaseOrder.orderDate"} />
                       </Label>
                       <Calendar
                         name="datePlaced"
@@ -450,7 +458,7 @@ export const PurchaseOrderUpdate = () => {
 
                     <div className={'d-flex gap-2 mt-2'}>
                       <Label for="dateDelivered" className={'mt-2'}>
-                        Delivery Date
+                        <Translate contentKey={"tempApp.purchaseOrder.deliveryDate"} />
                       </Label>
                       <Calendar
                         name="dateDelivered"
@@ -465,18 +473,34 @@ export const PurchaseOrderUpdate = () => {
 
                 {/* Order Lines */}
                 <Row className={'mt-3'}>
-                  <h3>Order Lines</h3>
+                  <h3>
+                    <Translate contentKey={"tempApp.purchaseOrder.orderLines"} />
+                  </h3>
                   {!isDisabled ? (
                     <Table>
                       <tbody>
                         <tr>
-                          <td>Item</td>
-                          <td>Variant</td>
-                          <td>Description</td>
-                          <td>Quantity</td>
-                          <td>Cost Price</td>
-                          <td>Delivery Date</td>
-                          <td>Sub Total</td>
+                          <td>
+                            <Translate contentKey={"common.item"} />
+                          </td>
+                          <td>
+                            <Translate contentKey={"common.variant"} />
+                          </td>
+                          <td>
+                            <Translate contentKey={"common.description"} />
+                          </td>
+                          <td>
+                            <Translate contentKey={"common.quantity"} />
+                          </td>
+                          <td>
+                            <Translate contentKey={"tempApp.purchaseOrder.costPrice"} />
+                          </td>
+                          <td>
+                            <Translate contentKey={"tempApp.purchaseOrder.deliveryDate"} />
+                          </td>
+                          <td>
+                            <Translate contentKey={"common.subtotal"} />
+                          </td>
                         </tr>
                         <tr>
                           <td className={'col-md-3'}>
@@ -558,22 +582,22 @@ export const PurchaseOrderUpdate = () => {
                   <DataTable
                     value={purchaseOrder?.orderLines}
                     editMode="row"
-                    header={'Order Lines'}
+                    header={translate("tempApp.purchaseOrder.orderLines")}
                     removableSort
                     paginator
                     totalRecords={purchaseOrder?.orderLines?.length}
                     rows={20}
                     onRowEditComplete={e => onRowEditComplete(e, 'orderLines')}
                   >
-                    <Column field="item.name" header={'Item'} />
-                    <Column field="description" editor={options => textEditor(options)} header={'Description'} />
-                    <Column field="quantity" editor={options => numberEditor(options)} header={'Quantity'} />
-                    <Column field="received" editor={options => receivedEditor(options)} header={'Received Quantity'} />
+                    <Column field="item.name"  header={translate("common.item")} />
+                    <Column field="description" editor={options => textEditor(options)} header={translate("common.description")} />
+                    <Column field="quantity" editor={options => numberEditor(options)} header={translate("common.quantity")} />
+                    <Column field="received" editor={options => receivedEditor(options)} header={translate("tempApp.purchaseOrder.receivedQuantity")} />
                     <Column field="returnedQuantity" header={'Returned Quantity'} />
-                    <Column field="price" editor={options => numberEditor(options)} header={'Cost Price'} />
+                    <Column field="price" editor={options => numberEditor(options)} header={translate("tempApp.purchaseOrder.costPrice")} />
                     <Column
                       field="deliveryDate"
-                      header={'Delivery Date'}
+                      header={translate("common.deliveryDate")}
                       body={rowData => (rowData.deliveryDate ? new Date(rowData.deliveryDate).toDateString() : '')}
                     />
                     <Column header={'Sub Total'} body={rowData => rowData.price * rowData.quantity} />
@@ -583,7 +607,7 @@ export const PurchaseOrderUpdate = () => {
 
                     {!isDisabled ? (
                       <Column
-                        header={'Delete'}
+                        header={translate("common.delete")}
                         body={(rowData, index) => deleteColumnTemplate(rowData, index, 'orderLines')}
                         headerStyle={{ width: '1%' }}
                         bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
@@ -593,15 +617,25 @@ export const PurchaseOrderUpdate = () => {
                 </Row>
 
                 <Row className={'mt-3'}>
-                  <h3>Cost Lines</h3>
+                  <h3>
+                    <Translate contentKey={"tempApp.purchaseOrder.costLines"} />
+                  </h3>
                   {!isDisabled ? (
                     <Table>
                       <tbody>
                         <tr>
-                          <td>Supplier</td>
-                          <td>Cost</td>
-                          <td>Cost Date</td>
-                          <td>Comments</td>
+                          <td>
+                            <Translate contentKey={"tempApp.purchaseOrder.supplier"} />
+                          </td>
+                          <td>
+                            <Translate contentKey={"tempApp.purchaseOrder.cost"} />
+                          </td>
+                          <td>
+                            <Translate contentKey={"tempApp.purchaseOrder.costDate"} />
+                          </td>
+                          <td>
+                            <Translate contentKey={"tempApp.purchaseOrder.comments"} />
+                          </td>
                         </tr>
                         <tr>
                           <td className={'w-2'}>
@@ -611,7 +645,7 @@ export const PurchaseOrderUpdate = () => {
                               defaultOptions={supplierList}
                               getOptionValue={(option: ISupplier) => option.id}
                               getOptionLabel={option => option.name}
-                              name={'supplier'}
+                              name={translate("tempApp.purchaseOrder.supplier")}
                               onChange={supplier => setPurchaseCostLine(prevState => ({ ...prevState, supplier }))}
                               value={purchaseCostLine?.supplier || null}
                               isDisabled={isDisabled}
@@ -648,7 +682,7 @@ export const PurchaseOrderUpdate = () => {
                           </td>
                           <td className={'w-2'}>
                             <Button disabled={!purchaseCostLine} color={'success'} onClick={() => handleAdd('costLine')}>
-                              Add
+                              <Translate contentKey={"common.add"} />
                             </Button>
                           </td>
                         </tr>
@@ -659,16 +693,16 @@ export const PurchaseOrderUpdate = () => {
                   <DataTable
                     value={purchaseOrder?.costLines}
                     editMode="row"
-                    header={'Cost Lines'}
+                    header={translate("tempApp.purchaseOrder.costLines")}
                     removableSort
                     paginator
                     totalRecords={purchaseOrder?.costLines?.length}
                     rows={20}
                   >
-                    <Column field="supplier.name" header={'Supplier'} />
-                    <Column field="cost" header={'Cost'} />
-                    <Column field="costDate" header={'Cost Date'} body={(rowData) => format(new Date(rowData?.costDate), 'yyyy-MM-dd')} />
-                    <Column field="comment" header={'Comment'} />
+                    <Column field="supplier.name" header={translate("tempApp.purchaseOrder.supplier")} />
+                    <Column field="cost" header={translate("tempApp.purchaseOrder.cost")} />
+                    <Column field="costDate" header={translate("tempApp.purchaseOrder.costDate")} body={(rowData) => format(new Date(rowData?.costDate), 'yyyy-MM-dd')} />
+                    <Column field="comment" header={translate("tempApp.purchaseOrder.comment")} />
                     {!isDisabled ? (
                       <Column
                         header={'Delete'}
@@ -683,12 +717,16 @@ export const PurchaseOrderUpdate = () => {
             </Col>
             <Col md="3" className={'ml-3'}>
               <Card>
-                <CardHeader>Actions</CardHeader>
+                <CardHeader>
+                  <Translate contentKey={"common.actions"} />
+                </CardHeader>
                 <CardBody>
                   <div className={'d-flex flex-column mt-2'}>
-                    <Label for="status">Status</Label>
+                    <Label for="status">
+                      <Translate contentKey={"common.status"} />
+                    </Label>
                     <SelectButton
-                      value={purchaseOrder?.status ?? 'PLACED'}
+                      value={purchaseOrder?.status ??  <Translate contentKey={"tempApp.purchaseOrder.PLACED"} />}
                       options={statusOptions}
                       id="status"
                       disabled={isOrderReceived || isNew}
@@ -699,22 +737,22 @@ export const PurchaseOrderUpdate = () => {
                 <div className={'d-flex gap-3 mt-2'}>
                   <Button tag={Link} to="/inventory/purchase-order" replace color="info">
                     <FontAwesomeIcon icon="arrow-left" />
-                    &nbsp;Back
+                    &nbsp; <Translate contentKey={"common.back"} />
                   </Button>
                   {isOrderReceived ? (
                     <Button color={'primary'} id="returnItems" onClick={handleSupplierReturn}>
-                      Return Items
+                      <Translate contentKey={"tempApp.purchaseOrder.returnItems"} />
                     </Button>
                   ) : null}
                   {canSplit ? (
                     <Button color={'primary'} id="splitOrder" onClick={handleOrderSplit}>
-                      Split & Complete Order
+                      <Translate contentKey={"tempApp.purchaseOrder.splitAndComplete"} />
                     </Button>
                   ) : null}
                   {purchaseOrderEntity?.status !== 'RECEIVED' ? (
                     <Button color="primary" type="submit" disabled={updating || isDisabled}>
                       <FontAwesomeIcon icon="save" />
-                      &nbsp;Save
+                      &nbsp;<Translate contentKey={"common.save"} />
                     </Button>
                   ) : null}
                 </div>

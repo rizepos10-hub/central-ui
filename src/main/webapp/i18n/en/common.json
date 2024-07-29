@@ -6,13 +6,30 @@
     "email": "Email",
     "phone": "Phone",
     "branches": "Branches",
+    "item": "Item",
+    "quantity": "Quantity",
+    "description": "Description",
+    "variant": "Variant",
+    "subtotal": "Subtotal",
+    "address": "Address",
+    "id": "ID",
+    "datePlaced": "Date Placed",
+    "location": "Location",
+    "status": "Status",
+    "dateDelivered": "Date Delivered",
     "delete": "Delete",
+    "back": "Back",
+    "save": "Save",
+    "deliveryDate": "DeliveryDate",
     "addons": "Addons",
     "deleteTitle": "Confirm delete operation",
     "edit": "Edit",
     "refreshList": "Refresh List",
     "selectOne": "Select One",
+    "actions": "Actions",
+    "contactInformation": "Contact Information",
     "additionalInfo": "Additional Information",
+    "add": "Add",
     "enabled": "Enabled",
     "buttons": {
       "save": "Save",
@@ -23,10 +40,15 @@
       "no": "No"
     },
     "search": {
+      "points": "Search ...",
       "name": "Search Name",
       "email": "Search Email",
       "branch": "Search Branch",
-      "phone": "Search Phone"
+      "address": "Search Address",
+      "id": "Search ID",
+      "phone": "Search Phone",
+      "datePlaced": "Search Date Placed",
+      "dateDelivered": "Search Date Delivered"
     },
     "validation": {
       "required": "This field is required"
