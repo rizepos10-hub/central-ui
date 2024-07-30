@@ -183,14 +183,14 @@ export const ProductUpdate = () => {
     });
   };
 
-  // variantPackage is like this 
-  // variantPackage: [ 
-  //   { 
-  //     variant: {  
-  //       id: '1',  
-  //       name: 'Variant 1',  
+  // variantPackage is like this
+  // variantPackage: [
+  //   {
+  //     variant: {
+  //       id: '1',
+  //       name: 'Variant 1',
   //       ...
-  //     },  
+  //     },
   //     quantity: 1,
   //  }
 
@@ -370,19 +370,51 @@ export const ProductUpdate = () => {
     setItemAttribute((prevState) => ({ ...prevState, attributeTax: selectedOption }))
   };
 
-  const handleAttributeTermChange = (index, selectedTerms) => {
-    setProduct((prev) => ({
-      ...prev,
-      attributes: prev.attributes.map((attr, i) =>
+  const handleAttributeTermChange = (index: number, selectedTerms): void => {
+    setProduct((prevProduct: IProduct) => {
+      // Identify removed attribute terms
+      const currentAttributeTerms = prevProduct.attributes[index].attributeTerms;
+      const currentTermIds = currentAttributeTerms.map((term) => term.id);
+      const newTermIds = selectedTerms.map((term) => term.id);
+
+      // Calculate removed term IDs
+      const removedTermIds = currentTermIds.filter((id) => !newTermIds.includes(id));
+
+      // Update the attributes
+      const updatedAttributes = prevProduct.attributes.map((attr, i) =>
         i === index
           ? {
             ...attr,
             attributeTerms: selectedTerms,
           }
           : attr
-      ),
-    }));
+      );
+
+      // Remove corresponding attribute values from variants
+      const updatedVariants = prevProduct.variants.map((variant) => {
+        const updatedAttributeValues = { ...variant.attributeValues };
+
+        // Remove attribute values that correspond to removed terms
+        Object.keys(updatedAttributeValues).forEach((key) => {
+          if (removedTermIds.includes(updatedAttributeValues[key]?.id)) {
+             updatedAttributeValues[key] = null; // Remove the attribute value
+          }
+        });
+
+        return {
+          ...variant,
+          attributeValues: updatedAttributeValues,
+        };
+      });
+
+      return {
+        ...prevProduct,
+        attributes: updatedAttributes,
+        variants: updatedVariants,
+      };
+    });
   };
+
 
   const generateCombinations = () => {
     const combinations = [];
@@ -658,35 +690,52 @@ export const ProductUpdate = () => {
     <div
       onClick={(e) => {
         e.preventDefault();
-        e.stopPropagation()
+        e.stopPropagation();
       }}
-      className={"d-flex gap-3 ml-2 p-draggable "}
+      className="d-flex flex-1 gap-3 ml-2 p-draggable"
     >
-      <label className={"mt-2"}><strong>{product?.variants?.[variantIndex]?.name}</strong></label>
-      {product?.attributes?.map((attribute, index) => {
-        return (
-          <AsyncSelect
-            key={index}
-            value={product?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id]}
-            getOptionLabel={option => option.name}
-            getOptionValue={option => option.id}
-            isLoading={loadingAttributesValues}
-            onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-            defaultOptions={attribute?.attributeTerms}
-            onChange={(selectedOption) => handleHeaderChange(variantIndex, attribute?.attributeTax?.id, selectedOption)}
+      <div className="d-flex flex-grow-1 justify-content-between align-items-center">
+        <div className="d-flex gap-2">
+        <label className="mt-2">
+          <strong>{product?.variants?.[variantIndex]?.name}</strong>
+        </label>
+        {product?.attributes?.map((attribute, index) => {
+          return (
+            <AsyncSelect
+              key={index}
+              value={product?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id]}
+              getOptionLabel={option => option.name}
+              getOptionValue={option => option.id}
+              isLoading={loadingAttributesValues}
+              styles={{
+                control: (baseStyles) => ({
+                  ...baseStyles,
+                  minWidth: "12rem"
+                }),
+              }}
+              onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+              defaultOptions={attribute?.attributeTerms}
+              onChange={(selectedOption) => handleHeaderChange(variantIndex, attribute?.attributeTax?.id, selectedOption)}
+            />
+          );
+        })}
+        </div>
+      </div>
+      <div className="d-flex justify-content-end">
+          <FontAwesomeIcon
+            icon="trash"
+            onClick={() => handleDeleteVariant(variantIndex)}
+            className={"my-2 cursor-pointer "}
+            style={{ color: 'red' }}
           />
-        )
-      })}
-      <Button type="button" className={"ml-auto"} color="danger" onClick={() => handleDeleteVariant(variantIndex)}>
-        <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
-      </Button>
+      </div>
     </div>
-  )
+  );
+
 
   if (loading) {
-    return <Spinner />
+    return <Spinner />;
   }
-
 
   return (
     <form onSubmit={saveEntity} onKeyDown={preventEnterSubmit}>
@@ -900,8 +949,9 @@ export const ProductUpdate = () => {
                                         <Col
                                           md={'12'}
                                           key={variantIndex}
-                                          className={` mt-2 pi pi-bars p-draggable d-flex ${dragOverIndex === variantIndex && 'border-top border-primary'
-                                            }`}
+                                          className={` mt-2 pi pi-bars p-draggable d-flex ${
+                                            dragOverIndex === variantIndex && 'border-top border-primary'
+                                          }`}
                                           draggable
                                           onDragStart={() => setDraggedIndex(variantIndex)}
                                           onDragOver={e => handleDragOver(e, variantIndex)}
