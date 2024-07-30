@@ -118,7 +118,7 @@ export const SupplierReturn = () => {
         options={dropdownItems}
         value={filters?.status?.value}
         onChange={handleDropdownChange}
-        placeholder={translate("tempApp.purchaseOrder.view.table.search.status")}
+        placeholder={translate("common.search.points")}
       />
     );
   };
@@ -155,13 +155,13 @@ export const SupplierReturn = () => {
   }
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.supplierReturn.view.table.title'}>Supplier Returns</Translate></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.supplierReturn.title'}>Supplier Returns</Translate></span>
       <div className="ms-auto">
-        <Button label={translate("tempApp.supplierReturn.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("tempApp.supplierReturn.view.table.buttons.createNewSupplierReturn")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("tempApp.supplierReturn.createNew")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -186,21 +186,21 @@ export const SupplierReturn = () => {
           totalRecords={totalItems}
           rows={20}
         >
-          <Column field="id" header={translate('tempApp.supplierReturn.view.table.fields.id')} filter body={idColumnTemplate}
-                  filterPlaceholder={translate('tempApp.supplierReturn.view.table.search.id')}  sortable  />
-          <Column field="purchaseOrder.id" header={translate('tempApp.supplierReturn.view.table.fields.purchaseOrder')}
-                  filter filterPlaceholder={translate('tempApp.supplierReturn.view.table.search.purchaseOrder')} sortable />
+          <Column field="id" header={translate('common.id')} filter body={idColumnTemplate}
+                  filterPlaceholder={translate('common.search.id')}  sortable  />
+          <Column field="purchaseOrder.id" header={translate('tempApp.supplierReturn.purchaseOrder')}
+                  filter filterPlaceholder={translate('tempApp.supplierReturn.search.purchaseOrder')} sortable />
 
-          <Column field="purchaseOrder.supplier.name" header={translate('tempApp.supplierReturn.view.table.fields.supplier')}
-                  filter filterPlaceholder={translate('tempApp.supplierReturn.view.table.search.supplier')} sortable />
+          <Column field="purchaseOrder.supplier.name" header={translate('tempApp.supplierReturn.supplier')}
+                  filter filterPlaceholder={translate('tempApp.supplierReturn.search.supplier')} sortable />
 
-          <Column field="status" header={translate('tempApp.supplierReturn.view.table.fields.status')} filter
+          <Column field="status" header={translate('common.status')} filter
                   filterElement={statusFilterTemplate}  body={statusBodyTemplate}  sortable  />
 
-          <Column header={translate('tempApp.supplierReturn.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('common.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header={translate('tempApp.supplierReturn.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
         </DataTable>
