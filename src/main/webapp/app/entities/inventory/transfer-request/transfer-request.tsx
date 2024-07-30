@@ -109,7 +109,7 @@ export const TransferRequest = () => {
         options={dropdownItems}
         value={filters?.status?.value}
         onChange={handleDropdownChange}
-        placeholder={translate("tempApp.purchaseOrder.view.table.search.status")}
+        placeholder={translate("common.search.status")}
       />
     );
   };
@@ -179,7 +179,7 @@ export const TransferRequest = () => {
         <Column field="destination.name" header={translate('tempApp.transferRequest.view.table.fields.destination')}
           filter filterPlaceholder={translate('tempApp.transferRequest.view.table.search.destination')} sortable />
 
-        <Column field="status" header={translate('tempApp.purchaseOrder.view.table.fields.status')} filter
+        <Column field="status" header={translate('common.status')} filter
           filterElement={statusFilterTemplate} body={statusBodyTemplate} sortable />
 
 
