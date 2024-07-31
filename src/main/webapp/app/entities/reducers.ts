@@ -1,6 +1,7 @@
 import menu from 'app/entities/menu/menu.reducer';
 import branch from 'app/entities/branch/branch.reducer';
 import discount from 'app/entities/discount/discount.reducer';
+import serviceCharge from 'app/entities/service-charges/service-charge.reducer';
 import attachment from 'app/entities/attachment/attachment.reducer';
 import customer from 'app/entities/customer/customer.reducer';
 import taxonomy from 'app/entities/taxonomy/taxonomy.reducer';
@@ -83,6 +84,7 @@ const entitiesReducers = {
   menu,
   branch,
   discount,
+  serviceCharge,
   attachment,
   customer,
   taxonomy,

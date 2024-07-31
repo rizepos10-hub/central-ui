@@ -65,6 +65,7 @@ import TagGroup from "app/entities/tag-group";
 import BranchRegistry from "app/entities/settings/branch-registry";
 import Brand from "app/entities/brand";
 import Branches from './branches/branch';
+import ServiceCharge from './service-charges/index';
 import ImportFromOldSystem from './settings/import-from-old-system/import-from-old-system';
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
@@ -81,6 +82,7 @@ export default () => {
         <Route path="branch-pos-user/*" element={<BranchPosUser />} />
 
         <Route path="branches/*" element={<Branches />} />
+        <Route path="service-charge/*" element={<ServiceCharge />} />
         <Route path="discount/*" element={<Discount />} />
         <Route path="customer/*" element={<Customer />} />
         <Route path="loyalty/*" element={<Loyalty />}/>

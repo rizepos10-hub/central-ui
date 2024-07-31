@@ -531,6 +531,11 @@ const AppMenu = () => {
           to: '/branches',
         },
         {
+          label: 'Service Charge',
+          role: ['ROLE_ADMINISTRATOR'],
+          to: '/service-charge',
+        },
+        {
           label: 'Registers',
           role: ['ROLE_ADMINISTRATOR'],
           to: '/register',
