@@ -32,8 +32,13 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     const dispatch = useAppDispatch();
 
     const onDrop = acceptedFiles => {
-        setAttachments(acceptedFiles);
-        fileUploadCallback(acceptedFiles);
+        if (!multiSelect && acceptedFiles.length > 1) {
+            toast.error('Only one image can be added for this field');
+            return;
+        } else {
+            setAttachments(acceptedFiles);
+            fileUploadCallback(acceptedFiles);
+        }
     };
 
     const fileUploadCallback = async (files: File[]) => {
@@ -49,6 +54,15 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                 const response = res.payload as any;
                 setAttachments([]);
                 setSelectedItems(files.map(file => ({
+                    _id: file.name,
+                    name: file.name,
+                    path: file.name,
+                    size: file.size,
+                    type: file.type,
+                    updatedAt: new Date().toISOString(),
+                    thumbnailUrl: response?.url,
+                })));
+                handleFilesSelectCallback(files.map(file => ({
                     _id: file.name,
                     name: file.name,
                     path: file.name,
