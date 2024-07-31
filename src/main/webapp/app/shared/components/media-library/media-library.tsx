@@ -95,6 +95,9 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     };
 
     const handleRemove = (index) => {
+        const isConfirmed = window.confirm("Are you sure you want to delete the selected items?");
+        if (!isConfirmed) return;
+
         const newSelectedItems = selectedItems.filter((_, i) => i !== index);
         setSelectedItems(newSelectedItems);
         handleFilesSelectCallback(newSelectedItems);
@@ -114,7 +117,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                 {loading && <Spinner style={{ width: '3rem', height: '3rem' }} />}
             </div>
             <div className="d-flex flex-wrap gap-3 my-3">
-                {selectedItems.map((item, index) => (
+                {defaultValues.map((item, index) => (
                     <div key={index} style={{ position: 'relative' }}>
                         <img
                             src={item.thumbnailUrl}
