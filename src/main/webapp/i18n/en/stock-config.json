@@ -1,6 +1,13 @@
 {
   "tempApp": {
     "stockConfig": {
+      "addNewPurchaseConfig": "Add New Purchase Config",
+      "editPurchaseConfig": "Edit Purchase Config",
+      "purchaseConfig": "Purchase Config",
+      "selectSupplier": "Select Supplier",
+      "config": "Stock Config",
+      "title": "Stock",
+      "adjustedQuantity": "Adjusted Quantity",
       "view": {
         "title": "Stock",
         "table": {

@@ -130,7 +130,7 @@ export const PurchaseConfigUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Purchase Config" : "Edit Purchase Config"}</h2>
+          <h2>{isNew ? translate("tempApp.stockConfig.addNewPurchaseConfig") : translate("tempApp.stockConfig.editPurchaseConfig")}</h2>
         </Col>
       </Row>
       <Row>
@@ -141,7 +141,7 @@ export const PurchaseConfigUpdate = () => {
 
                 <div className={"d-flex flex-column mt-2"}>
                   <strong>
-                    <Label for="defaultPrice">Default Price</Label>
+                    <Label for="defaultPrice">{translate("tempApp.stockConfig.defaultPrice")}</Label>
                   </strong>
                   <InputNumber
                     name="defaultPrice"
@@ -155,7 +155,7 @@ export const PurchaseConfigUpdate = () => {
 
                 <div className={"d-flex flex-column mt-2"}>
                   <strong>
-                  <Label for="minOrderQuantity">Minimum Order Quantity</Label>
+                  <Label for="minOrderQuantity">{translate("tempApp.stockConfig.minOrderQuantity")}</Label>
                   </strong>
                   <InputNumber
                     name="minOrderQuantity"
@@ -169,13 +169,13 @@ export const PurchaseConfigUpdate = () => {
 
                 <div className={"d-flex flex-column mt-2 "}>
                 <strong>
-                  <Label>Supplier Configuration</Label>
+                  <Label>{translate("tempApp.stockConfig.supplierConfig")}</Label>
                 </strong>
                 <div className={"d-flex flex-column border p-3"}>
-                  <Label>Select Supplier</Label>
+                  <Label>{translate("tempApp.stockConfig.selectSupplier")}</Label>
                   <Dropdown
                     options={filteredSuppliers}
-                    placeholder="Select a Supplier"
+                    placeholder={translate("tempApp.stockConfig.selectSupplier")}
                     className="w-full md:w-14rem"
                     optionLabel={"name"}
                     filter
@@ -184,8 +184,8 @@ export const PurchaseConfigUpdate = () => {
                 <Table bordered className={"mt-2"}>
                   <thead>
                   <tr>
-                  <th>Supplier</th>
-                  <th>Price</th>
+                  <th>{translate("common.supplier")}</th>
+                  <th>{translate("common.price")}</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -211,12 +211,12 @@ export const PurchaseConfigUpdate = () => {
               </FormGroup>
               <Button tag={Link} to="/inventory/stock" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
+                &nbsp;{translate("common.back")}
               </Button>
               &nbsp;
               <Button color="primary" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;Save
+                &nbsp;{translate("common.save")}
               </Button>
             </form>
           </PrimeCard>

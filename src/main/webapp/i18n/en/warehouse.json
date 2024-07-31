@@ -1,27 +1,11 @@
 {
   "tempApp": {
     "warehouse": {
-      "view": {
-        "title": "Warehouses View",
-        "table": {
-          "title": "Warehouses",
-          "buttons": {
-            "refreshList": "Refresh List",
-            "createNewWarehouse": "Create New Warehouse"
-          },
-          "fields": {
-            "name": "Name",
-            "main": "Main",
-            "location": "Location",
-            "edit": "Edit",
-            "delete": "Delete"
-          },
-          "search": {
-            "name": "Search by Name",
-            "main": "Filter By Main",
-            "location": "Search by Location"
-          }
-        }
+      "title": "Warehouses",
+      "createNew": "Create New Warehouse",
+      "edit": "Edit Warehouse",
+      "search": {
+        "main": "Filter By Main"
       },
       "created": "A new Warehouse is created with identifier {{ param }}",
       "updated": "A Warehouse is updated with identifier {{ param }}",
@@ -30,18 +14,7 @@
         "title": "Confirm Delete Warehouse",
         "question": "Are you sure you want to delete warehouse {{ id }}"
       },
-      "update": {
-        "create": {
-          "title": "Create New Warehouse"
-        },
-        "edit": {
-          "title": "Edit Warehouse"
-        }
-      },
-      "id": "Id",
-      "name": "Name",
-      "main": "Main Warehouse",
-      "location": "Location"
+      "main": "Main Warehouse"
     }
   }
 }

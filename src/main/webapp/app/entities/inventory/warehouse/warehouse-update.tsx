@@ -9,7 +9,7 @@ import { getEntity, updateEntity, createEntity, reset } from './warehouse.reduce
 import {InputText} from "primereact/inputtext";
 import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
 import {Checkbox} from "primereact/checkbox";
-import {Translate} from "react-jhipster";
+import { translate, Translate } from "react-jhipster";
 
 export const WarehouseUpdate = () => {
   const dispatch = useAppDispatch();
@@ -68,7 +68,7 @@ export const WarehouseUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Warehouse" : "Edit Warehouse"}</h2>
+          <h2>{isNew ? `${translate('tempApp.warehouse.createNew')}` : `${translate('tempApp.warehouse.edit')}`}</h2>
         </Col>
       </Row>
       <Row>
@@ -78,53 +78,40 @@ export const WarehouseUpdate = () => {
           ) : (
             <form onSubmit={saveEntity}>
               <FormGroup>
-                <div className={"d-flex flex-column"}>
+                <div className={'d-flex flex-column'}>
                   <Label for="name">
-                    <Translate contentKey={"tempApp.warehouse.name"}>Name</Translate>
+                    <Translate contentKey={'common.name'}>Name</Translate>
                   </Label>
-                  <InputText
-                    type="text"
-                    name="name"
-                    required={true}
-                    id="name"
-                    value={warehouse.name}
-                    onChange={handleChange}
-                  />
+                  <InputText type="text" name="name" required={true} id="name" value={warehouse.name} onChange={handleChange} />
                 </div>
 
-                <div className={"d-flex flex-column mt-2"}>
+                <div className={'d-flex flex-column mt-2'}>
                   <Label for="location">
-                    <Translate contentKey={"tempApp.warehouse.location"}>Location</Translate>
+                    <Translate contentKey={'common.location'}>Location</Translate>
                   </Label>
-                  <InputText
-                    type="text"
-                    name="location"
-                    id="location"
-                    value={warehouse.location}
-                    onChange={handleChange}
-                  />
+                  <InputText type="text" name="location" id="location" value={warehouse.location} onChange={handleChange} />
                 </div>
 
-                <div className={"d-flex mt-2 gap-2"}>
+                <div className={'d-flex mt-2 gap-2'}>
                   <Label for="main">
-                    <Translate contentKey={"tempApp.warehouse.main"}>Main Warehouse</Translate>
+                    <Translate contentKey={'tempApp.warehouse.main'}>Main Warehouse</Translate>
                   </Label>
                   <Checkbox
                     name="main"
                     id="main"
                     checked={warehouse?.main}
-                    onChange={(e) => setWarehouse((prev) => ({...prev, main: e.checked}))}
+                    onChange={e => setWarehouse(prev => ({ ...prev, main: e.checked }))}
                   />
                 </div>
               </FormGroup>
               <Button tag={Link} to="/inventory/warehouse" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
+                &nbsp;<Translate contentKey={'common.back'} />
               </Button>
               &nbsp;
               <Button color="primary" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;Save
+                &nbsp;<Translate contentKey={'common.save'} />
               </Button>
             </form>
           )}
