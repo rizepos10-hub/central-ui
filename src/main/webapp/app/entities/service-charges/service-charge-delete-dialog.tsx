@@ -21,11 +21,11 @@ export const ServiceChargeDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const discountEntity = useAppSelector(state => state.discount.entity);
-  const updateSuccess = useAppSelector(state => state.discount.updateSuccess);
+  const serviceCharge = useAppSelector(state => state.serviceCharge.entity);
+  const updateSuccess = useAppSelector(state => state.serviceCharge.updateSuccess);
 
   const handleClose = () => {
-    navigate('/discount' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {
@@ -36,17 +36,17 @@ export const ServiceChargeDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(discountEntity.id));
+    dispatch(deleteEntity(serviceCharge.id));
   };
 
   return (
     <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="discountDeleteDialogHeading">
+      <ModalHeader toggle={handleClose} data-cy="serviceChargeDeleteDialogHeading">
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="tempApp.discount.delete.question">
-        <Translate contentKey="tempApp.discount.delete.question" interpolate={{ id: discountEntity.id }}>
-          Are you sure you want to delete this Discount?
+      <ModalBody id="tempApp.serviceCharge.delete.question">
+        <Translate contentKey="tempApp.serviceCharge.delete.question" interpolate={{ id: serviceCharge.id }}>
+          Are you sure you want to delete this Service Charge?
         </Translate>
       </ModalBody>
       <ModalFooter>
@@ -55,7 +55,7 @@ export const ServiceChargeDeleteDialog = () => {
           &nbsp;
           <Translate contentKey="entity.action.cancel">Cancel</Translate>
         </Button>
-        <Button id="jhi-confirm-delete-discount" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+        <Button id="jhi-confirm-delete-serviceCharge" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
           <FontAwesomeIcon icon="trash" />
           &nbsp;
           <Translate contentKey="entity.action.delete">Delete</Translate>

@@ -15,8 +15,8 @@ const initialState: EntityState<IServiceCharge> = {
   updateSuccess: false,
 };
 
-const apiUrl = 'api/settings';
-const apiSearchUrl = 'api/_search/settings';
+const apiUrl = 'api/settings/service-charge';
+const apiSearchUrl = 'api/_search/settings/service-charge';
 
 // Actions
 
@@ -25,8 +25,8 @@ export const searchEntities = createAsyncThunk('settings/search_entity', async (
   return axios.get<IServiceCharge[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('settings/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `/by-key?key=GRATUITY&page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+export const getEntities = createAsyncThunk('settings/fetch_entity_list', async ({ page, size, sort, key, whenToApply, branchId }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}${key ? `&key=${key}` : ''}${whenToApply ? `&whenToApply=${whenToApply}` : ''}${branchId ? `&branchId=${branchId}` : ''}`;
   return axios.get<IServiceCharge[]>(requestUrl);
 });
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getSortState } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Button, Button as PrimeButton } from "primereact/button"
+import { Button as PrimeButton } from "primereact/button"
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -10,7 +10,6 @@ import { getEntities } from './service-charge.reducer';
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { IServiceCharge, ServiceChargeKey, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
-import { FilterMatchMode } from 'primereact/api';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Dropdown } from 'primereact/dropdown';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
@@ -38,21 +37,23 @@ export const ServiceCharge = () => {
         sort: 'key,asc',
         page: 0,
         size: 500,
+        key: searchParams.get('key'),
+        whenToApply: searchParams.get('whenToApply'),
+        branchId: searchParams.get('branch'),
       })
     );
   };
 
-  const sortEntities = () => {
-    getAllEntities();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
-  };
-
   useEffect(() => {
-    sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort]);
+    getAllEntities();
+  }, [
+    paginationState.activePage,
+    paginationState.order,
+    paginationState.sort,
+    searchParams.get('key'),
+    searchParams.get('whenToApply'),
+    searchParams.get('branch'),
+  ]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -73,12 +74,9 @@ export const ServiceCharge = () => {
     dispatch(getBranches({}));
   }, [])
 
-  const handleSyncList = () => {
-    sortEntities();
-  };
 
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/service-charge/${rowData.value.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/service-charge/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
@@ -87,7 +85,7 @@ export const ServiceCharge = () => {
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/service-charge/${rowData.value.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/service-charge/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
@@ -103,7 +101,7 @@ export const ServiceCharge = () => {
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">Service Charges</span>
       <div className="ms-auto">
-        <PrimeButton label="Refresh List" severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <PrimeButton label="Refresh List" severity="secondary" raised className="me-5" color="info" disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </PrimeButton>
@@ -199,7 +197,7 @@ export const ServiceCharge = () => {
           <Column
             field="key"
             header="Key"
-            body={(rowData) => formatServiceChargeKey(rowData.value.key)}
+            body={(rowData) => formatServiceChargeKey(rowData.key)}
           />
 
           <Column

@@ -15,6 +15,7 @@
     "minCharge": "Min Charge",
     "maxCharge": "Max Charge",
     "charge": "Charge",
+    "branch": "Branch",
     "settings": {
       "type": "Type",
       "applicableOn": "Applicable On"
