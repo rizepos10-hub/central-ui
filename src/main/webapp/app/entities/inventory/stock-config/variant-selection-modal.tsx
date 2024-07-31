@@ -54,7 +54,7 @@ const VariantSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.stockConfig.view.table.title'}>StockConfigs</Translate></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.stockConfig.title'}>StockConfigs</Translate></span>
       <div className="ms-auto">
        <InputText
          value={searchTerm}
@@ -72,14 +72,13 @@ const VariantSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
 
 
-console.log(itemsForStock, 'itemsForStock')
 
 
 
   return (
     <Modal size="xl" isOpen={isOpen} toggle={toggle}  backdrop="static">
       <ModalHeader toggle={toggle}>
-        Search Item
+        {translate("common.search.item")}
       </ModalHeader>
       <ModalBody>
 
@@ -95,13 +94,13 @@ console.log(itemsForStock, 'itemsForStock')
             rows={queryParams?.size}
           >
 
-            <Column field="item.name" header={"Item"} />
+            <Column field="item.name" header={translate("common.item")} />
 
-            <Column field="quantity" header={"Quantity"} />
+            <Column field="quantity" header={translate("common.quantity")} />
 
-            <Column field="price" header={"Price"} />
+            <Column field="price" header={translate("common.price")} />
 
-            <Column  header={"Sub Total"} body={(rowData) => rowData.price * rowData.quantity} />
+            <Column  header={translate("common.subtotal")} body={(rowData) => rowData.price * rowData.quantity} />
 
 
           </DataTable>
@@ -113,7 +112,7 @@ console.log(itemsForStock, 'itemsForStock')
             color="primary"
             className="mr-2"
           >
-            <Translate contentKey={'menus.pos.update.modals.item.buttons.previous'}>Previous</Translate>
+            <Translate contentKey={'common.previous'}>Previous</Translate>
           </Button>
           <span>Page {currentPage}</span>
           <Button
@@ -122,7 +121,7 @@ console.log(itemsForStock, 'itemsForStock')
             color="primary"
             className="ml-2"
           >
-            <Translate contentKey={'menus.pos.update.modals.item.buttons.next'}>Next</Translate>
+            <Translate contentKey={'common.next'}>Next</Translate>
           </Button>
         </div>
         </FormGroup>

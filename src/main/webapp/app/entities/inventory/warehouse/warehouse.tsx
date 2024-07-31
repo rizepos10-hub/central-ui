@@ -99,7 +99,7 @@ export const Warehouse = () => {
         options={dropdownItems}
         value={filters?.main?.value}
         onChange={handleDropdownChange}
-        placeholder={translate("tempApp.warehouse.view.table.search.main")}
+        placeholder={translate("tempApp.warehouse.search.main")}
       />
     );
   };
@@ -145,13 +145,13 @@ export const Warehouse = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.warehouse.view.table.title'}>Warehouses</Translate></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.warehouse.title'}>Warehouses</Translate></span>
       <div className="ms-auto">
-        <Button label={translate("tempApp.warehouse.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("tempApp.warehouse.view.table.buttons.createNewWarehouse")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("tempApp.warehouse.createNew")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -166,15 +166,15 @@ export const Warehouse = () => {
       <div >
         <DataTable value={warehouseList} editMode="row" header={header} removableSort   filters={filters} filterDisplay="row"  paginator totalRecords={totalItems}
                    rows={20} loading={loading} showGridlines>
-          <Column field="name" header={translate('tempApp.warehouse.view.table.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('tempApp.warehouse.view.table.search.name')}  sortable  />
-          <Column field="location" header={translate('tempApp.warehouse.view.table.fields.location')} filter  filterPlaceholder={translate('tempApp.warehouse.view.table.search.location')}  sortable  />
-          <Column header="Main" field={"main"} body={verifiedBodyTemplate} showFilterMatchModes={false}
+          <Column field="name" header={translate('common.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('common.search.name')}  sortable  />
+          <Column field="location" header={translate('common.location')} filter  filterPlaceholder={translate('common.search.location')}  sortable  />
+          <Column field="main"  header={translate('tempApp.warehouse.main')}  body={verifiedBodyTemplate} showFilterMatchModes={false}
                   dataType="boolean" bodyClassName="text-center" style={{width: '10%'}} filter filterElement={verifiedFilterTemplate}  />
 
-          <Column header={translate('tempApp.warehouse.view.table.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+          <Column header={translate('common.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
 
-          <Column  header={translate('tempApp.warehouse.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
+          <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
         </DataTable>

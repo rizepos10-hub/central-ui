@@ -160,14 +160,14 @@ export const StockConfig = () => {
       itemId: data.id
     }));
     return (
-      <div className="p-3 bg-light" >
+      <div className="p-3 bg-light">
         <h4>{data.name} Variants</h4>
         <DataTable value={variantsWithItemId} showGridlines>
-          <Column className={"bg-light"} field="name" header="Variant Name" sortable  />
-          <Column className={"bg-light"} field="price" header="Price" sortable />
-          <Column className={"bg-light"} field="sku" header="Sku" sortable />
-          <Column className={"bg-light"} headerStyle={{ width: '9rem' }} header={"Quantity"} body={quantityConfigBodyTemplate} />
-          <Column className={"bg-light"} headerStyle={{ width: '9rem' }} header={"Purchase Config"} body={purchaseConfigBodyTemplate} />
+          <Column className={'bg-light'} field="name" header={translate("common.variantName")} sortable />
+          <Column className={'bg-light'} field="price" header={translate("common.price")} sortable />
+          <Column className={'bg-light'} field="sku"  header={translate("common.sku")} sortable />
+          <Column className={'bg-light'} headerStyle={{ width: '9rem' }}  header={translate("common.quantity")} body={quantityConfigBodyTemplate} />
+          <Column className={'bg-light'} headerStyle={{ width: '9rem' }}  header={translate("tempApp.stockConfig.purchaseConfig")} body={purchaseConfigBodyTemplate} />
         </DataTable>
       </div>
     );
@@ -175,16 +175,16 @@ export const StockConfig = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.stockConfig.view.table.title'}>StockConfigs</Translate></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.stockConfig.title'}>StockConfigs</Translate></span>
       <div className="ms-auto">
         <div className="flex flex-wrap justify-content-end gap-2">
-          <Button label={translate("tempApp.stockConfig.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+          <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
             &nbsp;
             <FontAwesomeIcon icon="sync" spin={loading} />{' '}
           </Button>
 
-          <Button icon="pi pi-plus" label="Expand All" onClick={expandAll} text />
-          <Button icon="pi pi-minus" label="Collapse All" onClick={collapseAll} text />
+          <Button icon="pi pi-plus" label={translate("common.expandAll")} onClick={expandAll} text />
+          <Button icon="pi pi-minus" label={translate("common.collapseAll")} onClick={collapseAll} text />
         </div>
         {/* <Button label={translate("tempApp.stockConfig.view.table.buttons.createNewStockConfig")} raised onClick={handleCreate} disabled={loading}> */}
         {/*   &nbsp; */}

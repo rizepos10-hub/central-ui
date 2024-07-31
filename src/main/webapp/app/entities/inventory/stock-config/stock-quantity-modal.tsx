@@ -4,7 +4,7 @@ import {InputTextarea} from "primereact/inputtextarea";
 import {IStockQuantity} from "app/shared/model/STOCK/stock-quantity.model";
 import {InputText} from "primereact/inputtext";
 import {InputNumber} from "primereact/inputnumber";
-import {Translate} from "react-jhipster";
+import { translate, Translate } from "react-jhipster";
 import {partialUpdateEntity} from "app/entities/inventory/stock-config/stock-quantity.reducer";
 import {useAppDispatch} from "app/config/store";
 
@@ -59,7 +59,9 @@ const StockQuantityModal = ({toggle, isOpen, stockQuantity} :modalProps) => {
 
           <div className={"d-flex flex-column mt-2 "}>
             <strong>
-              <Label for="location">Location</Label>
+              <Label for="location">
+                {translate("common.location")}
+              </Label>
             </strong>
             <p id="location">
               {stockQuantity?.location?.name}
@@ -68,7 +70,9 @@ const StockQuantityModal = ({toggle, isOpen, stockQuantity} :modalProps) => {
 
           <div className={"d-flex flex-column mt-2"}>
             <strong>
-              <Label for="quantity">Quantity</Label>
+              <Label for="quantity">
+                {translate("common.quantity")}
+              </Label>
             </strong>
             <p id="Quantity">
               {stockQuantity?.quantity + modifiedStockQuantity}
@@ -77,7 +81,9 @@ const StockQuantityModal = ({toggle, isOpen, stockQuantity} :modalProps) => {
           </div>
         <div className={"d-flex gap-3 mt-2"}>
           <strong>
-            <Label for="adjusted">Adjusted Quantity</Label>
+            <Label for="adjusted">
+              {translate("tempApp.stockConfig.adjustedQuantity")}
+            </Label>
           </strong>
         <InputNumber
           value={modifiedStockQuantity}
@@ -94,7 +100,7 @@ const StockQuantityModal = ({toggle, isOpen, stockQuantity} :modalProps) => {
           <Translate contentKey={'entity.action.cancel'}>Cancel</Translate>
         </Button>
         <Button color="primary" onClick={handleSave}>
-          Save
+          <Translate contentKey={'entity.action.save'}>Save</Translate>
         </Button>
       </ModalFooter>
       </FormGroup>
