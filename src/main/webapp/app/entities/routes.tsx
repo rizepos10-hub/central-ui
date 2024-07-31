@@ -66,6 +66,7 @@ import BranchRegistry from "app/entities/settings/branch-registry";
 import Brand from "app/entities/brand";
 import Branches from './branches/branch';
 import ServiceCharge from './service-charges/index';
+import ImportFromOldSystem from './settings/import-from-old-system/import-from-old-system';
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -144,6 +145,7 @@ export default () => {
 
         <Route path="currencies/*" element={<CurrencySettings />} />
         <Route path="zones/*" element={<ZonesSettings/>} />
+        <Route path="import-from-old-system/*" element={<ImportFromOldSystem />} />
 
         <Route path="tv/*" element={<Tv />} />
         <Route path="tv-display/*" element={<TvDisplay />} />

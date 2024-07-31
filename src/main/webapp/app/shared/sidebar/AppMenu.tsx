@@ -678,7 +678,11 @@ const AppMenu = () => {
           role: ['ROLE_ADMINISTRATOR'],
           to: '/web-extensions',
         },
-
+        {
+          label: 'Import From Old System',
+          role: ['ROLE_ADMINISTRATOR'],
+          to: '/import-from-old-system',
+        },
         {
           label: 'Reporting automations',
           role: ['ROLE_ADMINISTRATOR'],

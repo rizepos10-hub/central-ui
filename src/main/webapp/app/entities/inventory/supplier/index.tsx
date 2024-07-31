@@ -7,7 +7,7 @@ import Supplier from './supplier';
 import SupplierUpdate from './supplier-update';
 import SupplierDeleteDialog from './supplier-delete-dialog';
 
-const AddonRoutes = () => (
+const SupplierRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<Supplier />} />
     <Route path="new" element={<SupplierUpdate />} />
@@ -18,4 +18,4 @@ const AddonRoutes = () => (
   </ErrorBoundaryRoutes>
 );
 
-export default AddonRoutes;
+export default SupplierRoutes;

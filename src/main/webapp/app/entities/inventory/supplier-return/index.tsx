@@ -7,7 +7,7 @@ import SupplierReturn from './supplier-return';
 import SupplierReturnUpdate from './supplier-return-update';
 import SupplierReturnDeleteDialog from './supplier-return-delete-dialog';
 
-const AddonRoutes = () => (
+const SupplierReturnRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<SupplierReturn />} />
     <Route path="new" element={<SupplierReturnUpdate />} />
@@ -18,4 +18,4 @@ const AddonRoutes = () => (
   </ErrorBoundaryRoutes>
 );
 
-export default AddonRoutes;
+export default SupplierReturnRoutes;

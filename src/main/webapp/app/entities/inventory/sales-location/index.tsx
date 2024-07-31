@@ -7,7 +7,7 @@ import SalesLocation from './sales-location';
 import SalesLocationUpdate from './sales-location-update';
 import SalesLocationDeleteDialog from './sales-location-delete-dialog';
 
-const AddonRoutes = () => (
+const SalesLocationRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<SalesLocation />} />
     <Route path="new" element={<SalesLocationUpdate />} />
@@ -18,4 +18,4 @@ const AddonRoutes = () => (
   </ErrorBoundaryRoutes>
 );
 
-export default AddonRoutes;
+export default SalesLocationRoutes;

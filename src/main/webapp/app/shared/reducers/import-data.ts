@@ -35,6 +35,16 @@ export const importData = createAsyncThunk('item/data-import', async (formData :
   { serializeError: serializeAxiosError }
 );
 
+export const importDataFromOldSystem = createAsyncThunk('item/data-import', async (formData : { file: File }) => {
+    return  await axios.post('/api/import-json-data', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  { serializeError: serializeAxiosError }
+);
+
 
 // slice
 

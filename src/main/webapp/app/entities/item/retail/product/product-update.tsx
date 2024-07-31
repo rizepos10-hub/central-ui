@@ -5,71 +5,71 @@ import { getSortState, translate, Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { Button as PrimeButton } from "primereact/button"
+import { Button as PrimeButton } from 'primereact/button';
 
 import { createEntity, getEntity, reset, updateEntity } from './product.reducer';
-import SharedItemUpdate from "app/shared/components/item/shared-item-update";
-import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
-import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
-import { InputNumber } from "primereact/inputnumber";
-import { InputText } from "primereact/inputtext";
-import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import Select from "react-select";
-import { getEntities as getAttributes } from "app/entities/item/retail/attributes/retail-attribute.reducer";
-import { ITaxonomy } from "app/shared/model/taxonomy.model";
-import { ITerm } from "app/shared/model/term.model";
+import SharedItemUpdate from 'app/shared/components/item/shared-item-update';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+import { InputNumber } from 'primereact/inputnumber';
+import { InputText } from 'primereact/inputtext';
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import Select from 'react-select';
+import { getEntities as getAttributes } from 'app/entities/item/retail/attributes/retail-attribute.reducer';
+import { ITaxonomy } from 'app/shared/model/taxonomy.model';
+import { ITerm } from 'app/shared/model/term.model';
 import {
   getEntities as getAttributeValues,
-  reset as resetAttributeValues
-} from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
-import { Accordion, AccordionTab } from "primereact/accordion";
-import AsyncSelect from "react-select/async";
-import { ItemVariantType } from "app/shared/model/ENUMS/item-variant-type.model";
-import _, { isEqual } from "lodash";
+  reset as resetAttributeValues,
+} from 'app/entities/item/retail/attributes/retail-attribute-values.reducer';
+import { Accordion, AccordionTab } from 'primereact/accordion';
+import AsyncSelect from 'react-select/async';
+import { ItemVariantType } from 'app/shared/model/ENUMS/item-variant-type.model';
+import _, { isEqual } from 'lodash';
 import Visibility from 'app/shared/Visibility/Visibility';
-import { TabPanel, TabView } from "primereact/tabview";
-import ItemStockTab from "app/shared/components/item/item-stock-tab";
-import { IExchangeMeasure } from "app/shared/model/ITEM/retail/simple-item.model";
-import { getEntities as getMeasures } from "app/entities/item-measure/item-measure.reducer";
-import ItemLoyaltyTab from "app/shared/components/item/item-loyalty-tab";
-import WholesalePrices from "app/shared/components/item/wholsale-prices-modal";
-import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
-import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
-import AuditLogs from "app/shared/components/logs/audit-logs";
-import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
-import DiscountDropdown from "app/shared/components/item/discount-dropdown";
-import MediaLibrary from "app/shared/components/media-library/media-library";
-import { transformAttachmentStructure } from "app/shared/util/attachment-utils";
-import { IProduct } from "app/shared/model/ITEM/retail/product.model";
-import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
-import { SelectButton } from "primereact/selectbutton";
-import { preventEnterSubmit } from "app/shared/util/form-utils";
-import { Column } from "primereact/column";
+import { TabPanel, TabView } from 'primereact/tabview';
+import ItemStockTab from 'app/shared/components/item/item-stock-tab';
+import { IExchangeMeasure } from 'app/shared/model/ITEM/retail/simple-item.model';
+import { getEntities as getMeasures } from 'app/entities/item-measure/item-measure.reducer';
+import ItemLoyaltyTab from 'app/shared/components/item/item-loyalty-tab';
+import WholesalePrices from 'app/shared/components/item/wholsale-prices-modal';
+import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
+import { getEntities as getMixAndMatchRules } from 'app/entities/mix-and-match-rule/mix-and-match-rule.reducer';
+import AuditLogs from 'app/shared/components/logs/audit-logs';
+import VariantBranchPrice from 'app/shared/components/item/variant-branch-price';
+import DiscountDropdown from 'app/shared/components/item/discount-dropdown';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
+import { IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
+import { SelectButton } from 'primereact/selectbutton';
+import { preventEnterSubmit } from 'app/shared/util/form-utils';
+import { Column } from 'primereact/column';
 import VariantPackaging from 'app/shared/components/item/variant-packaging';
 
 const defaultItemPriceNumber = {
-  "PRICE_1": null,
-  "PRICE_2": null,
-  "PRICE_3": null,
-  "PRICE_4": null,
-  "PRICE_5": null,
+  PRICE_1: null,
+  PRICE_2: null,
+  PRICE_3: null,
+  PRICE_4: null,
+  PRICE_5: null,
 };
 
 const defaultSpecialPrices = {
-  "WHOLE_SALE": { ...defaultItemPriceNumber },
-  "RETAIL": { ...defaultItemPriceNumber }
+  WHOLE_SALE: { ...defaultItemPriceNumber },
+  RETAIL: { ...defaultItemPriceNumber },
 };
 
 const itemTypes = [
   {
-    label: "RETAIL SIMPLE",
+    label: 'RETAIL SIMPLE',
     value: ItemVariantType.RETAIL_SIMPLE,
   },
   {
-    label: "RETAIL VARIABLE",
+    label: 'RETAIL VARIABLE',
     value: ItemVariantType.RETAIL_VARIABLE,
-  }
-]
+  },
+];
 
 export const ProductUpdate = () => {
   const dispatch = useAppDispatch();
@@ -92,20 +92,17 @@ export const ProductUpdate = () => {
 
   const location = useLocation();
 
-
   const attributeValuesList = useAppSelector(state => state.retailAttributeValue.entities);
   const loadingAttributesValues = useAppSelector(state => state.retailAttributeValue.loading);
-
-
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
   const [product, setProduct] = useState<IProduct>({
-    itemType: "RETAIL",
+    itemType: 'RETAIL',
     itemVariantType: ItemVariantType.RETAIL_SIMPLE,
-    variants: []
+    variants: [],
   });
   const isVariableItem = product?.itemVariantType === ItemVariantType.RETAIL_VARIABLE;
   const isSingleItem = product?.itemVariantType === ItemVariantType.RETAIL_SIMPLE;
@@ -120,46 +117,39 @@ export const ProductUpdate = () => {
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
 
-
   const filteredAvailableAttributes = () => {
     const existingAttributeIds = product?.attributes?.map(attr => attr.attributeTax.id);
     return attributesList?.filter(attr => !existingAttributeIds?.includes(attr.id));
   };
 
   const filteredMeasures = useMemo(() => {
-    const exchangeMeasuresIds = product?.measures?.map((exMeasure) => exMeasure.itemMeasure.id);
-    return measureList.filter(m => m.id !== product?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id))
+    const exchangeMeasuresIds = product?.measures?.map(exMeasure => exMeasure.itemMeasure.id);
+    return measureList.filter(m => m.id !== product?.baseMeasure?.id && !exchangeMeasuresIds?.includes(m.id));
   }, [measureList?.length, product?.baseMeasure?.id, product?.measures?.length]);
 
   const isAttributeAddButtonDisabled =
     filteredAvailableAttributes()?.length === 0 ||
     !itemAttribute ||
-    itemAttribute?.attributeTax &&
-    Object.keys(itemAttribute?.attributeTax)?.length === 0 &&
-    itemAttribute?.attributeTerms?.length === 0;
-
-
+    (itemAttribute?.attributeTax && Object.keys(itemAttribute?.attributeTax)?.length === 0 && itemAttribute?.attributeTerms?.length === 0);
 
   const handleBackClick = () => {
     const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
     if (fromMenuId) {
       navigate(`/menu/${fromMenuId}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
     } else {
-      navigate("/product");
+      navigate('/product');
     }
-  }
+  };
 
   const handleFieldChange = useCallback((fieldName, value) => {
-    setProduct((prevState) => {
+    setProduct(prevState => {
       const updatedProduct = {
         ...prevState,
         [fieldName]: value,
       };
 
-      if (updatedProduct.itemVariantType === "RETAIL_SIMPLE" && fieldName === "name") {
-        const updatedVariant = prevState.variants?.[0]
-          ? { ...prevState.variants[0], name: value }
-          : { name: value };
+      if (updatedProduct.itemVariantType === 'RETAIL_SIMPLE' && fieldName === 'name') {
+        const updatedVariant = prevState.variants?.[0] ? { ...prevState.variants[0], name: value } : { name: value };
 
         updatedProduct.variants = [updatedVariant, ...(prevState.variants?.slice(1) ?? [])];
       }
@@ -169,8 +159,8 @@ export const ProductUpdate = () => {
   }, []);
 
   const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
-    console.log("helloooo111o", value, variantIndex)
-    setProduct((prev) => {
+    console.log('helloooo111o', value, variantIndex);
+    setProduct(prev => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
         ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
@@ -183,44 +173,43 @@ export const ProductUpdate = () => {
     });
   };
 
-  // variantPackage is like this 
-  // variantPackage: [ 
-  //   { 
-  //     variant: {  
-  //       id: '1',  
-  //       name: 'Variant 1',  
+  // variantPackage is like this
+  // variantPackage: [
+  //   {
+  //     variant: {
+  //       id: '1',
+  //       name: 'Variant 1',
   //       ...
-  //     },  
+  //     },
   //     quantity: 1,
   //  }
-
 
   const addImage = (variantIndex, files) => {
     handleVariantFieldChange(variantIndex, 'attachments', transformAttachmentStructure(files, 'toIAttachment'));
   };
 
-  const handleBaseMeasureChange = (baseMeasure) => {
+  const handleBaseMeasureChange = baseMeasure => {
     if (!product?.measures || product?.measures?.length === 0) {
-      setProduct(prev => ({ ...prev, baseMeasure }))
+      setProduct(prev => ({ ...prev, baseMeasure }));
     } else {
       setProduct(prevState => {
-        const updatedMeasures = prevState.measures.filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
-          .map((exMeasure) => ({ ...exMeasure, exchangeRate: null }));
+        const updatedMeasures = prevState.measures
+          .filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
+          .map(exMeasure => ({ ...exMeasure, exchangeRate: null }));
         return {
           ...prevState,
           baseMeasure,
-          measures: updatedMeasures
+          measures: updatedMeasures,
         };
       });
     }
-    setMeasureToAdd({})
+    setMeasureToAdd({});
   };
 
-
   const handleSaveWholesalePrices = (variantIndex, branchId, prices) => {
-    setProduct((prev) => {
+    setProduct(prev => {
       const updatedVariants = prev.variants.map((variant, index) => {
-        console.log(variantIndex, 'variantsds')
+        console.log(variantIndex, 'variantsds');
         if (index !== variantIndex) return variant;
 
         const updatedBranchVariantDetails = {
@@ -244,17 +233,16 @@ export const ProductUpdate = () => {
     });
   };
 
-
   const handleAddMeasure = () => {
-    setProduct((prevState) => ({
+    setProduct(prevState => ({
       ...prevState,
-      measures: [measureToAdd, ...(prevState.measures || [])]
+      measures: [measureToAdd, ...(prevState.measures || [])],
     }));
-    setMeasureToAdd({})
+    setMeasureToAdd({});
   };
 
   const handleMeasuresChange = (measureIndex, newRate) => {
-    setProduct((prevState) => {
+    setProduct(prevState => {
       const updatedMeasures = prevState.measures.map((exMeasure, index) => {
         if (measureIndex === index) {
           return { ...exMeasure, exchangeRate: newRate };
@@ -264,30 +252,30 @@ export const ProductUpdate = () => {
 
       return {
         ...prevState,
-        measures: updatedMeasures
+        measures: updatedMeasures,
       };
     });
   };
 
-  const handleRemoveMeasure = (measureIndex) => {
-    setProduct((prevState) => {
+  const handleRemoveMeasure = measureIndex => {
+    setProduct(prevState => {
       const updatedMeasures = prevState.measures.filter((_, index) => index !== measureIndex);
       return {
         ...prevState,
-        measures: updatedMeasures
+        measures: updatedMeasures,
       };
     });
   };
 
   const handleBranchPriceChange = (variantIndex, branchId, priceType, price) => {
-    setProduct((prev) => {
+    setProduct(prev => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
         ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
         branchVariantDetails: {
           ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
           [branchId]: {
-            ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
             branch: { id: branchId },
             [priceType]: price,
           },
@@ -323,14 +311,14 @@ export const ProductUpdate = () => {
   // }
 
   const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
-    setProduct((prev) => {
+    setProduct(prev => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
         ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
         branchVariantDetails: {
           ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
           [branchId]: {
-            ...(prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId]),
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
             [field]: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.[field],
           },
         },
@@ -340,48 +328,76 @@ export const ProductUpdate = () => {
         variants: updatedVariants,
       };
     });
-  }
-
+  };
 
   const handleAddAttribute = () => {
-
-    setProduct((prev) => ({
+    setProduct(prev => ({
       ...prev,
-      attributes: [
-        ...(prev.attributes || []),
-        itemAttribute,
-      ],
+      attributes: [...(prev.attributes || []), itemAttribute],
     }));
-    setItemAttribute(null)
+    setItemAttribute(null);
   };
 
-  const handleItemAttributeSelect = (selectedOption) => {
+  const handleItemAttributeSelect = selectedOption => {
     if (!selectedOption) {
       setItemAttribute(null);
-      return
+      return;
     }
 
-    dispatch(getAttributeValues({
-      id: selectedOption?.id,
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-    setItemAttribute((prevState) => ({ ...prevState, attributeTax: selectedOption }))
+    dispatch(
+      getAttributeValues({
+        id: selectedOption?.id,
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
+    setItemAttribute(prevState => ({ ...prevState, attributeTax: selectedOption }));
   };
 
-  const handleAttributeTermChange = (index, selectedTerms) => {
-    setProduct((prev) => ({
-      ...prev,
-      attributes: prev.attributes.map((attr, i) =>
+  const handleAttributeTermChange = (index: number, selectedTerms): void => {
+    setProduct((prevProduct: IProduct) => {
+      // Identify removed attribute terms
+      const currentAttributeTerms = prevProduct.attributes[index].attributeTerms;
+      const currentTermIds = currentAttributeTerms.map(term => term.id);
+      const newTermIds = selectedTerms.map(term => term.id);
+
+      // Calculate removed term IDs
+      const removedTermIds = currentTermIds.filter(id => !newTermIds.includes(id));
+
+      // Update the attributes
+      const updatedAttributes = prevProduct.attributes.map((attr, i) =>
         i === index
           ? {
-            ...attr,
-            attributeTerms: selectedTerms,
-          }
+              ...attr,
+              attributeTerms: selectedTerms,
+            }
           : attr
-      ),
-    }));
+      );
+
+      // Remove corresponding attribute values from variants
+      const updatedVariants = prevProduct.variants.map(variant => {
+        const updatedAttributeValues = { ...variant.attributeValues };
+
+        // Remove attribute values that correspond to removed terms
+        Object.keys(updatedAttributeValues).forEach(key => {
+          if (removedTermIds.includes(updatedAttributeValues[key]?.id)) {
+            updatedAttributeValues[key] = null; // Remove the attribute value
+          }
+        });
+
+        return {
+          ...variant,
+          attributeValues: updatedAttributeValues,
+        };
+      });
+
+      return {
+        ...prevProduct,
+        attributes: updatedAttributes,
+        variants: updatedVariants,
+      };
+    });
   };
 
   const generateCombinations = () => {
@@ -399,11 +415,11 @@ export const ProductUpdate = () => {
           salePrice: null,
           branchVariantDetails: {},
           attributeValues: { ...currentCombination },
-          specialPrices: { ...defaultSpecialPrices }
+          specialPrices: { ...defaultSpecialPrices },
         };
 
-        const isDuplicate = product?.variants.some((variant) => {
-          return isEqual(variant.attributeValues, newVariant.attributeValues)
+        const isDuplicate = product?.variants.some(variant => {
+          return isEqual(variant.attributeValues, newVariant.attributeValues);
         });
         if (!isDuplicate) {
           combinations.push(newVariant);
@@ -422,8 +438,8 @@ export const ProductUpdate = () => {
       }
     };
     generate(0, {});
-    console.log(combinations, 'combinationscombinations')
-    setProduct((prevState) => ({
+    console.log(combinations, 'combinationscombinations');
+    setProduct(prevState => ({
       ...prevState,
       variants: [...prevState.variants, ...combinations],
     }));
@@ -431,7 +447,7 @@ export const ProductUpdate = () => {
   };
 
   const handleAddVariant = () => {
-    setProduct((prev) => ({
+    setProduct(prev => ({
       ...prev,
       variants: [
         ...prev.variants,
@@ -447,7 +463,7 @@ export const ProductUpdate = () => {
           attributeValues: {},
           specialPrices: { ...defaultSpecialPrices },
           createdDate: new Date().toISOString(),
-          order: prev.variants.length
+          order: prev.variants.length,
         },
       ],
     }));
@@ -461,7 +477,6 @@ export const ProductUpdate = () => {
   const handleDragLeave = () => {
     setDragOverIndex(null);
   };
-
 
   const handleDrop = (droppedIndex: number) => {
     if (draggedIndex === null || draggedIndex === droppedIndex) return;
@@ -484,77 +499,78 @@ export const ProductUpdate = () => {
 
     setProduct(prev => ({
       ...prev,
-      variants: updatedVariants
+      variants: updatedVariants,
     }));
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
 
+  console.log(product, 'product');
 
-
-
-
-
-  console.log(product, 'product')
-
-  const handleNavigate = (productId) => {
+  const handleNavigate = productId => {
     navigate(`/product/${productId}/edit` + location.search);
   };
 
   useEffect(() => {
     if (isNew) {
-      dispatch(reset())
+      dispatch(reset());
     } else {
       dispatch(getEntity(id));
     }
 
-    dispatch(getBranches({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+    dispatch(
+      getBranches({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
 
-    dispatch(getAttributes({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+    dispatch(
+      getAttributes({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
 
-    dispatch(getMeasures({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+    dispatch(
+      getMeasures({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
 
-    dispatch(getDiscounts({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
+    dispatch(
+      getDiscounts({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
 
-    dispatch(getMixAndMatchRules({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-
+    dispatch(
+      getMixAndMatchRules({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
   }, [id, isNew]);
 
   useEffect(() => {
-
     if (!isNew) {
       setProduct({
         ...productEntity,
         variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
       });
     }
-    const productId = productEntity?.id
+    const productId = productEntity?.id;
     if (updateSuccess) {
       handleNavigate(productId);
     }
-
   }, [productEntity, updateSuccess]);
-
 
   const saveEntity = e => {
     e.preventDefault();
@@ -563,7 +579,7 @@ export const ProductUpdate = () => {
       if (index !== 0 && variant.order === 0) {
         return {
           ...variant,
-          order: index
+          order: index,
         };
       }
       return variant;
@@ -571,9 +587,9 @@ export const ProductUpdate = () => {
 
     const entity = {
       ...product,
-      variants: updatedVariants
+      variants: updatedVariants,
     };
-    console.table(entity)
+    console.table(entity);
     if (isNew) {
       dispatch(createEntity(entity));
     } else {
@@ -581,19 +597,20 @@ export const ProductUpdate = () => {
     }
   };
 
-  const loadOptions = (attributeId) => {
-
-    dispatch(resetAttributeValues())
-    dispatch(getAttributeValues({
-      id: attributeId,
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    })).then(response => console.log(response, 'responseresponse'))
+  const loadOptions = attributeId => {
+    dispatch(resetAttributeValues());
+    dispatch(
+      getAttributeValues({
+        id: attributeId,
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    ).then(response => console.log(response, 'responseresponse'));
   };
 
   const handleHeaderChange = (variantIndex, attributeId, selectedOption) => {
-    setProduct((prev) => {
+    setProduct(prev => {
       const updatedVariants = [...prev.variants];
       const updatedAttributeValues = {
         ...updatedVariants[variantIndex]?.attributeValues,
@@ -612,11 +629,10 @@ export const ProductUpdate = () => {
     });
   };
 
-
-  const handleDeleteVariant = (variantIndex) => {
+  const handleDeleteVariant = variantIndex => {
     const isConfirmed = window.confirm(translate('items.update.deleteVariantMessage'));
     if (isConfirmed) {
-      setProduct((prev) => {
+      setProduct(prev => {
         const updatedVariants = [...prev.variants];
         updatedVariants.splice(variantIndex, 1);
         return {
@@ -626,10 +642,10 @@ export const ProductUpdate = () => {
       });
     }
   };
-  const handleRemoveAttribute = (attributeIndex) => {
-    const isConfirmed = window.confirm("Are you sure?");
+  const handleRemoveAttribute = attributeIndex => {
+    const isConfirmed = window.confirm('Are you sure?');
     if (isConfirmed) {
-      setProduct((prev) => {
+      setProduct(prev => {
         const updateAttributes = [...prev.attributes];
         updateAttributes.splice(attributeIndex, 1);
         return {
@@ -640,53 +656,76 @@ export const ProductUpdate = () => {
     }
   };
 
-  const AttributeAccordionHeader = (attributeIndex) => (
-    <div onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation()
-    }} className={"d-flex gap-3 ml-2 w-full"}>
-      <label className={"mt-2"}><strong>{product?.attributes?.[attributeIndex]?.attributeTax?.name}</strong></label>
+  const AttributeAccordionHeader = attributeIndex => (
+    <div
+      onClick={e => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      className={'d-flex gap-3 ml-2 w-full'}
+    >
+      <label className={'mt-2'}>
+        <strong>{product?.attributes?.[attributeIndex]?.attributeTax?.name}</strong>
+      </label>
 
-      <PrimeButton type="button" className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
+      <PrimeButton type="button" className={'ml-auto'} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
         <Translate contentKey={'items.update.removeAttribute'}>Remove Attribute</Translate>
       </PrimeButton>
     </div>
-  )
+  );
 
-
-  const VariantAccordionHeader = (variantIndex) => (
+  const VariantAccordionHeader = variantIndex => (
     <div
-      onClick={(e) => {
+      onClick={e => {
         e.preventDefault();
-        e.stopPropagation()
+        e.stopPropagation();
       }}
-      className={"d-flex gap-3 ml-2 p-draggable "}
+      className="d-flex flex-1 gap-3 ml-2 p-draggable"
     >
-      <label className={"mt-2"}><strong>{product?.variants?.[variantIndex]?.name}</strong></label>
-      {product?.attributes?.map((attribute, index) => {
-        return (
-          <AsyncSelect
-            key={index}
-            value={product?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id]}
-            getOptionLabel={option => option.name}
-            getOptionValue={option => option.id}
-            isLoading={loadingAttributesValues}
-            onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-            defaultOptions={attribute?.attributeTerms}
-            onChange={(selectedOption) => handleHeaderChange(variantIndex, attribute?.attributeTax?.id, selectedOption)}
-          />
-        )
-      })}
-      <Button type="button" className={"ml-auto"} color="danger" onClick={() => handleDeleteVariant(variantIndex)}>
-        <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
-      </Button>
+      <div className="d-flex flex-grow-1 justify-content-between align-items-center">
+        <div className="d-flex gap-2">
+          <label
+            className="mt-2 variant-name-label"
+            style={{ width: '100px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
+          >
+            <strong>{product?.variants?.[variantIndex]?.name}</strong>
+          </label>
+          {product?.attributes?.map((attribute, index) => {
+            return (
+              <AsyncSelect
+                key={index}
+                value={product?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id]}
+                getOptionLabel={option => option.name}
+                getOptionValue={option => option.id}
+                isLoading={loadingAttributesValues}
+                styles={{
+                  control: baseStyles => ({
+                    ...baseStyles,
+                    minWidth: '12rem',
+                  }),
+                }}
+                onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                defaultOptions={attribute?.attributeTerms}
+                onChange={selectedOption => handleHeaderChange(variantIndex, attribute?.attributeTax?.id, selectedOption)}
+              />
+            );
+          })}
+        </div>
+      </div>
+      <div className="d-flex justify-content-end">
+        <FontAwesomeIcon
+          icon="trash"
+          onClick={() => handleDeleteVariant(variantIndex)}
+          className={'my-2 cursor-pointer '}
+          style={{ color: 'red' }}
+        />
+      </div>
     </div>
-  )
+  );
 
   if (loading) {
-    return <Spinner />
+    return <Spinner />;
   }
-
 
   return (
     <form onSubmit={saveEntity} onKeyDown={preventEnterSubmit}>
@@ -900,8 +939,9 @@ export const ProductUpdate = () => {
                                         <Col
                                           md={'12'}
                                           key={variantIndex}
-                                          className={` mt-2 pi pi-bars p-draggable d-flex ${dragOverIndex === variantIndex && 'border-top border-primary'
-                                            }`}
+                                          className={` mt-2 pi pi-bars p-draggable d-flex ${
+                                            dragOverIndex === variantIndex && 'border-top border-primary'
+                                          }`}
                                           draggable
                                           onDragStart={() => setDraggedIndex(variantIndex)}
                                           onDragOver={e => handleDragOver(e, variantIndex)}

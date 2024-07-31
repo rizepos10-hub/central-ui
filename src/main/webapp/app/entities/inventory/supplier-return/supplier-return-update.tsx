@@ -9,7 +9,7 @@ import {getEntity, createEntity, reset, updateEntity} from './supplier-return.re
 import {IReturnLine, ISupplierReturn} from "app/shared/model/STOCK/supplier-return.model";
 import {getEntities as getWarehouses} from "app/entities/inventory/warehouse/warehouse.reducer";
 import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState} from "react-jhipster";
+import { getSortState, Translate, translate } from "react-jhipster";
 import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
 import { getEntities as getPurchaseOrders, reset as resetPO, getEntity as getPurchaseOrder } from "app/entities/inventory/purchase-order/purchase-order.reducer";
@@ -197,137 +197,144 @@ export const SupplierReturnUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Supplier Return" : isDisabled ? "View Supplier Return" : "Edit Supplier Return"}</h2>
+          <h2>{isNew ? `${translate('tempApp.supplierReturn.createNew')}` : `${translate('tempApp.supplierReturn.edit')}`}</h2>
         </Col>
       </Row>
       <Row>
         <Col md="8" className="d-flex flex-column p-3">
           <Card>
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form onSubmit={saveEntity}>
-              <FormGroup>
-                <div className={"d-flex flex-column"}>
-                  <strong>
-                    <Label for="purchaseOrder">Purchase Order</Label>
-                  </strong>
-               <Select
-                  value={supplierReturn?.purchaseOrder}
-                  options={purchaseOrderList}
-                  getOptionLabel={(option: IPurchaseOrder) => option?.id}
-                  getOptionValue={option => option.id}
-                  id="purchaseOrder"
-                  isDisabled={!isNew}
-                  onChange={(purchaseOrder) => setSupplierReturn((prv) => ({...prv, purchaseOrder}))}
-               />
-                </div>
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <form onSubmit={saveEntity}>
+                <FormGroup>
+                  <div className={'d-flex flex-column'}>
+                    <strong>
+                      <Label for="purchaseOrder">
+                        <Translate contentKey={"tempApp.supplierReturn.purchaseOrder"} />
+                      </Label>
+                    </strong>
+                    <Select
+                      value={supplierReturn?.purchaseOrder}
+                      options={purchaseOrderList}
+                      getOptionLabel={(option: IPurchaseOrder) => option?.id}
+                      getOptionValue={option => option.id}
+                      id="purchaseOrder"
+                      isDisabled={!isNew}
+                      onChange={purchaseOrder => setSupplierReturn(prv => ({ ...prv, purchaseOrder }))}
+                    />
+                  </div>
 
-                <div className={"d-flex flex-column mt-2"}>
-                 <strong>
-                   <Label for="status">Status</Label>
-                 </strong>
-                  <SelectButton
-                    value={supplierReturn?.status ?? "PARKED"}
-                    options={statusOptions}
-                    id="status"
-                    disabled={isDisabled}
-                    onChange={(e) => setSupplierReturn((prv) => ({...prv, status: e.value}))}
-                  />
-                </div>
+                  <div className={'d-flex flex-column mt-2'}>
+                    <strong>
+                      <Label for="status">
+                        <Translate contentKey={"common.status"} />  Status
+                      </Label>
+                    </strong>
+                    <SelectButton
+                      value={supplierReturn?.status ?? 'PARKED'}
+                      options={statusOptions}
+                      id="status"
+                      disabled={isDisabled}
+                      onChange={e => setSupplierReturn(prv => ({ ...prv, status: e.value }))}
+                    />
+                  </div>
 
-                <div className={"d-flex flex-column mt-2"}>
-                  <strong>
-                  <Label for="comment">Comment</Label>
-                  </strong>
-                  <InputTextarea
-                    value={supplierReturn?.comment}
-                    id="comment"
-                    disabled={isDisabled}
-                    onChange={(e) => setSupplierReturn((prv) => ({...prv, comment: e.target.value}))}
-                  />
-                </div>
+                  <div className={'d-flex flex-column mt-2'}>
+                    <strong>
+                      <Label for="comment">
+                        <Translate contentKey={"common.comment"} />
+                      </Label>
+                    </strong>
+                    <InputTextarea
+                      value={supplierReturn?.comment}
+                      id="comment"
+                      disabled={isDisabled}
+                      onChange={e => setSupplierReturn(prv => ({ ...prv, comment: e.target.value }))}
+                    />
+                  </div>
 
-                {!isDisabled ? <Row className={"mt-3"}>
-                  <DataTable
-                    value={filteredOrderLines}
-                    selectionMode="multiple"
-                    dataKey="id"
-                    header={"Order Lines"}
-                    emptyMessage={"No Order Lines To Be Selected"}
-                    metaKeySelection={false}
-                    footer={tableFooterTemplate}
-                    selection={selectedReturnLines}
-                    onSelectionChange={(e) => setSelectedReturnLines(e.value)}
-                  >
-                    <Column selectionMode="multiple" headerStyle={{width: '3rem'}}/>
-                    <Column field="item.name" header="Item"/>
-                    <Column field="lineTotal" header="Line Total"/>
-                    <Column field="price" header="Cost Price"/>
-                    <Column field="received" header="Received Quantity"/>
-                    <Column field="returnedQuantity" header="Returned Quantity"/>
-                    <Column  body={(rowData) => rowData.received - rowData.returnedQuantity} header="Available Quantity" />
-                  </DataTable>
-                </Row> : null}
+                  {!isDisabled ? (
+                    <Row className={'mt-3'}>
+                      <DataTable
+                        value={filteredOrderLines}
+                        selectionMode="multiple"
+                        dataKey="id"
+                        header={translate("tempApp.supplier.orderLines")}
+                        emptyMessage={translate("tempApp.supplier.noOrderLines")}
+                        metaKeySelection={false}
+                        footer={tableFooterTemplate}
+                        selection={selectedReturnLines}
+                        onSelectionChange={e => setSelectedReturnLines(e.value)}
+                      >
+                        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
+                        <Column field="item.name" header={translate("common.item")}/>
+                        <Column field="lineTotal" header={translate("tempApp.supplierReturn.lineTotal")} />
+                        <Column field="price" header={translate("common.price")} />
+                        <Column field="received" header={translate("tempApp.supplierReturn.receivedQuantity")} />
+                        <Column field="returnedQuantity" header={translate("tempApp.supplierReturn.returnedQuantity")} />
+                        <Column body={rowData => rowData.received - rowData.returnedQuantity} header={translate("tempApp.supplierReturn.availableQuantity")} />
+                      </DataTable>
+                    </Row>
+                  ) : null}
 
-
-                <Row className={"mt-3"}>
-                  <h3>Return Lines</h3>
-                  <Table>
-                    <tbody>
-                    <tr>
-                      <td className={"font-bold"}>Order Line ID</td>
-                      <td className={"font-bold"}>Item</td>
-                      <td className={"font-bold"}>Return Quantity</td>
-                      <td className={"font-bold"}>Return Price</td>
-                      <td></td>
-                      {!isDisabled ?<td className={"font-bold"}>Action</td> : null}
-                    </tr>
-                    {supplierReturn?.returnLines?.map((returnLine, index) => (
-                      <tr key={index}>
-                        <td className={'w-4'}>
-                          {returnLine?.orderLineId}
-                        </td>
-                        <td className={'w-2'}>
-                          {returnLine?.itemName}
-                        </td>
-                        <td className={'w-1'}>
-                          <InputNumber
-                            value={returnLine.quantity} disabled={isDisabled}
-                            onChange={(e) => handleReturnQuantityChange(index,e.value)}
-                          />
-                        </td>
-                        <td className={'w-2'}>
-                          <InputNumber
-                            value={returnLine.returnPrice} disabled={isDisabled}
-                            onChange={(e) => handleReturnPriceChange(index,e.value)}
-                          />
-                        </td>
-                        <td>
-                        </td>
-                        {!isDisabled ?<td>
-                          <PrimeButton label={"Remove"} severity={"danger"} raised
-                                       onClick={() => handleRemoveClick(index)}/>
-                        </td> : null}
-                      </tr>
-                    ))}
-                    </tbody>
-                  </Table>
-                </Row>
-
-
-              </FormGroup>
-              <Button tag={Link} to="/inventory/supplier-return" replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
-              </Button>
-              &nbsp;
-              {!isDisabled ? <Button color="primary" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save"/>
-                &nbsp;Save
-              </Button> : null}
-            </form>
-          )}
+                  <Row className={'mt-3'}>
+                    <h3>
+                      <Translate contentKey={"tempApp.supplierReturn.returnLines"} />
+                    </h3>
+                    <Table>
+                      <tbody>
+                        <tr>
+                          <td className={'font-bold'}>Order Line ID</td>
+                          <td className={'font-bold'}>Item</td>
+                          <td className={'font-bold'}>Return Quantity</td>
+                          <td className={'font-bold'}>Return Price</td>
+                          <td></td>
+                          {!isDisabled ? <td className={'font-bold'}>Action</td> : null}
+                        </tr>
+                        {supplierReturn?.returnLines?.map((returnLine, index) => (
+                          <tr key={index}>
+                            <td className={'w-4'}>{returnLine?.orderLineId}</td>
+                            <td className={'w-2'}>{returnLine?.itemName}</td>
+                            <td className={'w-1'}>
+                              <InputNumber
+                                value={returnLine.quantity}
+                                disabled={isDisabled}
+                                onChange={e => handleReturnQuantityChange(index, e.value)}
+                              />
+                            </td>
+                            <td className={'w-2'}>
+                              <InputNumber
+                                value={returnLine.returnPrice}
+                                disabled={isDisabled}
+                                onChange={e => handleReturnPriceChange(index, e.value)}
+                              />
+                            </td>
+                            <td></td>
+                            {!isDisabled ? (
+                              <td>
+                                <PrimeButton label={'Remove'} severity={'danger'} raised onClick={() => handleRemoveClick(index)} />
+                              </td>
+                            ) : null}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </Row>
+                </FormGroup>
+                <Button tag={Link} to="/inventory/supplier-return" replace color="info">
+                  <FontAwesomeIcon icon="arrow-left" />
+                  &nbsp;Back
+                </Button>
+                &nbsp;
+                {!isDisabled ? (
+                  <Button color="primary" type="submit" disabled={updating}>
+                    <FontAwesomeIcon icon="save" />
+                    &nbsp;Save
+                  </Button>
+                ) : null}
+              </form>
+            )}
           </Card>
         </Col>
       </Row>

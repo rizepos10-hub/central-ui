@@ -90,7 +90,7 @@ export const OrderDetail = () => {
                   <h4 data-cy="customerDetailsHeading">
                     <strong>
                       {' '}
-                      <Translate contentKey="tempApp.customer.detail.title">Customer</Translate>
+                      <Translate contentKey="common.customer">Customer</Translate>
                     </strong>
                   </h4>
                   Walk In
