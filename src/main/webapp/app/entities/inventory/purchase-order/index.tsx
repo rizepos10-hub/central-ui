@@ -7,7 +7,7 @@ import PurchaseOrder from './purchase-order';
 import PurchaseOrderUpdate from './purchase-order-update';
 import PurchaseOrderDeleteDialog from './purchase-order-delete-dialog';
 
-const AddonRoutes = () => (
+const PurchaseOrderRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<PurchaseOrder />} />
     <Route path="new" element={<PurchaseOrderUpdate />} />
@@ -18,4 +18,4 @@ const AddonRoutes = () => (
   </ErrorBoundaryRoutes>
 );
 
-export default AddonRoutes;
+export default PurchaseOrderRoutes;

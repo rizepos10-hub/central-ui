@@ -8,6 +8,7 @@ import StockQuantityModal from "app/entities/inventory/stock-config/stock-quanti
 import {useLocation, useParams} from "react-router-dom";
 import {useAppDispatch, useAppSelector} from "app/config/store";
 import { getStockQuantitiesForVariant} from "app/entities/inventory/stock-config/stock-quantity.reducer";
+import { translate } from "react-jhipster";
 
 const StockQuantityUpdate = () => {
   const dispatch = useAppDispatch();
@@ -57,7 +58,7 @@ const StockQuantityUpdate = () => {
         showGridlines
         value={stockQuantities}
         editMode="row"
-        header={`${variantName} Stock Config`}
+        header={`${variantName} ${translate("tempApp.stockConfig.config")}`}
         removableSort
         paginator
         key={"id"}

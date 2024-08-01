@@ -1,52 +1,21 @@
 {
   "tempApp": {
     "supplier": {
-      "view": {
-        "title": "Suppliers View",
-        "table": {
-          "title": "Suppliers",
-          "buttons": {
-            "refreshList": "Refresh List",
-            "createNewSupplier": "Create New Supplier"
-          },
-
-          "fields": {
-            "name": "Name",
-            "address": "Address",
-            "contactInformation": "Contact Information",
-            "email": "Email",
-            "phone": "Phone Number",
-            "edit": "Edit",
-            "delete": "Delete"
-          },
-          "search": {
-            "name": "Search by Name",
-            "email": "Search by Email",
-            "phone": "Search by Phone Number",
-            "address": "Search by address"
-          }
-        }
-      },
       "created": "A new Supplier is created with identifier {{ param }}",
       "updated": "A Supplier is updated with identifier {{ param }}",
       "deleted": "A Supplier is deleted with identifier {{ param }}",
       "delete": {
         "title": "Confirm Delete Supplier",
-        "question": "Are you sure you want to delete supplier {{ id }}"
+        "question": "Are you sure you want to delete supplier {{ param }}"
       },
-      "update": {
-        "create": {
-          "title": "Create New Supplier"
-        },
-        "edit": {
-          "title": "Edit Supplier"
-        },
-        "id": "Id",
-        "firstName": "First Name",
-        "lastName": "Last Name",
-        "phone": "Phone Number",
-        "email": "Email"
-      }
+      "title": "Suppliers",
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "createNew": "Create New Supplier",
+      "edit": "Edit Supplier"
     }
   }
 }

@@ -9,7 +9,7 @@ import { getEntity, createEntity, reset, updateEntity } from './transfer-request
 import { ITransferRequest, ITRItem } from "app/shared/model/STOCK/transfer-request.model";
 import { getEntities as getWarehouses } from "app/entities/inventory/warehouse/warehouse.reducer";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
-import { getSortState } from "react-jhipster";
+import { getSortState, Translate, translate } from "react-jhipster";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { searchEntities as getStockItems } from "app/entities/inventory/stock-config/stock-quantity.reducer";
 import { getEntities as getSuppliers } from '../supplier/supplier.reducer';
@@ -253,7 +253,7 @@ export const TransferRequestUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ? 'Add New Transfer Request' : 'View Transfer Request'}</h2>
+          <h2>{isNew ? `${translate('tempApp.transferRequest.createNew')}` : `${translate('tempApp.transferRequest.edit')}`}</h2>
         </Col>
       </Row>
       <Row>
@@ -265,7 +265,9 @@ export const TransferRequestUpdate = () => {
               <Col md="9" className="d-flex flex-column p-3 bg-white">
                 <FormGroup>
                   <div className={'d-flex flex-column'}>
-                    <Label for="source">Source</Label>
+                    <Label for="source">
+                      <Translate contentKey={"tempApp.transferRequest.source"} />
+                    </Label>
                     <Select
                       value={transferRequest?.source}
                       options={warehousesAndSalesLocations}
@@ -278,7 +280,9 @@ export const TransferRequestUpdate = () => {
                   </div>
 
                   <div className={'d-flex flex-column mt-2'}>
-                    <Label for="destination">Destination</Label>
+                    <Label for="destination">
+                      <Translate contentKey={"tempApp.transferRequest.destination"} />
+                    </Label>
                     <Select
                       value={transferRequest?.destination}
                       options={destinationOptions}
@@ -292,14 +296,24 @@ export const TransferRequestUpdate = () => {
 
                   {!isDisabled ? (
                     <Row className={'mt-3'}>
-                      <h3>Transfer Items</h3>
+                      <h3>
+                        <Translate contentKey={"tempApp.transferRequest.transferItems"} />
+                      </h3>
                       <Table>
                         <tbody>
                           <tr>
-                            <td>Item</td>
-                            <td>Quantity in Source</td>
-                            <td>Quantity To Transfer</td>
-                            <td>Received Quantity</td>
+                            <td>
+                              <Translate contentKey={"tempApp.transferRequest.item"} />
+                            </td>
+                            <td>
+                              <Translate contentKey={"tempApp.transferRequest.quantityInSource"} />
+                            </td>
+                            <td>
+                              <Translate contentKey={"tempApp.transferRequest.quantityToTransfer"} />
+                            </td>
+                            <td>
+                              <Translate contentKey={"tempApp.transferRequest.receivedQuantity"} />
+                            </td>
                           </tr>
                           <tr>
                             <td>
@@ -370,19 +384,19 @@ export const TransferRequestUpdate = () => {
                     <DataTable
                       value={transferRequest?.transferItems}
                       editMode="row"
-                      header={'Transferred Items'}
+                      header={translate("tempApp.transferRequest.transferredItems")}
                       removableSort
                       paginator
                       totalRecords={transferRequest?.transferItems?.length}
                       rows={10}
                     >
-                      <Column field="item.name" header={'Item'} />
-                      <Column field="quantity" header={'Transferred Quantity'} />
-                      <Column field="receivedQuantity" header={'Received Quantity'} />
+                      <Column field="item.name" header={translate("common.item")} />
+                      <Column field="quantity" header={translate("tempApp.transferRequest.transferredQuantity")} />
+                      <Column field="receivedQuantity" header={translate("tempApp.transferRequest.receivedQuantity")} />
 
                       {transferRequestEntity.status !== 'CONFIRMED' ? (
                         <Column
-                          header={'Delete'}
+                          header={translate("common.delete")}
                           body={(rowData, index) => deleteColumnTemplate(rowData, index, 'transferItems')}
                           headerStyle={{ width: '1%' }}
                           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
@@ -392,15 +406,25 @@ export const TransferRequestUpdate = () => {
                   </Row>
 
                   <Row className={'mt-3'}>
-                    <h3>Cost Lines</h3>
+                    <h3>
+                      <Translate contentKey={"tempApp.transferRequest.costLines"} />
+                    </h3>
                     {!isDisabled ? (
                       <Table>
                         <tbody>
                           <tr>
-                            <td>Supplier</td>
-                            <td>Cost</td>
-                            <td>Cost Date</td>
-                            <td>Comments</td>
+                            <td>
+                              <Translate contentKey={"tempApp.transferRequest.supplier"} />
+                            </td>
+                            <td>
+                              <Translate contentKey={"tempApp.transferRequest.cost"} />
+                            </td>
+                            <td>
+                              <Translate contentKey={"tempApp.transferRequest.costDate"} />
+                            </td>
+                            <td>
+                              <Translate contentKey={"common.comments"} />
+                            </td>
                           </tr>
                           <tr>
                             <td className={'w-2'}>
@@ -458,19 +482,19 @@ export const TransferRequestUpdate = () => {
                     <DataTable
                       value={transferRequest?.costLines}
                       editMode="row"
-                      header={'Cost Lines'}
+                      header={translate("tempApp.transferRequest.costLines")}
                       removableSort
                       paginator
                       totalRecords={transferRequest?.costLines?.length}
                       rows={20}
                     >
-                      <Column field="supplier.name" header={'Supplier'} />
-                      <Column field="cost" header={'Cost'} />
-                      <Column field="costDate" header={'Cost Date'} body={(rowData) => format(new Date(rowData?.costDate), 'yyyy-MM-dd')} />
-                      <Column field="comment" header={'Comment'} />
+                      <Column field="supplier.name"  header={translate("tempApp.transferRequest.supplier")} />
+                      <Column field="cost"   header={translate("tempApp.transferRequest.cost")} />
+                      <Column field="costDate"   header={translate("tempApp.transferRequest.costDate")} body={rowData => format(new Date(rowData?.costDate), 'yyyy-MM-dd')} />
+                      <Column field="comment"   header={translate("common.comment")} />
                       {!isDisabled ? (
                         <Column
-                          header={'Delete'}
+                          header={translate("common.delete")}
                           body={(rowData, index) => deleteColumnTemplate(rowData, index, 'costLines')}
                           headerStyle={{ width: '1%' }}
                           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
@@ -483,10 +507,14 @@ export const TransferRequestUpdate = () => {
 
               <Col md="3" className={'ml-3'}>
                 <Card>
-                  <CardHeader>Actions</CardHeader>
+                  <CardHeader>
+                    <Translate contentKey={"common.actions"} />
+                  </CardHeader>
                   <CardBody>
                     <div className={'d-flex flex-column mt-2'}>
-                      <Label for="status">Status</Label>
+                      <Label for="status">
+                        <Translate contentKey={"common.status"} />
+                      </Label>
                       <SelectButton
                         value={transferRequest?.status ?? 'PLACED'}
                         options={statusOptions}
@@ -499,13 +527,13 @@ export const TransferRequestUpdate = () => {
                   <div className={'d-flex gap-3 mt-2'}>
                     <Button tag={Link} to="/inventory/transfer-request" replace color="info">
                       <FontAwesomeIcon icon="arrow-left" />
-                      &nbsp;Back
+                      &nbsp;  <Translate contentKey={"common.back"} />
                     </Button>
 
                     {!isConfirmed ? (
                       <Button color="primary" type="submit" disabled={updating || isDisabled}>
                         <FontAwesomeIcon icon="save" />
-                        &nbsp;Save
+                        &nbsp; <Translate contentKey={"common.save"} />
                       </Button>
                     ) : null}
                   </div>

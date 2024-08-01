@@ -137,20 +137,20 @@ export const AddonUpdate = () => {
             <form onSubmit={saveEntity}>
               <div className={'d-flex flex-column'}>
                 <Label for="addon-name">
-                  <Translate contentKey={'tempApp.addon.name'}>Name</Translate>
+                  <Translate contentKey={'common.name'}>Name</Translate>
                 </Label>
                 <InputText name="name" required={true} id="addon-name" value={addonEntity.name || ''}
                            onChange={handleChange} />
               </div>
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-desc">
-                  <Translate contentKey={'tempApp.addon.description'}>Description</Translate>
+                  <Translate contentKey={'common.description'}>Description</Translate>
                 </Label>
                 <InputTextarea name="desc" id="addon-desc" value={addonEntity.desc || ''} onChange={handleChange} />
               </div>
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-price">
-                  <Translate contentKey={'tempApp.addon.price'}>Price</Translate>
+                  <Translate contentKey={'common.price'}>Price</Translate>
                 </Label>
                 <InputNumber
                   id="addon-price"
@@ -165,7 +165,7 @@ export const AddonUpdate = () => {
 
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-profileGroup">
-                  <Translate contentKey={'tempApp.addon.profileGroup'}>Profile Group</Translate>
+                  <Translate contentKey={'common.profileGroup'}>Profile Group</Translate>
                 </Label>
                 <Select
                   value={addonEntity?.accountingGroups}
@@ -183,7 +183,7 @@ export const AddonUpdate = () => {
 
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-tags">
-                  <Translate contentKey={'tempApp.addon.tags'}>Tags</Translate>
+                  <Translate contentKey={'common.tags'}>Tags</Translate>
                 </Label>
                 <Select
                   value={addonEntity?.tags}
@@ -200,7 +200,7 @@ export const AddonUpdate = () => {
               </div>
               <div className={'d-flex flex-column my-3'}>
                 <Label for="addon-discount">
-                  <Translate contentKey={'tempApp.addon.discount'}>Discounts</Translate>
+                  <Translate contentKey={'common.discount'}>Discounts</Translate>
                 </Label>
                 <Select
                   value={addonEntity.discounts}
@@ -220,7 +220,7 @@ export const AddonUpdate = () => {
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
+                  <Translate contentKey="common.back">Back</Translate>
                 </span>
               </Button>
               &nbsp;
@@ -228,7 +228,7 @@ export const AddonUpdate = () => {
                       disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
+                <Translate contentKey="common.save">Save</Translate>
               </Button>
             </form>
           </PrimeCard>

@@ -531,6 +531,11 @@ const AppMenu = () => {
           to: '/branches',
         },
         {
+          label: 'Service Charge',
+          role: ['ROLE_ADMINISTRATOR'],
+          to: '/service-charge',
+        },
+        {
           label: 'Registers',
           role: ['ROLE_ADMINISTRATOR'],
           to: '/register',
@@ -673,7 +678,11 @@ const AppMenu = () => {
           role: ['ROLE_ADMINISTRATOR'],
           to: '/web-extensions',
         },
-
+        {
+          label: 'Import From Old System',
+          role: ['ROLE_ADMINISTRATOR'],
+          to: '/import-from-old-system',
+        },
         {
           label: 'Reporting automations',
           role: ['ROLE_ADMINISTRATOR'],

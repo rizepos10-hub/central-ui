@@ -46,7 +46,7 @@ export const PurchaseOrderDeleteDialog = () => {
       </ModalHeader>
       <ModalBody id="purchaseOrders.delete.question">
         <Translate contentKey="tempApp.purchaseOrder.delete.question" interpolate={{ id: purchaseOrderEntity.id }}>
-          Are you sure you want to delete this Supplier?
+          Are you sure you want to delete this purchase order?
         </Translate>
       </ModalBody>
       <ModalFooter>

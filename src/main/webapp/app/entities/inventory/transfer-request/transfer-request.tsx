@@ -109,7 +109,7 @@ export const TransferRequest = () => {
         options={dropdownItems}
         value={filters?.status?.value}
         onChange={handleDropdownChange}
-        placeholder={translate("tempApp.purchaseOrder.view.table.search.status")}
+        placeholder={translate("common.search.status")}
       />
     );
   };
@@ -145,13 +145,13 @@ export const TransferRequest = () => {
   }
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.transferRequest.view.table.title'}>Transfer Requests</Translate></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.transferRequest.title'}>Transfer Requests</Translate></span>
       <div className="ms-auto">
-        <Button label={translate("tempApp.transferRequest.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate("tempApp.transferRequest.view.table.buttons.createNewTransferRequest")} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate("tempApp.transferRequest.createNew")} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
@@ -174,19 +174,19 @@ export const TransferRequest = () => {
         totalRecords={totalItems}
         rows={20}
       >
-        <Column field="source.name" header={translate('tempApp.transferRequest.view.table.fields.source')} filter body={nameColumnTemplate}
-          filterPlaceholder={translate('tempApp.transferRequest.view.table.search.source')} sortable />
-        <Column field="destination.name" header={translate('tempApp.transferRequest.view.table.fields.destination')}
-          filter filterPlaceholder={translate('tempApp.transferRequest.view.table.search.destination')} sortable />
+        <Column field="source.name" header={translate('tempApp.transferRequest.source')} filter body={nameColumnTemplate}
+          filterPlaceholder={translate('tempApp.transferRequest.search.source')} sortable />
+        <Column field="destination.name" header={translate('tempApp.transferRequest.destination')}
+          filter filterPlaceholder={translate('tempApp.transferRequest.search.destination')} sortable />
 
-        <Column field="status" header={translate('tempApp.purchaseOrder.view.table.fields.status')} filter
+        <Column field="status" header={translate('common.status')} filter
           filterElement={statusFilterTemplate} body={statusBodyTemplate} sortable />
 
 
-        <Column header={translate('tempApp.transferRequest.view.table.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+        <Column header={translate('common.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-        <Column header={translate('tempApp.transferRequest.view.table.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
+        <Column header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
       </DataTable>

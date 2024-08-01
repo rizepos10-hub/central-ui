@@ -136,7 +136,7 @@ export const Addon = () => {
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">
-        <Translate contentKey={'tempApp.addon.addons'}>Addons</Translate>
+        <Translate contentKey={'common.addons'}>Addons</Translate>
       </span>
       <div className="ms-auto">
         <ImportButton type={'ADDON'} />
@@ -197,10 +197,10 @@ export const Addon = () => {
       >
         <Column
           field="name"
-          header={translate('tempApp.addon.name')}
+          header={translate('common.name')}
           filter
           body={nameColumnTemplate}
-          filterPlaceholder={translate('tempApp.addon.searchName')}
+          filterPlaceholder={translate('common.search.name')}
           sortable
         />
 
@@ -215,8 +215,8 @@ export const Addon = () => {
           sortable
         />
 
-        <Column field="price" header={translate('tempApp.addon.price')} sortable />
-        <Column field="discounts" header={translate('tempApp.addon.discounts')} body={renderDiscounts} sortable />
+        <Column field="price" header={translate('common.price')} sortable />
+        <Column field="discounts" header={translate('common.discounts')} body={renderDiscounts} sortable />
 
         <Column
           header={translate('common.edit')}
