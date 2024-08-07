@@ -56,6 +56,8 @@ export const ServiceChargeUpdate = () => {
       value: {
         ...serviceChargeEntity.value,
         key: serviceChargeEntity.key,
+        minCharge : serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE ? serviceChargeEntity.value?.minCharge : null,
+        maxCharge : serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE ? serviceChargeEntity.value?.maxCharge : null,
       }
     };
 
@@ -199,26 +201,30 @@ export const ServiceChargeUpdate = () => {
                       maxFractionDigits={2}
                     />
                   </div>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="service-charge-minCharge">{translate('service-charge.minCharge')}</Label>
-                    <InputNumber
-                      id="service-charge-minCharge"
-                      value={serviceChargeEntity.value?.minCharge || 0}
-                      onChange={(e) => handleValueChange('minCharge', e.value)}
-                      required
-                      maxFractionDigits={2}
-                    />
-                  </div>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="service-charge-maxCharge">{translate('service-charge.maxCharge')}</Label>
-                    <InputNumber
-                      id="service-charge-maxCharge"
-                      value={serviceChargeEntity.value?.maxCharge || 0}
-                      onChange={(e) => handleValueChange('maxCharge', e.value)}
-                      required
-                      maxFractionDigits={2}
-                    />
-                  </div>
+                  {serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE && (
+                    <>
+                      <div className={"d-flex flex-column mb-3 w-100"}>
+                        <Label htmlFor="service-charge-minCharge">{translate('service-charge.minCharge')}</Label>
+                        <InputNumber
+                          id="service-charge-minCharge"
+                          value={serviceChargeEntity.value?.minCharge || 0}
+                          onChange={(e) => handleValueChange('minCharge', e.value)}
+                          required
+                          maxFractionDigits={2}
+                        />
+                      </div>
+                      <div className={"d-flex flex-column mb-3 w-100"}>
+                        <Label htmlFor="service-charge-maxCharge">{translate('service-charge.maxCharge')}</Label>
+                        <InputNumber
+                          id="service-charge-maxCharge"
+                          value={serviceChargeEntity.value?.maxCharge || 0}
+                          onChange={(e) => handleValueChange('maxCharge', e.value)}
+                          required
+                          maxFractionDigits={2}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
 
               </FormGroup>
