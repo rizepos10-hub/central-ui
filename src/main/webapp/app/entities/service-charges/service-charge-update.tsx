@@ -56,8 +56,10 @@ export const ServiceChargeUpdate = () => {
       value: {
         ...serviceChargeEntity.value,
         key: serviceChargeEntity.key,
-        minCharge : serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE ? serviceChargeEntity.value?.minCharge : null,
-        maxCharge : serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE ? serviceChargeEntity.value?.maxCharge : null,
+        // minCharge : serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE ? serviceChargeEntity.value?.minCharge : null,
+        // maxCharge : serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE ? serviceChargeEntity.value?.maxCharge : null,
+        minCharge: null,
+        maxCharge: null,
       }
     };
 
@@ -201,7 +203,7 @@ export const ServiceChargeUpdate = () => {
                       maxFractionDigits={2}
                     />
                   </div>
-                  {serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE && (
+                  {/* {serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE && (
                     <>
                       <div className={"d-flex flex-column mb-3 w-100"}>
                         <Label htmlFor="service-charge-minCharge">{translate('service-charge.minCharge')}</Label>
@@ -224,7 +226,7 @@ export const ServiceChargeUpdate = () => {
                         />
                       </div>
                     </>
-                  )}
+                  )} */}
                 </div>
 
               </FormGroup>
