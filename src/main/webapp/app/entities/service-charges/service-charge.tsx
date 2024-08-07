@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities } from './service-charge.reducer';
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { IServiceCharge, ServiceChargeKey, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
+import { IServiceCharge, ServiceChargeKey, ServiceChargeSettingType, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Dropdown } from 'primereact/dropdown';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
@@ -136,6 +136,17 @@ export const ServiceCharge = () => {
     }
   };
 
+  const formatServiceChargeType = value => {
+    switch (value) {
+      case ServiceChargeSettingType.FIXED:
+        return "Fixed";
+      case ServiceChargeSettingType.PERCENTAGE:
+        return "Percentage";
+      default:
+        return value;
+    }
+  };
+
   const createQueryString = useCallback((name, value) => {
     if (!value) {
       const params = new URLSearchParams(searchParams);
@@ -221,19 +232,25 @@ export const ServiceCharge = () => {
           <Column
             field="minCharge"
             header="Min Charge"
-            body={(rowData) => rowData.value.minCharge}
+            body={(rowData) => rowData.value.setting.type === ServiceChargeSettingType.PERCENTAGE ? rowData.value.minCharge : "-"}
           />
 
           <Column
             field="maxCharge"
             header="Max Charge"
-            body={(rowData) => rowData.value.maxCharge}
+            body={(rowData) => rowData.value.setting.type === ServiceChargeSettingType.PERCENTAGE ? rowData.value.maxCharge : "-"}
           />
 
           <Column
             field="charge"
             header="Charge"
             body={(rowData) => rowData.value.charge}
+          />
+
+          <Column
+            field="type"
+            header="Type"
+            body={(rowData) => formatServiceChargeType(rowData.value.setting.type)}
           />
 
           <Column
