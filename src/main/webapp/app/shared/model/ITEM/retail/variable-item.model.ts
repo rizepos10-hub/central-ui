@@ -43,6 +43,7 @@ export interface IVariableItemVariant {
   purchaseConfig?: IPurchaseConfig;
   mixAndMatchRule?: IMixAndMatchRule;
   variantPackage?: IVariantPackage | null;
+  itemMeasure?: IItemMeasure;
 }
 
 export interface IVariableItem extends IItem {
