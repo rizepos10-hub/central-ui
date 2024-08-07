@@ -198,7 +198,7 @@ export const BusinessDetailUpdate = () => {
                         handleFilesSelectCallback={(files) => setSelectedAttachments(transformAttachmentStructure(files, 'toIAttachment')[0])}
                         defaultValues={
                           businessDetailsState?.logo ? transformAttachmentStructure([businessDetailsState.logo], 'toFileLibraryListItem') :
-                            undefined
+                            []
                         }
                       />
                     )}
