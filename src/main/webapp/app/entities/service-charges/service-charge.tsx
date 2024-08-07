@@ -140,8 +140,8 @@ export const ServiceCharge = () => {
     switch (value) {
       case ServiceChargeSettingType.FIXED:
         return "Fixed";
-      case ServiceChargeSettingType.PERCENTAGE:
-        return "Percentage";
+      // case ServiceChargeSettingType.PERCENTAGE:
+      //   return "Percentage";
       default:
         return value;
     }
@@ -229,7 +229,7 @@ export const ServiceCharge = () => {
             body={(rowData) => formatServiceChargeWhenToApply(rowData.value.whenToApply)}
           />
 
-          <Column
+          {/* <Column
             field="minCharge"
             header="Min Charge"
             body={(rowData) => rowData.value.setting.type === ServiceChargeSettingType.PERCENTAGE ? rowData.value.minCharge : "-"}
@@ -239,7 +239,7 @@ export const ServiceCharge = () => {
             field="maxCharge"
             header="Max Charge"
             body={(rowData) => rowData.value.setting.type === ServiceChargeSettingType.PERCENTAGE ? rowData.value.maxCharge : "-"}
-          />
+          /> */}
 
           <Column
             field="charge"

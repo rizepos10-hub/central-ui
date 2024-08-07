@@ -44,8 +44,7 @@ export enum ServiceChargeType {
 }
 
 export enum ServiceChargeSettingType {
-  FIXED = "FIXED",
-  PERCENTAGE = "PERCENTAGE"
+  FIXED = "FIXED"
 }
 
 export enum ServiceChargeWhenToApply {
