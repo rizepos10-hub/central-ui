@@ -99,9 +99,7 @@ const MenuInstance = () => {
             type: type || menuEntity.type,
             menuScreens: data.menuScreens,
             name: selectedName,
-            branch: {
-                id: selectedBranches.value
-            },
+            branch: selectedBranches?.value ? { id: selectedBranches.value } : null,
             visibilities: data.visibilities
         };
 
