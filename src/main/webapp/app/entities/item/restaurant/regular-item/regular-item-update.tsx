@@ -465,6 +465,7 @@ export const RegularItemUpdate = () => {
                                                     transformAttachmentStructure(files, 'toIAttachment')
                                                   )
                                                 }
+                                                defaultValues={transformAttachmentStructure(variant?.attachments, 'toFileLibraryListItem')}
                                               />
                                             </div>
                                           </Col>

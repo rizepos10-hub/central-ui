@@ -165,7 +165,7 @@ export const Menu = () => {
 
     const entity = {
       ...values,
-      branch: { id: selectedBranches?.value },
+      branch: selectedBranches?.value ? { id: selectedBranches?.value } : null,
       type: menuType,
     };
 
