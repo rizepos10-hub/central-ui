@@ -4,9 +4,11 @@
       "addNewPurchaseConfig": "Add New Purchase Config",
       "editPurchaseConfig": "Edit Purchase Config",
       "purchaseConfig": "Purchase Config",
+      "supplierConfig": "Supplier Config",
       "selectSupplier": "Select Supplier",
       "config": "Stock Config",
       "title": "Stock",
+      "cost": "Cost",
       "adjustedQuantity": "Adjusted Quantity",
       "view": {
         "title": "Stock",

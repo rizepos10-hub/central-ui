@@ -8,19 +8,18 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getEntities } from './inventory-items.reducer';
-import {DataTable, DataTableFilterEvent, DataTablePageEvent, DataTableSortEvent} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {Chip} from "primereact/chip";
-import {FilterMatchMode} from "primereact/api";
-import {Card as PrimeCard} from 'primereact/card'
-import {IQueryParams} from "app/shared/reducers/reducer.utils";
+import { DataTable, DataTableFilterEvent, DataTablePageEvent, DataTableSortEvent } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Chip } from "primereact/chip";
+import { FilterMatchMode } from "primereact/api";
+import { Card as PrimeCard } from 'primereact/card'
+import { IQueryParams } from "app/shared/reducers/reducer.utils";
 import _ from "lodash";
 
 export const StockConfig = () => {
   const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
-
 
   const [queryParams, setQueryParams] = useState({
     size: 10,
@@ -34,7 +33,6 @@ export const StockConfig = () => {
   const loading = useAppSelector(state => state.inventoryItem.loading);
   const totalItems = useAppSelector(state => state.inventoryItem.totalItems);
 
-  console.log(inventoryItemList, 'inventoryItemList')
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     desc: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -50,11 +48,6 @@ export const StockConfig = () => {
       dispatch(getEntities(queryParams));
     }
   };
-
-
-
-
-
 
   useEffect(() => {
     getAllEntities();
@@ -74,8 +67,7 @@ export const StockConfig = () => {
 
 
   const onPage = (event: DataTablePageEvent) => {
-    console.log(event, 'eventevent')
-    const {page, first} = event;
+    const { page, first } = event;
 
     setQueryParams(prevState => ({
       ...prevState,
@@ -90,17 +82,17 @@ export const StockConfig = () => {
   };
 
   const onFilter = _.debounce((event) => {
-      const keys:any = Object.keys(event.filters);
-      const newQuery = keys
-        .map((key) => event.filters[key].value ? `${key}=${event.filters[key].value}` : null)
-        .filter((queryPart) => queryPart !== null)
-        .join('&');
+    const keys: any = Object.keys(event.filters);
+    const newQuery = keys
+      .map((key) => event.filters[key].value ? `${key}=${event.filters[key].value}` : null)
+      .filter((queryPart) => queryPart !== null)
+      .join('&');
 
-      setQueryParams((prevState) => ({
-        ...prevState,
-        query: newQuery
-      }));
-    },200);
+    setQueryParams((prevState) => ({
+      ...prevState,
+      query: newQuery
+    }));
+  }, 200);
 
 
   const handleSyncList = () => {
@@ -108,35 +100,20 @@ export const StockConfig = () => {
   };
 
 
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/inventory/stock/${rowData.id}/delete?page=${queryParams.page}&sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-      </Link>
-    );
-  };
-  const handleCreate = () => {
-    navigate('/inventory/stock/new')
-  };
-
   const quantityConfigBodyTemplate = (rowData) => {
-    const {stockQuantities: quantity} = rowData;
+    const { stockQuantities: quantity } = rowData;
     const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&itemId=${rowData.itemId}&variantName=${rowData?.name}&page=${queryParams.page}
     &sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
 
     const icon = quantity?.length > 0 ? "pi pi-wallet" : "pi pi-ban";
     const handleClick = () => {
-        navigate(editUrl)
+      navigate(editUrl)
     }
-    return quantity?.length > 0 ?  <Button icon={icon} onClick={handleClick} /> : <i className={icon} style={{ fontSize: '1.5rem'}} />;
+    return quantity?.length > 0 ? <Button icon={icon} onClick={handleClick} /> : <i className={icon} style={{ fontSize: '1.5rem' }} />;
   };
 
-
-
   const purchaseConfigBodyTemplate = (rowData) => {
-    const {itemPurchasingConfig: config} = rowData;
+    const { itemPurchasingConfig: config } = rowData;
 
     const createUrl = `/inventory/stock/purchase-config/new?variantId=${rowData.id}&itemId=${rowData.itemId}`
     const editUrl = `/inventory/stock/purchase-config/${config?.id}/edit?page=${queryParams.page}&sort=${queryParams.sort}&first=${queryParams.first},${queryParams.size}`;
@@ -144,9 +121,9 @@ export const StockConfig = () => {
     const icon = config ? "pi pi-spin pi-cog" : "pi pi-plus";
 
     const handleClick = () => {
-      if(!config){
+      if (!config) {
         navigate(createUrl);
-      }else{
+      } else {
         navigate(editUrl)
       }
     }
@@ -159,15 +136,16 @@ export const StockConfig = () => {
       ...variant,
       itemId: data.id
     }));
+
     return (
       <div className="p-3 bg-light">
         <h4>{data.name} Variants</h4>
         <DataTable value={variantsWithItemId} showGridlines>
           <Column className={'bg-light'} field="name" header={translate("common.variantName")} sortable />
           <Column className={'bg-light'} field="price" header={translate("common.price")} sortable />
-          <Column className={'bg-light'} field="sku"  header={translate("common.sku")} sortable />
-          <Column className={'bg-light'} headerStyle={{ width: '9rem' }}  header={translate("common.quantity")} body={quantityConfigBodyTemplate} />
-          <Column className={'bg-light'} headerStyle={{ width: '9rem' }}  header={translate("tempApp.stockConfig.purchaseConfig")} body={purchaseConfigBodyTemplate} />
+          <Column className={'bg-light'} field="sku" header={translate("common.sku")} sortable />
+          <Column className={'bg-light'} headerStyle={{ width: '9rem' }} header={translate("common.details")} body={quantityConfigBodyTemplate} />
+          <Column className={'bg-light'} headerStyle={{ width: '9rem' }} header={translate("tempApp.stockConfig.purchaseConfig")} body={purchaseConfigBodyTemplate} />
         </DataTable>
       </div>
     );
@@ -186,29 +164,21 @@ export const StockConfig = () => {
           <Button icon="pi pi-plus" label={translate("common.expandAll")} onClick={expandAll} text />
           <Button icon="pi pi-minus" label={translate("common.collapseAll")} onClick={collapseAll} text />
         </div>
-        {/* <Button label={translate("tempApp.stockConfig.view.table.buttons.createNewStockConfig")} raised onClick={handleCreate} disabled={loading}> */}
-        {/*   &nbsp; */}
-        {/* </Button> */}
       </div>
     </div>
   );
 
-
-
-
   return (
-
-      <div >
-        <DataTable value={inventoryItemList} lazy filterDisplay="row" dataKey="id" paginator showGridlines
-                   rowExpansionTemplate={rowExpansionTemplate} onRowToggle={(e) => setExpandedRows(e.data)}
-                   expandedRows={expandedRows} onSort={onSort} header={header}
-                   first={queryParams.first} rows={10} totalRecords={totalItems} onPage={onPage}
-                   onFilter={onFilter} filters={filters} loading={loading} tableStyle={{ minWidth: '75rem' }} >
-          <Column expander style={{ width: '5rem' }} />
-          <Column field="name" header="Item Name" sortable filter filterPlaceholder="Search" />
-          {/* <Column field="desc" header="Description"  /> */}
-
-        </DataTable>
+    <div >
+      <DataTable value={inventoryItemList} lazy filterDisplay="row" dataKey="id" paginator showGridlines
+        rowExpansionTemplate={rowExpansionTemplate} onRowToggle={(e) => setExpandedRows(e.data)}
+        expandedRows={expandedRows} onSort={onSort} header={header}
+        first={queryParams.first} rows={10} totalRecords={totalItems} onPage={onPage}
+        onFilter={onFilter} filters={filters} loading={loading} tableStyle={{ minWidth: '75rem' }} >
+        <Column expander style={{ width: '5rem' }} />
+        <Column field="name" header="Item Name" sortable filter filterPlaceholder="Search" />
+        {/* <Column field="desc" header="Description"  /> */}
+      </DataTable>
     </div>
   );
 };

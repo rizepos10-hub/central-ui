@@ -1,5 +1,5 @@
-import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
-import {ISalesLocation} from "app/shared/model/STOCK/sales-location.model";
+import { IWarehouse } from "app/shared/model/STOCK/warehouse.model";
+import { ISalesLocation } from "app/shared/model/STOCK/sales-location.model";
 
 
 export interface IStockQuantity {
@@ -8,7 +8,8 @@ export interface IStockQuantity {
   itemName?: string;
   variantId?: string;
   location?: IWarehouse | ISalesLocation;
-  quantity?:number
+  quantity?: number
+  unitCost?: number;
 }
 
 

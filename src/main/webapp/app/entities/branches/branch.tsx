@@ -11,7 +11,7 @@ import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
 import { RadioButton } from 'primereact/radiobutton';
 import { InputSwitch } from 'primereact/inputswitch';
-import { IBusinessDetail, Metric } from 'app/shared/model/business-detail.model';
+import { IBusinessDetail, Metric, UnitCostCalculationMode } from 'app/shared/model/business-detail.model';
 import { RequestType, fromAddress, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import usePlacesService from 'react-google-autocomplete/lib/usePlacesAutocompleteService';
@@ -24,6 +24,7 @@ import BranchPaymentConfig from '../settings/business-details/branch-payment-con
 import { Dialog } from 'primereact/dialog';
 import Select from 'react-select'
 import { getEntities as getZones } from 'app/entities/settings/zones/zones.reducer'
+import { Dropdown } from 'primereact/dropdown';
 
 export const Branches = () => {
   const dispatch = useAppDispatch();
@@ -224,6 +225,12 @@ export const Branches = () => {
       })
     }));
   }
+
+  const handleUnitCostCalculationModeChange = (branchIndex, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].unitCostCalculationMode = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
 
   useEffect(() => {
     if (selectedPlace) {
@@ -747,6 +754,18 @@ export const Branches = () => {
                       </Card>
                     ))}
                   </ListGroup>
+                </div>
+              </TabPanel>
+              <TabPanel header="Inventory Settings">
+                <div className='w-100'>
+                  <label className="font-semibold pe-2">
+                    Unit Cost Rule
+                  </label>
+                  <Dropdown
+                    options={Object.values(UnitCostCalculationMode).map(mode => ({ label: mode, value: mode }))}
+                    value={branch?.unitCostCalculationMode}
+                    onChange={(e) => handleUnitCostCalculationModeChange(branchIndex, e.value)}
+                  />
                 </div>
               </TabPanel>
             </TabView>

@@ -39,6 +39,12 @@ export interface IBranchDetails {
   activeCOD?: boolean;
   zones: IZone[];
   hideRetailShop?: boolean;
+  unitCostCalculationMode?: UnitCostCalculationMode;
+}
+
+export enum UnitCostCalculationMode {
+  AVERAGE = 'AVERAGE',
+  MAX = 'MAX',
 }
 
 export interface IDeliveryConfiguration {
