@@ -9,7 +9,6 @@ import { useLocation, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { getStockQuantitiesForVariant } from "app/entities/inventory/stock-config/stock-quantity.reducer";
 import { translate } from "react-jhipster";
-import SnakeGame from "app/snake-game";
 
 const StockQuantityUpdate = () => {
   const dispatch = useAppDispatch();
