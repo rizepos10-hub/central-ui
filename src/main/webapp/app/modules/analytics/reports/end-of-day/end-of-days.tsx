@@ -1,14 +1,16 @@
-import React, {useEffect, useState} from "react";
-import {Row} from "reactstrap";
-import {fetchEndOfDaysData} from "app/modules/analytics/api";
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {Link, useNavigate} from "react-router-dom";
-import {Dropdown} from "primereact/dropdown";
-import {useAppDispatch, useAppSelector} from "app/config/store";
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {translate, Translate} from "react-jhipster";
-import {convertUtcToLocalDate, } from "app/shared/util/date-utils";
+import React, { useEffect, useState } from "react";
+import { Row } from "reactstrap";
+import { fetchEndOfDaysData } from "app/modules/analytics/api";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Link, useNavigate } from "react-router-dom";
+import { Dropdown } from "primereact/dropdown";
+import { useAppDispatch, useAppSelector } from "app/config/store";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { translate, Translate } from "react-jhipster";
+import { convertUtcToLocalDate, } from "app/shared/util/date-utils";
+import { Calendar } from "primereact/calendar";
+import { format } from "date-fns";
 
 
 
@@ -20,6 +22,7 @@ export const EndOfDays = () => {
   const [loading, setLoading] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
   const [selectedBranch, setSelectedBranch] = useState(null);
+  const [calenderValue, setCalenderValue] = useState(null);
 
 
   const [endOfDaysData, setEndOFDaysData] = useState([])
@@ -45,7 +48,7 @@ export const EndOfDays = () => {
   useEffect(() => {
     loadLazyData();
     dispatch(getBranches({}))
-  }, [lazyState, selectedBranch]);
+  }, [lazyState, selectedBranch, calenderValue]);
 
   const loadLazyData = async () => {
     setLoading(true);
@@ -55,7 +58,9 @@ export const EndOfDays = () => {
         lazyState.rows,
         lazyState.sortField,
         lazyState.sortOrder,
-        selectedBranch
+        selectedBranch,
+        calenderValue?.[0] ? format(calenderValue[0], "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") : null,
+        calenderValue?.[1] ? format(calenderValue[1], "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") : null
       );
       setTotalRecords(Number(result.headers['x-total-count']))
       setEndOFDaysData(result.data)
@@ -78,40 +83,45 @@ export const EndOfDays = () => {
     setLazyState(event);
   };
 
-
-
-
   return (
     <Row>
       <h2><Translate contentKey={'analytics.endOfDay.title'}>End Of Day Reports</Translate></h2>
-      <div className="d-flex  justify-content-start gap-5 ">
-
+      <div className="d-flex justify-content-start gap-5 ">
         <Dropdown
-          style={{minWidth: '7rem'}}
-
+          style={{ minWidth: '7rem' }}
           value={selectedBranch}
           options={filteredBranchOptions}
           onChange={(e) => setSelectedBranch(e.value)}
           placeholder={translate('analytics.endOfDay.select')}
         />
+        <Calendar
+          style={{ width: '12rem' }}
+          // disabled={!branches || branches?.length === 0}
+          value={calenderValue}
+          id={'date'}
+          onChange={e => setCalenderValue(e.value)}
+          selectionMode="range"
+          placeholder={translate('orders.view.table.filters.date')}
+        />
       </div>
-      <div className="card my-3">
-      <DataTable  value={endOfDaysData} lazy filterDisplay="row" dataKey="id" paginator
-                 first={lazyState.first} rows={20} totalRecords={totalRecords} onPage={onPage}
-                 onSort={onSort} sortField={lazyState.sortField} sortOrder={lazyState.sortOrder}
-                 onFilter={onFilter} loading={loading} tableStyle={{ minWidth: '75rem' }}
-                  selectionMode="single" onSelectionChange={(e) => navigate(`/analytics/endofday/${e.value.id}`)}
-                >
 
-        {/* <Column field="id" header="ID" body={(rowData) => (<Link to={rowData.id}>{rowData.id} </Link>)}  /> */}
-        <Column field="fromDate" body={(rowData) => convertUtcToLocalDate(rowData?.fromDate)} header={translate('analytics.endOfDay.table.fromDate')} />
-        <Column field="toDate" body={(rowData) => convertUtcToLocalDate(rowData?.toDate)} header={translate('analytics.endOfDay.table.toDate')} />
-        <Column field="actionTakenBy" header={translate('analytics.endOfDay.table.actionBy')} />
-        <Column field="createdDate" body={(rowData) => convertUtcToLocalDate(rowData?.createdDate)}  header={translate('analytics.endOfDay.table.createdDate')} />
-        <Column field="branch.name" header={translate('analytics.endOfDay.table.branchName')} />
-        <Column field="branch.appName" header={translate('analytics.endOfDay.table.appName')} />
-        <Column field="branch.appType" header={translate('analytics.endOfDay.table.appType')} />
-      </DataTable>
+      <div className="card my-3">
+        <DataTable value={endOfDaysData} lazy filterDisplay="row" dataKey="id" paginator
+          first={lazyState.first} rows={20} totalRecords={totalRecords} onPage={onPage}
+          onSort={onSort} sortField={lazyState.sortField} sortOrder={lazyState.sortOrder}
+          onFilter={onFilter} loading={loading} tableStyle={{ minWidth: '75rem' }}
+          selectionMode="single" onSelectionChange={(e) => navigate(`/analytics/endofday/${e.value.id}`)}
+        >
+
+          {/* <Column field="id" header="ID" body={(rowData) => (<Link to={rowData.id}>{rowData.id} </Link>)}  /> */}
+          <Column field="fromDate" body={(rowData) => convertUtcToLocalDate(rowData?.fromDate)} header={translate('analytics.endOfDay.table.fromDate')} />
+          <Column field="toDate" body={(rowData) => convertUtcToLocalDate(rowData?.toDate)} header={translate('analytics.endOfDay.table.toDate')} />
+          <Column field="actionTakenBy" header={translate('analytics.endOfDay.table.actionBy')} />
+          <Column field="createdDate" body={(rowData) => convertUtcToLocalDate(rowData?.createdDate)} header={translate('analytics.endOfDay.table.createdDate')} />
+          <Column field="branch.name" header={translate('analytics.endOfDay.table.branchName')} />
+          <Column field="branch.appName" header={translate('analytics.endOfDay.table.appName')} />
+          <Column field="branch.appType" header={translate('analytics.endOfDay.table.appType')} />
+        </DataTable>
       </div>
 
     </Row>
