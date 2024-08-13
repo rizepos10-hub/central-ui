@@ -34,7 +34,9 @@ export interface IServiceChargeSetting {
 
 export enum ServiceChargeApplicableOn {
   DELIVERY = "DELIVERY",
-  PICKUP = "PICKUP"
+  PICKUP = "PICKUP",
+  DINE_IN = "DINE_IN",
+  WALK_IN = "WALK_IN"
 }
 
 export enum ServiceChargeType {

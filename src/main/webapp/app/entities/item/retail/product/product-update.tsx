@@ -46,6 +46,7 @@ import { SelectButton } from 'primereact/selectbutton';
 import { preventEnterSubmit } from 'app/shared/util/form-utils';
 import { Column } from 'primereact/column';
 import VariantPackaging from 'app/shared/components/item/variant-packaging';
+import { Dropdown } from 'primereact/dropdown';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -165,6 +166,20 @@ export const ProductUpdate = () => {
       updatedVariants[variantIndex] = {
         ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
         [fieldName]: value,
+      };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const handleMeasureChange = (measure, variantIndex) => {
+    setProduct(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        itemMeasure: { id: measure },
       };
       return {
         ...prev,
@@ -369,9 +384,9 @@ export const ProductUpdate = () => {
       const updatedAttributes = prevProduct.attributes.map((attr, i) =>
         i === index
           ? {
-              ...attr,
-              attributeTerms: selectedTerms,
-            }
+            ...attr,
+            attributeTerms: selectedTerms,
+          }
           : attr
       );
 
@@ -820,6 +835,31 @@ export const ProductUpdate = () => {
                                   </div>
                                 </Col>
 
+                                <Col md="6" className='mt-2'>
+                                  <div className={'d-flex flex-column gap-2'}>
+                                    <label className={'font-semibold'}>
+                                      <Translate contentKey={'items.update.measure'}>Measure</Translate>
+                                    </label>
+                                    <Dropdown
+                                      options={
+                                        [
+                                          product?.baseMeasure ? {
+                                            label: product.baseMeasure.name + ' (Base)',
+                                            value: product.baseMeasure.id
+                                          } : null,
+                                          ...(product?.measures ? product.measures.map(measure => ({
+                                            label: measure.itemMeasure.name,
+                                            value: measure.itemMeasure.id
+                                          })) : [])
+                                        ].filter(option => option !== null)
+                                      }
+                                      placeholder="Select Measure"
+                                      value={product?.variants?.[0]?.itemMeasure?.id}
+                                      onChange={(e) => handleMeasureChange(e.value, 0)}
+                                    />
+                                  </div>
+                                </Col>
+
                                 <VariantPackaging
                                   product={product}
                                   variantIndex={0}
@@ -939,9 +979,8 @@ export const ProductUpdate = () => {
                                         <Col
                                           md={'12'}
                                           key={variantIndex}
-                                          className={` mt-2 pi pi-bars p-draggable d-flex ${
-                                            dragOverIndex === variantIndex && 'border-top border-primary'
-                                          }`}
+                                          className={` mt-2 pi pi-bars p-draggable d-flex ${dragOverIndex === variantIndex && 'border-top border-primary'
+                                            }`}
                                           draggable
                                           onDragStart={() => setDraggedIndex(variantIndex)}
                                           onDragOver={e => handleDragOver(e, variantIndex)}
@@ -1020,6 +1059,31 @@ export const ProductUpdate = () => {
                                                     />
                                                   </div>
                                                 </Col>
+
+                                                <Col md="4" className='mt-2'>
+                                                  <div className={'d-flex flex-column gap-2'}>
+                                                    <label className={'font-semibold'}>
+                                                      <Translate contentKey={'items.update.measure'}>Measure</Translate>
+                                                    </label>
+                                                    <Dropdown
+                                                      options={
+                                                        [
+                                                          product?.baseMeasure ? {
+                                                            label: product.baseMeasure.name + ' (Base)',
+                                                            value: product.baseMeasure.id
+                                                          } : null,
+                                                          ...(product?.measures ? product.measures.map(measure => ({
+                                                            label: measure.itemMeasure.name,
+                                                            value: measure.itemMeasure.id
+                                                          })) : [])
+                                                        ].filter(option => option !== null)
+                                                      }
+                                                      placeholder="Select Measure"
+                                                      value={product?.variants?.[0]?.itemMeasure?.id}
+                                                      onChange={(e) => handleMeasureChange(e.value, 0)}
+                                                    />
+                                                  </div>
+                                                </Col>
                                               </Row>
 
                                               <Row>
@@ -1081,6 +1145,8 @@ export const ProductUpdate = () => {
                                                       }
                                                     />
                                                   </div>
+
+
                                                   <VariantPackaging
                                                     product={product}
                                                     variantIndex={variantIndex}

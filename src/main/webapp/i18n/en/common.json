@@ -42,6 +42,9 @@
     "additionalInfo": "Additional Information",
     "add": "Add",
     "enabled": "Enabled",
+    "supplier": "Supplier",
+    "details": "Details",
+    "cost": "Cost",
     "buttons": {
       "save": "Save",
       "back": "Back",
