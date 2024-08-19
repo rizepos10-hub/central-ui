@@ -235,7 +235,7 @@ const Order = () => {
 
             />
 
-            <Column field="orderSource" body={(rowData) => rowData.sourceApp.type} sortable filter
+            <Column field="orderSource" body={(rowData) => rowData.sourceApp?.type} sortable filter
                     filterElement={
                       <Dropdown
                         value={lazyState.filters.orderSource?.value || ''}

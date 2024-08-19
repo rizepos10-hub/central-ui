@@ -318,6 +318,11 @@ const AppMenu = () => {
           role: ['ROLE_ADMINISTRATOR'],
           to: '/order',
         },
+        {
+          label: 'Create',
+          role: ['ROLE_ADMINISTRATOR'],
+          to: '/order/create',
+        },
       ],
     },
     {

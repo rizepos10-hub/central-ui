@@ -1,13 +1,13 @@
-import {IItem} from "app/shared/model/ITEM/item.model";
-import {IAttachment} from "app/shared/model/attachment.model";
-import {IDiscount} from "app/shared/model/discount.model";
-import {IBranch} from "app/shared/model/branch.model";
-import {ITerm} from "app/shared/model/term.model";
-import {ITaxonomy} from "app/shared/model/taxonomy.model";
-import {IStockQuantity} from "app/shared/model/STOCK/stock-quantity.model";
-import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
-import {IItemMeasure} from "app/shared/model/item-measure.model";
-import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
+import { IItem } from "app/shared/model/ITEM/item.model";
+import { IAttachment } from "app/shared/model/attachment.model";
+import { IDiscount } from "app/shared/model/discount.model";
+import { IBranch } from "app/shared/model/branch.model";
+import { ITerm } from "app/shared/model/term.model";
+import { ITaxonomy } from "app/shared/model/taxonomy.model";
+import { IStockQuantity } from "app/shared/model/STOCK/stock-quantity.model";
+import { IPurchaseConfig } from "app/shared/model/STOCK/purchase-config.model";
+import { IItemMeasure } from "app/shared/model/item-measure.model";
+import { IMixAndMatchRule } from "app/shared/model/mix-and-match-rule.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -21,9 +21,10 @@ interface IBranchVariantDetails {
 }
 
 export interface IAttributes {
-  attributeTax?:ITaxonomy;
+  attributeTax?: ITaxonomy;
   attributeTerms?: ITerm[];
   attachments?: IAttachment[];
+  taxonomy?: ITaxonomy;
 }
 
 export interface IItemPriceNumber {
@@ -51,7 +52,7 @@ export interface ISimpleItemVariant {
   mixAndMatchRule?: IMixAndMatchRule;
 }
 
-export interface ISimpleItem extends IItem{
+export interface ISimpleItem extends IItem {
   variants?: ISimpleItemVariant[];
   attributes?: IAttributes[];
   baseMeasure?: IItemMeasure;

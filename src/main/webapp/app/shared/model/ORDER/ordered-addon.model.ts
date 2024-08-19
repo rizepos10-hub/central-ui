@@ -9,5 +9,9 @@ export interface IOrderedAddon extends IOrderAudit {
   amount?: number;
   addonId?: string;
   text?: string;
+  taxIdsToValues?: any[];
+  taxValue?: number;
+  total?: number | null,
 }
+
 export const defaultValue: Readonly<IOrderedAddon> = {};
