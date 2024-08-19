@@ -57,6 +57,7 @@ export interface IVariantPackage {
   variantId?: string;
   name?: string;
   quantity?: number;
+  id?: string;
 }
 
 export const defaultValue: Readonly<IVariableItem> = {};

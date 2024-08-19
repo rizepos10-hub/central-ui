@@ -26,8 +26,8 @@ export const filterEntities = createAsyncThunk('product/filter_entity_list', asy
   return axios.post<IProduct[]>(apiSearchUrl, query);
 });
 
-export const getEntities = createAsyncThunk('product/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+export const getEntities = createAsyncThunk('product/fetch_entity_list', async ({ page, size, sort, name }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&name=${name}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IProduct[]>(requestUrl);
 });
 

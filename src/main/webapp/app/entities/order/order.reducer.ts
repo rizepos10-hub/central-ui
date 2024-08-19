@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
-import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
+import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError, ChangeFieldPayload } from 'app/shared/reducers/reducer.utils';
 import { IOrder, defaultValue } from 'app/shared/model/ORDER/order.model';
-import {IAuditLog} from "app/shared/model/audit-log.model";
+import { IAuditLog } from "app/shared/model/audit-log.model";
 
 const initialState: EntityState<IOrder> = {
   loading: false,
@@ -84,7 +84,7 @@ export const filterOrders = createAsyncThunk(
 export const getEntity = createAsyncThunk(
   'order/fetch_entity',
   async (id: string | number) => {
-    const requestUrl = `${apiUrl}/${id}`;
+    const requestUrl = `${apiUrl}/${id}/totals`;
     return axios.get<IOrder>(requestUrl);
   },
   { serializeError: serializeAxiosError }
@@ -93,7 +93,7 @@ export const getEntity = createAsyncThunk(
 export const createEntity = createAsyncThunk(
   'order/create_entity',
   async (entity: IOrder, thunkAPI) => {
-    const result = await axios.post<IOrder>(apiUrl, cleanEntity(entity));
+    const result = await axios.post<IOrder>(`${apiUrl}/place-order`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -105,6 +105,26 @@ export const updateEntity = createAsyncThunk(
   async (entity: IOrder, thunkAPI) => {
     const result = await axios.put<IOrder>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const createBill = createAsyncThunk(
+  'order/create_bill',
+  async (entity: IOrder, thunkAPI) => {
+    const result = await axios.post<IOrder>(`${apiUrl}/${entity.id}/create-bill`, cleanEntity(entity));
+    thunkAPI.dispatch(getEntity(entity.id));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const changeProcessingStatus = createAsyncThunk(
+  'order/change_processing_status',
+  async (entity: IOrder, thunkAPI) => {
+    const result = await axios.post<IOrder>(`${apiUrl}/${entity.id}/change-processing-status`, cleanEntity(entity));
+    thunkAPI.dispatch(getEntity(entity.id));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -132,12 +152,17 @@ export const deleteEntity = createAsyncThunk(
 );
 
 // slice
+export const changeEntityField = createAction<ChangeFieldPayload<IOrder>>('online-ordering-settings/change-entity-field');
 
 export const OrderSlice = createEntitySlice({
   name: 'order',
   initialState,
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { name, value } = action.payload;
+        state.entity[name] = value;
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
@@ -156,7 +181,7 @@ export const OrderSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities,filterOrders), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities, filterOrders), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -181,12 +206,12 @@ export const OrderSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities,filterOrders), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterOrders), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, filterOrders), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, filterOrders, createBill, changeProcessingStatus), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
