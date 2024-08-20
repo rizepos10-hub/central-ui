@@ -5,7 +5,6 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { getEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import Select from "react-select";
 import { changeEntityField, createEntity, reset } from './order.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { Accordion, AccordionTab } from 'primereact/accordion';
@@ -69,7 +68,7 @@ const OrderCreate = () => {
     useEffect(() => {
         dispatch(getProducts({
             page: parseInt(searchParams.get("page"), 10) - 1 || 0,
-            size: parseInt(searchParams.get("size"), 10) || 24,
+            size: parseInt(searchParams.get("size"), 10) || 42,
             name: searchParams.get("name") || '',
             sort: `id,asc`,
         }))
@@ -78,8 +77,9 @@ const OrderCreate = () => {
     useEffect(() => {
         dispatch(getBranches({}))
         dispatch(getCustomers({}))
+        dispatch(reset())
     }, [])
-
+    console.log(orderEntity, 'orderEntity')
     const createQueryString = useCallback((name, value) => {
         const sParams = new URLSearchParams(searchParams);
         sParams.set(name, value);
@@ -97,13 +97,10 @@ const OrderCreate = () => {
 
     useEffect(() => {
         if (initialRender.current) {
-            initialRender.current = false;
             return;
         }
         debouncedItemNameNavigate(searchTermProduct);
     }, [searchTermProduct, debouncedItemNameNavigate]);
-
-    console.log(orderEntity.items, 'orderEntity.items')
 
     const recalculatePrice = () => {
         if (orderEntity?.items?.length > 0) {
@@ -126,16 +123,20 @@ const OrderCreate = () => {
     }
 
     useEffect(() => {
+        if (initialRender.current) {
+            initialRender.current = false;
+            return
+        }
         recalculatePrice()
     }, [orderEntity?.branchId]);
 
     const calculateCustomDiscount = (discountVal: number, originalPrice: number, type?: "PERCENTAGE" | "FLAT") => {
         if (discountVal) {
-            if (type === "PERCENTAGE") {
+            if (type === "FLAT") {
+                return originalPrice - discountVal;
+            } else {
                 const discountAmount = (discountVal / 100) * originalPrice;
                 return originalPrice - discountAmount;
-            } else if (type === "FLAT") {
-                return originalPrice - discountVal;
             }
         }
         return originalPrice;
@@ -207,8 +208,6 @@ const OrderCreate = () => {
         findCombinationVariants()
     }, [variantDialog.product.variants, JSON.stringify(variantDialog.selectedRetailAttributes)])
 
-    console.log(orderEntity, 'orderEntity')
-
     const handlePayment = () => {
         const structuredEntity = {
             items: orderEntity?.items?.map(item => ({
@@ -223,7 +222,6 @@ const OrderCreate = () => {
             orderCharges: [],
             scheduledAt: null,
         }
-        console.log(structuredEntity, 'structuredEntity')
 
         dispatch(createEntity(structuredEntity)).then(() => {
             setVariantDialog({
@@ -235,15 +233,17 @@ const OrderCreate = () => {
             })
 
             dispatch(reset())
-            // navigate('/order/' + payload?.data?.id)
+            toast.success('Order Created Successfully!')
         }).finally(() => {
             setOpenPaymentModal(false)
-            toast.success('Order Created Successfully!')
         })
     }
 
     return (
-        <Container fluid className="p-1 d-flex flex-column justify-content-between">
+        <Container fluid className="d-flex flex-column justify-content-between" style={{
+            maxWidth: '1100px',
+            margin: '0 auto'
+        }}>
             <Dialog
                 header={`Amount to Pay : ${(calculateSubTotal() + calculateTaxes()).toFixed(2)}`}
                 visible={openPaymentModal}
@@ -447,7 +447,8 @@ const OrderCreate = () => {
                                     data-pr-position="top"
                                     className={`p-0 card-${index}`}
                                     style={{
-                                        height: '180px',
+                                        height: '120px',
+                                        width: '100%',
                                         cursor: 'pointer'
                                     }}
                                     onClick={() => {
@@ -487,7 +488,7 @@ const OrderCreate = () => {
                                     }}
                                 >
                                     {product.attachments[0]?.url && (
-                                        <CardImg top height="150px" width="100%" src={product.attachments[0]?.url} alt={product.name} />
+                                        <CardImg top height="75px" width="100%" src={product.attachments[0]?.url} alt={product.name} />
                                     )}
                                     <CardBody style={{ height: '100px' }}>
                                         <CardTitle tag="h6" className="text-truncate">{product.name}</CardTitle>
@@ -506,28 +507,30 @@ const OrderCreate = () => {
                 <Col md={4} className="p-2 flex flex-column justify-content-between gap-2" style={{
                     height: '80vh'
                 }}>
-                    <div className="mb-3">
-                        <Select
-                            className="basic-single"
-                            classNamePrefix="select"
-                            placeholder="Add a customer"
-                            value={orderEntity?.customer}
-                            onChange={(customer) => dispatch(changeEntityField({
-                                name: 'customer',
-                                value: customer,
-                            }))}
+                    <div className="px-2">
+                        <Dropdown
                             options={customers.map(customer => ({
                                 label: customer.firstName + ' ' + customer.lastName,
                                 value: customer.id,
                                 id: customer.id
                             }))}
+                            placeholder="Add a customer"
+                            value={orderEntity?.customer?.id}
+                            onChange={(e) => dispatch(changeEntityField({
+                                name: 'customer',
+                                value: {
+                                    id: e.value,
+                                },
+                            }))}
+                            className='w-100'
+                            showClear
                         />
                     </div>
                     <div
                         className="border p-2"
                         style={{
-                            height: '90%',
-                            maxHeight: '90%',
+                            height: '95%',
+                            maxHeight: '95%',
                         }}
                     >
                         <Dropdown
@@ -662,12 +665,38 @@ const OrderCreate = () => {
                                             <div>Add Discount</div>
                                             <div className='d-flex justify-content-between align-items-center'>
                                                 <span className='d-flex align-items-center justify-content-center'>
-                                                    <Button className='d-flex align-items-center justify-content-center' text raised style={{
-                                                        width: "40px",
-                                                    }}>%</Button>
-                                                    <Button className='d-flex align-items-center justify-content-center' text raised style={{
-                                                        width: "40px",
-                                                    }}>$</Button>
+                                                    <Button
+                                                        className='d-flex align-items-center justify-content-center'
+                                                        text
+                                                        raised
+                                                        style={{
+                                                            width: "40px",
+                                                        }}
+                                                        onClick={() => dispatch(changeEntityField({
+                                                            name: 'customDiscount',
+                                                            value: {
+                                                                type: 'PERCENTAGE',
+                                                            }
+                                                        }))}
+                                                    >
+                                                        %
+                                                    </Button>
+                                                    <Button
+                                                        className='d-flex align-items-center justify-content-center'
+                                                        text
+                                                        raised
+                                                        style={{
+                                                            width: "40px",
+                                                        }}
+                                                        onClick={() => dispatch(changeEntityField({
+                                                            name: 'customDiscount',
+                                                            value: {
+                                                                type: 'FLAT',
+                                                            }
+                                                        }))}
+                                                    >
+                                                        $
+                                                    </Button>
                                                 </span>
                                                 <span>
                                                     <InputNumber
@@ -685,12 +714,7 @@ const OrderCreate = () => {
                                                     />
                                                 </span>
                                             </div>
-                                            <div className='text-muted'>This discount will be applied to all</div>
-                                            <div className='d-flex justify-content-end gap-2'>
-                                                <Button>
-                                                    Add
-                                                </Button>
-                                            </div>
+                                            <div className='text-muted'>This discount will be applied to all items</div>
                                         </div>
                                     </OverlayPanel>
                                     <Button text onClick={(e) => discountOP.current.toggle(e)}>
@@ -725,7 +749,7 @@ const OrderCreate = () => {
                                     Total:
                                 </span>
                                 <span>
-                                    {(calculateSubTotal() + calculateTaxes()).toFixed(2)}
+                                    {calculateCustomDiscount(orderEntity?.customDiscount?.value, calculateSubTotal() + calculateTaxes(), orderEntity?.customDiscount?.type).toFixed(2)}
                                 </span>
                             </div>
                             <Button

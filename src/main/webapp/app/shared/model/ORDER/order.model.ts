@@ -4,22 +4,26 @@ import { IOrderedItem } from 'app/shared/model/ORDER/ordered-item.model';
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 import { IOrderAudit } from 'app/shared/model/ORDER/order-audit.model';
 import { PaymentStatus } from '../ENUMS/payment-status.model';
+import { DeliverStatus } from '../ENUMS/delivery-status.model';
 
 export interface IOrder extends IOrderAudit {
   id?: string;
   discount?: number | null;
   walkin?: boolean | null;
   status?: OrderStatus | null;
+  sequenceNumber?: number | null;
   branchId?: string | null;
   orderSources?: string | null;
   tables?: string | null;
   customer?: ICustomer;
   items?: IOrderedItem[];
+  refund?: boolean | null;
   bills?: IBill[];
   scheduledAt?: string | null;
   orderCharges?: any[];
   paymentStatus?: PaymentStatus
   processingStatus?: OrderStatus
+  deliveryStatus?: DeliverStatus
   orderProcessingStatus?: OrderStatus
   tipAmount?: number | null
   customDiscount?: {
@@ -29,6 +33,8 @@ export interface IOrder extends IOrderAudit {
   total?: number | null,
   totalTaxes?: number | null,
   totalDiscount?: number | null,
+  addonsTotal?: number | null,
+  itemsTotal?: number | null,
 }
 
 export interface IOrderCharge {
