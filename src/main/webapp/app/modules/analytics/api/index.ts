@@ -35,7 +35,7 @@ export const fetchSalesReport = async ({ dateRange, measure, type }) => {
 
 
 export const fetchTopItems = async (limit?: null | number) => {
-  const limitsize = limit?`?limit=${limit}` : ''
+  const limitsize = limit ? `?limit=${limit}` : ''
   try {
     const response = await axios.get(`/api/report/top-items${limitsize}`);
     return response.data;
@@ -49,7 +49,7 @@ export const fetchTopItems = async (limit?: null | number) => {
 
 export const fetchTopCustomers = async () => {
   try {
-   const limit = 10
+    const limit = 10
 
     const formData: any = new FormData();
 
@@ -121,7 +121,6 @@ export const fetchOrdersByYear = async (year) => {
         'Content-Type': 'multipart/form-data',
       },
     });
-console.log(response, 'resss')
     return response.data;
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -130,11 +129,12 @@ console.log(response, 'resss')
 };
 
 
-export const fetchEndOfDaysData = async (page: number, size: number, sort: string, year: string, branchId: string | null = null ) => {
+export const fetchEndOfDaysData = async (page: number, size: number, sort: string, year: string, branchId: string | null = null, fromDate: string | null = null, toDate: string | null = null) => {
   const branchIdParam = branchId ? `branchId=${branchId}` : null
+  const fromDateParam = fromDate ? `fromDate=${fromDate}` : null
+  const toDateParam = toDate ? `toDate=${toDate}` : null
   try {
-    const response = await axios.get(`/api/end-of-day?page=${page}&size=${size}&sort=${sort}&year=${year}&${branchIdParam}`);
-    console.log(response, 'response')
+    const response = await axios.get(`/api/end-of-day?page=${page}&size=${size}&sort=${sort}&year=${year}&${branchIdParam}&${fromDateParam}&${toDateParam}`);
     return response;
   } catch (error) {
     console.error('Error fetching data:', error);
