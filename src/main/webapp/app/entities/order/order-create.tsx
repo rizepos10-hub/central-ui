@@ -69,7 +69,7 @@ const OrderCreate = () => {
     useEffect(() => {
         dispatch(getProducts({
             page: parseInt(searchParams.get("page"), 10) - 1 || 0,
-            size: parseInt(searchParams.get("size"), 10) || 24,
+            size: parseInt(searchParams.get("size"), 10) || 42,
             name: searchParams.get("name") || '',
             sort: `id,asc`,
         }))
@@ -131,11 +131,11 @@ const OrderCreate = () => {
 
     const calculateCustomDiscount = (discountVal: number, originalPrice: number, type?: "PERCENTAGE" | "FLAT") => {
         if (discountVal) {
-            if (type === "PERCENTAGE") {
+            if (type === "FLAT") {
+                return originalPrice - discountVal;
+            } else {
                 const discountAmount = (discountVal / 100) * originalPrice;
                 return originalPrice - discountAmount;
-            } else if (type === "FLAT") {
-                return originalPrice - discountVal;
             }
         }
         return originalPrice;
@@ -243,7 +243,10 @@ const OrderCreate = () => {
     }
 
     return (
-        <Container fluid className="p-1 d-flex flex-column justify-content-between">
+        <Container fluid className="d-flex flex-column justify-content-between" style={{ 
+            maxWidth: '1100px',
+            margin: '0 auto'
+         }}>
             <Dialog
                 header={`Amount to Pay : ${(calculateSubTotal() + calculateTaxes()).toFixed(2)}`}
                 visible={openPaymentModal}
@@ -447,7 +450,8 @@ const OrderCreate = () => {
                                     data-pr-position="top"
                                     className={`p-0 card-${index}`}
                                     style={{
-                                        height: '180px',
+                                        height: '120px',
+                                        width: '100%',
                                         cursor: 'pointer'
                                     }}
                                     onClick={() => {
@@ -487,7 +491,7 @@ const OrderCreate = () => {
                                     }}
                                 >
                                     {product.attachments[0]?.url && (
-                                        <CardImg top height="150px" width="100%" src={product.attachments[0]?.url} alt={product.name} />
+                                        <CardImg top height="75px" width="100%" src={product.attachments[0]?.url} alt={product.name} />
                                     )}
                                     <CardBody style={{ height: '100px' }}>
                                         <CardTitle tag="h6" className="text-truncate">{product.name}</CardTitle>
@@ -662,12 +666,38 @@ const OrderCreate = () => {
                                             <div>Add Discount</div>
                                             <div className='d-flex justify-content-between align-items-center'>
                                                 <span className='d-flex align-items-center justify-content-center'>
-                                                    <Button className='d-flex align-items-center justify-content-center' text raised style={{
-                                                        width: "40px",
-                                                    }}>%</Button>
-                                                    <Button className='d-flex align-items-center justify-content-center' text raised style={{
-                                                        width: "40px",
-                                                    }}>$</Button>
+                                                    <Button
+                                                        className='d-flex align-items-center justify-content-center'
+                                                        text
+                                                        raised
+                                                        style={{
+                                                            width: "40px",
+                                                        }}
+                                                        onClick={() => dispatch(changeEntityField({
+                                                            name: 'customDiscount',
+                                                            value: {
+                                                                type: 'PERCENTAGE',
+                                                            }
+                                                        }))}
+                                                    >
+                                                        %
+                                                    </Button>
+                                                    <Button
+                                                        className='d-flex align-items-center justify-content-center'
+                                                        text
+                                                        raised
+                                                        style={{
+                                                            width: "40px",
+                                                        }}
+                                                        onClick={() => dispatch(changeEntityField({
+                                                            name: 'customDiscount',
+                                                            value: {
+                                                                type: 'FLAT',
+                                                            }
+                                                        }))}
+                                                    >
+                                                        $
+                                                    </Button>
                                                 </span>
                                                 <span>
                                                     <InputNumber
@@ -685,12 +715,7 @@ const OrderCreate = () => {
                                                     />
                                                 </span>
                                             </div>
-                                            <div className='text-muted'>This discount will be applied to all</div>
-                                            <div className='d-flex justify-content-end gap-2'>
-                                                <Button>
-                                                    Add
-                                                </Button>
-                                            </div>
+                                            <div className='text-muted'>This discount will be applied to all items</div>
                                         </div>
                                     </OverlayPanel>
                                     <Button text onClick={(e) => discountOP.current.toggle(e)}>
@@ -725,7 +750,7 @@ const OrderCreate = () => {
                                     Total:
                                 </span>
                                 <span>
-                                    {(calculateSubTotal() + calculateTaxes()).toFixed(2)}
+                                    {calculateCustomDiscount(orderEntity?.customDiscount.value, calculateSubTotal() + calculateTaxes(), orderEntity?.customDiscount.type).toFixed(2)}
                                 </span>
                             </div>
                             <Button
