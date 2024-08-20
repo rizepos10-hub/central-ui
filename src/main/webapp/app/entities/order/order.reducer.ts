@@ -5,6 +5,7 @@ import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError, ChangeFieldPayload } from 'app/shared/reducers/reducer.utils';
 import { IOrder, defaultValue } from 'app/shared/model/ORDER/order.model';
 import { IAuditLog } from "app/shared/model/audit-log.model";
+import { IBill } from 'app/shared/model/ORDER/bill.model';
 
 const initialState: EntityState<IOrder> = {
   loading: false,
@@ -120,10 +121,30 @@ export const createBill = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const refundBill = createAsyncThunk(
+  'order/refund_bill',
+  async (entity: IBill, thunkAPI) => {
+    const result = await axios.post<IBill>(`${apiUrl}/${entity.id}/refund-bill`, cleanEntity(entity));
+    thunkAPI.dispatch(getEntity(entity.id));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const changeProcessingStatus = createAsyncThunk(
   'order/change_processing_status',
   async (entity: IOrder, thunkAPI) => {
     const result = await axios.post<IOrder>(`${apiUrl}/${entity.id}/change-processing-status`, cleanEntity(entity));
+    thunkAPI.dispatch(getEntity(entity.id));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const changeDeliveryStatus = createAsyncThunk(
+  'order/change_delivery_status',
+  async (entity: IOrder, thunkAPI) => {
+    const result = await axios.post<IOrder>(`${apiUrl}/${entity.id}/change-delivery-status`, cleanEntity(entity));
     thunkAPI.dispatch(getEntity(entity.id));
     return result;
   },
@@ -161,7 +182,11 @@ export const OrderSlice = createEntitySlice({
     builder
       .addCase(changeEntityField, (state, action) => {
         const { name, value } = action.payload;
-        state.entity[name] = value;
+        if (!name) {
+          state.entity = value;
+        } else {
+          state.entity[name] = value;
+        }
       })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
@@ -211,7 +236,7 @@ export const OrderSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, filterOrders, createBill, changeProcessingStatus), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, filterOrders, createBill, changeProcessingStatus, changeDeliveryStatus, refundBill), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

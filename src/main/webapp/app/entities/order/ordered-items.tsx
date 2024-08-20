@@ -1,13 +1,29 @@
-import { Button, Card, Col, ListGroup, ListGroupItem, Row, Table } from 'reactstrap';
-import { translate, Translate } from 'react-jhipster';
 import React from 'react';
-import { IOrderedItem } from 'app/shared/model/ORDER/ordered-item.model';
-import { IOrderedAddon } from 'app/shared/model/ORDER/ordered-addon.model';
-import { TreeTable } from "primereact/treetable";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
+import { Checkbox } from 'primereact/checkbox';
+import { ActionCreatorWithOptionalPayload } from '@reduxjs/toolkit';
+import { InputNumber } from 'primereact/inputnumber';
+import { IBill } from 'app/shared/model/ORDER/bill.model';
+import { useAppDispatch } from 'app/config/store';
 
-export const OrderedItems = ({ dataTableValues }) => {
+export const OrderedItems = ({
+  dataTableValues,
+  rowClick = false,
+  entity = {},
+  changeEntityField,
+  refundMode = false
+}: {
+  dataTableValues: any;
+  rowClick?: boolean;
+  entity?: IBill;
+  changeEntityField?: ActionCreatorWithOptionalPayload<{
+    name: string;
+    value: any;
+  }, string>;
+  refundMode?: boolean;
+}) => {
+  const dispatch = useAppDispatch();
 
   const itemNameTemplate = (rowData) => {
     return (
@@ -39,6 +55,46 @@ export const OrderedItems = ({ dataTableValues }) => {
       </div>
     )
   }
+  const multiSelectTemplate = (rowData) => {
+    if (rowData?.isAddon) return null
+    return (
+      <Checkbox
+        inputId={`${rowData.id}`}
+        checked={entity?.items?.some(item => item.id === rowData.id)}
+        onChange={(e) => {
+          dispatch(changeEntityField({
+            name: 'items',
+            value: [...entity.items, {
+              id: rowData.id,
+              amount: rowData.amount,
+            }]
+          }))
+        }}
+      />
+    )
+  }
+
+  const refundQuantityTemplate = (rowData) => {
+    if (rowData?.isAddon) return null
+    return (
+      <div>
+        <InputNumber
+          max={rowData.amount}
+          min={0}
+          value={rowData.amount}
+          onChange={(e) => {
+            dispatch(changeEntityField({
+              name: 'items',
+              value: [...entity.items, {
+                id: rowData.id,
+                amount: e.value,
+              }]
+            }))
+          }}
+        />
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -46,7 +102,12 @@ export const OrderedItems = ({ dataTableValues }) => {
         value={dataTableValues}
         dataKey="id"
         tableStyle={{ minWidth: '60rem' }}
+        selectionMode={rowClick ? null : 'checkbox'}
+        selection={entity?.items}
+        onSelectionChange={(e) => changeEntityField({ name: 'items', value: e.value })}
       >
+        {refundMode ? <Column headerStyle={{ width: '3rem' }} body={multiSelectTemplate}></Column> : null}
+        {refundMode ? <Column header="Refund Quantity" headerStyle={{ width: '3rem' }} body={refundQuantityTemplate}></Column> : null}
         <Column field="itemName" header="Name" sortable body={itemNameTemplate} />
         <Column field="amount" header="Quantity" sortable />
         <Column field="price" header="Price" sortable />
@@ -54,37 +115,6 @@ export const OrderedItems = ({ dataTableValues }) => {
         <Column field="discount" header="Discount" sortable body={discountTemplate} />
         <Column field="total" header="Total" sortable />
       </DataTable>
-
-      {/* {list.length > 0 && (
-        <Row>
-          <Col md={7}>
-            <Card className="mt-3 p-3">
-              <Table>
-                <tbody>
-                  <tr>
-                    <td>
-                      <strong>{translate('orders.details.common.subtotal')}</strong>
-                    </td>
-                    <td className="text-center">{calculateAllItemsPrice().toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <strong>{translate('orders.details.common.taxes')}</strong>
-                    </td>
-                    <td className="text-center">{calculateAllTaxValues().toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <strong>{translate('orders.details.common.total')}</strong>
-                    </td>
-                    <td className="text-center">{(calculateAllItemsPrice() + calculateAllTaxValues()).toFixed(2)}</td>
-                  </tr>
-                </tbody>
-              </Table>
-            </Card>
-          </Col>
-        </Row>
-      )} */}
     </div>
   );
 };

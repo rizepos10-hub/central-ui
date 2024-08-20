@@ -5,7 +5,6 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { getEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import Select from "react-select";
 import { changeEntityField, createEntity, reset } from './order.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
 import { Accordion, AccordionTab } from 'primereact/accordion';
@@ -78,8 +77,9 @@ const OrderCreate = () => {
     useEffect(() => {
         dispatch(getBranches({}))
         dispatch(getCustomers({}))
+        dispatch(reset())
     }, [])
-
+    console.log(orderEntity, 'orderEntity')
     const createQueryString = useCallback((name, value) => {
         const sParams = new URLSearchParams(searchParams);
         sParams.set(name, value);
@@ -97,13 +97,10 @@ const OrderCreate = () => {
 
     useEffect(() => {
         if (initialRender.current) {
-            initialRender.current = false;
             return;
         }
         debouncedItemNameNavigate(searchTermProduct);
     }, [searchTermProduct, debouncedItemNameNavigate]);
-
-    console.log(orderEntity.items, 'orderEntity.items')
 
     const recalculatePrice = () => {
         if (orderEntity?.items?.length > 0) {
@@ -126,6 +123,10 @@ const OrderCreate = () => {
     }
 
     useEffect(() => {
+        if (initialRender.current) {
+            initialRender.current = false;
+            return
+        }
         recalculatePrice()
     }, [orderEntity?.branchId]);
 
@@ -207,8 +208,6 @@ const OrderCreate = () => {
         findCombinationVariants()
     }, [variantDialog.product.variants, JSON.stringify(variantDialog.selectedRetailAttributes)])
 
-    console.log(orderEntity, 'orderEntity')
-
     const handlePayment = () => {
         const structuredEntity = {
             items: orderEntity?.items?.map(item => ({
@@ -223,7 +222,6 @@ const OrderCreate = () => {
             orderCharges: [],
             scheduledAt: null,
         }
-        console.log(structuredEntity, 'structuredEntity')
 
         dispatch(createEntity(structuredEntity)).then(() => {
             setVariantDialog({
@@ -235,18 +233,17 @@ const OrderCreate = () => {
             })
 
             dispatch(reset())
-            // navigate('/order/' + payload?.data?.id)
+            toast.success('Order Created Successfully!')
         }).finally(() => {
             setOpenPaymentModal(false)
-            toast.success('Order Created Successfully!')
         })
     }
 
     return (
-        <Container fluid className="d-flex flex-column justify-content-between" style={{ 
+        <Container fluid className="d-flex flex-column justify-content-between" style={{
             maxWidth: '1100px',
             margin: '0 auto'
-         }}>
+        }}>
             <Dialog
                 header={`Amount to Pay : ${(calculateSubTotal() + calculateTaxes()).toFixed(2)}`}
                 visible={openPaymentModal}
@@ -510,28 +507,30 @@ const OrderCreate = () => {
                 <Col md={4} className="p-2 flex flex-column justify-content-between gap-2" style={{
                     height: '80vh'
                 }}>
-                    <div className="mb-3">
-                        <Select
-                            className="basic-single"
-                            classNamePrefix="select"
-                            placeholder="Add a customer"
-                            value={orderEntity?.customer}
-                            onChange={(customer) => dispatch(changeEntityField({
-                                name: 'customer',
-                                value: customer,
-                            }))}
+                    <div className="px-2">
+                        <Dropdown
                             options={customers.map(customer => ({
                                 label: customer.firstName + ' ' + customer.lastName,
                                 value: customer.id,
                                 id: customer.id
                             }))}
+                            placeholder="Add a customer"
+                            value={orderEntity?.customer?.id}
+                            onChange={(e) => dispatch(changeEntityField({
+                                name: 'customer',
+                                value: {
+                                    id: e.value,
+                                },
+                            }))}
+                            className='w-100'
+                            showClear
                         />
                     </div>
                     <div
                         className="border p-2"
                         style={{
-                            height: '90%',
-                            maxHeight: '90%',
+                            height: '95%',
+                            maxHeight: '95%',
                         }}
                     >
                         <Dropdown
@@ -750,7 +749,7 @@ const OrderCreate = () => {
                                     Total:
                                 </span>
                                 <span>
-                                    {calculateCustomDiscount(orderEntity?.customDiscount.value, calculateSubTotal() + calculateTaxes(), orderEntity?.customDiscount.type).toFixed(2)}
+                                    {calculateCustomDiscount(orderEntity?.customDiscount?.value, calculateSubTotal() + calculateTaxes(), orderEntity?.customDiscount?.type).toFixed(2)}
                                 </span>
                             </div>
                             <Button
