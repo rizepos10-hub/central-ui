@@ -15,7 +15,7 @@ type AttributeFilterProps = {
   onAttributeValuesSelect: () => void;
 };
 
-const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAttributeValuesSelect, defaultAttribute, defaultAttrValues}) => {
+const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAttributeValuesSelect, defaultAttribute, defaultAttrValues }) => {
   const dispatch = useAppDispatch();
 
   const [itemAttribute, setItemAttribute] = useState<{
@@ -31,9 +31,9 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
 
 
   const handleAttributeValuesChange = (selectedAttributesValues, e) => {
-    if (e.action === "clear") {
-      const removedIds = e.removedValues.map(attr => `${attr.id}-${attr.taxonomy.key}`);
-      filteredAttributes = filteredAttributes.filter(attr => !removedIds.includes(`${attr.default.id}-${attr.default.taxonomy.key}`));
+    if (e.action === "remove-value") {
+      const removedIds = e.removedValue.id;
+      filteredAttributes = filteredAttributes.filter(attr => !removedIds.includes(attr.id));
     }
 
     const modifiedValues = selectedAttributesValues.map(attrValue => ({
@@ -65,12 +65,12 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
   const handleItemAttributeSelect = async (selectedOption, e) => {
     if (e.action === "clear") {
       const removedAttributeId = e?.removedValues?.[0]?.id;
-      const uniqueAttributes = filteredAttributes.filter(attr =>  attr.default.taxonomy.id !== removedAttributeId);
+      const uniqueAttributes = filteredAttributes.filter(attr => attr.default.taxonomy.id !== removedAttributeId);
       onAttributeValuesSelect("attributes.attributeTerms.id", { operator: "AND", constraints: uniqueAttributes });
 
     } else if (selectedOption) {
 
-      const response :any = await dispatch(getAttributeValues({
+      const response: any = await dispatch(getAttributeValues({
         id: selectedOption.id,
         size: 400,
         sort: 'asc',
@@ -89,10 +89,10 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
 
       setItemAttribute({ attributeTax: selectedOption, attributeTerms: [attrValue] });
       const existingId = itemAttribute?.attributeTax?.id;
-      if(existingId){
-        const uniqueAttributes = filteredAttributes.filter(attr =>  attr.default.taxonomy.id !== existingId);
+      if (existingId) {
+        const uniqueAttributes = filteredAttributes.filter(attr => attr.default.taxonomy.id !== existingId);
         onAttributeValuesSelect("attributes.attributeTerms.id", { operator: "AND", constraints: [...uniqueAttributes, modifiedAttributeValue] });
-      }else{
+      } else {
         onAttributeValuesSelect("attributes.attributeTerms.id", { operator: "AND", constraints: [...filteredAttributes, modifiedAttributeValue] });
       }
     }
@@ -117,10 +117,12 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
           value={itemAttribute?.attributeTax || null}
           options={availableAttributes}
           placeholder={"Select Attribute"}
-          styles={{control: (baseStyles) => ({
-            ...baseStyles,
-                minWidth: "18rem"
-            })}}
+          styles={{
+            control: (baseStyles) => ({
+              ...baseStyles,
+              minWidth: "18rem"
+            })
+          }}
           isClearable
           getOptionValue={option => option.id}
           getOptionLabel={option => option.name}
@@ -133,10 +135,12 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
           isDisabled={!itemAttribute?.attributeTax}
           getOptionLabel={option => option.name}
           getOptionValue={option => option.id}
-          styles={{control: (baseStyles) => ({
+          styles={{
+            control: (baseStyles) => ({
               ...baseStyles,
               minWidth: "18rem"
-            })}}
+            })
+          }}
           placeholder={"Select Attribute Value"}
           isLoading={loadingAttributesValues}
           onFocus={() => loadOptions(itemAttribute?.attributeTax?.id)}
