@@ -29,9 +29,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   const { isOpen, toggle, selectedItems, handleToggleSelect } = props;
 
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [searchTermProduct, setSearchTermProduct] = useState('');
-
   const initialRender = useRef(true);
 
   useEffect(() => {
@@ -40,14 +37,21 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
       size: parseInt(searchParams.get("size"), 10) || 10,
       name: searchParams.get("name") || '',
       sort: `id,asc`,
+      categoryId: searchParams.get("categoryId") || '',
     }));
-  }, [searchParams.get("page"), searchParams.get("size"), searchParams.get("name")]);
+  }, [searchParams.get("page"), searchParams.get("size"), searchParams.get("name"), searchParams.get("categoryId")]);
 
   const createQueryString = useCallback((name, value) => {
     const sParams = new URLSearchParams(searchParams);
     sParams.set(name, value);
     return `?${sParams.toString()}`;
   }, [searchParams.get('name')]);
+
+  const deleteQueryString = useCallback((name) => {
+    const sParams = new URLSearchParams(searchParams);
+    sParams.delete(name);
+    return `?${sParams.toString()}`;
+  }, [searchParams.get('categoryId')]);
 
 
   const debouncedItemNameNavigate = useCallback(
@@ -64,8 +68,8 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
       initialRender.current = false;
       return;
     }
-    debouncedItemNameNavigate(searchTermProduct);
-  }, [searchTermProduct, debouncedItemNameNavigate]);
+    debouncedItemNameNavigate(searchParams.get('name'));
+  }, [searchParams.get('name'), debouncedItemNameNavigate]);
 
   const handleSave = () => {
     toggle();
@@ -88,8 +92,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
     };
   });
 
-
-
   return (
     <Modal size="lg" isOpen={isOpen} toggle={toggle} backdrop="static">
       <ModalHeader toggle={toggle}>
@@ -103,8 +105,8 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           <Input
             type="text"
             id="searchItem"
-            value={searchTermProduct}
-            onChange={(e) => setSearchTermProduct(e.target.value)}
+            value={searchParams.get('name')}
+            onChange={(e) => navigate(createQueryString('name', e.target.value))}
             placeholder="Start Searching"
           />
         </FormGroup>
@@ -115,8 +117,18 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           <div>
             <Select
               id="searchCategory"
-              value={selectedCategory}
-              onChange={selectedOption => setSelectedCategory(selectedOption)}
+              value={{
+                label: categoriesOption.find(cat => cat.value === searchParams.get('categoryId'))?.label,
+                value: searchParams.get('categoryId'),
+              }}
+              onChange={selectedOption => {
+                console.log(selectedOption)
+                if (!selectedOption) {
+                  navigate(deleteQueryString('categoryId'));
+                } else {
+                  navigate(createQueryString('categoryId', selectedOption.value));
+                }
+              }}
               options={categoriesOption}
               isClearable={true}
             />
