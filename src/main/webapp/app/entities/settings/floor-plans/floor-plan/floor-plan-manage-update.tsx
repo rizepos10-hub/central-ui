@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Card,
   Modal,
@@ -6,24 +6,25 @@ import {
   ModalFooter,
   ModalHeader,
 } from "reactstrap";
-import {TabPanel, TabView} from "primereact/tabview";
-import {useParams} from "react-router-dom";
-import {getEntity, updateEntity} from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
-import {useAppDispatch, useAppSelector} from "app/config/store";
-import {getEntities as getTables} from "app/entities/settings/floor-plans/tables/table.reducer";
-import {getEntity as getDeffaultSettings} from "app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer"
-import {Button} from "primereact/button";
-import {InputNumber} from "primereact/inputnumber";
-import {IFloorPlan} from "app/shared/model/FLOOR-PLAN/floor-plan.model";
-import {Checkbox} from "primereact/checkbox";
-import {IFloorPlanTable} from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState} from "react-jhipster";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import { TabPanel, TabView } from "primereact/tabview";
+import { useParams } from "react-router-dom";
+import { getEntity, updateEntity } from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
+import { useAppDispatch, useAppSelector } from "app/config/store";
+import { getEntities as getTables } from "app/entities/settings/floor-plans/tables/table.reducer";
+import { getEntity as getDeffaultSettings } from "app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer"
+import { Button } from "primereact/button";
+import { InputNumber } from "primereact/inputnumber";
+import { IFloorPlan } from "app/shared/model/FLOOR-PLAN/floor-plan.model";
+import { Checkbox } from "primereact/checkbox";
+import { IFloorPlanTable } from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { getSortState } from "react-jhipster";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import Select from "react-select";
 import SectionModal from "app/entities/settings/floor-plans/floor-plan/floor-plan-new-section-modal";
-import {InputText} from "primereact/inputtext";
-import {isEqual} from "lodash";
+import { InputText } from "primereact/inputtext";
+import { isEqual } from "lodash";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 
 
@@ -39,9 +40,8 @@ const FloorPlanManageUpdate = () => {
     sectionDimensions: defaultSectionsDimensions
   } = floorPlanSettingsEntity;
 
-  console.log(floorPlanSettingsEntity, 'floorPlanSettingsEntity')
   const floorPlanEntity = useAppSelector(state => state.floorPlan.entity);
-  const {branch: floorPlanBranch} = floorPlanEntity;
+  const { branch: floorPlanBranch } = floorPlanEntity;
 
 
   const updateSuccess = useAppSelector(state => state.floorPlan.updateSuccess);
@@ -66,22 +66,22 @@ const FloorPlanManageUpdate = () => {
   const [isFormDirty, setIsFormDirty] = useState(false);
   const [initialState, setInitialState] = useState<any>()
 
-  const [sectionDimensions, setSectionDimensions]:any = useState({
+  const [sectionDimensions, setSectionDimensions]: any = useState({
     width: null,
     height: null
   })
 
-    const excludedTableIds = floorPlan?.sections?.flatMap(section =>
-      section?.tableDetails?.map(tableDetail => tableDetail?.table?.id)
-    );
-    const filteredTablesList: IFloorPlanTable[] = floorPlanTablesList?.filter(
-      table => !excludedTableIds?.includes(table.id)
-    );
+  const excludedTableIds = floorPlan?.sections?.flatMap(section =>
+    section?.tableDetails?.map(tableDetail => tableDetail?.table?.id)
+  );
+  const filteredTablesList: IFloorPlanTable[] = floorPlanTablesList?.filter(
+    table => !excludedTableIds?.includes(table.id)
+  );
 
 
 
   const openTableModal = () => {
-    if(filteredTablesList?.length === 0){
+    if (filteredTablesList?.length === 0) {
       alert("No Tables To Add");
       return;
     }
@@ -107,7 +107,7 @@ const FloorPlanManageUpdate = () => {
 
 
   const handleAddSection = (newSection) => {
-    if(newSection?.name.trim() === ""){
+    if (newSection?.name.trim() === "") {
       alert("Please enter section name")
       return
     }
@@ -216,7 +216,6 @@ const FloorPlanManageUpdate = () => {
 
   // const handleSectionHeightChange = (e) => {
   //   const newHeight =  parseInt(e.target.value, 10);
-  //   console.log(e.originalEvent, 'eewre')
   //
   //   const tablesOutsideBounds = floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.some((tableDetail) => {
   //     const tableBottomEdge = tableDetail.position.y + tableDetail.table.dimensions.height;
@@ -262,22 +261,27 @@ const FloorPlanManageUpdate = () => {
     }));
   };
 
+  const confirm1 = (e, section, index) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleRemoveSection(e, section, index)
+    });
+  };
 
   const handleRemoveSection = (e, section, index) => {
     e.stopPropagation();
-    console.log(section, 'section')
 
-    const confirmRemove = window.confirm("Are you sure you want to remove this section?");
-    if(confirmRemove){
-      setFloorPlan((prev) => {
-        const updatedSections = [...prev.sections];
-        updatedSections.splice(index, 1);
-        return {
-          ...prev,
-          sections: updatedSections,
-        };
-      });
-    }
+    setFloorPlan((prev) => {
+      const updatedSections = [...prev.sections];
+      updatedSections.splice(index, 1);
+      return {
+        ...prev,
+        sections: updatedSections,
+      };
+    });
   };
 
 
@@ -411,11 +415,11 @@ const FloorPlanManageUpdate = () => {
         })
       ),
     ])
-      .then(([entityAction]:any) => {
+      .then(([entityAction]: any) => {
         const floorPlanData = entityAction?.payload?.data;
         const sectionsArray = floorPlanData?.sections ?? [];
         const sortedSections = [...sectionsArray].sort((a, b) => a.order - b.order);
-        const floorPlanSortedSection = {...floorPlanData, sections: sortedSections};
+        const floorPlanSortedSection = { ...floorPlanData, sections: sortedSections };
         setFloorPlan(floorPlanSortedSection);
         const initialDimensions = sortedSections.map((section) => ({
           width: section.dimensions.width.toString(),
@@ -428,7 +432,7 @@ const FloorPlanManageUpdate = () => {
         });
       })
 
-  }, [id,updateSuccess]);
+  }, [id, updateSuccess]);
 
   useEffect(() => {
     const toBeCompared = {
@@ -466,232 +470,232 @@ const FloorPlanManageUpdate = () => {
       }))
     }
 
-    console.log(savedEntity, 'savedEntity')
     dispatch(updateEntity(savedEntity))
   }
 
 
-console.log(floorPlan, 'floorPlanfloorPlan')
   return (
     <Card
-    style={{overflow: "scroll"}}
+      style={{ overflow: "scroll" }}
     >
+      <ConfirmDialog />
       <div className={"d-flex justify-content-between mb-5"}>
         <div>
-      <h2>Floor Plan Management</h2>
-      <h3>{floorPlan?.name} <span className={"text-sm"}>{floorPlan?.branch?.name?.trim()}</span></h3>
+          <h2>Floor Plan Management</h2>
+          <h3>{floorPlan?.name} <span className={"text-sm"}>{floorPlan?.branch?.name?.trim()}</span></h3>
 
         </div>
         <div className={"ml-auto"}>
-        <Button onClick={openSectionModal}>Add New Section</Button>
+          <Button onClick={openSectionModal}>Add New Section</Button>
         </div>
       </div>
       <TabView scrollable activeIndex={selectedSectionIndex} onTabChange={handleSectionChange}>
 
-        {floorPlan?.sections?.map((section,index) => {
-          return <TabPanel  key={index}
-                            header={
-                               <div className={"relative"}>
-                                 {section.name}
-                                   <div
-                                     style={{
-                                       position: 'absolute',
-                                       top: '-15px',
-                                       right: '-14px',
-                                       cursor: 'pointer',
-                                       padding: "5px",
-                                       fontSize: "13px"
-                                     }}
-                                     onClick={(e) => {
-                                       handleRemoveSection(e, section, index)
-                                     }}
-                                   >
-                                     X
-                                   </div>
-                               </div>
-          }/>})}
-      </TabView>
-      {floorPlan?.sections?.[selectedSectionIndex] ? (
-        <div className={"d-flex  gap-3 mb-1"}>
-        <div>
-          <Button id={"ModalButton"} className={"font-bold"} label={"+ table"} onClick={openTableModal}/>
-          <Modal
-            isOpen={tableModalIsOpen}
-            contentlabel="Tables Modal"
-          >
-            <ModalHeader toggle={closeTableModal}/>
-            <ModalBody>
-              <div className={"d-flex flex-column gap-4"}>
-                <label>
-                  Choose Table
-                </label>
-                <Select
-                  options={filteredTablesList}
-                  required={true}
-                  getOptionValue={option => option.id}
-                  getOptionLabel={option => option.name}
-                  onChange={(option) => setSelectedTableDetail((prev) => ({
-                    ...prev,
-                    table: option
-                  }))}
-                />
-                <label>
-                  Choose Capacity
-                </label>
-                <InputNumber
-                  required={true}
-                  onChange={(e) => setSelectedTableDetail((prev) => ({
-                    ...prev,
-                    numberOfSeats: e.value
-                  }))}
-                  value={selectedTableDetail?.numberOfSeats}
-                />
-
-              </div>
-            </ModalBody>
-            <ModalFooter>
-              <Button label="Add" onClick={handleAddTable}/>
-            </ModalFooter>
-          </Modal>
-        </div>
-        <label className={"mt-2"}>
-          <strong>
-            Dimensions
-          </strong>
-        </label>
-        <div className={"d-flex gap-4"}>
-          <div className="p-inputgroup w-full md:w-10rem">
-            <span className="p-inputgroup-addon">
-                  width
-              </span>
-            <InputText
-              size={12}
-              placeholder={"Width"}
-              name={`dimension-width-${selectedSectionIndex}`}
-              required={true}
-              value={sectionDimensions[selectedSectionIndex]?.width}
-              onChange={(e) => handleSectionWidthChange(e, selectedSectionIndex)}
-              onBlur={() => handleSectionWidthBlur(selectedSectionIndex)} // Separate onBlur handler
-            />
-            <span className="p-inputgroup-addon">px</span>
-          </div>
-          <div className="p-inputgroup w-full md:w-10rem">
-                <span className="p-inputgroup-addon">
-                  height
-              </span>
-            <InputText
-              placeholder={"Height"}
-              size={12}
-              required={true}
-              value={sectionDimensions[selectedSectionIndex]?.height}
-              onChange={(e) => handleSectionHeightChange(e, selectedSectionIndex)}
-              onBlur={() => handleSectionHeightBlur(selectedSectionIndex)} // Separate onBlur handler
-            />
-            <span className="p-inputgroup-addon">px</span>
-          </div>
-
-          {/* <div className="p-inputgroup w-full md:w-10rem"> */}
-
-          {/*   <InputNumber */}
-          {/*     placeholder={"Height"} */}
-          {/*     size={12} */}
-          {/*     maxFractionDigits={2} */}
-          {/*     required={true} */}
-          {/*     value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.height || null} */}
-          {/*     onChange={handleSectionHeightChange} */}
-          {/*   /> */}
-
-          {/* </div> */}
-
-        </div>
-        <div className={"d-flex ml-auto mt-2"}>
-
-          <label className={"mr-3"}>
-            Visible
-          </label>
-          <div className={'mx-3'}>
-            <Checkbox
-              key={selectedSectionIndex}
-              checked={floorPlan?.sections?.[selectedSectionIndex]?.visible || false}
-              onChange={handleSectionVisibleChange}
-
-            />
-          </div>
-        </div>
-        <div className={"mb-1"}>
-          <Button label="Save" type={"submit"} onClick={saveEntity}/>
-        </div>
-      </div> ): null}
-      {boardDimensions ? (
-        <div
-        className={"mt-5"}
-        style={{
-          position: 'relative',
-          width: `${boardDimensions?.width}px`,
-          height: `${boardDimensions?.height}px`,
-          border: '1px solid #000',
-        }}
-      >
-
-        {floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.map((tableDetail: any, index) => {
-          return (
-            <div
-              key={index}
-              style={{
-                position: 'absolute',
-                left: `${tableDetail.position?.x}px`,
-                top: `${tableDetail.position?.y}px`,
-                width: `${tableDetail.table?.dimensions.width}px`,
-                height: `${tableDetail.table?.dimensions.height}px`,
-                backgroundColor: 'blue',
-                cursor: 'pointer',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                fontSize: "-moz-initial"
-              }}
-              onMouseDown={(e) => handleMouseDown(e, tableDetail, index)}
-              onMouseEnter={() => setHoveredTableIndex(index)}
-              onMouseLeave={() => setHoveredTableIndex(null)}
-            >
-              <div
-                style={{
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {tableDetail?.table?.name}
-              </div>
-              {hoveredTableIndex === index && (
+        {floorPlan?.sections?.map((section, index) => {
+          return <TabPanel key={index}
+            header={
+              <div className={"relative"}>
+                {section.name}
                 <div
                   style={{
                     position: 'absolute',
                     top: '-15px',
-                    right: '0',
+                    right: '-14px',
                     cursor: 'pointer',
-                    fontSize: "15px"
+                    padding: "5px",
+                    fontSize: "13px"
                   }}
                   onClick={(e) => {
-                    handleRemoveTable(e, tableDetail, index);
+                    confirm1(e, section, index)
                   }}
                 >
                   X
                 </div>
-              )}
-            </div>
-          )
+              </div>
+            } />
         })}
+      </TabView>
+      {floorPlan?.sections?.[selectedSectionIndex] ? (
+        <div className={"d-flex  gap-3 mb-1"}>
+          <div>
+            <Button id={"ModalButton"} className={"font-bold"} label={"+ table"} onClick={openTableModal} />
+            <Modal
+              isOpen={tableModalIsOpen}
+              contentlabel="Tables Modal"
+            >
+              <ModalHeader toggle={closeTableModal} />
+              <ModalBody>
+                <div className={"d-flex flex-column gap-4"}>
+                  <label>
+                    Choose Table
+                  </label>
+                  <Select
+                    options={filteredTablesList}
+                    required={true}
+                    getOptionValue={option => option.id}
+                    getOptionLabel={option => option.name}
+                    onChange={(option) => setSelectedTableDetail((prev) => ({
+                      ...prev,
+                      table: option
+                    }))}
+                  />
+                  <label>
+                    Choose Capacity
+                  </label>
+                  <InputNumber
+                    required={true}
+                    onChange={(e) => setSelectedTableDetail((prev) => ({
+                      ...prev,
+                      numberOfSeats: e.value
+                    }))}
+                    value={selectedTableDetail?.numberOfSeats}
+                  />
+
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button label="Add" onClick={handleAddTable} />
+              </ModalFooter>
+            </Modal>
+          </div>
+          <label className={"mt-2"}>
+            <strong>
+              Dimensions
+            </strong>
+          </label>
+          <div className={"d-flex gap-4"}>
+            <div className="p-inputgroup w-full md:w-10rem">
+              <span className="p-inputgroup-addon">
+                width
+              </span>
+              <InputText
+                size={12}
+                placeholder={"Width"}
+                name={`dimension-width-${selectedSectionIndex}`}
+                required={true}
+                value={sectionDimensions[selectedSectionIndex]?.width}
+                onChange={(e) => handleSectionWidthChange(e, selectedSectionIndex)}
+                onBlur={() => handleSectionWidthBlur(selectedSectionIndex)} // Separate onBlur handler
+              />
+              <span className="p-inputgroup-addon">px</span>
+            </div>
+            <div className="p-inputgroup w-full md:w-10rem">
+              <span className="p-inputgroup-addon">
+                height
+              </span>
+              <InputText
+                placeholder={"Height"}
+                size={12}
+                required={true}
+                value={sectionDimensions[selectedSectionIndex]?.height}
+                onChange={(e) => handleSectionHeightChange(e, selectedSectionIndex)}
+                onBlur={() => handleSectionHeightBlur(selectedSectionIndex)} // Separate onBlur handler
+              />
+              <span className="p-inputgroup-addon">px</span>
+            </div>
+
+            {/* <div className="p-inputgroup w-full md:w-10rem"> */}
+
+            {/*   <InputNumber */}
+            {/*     placeholder={"Height"} */}
+            {/*     size={12} */}
+            {/*     maxFractionDigits={2} */}
+            {/*     required={true} */}
+            {/*     value={floorPlan?.sections?.[selectedSectionIndex]?.dimensions?.height || null} */}
+            {/*     onChange={handleSectionHeightChange} */}
+            {/*   /> */}
+
+            {/* </div> */}
+
+          </div>
+          <div className={"d-flex ml-auto mt-2"}>
+
+            <label className={"mr-3"}>
+              Visible
+            </label>
+            <div className={'mx-3'}>
+              <Checkbox
+                key={selectedSectionIndex}
+                checked={floorPlan?.sections?.[selectedSectionIndex]?.visible || false}
+                onChange={handleSectionVisibleChange}
+
+              />
+            </div>
+          </div>
+          <div className={"mb-1"}>
+            <Button label="Save" type={"submit"} onClick={saveEntity} />
+          </div>
+        </div>) : null}
+      {boardDimensions ? (
+        <div
+          className={"mt-5"}
+          style={{
+            position: 'relative',
+            width: `${boardDimensions?.width}px`,
+            height: `${boardDimensions?.height}px`,
+            border: '1px solid #000',
+          }}
+        >
+
+          {floorPlan?.sections?.[selectedSectionIndex]?.tableDetails?.map((tableDetail: any, index) => {
+            return (
+              <div
+                key={index}
+                style={{
+                  position: 'absolute',
+                  left: `${tableDetail.position?.x}px`,
+                  top: `${tableDetail.position?.y}px`,
+                  width: `${tableDetail.table?.dimensions.width}px`,
+                  height: `${tableDetail.table?.dimensions.height}px`,
+                  backgroundColor: 'blue',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  fontSize: "-moz-initial"
+                }}
+                onMouseDown={(e) => handleMouseDown(e, tableDetail, index)}
+                onMouseEnter={() => setHoveredTableIndex(index)}
+                onMouseLeave={() => setHoveredTableIndex(null)}
+              >
+                <div
+                  style={{
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {tableDetail?.table?.name}
+                </div>
+                {hoveredTableIndex === index && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-15px',
+                      right: '0',
+                      cursor: 'pointer',
+                      fontSize: "15px"
+                    }}
+                    onClick={(e) => {
+                      handleRemoveTable(e, tableDetail, index);
+                    }}
+                  >
+                    X
+                  </div>
+                )}
+              </div>
+            )
+          })}
           {sectionBackground ? <img
             src={sectionBackground}
             alt={selectedSection?.name}
             width={`${boardDimensions?.width}px`}
             height={`${boardDimensions?.height}px`}
           /> : null}
-      </div>
+        </div>
       ) : null}
       {/* New Section Modal */}
-      {sectionModalIsOpen && <SectionModal isOpen={sectionModalIsOpen} onClose={closeSectionModal} initialDimensions={defaultSectionsDimensions} onAddSection={handleAddSection}/>}
+      {sectionModalIsOpen && <SectionModal isOpen={sectionModalIsOpen} onClose={closeSectionModal} initialDimensions={defaultSectionsDimensions} onAddSection={handleAddSection} />}
     </Card>
   );
 };

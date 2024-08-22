@@ -10,6 +10,7 @@ import { useDropzone } from 'react-dropzone'
 import { Spinner } from 'reactstrap';
 import { Button } from 'primereact/button';
 import { TiDelete } from "react-icons/ti";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 interface MediaLibraryProps {
     sizePerPage?: number
@@ -94,10 +95,17 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
         setIsOpen(prev => !prev);
     };
 
-    const handleRemove = (index) => {
-        const isConfirmed = window.confirm("Are you sure you want to delete the selected items?");
-        if (!isConfirmed) return;
+    const confirm1 = (index) => {
+        confirmDialog({
+            message: 'Are you sure you want to proceed?',
+            header: 'Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: () => handleRemove(index)
+        });
+    };
 
+    const handleRemove = (index) => {
         const newSelectedItems = selectedItems.filter((_, i) => i !== index);
         setSelectedItems(newSelectedItems);
         handleFilesSelectCallback(newSelectedItems);
@@ -105,6 +113,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
 
     return (
         <>
+            <ConfirmDialog />
             <div
                 {...getRootProps({
                     onClick: handleClick
@@ -129,7 +138,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                             }}
                         />
                         <TiDelete
-                            onClick={() => handleRemove(index)}
+                            onClick={() => confirm1(index)}
                             style={{
                                 position: 'absolute',
                                 top: '-0.5rem',

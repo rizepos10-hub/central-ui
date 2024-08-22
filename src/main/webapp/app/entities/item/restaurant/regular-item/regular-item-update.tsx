@@ -32,6 +32,7 @@ import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { preventEnterSubmit } from "app/shared/util/form-utils";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 
 
@@ -267,19 +268,25 @@ export const RegularItemUpdate = () => {
     }
   };
 
+  const confirm1 = (variantIndex) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleDeleteVariant(variantIndex)
+    });
+  };
 
   const handleDeleteVariant = (variantIndex) => {
-    const isConfirmed = window.confirm(translate('items.update.deleteVariantMessage'));
-    if (isConfirmed) {
-      setRegularItem((prev) => {
-        const updatedVariants = [...prev.variants];
-        updatedVariants.splice(variantIndex, 1);
-        return {
-          ...prev,
-          variants: updatedVariants,
-        };
-      });
-    }
+    setRegularItem((prev) => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants.splice(variantIndex, 1);
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
   };
 
   const VariantAccordionHeader = (variantIndex) => (
@@ -288,7 +295,7 @@ export const RegularItemUpdate = () => {
       e.stopPropagation()
     }} className={"d-flex gap-3 ml-2"}>
       <label className={"mt-2"}><strong>{regularItem?.variants?.[variantIndex]?.name}</strong></label>
-      <PrimeButton type={"button"} className={"ml-auto"} severity='danger' onClick={() => handleDeleteVariant(variantIndex)}>
+      <PrimeButton type={"button"} className={"ml-auto"} severity='danger' onClick={() => confirm1(variantIndex)}>
         <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
       </PrimeButton>
     </div>
@@ -301,6 +308,7 @@ export const RegularItemUpdate = () => {
 
   return (
     <form onKeyDown={preventEnterSubmit}>
+      <ConfirmDialog />
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card className="p-0">
