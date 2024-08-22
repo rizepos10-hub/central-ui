@@ -6,14 +6,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './tv.reducer';
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {getEntities as getTvDisplays} from "app/entities/settings/tv-config/tv-display/tv-display.reducer";
-import {InputText} from "primereact/inputtext";
-import {getSortState, Translate} from "react-jhipster";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { getEntities as getTvDisplays } from "app/entities/settings/tv-config/tv-display/tv-display.reducer";
+import { InputText } from "primereact/inputtext";
+import { getSortState, Translate } from "react-jhipster";
 import Select from "react-select";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {InputNumber} from "primereact/inputnumber";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { InputNumber } from "primereact/inputnumber";
 
 export const TVUpdate = () => {
   const dispatch = useAppDispatch();
@@ -27,7 +27,6 @@ export const TVUpdate = () => {
   const tv = useAppSelector(state => state.tv.entity);
   const loading = useAppSelector(state => state.tv.loading);
   const updating = useAppSelector(state => state.tv.updating);
-  const updateSuccess = useAppSelector(state => state.tv.updateSuccess);
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
@@ -55,41 +54,45 @@ export const TVUpdate = () => {
     }))
   }, []);
 
-  useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-  }, [updateSuccess]);
-
   const handleBranchChange = (selectedBranch) => {
-    dispatch(changeEntityField({name: "branch", value: selectedBranch}))
+    dispatch(changeEntityField({ name: "branch", value: selectedBranch }))
   }
 
   const handleDisplayChange = (display) => {
-    dispatch(changeEntityField({name: "tvDisplay", value: display}))
+    dispatch(changeEntityField({ name: "tvDisplay", value: display }))
   }
 
   const handleChange = e => {
     const { name, value } = e.target;
-    dispatch(changeEntityField({name, value}))
+    dispatch(changeEntityField({ name, value }))
   };
 
   const handleDimensionChange = (type, e) => {
-    dispatch(changeEntityField({name: "dimensions", value: {...tv.dimensions, [type]: e.value,}}))
+    dispatch(changeEntityField({ name: "dimensions", value: { ...tv.dimensions, [type]: e.value, } }))
   };
 
-
-
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault()
     const entity = {
       ...tv,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/tv/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/tv/new`)
+        }
+      })
     }
   };
 
@@ -97,7 +100,7 @@ export const TVUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Tv" : "Edit Tv"}</h2>
+          <h2>{isNew ? "Add New Tv" : "Edit Tv"}</h2>
         </Col>
       </Row>
       <Row>
@@ -105,10 +108,10 @@ export const TVUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form>
               <FormGroup>
                 <div className={"d-flex flex-column gap-0"}>
-                  <label  className={"mt-5"}>
+                  <label className={"mt-5"}>
                     <Translate contentKey={"tempApp.tv.name"}>Name</Translate>
                   </label>
                   <InputText
@@ -121,21 +124,21 @@ export const TVUpdate = () => {
                   />
                 </div>
                 <div className={"d-flex flex-column"}>
-                  <label  className={"mt-5"}>
+                  <label className={"mt-5"}>
                     <Translate contentKey={"tempApp.tv.dimensions"}>Dimensions</Translate>
                   </label>
                   <div className={"d-flex flex-column gap-3 my-2"}>
                     <div className="p-inputgroup w-full md:w-11rem">
                       <span className="p-inputgroup-addon">
-                      <Translate contentKey={"tempApp.tv.width"}>Width</Translate>
-                    </span>
+                        <Translate contentKey={"tempApp.tv.width"}>Width</Translate>
+                      </span>
                       <InputNumber
                         size={2}
                         maxFractionDigits={2}
                         name="dimension-width"
                         required={true}
                         value={tv?.dimensions?.width || 0}
-                        onChange={(e) => handleDimensionChange("width",e)}
+                        onChange={(e) => handleDimensionChange("width", e)}
                       />
                       <span className="p-inputgroup-addon">px</span>
                     </div>
@@ -150,7 +153,7 @@ export const TVUpdate = () => {
                         name="dimension-width"
                         required={true}
                         value={tv?.dimensions?.height || 0}
-                        onChange={(e) => handleDimensionChange("height",e)}
+                        onChange={(e) => handleDimensionChange("height", e)}
                       />
                       <span className="p-inputgroup-addon">px</span>
 
@@ -169,7 +172,7 @@ export const TVUpdate = () => {
                     getOptionValue={option => option.id}
                     getOptionLabel={option => option.name}
                     name={"branch"}
-                    value={tv.branch}
+                    value={tv.branch || null}
                   />
                 </div>
 
@@ -183,18 +186,28 @@ export const TVUpdate = () => {
                     getOptionValue={option => option.id}
                     getOptionLabel={option => option.name}
                     name={"tvDisplay"}
-                    value={tv.tvDisplay}
+                    value={tv.tvDisplay || null}
                   />
                 </div>
               </FormGroup>
-              <Button tag={Link} to="/tv" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
               </Button>
               &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;Save
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           )}

@@ -1,23 +1,24 @@
-import React, {useEffect, useState} from 'react';
-import {Link, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label,Table, } from 'reactstrap';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Button, Row, Col, FormGroup, Label, Table, } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './mix-and-match-rule.reducer';
-import {InputText} from "primereact/inputtext";
-import {Card as PrimeCard} from 'primereact/card'
-import {IMixAndMatchRule, IQuantityConfigurationProperties} from "app/shared/model/mix-and-match-rule.model";
-import {SelectButton} from "primereact/selectbutton";
+import { InputText } from "primereact/inputtext";
+import { Card as PrimeCard } from 'primereact/card'
+import { IMixAndMatchRule, IQuantityConfigurationProperties } from "app/shared/model/mix-and-match-rule.model";
+import { SelectButton } from "primereact/selectbutton";
 import Select from "react-select";
-import {getEntities as getDiscounts} from "app/entities/discount/discount.reducer";
-import {InputNumber} from "primereact/inputnumber";
-import {Checkbox} from "primereact/checkbox";
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {IProfileGroup} from "app/shared/model/TAX/profile-group.model";
-import {getEntities as getProfileGroups} from "app/entities/settings/profile-group/profile-group.reducer";
+import { getEntities as getDiscounts } from "app/entities/discount/discount.reducer";
+import { InputNumber } from "primereact/inputnumber";
+import { Checkbox } from "primereact/checkbox";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
+import { getEntities as getProfileGroups } from "app/entities/settings/profile-group/profile-group.reducer";
+import { Translate } from 'react-jhipster';
 
 interface INewQuantityRule extends IQuantityConfigurationProperties {
   quantity?: number;
@@ -40,14 +41,13 @@ export const MixAndMatchRuleUpdate = () => {
 
   });
 
-  const mixAndMatchRuleEntity :IMixAndMatchRule = useAppSelector(state => state.mixAndMatchRule.entity);
+  const mixAndMatchRuleEntity: IMixAndMatchRule = useAppSelector(state => state.mixAndMatchRule.entity);
   const discountList = useAppSelector(state => state.discount.entities);
-  const profileGroupList :IProfileGroup[] = useAppSelector(state => state.profileGroup.entities);
+  const profileGroupList: IProfileGroup[] = useAppSelector(state => state.profileGroup.entities);
   const loading = useAppSelector(state => state.mixAndMatchRule.loading);
   const updating = useAppSelector(state => state.mixAndMatchRule.updating);
-  const updateSuccess = useAppSelector(state => state.mixAndMatchRule.updateSuccess);
 
-  const isAddButtonDisabled = !newQuantityConfig.quantity ||  !newQuantityConfig?.discount?.id  && !newQuantityConfig.price;
+  const isAddButtonDisabled = !newQuantityConfig.quantity || !newQuantityConfig?.discount?.id && !newQuantityConfig.price;
 
   const handleClose = () => {
     navigate('/mix-and-match-rule' + location.search);
@@ -80,14 +80,10 @@ export const MixAndMatchRuleUpdate = () => {
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
     if (mixAndMatchRuleEntity) {
       setMixAndMatchRule(mixAndMatchRuleEntity);
     }
-
-  }, [updateSuccess, mixAndMatchRuleEntity?.id]);
+  }, [mixAndMatchRuleEntity?.id]);
 
   const handleChange = (e, value) => {
     const { name } = e.target;
@@ -122,7 +118,7 @@ export const MixAndMatchRuleUpdate = () => {
   };
 
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault()
     const entity: IMixAndMatchRule = {
       ...mixAndMatchRule,
@@ -130,12 +126,23 @@ export const MixAndMatchRuleUpdate = () => {
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/mix-and-match-rule/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/mix-and-match-rule/new`)
+        }
+      })
     }
   };
-
 
 
   return (
@@ -151,12 +158,12 @@ export const MixAndMatchRuleUpdate = () => {
             {loading ? (
               <p>Loading...</p>
             ) : (
-              <form onSubmit={saveEntity}>
+              <form>
                 <FormGroup className={"d-flex flex-column gap-3"}>
                   <div className={'d-flex flex-column'}>
                     <Label className={'font-bold'} for="name">Name</Label>
                     <InputText
-                      type="text" name="name" required={true} id="name" value={mixAndMatchRule.name}
+                      type="text" name="name" required={true} id="name" value={mixAndMatchRule.name || ''}
                       onChange={(e) => handleChange(e, e.target.value)}
                     />
                   </div>
@@ -164,7 +171,7 @@ export const MixAndMatchRuleUpdate = () => {
                   <div className={'d-flex flex-row gap-2'}>
                     <Label className={'font-bold'} for="exactValue">Exact Quantity</Label>
                     <Checkbox
-                      name="exactValue"  id="exactValue" checked={mixAndMatchRule.exactValue}
+                      name="exactValue" id="exactValue" checked={mixAndMatchRule.exactValue}
                       onChange={(e) => handleChange(e, e.checked)}
                     />
                   </div>
@@ -172,7 +179,7 @@ export const MixAndMatchRuleUpdate = () => {
                   <div className={'d-flex flex-row gap-2'}>
                     <Label className={'font-bold'} for="requireToBeSameSKU">Require to be same Item ID</Label>
                     <Checkbox
-                      name="requireToBeSameSKU"  id="requireToBeSameSKU" checked={mixAndMatchRule.requireToBeSameSKU}
+                      name="requireToBeSameSKU" id="requireToBeSameSKU" checked={mixAndMatchRule.requireToBeSameSKU}
                       onChange={(e) => handleChange(e, e.checked)}
                     />
                   </div>
@@ -189,38 +196,38 @@ export const MixAndMatchRuleUpdate = () => {
                       <tr>
                         <td>
                           <InputNumber
-                            value={newQuantityConfig?.quantity}
+                            value={newQuantityConfig?.quantity || 0}
                             min={0}
-                            onChange={e => setNewQuantityConfig(prev => ({...prev, quantity: e.value}))}
+                            onChange={e => setNewQuantityConfig(prev => ({ ...prev, quantity: e.value }))}
                           />
                         </td>
                         <td>
                           <SelectButton
-                            value={newQuantityConfig?.type}
+                            value={newQuantityConfig?.type || 'PRICE'}
                             unselectable={false}
-                            options={[ 'PRICE', 'DISCOUNT']}
+                            options={['PRICE', 'DISCOUNT']}
                             required
                             id="type"
-                            onChange={e => setNewQuantityConfig(prev => ({...prev, price: null, discount: null, type: e.value}))}
+                            onChange={e => setNewQuantityConfig(prev => ({ ...prev, price: null, discount: null, type: e.value }))}
                           />
                         </td>
-                        <td style={{  minWidth: '10rem'}}>
+                        <td style={{ minWidth: '10rem' }}>
                           {newQuantityConfig?.type === "DISCOUNT" ? (
                             <Select
-                              value={newQuantityConfig?.discount}
+                              value={newQuantityConfig?.discount || null}
                               options={discountList}
                               getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
                               getOptionValue={option => option.id}
-                              onChange={(discount) => setNewQuantityConfig(prev => ({...prev, discount}))}
+                              onChange={(discount) => setNewQuantityConfig(prev => ({ ...prev, discount }))}
                             />
                           ) : newQuantityConfig?.type === "PRICE" ? (
                             <InputNumber
-                              value={newQuantityConfig?.price}
+                              value={newQuantityConfig?.price || 0}
                               min={0}
                               maxFractionDigits={2}
                               size={5}
-                              onChange={e => setNewQuantityConfig(prev => ({...prev, price: e.value}))}
-                              />
+                              onChange={e => setNewQuantityConfig(prev => ({ ...prev, price: e.value }))}
+                            />
                           ) : null}
                         </td>
                         <td className={'w-2'}>
@@ -250,7 +257,7 @@ export const MixAndMatchRuleUpdate = () => {
                       <Label><strong>Tax Rule</strong></Label>
                       <div className="p-inputgroup w-full md:w-50rem">
                         <span className="p-inputgroup-addon">
-                        Above This Quantity
+                          Above This Quantity
                         </span>
                         <InputNumber
                           value={mixAndMatchRule?.rules?.[0]?.aboveQuantity}
@@ -282,14 +289,24 @@ export const MixAndMatchRuleUpdate = () => {
                   </div>
 
                 </FormGroup>
-                <Button tag={Link} to="/mix-and-match-rule" replace color="info">
+                <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                   <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;Back
+                  &nbsp;
+                  <span className="d-none d-md-inline">
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </span>
                 </Button>
                 &nbsp;
-                <Button color="primary" type="submit" disabled={updating}>
+                <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                   <FontAwesomeIcon icon="save" />
-                  &nbsp;Save
+                  &nbsp;
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+                &nbsp;
+                <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                  <FontAwesomeIcon icon="save" />
+                  &nbsp;
+                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
                 </Button>
               </form>
             )}

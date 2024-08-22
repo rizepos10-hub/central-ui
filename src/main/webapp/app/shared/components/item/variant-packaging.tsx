@@ -86,13 +86,13 @@ const VariantPackaging = ({
                                     ...variant?.variantPackage,
                                     quantity: e.target.value
                                 })}
-                                value={variant?.variantPackage?.quantity}
+                                value={variant?.variantPackage?.quantity || null}
                             />
                         </Col>
                         <Col md="3">
                             <InputGroup>
                                 <AsyncSelect
-                                    value={variant?.variantPackage}
+                                    value={variant?.variantPackage || null}
                                     defaultOptions
                                     getOptionLabel={option => option.name}
                                     getOptionValue={option => option.variantId}

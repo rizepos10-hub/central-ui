@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormText, Spinner, Label } from "reactstrap";
-import {getSortState, Translate} from 'react-jhipster';
+import { getSortState, Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './addon.reducer';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import Select from "react-select";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {Card as PrimeCard} from 'primereact/card'
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { Card as PrimeCard } from 'primereact/card'
 import { InputText } from "primereact/inputtext";
 import { IAddon } from "app/shared/model/ADDON/addon.model";
 import { IDiscount } from "app/shared/model/discount.model";
@@ -31,10 +31,9 @@ export const AddonUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const addonEntity :IAddon = useAppSelector(state => state.addon.entity);
+  const addonEntity: IAddon = useAppSelector(state => state.addon.entity);
   const loading = useAppSelector(state => state.addon.loading);
   const updating = useAppSelector(state => state.addon.updating);
-  const updateSuccess = useAppSelector(state => state.addon.updateSuccess);
   const discounts = useAppSelector(state => state.discount.entities);
   const tags = useAppSelector(state => state.tag.entities);
   const profileGroups = useAppSelector(state => state.profileGroup.entities);
@@ -47,12 +46,7 @@ export const AddonUpdate = () => {
 
   const handleChange = e => {
     const { name, value } = e.target;
-    dispatch(changeEntityField({name, value}))
-  };
-
-
-  const handleClose = () => {
-    navigate('/addon' + location.search);
+    dispatch(changeEntityField({ name, value }))
   };
 
   useEffect(() => {
@@ -68,9 +62,9 @@ export const AddonUpdate = () => {
     }));
 
     dispatch(getTags({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
     dispatch(getProfileGroups({
@@ -81,17 +75,7 @@ export const AddonUpdate = () => {
 
   }, []);
 
-  useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-
-    return () => {
-      dispatch(reset());
-    }
-  }, [updateSuccess]);
-
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
 
     const entity = {
@@ -99,9 +83,21 @@ export const AddonUpdate = () => {
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/predefined-pizza/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/predefined-pizza/new`)
+        }
+      })
     }
   };
 
@@ -113,7 +109,7 @@ export const AddonUpdate = () => {
     value: discount.value
   }));
 
-  if(loading){
+  if (loading) {
     return <Spinner />
   }
 
@@ -134,13 +130,13 @@ export const AddonUpdate = () => {
         </Row>
         <Col md="8">
           <PrimeCard>
-            <form onSubmit={saveEntity}>
+            <form>
               <div className={'d-flex flex-column'}>
                 <Label for="addon-name">
                   <Translate contentKey={'common.name'}>Name</Translate>
                 </Label>
                 <InputText name="name" required={true} id="addon-name" value={addonEntity.name || ''}
-                           onChange={handleChange} />
+                  onChange={handleChange} />
               </div>
               <div className={'d-flex flex-column mt-3'}>
                 <Label for="addon-desc">
@@ -168,7 +164,7 @@ export const AddonUpdate = () => {
                   <Translate contentKey={'common.profileGroup'}>Profile Group</Translate>
                 </Label>
                 <Select
-                  value={addonEntity?.accountingGroups}
+                  value={addonEntity?.accountingGroups || []}
                   options={profileGroups}
                   id="addon-profileGroup"
 
@@ -186,7 +182,7 @@ export const AddonUpdate = () => {
                   <Translate contentKey={'common.tags'}>Tags</Translate>
                 </Label>
                 <Select
-                  value={addonEntity?.tags}
+                  value={addonEntity?.tags || []}
                   isMulti={true}
                   options={tags}
                   id="addon-tags"
@@ -203,7 +199,7 @@ export const AddonUpdate = () => {
                   <Translate contentKey={'common.discount'}>Discounts</Translate>
                 </Label>
                 <Select
-                  value={addonEntity.discounts}
+                  value={addonEntity.discounts || []}
                   id="addon-discount"
                   options={discountsOptions}
                   isClearable
@@ -216,19 +212,24 @@ export const AddonUpdate = () => {
                     }))}
                 />
               </div>
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/addon" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
-                  <Translate contentKey="common.back">Back</Translate>
+                  <Translate contentKey="entity.action.back">Back</Translate>
                 </span>
               </Button>
               &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                      disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
-                <Translate contentKey="common.save">Save</Translate>
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           </PrimeCard>

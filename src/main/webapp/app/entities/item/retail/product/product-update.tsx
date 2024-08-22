@@ -373,7 +373,7 @@ export const ProductUpdate = () => {
   const handleAttributeTermChange = (index: number, selectedTerms): void => {
     setProduct((prevProduct: IProduct) => {
       // Identify removed attribute terms
-      const currentAttributeTerms = prevProduct.attributes[index].attributeTerms;
+      const currentAttributeTerms = prevProduct.attributes[index].attributeTerms || [];
       const currentTermIds = currentAttributeTerms.map(term => term.id);
       const newTermIds = selectedTerms.map(term => term.id);
 
@@ -581,13 +581,9 @@ export const ProductUpdate = () => {
         variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
       });
     }
-    const productId = productEntity?.id;
-    if (updateSuccess) {
-      handleNavigate(productId);
-    }
-  }, [productEntity, updateSuccess]);
+  }, [productEntity]);
 
-  const saveEntity = e => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
 
     const updatedVariants = product?.variants.map((variant, index) => {
@@ -604,11 +600,27 @@ export const ProductUpdate = () => {
       ...product,
       variants: updatedVariants,
     };
-    console.table(entity);
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          reset()
+          setProduct({
+            itemType: 'RETAIL',
+            itemVariantType: ItemVariantType.RETAIL_SIMPLE,
+            variants: [],
+          })
+        } else {
+          const payload = res?.payload as any;
+          const newProductId = payload?.data?.id;
+          handleNavigate(newProductId)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/product/new`)
+        }
+      })
     }
   };
 
@@ -743,7 +755,7 @@ export const ProductUpdate = () => {
   }
 
   return (
-    <form onSubmit={saveEntity} onKeyDown={preventEnterSubmit}>
+    <form onKeyDown={preventEnterSubmit}>
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card>
@@ -771,7 +783,7 @@ export const ProductUpdate = () => {
                                   id="sku"
                                   required={true}
                                   placeholder={translate('items.update.placeholders.itemSku')}
-                                  value={product?.variants?.[0]?.sku}
+                                  value={product?.variants?.[0]?.sku || ''}
                                   onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
                                 />
                               </div>
@@ -784,7 +796,7 @@ export const ProductUpdate = () => {
                               </label>
                               <SelectButton
                                 type="button"
-                                value={product?.itemVariantType}
+                                value={product?.itemVariantType || null}
                                 options={itemTypes}
                                 allowEmpty={false}
                                 optionValue={'value'}
@@ -812,7 +824,7 @@ export const ProductUpdate = () => {
                                       maxFractionDigits={2}
                                       inputClassName={'w-1'}
                                       placeholder={translate('items.update.placeholders.itemPrice')}
-                                      value={product?.variants?.[0]?.price}
+                                      value={product?.variants?.[0]?.price || null}
                                       onChange={e => handleVariantFieldChange(0, 'price', e.value)}
                                     />
                                   </div>
@@ -829,7 +841,7 @@ export const ProductUpdate = () => {
                                       min={0}
                                       maxFractionDigits={2}
                                       placeholder={translate('items.update.placeholders.itemSalePrice')}
-                                      value={product?.variants?.[0]?.salePrice}
+                                      value={product?.variants?.[0]?.salePrice || null}
                                       onChange={e => handleVariantFieldChange(0, 'salePrice', e.value)}
                                     />
                                   </div>
@@ -854,7 +866,7 @@ export const ProductUpdate = () => {
                                         ].filter(option => option !== null)
                                       }
                                       placeholder="Select Measure"
-                                      value={product?.variants?.[0]?.itemMeasure?.id}
+                                      value={product?.variants?.[0]?.itemMeasure?.id || null}
                                       onChange={(e) => handleMeasureChange(e.value, 0)}
                                     />
                                   </div>
@@ -890,7 +902,7 @@ export const ProductUpdate = () => {
                                         <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                       </label>
                                       <Select
-                                        value={product?.variants?.[0]?.mixAndMatchRule}
+                                        value={product?.variants?.[0]?.mixAndMatchRule || null}
                                         options={mixAndMatchRuleList}
                                         getOptionLabel={option => option.name}
                                         getOptionValue={option => option.id}
@@ -941,7 +953,7 @@ export const ProductUpdate = () => {
                                         </label>
                                         <Col md={'9'}>
                                           <AsyncSelect
-                                            value={attribute?.attributeTerms}
+                                            value={attribute?.attributeTerms || []}
                                             isMulti
                                             getOptionLabel={option => option.name}
                                             getOptionValue={option => option.id}
@@ -1001,7 +1013,7 @@ export const ProductUpdate = () => {
                                                       id="name"
                                                       required={true}
                                                       placeholder={translate('items.update.placeholders.variantName')}
-                                                      value={variant?.name}
+                                                      value={variant?.name || ''}
                                                       onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
                                                     />
                                                   </div>
@@ -1017,7 +1029,7 @@ export const ProductUpdate = () => {
                                                       id="sku"
                                                       required={true}
                                                       placeholder="Variant Sku"
-                                                      value={variant?.sku}
+                                                      value={variant?.sku || ''}
                                                       onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
                                                     />
                                                   </div>
@@ -1035,7 +1047,7 @@ export const ProductUpdate = () => {
                                                       inputClassName={'w-1'}
                                                       required={true}
                                                       placeholder="Variant Price"
-                                                      value={variant?.price}
+                                                      value={variant?.price || null}
                                                       min={0}
                                                       maxFractionDigits={2}
                                                       onChange={e => handleVariantFieldChange(variantIndex, 'price', e.value)}
@@ -1054,7 +1066,7 @@ export const ProductUpdate = () => {
                                                       placeholder="Variant Sale Price"
                                                       min={0}
                                                       maxFractionDigits={2}
-                                                      value={variant?.salePrice}
+                                                      value={variant?.salePrice || null}
                                                       onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
                                                     />
                                                   </div>
@@ -1079,7 +1091,7 @@ export const ProductUpdate = () => {
                                                         ].filter(option => option !== null)
                                                       }
                                                       placeholder="Select Measure"
-                                                      value={product?.variants?.[0]?.itemMeasure?.id}
+                                                      value={product?.variants?.[0]?.itemMeasure?.id || null}
                                                       onChange={(e) => handleMeasureChange(e.value, 0)}
                                                     />
                                                   </div>
@@ -1110,7 +1122,7 @@ export const ProductUpdate = () => {
                                                       <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
                                                     </label>
                                                     <Select
-                                                      value={variant?.accountingGroups}
+                                                      value={variant?.accountingGroups || []}
                                                       isClearable
                                                       options={profileGroupsOptions}
                                                       getOptionLabel={option => option.name}
@@ -1136,7 +1148,7 @@ export const ProductUpdate = () => {
                                                       <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                                     </label>
                                                     <Select
-                                                      value={variant?.mixAndMatchRule}
+                                                      value={variant?.mixAndMatchRule || null}
                                                       options={mixAndMatchRuleList}
                                                       getOptionLabel={option => option.name}
                                                       getOptionValue={option => option.id}
@@ -1204,7 +1216,7 @@ export const ProductUpdate = () => {
                               <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
                             </label>
                             <Select
-                              value={product?.baseMeasure}
+                              value={product?.baseMeasure || null}
                               options={measureList}
                               name="baseMeasure"
                               getOptionValue={option => option.id}
@@ -1234,7 +1246,7 @@ export const ProductUpdate = () => {
                                 </td>
                                 <td>
                                   <InputNumber
-                                    value={measureToAdd?.exchangeRate}
+                                    value={measureToAdd?.exchangeRate || null}
                                     disabled={!measureToAdd?.itemMeasure}
                                     onChange={e => setMeasureToAdd(prev => ({ ...prev, exchangeRate: e.value }))}
                                   />
@@ -1274,7 +1286,7 @@ export const ProductUpdate = () => {
                                   <td>{exMeasure?.itemMeasure?.name}</td>
                                   <td>
                                     <InputNumber
-                                      value={exMeasure?.exchangeRate}
+                                      value={exMeasure?.exchangeRate || null}
                                       required
                                       onChange={e => handleMeasuresChange(index, e.value)}
                                     />
@@ -1307,8 +1319,8 @@ export const ProductUpdate = () => {
         >
           <Card>
             <CardHeader>Actions</CardHeader>
-            <div className={'d-flex gap-3 mt-2'}>
-              <PrimeButton type="button" onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity="secondary">
+            <div className={'d-flex gap-1 mt-2'}>
+              <PrimeButton className='p-1 fs-6' type="button" onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity="secondary">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
@@ -1316,10 +1328,15 @@ export const ProductUpdate = () => {
                 </span>
               </PrimeButton>
               &nbsp;
-              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <PrimeButton className='p-1 fs-6' onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
+              </PrimeButton>
+              <PrimeButton className='p-1 fs-6' onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
               </PrimeButton>
             </div>
           </Card>

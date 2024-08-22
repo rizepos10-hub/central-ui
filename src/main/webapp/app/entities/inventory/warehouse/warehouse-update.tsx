@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './warehouse.reducer';
-import {InputText} from "primereact/inputtext";
-import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
-import {Checkbox} from "primereact/checkbox";
+import { InputText } from "primereact/inputtext";
+import { IWarehouse } from "app/shared/model/STOCK/warehouse.model";
+import { Checkbox } from "primereact/checkbox";
 import { translate, Translate } from "react-jhipster";
 
 export const WarehouseUpdate = () => {
@@ -22,12 +22,6 @@ export const WarehouseUpdate = () => {
   const warehouseEntity = useAppSelector(state => state.warehouse.entity);
   const loading = useAppSelector(state => state.warehouse.loading);
   const updating = useAppSelector(state => state.warehouse.updating);
-  const updateSuccess = useAppSelector(state => state.warehouse.updateSuccess);
-
-
-  const handleClose = () => {
-    navigate('/inventory/warehouse' + location.search);
-  };
 
   useEffect(() => {
     if (isNew) {
@@ -38,29 +32,38 @@ export const WarehouseUpdate = () => {
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    if(warehouseEntity){
+    if (warehouseEntity) {
       setWarehouse(warehouseEntity)
     }
-  }, [updateSuccess, warehouseEntity?.name]);
+  }, [warehouseEntity?.name]);
 
   const handleChange = e => {
     const { name, value } = e.target;
     setWarehouse(prevState => ({ ...prevState, [name]: value }));
   };
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault()
     const entity = {
       ...warehouse,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/inventory/warehouse/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/inventory/warehouse/new`)
+        }
+      })
     }
   };
 
@@ -76,20 +79,20 @@ export const WarehouseUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form>
               <FormGroup>
                 <div className={'d-flex flex-column'}>
                   <Label for="name">
                     <Translate contentKey={'common.name'}>Name</Translate>
                   </Label>
-                  <InputText type="text" name="name" required={true} id="name" value={warehouse.name} onChange={handleChange} />
+                  <InputText type="text" name="name" required={true} id="name" value={warehouse.name || ''} onChange={handleChange} />
                 </div>
 
                 <div className={'d-flex flex-column mt-2'}>
                   <Label for="location">
                     <Translate contentKey={'common.location'}>Location</Translate>
                   </Label>
-                  <InputText type="text" name="location" id="location" value={warehouse.location} onChange={handleChange} />
+                  <InputText type="text" name="location" id="location" value={warehouse.location || ''} onChange={handleChange} />
                 </div>
 
                 <div className={'d-flex mt-2 gap-2'}>
@@ -104,14 +107,24 @@ export const WarehouseUpdate = () => {
                   />
                 </div>
               </FormGroup>
-              <Button tag={Link} to="/inventory/warehouse" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;<Translate contentKey={'common.back'} />
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
               </Button>
               &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;<Translate contentKey={'common.save'} />
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           )}

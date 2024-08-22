@@ -7,14 +7,14 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-predefined.reducer';
 
-import {getEntities as getToppings} from "app/entities/pizza-settings/pizza-topping/pizza-topping.reducer";
+import { getEntities as getToppings } from "app/entities/pizza-settings/pizza-topping/pizza-topping.reducer";
 
-import {InputText} from "primereact/inputtext";
-import {IPredefinedPizza} from "app/shared/model/PIZZA/predefined-pizza.model";
+import { InputText } from "primereact/inputtext";
+import { IPredefinedPizza } from "app/shared/model/PIZZA/predefined-pizza.model";
 import Select from "react-select";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState} from "react-jhipster";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { getSortState, Translate } from "react-jhipster";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 
 export const PredefinedPizzaUpdate = () => {
   const dispatch = useAppDispatch();
@@ -34,7 +34,6 @@ export const PredefinedPizzaUpdate = () => {
   const predefinedPizzaEntity = useAppSelector(state => state.predefinedPizza.entity);
   const loading = useAppSelector(state => state.predefinedPizza.loading);
   const updating = useAppSelector(state => state.predefinedPizza.updating);
-  const updateSuccess = useAppSelector(state => state.predefinedPizza.updateSuccess);
   const pizzaToppingList = useAppSelector(state => state.pizzaTopping.entities);
 
 
@@ -57,13 +56,10 @@ export const PredefinedPizzaUpdate = () => {
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    if(predefinedPizzaEntity){
+    if (predefinedPizzaEntity) {
       setPredefinedPizza(predefinedPizzaEntity)
     }
-  }, [updateSuccess, predefinedPizzaEntity?.name, pizzaToppingList[0]?.name]);
+  }, [predefinedPizzaEntity?.name, pizzaToppingList[0]?.name]);
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -72,19 +68,31 @@ export const PredefinedPizzaUpdate = () => {
 
   const handleOptionChange = (selectedOptions) => {
     console.log(selectedOptions, 'selectedOptions')
-    setPredefinedPizza((prevState => ({...prevState, toppings: selectedOptions})))
+    setPredefinedPizza((prevState => ({ ...prevState, toppings: selectedOptions })))
   }
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault()
     const entity = {
       ...predefinedPizza,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/predefined-pizza/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/predefined-pizza/new`)
+        }
+      })
     }
   };
 
@@ -100,7 +108,7 @@ export const PredefinedPizzaUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form>
               <FormGroup>
                 <div className={"d-flex flex-column mb-3"}>
                   <Label for="predefined-pizza-name">Name</Label>
@@ -109,7 +117,7 @@ export const PredefinedPizzaUpdate = () => {
                     name="name"
                     required={true}
                     id="predefined-pizza-name"
-                    value={predefinedPizza.name}
+                    value={predefinedPizza.name || ''}
                     onChange={handleChange}
                   />
                 </div>
@@ -123,20 +131,30 @@ export const PredefinedPizzaUpdate = () => {
                     getOptionValue={(option => option.id)}
                     required={true}
                     id="predefined-pizza-toppings"
-                    value={predefinedPizza.toppings}
+                    value={predefinedPizza.toppings || []}
                     onChange={handleOptionChange}
                   />
 
                 </div>
               </FormGroup>
-              <Button tag={Link} to="/predefined-pizza" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
               </Button>
               &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;Save
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           )}
