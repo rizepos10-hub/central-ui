@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   Button,
   Row,
@@ -12,16 +12,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {ICustomer, IWholesalePriceLine} from 'app/shared/model/CUSTOMER/customer.model';
-import {getEntity, updateEntity, createEntity, reset,changeEntityField, updatePrices, getPricesForCustomer} from './customer.reducer';
-import {Card as PrimeCard} from 'primereact/card'
-import {filterOrders} from "app/entities/order/order.reducer";
+import { ICustomer, IWholesalePriceLine } from 'app/shared/model/CUSTOMER/customer.model';
+import { getEntity, updateEntity, createEntity, reset, changeEntityField, updatePrices, getPricesForCustomer } from './customer.reducer';
+import { Card as PrimeCard } from 'primereact/card'
+import { filterOrders } from "app/entities/order/order.reducer";
 import Order from "app/entities/order/order";
-import {getEntities} from "app/entities/loyalty/loyalty-records.reducer";
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {InputNumber} from "primereact/inputnumber";
-import {InputText} from "primereact/inputtext";
-import {Dropdown} from "primereact/dropdown";
+import { getEntities } from "app/entities/loyalty/loyalty-records.reducer";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { InputNumber } from "primereact/inputnumber";
+import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
 
 export const CustomerUpdate = () => {
   const dispatch = useAppDispatch();
@@ -40,7 +40,7 @@ export const CustomerUpdate = () => {
   const fromLocation = new URLSearchParams(search).get('from');
 
 
-  const customerEntity :ICustomer = useAppSelector(state => state.customer.entity);
+  const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
   const loyaltyRecord = useAppSelector(state => state.loyalty.entities?.[0]);
   const branchList = useAppSelector(state => state.branch.entities);
   const wholeSaleBranches = branchList?.filter(branch => branch.wholesale);
@@ -52,7 +52,7 @@ export const CustomerUpdate = () => {
     dispatch(changeEntityField({
       name: 'wholesalePriceLines',
       value: {
-      ...customerEntity.wholesalePriceLines,
+        ...customerEntity.wholesalePriceLines,
         [branchId]: priceLine
       }
     }));
@@ -74,13 +74,13 @@ export const CustomerUpdate = () => {
     } else {
       dispatch(getEntity(id));
       const filters = {};
-      filters['customer.id'] = {value: id, matchMode: "EQUALS"}
+      filters['customer.id'] = { value: id, matchMode: "EQUALS" }
       const params = {
-        first:  0,
+        first: 0,
         rows: 100,
         page: 0,
-        sortField:  null,
-        sortOrder:  null,
+        sortField: null,
+        sortOrder: null,
         filters,
       }
       dispatch(
@@ -100,33 +100,30 @@ export const CustomerUpdate = () => {
 
   }, []);
 
-
-
-
-
-
-  useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-  }, [updateSuccess]);
-
-  const saveEntity =  (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
     const entity = {
       ...customerEntity,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity))
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/customer/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/customer/new`)
+        }
+      })
     }
   };
-
-
-
-
 
   return (
     <div>
@@ -147,13 +144,13 @@ export const CustomerUpdate = () => {
             {loading ? (
               <p>Loading...</p>
             ) : (
-              <form onSubmit={saveEntity}>
+              <form>
                 <FormGroup>
                   <div className={'d-flex flex-column mb-3'}>
                     <Label htmlFor="customer-firstName">{translate('tempApp.firstName')}</Label>
                     <InputText
                       id="customer-firstName"
-                      value={customerEntity?.firstName || null}
+                      value={customerEntity?.firstName || ''}
                       onChange={e => dispatch(changeEntityField({ name: 'firstName', value: e.target.value }))}
                       required={!customerEntity?.businessDetails?.businessName}
                     />
@@ -163,7 +160,7 @@ export const CustomerUpdate = () => {
                     <Label htmlFor="customer-lastName">{translate('tempApp.lastName')}</Label>
                     <InputText
                       id="customer-lastName"
-                      value={customerEntity?.lastName || null}
+                      value={customerEntity?.lastName || ''}
                       onChange={e => dispatch(changeEntityField({ name: 'lastName', value: e.target.value }))}
                     />
                   </div>
@@ -172,7 +169,7 @@ export const CustomerUpdate = () => {
                     <Label htmlFor="customer-phone">{translate('tempApp.phone')}</Label>
                     <InputText
                       id="customer-phone"
-                      value={customerEntity?.phone || null}
+                      value={customerEntity?.phone || ''}
                       onChange={e => dispatch(changeEntityField({ name: 'phone', value: e.target.value }))}
                     />
                   </div>
@@ -181,7 +178,7 @@ export const CustomerUpdate = () => {
                     <Label htmlFor="customer-mobileNumber">{translate('tempApp.mobileNumber')}</Label>
                     <InputText
                       id="customer-mobileNumber"
-                      value={customerEntity?.mobileNumber || null}
+                      value={customerEntity?.mobileNumber || ''}
                       onChange={e => dispatch(changeEntityField({ name: 'mobileNumber', value: e.target.value }))}
                     />
                   </div>
@@ -190,7 +187,7 @@ export const CustomerUpdate = () => {
                     <Label htmlFor="customer-fax">{translate('tempApp.fax')}</Label>
                     <InputText
                       id="customer-fax"
-                      value={customerEntity?.fax || null}
+                      value={customerEntity?.fax || ''}
                       onChange={e => dispatch(changeEntityField({ name: 'fax', value: e.target.value }))}
                     />
                   </div>
@@ -199,7 +196,7 @@ export const CustomerUpdate = () => {
                     <Label htmlFor="customer-phone">{translate('tempApp.email')}</Label>
                     <InputText
                       id="customer-email"
-                      value={customerEntity?.email || null}
+                      value={customerEntity?.email || ''}
                       onChange={e => dispatch(changeEntityField({ name: 'email', value: e.target.value }))}
                     />
                   </div>
@@ -207,24 +204,26 @@ export const CustomerUpdate = () => {
                   {!isNew && (
                     <div className={'d-flex flex-column mb-3'}>
                       <Label htmlFor="customer-phone">{translate('tempApp.loyaltyRecord')}</Label>
-                      <InputNumber id="customer-loyaltyRecord" value={loyaltyRecord?.points ?? null} disabled />
+                      <InputNumber id="customer-loyaltyRecord" value={loyaltyRecord?.points ?? ''} disabled />
                     </div>
                   )}
                   <>
                     <h4>{translate("common.additionalInfo")}</h4>
-                  <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="customer-businessName">{translate('tempApp.businessName')}</Label>
-                    <InputText
-                      id="customer-businessName"
-                      value={customerEntity?.businessDetails?.businessName || ""}
-                      onChange={e => dispatch(changeEntityField({ name: 'businessDetails', value: {
-                        ...customerEntity.businessDetails,
-                          businessName: e.target.value
-                        }}))}
-                      required={!customerEntity?.firstName}
-                    />
-                  </div>
-                    </>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="customer-businessName">{translate('tempApp.businessName')}</Label>
+                      <InputText
+                        id="customer-businessName"
+                        value={customerEntity?.businessDetails?.businessName || ""}
+                        onChange={e => dispatch(changeEntityField({
+                          name: 'businessDetails', value: {
+                            ...customerEntity.businessDetails,
+                            businessName: e.target.value
+                          }
+                        }))}
+                        required={!customerEntity?.firstName}
+                      />
+                    </div>
+                  </>
 
                   {wholeSaleBranches?.length > 0 ? (
                     <>
@@ -246,7 +245,7 @@ export const CustomerUpdate = () => {
                                 <td>
                                   <Dropdown
                                     placeholder={'Enter Price Line'}
-                                    value={customerEntity?.wholesalePriceLines?.[branch.id]}
+                                    value={customerEntity?.wholesalePriceLines?.[branch.id] || ''}
                                     options={priceLineOptions}
                                     style={{ minWidth: '15rem' }}
                                     onChange={event => handleBranchPriceChange(branch.id, event.target.value)}
@@ -267,14 +266,7 @@ export const CustomerUpdate = () => {
                     </div>
                   )}
                 </FormGroup>
-                <Button
-                  tag={Link}
-                  id="cancel-save"
-                  data-cy="entityCreateCancelButton"
-                  to={fromLocation ? fromLocation : '/customer'}
-                  replace
-                  color="info"
-                >
+                <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                   <FontAwesomeIcon icon="arrow-left" />
                   &nbsp;
                   <span className="d-none d-md-inline">
@@ -282,10 +274,16 @@ export const CustomerUpdate = () => {
                   </span>
                 </Button>
                 &nbsp;
-                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                   <FontAwesomeIcon icon="save" />
                   &nbsp;
                   <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+                &nbsp;
+                <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                  <FontAwesomeIcon icon="save" />
+                  &nbsp;
+                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
                 </Button>
               </form>
             )}

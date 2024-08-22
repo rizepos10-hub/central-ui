@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
-import { getSortState, Translate,} from 'react-jhipster';
+import { getSortState, Translate, } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getTags } from 'app/entities/tag/tag.reducer';
@@ -21,7 +21,7 @@ export const TagUpdate = () => {
   const isNew = id === undefined;
 
 
-  const tagEntity :ITag = useAppSelector(state => state.tag.entity);
+  const tagEntity: ITag = useAppSelector(state => state.tag.entity);
   const loading = useAppSelector(state => state.tag.loading);
   const updating = useAppSelector(state => state.tag.updating);
   const updateSuccess = useAppSelector(state => state.tag.updateSuccess);
@@ -53,28 +53,30 @@ export const TagUpdate = () => {
 
   const handleChange = e => {
     const { name, value } = e.target;
-    dispatch(changeEntityField({name, value}))
+    dispatch(changeEntityField({ name, value }))
   };
-
-  useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    return () => {
-      reset();
-    };
-  }, [updateSuccess]);
-
-  const saveEntity = (e?) => {
+  const saveEntity = (e, createNew = false) => {
     e?.preventDefault();
     const entity = {
       ...tagEntity,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/tag/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/tag/new`)
+        }
+      })
     }
   };
 
@@ -98,7 +100,7 @@ export const TagUpdate = () => {
               <p>Loading...</p>
             ) : (
               <>
-                <form onSubmit={saveEntity}>
+                <form>
                   <FormGroup className={"d-flex flex-column gap-3"}>
                     <div className={'d-flex flex-column'}>
                       <Label for="tag-group-name">
@@ -109,25 +111,31 @@ export const TagUpdate = () => {
                         name="name"
                         required={true}
                         id="tag-group-name"
-                        value={tagEntity?.name}
+                        value={tagEntity?.name || ''}
                         onChange={handleChange}
                       />
                     </div>
 
                   </FormGroup>
 
-                  <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/tag" replace color="info">
+                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                     <FontAwesomeIcon icon="arrow-left" />
                     &nbsp;
                     <span className="d-none d-md-inline">
-                        <Translate contentKey="entity.action.back">Back</Translate>
-                      </span>
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </span>
                   </Button>
                   &nbsp;
-                  <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                  <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                     <FontAwesomeIcon icon="save" />
                     &nbsp;
                     <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  &nbsp;
+                  <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <FontAwesomeIcon icon="save" />
+                    &nbsp;
+                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
                   </Button>
                 </form>
               </>

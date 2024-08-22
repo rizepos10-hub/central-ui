@@ -20,7 +20,7 @@ const DiscountDropdown = ({discounts, handleChange, variantIndex, handleVariantC
         <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
       </label>
       <Select
-        value={discounts}
+        value={discounts || []}
         options={discountList}
         isClearable
         getOptionLabel={option => (option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`)}

@@ -36,7 +36,7 @@ const ComboItemAddonDropDown = ({ itemAddons = [], variantAddons = [], selectedC
               -
             </Button>
             <span className="p-3" style={{ display: 'inline-block' }}>
-              {comboAddon?.amount}
+              {comboAddon?.amount || null}
             </span>
             <Button
               className="increment-button"

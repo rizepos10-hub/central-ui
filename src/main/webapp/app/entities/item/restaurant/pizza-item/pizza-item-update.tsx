@@ -409,7 +409,6 @@ export const PizzaItemUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
-
     if (!isNew) {
       setPizzaItem(pizzaItemEntity);
     } else {
@@ -423,15 +422,10 @@ export const PizzaItemUpdate = () => {
         }]
       })
     }
-    const pizzaItemId = pizzaItemEntity?.id
-    if (updateSuccess) {
-      handleNavigate(pizzaItemId);
-    }
-
   }, [pizzaItemEntity, updateSuccess]);
 
 
-  const saveEntity = e => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
     console.table(pizzaItem)
     const entity = {
@@ -439,20 +433,28 @@ export const PizzaItemUpdate = () => {
     };
     console.table(entity)
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          reset()
+          setPizzaItem({})
+        } else {
+          const payload = res?.payload as any;
+          const newProductId = payload?.data?.id;
+          handleNavigate(newProductId)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/restaurant/pizza/new`)
+        }
+      })
     }
   };
-
-
-
-
 
   if (loading) {
     return <Spinner />
   }
-
 
   return (
     <div>
@@ -496,7 +498,7 @@ export const PizzaItemUpdate = () => {
         </div> : null}
       <Row>
         {activeIndex === 1 || !isNew ?
-          <form onSubmit={saveEntity}  onKeyDown={preventEnterSubmit}>
+          <form onKeyDown={preventEnterSubmit}>
             <div className={"d-flex row"}>
               <Col md={9}>
                 <Card className='p-0'>
@@ -518,7 +520,7 @@ export const PizzaItemUpdate = () => {
                                     <Translate contentKey={'items.update.pizza.predefined'}>Predefined Pizza</Translate>
                                   </label>
                                   <Select
-                                    value={pizzaItem?.variants?.[0]?.predefinedPizza}
+                                    value={pizzaItem?.variants?.[0]?.predefinedPizza || null}
                                     required
                                     options={predefinedPizzaOptions}
                                     getOptionLabel={option => option.name}
@@ -538,7 +540,7 @@ export const PizzaItemUpdate = () => {
                                       <Translate contentKey={"items.update.pizza.itemPricing"}>Item Pricing</Translate>
                                     </label>
                                     <Select
-                                      value={pizzaItem?.variants?.[0]?.itemPricingClass}
+                                      value={pizzaItem?.variants?.[0]?.itemPricingClass || null}
                                       options={filteredOptions?.itemPricingClass}
                                       isClearable
                                       getOptionLabel={option => option.name}
@@ -554,7 +556,7 @@ export const PizzaItemUpdate = () => {
                                     <Translate contentKey={'items.update.discounts'}>Discounts</Translate>
                                   </label>
                                   <Select
-                                    value={pizzaItem?.variants?.[0]?.discounts}
+                                    value={pizzaItem?.variants?.[0]?.discounts || []}
                                     options={discountList}
                                     isMulti
                                     getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
@@ -570,7 +572,7 @@ export const PizzaItemUpdate = () => {
                                     <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                   </label>
                                   <Select
-                                    value={pizzaItem?.variants?.[0]?.mixAndMatchRule}
+                                    value={pizzaItem?.variants?.[0]?.mixAndMatchRule || null}
                                     options={mixAndMatchRuleList}
                                     getOptionLabel={option => option.name}
                                     getOptionValue={option => option.id}
@@ -599,7 +601,7 @@ export const PizzaItemUpdate = () => {
                                             <tr key={index}>
                                               <td>
                                                 <InputNumber
-                                                  value={baseDetail?.toppingsNumber}
+                                                  value={baseDetail?.toppingsNumber || null}
                                                   min={2}
                                                   onChange={(e) =>
                                                     handleBaseDetailChange(index, "toppingsNumber", e.value)
@@ -609,7 +611,7 @@ export const PizzaItemUpdate = () => {
                                               <td>
                                                 <Select
                                                   options={pizzaPricingClasses}
-                                                  value={baseDetail?.pricingClass}
+                                                  value={baseDetail?.pricingClass || null}
                                                   getOptionValue={(option: IPizzaPricingClass) => option.id}
                                                   getOptionLabel={(option: IPizzaPricingClass) => option.name}
                                                   onChange={(pricingClass) =>
@@ -643,7 +645,7 @@ export const PizzaItemUpdate = () => {
                                   <AccordionTab header={"Toppings"}>
                                     <div className={"d-flex flex-column p-0 w-100"}>
                                       <Select
-                                        value={pizzaItem?.variants?.[0]?.toppingPricing?.map((toppingPrice) => toppingPrice.topping)}
+                                        value={pizzaItem?.variants?.[0]?.toppingPricing?.map((toppingPrice) => toppingPrice.topping) || null}
                                         isMulti
                                         getOptionLabel={(option: ITopping) => option.name}
                                         getOptionValue={(option: ITopping) => option.id}
@@ -663,7 +665,7 @@ export const PizzaItemUpdate = () => {
                                               <td>{toppingPrice.topping.name}</td>
                                               <td>
                                                 <Select
-                                                  value={toppingPrice.pricingClass}
+                                                  value={toppingPrice.pricingClass || null}
                                                   getOptionLabel={(option: IPizzaPricingClass) => option.name}
                                                   getOptionValue={(option: IPizzaPricingClass) => option.id}
                                                   onChange={(selectedPricingClass) =>
@@ -686,7 +688,7 @@ export const PizzaItemUpdate = () => {
                                     <div className={"d-flex flex-column p-0 w-100"}>
                                       <div>
                                         <Select
-                                          value={pizzaItem?.variants?.[0]?.crustTypePricing?.map((crustTypePricing) => crustTypePricing?.crustType)}
+                                          value={pizzaItem?.variants?.[0]?.crustTypePricing?.map((crustTypePricing) => crustTypePricing?.crustType) || null}
                                           isMulti
                                           getOptionLabel={(option: ICrustType) => option.name}
                                           getOptionValue={(option: ICrustType) => option.id}
@@ -707,7 +709,7 @@ export const PizzaItemUpdate = () => {
                                                   <td>{crustTypePricing?.crustType?.name}</td>
                                                   <td>
                                                     <Select
-                                                      value={crustTypePricing?.pricingClass}
+                                                      value={crustTypePricing?.pricingClass || null}
                                                       getOptionLabel={(option: IPizzaPricingClass) => option.name}
                                                       getOptionValue={(option: IPizzaPricingClass) => option.id}
                                                       onChange={(selectedPricingClass) =>
@@ -732,7 +734,7 @@ export const PizzaItemUpdate = () => {
                                     <div className={"d-flex flex-column p-0 w-100"}>
                                       <div>
                                         <Select
-                                          value={pizzaItem?.variants?.[0]?.crustThicknessPricing?.map((crustThicknessPricing) => crustThicknessPricing.crustThickness)}
+                                          value={pizzaItem?.variants?.[0]?.crustThicknessPricing?.map((crustThicknessPricing) => crustThicknessPricing.crustThickness) || null}
                                           isMulti
                                           getOptionLabel={(option: ICrustThickness) => option.name}
                                           getOptionValue={(option: ICrustThickness) => option.id}
@@ -752,7 +754,7 @@ export const PizzaItemUpdate = () => {
                                                 <td>{crustThicknessPricing?.crustThickness?.name}</td>
                                                 <td>
                                                   <Select
-                                                    value={crustThicknessPricing?.pricingClass}
+                                                    value={crustThicknessPricing?.pricingClass || null}
                                                     getOptionLabel={(option: IPizzaPricingClass) => option.name}
                                                     getOptionValue={(option: IPizzaPricingClass) => option.id}
                                                     onChange={(selectedPricingClass) =>
@@ -788,7 +790,7 @@ export const PizzaItemUpdate = () => {
                                         <tr key={index}>
                                           <td>
                                             <InputNumber
-                                              value={detail?.numberOfPizza}
+                                              value={detail?.numberOfPizza || null}
                                               min={2}
                                               onChange={(e) =>
                                                 handleMultiplePizzaInputChange(index, "numberOfPizza", e.value)
@@ -797,7 +799,7 @@ export const PizzaItemUpdate = () => {
                                           </td>
                                           <td>
                                             <InputNumber
-                                              value={detail?.freeToppingsNumber}
+                                              value={detail?.freeToppingsNumber || null}
                                               required
                                               onChange={(e) =>
                                                 handleMultiplePizzaInputChange(index, "freeToppingsNumber", e.value)
@@ -851,22 +853,32 @@ export const PizzaItemUpdate = () => {
               }}>
                 <Card>
                   <CardHeader>Actions</CardHeader>
-                  <div className={'d-flex gap-3 mt-2'}>
-                    <Button type={"button"} id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} replace
-                      color="info">
+                  <div className={'d-flex gap-1 mt-2'}>
+                    <PrimeButton
+                      className='p-1 fs-6'
+                      onClick={handleBackClick}
+                      type={'button'}
+                      id="cancel-save"
+                      data-cy="entityCreateCancelButton"
+                      severity="secondary"
+                    >
                       <FontAwesomeIcon icon="arrow-left" />
                       &nbsp;
                       <span className="d-none d-md-inline">
                         <Translate contentKey="entity.action.back">Back</Translate>
                       </span>
-                    </Button>
+                    </PrimeButton>
                     &nbsp;
-                    <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                      disabled={updating}>
+                    <PrimeButton className='p-1 fs-6' onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                       <FontAwesomeIcon icon="save" />
                       &nbsp;
                       <Translate contentKey="entity.action.save">Save</Translate>
-                    </Button>
+                    </PrimeButton>
+                    <PrimeButton className='p-1 fs-6' onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                      <FontAwesomeIcon icon="save" />
+                      &nbsp;
+                      <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
+                    </PrimeButton>
                   </div>
                 </Card>
                 {pizzaItemEntity?.id && <AuditLogs entityId={pizzaItemEntity?.id} />}

@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import {Link, useNavigate, useParams} from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './sales-location.reducer';
-import {InputText} from "primereact/inputtext";
-import {ISalesLocation} from "app/shared/model/STOCK/sales-location.model";
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
+import { InputText } from "primereact/inputtext";
+import { ISalesLocation } from "app/shared/model/STOCK/sales-location.model";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { translate, Translate } from "react-jhipster";
 import Select from "react-select";
-import {IBranch} from "app/shared/model/branch.model";
+import { IBranch } from "app/shared/model/branch.model";
 
 export const SalesLocationUpdate = () => {
   const dispatch = useAppDispatch();
@@ -27,16 +27,9 @@ export const SalesLocationUpdate = () => {
   const salesLocationEntity = useAppSelector(state => state.salesLocation.entity);
   const loading = useAppSelector(state => state.salesLocation.loading);
   const updating = useAppSelector(state => state.salesLocation.updating);
-  const updateSuccess = useAppSelector(state => state.salesLocation.updateSuccess);
-
-
-
-  const handleClose = () => {
-    navigate('/inventory/sales-location' + location.search);
-  };
 
   const handleBranchChange = (selectedBranch: IBranch) => {
-    setSalesLocation(prevState => ({...prevState, branch: selectedBranch}))
+    setSalesLocation(prevState => ({ ...prevState, branch: selectedBranch }))
   }
 
   useEffect(() => {
@@ -54,20 +47,17 @@ export const SalesLocationUpdate = () => {
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    if(salesLocationEntity){
+    if (salesLocationEntity) {
       setSalesLocation(salesLocationEntity)
     }
-  }, [updateSuccess, salesLocationEntity?.name]);
+  }, [salesLocationEntity?.name]);
 
   const handleChange = e => {
     const { name, value } = e.target;
     setSalesLocation(prevState => ({ ...prevState, [name]: value }));
   };
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault()
     const entity: ISalesLocation = {
       ...salesLocation,
@@ -75,9 +65,21 @@ export const SalesLocationUpdate = () => {
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/inventory/sales-location/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/inventory/sales-location/new`)
+        }
+      })
     }
   };
 
@@ -85,7 +87,7 @@ export const SalesLocationUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  `${translate("tempApp.salesLocation.createNew")}` :  `${translate("tempApp.salesLocation.edit")}`}</h2>
+          <h2>{isNew ? `${translate("tempApp.salesLocation.createNew")}` : `${translate("tempApp.salesLocation.edit")}`}</h2>
         </Col>
       </Row>
       <Row>
@@ -93,7 +95,7 @@ export const SalesLocationUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form>
               <FormGroup>
                 <div className={"d-flex flex-column"}>
                   <Label for="name">
@@ -104,7 +106,7 @@ export const SalesLocationUpdate = () => {
                     name="name"
                     required={true}
                     id="name"
-                    value={salesLocation.name}
+                    value={salesLocation.name || ''}
                     onChange={handleChange}
                   />
                 </div>
@@ -117,7 +119,7 @@ export const SalesLocationUpdate = () => {
                     type="text"
                     name="location"
                     id="location"
-                    value={salesLocation.location}
+                    value={salesLocation.location || ''}
                     onChange={handleChange}
                   />
                 </div>
@@ -134,19 +136,29 @@ export const SalesLocationUpdate = () => {
                     getOptionValue={(option: IBranch) => option.id}
                     getOptionLabel={(option: IBranch) => option.name}
                     name={"branch"}
-                    value={salesLocation.branch}
+                    value={salesLocation.branch || null}
                   />
                 </div>
 
               </FormGroup>
-              <Button tag={Link} to="/inventory/sales-location" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;   <Translate contentKey={"common.back"} />
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
               </Button>
               &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp; <Translate contentKey={"common.save"} />
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           )}

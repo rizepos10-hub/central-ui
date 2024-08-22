@@ -1,33 +1,33 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label, Input, Table} from 'reactstrap';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Button, Row, Col, FormGroup, Label, Input, Table } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {getEntity, createEntity, reset, updateEntity} from './supplier-return.reducer';
-import {IReturnLine, ISupplierReturn} from "app/shared/model/STOCK/supplier-return.model";
-import {getEntities as getWarehouses} from "app/entities/inventory/warehouse/warehouse.reducer";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
+import { getEntity, createEntity, reset, updateEntity } from './supplier-return.reducer';
+import { IReturnLine, ISupplierReturn } from "app/shared/model/STOCK/supplier-return.model";
+import { getEntities as getWarehouses } from "app/entities/inventory/warehouse/warehouse.reducer";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { getSortState, Translate, translate } from "react-jhipster";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
 import { getEntities as getPurchaseOrders, reset as resetPO, getEntity as getPurchaseOrder } from "app/entities/inventory/purchase-order/purchase-order.reducer";
 import Select from "react-select";
-import {InputNumber} from "primereact/inputnumber";
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {IPurchaseOrder} from "app/shared/model/STOCK/purchase-order.model";
-import {InputTextarea} from "primereact/inputtextarea";
-import {ColumnGroup} from "primereact/columngroup";
-import {Button as PrimeButton} from "primereact/button";
-import {SelectButton} from "primereact/selectbutton";
-import {Card} from "primereact/card";
+import { InputNumber } from "primereact/inputnumber";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { IPurchaseOrder } from "app/shared/model/STOCK/purchase-order.model";
+import { InputTextarea } from "primereact/inputtextarea";
+import { ColumnGroup } from "primereact/columngroup";
+import { Button as PrimeButton } from "primereact/button";
+import { SelectButton } from "primereact/selectbutton";
+import { Card } from "primereact/card";
 
 
 const statusOptions: any = [
- "PARKED",
-"COMPLETED"
+  "PARKED",
+  "COMPLETED"
 ]
 
 export const SupplierReturnUpdate = () => {
@@ -47,10 +47,9 @@ export const SupplierReturnUpdate = () => {
 
   const loading = useAppSelector(state => state.supplierReturn.loading);
   const updating = useAppSelector(state => state.supplierReturn.updating);
-  const updateSuccess = useAppSelector(state => state.supplierReturn.updateSuccess);
 
   const [supplierReturn, setSupplierReturn] = useState<ISupplierReturn>({
-      purchaseOrder: {id: poId},
+    purchaseOrder: { id: poId },
   });
 
   const [selectedReturnLines, setSelectedReturnLines] = useState([])
@@ -75,20 +74,17 @@ export const SupplierReturnUpdate = () => {
 
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    if(supplierReturnEntity){
+    if (supplierReturnEntity) {
       setSupplierReturn(supplierReturnEntity)
     }
-    if(isNew && purchaseOrderEntity){
-      setSupplierReturn((prevState) => ({...prevState, purchaseOrder: purchaseOrderEntity}))
+    if (isNew && purchaseOrderEntity) {
+      setSupplierReturn((prevState) => ({ ...prevState, purchaseOrder: purchaseOrderEntity }))
     }
-  }, [updateSuccess, supplierReturnEntity?.id, purchaseOrderEntity.id]);
+  }, [supplierReturnEntity?.id, purchaseOrderEntity.id]);
 
 
   useEffect(() => {
-    if(isNew && poId){
+    if (isNew && poId) {
       dispatch(getPurchaseOrder(poId));
     }
     if (isNew) {
@@ -97,7 +93,7 @@ export const SupplierReturnUpdate = () => {
       dispatch(getEntity(id));
     }
     const timer = setTimeout(() => {
-      if(!isDisabled){
+      if (!isDisabled) {
         console.log(isDisabled, 'isDisabled')
         dispatch(getPurchaseOrders({
           query: `status=COMPLETED&filterReturned=${true}`,
@@ -115,20 +111,15 @@ export const SupplierReturnUpdate = () => {
 
   }, []);
 
-
-
-
-
-
   const handleAdd = (e) => {
     e.preventDefault();
-    const updatedReturnLines :IReturnLine[] = selectedReturnLines?.filter((orderLine) => orderLine.received - orderLine.returnedQuantity > 0)
+    const updatedReturnLines: IReturnLine[] = selectedReturnLines?.filter((orderLine) => orderLine.received - orderLine.returnedQuantity > 0)
       ?.map((orderLine) => ({
-      orderLineId: orderLine?.id,
-      itemName: orderLine?.item?.name,
-      quantity:  orderLine.received - orderLine.returnedQuantity,
-      returnPrice: orderLine?.price
-    }));
+        orderLineId: orderLine?.id,
+        itemName: orderLine?.item?.name,
+        quantity: orderLine.received - orderLine.returnedQuantity,
+        returnPrice: orderLine?.price
+      }));
     console.log(selectedReturnLines, 'selectedReturnLines')
     setSupplierReturn((prevState) => ({
       ...prevState,
@@ -163,33 +154,45 @@ export const SupplierReturnUpdate = () => {
 
 
   const tableFooterTemplate = (
-      <div className={"d-flex justify-content-end"}>
-        <PrimeButton onClick={handleAdd} disabled={selectedReturnLines?.length === 0}>Add To Return Lines</PrimeButton>
-      </div>
+    <div className={"d-flex justify-content-end"}>
+      <PrimeButton onClick={handleAdd} disabled={selectedReturnLines?.length === 0}>Add To Return Lines</PrimeButton>
+    </div>
   );
 
 
   const handleRemoveClick = (index) => {
-      setSupplierReturn((prevState) => {
-        const updatedReturnLines = prevState?.returnLines?.filter((_, i) => i !== index);
-        return {
-          ...prevState,
-          returnLines: updatedReturnLines
-        }
-      });
+    setSupplierReturn((prevState) => {
+      const updatedReturnLines = prevState?.returnLines?.filter((_, i) => i !== index);
+      return {
+        ...prevState,
+        returnLines: updatedReturnLines
+      }
+    });
   };
 
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault()
     const entity = {
       ...supplierReturn,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
-    }else{
-      dispatch(updateEntity(entity))
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/inventory/warehouse/${newId}/edit`)
+        }
+      })
+    } else {
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/inventory/warehouse/new`)
+        }
+      })
     }
   };
 
@@ -206,7 +209,7 @@ export const SupplierReturnUpdate = () => {
             {loading ? (
               <p>Loading...</p>
             ) : (
-              <form onSubmit={saveEntity}>
+              <form>
                 <FormGroup>
                   <div className={'d-flex flex-column'}>
                     <strong>
@@ -215,7 +218,7 @@ export const SupplierReturnUpdate = () => {
                       </Label>
                     </strong>
                     <Select
-                      value={supplierReturn?.purchaseOrder}
+                      value={supplierReturn?.purchaseOrder || null}
                       options={purchaseOrderList}
                       getOptionLabel={(option: IPurchaseOrder) => option?.id}
                       getOptionValue={option => option.id}
@@ -247,7 +250,7 @@ export const SupplierReturnUpdate = () => {
                       </Label>
                     </strong>
                     <InputTextarea
-                      value={supplierReturn?.comment}
+                      value={supplierReturn?.comment || ''}
                       id="comment"
                       disabled={isDisabled}
                       onChange={e => setSupplierReturn(prv => ({ ...prv, comment: e.target.value }))}
@@ -257,7 +260,7 @@ export const SupplierReturnUpdate = () => {
                   {!isDisabled ? (
                     <Row className={'mt-3'}>
                       <DataTable
-                        value={filteredOrderLines}
+                        value={filteredOrderLines || []}
                         selectionMode="multiple"
                         dataKey="id"
                         header={translate("tempApp.supplier.orderLines")}
@@ -268,7 +271,7 @@ export const SupplierReturnUpdate = () => {
                         onSelectionChange={e => setSelectedReturnLines(e.value)}
                       >
                         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
-                        <Column field="item.name" header={translate("common.item")}/>
+                        <Column field="item.name" header={translate("common.item")} />
                         <Column field="lineTotal" header={translate("tempApp.supplierReturn.lineTotal")} />
                         <Column field="price" header={translate("common.price")} />
                         <Column field="received" header={translate("tempApp.supplierReturn.receivedQuantity")} />
@@ -322,17 +325,25 @@ export const SupplierReturnUpdate = () => {
                     </Table>
                   </Row>
                 </FormGroup>
-                <Button tag={Link} to="/inventory/supplier-return" replace color="info">
+                <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                   <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;Back
+                  &nbsp;
+                  <span className="d-none d-md-inline">
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </span>
                 </Button>
                 &nbsp;
-                {!isDisabled ? (
-                  <Button color="primary" type="submit" disabled={updating}>
-                    <FontAwesomeIcon icon="save" />
-                    &nbsp;Save
-                  </Button>
-                ) : null}
+                <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating || isDisabled}>
+                  <FontAwesomeIcon icon="save" />
+                  &nbsp;
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+                &nbsp;
+                <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating || isDisabled}>
+                  <FontAwesomeIcon icon="save" />
+                  &nbsp;
+                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                </Button>
               </form>
             )}
           </Card>

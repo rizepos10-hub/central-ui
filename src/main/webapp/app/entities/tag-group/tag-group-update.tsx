@@ -22,9 +22,9 @@ export const TagGroupUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const Tags :ITag[] = useAppSelector(state => state.tag.entities);
+  const Tags: ITag[] = useAppSelector(state => state.tag.entities);
 
-  const tagGroupEntity :ITagGroup = useAppSelector(state => state.tagGroup.entity);
+  const tagGroupEntity: ITagGroup = useAppSelector(state => state.tagGroup.entity);
   const loading = useAppSelector(state => state.tagGroup.loading);
   const updating = useAppSelector(state => state.tagGroup.updating);
   const updateSuccess = useAppSelector(state => state.tagGroup.updateSuccess);
@@ -57,28 +57,31 @@ export const TagGroupUpdate = () => {
 
   const handleChange = e => {
     const { name, value } = e.target;
-    dispatch(changeEntityField({name, value}))
+    dispatch(changeEntityField({ name, value }))
   };
 
-  useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    return () => {
-      reset();
-    };
-  }, [updateSuccess]);
-
-  const saveEntity = (e?) => {
+  const saveEntity = (e, createNew = false) => {
     e?.preventDefault();
     const entity = {
       ...tagGroupEntity,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/tag-group/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/tag-group/new`)
+        }
+      })
     }
   };
 
@@ -102,7 +105,7 @@ export const TagGroupUpdate = () => {
               <p>Loading...</p>
             ) : (
               <>
-                <form onSubmit={saveEntity}>
+                <form>
                   <FormGroup className={"d-flex flex-column gap-3"}>
                     <div className={'d-flex flex-column'}>
                       <Label for="tag-group-name">
@@ -113,7 +116,7 @@ export const TagGroupUpdate = () => {
                         name="name"
                         required={true}
                         id="tag-group-name"
-                        value={tagGroupEntity?.name}
+                        value={tagGroupEntity?.name || ''}
                         onChange={handleChange}
                       />
                     </div>
@@ -121,8 +124,8 @@ export const TagGroupUpdate = () => {
                       <Translate contentKey="tagGroup.update.tags">Tags</Translate>
                       <Select
                         isMulti={true}
-                        value={tagGroupEntity?.tags}
-                        onChange={(tags) =>  dispatch(changeEntityField({name: "tags", value: tags as ITag[]}))}
+                        value={tagGroupEntity?.tags || []}
+                        onChange={(tags) => dispatch(changeEntityField({ name: "tags", value: tags as ITag[] }))}
                         options={Tags}
                         getOptionLabel={option => option.name}
                         getOptionValue={option => option.id}
@@ -130,18 +133,24 @@ export const TagGroupUpdate = () => {
                     </div>
                   </FormGroup>
 
-                  <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/tag-group" replace color="info">
+                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                     <FontAwesomeIcon icon="arrow-left" />
                     &nbsp;
                     <span className="d-none d-md-inline">
-                        <Translate contentKey="entity.action.back">Back</Translate>
-                      </span>
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </span>
                   </Button>
                   &nbsp;
-                  <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                  <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                     <FontAwesomeIcon icon="save" />
                     &nbsp;
                     <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  &nbsp;
+                  <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <FontAwesomeIcon icon="save" />
+                    &nbsp;
+                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
                   </Button>
                 </form>
               </>

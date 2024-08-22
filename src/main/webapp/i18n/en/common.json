@@ -29,6 +29,7 @@
     "delete": "Delete",
     "back": "Back",
     "save": "Save",
+    "saveandnew": "Save and create new",
     "deliveryDate": "DeliveryDate",
     "addons": "Addons",
     "variantName": "Variant Name",
@@ -47,6 +48,7 @@
     "cost": "Cost",
     "buttons": {
       "save": "Save",
+      "saveandnew": "Save & create",
       "back": "Back",
       "cancel": "Cancel",
       "delete": "Delete",

@@ -195,7 +195,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   <Translate contentKey="items.update.productionCenter">Production Center</Translate>
                 </label>
                 <Select
-                  value={item?.productionCenter}
+                  value={item?.productionCenter || null}
                   options={productionCenterOptions}
                   isClearable
                   getOptionLabel={option => option.name}
@@ -209,7 +209,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   <Translate contentKey="items.update.profileGroups">Profile Groups</Translate>
                 </label>
                 <Select
-                  value={item?.accountingGroups}
+                  value={item?.accountingGroups || []}
                   isClearable
                   options={profileGroupsOptions}
                   getOptionLabel={option => option.name}
@@ -230,7 +230,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   <Translate contentKey="items.update.categories">Categories</Translate>
                 </label>
                 <Select
-                  value={item?.categories}
+                  value={item?.categories || []}
                   isMulti={true}
                   options={itemCategoriesOptions}
                   getOptionLabel={option => option.name}
@@ -244,7 +244,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   <Translate contentKey="items.update.tags">Tags</Translate>
                 </label>
                 <Select
-                  value={item?.tags}
+                  value={item?.tags || []}
                   isMulti={true}
                   options={tags}
                   getOptionLabel={option => option.name}
@@ -261,7 +261,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                     <Translate contentKey="items.update.brand">brand</Translate>
                   </label>
                   <Select
-                    value={item?.brand}
+                    value={item?.brand || null}
                     isClearable
                     options={brands}
                     getOptionLabel={option => option.name}

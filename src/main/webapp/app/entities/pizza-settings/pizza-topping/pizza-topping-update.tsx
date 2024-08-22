@@ -5,18 +5,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {getEntity, updateEntity, createEntity, reset} from './pizza-topping.reducer';
-import {Card as PrimeCard} from 'primereact/card'
+import { getEntity, updateEntity, createEntity, reset } from './pizza-topping.reducer';
+import { Card as PrimeCard } from 'primereact/card'
 
-import {InputText} from "primereact/inputtext";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState} from "react-jhipster";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {ITopping} from "app/shared/model/PIZZA/topping.model";
+import { InputText } from "primereact/inputtext";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { getSortState, Translate } from "react-jhipster";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { ITopping } from "app/shared/model/PIZZA/topping.model";
 import CreatableSelect from "react-select/creatable";
-import {getEntities as getToppingGroups, createEntity as createToppingGroup} from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
+import { getEntities as getToppingGroups, createEntity as createToppingGroup } from "app/entities/pizza-settings/pizza-topping-group/pizza-topping-group.reducer";
 import Attachment from "app/shared/components/attachment/attachment";
-import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
+import { getEntities as getPricingClasses } from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
 import Select from "react-select";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
@@ -37,21 +37,16 @@ export const PizzaToppingUpdate = () => {
   });
   const toppingPricingClasses = useAppSelector(state => state.pizzaPricingClass.entities).filter(option => option.type === 'TOPPING');
 
-  const pizzaToppingGroups = useAppSelector(state => state.toppingGroup.entities).map(tpngGrp => ({...tpngGrp, label: tpngGrp.name, value: tpngGrp.id}));
+  const pizzaToppingGroups = useAppSelector(state => state.toppingGroup.entities).map(tpngGrp => ({ ...tpngGrp, label: tpngGrp.name, value: tpngGrp.id }));
   const updatingGroup = useAppSelector(state => state.toppingGroup.updating);
 
 
   const pizzaToppingEntity = useAppSelector(state => state.pizzaTopping.entity);
   const loading = useAppSelector(state => state.pizzaTopping.loading);
   const updating = useAppSelector(state => state.pizzaTopping.updating);
-  const updateSuccess = useAppSelector(state => state.pizzaTopping.updateSuccess);
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-
-  const handleClose = () => {
-    navigate('/pizza-topping' + location.search);
-  };
 
   useEffect(() => {
     if (isNew) {
@@ -60,10 +55,10 @@ export const PizzaToppingUpdate = () => {
       dispatch(getEntity(id));
     }
     dispatch(getToppingGroups({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      }));
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
     dispatch(getPricingClasses({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
@@ -73,13 +68,10 @@ export const PizzaToppingUpdate = () => {
 
   console.log(pizzaToppingGroups, 'pizzaToppingGroups')
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    if(pizzaToppingEntity){
+    if (pizzaToppingEntity) {
       setPizzaTopping(() => {
-        const toppingGroup = {...pizzaToppingEntity.group};
-        const modifiedGroup = {...toppingGroup, label: toppingGroup.name, value: toppingGroup?.id};
+        const toppingGroup = { ...pizzaToppingEntity.group };
+        const modifiedGroup = { ...toppingGroup, label: toppingGroup.name, value: toppingGroup?.id };
         console.log(modifiedGroup, 'modifiedGroup')
         return {
           ...pizzaToppingEntity,
@@ -87,7 +79,7 @@ export const PizzaToppingUpdate = () => {
         }
       })
     }
-  }, [updateSuccess, pizzaToppingEntity?.name]);
+  }, [pizzaToppingEntity?.name]);
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -96,39 +88,51 @@ export const PizzaToppingUpdate = () => {
 
   const handleGroupChange = (selectedGroup) => {
     const selectedToppingGroup = selectedGroup ? selectedGroup : null
-    setPizzaTopping((prev) => ({...prev, group: selectedToppingGroup}))
+    setPizzaTopping((prev) => ({ ...prev, group: selectedToppingGroup }))
   }
 
   const handleAddImage = (imageType, imageInfo) => {
     console.log(imageInfo, 'imageInfo')
-    setPizzaTopping((prevState) => ({...prevState, [imageType]:transformAttachmentStructure(imageInfo, 'toIAttachment')[0]}))
+    setPizzaTopping((prevState) => ({ ...prevState, [imageType]: transformAttachmentStructure(imageInfo, 'toIAttachment')[0] }))
   }
 
   const handleRemoveImage = (imageType) => {
-    setPizzaTopping((prevState) => ({...prevState, [imageType]: null }))
+    setPizzaTopping((prevState) => ({ ...prevState, [imageType]: null }))
   }
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
     const entity = {
       ...pizzaTopping,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/pizza-topping/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/pizza-topping/new`)
+        }
+      })
     }
   };
 
 
 
-   const handleCreate = (inputValue: string) => {
-      const entity = {
-        name: inputValue
-      };
-        dispatch(createToppingGroup(entity));
+  const handleCreate = (inputValue: string) => {
+    const entity = {
+      name: inputValue
     };
+    dispatch(createToppingGroup(entity));
+  };
 
   return (
     <div>
@@ -140,79 +144,89 @@ export const PizzaToppingUpdate = () => {
       <Row>
         <Col md="8" className="d-flex flex-column p-3">
           <PrimeCard>
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form onSubmit={saveEntity}>
-              <FormGroup>
-                <div className={"d-flex flex-column"}>
-                  <Label for="pizza-topping-name">Name</Label>
-                  <InputText
-                    type="text"
-                    name="name"
-                    required={true}
-                    id="pizza-topping-name"
-                    value={pizzaTopping.name || ''}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className={"d-flex flex-column my-2"}>
-                  <Label for="pizza-topping-group">Topping Group</Label>
-                  <CreatableSelect
-                    isDisabled={updatingGroup}
-                    isLoading={updatingGroup}
-                    options={pizzaToppingGroups}
-                    value={pizzaTopping.group}
-                    onCreateOption={handleCreate}
-                    onChange={handleGroupChange}
-                    isClearable={true}
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <form>
+                <FormGroup>
+                  <div className={"d-flex flex-column"}>
+                    <Label for="pizza-topping-name">Name</Label>
+                    <InputText
+                      type="text"
+                      name="name"
+                      required={true}
+                      id="pizza-topping-name"
+                      value={pizzaTopping.name || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className={"d-flex flex-column my-2"}>
+                    <Label for="pizza-topping-group">Topping Group</Label>
+                    <CreatableSelect
+                      isDisabled={updatingGroup}
+                      isLoading={updatingGroup}
+                      options={pizzaToppingGroups}
+                      value={pizzaTopping.group || null}
+                      onCreateOption={handleCreate}
+                      onChange={handleGroupChange}
+                      isClearable={true}
 
-                  />
-                </div>
+                    />
+                  </div>
 
-                <div className={"d-flex flex-column  my-2"}>
+                  <div className={"d-flex flex-column  my-2"}>
                     <label>
                       Pricing Class
                     </label>
                     <Select
-                      value={pizzaTopping?.pricingClass}
+                      value={pizzaTopping?.pricingClass || null}
                       required
                       options={toppingPricingClasses}
                       getOptionLabel={option => option.name}
                       getOptionValue={option => option.id}
-                      onChange={(toppingPriceOption) => setPizzaTopping((prevState) => ({...prevState, pricingClass: toppingPriceOption}))}
+                      onChange={(toppingPriceOption) => setPizzaTopping((prevState) => ({ ...prevState, pricingClass: toppingPriceOption }))}
                     />
                   </div>
 
 
-                <div className={"d-flex flex-column my-2"}>
-                  <Label >Topping Image</Label>
-                  <MediaLibrary
-                    handleFilesSelectCallback={(files) => handleAddImage("image", files)}
-                    defaultValues={transformAttachmentStructure(pizzaTopping?.image ? [pizzaTopping?.image]: [], 'toFileLibraryListItem')}
-                  />
-                </div>
+                  <div className={"d-flex flex-column my-2"}>
+                    <Label >Topping Image</Label>
+                    <MediaLibrary
+                      handleFilesSelectCallback={(files) => handleAddImage("image", files)}
+                      defaultValues={transformAttachmentStructure(pizzaTopping?.image ? [pizzaTopping?.image] : [], 'toFileLibraryListItem')}
+                    />
+                  </div>
 
-                <div className={"d-flex flex-column my-2"}>
-                  <Label >Topping Icon</Label>
-                  <MediaLibrary
-                    handleFilesSelectCallback={(files) => handleAddImage("icon", files)}
-                    defaultValues={transformAttachmentStructure(pizzaTopping?.icon ? [pizzaTopping?.icon]: [], 'toFileLibraryListItem')}
-                  />
-                </div>
+                  <div className={"d-flex flex-column my-2"}>
+                    <Label >Topping Icon</Label>
+                    <MediaLibrary
+                      handleFilesSelectCallback={(files) => handleAddImage("icon", files)}
+                      defaultValues={transformAttachmentStructure(pizzaTopping?.icon ? [pizzaTopping?.icon] : [], 'toFileLibraryListItem')}
+                    />
+                  </div>
 
-              </FormGroup>
-              <Button tag={Link} to="/pizza-topping" replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
-              </Button>
-              &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;Save
-              </Button>
-            </form>
-          )}
+                </FormGroup>
+                <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
+                  <FontAwesomeIcon icon="arrow-left" />
+                  &nbsp;
+                  <span className="d-none d-md-inline">
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </span>
+                </Button>
+                &nbsp;
+                <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                  <FontAwesomeIcon icon="save" />
+                  &nbsp;
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+                &nbsp;
+                <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                  <FontAwesomeIcon icon="save" />
+                  &nbsp;
+                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                </Button>
+              </form>
+            )}
           </PrimeCard>
         </Col>
       </Row>
