@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
-import { getSortState, Translate,} from 'react-jhipster';
+import { getSortState, Translate, } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getAddons } from 'app/entities/addon/addon.reducer';
@@ -89,24 +89,34 @@ export const AddonGroupUpdate = () => {
     if (addonGroupsEntity.id) {
       setAddonGroup(addonGroupsEntity);
     }
-    if (updateSuccess) {
-      handleClose();
-    }
     return () => {
       dispatch(reset());
     };
-  }, [updateSuccess, addonGroupsEntity.id]);
+  }, [addonGroupsEntity.id]);
 
-  const saveEntity = (e?) => {
+  const saveEntity = (e, createNew = false) => {
     e?.preventDefault();
     const entity = {
       ...addonGroup,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+          setAddonGroup({})
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/addon-groups/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/addon-groups/new`)
+        }
+      })
     }
   };
 
@@ -138,7 +148,7 @@ export const AddonGroupUpdate = () => {
 
                 <CreateAddonModal isOpen={showModal} toggle={handleShowModal} />
 
-                <form onSubmit={saveEntity}>
+                <form>
                   <FormGroup className={"d-flex flex-column gap-3"}>
                     <div className={'d-flex flex-column'}>
                       <Label for="addon-group-name">
@@ -149,7 +159,7 @@ export const AddonGroupUpdate = () => {
                         name="name"
                         required={true}
                         id="addon-group-name"
-                        value={addonGroup?.name}
+                        value={addonGroup?.name || ''}
                         onChange={handleChange}
                       />
                     </div>
@@ -157,7 +167,7 @@ export const AddonGroupUpdate = () => {
                       <Translate contentKey="common.addons">Addons</Translate>
                       <Select
                         isMulti={true}
-                        value={addonGroup?.addons}
+                        value={addonGroup?.addons || []}
                         onChange={handleAddonChange}
                         options={addons}
                         getOptionLabel={option => option.name}
@@ -166,19 +176,25 @@ export const AddonGroupUpdate = () => {
                     </div>
                   </FormGroup>
 
-                    <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/addon-groups" replace color="info">
-                      <FontAwesomeIcon icon="arrow-left" />
-                      &nbsp;
-                      <span className="d-none d-md-inline">
-                        <Translate contentKey="entity.action.back">Back</Translate>
-                      </span>
-                    </Button>
+                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
+                    <FontAwesomeIcon icon="arrow-left" />
                     &nbsp;
-                    <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                      <FontAwesomeIcon icon="save" />
-                      &nbsp;
-                      <Translate contentKey="entity.action.save">Save</Translate>
-                    </Button>
+                    <span className="d-none d-md-inline">
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </span>
+                  </Button>
+                  &nbsp;
+                  <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <FontAwesomeIcon icon="save" />
+                    &nbsp;
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  &nbsp;
+                  <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <FontAwesomeIcon icon="save" />
+                    &nbsp;
+                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                  </Button>
                 </form>
               </>
             )}

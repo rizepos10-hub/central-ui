@@ -6,15 +6,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './table.reducer';
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {InputText} from "primereact/inputtext";
-import {getSortState, Translate} from "react-jhipster";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { InputText } from "primereact/inputtext";
+import { getSortState, Translate } from "react-jhipster";
 import Attachment from "app/shared/components/attachment/attachment";
 import Select from "react-select";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {InputNumber} from "primereact/inputnumber";
-import {IFloorPlanTable} from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { InputNumber } from "primereact/inputnumber";
+import { IFloorPlanTable } from "app/shared/model/FLOOR-PLAN/floor-plan-table.model";
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 
@@ -35,7 +35,6 @@ const FloorPlanTableUpdate = () => {
   const floorPlanTableEntity = useAppSelector(state => state.floorPlanTable.entity);
   const loading = useAppSelector(state => state.floorPlanTable.loading);
   const updating = useAppSelector(state => state.floorPlanTable.updating);
-  const updateSuccess = useAppSelector(state => state.floorPlanTable.updateSuccess);
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
@@ -58,16 +57,13 @@ const FloorPlanTableUpdate = () => {
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    if(floorPlanTableEntity){
+    if (floorPlanTableEntity) {
       setFloorPlanTable(floorPlanTableEntity)
     }
-  }, [updateSuccess, floorPlanTableEntity?.name]);
+  }, [floorPlanTableEntity?.name]);
 
   const handleBranchChange = (selectedBranch) => {
-    setFloorPlanTable(prevState => ({...prevState, branch: selectedBranch}))
+    setFloorPlanTable(prevState => ({ ...prevState, branch: selectedBranch }))
   }
 
   const handleChange = e => {
@@ -77,7 +73,8 @@ const FloorPlanTableUpdate = () => {
 
   const handleDimensionChange = (type, e) => {
     setFloorPlanTable((prevState) => ({
-      ...prevState, dimensions: {...prevState.dimensions, [type]: e.value,},}));
+      ...prevState, dimensions: { ...prevState.dimensions, [type]: e.value, },
+    }));
   };
 
   const removeImage = () => {
@@ -97,16 +94,28 @@ const FloorPlanTableUpdate = () => {
   }
 
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault()
     const entity = {
       ...floorPlanTable,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/floor-plan/table/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/floor-plan/table/new`)
+        }
+      })
     }
   };
 
@@ -114,7 +123,7 @@ const FloorPlanTableUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Size" : "Edit Size"}</h2>
+          <h2>{isNew ? "Add New Foor Plan" : "Edit Foor Plan"}</h2>
         </Col>
       </Row>
       <Row>
@@ -122,38 +131,38 @@ const FloorPlanTableUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form>
               <FormGroup>
                 <div className={"d-flex flex-column gap-0"}>
-                <label  className={"mt-5"}>
-                  <Translate contentKey={"tempApp.table.name"}>Name</Translate>
-                </label>
-                <InputText
-                  type="text"
-                  name="name"
-                  required={true}
-                  id="floor-plan-name"
-                  value={floorPlanTable.name || ''}
-                  onChange={handleChange}
-                />
+                  <label className={"mt-5"}>
+                    <Translate contentKey={"tempApp.table.name"}>Name</Translate>
+                  </label>
+                  <InputText
+                    type="text"
+                    name="name"
+                    required={true}
+                    id="floor-plan-name"
+                    value={floorPlanTable.name || ''}
+                    onChange={handleChange}
+                  />
                 </div>
                 <div className={"d-flex flex-column"}>
-                  <label  className={"mt-5"}>
+                  <label className={"mt-5"}>
                     <Translate contentKey={"tempApp.table.dimensions"}>Dimensions</Translate>
                   </label>
                   <div className={"d-flex flex-column gap-3 my-2"}>
                     <div className="p-inputgroup w-full md:w-14rem">
                       <span className="p-inputgroup-addon">
-                      <Translate contentKey={"tempApp.table.width"}>Width</Translate>
-                    </span>
+                        <Translate contentKey={"tempApp.table.width"}>Width</Translate>
+                      </span>
                       <InputNumber
-                      size={3}
-                      maxFractionDigits={2}
-                      name="dimension-width"
-                      required={true}
-                      value={floorPlanTable?.dimensions?.width || 0}
-                      onChange={(e) => handleDimensionChange("width",e)}
-                    />
+                        size={3}
+                        maxFractionDigits={2}
+                        name="dimension-width"
+                        required={true}
+                        value={floorPlanTable?.dimensions?.width || 0}
+                        onChange={(e) => handleDimensionChange("width", e)}
+                      />
                       <span className="p-inputgroup-addon">px</span>
                     </div>
 
@@ -167,7 +176,7 @@ const FloorPlanTableUpdate = () => {
                         name="dimension-width"
                         required={true}
                         value={floorPlanTable?.dimensions?.height || 0}
-                        onChange={(e) => handleDimensionChange("height",e)}
+                        onChange={(e) => handleDimensionChange("height", e)}
                       />
                       <span className="p-inputgroup-addon">px</span>
 
@@ -179,17 +188,17 @@ const FloorPlanTableUpdate = () => {
                   <label className={"mt-2"}>
                     <Translate contentKey={"tempApp.table.branch"}>Branch</Translate>
                   </label>
-                 <Select
-                   options={branchList}
-                   onChange={handleBranchChange}
-                   getOptionValue={option => option.id}
-                   getOptionLabel={option => option.name}
-                   name={"branch"}
-                   value={floorPlanTable.branch}
-                   />
+                  <Select
+                    options={branchList}
+                    onChange={handleBranchChange}
+                    getOptionValue={option => option.id}
+                    getOptionLabel={option => option.name}
+                    name={"branch"}
+                    value={floorPlanTable.branch || null}
+                  />
                 </div>
                 <div className={"d-flex flex-column"}>
-                  <label  className={"mt-2"}>
+                  <label className={"mt-2"}>
                     <Translate contentKey={"tempApp.table.image"}>Image</Translate>
                   </label>
                   <MediaLibrary
@@ -198,14 +207,24 @@ const FloorPlanTableUpdate = () => {
                   />
                 </div>
               </FormGroup>
-              <Button tag={Link} to="/floor-plan/table" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
               </Button>
               &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;Save
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           )}

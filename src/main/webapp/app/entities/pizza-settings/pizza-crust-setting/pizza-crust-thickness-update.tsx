@@ -6,15 +6,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-crust-thickness.reducer';
-import {InputText} from "primereact/inputtext";
+import { InputText } from "primereact/inputtext";
 import Select from "react-select";
-import {getEntities} from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState} from "react-jhipster";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
-import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
-import {Checkbox} from "primereact/checkbox";
+import { getEntities } from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { getSortState, Translate } from "react-jhipster";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { ICrustThickness } from "app/shared/model/PIZZA/crust-thickness.model";
+import { getEntities as getPricingClasses } from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
+import { Checkbox } from "primereact/checkbox";
 
 export const PizzaCrustThicknessUpdate = () => {
   const dispatch = useAppDispatch();
@@ -34,7 +34,6 @@ export const PizzaCrustThicknessUpdate = () => {
   const pizzaSizes = useAppSelector(state => state.pizzaSize.entities);
   const loading = useAppSelector(state => state.pizzaCrustThickness.loading);
   const updating = useAppSelector(state => state.pizzaCrustThickness.updating);
-  const updateSuccess = useAppSelector(state => state.pizzaCrustThickness.updateSuccess);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -63,13 +62,10 @@ export const PizzaCrustThicknessUpdate = () => {
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    if(pizzaCrustThicknessEntity){
+    if (pizzaCrustThicknessEntity) {
       setPizzaCrustThickness(pizzaCrustThicknessEntity)
     }
-  }, [updateSuccess, pizzaCrustThicknessEntity?.name]);
+  }, [pizzaCrustThicknessEntity?.name]);
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -77,19 +73,31 @@ export const PizzaCrustThicknessUpdate = () => {
   };
 
   const handleHiddenChange = (selectedSizes) => {
-    setPizzaCrustThickness(prevState => ({...prevState, hiddenOnSizes: selectedSizes}))
+    setPizzaCrustThickness(prevState => ({ ...prevState, hiddenOnSizes: selectedSizes }))
   }
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault()
     const entity = {
       ...pizzaCrustThickness,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/pizza-crust-thickness/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/pizza-crust-thickness/new`)
+        }
+      })
     }
   };
 
@@ -105,7 +113,7 @@ export const PizzaCrustThicknessUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form>
               <FormGroup>
                 <div className={"d-flex flex-column"}>
                   <Label for="pizza-curstThickness-name">Name</Label>
@@ -114,22 +122,22 @@ export const PizzaCrustThicknessUpdate = () => {
                     name="name"
                     required={true}
                     id="pizza-curstThickness-name"
-                    value={pizzaCrustThickness.name}
+                    value={pizzaCrustThickness.name || ''}
                     onChange={handleChange}
                   />
                 </div>
 
                 <div className={"d-flex flex-column my-3"}>
                   <Label for="pizza-curstThickness-hiddenOn">Hidden On</Label>
-                 <Select
-                   options={pizzaSizes}
-                   isMulti
-                   getOptionValue={option => option.id}
-                   getOptionLabel={option => option.name}
-                   id="pizza-curstThickness-hiddenOn"
-                   value={pizzaCrustThickness?.hiddenOnSizes}
-                   onChange={handleHiddenChange}
-                 />
+                  <Select
+                    options={pizzaSizes}
+                    isMulti
+                    getOptionValue={option => option.id}
+                    getOptionLabel={option => option.name}
+                    id="pizza-curstThickness-hiddenOn"
+                    value={pizzaCrustThickness?.hiddenOnSizes || []}
+                    onChange={handleHiddenChange}
+                  />
                 </div>
 
                 <div className={"d-flex flex-column  my-3"}>
@@ -137,12 +145,12 @@ export const PizzaCrustThicknessUpdate = () => {
                     Pricing Class
                   </label>
                   <Select
-                    value={pizzaCrustThickness?.pricingClass}
+                    value={pizzaCrustThickness?.pricingClass || null}
                     required
                     options={crustThicknessPricingClasses}
                     getOptionLabel={option => option.name}
                     getOptionValue={option => option.id}
-                    onChange={(toppingPriceOption) => setPizzaCrustThickness((prevState) => ({...prevState, pricingClass: toppingPriceOption}))}
+                    onChange={(toppingPriceOption) => setPizzaCrustThickness((prevState) => ({ ...prevState, pricingClass: toppingPriceOption }))}
                   />
                 </div>
 
@@ -153,19 +161,29 @@ export const PizzaCrustThicknessUpdate = () => {
                   <Checkbox
                     checked={pizzaCrustThickness?.chosenByDefault}
                     onChange={(e) => setPizzaCrustThickness((prev) =>
-                      ({...prev, chosenByDefault: e.checked }))}
+                      ({ ...prev, chosenByDefault: e.checked }))}
                   />
                 </div>
 
               </FormGroup>
-              <Button tag={Link} to="/pizza-crust" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
               </Button>
               &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;Save
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           )}

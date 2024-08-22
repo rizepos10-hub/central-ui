@@ -100,7 +100,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   maxFractionDigits={2}
                   min={0}
                   size={12}
-                  value={branchVariantDetails?.[branch.id]?.price}
+                  value={branchVariantDetails?.[branch.id]?.price || null}
                   onChange={e => handleBranchPriceChange(variantIndex, branch.id, 'price', e.value)}
                 />
               </td>
@@ -114,7 +114,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   min={0}
                   size={12}
                   maxFractionDigits={2}
-                  value={branchVariantDetails?.[branch.id]?.salePrice}
+                  value={branchVariantDetails?.[branch.id]?.salePrice || null}
                   onChange={e => handleBranchPriceChange(variantIndex, branch.id, 'salePrice', e.value)}
                 />
               </td>
@@ -141,7 +141,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                 <td>
                   <Checkbox
                     name={`hideItem_${branch.id}`}
-                    value={branchVariantDetails?.[branch.id]?.hideItem}
+                    value={branchVariantDetails?.[branch.id]?.hideItem || false}
                     onChange={() => handleHideItemPerBranch(branch.id, variantIndex, 'hideItem')}
                     checked={branchVariantDetails?.[branch.id]?.hideItem}
                   />
@@ -152,7 +152,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                 <td>
                   <Checkbox
                     name={`hideOnline_${branch.id}`}
-                    value={branchVariantDetails?.[branch.id]?.hideOnline}
+                    value={branchVariantDetails?.[branch.id]?.hideOnline || false}
                     onChange={() => handleHideItemPerBranch(branch.id, variantIndex, 'hideOnline')}
                     checked={branchVariantDetails?.[branch.id]?.hideOnline}
                   />

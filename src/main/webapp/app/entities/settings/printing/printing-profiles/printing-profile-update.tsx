@@ -23,30 +23,37 @@ export const PrintingProfileUpdate = () => {
   const isNew = id === undefined;
 
   const printersList = useAppSelector(state => state.printer.entities);
-  const branchList :IBranch[] = useAppSelector(state => state.branch.entities);
+  const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const printingProfile :IPrintingProfile = useAppSelector(state => state.printingProfiles.entity);
-  const loading = useAppSelector(state => state.printingProfiles.loading);
+  const printingProfile: IPrintingProfile = useAppSelector(state => state.printingProfiles.entity);
   const updating = useAppSelector(state => state.printingProfiles.updating);
-  const updateSuccess = useAppSelector(state => state.printingProfiles.updateSuccess);
 
-  const handleClose = () => {
-    navigate(`/printing-profiles`);
-  };
-
-  const handleSubmit = e => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
     const formData = {
       ...printingProfile,
     };
+
     if (isNew) {
-      dispatch(createEntity(formData));
+      dispatch(createEntity(formData)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/printing-profiles/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(formData));
+      dispatch(updateEntity(formData)).then(() => {
+        if (createNew) {
+          navigate(`/printing-profiles/new`)
+        }
+      })
     }
   };
 
@@ -72,12 +79,6 @@ export const PrintingProfileUpdate = () => {
     );
   }, []);
 
-  useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-  }, [updateSuccess]);
-
   const togglePrinterSelection = (printerId) => {
     const selectedPrinter = printersList.find((printer) => printer.id === printerId);
     if (!selectedPrinter) return;
@@ -91,17 +92,15 @@ export const PrintingProfileUpdate = () => {
     } else {
       newPrinters = [...updatedPrinters, { id: selectedPrinter.id, label: selectedPrinter.name, value: selectedPrinter.id }];
     }
-
     dispatch(changeEntityField({ name: 'printers', value: newPrinters }));
   };
-
 
   return (
     <Row>
       <h2>{isNew ? `Add New Printing Profile` : `Edit Printing Profile ${printingProfile.name}`}</h2>
 
       <Col md="8" className="d-flex flex-column p-3  bg-white">
-        <form onSubmit={handleSubmit}>
+        <form>
           <FormGroup>
             <div className="d-flex flex-column mb-3">
               <label htmlFor="name">Name</label>
@@ -159,7 +158,7 @@ export const PrintingProfileUpdate = () => {
             </div>
 
             <div className="d-flex justify-content-start align-items-center  mt-7">
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/printing-profiles" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
@@ -167,8 +166,16 @@ export const PrintingProfileUpdate = () => {
                 </span>
               </Button>
               &nbsp;
-              <Button type="submit" disabled={updating} color="primary">
-                Save
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
               &nbsp;
             </div>

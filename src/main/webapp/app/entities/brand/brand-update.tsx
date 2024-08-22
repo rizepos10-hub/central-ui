@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
-import { getSortState, Translate,} from 'react-jhipster';
+import { getSortState, Translate, } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getTags } from 'app/entities/brand/brand.reducer';
@@ -23,10 +23,9 @@ export const BrandUpdate = () => {
   const isNew = id === undefined;
 
 
-  const brandEntity :IBrand = useAppSelector(state => state.brand.entity);
+  const brandEntity: IBrand = useAppSelector(state => state.brand.entity);
   const loading = useAppSelector(state => state.brand.loading);
   const updating = useAppSelector(state => state.brand.updating);
-  const updateSuccess = useAppSelector(state => state.brand.updateSuccess);
 
   const handleClose = () => {
     navigate(`/brand` + location.search);
@@ -44,28 +43,31 @@ export const BrandUpdate = () => {
 
   const handleChange = e => {
     const { name, value } = e.target;
-    dispatch(changeEntityField({name, value}))
+    dispatch(changeEntityField({ name, value }))
   };
 
-  useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    return () => {
-      reset();
-    };
-  }, [updateSuccess]);
-
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
     const entity = {
       ...brandEntity,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+          navigate(`/brand/${newId}/edit`)
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/brand/new`)
+        }
+      })
     }
   };
 
@@ -87,36 +89,41 @@ export const BrandUpdate = () => {
               <p>Loading...</p>
             ) : (
               <>
-                <form onSubmit={saveEntity}>
+                <form>
                   <div className={"d-flex flex-column"}>
                     <Label for="name">
-                      <Translate contentKey={'common.name'}/>
+                      <Translate contentKey={'common.name'} />
                     </Label>
 
-                    <InputText type="text" name="name" required={true} id="name" value={brandEntity?.name}
-                               onChange={handleChange} />
+                    <InputText type="text" name="name" required={true} id="name" value={brandEntity?.name || ''}
+                      onChange={handleChange} />
                   </div>
 
                   <div className="my-3">
-                      <MediaLibrary
-                        handleFilesSelectCallback={(files) => dispatch(changeEntityField({name: 'logo',value: transformAttachmentStructure(files, 'toIAttachment')[0]}))}
-                        defaultValues={transformAttachmentStructure(brandEntity.logo ? [brandEntity.logo] : [], 'toFileLibraryListItem')}
-                      />
-                    </div>
+                    <MediaLibrary
+                      handleFilesSelectCallback={(files) => dispatch(changeEntityField({ name: 'logo', value: transformAttachmentStructure(files, 'toIAttachment')[0] }))}
+                      defaultValues={transformAttachmentStructure(brandEntity.logo ? [brandEntity.logo] : [], 'toFileLibraryListItem')}
+                    />
+                  </div>
 
-                  <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/brand" replace color="info">
+                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                     <FontAwesomeIcon icon="arrow-left" />
                     &nbsp;
                     <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </span>
                   </Button>
-
                   &nbsp;
-                  <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                  <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                     <FontAwesomeIcon icon="save" />
                     &nbsp;
                     <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  &nbsp;
+                  <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <FontAwesomeIcon icon="save" />
+                    &nbsp;
+                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
                   </Button>
                 </form>
               </>

@@ -42,7 +42,7 @@ const ZonePage = () => {
         }
     }, [isNew, params?.id, dispatch]);
 
-    const saveEntity = (e) => {
+    const saveEntity = (e, createNew = false) => {
         e.preventDefault();
         const entity = {
             ...zone,
@@ -52,9 +52,23 @@ const ZonePage = () => {
             })),
         };
 
-        isNew ?
-            dispatch(createEntity(entity)).then(() => navigate(-1))
-            : dispatch(updateEntity(entity)).then(() => navigate(-1));
+        if (isNew) {
+            dispatch(createEntity(entity)).then((res) => {
+                if (createNew) {
+                    dispatch(reset());
+                } else {
+                    const payload = res?.payload as any;
+                    const newId = payload?.data?.id;
+                    navigate(`/zones/${newId}/edit`)
+                }
+            })
+        } else {
+            dispatch(updateEntity(entity)).then(() => {
+                if (createNew) {
+                    navigate(`/zones/new`)
+                }
+            })
+        }
     };
 
     const deleteZone = (id) => {
@@ -110,29 +124,24 @@ const ZonePage = () => {
             </div >
             <div>
                 <div className={'d-flex gap-3 mt-2'}>
-                    <Button
-                        onClick={() => navigate(-1)}
-                        id="cancel-save"
-                        data-cy="entityCreateCancelButton"
-                        severity='secondary'
-                        type='button'
-                    >
+                    <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                         <FontAwesomeIcon icon="arrow-left" />
                         &nbsp;
                         <span className="d-none d-md-inline">
                             <Translate contentKey="entity.action.back">Back</Translate>
                         </span>
                     </Button>
-                    <Button
-                        color="primary"
-                        id="save-entity"
-                        data-cy="entityCreateSaveButton"
-                        type="submit"
-                        disabled={loading}
-                    >
+                    &nbsp;
+                    <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit">
                         <FontAwesomeIcon icon="save" />
                         &nbsp;
                         <Translate contentKey="entity.action.save">Save</Translate>
+                    </Button>
+                    &nbsp;
+                    <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit">
+                        <FontAwesomeIcon icon="save" />
+                        &nbsp;
+                        <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
                     </Button>
                 </div>
             </div>
