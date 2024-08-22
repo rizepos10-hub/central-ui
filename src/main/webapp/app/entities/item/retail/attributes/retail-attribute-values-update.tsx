@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import {Button, Row, Col, FormText, Spinner, FormGroup, Table} from 'reactstrap';
-import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import { Button, Row, Col, FormText, Spinner, FormGroup, Table } from 'reactstrap';
+import { getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import {
@@ -17,11 +17,12 @@ import {
   reset as resetRetailAttributeValues, deleteEntity,
 
 } from './retail-attribute-values.reducer';
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import RetailAttributeAdd from "app/entities/item/retail/attributes/retail-attribute-add";
-import {DataTable, DataTableRowEditCompleteEvent} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {InputText} from "primereact/inputtext";
+import { DataTable, DataTableRowEditCompleteEvent } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { InputText } from "primereact/inputtext";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 
 export const RetailAttributeValuesUpdate = () => {
@@ -34,7 +35,7 @@ export const RetailAttributeValuesUpdate = () => {
 
   const retailAttributeValues = useAppSelector(state => state.retailAttributeValue.entities);
   const loadingAttributeValue = useAppSelector(state => state.retailAttributeValue.loading);
-  const updatingAttributeValue= useAppSelector(state => state.retailAttributeValue.updating);
+  const updatingAttributeValue = useAppSelector(state => state.retailAttributeValue.updating);
   const updateSuccessAttributeValue = useAppSelector(state => state.retailAttributeValue.updateSuccess);
   const totalItems = useAppSelector(state => state.retailAttributeValue.totalItems);
 
@@ -56,13 +57,13 @@ export const RetailAttributeValuesUpdate = () => {
   };
 
   useEffect(() => {
-  dispatch(getRetailAttribute(id));
-  dispatch(getRetailAttributeValues({
-    id,
-    page: paginationState.activePage - 1,
-    size: paginationState.itemsPerPage,
-    sort: `${paginationState.sort},${paginationState.order}`,
-  }));
+    dispatch(getRetailAttribute(id));
+    dispatch(getRetailAttributeValues({
+      id,
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
     return () => {
       resetRetailAttribute()
       resetRetailAttributeValues()
@@ -81,75 +82,83 @@ export const RetailAttributeValuesUpdate = () => {
     const { id: editedAttrId } = newData;
 
     dispatch(updateRetailAttributeValue(newData))
-    console.log(newData, 'newData' )
+    console.log(newData, 'newData')
   };
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'retailAttributes.update.edit.table.title'} interpolate={{attribute: retailAttributeEntity?.key}}>{retailAttributeEntity?.key} Values</Translate></span>
+      <span className="text-xl text-900 font-bold"><Translate contentKey={'retailAttributes.update.edit.table.title'} interpolate={{ attribute: retailAttributeEntity?.key }}>{retailAttributeEntity?.key} Values</Translate></span>
 
     </div>
   );
 
+
   const deleteColumnTemplate = (rowData) => {
+    const confirm1 = () => {
+      confirmDialog({
+        message: 'Are you sure you want to proceed?',
+        header: 'Confirmation',
+        icon: 'pi pi-exclamation-triangle',
+        defaultFocus: 'accept',
+        accept: () => deleteAttr()
+      });
+    };
+
     const deleteAttr = () => {
-      const isConfirmed = window.confirm(translate('retailAttributes.update.edit.confirmDelete', {value: rowData?.name}));
-      if(isConfirmed){
-        dispatch(deleteEntity(rowData?.id))
-      }
+      dispatch(deleteEntity(rowData?.id))
     }
     return (
-
-        <FontAwesomeIcon onClick={deleteAttr}  icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+      <FontAwesomeIcon onClick={confirm1} icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
     );
   };
 
 
-  if(loadingAttribute){
+  if (loadingAttribute) {
     return <Spinner />
   }
 
 
   return (
     <div>
+      <ConfirmDialog />
       <Row>
         <Col md="8">
           <h2 >
-            <Translate contentKey={'retailAttributes.update.edit.title'} interpolate={{attribute: retailAttributeEntity?.key}}>
+            <Translate contentKey={'retailAttributes.update.edit.title'} interpolate={{ attribute: retailAttributeEntity?.key }}>
               {`Add New ${retailAttributeEntity?.key}`}
             </Translate>
           </h2>
         </Col>
       </Row>
       <Row className="  bg-white" >
-        <Col md="4"  className="d-flex flex-column p-3 ">
+        <Col md="4" className="d-flex flex-column p-3 ">
           <FormGroup>
-          <RetailAttributeAdd type={"Attribute Value"} attributeId={retailAttributeEntity?.id} />
+            <RetailAttributeAdd type={"Attribute Value"} attributeId={retailAttributeEntity?.id} />
           </FormGroup>
         </Col>
         <Row>
-        <Col md="12"  className="d-flex flex-column p-3 ">
+          <Col md="12" className="d-flex flex-column p-3 ">
 
-          <DataTable
-            header={header}
-            loading={loadingAttributeValue || updatingAttributeValue}
-            value={retailAttributeValues}
-            editMode="row"
-            dataKey="id"
-            removableSort
-            onRowEditComplete={onRowEditComplete}
-            filterDisplay="row"
-            paginator
-            totalRecords={totalItems}
-            rows={20}
-          >
-            <Column field="name" header={translate('retailAttributes.update.edit.table.fields.name')} editor={(options) => textEditor(options)} style={{ width: '20%' }}></Column>
+            <DataTable
+              header={header}
+              loading={loadingAttributeValue || updatingAttributeValue}
+              value={retailAttributeValues}
+              editMode="row"
+              dataKey="id"
+              removableSort
+              onRowEditComplete={onRowEditComplete}
+              filterDisplay="row"
+              paginator
+              totalRecords={totalItems}
+              rows={20}
+            >
+              <Column field="name" header={translate('retailAttributes.update.edit.table.fields.name')} editor={(options) => textEditor(options)} style={{ width: '20%' }}></Column>
 
-            <Column rowEditor  headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-            <Column  body={deleteColumnTemplate}  headerStyle={{ width: '1%',  }} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}  />
+              <Column rowEditor headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+              <Column body={deleteColumnTemplate} headerStyle={{ width: '1%', }} bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-          </DataTable>
-        </Col>
+            </DataTable>
+          </Col>
         </Row>
       </Row>
     </div>

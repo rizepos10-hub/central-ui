@@ -11,6 +11,7 @@ import { Button } from 'primereact/button';
 import { Card, CardHeader, Col } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Translate } from 'react-jhipster';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 const ZonePage = () => {
     const params = useParams();
@@ -71,9 +72,17 @@ const ZonePage = () => {
         }
     };
 
+    const confirm1 = (id) => {
+        confirmDialog({
+            message: 'Are you sure you want to proceed?',
+            header: 'Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: () => deleteZone(id)
+        });
+    };
+
     const deleteZone = (id) => {
-        const alret = window.confirm("Are you sure you want to delete this zone?");
-        if (!alret) return;
         dispatch(deleteEntity(id)).then(() => (
             navigate(-1)
         ));
@@ -81,6 +90,7 @@ const ZonePage = () => {
 
     return (
         <form onSubmit={saveEntity} className='d-flex flex-column gap-4'>
+            <ConfirmDialog />
             <div className='d-flex gap-4'>
                 <div>
                     <Map
@@ -113,7 +123,7 @@ const ZonePage = () => {
                                 className="p-button-danger p-1"
                                 type='button'
                                 size='large'
-                                onClick={() => deleteZone(zone.id)}
+                                onClick={() => confirm1(zone.id)}
                             />
                         </div>
 

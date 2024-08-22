@@ -7,6 +7,7 @@ import { InputNumber } from 'primereact/inputnumber';
 import ItemSelectionModal from '../item-selection-modal';
 
 import { IMenu } from 'app/shared/model/menu.model';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -255,9 +256,27 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         });
     };
 
+    const confirm1 = (mainScreenIndex, index, item) => {
+        confirmDialog({
+            message: 'Do you want to delete this record?',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: () => handleRemoveCard(mainScreenIndex, index, item),
+            // reject
+        });
+    };
+
+    const confirm2 = (mainScreenIndex, mainScreenName) => {
+        confirmDialog({
+            message: 'Do you want to delete this record?',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: () => handleRemoveMainScreen(mainScreenIndex, mainScreenName),
+            // reject
+        });
+    };
+
     const handleRemoveCard = (mainScreenIndex, subScreenIndex, item) => {
-        const isConfirmed = window.confirm(`Are you sure you want to remove ${item?.name}`);
-        if (!isConfirmed) return;
         setData(prevData => {
             const updatedMenuScreens = prevData.menuScreens.map((mainScreen, i) => {
                 if (i === mainScreenIndex) {
@@ -322,6 +341,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
         return (
             <div className="d-flex gap-3 mb-3" onDragOver={e => e.preventDefault()}>
+                <ConfirmDialog />
                 <Col md={12}>
                     <div style={columnStyle}>
                         {subscreens.map((item, index) => (
@@ -339,7 +359,12 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                         <div className="ml-auto">
                                             <MdModeEditOutline size={20} onClick={() => openEditModal(item, index, 'sub')} />
                                             &nbsp;
-                                            <MdDeleteOutline size={20} color={'red'} onClick={() => handleRemoveCard(mainScreenIndex, index, item)} />
+                                            <MdDeleteOutline
+                                                size={20}
+                                                color={'red'}
+                                                onClick={(e) => confirm1(mainScreenIndex, index, item)}
+                                            // onClick={() => handleRemoveCard(mainScreenIndex, index, item)}
+                                            />
                                         </div>
                                     </div>
 
@@ -507,8 +532,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     }, [menu]);
 
     const handleRemoveMainScreen = (mainScreenIndex, mainScreenName) => {
-        const isConfirmed = window.confirm(`Are you sure you want to remove ${mainScreenName}`);
-        if (!isConfirmed) return;
         const updatedMenuScreens = [...data.menuScreens];
         updatedMenuScreens.splice(mainScreenIndex, 1);
 
@@ -1079,7 +1102,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                             <div className="d-flex justify-content-end">
                                                 <MdModeEditOutline size={20} onClick={() => openEditModal(mainScreen, index, 'main')} />
                                                 &nbsp;
-                                                <MdDeleteOutline size={20} color={'red'} onClick={() => handleRemoveMainScreen(index, mainScreen.name)} />
+                                                <MdDeleteOutline size={20} color={'red'} onClick={() => confirm2(index, mainScreen.name)} />
                                             </div>
                                             <h5 className="m-0 mr-3 mb-2">{mainScreen?.name}</h5>
                                             <div className="d-flex flex-row justify-content-between">

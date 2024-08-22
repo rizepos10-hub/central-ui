@@ -39,6 +39,7 @@ import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-r
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 
 const defaultItemPriceNumber = {
@@ -187,23 +188,29 @@ export const SimpleItemUpdate = () => {
     }));
   }
 
+  const confirm1 = (baseMeasure) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleBaseMeasureChange(baseMeasure)
+    });
+  };
 
   const handleBaseMeasureChange = (baseMeasure) => {
     if (!simpleItem?.measures || simpleItem?.measures?.length === 0) {
       setSimpleItem(prev => ({ ...prev, baseMeasure }))
     } else {
-      const isConfirmed = window.confirm("Changing base measure will reset the exchange rates");
-      if (isConfirmed) {
-        setSimpleItem(prevState => {
-          const updatedMeasures = prevState.measures.filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
-            .map((exMeasure) => ({ ...exMeasure, exchangeRate: null }));
-          return {
-            ...prevState,
-            baseMeasure,
-            measures: updatedMeasures
-          };
-        });
-      }
+      setSimpleItem(prevState => {
+        const updatedMeasures = prevState.measures.filter(exMeasure => exMeasure.itemMeasure.id !== baseMeasure.id)
+          .map((exMeasure) => ({ ...exMeasure, exchangeRate: null }));
+        return {
+          ...prevState,
+          baseMeasure,
+          measures: updatedMeasures
+        };
+      });
     }
     setMeasureToAdd({})
   };
@@ -388,7 +395,7 @@ export const SimpleItemUpdate = () => {
 
   return (
     <form onSubmit={saveEntity}>
-
+      <ConfirmDialog />
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card className='p-0'>
@@ -592,7 +599,7 @@ export const SimpleItemUpdate = () => {
                               name="baseMeasure"
                               getOptionValue={option => option.id}
                               getOptionLabel={option => option.name}
-                              onChange={handleBaseMeasureChange}
+                              onChange={confirm1}
                             />
                           </div>
 

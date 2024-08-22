@@ -47,6 +47,7 @@ import { preventEnterSubmit } from 'app/shared/util/form-utils';
 import { Column } from 'primereact/column';
 import VariantPackaging from 'app/shared/components/item/variant-packaging';
 import { Dropdown } from 'primereact/dropdown';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -656,31 +657,46 @@ export const ProductUpdate = () => {
     });
   };
 
-  const handleDeleteVariant = variantIndex => {
-    const isConfirmed = window.confirm(translate('items.update.deleteVariantMessage'));
-    if (isConfirmed) {
-      setProduct(prev => {
-        const updatedVariants = [...prev.variants];
-        updatedVariants.splice(variantIndex, 1);
-        return {
-          ...prev,
-          variants: updatedVariants,
-        };
-      });
-    }
+  const confirm1 = (variantIndex) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleDeleteVariant(variantIndex)
+    });
   };
+
+  const handleDeleteVariant = variantIndex => {
+    setProduct(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants.splice(variantIndex, 1);
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
+  const confirm2 = (attributeIndex) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleRemoveAttribute(attributeIndex)
+    });
+  };
+
   const handleRemoveAttribute = attributeIndex => {
-    const isConfirmed = window.confirm('Are you sure?');
-    if (isConfirmed) {
-      setProduct(prev => {
-        const updateAttributes = [...prev.attributes];
-        updateAttributes.splice(attributeIndex, 1);
-        return {
-          ...prev,
-          attributes: updateAttributes,
-        };
-      });
-    }
+    setProduct(prev => {
+      const updateAttributes = [...prev.attributes];
+      updateAttributes.splice(attributeIndex, 1);
+      return {
+        ...prev,
+        attributes: updateAttributes,
+      };
+    });
   };
 
   const AttributeAccordionHeader = attributeIndex => (
@@ -695,7 +711,7 @@ export const ProductUpdate = () => {
         <strong>{product?.attributes?.[attributeIndex]?.attributeTax?.name}</strong>
       </label>
 
-      <PrimeButton type="button" className={'ml-auto'} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
+      <PrimeButton type="button" className={'ml-auto'} color="danger" onClick={() => confirm2(attributeIndex)}>
         <Translate contentKey={'items.update.removeAttribute'}>Remove Attribute</Translate>
       </PrimeButton>
     </div>
@@ -742,7 +758,7 @@ export const ProductUpdate = () => {
       <div className="d-flex justify-content-end">
         <FontAwesomeIcon
           icon="trash"
-          onClick={() => handleDeleteVariant(variantIndex)}
+          onClick={() => confirm1(variantIndex)}
           className={'my-2 cursor-pointer '}
           style={{ color: 'red' }}
         />
@@ -756,6 +772,7 @@ export const ProductUpdate = () => {
 
   return (
     <form onKeyDown={preventEnterSubmit}>
+      <ConfirmDialog />
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card>
