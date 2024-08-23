@@ -37,7 +37,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             toast.error('Only one image can be added for this field');
             return;
         } else {
-            setAttachments(acceptedFiles);
+            console.log(acceptedFiles, 'acceptedFiles')
+            // setAttachments(acceptedFiles);
             fileUploadCallback(acceptedFiles);
         }
     };
@@ -53,9 +54,10 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             setLoading(true);
             await dispatch(uploadImage(formData)).then((res) => {
                 const response = res.payload as any;
+                console.log(response)
                 setAttachments([]);
                 setSelectedItems(files.map(file => ({
-                    _id: file.name,
+                    _id: response?.id,
                     name: file.name,
                     path: file.name,
                     size: file.size,
@@ -64,11 +66,11 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     thumbnailUrl: response?.url,
                 })));
                 handleFilesSelectCallback(files.map(file => ({
-                    _id: file.name,
+                    _id: response?.id,
                     name: file.name,
                     path: file.name,
                     size: file.size,
-                    type: file.type,
+                    type: undefined,
                     updatedAt: new Date().toISOString(),
                     thumbnailUrl: response?.url,
                 })));
@@ -241,6 +243,7 @@ const MediaLibraryTest = ({
 
     const filesSelectCallback = (files: FileLibraryListItem[]) => {
         setSelectedItems(files)
+        console.log(files, 'files')
         handleFilesSelectCallback(files)
         setIsOpen(prev => !prev)
     }
