@@ -717,6 +717,7 @@ export const ProductUpdate = () => {
     </div>
   );
 
+  {console.log(product?.attachments, 'attachments')}
   const VariantAccordionHeader = variantIndex => (
     <div
       onClick={e => {
