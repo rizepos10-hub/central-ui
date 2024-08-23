@@ -8,12 +8,12 @@ import {
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit';
 import { AxiosError } from 'axios';
-import {IAuditLog} from "app/shared/model/audit-log.model";
+import { IAuditLog } from "app/shared/model/audit-log.model";
 
 /**
  * Model for redux actions with pagination
  */
-export type IQueryParams = {name?: string; query?: string; page?: number; size?: number; sort?: string; taxonomyName?: string; type?: string; id?: string, itemType?: string, branchId?: string, whenToApply?: string, key?: string, categoryId?: string };
+export type IQueryParams = { name?: string; query?: string; page?: number; size?: number; sort?: string; taxonomyName?: string; type?: string; id?: string, itemType?: string, branchId?: string, whenToApply?: string, key?: string, categoryId?: string, unassignedItems?: string };
 
 /**
  * Useful types for working with actions
@@ -88,7 +88,7 @@ export interface EntityState<T> {
   orderSources?: any;
 }
 
-export interface AuditLogState{
+export interface AuditLogState {
   logs: IAuditLog[];
   loading: boolean;
   totalItems: number;

@@ -10,6 +10,7 @@ import { Tag } from "primereact/tag";
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
 import { useNavigate } from 'react-router-dom';
 import _ from 'lodash';
+import { Checkbox } from 'primereact/checkbox';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -38,20 +39,27 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
       name: searchParams.get("name") || '',
       sort: `id,asc`,
       categoryId: searchParams.get("categoryId") || '',
+      unassignedItems: searchParams.get("unassignedItems") || '',
     }));
-  }, [searchParams.get("page"), searchParams.get("size"), searchParams.get("name"), searchParams.get("categoryId")]);
+  }, [
+    searchParams.get("page"),
+    searchParams.get("size"),
+    searchParams.get("name"),
+    searchParams.get("categoryId"),
+    searchParams.get("unassignedItems")
+  ]);
 
   const createQueryString = useCallback((name, value) => {
     const sParams = new URLSearchParams(searchParams);
     sParams.set(name, value);
     return `?${sParams.toString()}`;
-  }, [searchParams.get('name')]);
+  }, []);
 
   const deleteQueryString = useCallback((name) => {
     const sParams = new URLSearchParams(searchParams);
     sParams.delete(name);
     return `?${sParams.toString()}`;
-  }, [searchParams.get('categoryId')]);
+  }, []);
 
 
   const debouncedItemNameNavigate = useCallback(
@@ -99,38 +107,58 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
       </ModalHeader>
       <ModalBody>
         <FormGroup>
-          <Label for="searchItem">
-            <Translate contentKey={'menus.pos.update.modals.item.search'}>Search Item</Translate>
-          </Label>
-          <Input
-            type="text"
-            id="searchItem"
-            value={searchParams.get('name')}
-            onChange={(e) => navigate(createQueryString('name', e.target.value))}
-            placeholder="Start Searching"
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label for="searchCategory">
-            <Translate contentKey={'menus.pos.update.modals.item.filter'}>Filter By Category</Translate>
-          </Label>
-          <div>
-            <Select
-              id="searchCategory"
-              value={{
-                label: categoriesOption.find(cat => cat.value === searchParams.get('categoryId'))?.label,
-                value: searchParams.get('categoryId'),
-              }}
-              onChange={selectedOption => {
-                console.log(selectedOption)
-                if (!selectedOption) {
-                  navigate(deleteQueryString('categoryId'));
+          <div className='d-flex gap-2 align-items-baseline'>
+            <div className='w-100'>
+              <Label for="searchItem">
+                <Translate contentKey={'menus.pos.update.modals.item.search'}>Search Item</Translate>
+              </Label>
+              <Input
+                type="text"
+                id="searchItem"
+                value={searchParams.get('name')}
+                onChange={(e) => navigate(createQueryString('name', e.target.value))}
+                placeholder="Start Searching"
+                className='w-100'
+              />
+            </div>
+            <div className='w-100'>
+              <Label for="searchCategory">
+                <Translate contentKey={'menus.pos.update.modals.item.filter'}>Filter By Category</Translate>
+              </Label>
+              <Select
+                id="searchCategory"
+                value={{
+                  label: categoriesOption.find(cat => cat.value === searchParams.get('categoryId'))?.label,
+                  value: searchParams.get('categoryId'),
+                }}
+                onChange={selectedOption => {
+                  console.log(selectedOption)
+                  if (!selectedOption) {
+                    navigate(deleteQueryString('categoryId'));
+                  } else {
+                    navigate(createQueryString('categoryId', selectedOption.value));
+                  }
+                }}
+                options={categoriesOption}
+                isClearable={true}
+                className='w-100'
+              />
+            </div>
+          </div>
+          <div className='d-flex gap-2 align-items-baseline mt-2'>
+            <Label for="filterByUnassignedItems">
+              <Translate contentKey={'menus.pos.update.modals.item.filterByUnassignedItems'}>Filter By Unassigned Items</Translate>
+            </Label>
+            <Checkbox
+              inputId="filterByUnassignedItems"
+              checked={searchParams.get('unassignedItems') !== null}
+              onChange={(e) => {
+                if (e.checked) {
+                  navigate(createQueryString('unassignedItems', true));
                 } else {
-                  navigate(createQueryString('categoryId', selectedOption.value));
+                  navigate(deleteQueryString('unassignedItems'));
                 }
               }}
-              options={categoriesOption}
-              isClearable={true}
             />
           </div>
         </FormGroup>
