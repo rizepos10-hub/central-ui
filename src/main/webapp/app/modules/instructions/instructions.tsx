@@ -1,19 +1,18 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import "./instructions.css";
 import { Card } from 'primereact/card';
-import {useLocation} from "react-router-dom";
-import {getBranchesCredentials} from "app/entities/settings/business-details/business-detail.reducer";
-import {useAppDispatch} from "app/config/store";
-import {Dropdown} from "primereact/dropdown";
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {CardBody, CardText, CardTitle, Spinner} from "reactstrap";
+import { useLocation } from "react-router-dom";
+import { getBranchesCredentials } from "app/entities/settings/business-details/business-detail.reducer";
+import { useAppDispatch } from "app/config/store";
+import { Dropdown } from "primereact/dropdown";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { CardBody, CardText, CardTitle, Spinner } from "reactstrap";
 
 
 
 
-export default function Instructions()
-{
+export default function Instructions() {
   const dispatch = useAppDispatch()
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -21,12 +20,12 @@ export default function Instructions()
   const showWelcome = queryParams.has("welcome");
 
   const findBranch = (branchId) => {
-   const foundBranch = branchesCredentials?.branches?.find(branch => branch.id === branchId) || {}
+    const foundBranch = branchesCredentials?.branches?.find(branch => branch.id === branchId) || {}
 
     return foundBranch.client ? foundBranch : {}
   }
 
-  const [branchesCredentials,setBranchesCredentials] = useState<any>({});
+  const [branchesCredentials, setBranchesCredentials] = useState<any>({});
 
   const [selectedBranch, setSelectedBranch] = useState();
   const [loading, setLoading] = useState(false)
@@ -40,9 +39,9 @@ export default function Instructions()
 
 
   const data = [
-    {title: 'Apple', url: 'content/images/apple.jpeg', link: 'https://apps.apple.com/th/app/rize-pos-client/id6476973045'},
-    {title: 'Android', url: 'content/images/android.png', link:   '/pos-resources/apk/app-release.apk'},
-    {title: 'Windows', url: 'content/images/windows.png', link:  '/pos-resources/win/rize_pos_setup.exe'}
+    { title: 'Apple', url: 'content/images/apple.jpeg', link: 'https://apps.apple.com/th/app/rize-pos-client/id6476973045' },
+    { title: 'Android', url: 'content/images/android.png', link: '/pos-resources/apk/app-release.apk' },
+    { title: 'Windows', url: 'content/images/windows.png', link: '/pos-resources/win/rize_pos_setup.exe' }
   ]
 
   useEffect(() => {
@@ -73,7 +72,7 @@ export default function Instructions()
 
 
 
-  if(loading){
+  if (loading) {
     return <Spinner />
   }
 
@@ -84,13 +83,13 @@ export default function Instructions()
   return (
     <div className="welcome-container">
       {showWelcome && <div className="welcome-content">
-          <div>
-            <span className="welcome-rize">Welcome to Rize POS!</span>
-          </div>
-          <h2 className={"instructions"}>Please Follow the bellow instruction </h2>
-        </div> }
+        <div>
+          <span className="welcome-rize">Welcome to Rize POS!</span>
+        </div>
+        <h2 className={"instructions"}>Please Follow the bellow instruction </h2>
+      </div>}
 
-          <div className="steps-column">
+      <div className="steps-column">
 
         <div className="step">
           <h2>Step 1</h2>
@@ -104,7 +103,7 @@ export default function Instructions()
           <div className=" d-flex gap-5">
             <div>
               <Dropdown
-                options={branchesCredentials?.branches?.map(branch => ({value: branch.id, label: branch.name}))}
+                options={branchesCredentials?.branches?.map(branch => ({ value: branch.id, label: branch.name }))}
                 placeholder="Select a branch.."
                 value={selectedBranch}
                 onChange={(e) => setSelectedBranch(e.value)}
@@ -114,68 +113,66 @@ export default function Instructions()
 
             {branchToShow &&
               <div className="card">
-              <div className="card-header">
-                <h5>Branch Information</h5>
+                <div className="card-header">
+                  <h5>Branch Information</h5>
+                </div>
+                <div className="card-body">
+                  <div className="mb-3">
+                    <strong className="mr-3">Client ID:</strong>
+                    {branchToShow?.client?.clientId}
+                  </div>
+                  <div className="mb-3">
+                    <strong className="mr-3">Client Secret:</strong>
+                    {branchToShow?.client?.serviceSecret}
+                  </div>
+                  <div className="mb-3">
+                    <strong className="mr-3">Branch ID:</strong>
+                    {branchToShow.id}
+                  </div>
+                  <div className="mb-3">
+                    <strong className="mr-3">Name:</strong>
+                    {branchToShow.name}
+                  </div>
+                  {/* <div className="mb-3">
+                    <strong className="mr-3">Service URL:</strong>
+                    {branchToShow?.client?.serviceUrl || 'N/A'}
+                  </div>
+                  <div className="mb-3">
+                    <strong className="mr-3">Details:</strong>
+                    {branchToShow?.client?.details || 'N/A'}
+                  </div> */}
+                </div>
               </div>
-              <div className="card-body">
-                <div className="mb-3">
-                  <strong className="mr-3">Branch ID:</strong>
-                  {branchToShow.id}
-                </div>
-                <div className="mb-3">
-                  <strong className="mr-3">Name:</strong>
-                  {branchToShow.name}
-                </div>
-                <div className="mb-3">
-                  <strong className="mr-3">Client ID:</strong>
-                  {branchToShow?.client?.clientId}
-                </div>
-                <div className="mb-3">
-                  <strong className="mr-3">Service Secret:</strong>
-                  {branchToShow?.client?.serviceSecret}
-                </div>
-                <div className="mb-3">
-                  <strong className="mr-3">Service URL:</strong>
-                  {branchToShow?.client?.serviceUrl || 'N/A'}
-                </div>
-                <div className="mb-3">
-                  <strong className="mr-3">Details:</strong>
-                  {branchToShow?.client?.details || 'N/A'}
-                </div>
-              </div>
-            </div>
             }
 
             {branchesCredentials?.brokerConfig &&
-              <div className="card" style={{marginBottom: '2rem'}}>
-              <div className="card-header">
-                <h5>Business Information</h5>
+              <div className="card" style={{ marginBottom: '2rem' }}>
+                <div className="card-header">
+                  <h5>Business Information</h5>
+                </div>
+                <div className="card-body">
+                  <div className="mb-3">
+                    <strong className="mr-3">Realm Id:</strong>
+                    {branchesCredentials?.realmId}
+                  </div>
+                  <div className="mb-3">
+                    <strong className="mr-3">Host Name:</strong>
+                    {branchesCredentials?.brokerConfig?.vHostName}
+                  </div>
+                  <div className="mb-3">
+                    <strong className="mr-3">Username:</strong>
+                    {branchesCredentials?.brokerConfig?.users[0]?.username}
+                  </div>
+                  <div className="mb-3">
+                    <strong className="mr-3">Password:</strong>
+                    {branchesCredentials?.brokerConfig?.users[0]?.password}
+                  </div>
+                  {/* <div className="mb-3">
+                    <strong className="mr-3">Exchange:</strong>
+                    {branchesCredentials?.brokerConfig.topics[0]}
+                  </div> */}
+                </div>
               </div>
-              <div className="card-body">
-                <div className="mb-3">
-                  <strong className="mr-3">Realm Id:</strong>
-                  {branchesCredentials?.realmId}
-                </div>
-                <div className="mb-3">
-                  <strong className="mr-3">Username:</strong>
-                  {branchesCredentials?.brokerConfig?.users[0]?.username}
-                </div>
-                <div className="mb-3">
-                  <strong className="mr-3">Password:</strong>
-                  {branchesCredentials?.brokerConfig?.users[0]?.password}
-
-                </div>
-                <div className="mb-3">
-                  <strong className="mr-3">Host Name:</strong>
-                  {branchesCredentials?.brokerConfig?.vHostName}
-                </div>
-                <div className="mb-3">
-                  <strong className="mr-3">Exchange:</strong>
-                  {branchesCredentials?.brokerConfig.topics[0]}
-
-                </div>
-              </div>
-            </div>
             }
           </div>
         </div>
