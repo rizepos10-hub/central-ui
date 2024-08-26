@@ -341,7 +341,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
         return (
             <div className="d-flex gap-3 mb-3" onDragOver={e => e.preventDefault()}>
-                <ConfirmDialog />
                 <Col md={12}>
                     <div style={columnStyle}>
                         {subscreens.map((item, index) => (

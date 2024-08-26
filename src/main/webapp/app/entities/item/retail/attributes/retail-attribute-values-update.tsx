@@ -120,7 +120,6 @@ export const RetailAttributeValuesUpdate = () => {
 
   return (
     <div>
-      <ConfirmDialog />
       <Row>
         <Col md="8">
           <h2 >

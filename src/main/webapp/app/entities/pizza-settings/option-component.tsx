@@ -443,7 +443,6 @@ const NewRequiredOptionInputs: React.FC<NewRequiredOptionModalProps> = ({ groupI
 
   return (
     <div ref={optionRef}>
-      <ConfirmDialog />
       <Col md="12">
         <div className="d-flex flex-column gap-2">
           <Row>

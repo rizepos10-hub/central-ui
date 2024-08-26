@@ -373,7 +373,6 @@ export const OrderDetail = () => {
                     </div>
                   )}
                   <div>
-                    <ConfirmDialog />
                     {!orderEntity?.refund && (
                       <Button
                         color="secondary"

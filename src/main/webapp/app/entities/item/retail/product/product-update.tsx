@@ -773,7 +773,6 @@ export const ProductUpdate = () => {
 
   return (
     <form onKeyDown={preventEnterSubmit}>
-      <ConfirmDialog />
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card>

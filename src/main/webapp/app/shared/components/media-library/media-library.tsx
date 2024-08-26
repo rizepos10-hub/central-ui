@@ -115,7 +115,6 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
 
     return (
         <>
-            <ConfirmDialog />
             <div
                 {...getRootProps({
                     onClick: handleClick

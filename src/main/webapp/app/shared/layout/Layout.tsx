@@ -1,30 +1,31 @@
-import React, {useCallback, useContext, useEffect, useRef} from "react";
+import React, { useCallback, useContext, useEffect, useRef } from "react";
 
 import "../sidebar/sidebar.scss";
 import AppSidebar from "app/shared/sidebar/AppSidebar";
 import '../styles/layout/layout.scss';
 import '../styles/demo/Demos.scss';
-import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
-import {classNames, DomHandler} from "primereact/utils";
-import {useEventListener, useMountEffect, useResizeListener} from "primereact/hooks";
+import { LayoutContext } from "app/shared/sidebar/context/layoutcontext";
+import { classNames, DomHandler } from "primereact/utils";
+import { useEventListener, useMountEffect, useResizeListener } from "primereact/hooks";
 import PrimeReact from "primereact/api";
 import ErrorBoundary from "app/shared/error/error-boundary";
-import {useAppDispatch, useAppSelector} from "app/config/store";
-import {getSession} from "app/shared/reducers/authentication";
-import {getProfile} from "app/shared/reducers/application-profile";
-import {hasAnyAuthority} from "app/shared/auth/private-route";
-import {AUTHORITIES} from "app/config/constants";
-import {toast, ToastContainer} from "react-toastify";
+import { useAppDispatch, useAppSelector } from "app/config/store";
+import { getSession } from "app/shared/reducers/authentication";
+import { getProfile } from "app/shared/reducers/application-profile";
+import { hasAnyAuthority } from "app/shared/auth/private-route";
+import { AUTHORITIES } from "app/config/constants";
+import { toast, ToastContainer } from "react-toastify";
 import AppTopbar from "app/shared/sidebar/AppTopbar";
 import AppBreadCrumb from "app/shared/sidebar/AppBreadCrumb";
 import AppProfileSidebar from "app/shared/sidebar/AppProfileSidebar";
 import type { AppTopbarRef, ChildContainerProps } from '../sidebar/types/types';
 import Footer from "app/shared/layout/footer/footer";
+import { ConfirmDialog } from "primereact/confirmdialog";
 
 
 
 
-export const Layout =  (props: ChildContainerProps) => {
+export const Layout = (props: ChildContainerProps) => {
 
   const { layoutConfig, layoutState, setLayoutState, isSlim, isSlimPlus, isHorizontal, isDesktop } = useContext(LayoutContext);
   const topbarRef = useRef<AppTopbarRef>(null);
@@ -147,7 +148,7 @@ export const Layout =  (props: ChildContainerProps) => {
 
   let sidebarContent = (<div className="sidebar invisible"></div>);
   if (props.isAuthenticated) {
-   sidebarContent = <AppSidebar />;
+    sidebarContent = <AppSidebar />;
   }
   const dispatch = useAppDispatch();
 
@@ -203,12 +204,13 @@ export const Layout =  (props: ChildContainerProps) => {
       <div className={classNames('layout-container', containerClass)}>
         {isAuthenticated &&
           <div ref={sidebarRef} className="layout-sidebar" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-          {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
-          <AppSidebar />
-        </div> }
+            {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
+            <AppSidebar />
+          </div>}
         <div className={isAuthenticated ? 'layout-content-wrapper' : ''}>
-        {isAuthenticated && <AppTopbar ref={topbarRef}/>}
-        <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toastify-container" toastClassName="toastify-toast" />
+          {isAuthenticated && <AppTopbar ref={topbarRef} />}
+          <ConfirmDialog />
+          <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toastify-container" toastClassName="toastify-toast" />
           <ErrorBoundary>
             {/* <Header */}
             {/*   isAuthenticated={isAuthenticated} */}
@@ -222,14 +224,14 @@ export const Layout =  (props: ChildContainerProps) => {
 
             {isAuthenticated && isOpenAPIEnabled && <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>}
 
-                <div className="layout-content">{props.children}</div>
-            </ErrorBoundary>
-          </div>
-        {isAuthenticated && <AppProfileSidebar/>}
+            <div className="layout-content">{props.children}</div>
+          </ErrorBoundary>
+        </div>
+        {isAuthenticated && <AppProfileSidebar />}
 
         <div className="layout-mask"></div>
       </div>
-      {isAuthenticated &&  <Footer /> }
+      {isAuthenticated && <Footer />}
 
     </React.Fragment>
   );
