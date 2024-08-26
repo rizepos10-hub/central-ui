@@ -560,6 +560,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         if (index !== draggedIndex) {
             const newData = [...data.menuScreens];
             const [draggedItem] = newData.splice(draggedIndex, 1);
+            if (!draggedItem) return;
             newData.splice(index, 0, draggedItem);
             setData({ ...data, menuScreens: newData });
             setDraggedIndex(index);
