@@ -181,7 +181,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
 
   const subMenu =
     item?.items && item?.visible !== false ? (
-      <ul ref={submenuRef} className='px-0'>
+      <ul ref={submenuRef} className='px-2'>
         {item?.items.map((child, i) => {
           if (child.role && child.role.length > 0) {
             const hasAccess = child.role.some(role => userRole.includes(role));

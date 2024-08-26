@@ -21,6 +21,8 @@ import AppProfileSidebar from "app/shared/sidebar/AppProfileSidebar";
 import type { AppTopbarRef, ChildContainerProps } from '../sidebar/types/types';
 import Footer from "app/shared/layout/footer/footer";
 import { ConfirmDialog } from "primereact/confirmdialog";
+import GlobalSearch from "../components/global-search/global-search";
+import { model } from "../sidebar/AppMenu";
 
 
 
@@ -203,13 +205,19 @@ export const Layout = (props: ChildContainerProps) => {
 
       <div className={classNames('layout-container', containerClass)}>
         {isAuthenticated &&
-          <div ref={sidebarRef} className="layout-sidebar" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+          <div ref={sidebarRef} className="layout-sidebar" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} style={{
+            height: '93vh',
+            top: '7vh'
+          }}>
             {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
             <AppSidebar />
           </div>}
-        <div className={isAuthenticated ? 'layout-content-wrapper' : ''}>
-          {isAuthenticated && <AppTopbar ref={topbarRef} />}
+        {isAuthenticated && <AppTopbar ref={topbarRef} />}
+        <div className={isAuthenticated ? 'layout-content-wrapper' : ''} style={{ 
+          height: '93vh',
+         }}>
           <ConfirmDialog />
+          <GlobalSearch data={model} />
           <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toastify-container" toastClassName="toastify-toast" />
           <ErrorBoundary>
             {/* <Header */}
