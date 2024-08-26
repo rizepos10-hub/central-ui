@@ -245,7 +245,6 @@ const PizzaGroupUpdate = () => {
 
   return (
     <Row>
-      <ConfirmDialog />
       <h1>Pizza Definitions</h1>
       <Card>
         <CardBody>

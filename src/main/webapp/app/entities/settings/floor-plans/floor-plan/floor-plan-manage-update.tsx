@@ -478,7 +478,6 @@ const FloorPlanManageUpdate = () => {
     <Card
       style={{ overflow: "scroll" }}
     >
-      <ConfirmDialog />
       <div className={"d-flex justify-content-between mb-5"}>
         <div>
           <h2>Floor Plan Management</h2>

@@ -308,7 +308,6 @@ export const RegularItemUpdate = () => {
 
   return (
     <form onKeyDown={preventEnterSubmit}>
-      <ConfirmDialog />
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card className="p-0">

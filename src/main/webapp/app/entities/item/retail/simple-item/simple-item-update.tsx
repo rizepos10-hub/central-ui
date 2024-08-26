@@ -395,7 +395,6 @@ export const SimpleItemUpdate = () => {
 
   return (
     <form onSubmit={saveEntity}>
-      <ConfirmDialog />
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card className='p-0'>

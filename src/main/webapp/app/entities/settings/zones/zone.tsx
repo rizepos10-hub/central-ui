@@ -90,7 +90,6 @@ const ZonePage = () => {
 
     return (
         <form onSubmit={saveEntity} className='d-flex flex-column gap-4'>
-            <ConfirmDialog />
             <div className='d-flex gap-4'>
                 <div>
                     <Map

@@ -166,7 +166,6 @@ export const Currency = () => {
 
   return (
     <div>
-      <ConfirmDialog />
       <Row>
         <Col md="8">
           <h2>

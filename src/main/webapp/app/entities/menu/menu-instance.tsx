@@ -113,6 +113,7 @@ const MenuInstance = () => {
     };
 
     const confirm1 = () => {
+        console.log(1)
         confirmDialog({
             message: 'Are you sure you want to proceed?',
             header: 'Confirmation',
@@ -152,7 +153,6 @@ const MenuInstance = () => {
 
     return (
         <div>
-            <ConfirmDialog />
             {menuEntity.id && (
                 <MenuUpdate
                     menuEntity={menuEntity}
