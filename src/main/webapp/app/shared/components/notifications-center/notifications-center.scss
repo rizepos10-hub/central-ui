@@ -1,0 +1,137 @@
+.popup-dropback--2 {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 3em;
+  z-index: 2;
+}
+.notificationIcon {
+  cursor: pointer;
+  z-index: 10;
+  position: relative;
+  transition: all 0.1s linear;
+  &:hover {
+    color: var(--primary-color);
+  }
+}
+.notificationsIsActive {
+  color: var(--primary-color);
+}
+.notificationsContainer {
+  position: relative;
+
+  opacity: 0;
+  visibility: hidden;
+  z-index: 10;
+  transition: 0.1s all linear;
+  font-size: 1em;
+  .notificationsMenu {
+    z-index: 104;
+    width: 500px;
+    height: 350px;
+    top: 4em;
+    right: 1em;
+    position: fixed;
+
+    border-radius: 8px;
+    box-shadow: 0 0 8px 2px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    overflow-x: visible;
+    background-color: var(--primary-color-text);
+
+    .notificationsStickyHeader {
+      position: sticky;
+      top: 0;
+      padding: 1em;
+      padding-bottom: 0;
+      box-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.03);
+      background-color: var(--primary-color-text);
+    }
+    .notificationHeader {
+      display: flex;
+      padding-bottom: 1em;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--primary-color);
+      .menuTitle {
+        font-size: 1.3em;
+      }
+    }
+    .notificationsShadow {
+      position: sticky;
+      top: 200px;
+      width: 297px;
+      box-shadow: 0px 0.5px 0.5px 1.5px rgba(0, 0, 0, 0.75);
+    }
+    .notificationsReadOption {
+      font-size: 0.9em;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+    .notificationsTxtButton {
+      cursor: pointer;
+      box-shadow: 0 0.8px 0 0 #9ca3a9;
+      width: fit-content;
+      transition: 0.1s all linear;
+      margin: 1em 1em 1em 0;
+      &:hover {
+        box-shadow: none;
+        color: var(--primary-color);
+      }
+    }
+  }
+  .notifications {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    .notificationCon {
+      box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.1s linear;
+      padding: 0.1em;
+      &:hover {
+        // @include themify($themes) {
+        //     background-color: themed("highlight--1");
+        // }
+      }
+      .notification {
+        padding: 1em calc(1em - 2px);
+        font-size: 1em;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-left: 4px solid transparent;
+        span {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+
+        .mark-as-read {
+          padding: 0.4em;
+          border-radius: 9999px;
+          background-color: var(--gray-200);
+
+          .marked-as-read {
+            padding: 0.3em;
+            border-radius: 9999px;
+            background-color: var(--primary-color);
+          }
+        }
+      }
+      .unread {
+        border-color: var(--primary-color) !important;
+      }
+    }
+  }
+}
+.notificationsVisible {
+  opacity: 1;
+  visibility: visible;
+}
+.notificationsInvisible {
+  opacity: 0;
+  visibility: hidden;
+}
