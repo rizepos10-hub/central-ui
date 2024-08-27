@@ -1,72 +1,98 @@
 import { Tooltip } from 'primereact/tooltip';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useMemo, useContext, useEffect, useRef } from 'react';
 import AppMenuitem from './AppMenuitem';
-import {LayoutContext, LayoutProvider} from './context/layoutcontext';
+import { LayoutContext, LayoutProvider } from './context/layoutcontext';
 import { MenuProvider } from './context/menucontext';
-import {useAppSelector} from "app/config/store";
-import {hasAnyAuthority} from "app/shared/auth/private-route";
-import {AUTHORITIES} from "app/config/constants";
+import { useAppSelector } from "app/config/store";
+import { hasAnyAuthority } from "app/shared/auth/private-route";
+import { AUTHORITIES } from "app/config/constants";
 
 const AppSubMenu = (props) => {
-    const { layoutState, setBreadcrumbs } = useContext(LayoutContext);
-    const tooltipRef = useRef<Tooltip | null>(null);
-    const authorities = useAppSelector(state => state.authentication.account.authorities);
+  const { layoutState, setBreadcrumbs } = useContext(LayoutContext);
+  const tooltipRef = useRef<Tooltip | null>(null);
+  const authorities = useAppSelector(state => state.authentication.account.authorities);
 
   useEffect(() => {
-        if (tooltipRef.current) {
-            tooltipRef.current.hide();
-            (tooltipRef.current as any).updateTargetEvents();
-        }
+    if (tooltipRef.current) {
+      tooltipRef.current.hide();
+      (tooltipRef.current as any).updateTargetEvents();
+    }
 
-    }, [layoutState?.overlaySubmenuActive]);
+  }, [layoutState?.overlaySubmenuActive]);
 
-    useEffect(() => {
-        generateBreadcrumbs(props.model);
+  useEffect(() => {
+    generateBreadcrumbs(props.model);
 
-    }, []);
+  }, []);
 
-    const generateBreadcrumbs = (model: any) => {
-        const breadcrumbs: any[] = [];
+  const generateBreadcrumbs = (model: any) => {
+    const breadcrumbs: any[] = [];
 
-        const getBreadcrumb = (item: any, labels: string[] = []) => {
-            const { label, to, items } = item;
+    const getBreadcrumb = (item: any, labels: string[] = []) => {
+      const { label, to, items } = item;
 
-            // console.log(item, 'labelo')
+      // console.log(item, 'labelo')
 
-            label && labels.push(label);
-            items &&
-                items.forEach((_item) => {
-                    getBreadcrumb(_item, labels.slice());
-                });
-            to && breadcrumbs.push({ labels, to });
-        };
-
-        model.forEach((item) => {
-            getBreadcrumb(item);
+      label && labels.push(label);
+      items &&
+        items.forEach((_item) => {
+          getBreadcrumb(_item, labels.slice());
         });
-        // console.log(breadcrumbs, 'breadcum')
-        setBreadcrumbs(breadcrumbs);
+      to && breadcrumbs.push({ labels, to });
     };
 
-    return (
-      <MenuProvider>
-        {<ul className="layout-menu">
-          {props?.model?.map((item, i) => {
-            const hasAccess = item?.role?.some(role => authorities?.includes(role));
-            if (!hasAccess) {
-              return null;
-            }
+    model.forEach((item) => {
+      getBreadcrumb(item);
+    });
+    // console.log(breadcrumbs, 'breadcum')
+    setBreadcrumbs(breadcrumbs);
+  };
 
-            return !item?.seperator ? (
-              <AppMenuitem item={item} root={true} index={i} key={item?.label}/>
-            ) : (
-              <li className="menu-separator"></li>
-            );
-          })}
-        </ul>}
-        <Tooltip ref={tooltipRef} target="li:not(.active-menuitem)>.tooltip-target" />
-      </MenuProvider>
-    );
+  const enhanceMenuModel = (model) => {
+    const shortcuts = useAppSelector(state => state.shortcuts.shortcuts);
+
+    return useMemo(() => {
+      if (shortcuts.length > 0) {
+        // Make a deep copy of the model to avoid mutating the original object
+        const modelCopy = JSON.parse(JSON.stringify(model));
+
+        const controlPanel = modelCopy.find(item => item.label === 'Control Panel');
+        if (controlPanel && controlPanel.items) {
+          const alreadyAdded = controlPanel.items.some(item => shortcuts.some(shortcut => shortcut.label === item.label));
+          if (!alreadyAdded) {
+            const dashboardIndex = controlPanel.items.findIndex(item => item.label === 'Dashboard');
+            const insertIndex = dashboardIndex !== -1 ? dashboardIndex + 1 : controlPanel.items.length;
+            controlPanel.items.splice(insertIndex, 0, ...shortcuts);
+          }
+        }
+        return modelCopy;
+      }
+      return model;
+    }, [model, shortcuts]);
+  };
+
+  const modelWithShortcuts = enhanceMenuModel(props.model);
+
+  return (
+    <MenuProvider>
+      {<ul className="layout-menu">
+        {console.log(props?.model, 'model')}
+        {modelWithShortcuts?.map((item, i) => {
+          const hasAccess = item?.role?.some(role => authorities?.includes(role));
+          if (!hasAccess) {
+            return null;
+          }
+
+          return !item?.seperator ? (
+            <AppMenuitem item={item} root={true} index={i} key={item?.label} />
+          ) : (
+            <li className="menu-separator"></li>
+          );
+        })}
+      </ul>}
+      <Tooltip ref={tooltipRef} target="li:not(.active-menuitem)>.tooltip-target" />
+    </MenuProvider>
+  );
 };
 
 export default AppSubMenu;
