@@ -549,6 +549,18 @@ export const model: MenuItem[] = [
         label: 'Branches',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/branches',
+        items: [
+          {
+            label: 'Branches',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/branches',
+          },
+          {
+            label: 'Zones Settings',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/zones',
+          },
+        ]
       },
       {
         label: 'Service Charge',
@@ -595,12 +607,12 @@ export const model: MenuItem[] = [
             role: ['ROLE_ADMINISTRATOR'],
             to: '/tax-profiles',
           },
+          {
+            label: 'Profile Groups ',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/profile-groups',
+          },
         ],
-      },
-      {
-        label: 'Profile Groups ',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/profile-groups',
       },
       {
         label: 'Units of Measures',
@@ -627,19 +639,27 @@ export const model: MenuItem[] = [
         ],
       },
       {
-        label: 'App Integrations',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/app-integration',
-      },
-      {
         label: 'Themes',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/theme',
       },
       {
-        label: 'Language',
+        label: 'Localization Settings',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/language',
+        items: [
+          {
+            label: 'Language',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/language',
+          },
+          {
+            label: 'Currencies',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/currencies',
+          },
+
+        ]
       },
       {
         label: 'Instructions',
@@ -656,23 +676,24 @@ export const model: MenuItem[] = [
         label: 'Printers',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/printer',
-      },
-      {
-        label: 'Printing Profiles',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/printing-profiles',
+        items: [
+          {
+            label: 'Printers',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/printer',
+          },
+          {
+            label: 'Printing Profiles',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/printing-profiles',
+          },
+        ]
       },
       {
         label: 'Production Centers',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/production-center',
       },
-      {
-        label: 'Currencies',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/currencies',
-      },
-
       {
         label: 'Account profiles',
         role: ['ROLE_ADMINISTRATOR'],
@@ -685,30 +706,36 @@ export const model: MenuItem[] = [
         to: '/payment-methods',
       },
       {
-        label: 'Zones Settings',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/zones',
-      },
-
-      {
-        label: 'Transfer Operations',
+        label: 'Data Management Tools',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/transfer-operations',
-      },
-      {
-        label: 'Web extensions',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/web-extensions',
-      },
-      {
-        label: 'Import From Old System',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/import-from-old-system',
-      },
-      {
-        label: 'Reporting automations',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/reporting-automations',
+        items: [
+          {
+            label: 'Transfer Operations',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/transfer-operations',
+          },
+          {
+            label: 'Web extensions',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/web-extensions',
+          },
+          {
+            label: 'Import From Old System',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/import-from-old-system',
+          },
+          {
+            label: 'Reporting automations',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/reporting-automations',
+          },
+          {
+            label: 'App Integrations',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/app-integration',
+          },
+        ]
       },
     ],
   },
