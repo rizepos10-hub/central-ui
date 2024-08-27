@@ -3,6 +3,7 @@ import "./notifications-center.scss";
 import { AiOutlineBell } from "react-icons/ai";
 import { useEffect, useRef, useState } from "react";
 import { InputSwitch } from "primereact/inputswitch";
+import { UncontrolledTooltip } from "reactstrap";
 
 const NotificationsCenter = () => {
     const notifications = [
@@ -262,8 +263,27 @@ const NotificationsCenter = () => {
                                         </span>
                                     </span>
                                     <span className="mark-as-read">
-                                        {notification.is_unread && (
-                                            <span className="marked-as-read"></span>
+                                        {notification.is_unread ? (
+                                            <>
+                                                <span id="marked-as-read" className="marked-as-read"></span>
+                                                <UncontrolledTooltip
+                                                    placement="left"
+                                                    target="marked-as-read"
+                                                >
+                                                    mark as read
+                                                </UncontrolledTooltip>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span id="marked-as-unread" className="marked-as-unread"></span>
+                                                <UncontrolledTooltip
+                                                    placement="left"
+                                                    target="marked-as-unread"
+                                                >
+                                                    mark as unread
+                                                </UncontrolledTooltip>
+                                            </>
+
                                         )}
                                     </span>
                                 </div>

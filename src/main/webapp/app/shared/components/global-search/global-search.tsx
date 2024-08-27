@@ -60,7 +60,9 @@ const GlobalSearch = ({ data }: { data: MenuItem[] }) => {
 
     return (
         <>
-            <Modal isOpen={isOpen} toggle={toggle} size="lg">
+            <Modal isOpen={isOpen} toggle={toggle} size="lg" style={{ 
+                top: '10vh',
+             }}>
                 <ModalHeader toggle={toggle}>
                     <div className="p-inputgroup">
                         <i className="pi pi-search p-inputgroup-addon" />
