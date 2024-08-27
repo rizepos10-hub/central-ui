@@ -61,6 +61,8 @@ import variant from "app/entities/variant/variant.reducer";
 import tv from "app/entities/settings/tv-config/tv/tv.reducer"
 import tvDisplay from "app/entities/settings/tv-config/tv-display/tv-display.reducer"
 
+import shortcuts from 'app/shared/components/global-search/global-search.reducer';
+
 import loyalty from "app/entities/loyalty/loyalty-records.reducer";
 import loyaltyExchange from "app/entities/loyalty/loyalty-exchange.reducer";
 import supplier from "app/entities/inventory/supplier/supplier.reducer"
@@ -134,6 +136,7 @@ const entitiesReducers = {
   currencySettings,
   tv,
   tvDisplay,
+  shortcuts,
   supplier,
   salesLocation,
   warehouse,
