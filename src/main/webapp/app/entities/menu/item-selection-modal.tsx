@@ -20,13 +20,16 @@ interface ItemSelectionModalProps {
 }
 
 const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
+  const searchParams = new URLSearchParams(location.search);
+
+  const [itemName, setItemName] = useState<string>(searchParams.get('name') || '');
+
   const dispatch = useAppDispatch();
   const totalItems = useAppSelector((state) => state.allItems.totalItems);
   const itemList = useAppSelector((state) => state.allItems.entities);
   const loading = useAppSelector((state) => state.allItems.loading);
 
   const navigate = useNavigate();
-  const searchParams = new URLSearchParams(location.search);
 
   const { isOpen, toggle, selectedItems, handleToggleSelect } = props;
 
@@ -76,8 +79,8 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
       initialRender.current = false;
       return;
     }
-    debouncedItemNameNavigate(searchParams.get('name'));
-  }, [searchParams.get('name'), debouncedItemNameNavigate]);
+    debouncedItemNameNavigate(itemName);
+  }, [itemName, debouncedItemNameNavigate]);
 
   const handleSave = () => {
     toggle();
@@ -115,8 +118,8 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
               <Input
                 type="text"
                 id="searchItem"
-                value={searchParams.get('name')}
-                onChange={(e) => navigate(createQueryString('name', e.target.value))}
+                onChange={(e) => setItemName(e.target.value || '')}
+                value={itemName}
                 placeholder="Start Searching"
                 className='w-100'
               />
@@ -169,7 +172,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                 <Translate contentKey={'menus.pos.update.modals.item.table.category'}>Category</Translate>
               </th>
               <th>
-                <Translate contentKey={'menus.pos.update.modals.item.table.menu'}>Menu</Translate>
+                <Translate contentKey={'menus.pos.update.modals.item.table.menus'}>Menus</Translate>
               </th>
               <th>
                 <Translate contentKey={'menus.pos.update.modals.item.table.name'}>Name</Translate>
@@ -198,7 +201,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                       : 'Uncategorized'}
                   </td>
 
-                  <td>{item.menu?.[0]?.name}</td>
+                  <td>{item.menus?.map((menu) => menu.name).join(", ")}</td>
                   <td>
                     <div>
                       <div>{item.name}</div>
