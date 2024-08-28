@@ -40,7 +40,7 @@ const FloorPlanTableUpdate = () => {
   );
   console.log(floorPlanTable, 'floorPlanTable')
   const handleClose = () => {
-    navigate('/floor-plan/table' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

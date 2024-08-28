@@ -25,7 +25,7 @@ export const AddonDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.addon.updateSuccess);
 
   const handleClose = () => {
-    navigate('/addon' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

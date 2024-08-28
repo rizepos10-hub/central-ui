@@ -25,7 +25,7 @@ export const ProductionCenterDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.productionCenter.updateSuccess);
 
   const handleClose = () => {
-    navigate('/productionCenter' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

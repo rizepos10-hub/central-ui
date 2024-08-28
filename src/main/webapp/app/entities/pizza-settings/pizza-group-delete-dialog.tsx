@@ -25,7 +25,7 @@ export const PizzaGroupDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.pizzaGroup.updateSuccess);
 
   const handleClose = () => {
-    navigate('/pizza-settings' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

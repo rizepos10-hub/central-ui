@@ -37,7 +37,7 @@ const LayoutSettingsUpdate = () => {
   }, [updateSuccess]);
 
   const handleClose = () => {
-    navigate('/online-ordering/settings' + location.search);
+    navigate(-1);
   };
 
   const saveEntity = (e) => {

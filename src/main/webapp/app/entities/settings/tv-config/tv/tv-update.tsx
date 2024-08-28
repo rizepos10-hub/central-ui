@@ -32,7 +32,7 @@ export const TVUpdate = () => {
   );
 
   const handleClose = () => {
-    navigate('/tv' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

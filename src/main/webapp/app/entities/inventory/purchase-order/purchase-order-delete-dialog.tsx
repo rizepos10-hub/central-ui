@@ -25,7 +25,7 @@ export const PurchaseOrderDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.purchaseOrder.updateSuccess);
 
   const handleClose = () => {
-    navigate('/inventory/purchase-order' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

@@ -28,7 +28,7 @@ export const BrandUpdate = () => {
   const updating = useAppSelector(state => state.brand.updating);
 
   const handleClose = () => {
-    navigate(`/brand` + location.search);
+    navigate(-1);
   };
 
 

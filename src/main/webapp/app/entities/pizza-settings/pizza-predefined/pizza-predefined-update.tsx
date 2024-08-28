@@ -39,7 +39,7 @@ export const PredefinedPizzaUpdate = () => {
 
   console.log(pizzaToppingList, 'pizzaToppingList')
   const handleClose = () => {
-    navigate('/predefined-pizza' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

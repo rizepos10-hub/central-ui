@@ -52,7 +52,7 @@ export const TaxProfileUpdate = () => {
   };
 
   const handleClose = () => {
-    navigate('/tax-profiles');
+    navigate(-1);
   };
 
   const togglePopover = () => {

@@ -86,7 +86,7 @@ export const PurchaseOrderUpdate = () => {
 
 
   const handleClose = () => {
-    navigate(`/inventory/purchase-order/${purchaseOrderEntity?.id}/edit` + location.search);
+    navigate(-1);
   };
 
   const handleBranchChange = (selectedBranch: IBranch) => {

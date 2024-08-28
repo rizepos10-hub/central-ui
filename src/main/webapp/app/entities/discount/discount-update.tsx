@@ -32,7 +32,7 @@ export const DiscountUpdate = () => {
   }, []);
 
   const handleClose = () => {
-    navigate('/discount' + location.search);
+    navigate(-1);
   };
 
   const saveEntity = (e, createNew = false) => {

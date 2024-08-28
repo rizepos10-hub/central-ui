@@ -25,7 +25,7 @@ export const FloorPlanDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.floorPlan.updateSuccess);
 
   const handleClose = () => {
-    navigate('/floor-plan' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

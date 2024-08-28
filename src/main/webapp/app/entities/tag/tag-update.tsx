@@ -31,7 +31,7 @@ export const TagUpdate = () => {
   );
 
   const handleClose = () => {
-    navigate(`/tag` + location.search);
+    navigate(-1);
   };
 
 

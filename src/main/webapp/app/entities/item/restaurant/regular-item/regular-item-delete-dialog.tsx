@@ -25,7 +25,7 @@ export const ItemDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.regularItem.updateSuccess);
 
   const handleClose = () => {
-    navigate('/restaurant/regular' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

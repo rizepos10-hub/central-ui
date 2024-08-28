@@ -42,7 +42,7 @@ export const PizzaCrustTypeUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/pizza-crust' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

@@ -25,7 +25,7 @@ export const PurchaseConfigDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.stockConfig.updateSuccess);
 
   const handleClose = () => {
-    navigate('/inventory/stock' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

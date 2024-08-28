@@ -25,7 +25,7 @@ export const SupplierDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.supplier.updateSuccess);
 
   const handleClose = () => {
-    navigate('/inventory/supplier' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

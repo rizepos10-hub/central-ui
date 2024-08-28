@@ -29,7 +29,7 @@ export const SupplierUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/inventory/supplier' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

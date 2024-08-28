@@ -46,7 +46,7 @@ export const UserUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/back-office-user' + location.search);
+    navigate(-1);
   };
 
 

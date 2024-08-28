@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {  ITEMS_PER_PAGE, } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { filterEntities} from "./regular-item.reducer";
+import { deleteEntity, filterEntities} from "./regular-item.reducer";
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import {Column} from "primereact/column";
 import {IRegularItem} from "app/shared/model/ITEM/restaurant/regular-item.model";
@@ -18,6 +18,7 @@ import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import _ from "lodash";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
+import { confirmDialog } from 'primereact/confirmdialog';
 
 
 export const RegularItem = () => {
@@ -42,6 +43,7 @@ export const RegularItem = () => {
 
 
   const getAllEntities = () => {
+    console.log(query, 'query')
     const updatedQuery = applyMatchModeMap(query);
     dispatch(
       filterEntities({
@@ -51,6 +53,7 @@ export const RegularItem = () => {
   };
 
   useEffect(() => {
+    console.log(1)
     getAllEntities();
   }, [searchParams]);
 
@@ -109,6 +112,13 @@ export const RegularItem = () => {
     );
   };
 
+  // const deleteColumnTemplate = (rowData) => {
+  //   const deleteUrl = `/restaurant/regular/${rowData.id}/delete`;
+  //   return (
+  //       <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} onClick={() => confirmDelete(rowData.id)} />
+  //   );
+  // };
+
   const deleteColumnTemplate = (rowData) => {
     const deleteUrl = `/restaurant/regular/${rowData.id}/delete`;
     return (
@@ -117,6 +127,17 @@ export const RegularItem = () => {
       </Link>
     );
   };
+
+  // const confirmDelete = (id) => {
+  //   confirmDialog({
+  //     message: 'Are you sure you want to delete this item?',
+  //     header: 'Confirm Delete',
+  //     icon: 'pi pi-exclamation-triangle',
+  //     // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  //     accept: () => dispatch(deleteEntity(id)),
+  //     reject: () => null,
+  //   });
+  // };
 
   const MenusTemplate = (rowData) => {
     const menus = []

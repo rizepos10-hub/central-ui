@@ -40,7 +40,7 @@ export const PizzaCrustThicknessUpdate = () => {
   );
 
   const handleClose = () => {
-    navigate('/pizza-crust' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

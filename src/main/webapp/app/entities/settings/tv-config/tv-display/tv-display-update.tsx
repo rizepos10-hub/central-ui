@@ -28,7 +28,7 @@ export const TvDisplayUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
   const handleClose = () => {
-    navigate('/tv-display' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

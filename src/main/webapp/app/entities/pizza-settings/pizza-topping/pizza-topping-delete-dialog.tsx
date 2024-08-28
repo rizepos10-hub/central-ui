@@ -25,7 +25,7 @@ export const PizzaDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.pizzaTopping.updateSuccess);
 
   const handleClose = () => {
-    navigate('/pizza-topping' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

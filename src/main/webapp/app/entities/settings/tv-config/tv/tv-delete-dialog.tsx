@@ -25,7 +25,7 @@ export const TvDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.tv.updateSuccess);
 
   const handleClose = () => {
-    navigate('/tv' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

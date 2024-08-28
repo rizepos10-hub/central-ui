@@ -47,7 +47,7 @@ export const ProductionCenterUpdate = () => {
   console.log(orderMethodOptions, 'orderMethodOptions')
 
   const handleClose = () => {
-    navigate('/production-center' + location.search);
+    navigate(-1);
   };
 
 
