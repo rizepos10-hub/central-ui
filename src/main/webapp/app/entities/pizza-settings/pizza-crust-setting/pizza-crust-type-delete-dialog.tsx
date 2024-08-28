@@ -25,7 +25,7 @@ export const PizzaCrustTypeDialog = () => {
   const updateSuccess = useAppSelector(state => state.pizzaCrustType.updateSuccess);
 
   const handleClose = () => {
-    navigate('/pizza-crust' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

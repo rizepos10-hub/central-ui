@@ -50,7 +50,7 @@ export const MixAndMatchRuleUpdate = () => {
   const isAddButtonDisabled = !newQuantityConfig.quantity || !newQuantityConfig?.discount?.id && !newQuantityConfig.price;
 
   const handleClose = () => {
-    navigate('/mix-and-match-rule' + location.search);
+    navigate(-1);
   };
 
 

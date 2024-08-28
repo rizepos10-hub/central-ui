@@ -25,7 +25,7 @@ export const PizzaSizeDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.pizzaSize.updateSuccess);
 
   const handleClose = () => {
-    navigate('/pizza-size' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

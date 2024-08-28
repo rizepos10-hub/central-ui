@@ -25,7 +25,7 @@ export const ProfileGroupDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.profileGroup.updateSuccess);
 
   const handleClose = () => {
-    navigate('/profile-groups' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

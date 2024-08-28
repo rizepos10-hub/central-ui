@@ -64,7 +64,7 @@ export const CustomerUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/customer' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

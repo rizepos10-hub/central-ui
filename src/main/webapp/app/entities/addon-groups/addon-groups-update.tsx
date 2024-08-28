@@ -52,7 +52,7 @@ export const AddonGroupUpdate = () => {
   };
 
   const handleClose = () => {
-    navigate(`/addon-groups/${addonGroupsEntity?.id}/edit` + location.search);
+    navigate(-1);
   };
 
   const handleShowModal = () => {

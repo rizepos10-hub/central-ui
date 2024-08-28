@@ -69,7 +69,7 @@ export const SupplierReturnUpdate = () => {
   console.log(isDisabled, 'isDisabled');
   console.log(supplierReturnEntity, 'supplierReturnEntity')
   const handleClose = () => {
-    navigate('/inventory/supplier-return' + location.search);
+    navigate(-1);
   };
 
 

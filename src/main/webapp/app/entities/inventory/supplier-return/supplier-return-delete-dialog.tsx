@@ -25,7 +25,7 @@ export const SupplierReturnDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.supplierReturn.updateSuccess);
 
   const handleClose = () => {
-    navigate('/inventory/supplier-return' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

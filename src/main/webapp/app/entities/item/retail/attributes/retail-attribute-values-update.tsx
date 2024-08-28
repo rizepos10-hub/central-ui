@@ -53,7 +53,7 @@ export const RetailAttributeValuesUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/retail/attributes' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

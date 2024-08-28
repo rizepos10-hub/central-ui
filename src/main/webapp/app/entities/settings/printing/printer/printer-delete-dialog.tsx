@@ -25,7 +25,7 @@ export const PrinterDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.printer.updateSuccess);
 
   const handleClose = () => {
-    navigate('/printer' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

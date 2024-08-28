@@ -36,7 +36,7 @@ export const PrinterUpdate = () => {
   const branchList = useAppSelector(state => state.branch.entities)
 
   const handleClose = () => {
-    navigate('/printer' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

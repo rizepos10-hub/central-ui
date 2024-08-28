@@ -25,7 +25,7 @@ export const MixAndMatchRuleDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.mixAndMatchRule.updateSuccess);
 
   const handleClose = () => {
-    navigate('/mix-and-match-rule' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

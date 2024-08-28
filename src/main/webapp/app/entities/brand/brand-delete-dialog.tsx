@@ -27,7 +27,7 @@ const BrandDeleteDialog = () => {
   const updateSuccess= useAppSelector(state => state.brand.updateSuccess);
 
   const handleClose = () => {
-    navigate('/brand' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

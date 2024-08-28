@@ -30,7 +30,7 @@ export const PizzaSizeUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/pizza-size' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

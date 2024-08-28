@@ -25,7 +25,7 @@ export const UserDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.user.updateSuccess);
 
   const handleClose = () => {
-    navigate('/branch-pos-user' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

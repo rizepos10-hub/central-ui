@@ -25,7 +25,7 @@ export const VoidReasonDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.voidReason.updateSuccess);
 
   const handleClose = () => {
-    navigate('/void-reasons' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

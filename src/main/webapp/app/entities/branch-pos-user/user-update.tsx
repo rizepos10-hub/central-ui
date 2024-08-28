@@ -93,7 +93,7 @@ export const UserUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/branch-pos-user' + location.search);
+    navigate(-1);
   };
 
 

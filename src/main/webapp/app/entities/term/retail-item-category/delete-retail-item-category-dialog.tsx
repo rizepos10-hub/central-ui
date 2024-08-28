@@ -25,7 +25,7 @@ export const DeleteItemRestaurantCategoryDialog = () => {
   const updateSuccess = useAppSelector(state => state.retailCategory.updateSuccess);
 
   const handleClose = () => {
-    navigate('/category/retail-items' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

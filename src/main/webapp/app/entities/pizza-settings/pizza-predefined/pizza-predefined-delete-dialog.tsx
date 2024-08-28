@@ -25,7 +25,7 @@ export const PredefinedPizzaDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.predefinedPizza.updateSuccess);
 
   const handleClose = () => {
-    navigate('/predefined-pizza' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

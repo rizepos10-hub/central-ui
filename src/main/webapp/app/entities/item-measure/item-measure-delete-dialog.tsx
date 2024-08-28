@@ -25,7 +25,7 @@ export const ItemMeasureDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.itemMeasure.updateSuccess);
 
   const handleClose = () => {
-    navigate('/item-measure' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

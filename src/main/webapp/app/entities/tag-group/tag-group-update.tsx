@@ -34,7 +34,7 @@ export const TagGroupUpdate = () => {
   );
 
   const handleClose = () => {
-    navigate(`/tag-group` + location.search);
+    navigate(-1);
   };
 
 

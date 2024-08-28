@@ -29,7 +29,7 @@ export const UserManagementUpdate = () => {
   }, [login]);
 
   const handleClose = () => {
-    navigate('/admin/back-office-user-management');
+    navigate(-1);
   };
 
   const saveUser = values => {

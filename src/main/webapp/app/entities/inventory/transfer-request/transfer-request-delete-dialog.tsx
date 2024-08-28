@@ -25,7 +25,7 @@ export const TransferRequestDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.transferRequest.updateSuccess);
 
   const handleClose = () => {
-    navigate('/inventory/transfer-Request' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

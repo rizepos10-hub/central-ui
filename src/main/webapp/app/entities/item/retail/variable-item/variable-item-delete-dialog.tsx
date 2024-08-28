@@ -26,7 +26,7 @@ export const SimpleDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.variableRetailItem.updateSuccess);
 
   const handleClose = () => {
-    navigate('/retail/variable' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {
