@@ -43,7 +43,11 @@ export const ProfileGroupUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/profile-groups/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/profile-groups/${newId}/edit`)
+          }
         }
       })
     } else {

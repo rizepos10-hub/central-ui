@@ -113,7 +113,11 @@ export const PizzaToppingUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/pizza-topping/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/pizza-topping/${newId}/edit`)
+          }
         }
       })
     } else {

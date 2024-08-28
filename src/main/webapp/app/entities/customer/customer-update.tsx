@@ -113,7 +113,11 @@ export const CustomerUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/customer/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/customer/${newId}/edit`)
+          }
         }
       })
     } else {

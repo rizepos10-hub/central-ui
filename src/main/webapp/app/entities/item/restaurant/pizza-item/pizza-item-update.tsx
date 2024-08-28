@@ -440,7 +440,11 @@ export const PizzaItemUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newProductId = payload?.data?.id;
-          handleNavigate(newProductId)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            handleNavigate(newProductId)
+          }
         }
       })
     } else {
@@ -546,6 +550,13 @@ export const PizzaItemUpdate = () => {
                                       getOptionLabel={option => option.name}
                                       getOptionValue={option => option.id}
                                       onChange={(itemPriceOption) => handleSinglePizzaValuesChange("itemPricingClass", itemPriceOption)}
+                                      onMenuOpen={() => {
+                                        dispatch(getPricingClasses({
+                                          page: paginationState.activePage - 1,
+                                          size: paginationState.itemsPerPage,
+                                          sort: `${paginationState.sort},${paginationState.order}`,
+                                        }));
+                                      }}
                                     />
                                   </div>
                                 </Col> : null}
@@ -562,6 +573,13 @@ export const PizzaItemUpdate = () => {
                                     getOptionLabel={option => option.type === 'PERCENTAGE' ? `${option.value}%` : `${option.value} ${option.type}`}
                                     getOptionValue={option => option.id}
                                     onChange={(discounts) => handlePizzaVariantChange("discounts", discounts)}
+                                    onMenuOpen={() => {
+                                      dispatch(getDiscounts({
+                                        page: paginationState.activePage - 1,
+                                        size: paginationState.itemsPerPage,
+                                        sort: `${paginationState.sort},${paginationState.order}`,
+                                      }));
+                                    }}
                                   />
                                 </div>
                               </Col>
@@ -577,6 +595,13 @@ export const PizzaItemUpdate = () => {
                                     getOptionLabel={option => option.name}
                                     getOptionValue={option => option.id}
                                     onChange={(mixAndMatchRule) => handlePizzaVariantChange('mixAndMatchRule', mixAndMatchRule)}
+                                    onMenuOpen={() => {
+                                      dispatch(getMixAndMatchRules({
+                                        page: paginationState.activePage - 1,
+                                        size: paginationState.itemsPerPage,
+                                        sort: `${paginationState.sort},${paginationState.order}`,
+                                      }));
+                                    }}
                                   />
                                 </div>
                               </Col>
@@ -617,6 +642,13 @@ export const PizzaItemUpdate = () => {
                                                   onChange={(pricingClass) =>
                                                     handleBaseDetailChange(index, "pricingClass", pricingClass)
                                                   }
+                                                  onMenuOpen={() => {
+                                                    dispatch(getPricingClasses({
+                                                      page: paginationState.activePage - 1,
+                                                      size: paginationState.itemsPerPage,
+                                                      sort: `${paginationState.sort},${paginationState.order}`,
+                                                    }));
+                                                  }}
                                                 />
                                               </td>
                                               <td>
@@ -651,6 +683,13 @@ export const PizzaItemUpdate = () => {
                                         getOptionValue={(option: ITopping) => option.id}
                                         onChange={(toppingPriceOption) => handlePricingClassChange("toppingPricing", toppingPriceOption)}
                                         options={pizzaToppingList}
+                                        onMenuOpen={() => {
+                                          dispatch(getToppings({
+                                            page: paginationState.activePage - 1,
+                                            size: paginationState.itemsPerPage,
+                                            sort: `${paginationState.sort},${paginationState.order}`,
+                                          }));
+                                        }}
                                       />
                                       <Table>
                                         <thead>
@@ -672,6 +711,13 @@ export const PizzaItemUpdate = () => {
                                                     handlePricingClassChangeSecondSelect("toppingPricing", selectedPricingClass, index)
                                                   }
                                                   options={filteredOptions.toppings}
+                                                  onMenuOpen={() => {
+                                                    dispatch(getPricingClasses({
+                                                      page: paginationState.activePage - 1,
+                                                      size: paginationState.itemsPerPage,
+                                                      sort: `${paginationState.sort},${paginationState.order}`,
+                                                    }));
+                                                  }}
                                                 />
                                               </td>
                                             </tr>
@@ -694,6 +740,13 @@ export const PizzaItemUpdate = () => {
                                           getOptionValue={(option: ICrustType) => option.id}
                                           onChange={(crustTypeOption) => handlePricingClassChange("crustTypePricing", crustTypeOption)}
                                           options={crustTypeList}
+                                          onMenuOpen={() => {
+                                            dispatch(getCrustTypes({
+                                              page: paginationState.activePage - 1,
+                                              size: paginationState.itemsPerPage,
+                                              sort: `${paginationState.sort},${paginationState.order}`,
+                                            }));
+                                          }}
                                         />
                                         <Table>
                                           <thead>
@@ -716,6 +769,13 @@ export const PizzaItemUpdate = () => {
                                                         handlePricingClassChangeSecondSelect("crustTypePricing", selectedPricingClass, index)
                                                       }
                                                       options={filteredOptions.crustTypes}
+                                                      onMenuOpen={() => {
+                                                        dispatch(getPricingClasses({
+                                                          page: paginationState.activePage - 1,
+                                                          size: paginationState.itemsPerPage,
+                                                          sort: `${paginationState.sort},${paginationState.order}`,
+                                                        }));
+                                                      }}
                                                     />
                                                   </td>
                                                 </tr>
@@ -740,6 +800,13 @@ export const PizzaItemUpdate = () => {
                                           getOptionValue={(option: ICrustThickness) => option.id}
                                           onChange={(crustThicknessOption) => handlePricingClassChange("crustThicknessPricing", crustThicknessOption)}
                                           options={crustThicknessList}
+                                          onMenuOpen={() => {
+                                            dispatch(getCrustThicknesses({
+                                              page: paginationState.activePage - 1,
+                                              size: paginationState.itemsPerPage,
+                                              sort: `${paginationState.sort},${paginationState.order}`,
+                                            }));
+                                          }}
                                         />
                                         <Table>
                                           <thead>
@@ -761,6 +828,13 @@ export const PizzaItemUpdate = () => {
                                                       handlePricingClassChangeSecondSelect("crustThicknessPricing", selectedPricingClass, index)
                                                     }
                                                     options={filteredOptions?.crustThicknesses}
+                                                    onMenuOpen={() => {
+                                                      dispatch(getPricingClasses({
+                                                        page: paginationState.activePage - 1,
+                                                        size: paginationState.itemsPerPage,
+                                                        sort: `${paginationState.sort},${paginationState.order}`,
+                                                      }));
+                                                    }}
                                                   />
                                                 </td>
                                               </tr>

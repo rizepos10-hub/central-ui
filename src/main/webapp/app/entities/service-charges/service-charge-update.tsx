@@ -59,7 +59,11 @@ export const ServiceChargeUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/service-charge/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/service-charge/${newId}/edit`)
+          }
         }
       })
     } else {

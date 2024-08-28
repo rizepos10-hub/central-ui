@@ -127,10 +127,10 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
         })
       );
       dispatch(getAddonGroups({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
       );
 
     } else if (isRetailItem) {
@@ -201,6 +201,15 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
                   onChange={productionCenter => onFieldChange('productionCenter', productionCenter)}
+                  onMenuOpen={() => {
+                    dispatch(
+                      getProductionCenters({
+                        page: paginationState.activePage - 1,
+                        size: paginationState.itemsPerPage,
+                        sort: `${paginationState.sort},${paginationState.order}`,
+                      })
+                    );
+                  }}
                 />
               </div>
 
@@ -215,6 +224,15 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
                   onChange={profileGroup => onFieldChange('accountingGroups', profileGroup ? [profileGroup] : [])}
+                  onMenuOpen={() => {
+                    dispatch(
+                      getProfileGroups({
+                        page: paginationState.activePage - 1,
+                        size: paginationState.itemsPerPage,
+                        sort: `${paginationState.sort},${paginationState.order}`,
+                      })
+                    );
+                  }}
                 />
               </div>
 
@@ -236,6 +254,25 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
                   onChange={selectedItemTerms => onFieldChange('categories', selectedItemTerms)}
+                  onMenuOpen={() => {
+                    if (isRestaurantItem) {
+                      dispatch(
+                        getRestaurantItemCategories({
+                          page: paginationState.activePage - 1,
+                          size: paginationState.itemsPerPage,
+                          sort: `${paginationState.sort},${paginationState.order}`,
+                        })
+                      )
+                    } else {
+                      dispatch(
+                        getRetailItemCategories({
+                          page: paginationState.activePage - 1,
+                          size: paginationState.itemsPerPage,
+                          sort: `${paginationState.sort},${paginationState.order}`,
+                        })
+                      )
+                    }
+                  }}
                 />
               </div>
 
@@ -250,6 +287,15 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
                   onChange={selectedTags => onFieldChange('tags', selectedTags)}
+                  onMenuOpen={() => {
+                    dispatch(
+                      getTags({
+                        page: paginationState.activePage - 1,
+                        size: paginationState.itemsPerPage,
+                        sort: `${paginationState.sort},${paginationState.order}`,
+                      })
+                    );
+                  }}
                 />
               </div>
             </div>

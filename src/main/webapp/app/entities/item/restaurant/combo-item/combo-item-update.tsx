@@ -310,7 +310,11 @@ export const ComboItemUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newProductId = payload?.data?.id;
-          handleNavigate(newProductId)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            handleNavigate(newProductId)
+          }
         }
       })
     } else {
@@ -375,6 +379,13 @@ export const ComboItemUpdate = () => {
                               getOptionLabel={option => option.name}
                               getOptionValue={option => option.id}
                               onChange={(mixAndMatchRule) => handleComboVariantChange('mixAndMatchRule', mixAndMatchRule)}
+                              onMenuOpen={() => {
+                                dispatch(getMixAndMatchRules({
+                                  page: paginationState.activePage - 1,
+                                  size: paginationState.itemsPerPage,
+                                  sort: `${paginationState.sort},${paginationState.order}`,
+                                }));
+                              }}
                             />
                           </div>
                         </Col>

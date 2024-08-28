@@ -68,7 +68,11 @@ export const TagUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/tag/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/tag/${newId}/edit`)
+          }
         }
       })
     } else {

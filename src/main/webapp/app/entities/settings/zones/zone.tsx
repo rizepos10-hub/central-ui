@@ -60,7 +60,11 @@ const ZonePage = () => {
                 } else {
                     const payload = res?.payload as any;
                     const newId = payload?.data?.id;
-                    navigate(`/zones/${newId}/edit`)
+
+                    // @ts-expect-error -- unknown type
+                    if (!res?.error) {
+                        navigate(`/zones/${newId}/edit`)
+                    }
                 }
             })
         } else {
