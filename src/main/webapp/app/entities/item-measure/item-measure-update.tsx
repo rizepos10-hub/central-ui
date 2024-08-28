@@ -58,7 +58,11 @@ export const ItemMeasureUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/item-measure/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/item-measure/${newId}/edit`)
+          }
         }
       })
     } else {

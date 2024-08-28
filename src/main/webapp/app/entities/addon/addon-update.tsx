@@ -89,7 +89,11 @@ export const AddonUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/predefined-pizza/${newId}/edit`)
+          
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/predefined-pizza/${newId}/edit`)
+          }
         }
       })
     } else {

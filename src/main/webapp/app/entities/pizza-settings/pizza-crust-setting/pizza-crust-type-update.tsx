@@ -92,7 +92,11 @@ export const PizzaCrustTypeUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/pizza-crust-type/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/pizza-crust-type/${newId}/edit`)
+          }
         }
       })
     } else {

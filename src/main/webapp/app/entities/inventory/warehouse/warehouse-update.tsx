@@ -55,7 +55,11 @@ export const WarehouseUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/inventory/warehouse/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/inventory/warehouse/${newId}/edit`)
+          }
         }
       })
     } else {

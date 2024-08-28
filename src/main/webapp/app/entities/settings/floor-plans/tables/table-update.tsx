@@ -107,7 +107,11 @@ const FloorPlanTableUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/floor-plan/table/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/floor-plan/table/${newId}/edit`)
+          }
         }
       })
     } else {

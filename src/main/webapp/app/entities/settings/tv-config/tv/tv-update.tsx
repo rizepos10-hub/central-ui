@@ -84,7 +84,11 @@ export const TVUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/tv/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/tv/${newId}/edit`)
+          }
         }
       })
     } else {

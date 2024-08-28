@@ -440,7 +440,11 @@ export const PizzaItemUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newProductId = payload?.data?.id;
-          handleNavigate(newProductId)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            handleNavigate(newProductId)
+          }
         }
       })
     } else {

@@ -87,7 +87,11 @@ export const UpdateItemRestaurantCategory = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          navigate(`/category/retail-items/${newId}/edit`)
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/category/retail-items/${newId}/edit`)
+          }
         }
       })
     } else {
