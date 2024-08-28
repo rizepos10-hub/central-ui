@@ -1,18 +1,26 @@
-import { Translate } from "react-jhipster";
+import { getSortState, Translate } from "react-jhipster";
 import Select from "react-select";
-import React from "react";
+import React, { useState } from "react";
 import { IDiscount } from "app/shared/model/discount.model";
-import { useAppSelector } from "app/config/store";
+import { useAppDispatch, useAppSelector } from "app/config/store";
+import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 
 type DiscountDropdownProps = {
   discounts: IDiscount[];
-  handleChange?: ( fieldName: 'discounts', value: IDiscount[]) => void;
+  handleChange?: (fieldName: 'discounts', value: IDiscount[]) => void;
   handleVariantChange?: (variantIndex, fieldName: 'discounts', value: IDiscount[]) => void;
   variantIndex?: number
 }
 
-const DiscountDropdown = ({discounts, handleChange, variantIndex, handleVariantChange} :DiscountDropdownProps) => {
+const DiscountDropdown = ({ discounts, handleChange, variantIndex, handleVariantChange }: DiscountDropdownProps) => {
   const discountList = useAppSelector(state => state.discount.entities);
+  const dispatch = useAppDispatch();
+
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
   return (
     <div className={'d-flex flex-column gap-2'}>
@@ -27,9 +35,18 @@ const DiscountDropdown = ({discounts, handleChange, variantIndex, handleVariantC
         getOptionValue={option => option.id}
         onChange={selectedDiscounts => {
           variantIndex !== null && variantIndex !== undefined ?
-          handleVariantChange(variantIndex, 'discounts', selectedDiscounts ? [selectedDiscounts] as IDiscount[] : [])
-          :
-          handleChange('discounts', selectedDiscounts ? [selectedDiscounts] as IDiscount[] : []);
+            handleVariantChange(variantIndex, 'discounts', selectedDiscounts ? [selectedDiscounts] as IDiscount[] : [])
+            :
+            handleChange('discounts', selectedDiscounts ? [selectedDiscounts] as IDiscount[] : []);
+        }}
+        onMenuOpen={() => {
+          dispatch(
+            getDiscounts({
+              page: paginationState.activePage - 1,
+              size: paginationState.itemsPerPage,
+              sort: `${paginationState.sort},${paginationState.order}`,
+            })
+          );
         }}
       />
     </div>

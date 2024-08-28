@@ -1,5 +1,5 @@
 import { Button, Row, Table } from 'reactstrap';
-import { Translate } from 'react-jhipster';
+import { getSortState, Translate } from 'react-jhipster';
 import Select, { ActionMeta, MultiValue } from 'react-select';
 import React, { useEffect, useState } from 'react';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
@@ -12,6 +12,10 @@ import { filterEntities } from 'app/entities/addon/addon.reducer';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { FilterMatchMode } from 'primereact/api';
 import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
+import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+import { getEntities as getAddonsEntity } from 'app/entities/addon/addon.reducer';
 
 type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
@@ -44,19 +48,22 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
   const restaurantItemsOptions = useAppSelector(state => state.restaurantItems.entities);
   const addonOptions = useAppSelector(state => state.addon.entities);
   const loadingAddonOptions = useAppSelector(state => state.addon.loading);
-  const addonGroupsOptions  = useAppSelector(state => state.addonGroups.entities);
-  const loadingAddonGroupsOptions  = useAppSelector(state => state.addonGroups.loading);
+  const addonGroupsOptions = useAppSelector(state => state.addonGroups.entities);
+  const loadingAddonGroupsOptions = useAppSelector(state => state.addonGroups.loading);
 
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
+  );
 
 
   const handleAddonGroupFilterChange = (selectedGroup: IAddonGroup) => {
-      setFilterAddonState(prevState => ({
-        ...prevState,
-        filters: {
-          ...prevState.filters,
-          groupId: { value: selectedGroup?.id, matchMode: FilterMatchMode.EQUALS }
-        }
-      }))
+    setFilterAddonState(prevState => ({
+      ...prevState,
+      filters: {
+        ...prevState.filters,
+        groupId: { value: selectedGroup?.id, matchMode: FilterMatchMode.EQUALS }
+      }
+    }))
   }
   const handleCheckboxChange = (addonGroupIndex: number) => {
     const updatedAddonGroups = cloneDeep([...addonGroups]);
@@ -136,6 +143,13 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
               getOptionValue={option => option?.id}
               options={addonGroupsOptions}
               onChange={handleAddonGroupChange}
+              onMenuOpen={() => {
+                dispatch(getAddonGroups({
+                  page: paginationState.activePage - 1,
+                  size: paginationState.itemsPerPage,
+                  sort: `${paginationState.sort},${paginationState.order}`,
+                }))
+              }}
             />
           </div>
           <Table>
@@ -177,6 +191,13 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                 getOptionLabel={option => option?.name}
                 getOptionValue={option => option?.id}
                 onChange={handleAddonGroupFilterChange}
+                onMenuOpen={() => {
+                  dispatch(getAddonGroups({
+                    page: paginationState.activePage - 1,
+                    size: paginationState.itemsPerPage,
+                    sort: `${paginationState.sort},${paginationState.order}`,
+                  }))
+                }}
               />
             </div>
             <div className={'d-flex flex-column gap-2 col-5'}>
@@ -187,11 +208,16 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                 value={addons}
                 isMulti={true}
                 isLoading={loadingAddonOptions}
-                isDisabled={loadingAddonOptions}
+                // isDisabled={loadingAddonOptions}
                 options={addonOptions}
                 getOptionLabel={option => option.price ? `${option.name} ${option.price}` : option.name}
                 getOptionValue={option => option.id}
                 onChange={selectedAddons => onFieldChange('addons', selectedAddons as IAddon[])}
+                onMenuOpen={() => {
+                  dispatch(
+                    getAddonsEntity({})
+                  );
+                }}
               />
             </div>
             <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
