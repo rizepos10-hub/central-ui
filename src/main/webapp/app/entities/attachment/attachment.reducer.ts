@@ -15,7 +15,7 @@ const initialState: EntityState<IAttachment> = {
   updateSuccess: false,
 };
 
-const apiUrl = 'api/attachments';
+const apiUrl = 'api/_search/attachments';
 const apiSearchUrl = 'api/_search/attachments';
 
 type FormDataArgument = FormData;
