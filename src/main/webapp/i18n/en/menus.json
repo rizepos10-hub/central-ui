@@ -84,7 +84,8 @@
               "name": "Name",
               "action": "Action",
               "category": "Category",
-              "menu": "Menu"
+              "menu": "Menu",
+              "menus": "Menus"
             },
             "buttons": {
               "select": "Select",
