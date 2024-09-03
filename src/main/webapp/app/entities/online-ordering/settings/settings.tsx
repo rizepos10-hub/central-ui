@@ -22,6 +22,8 @@ import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { Editor } from 'primereact/editor';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { ColorPicker } from 'primereact/colorpicker';
+import { hexToHSL, hslToHex } from 'app/shared/util/color-utils';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -38,19 +40,6 @@ export const UiSettingsUpdate = () => {
     dispatch(getEntity());
     dispatch(getBranches({}));
   }, []);
-
-  useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-
-  }, [updateSuccess]);
-
-
-
-  const handleClose = () => {
-    navigate(-1);
-  };
 
   const saveEntity = (e) => {
     e.preventDefault();
@@ -79,7 +68,7 @@ export const UiSettingsUpdate = () => {
   const handleBranchHideRetailShop = (branchIndex, checked, branchId) => {
     const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.branchDetail));
     newData[branchIndex] = {
-      ...newData[branchIndex], 
+      ...newData[branchIndex],
       hideRetailShop: checked,
       branchId,
     };
@@ -87,6 +76,15 @@ export const UiSettingsUpdate = () => {
     console.log(newData)
     dispatch(changeEntityField({ name: 'branchDetail', value: newData }));
   };
+
+  const handleColorSettingChange = (field, value, isHex = false) => {
+    const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.colorSetting)) || {};
+    newData[field] = isHex ? hexToHSL(value) : value; // Convert to HSL if HEX is provided, else use the value directly
+    dispatch(changeEntityField({ name: 'colorSetting', value: newData }));
+  };
+
+
+  console.log(UiSettingsEntity, 'UiSettingsEntity')
 
   return (
     <div>
@@ -102,219 +100,256 @@ export const UiSettingsUpdate = () => {
           ) : (
             <form onSubmit={saveEntity}>
               <FormGroup>
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-applicationName">
-                    <strong>{translate('tempApp.UiSettings.applicationName')}</strong>
-                  </Label>
-                  <InputText
-                    id="UiSettings-applicationName"
-                    value={UiSettingsEntity.applicationName || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'applicationName', value: e.target.value }))}
-                  />
-                </div>
+                <TabView>
+                  <TabPanel header="General">
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-applicationName">
+                        <strong>{translate('tempApp.UiSettings.applicationName')}</strong>
+                      </Label>
+                      <InputText
+                        id="UiSettings-applicationName"
+                        value={UiSettingsEntity.applicationName || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'applicationName', value: e.target.value }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-currencySymbolPosition">
-                    <strong>{translate('tempApp.UiSettings.currencySymbolPosition')}</strong>
-                  </Label>
-                  <SelectButton
-                    options={currencySymbolPositionOptions}
-                    id="UiSettings-currencySymbolPosition"
-                    value={UiSettingsEntity.currencySymbolPosition || null}
-                    onChange={e =>
-                      dispatch(
-                        changeEntityField({
-                          name: 'currencySymbolPosition',
-                          value: e.target.value,
-                        })
-                      )
-                    }
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-domain">
+                        <strong>{translate('tempApp.UiSettings.domain')}</strong>
+                      </Label>
+                      <InputText
+                        id="UiSettings-domain"
+                        value={UiSettingsEntity.domain || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'domain', value: e.target.value }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-orderTaking">
-                    <strong>{translate('tempApp.UiSettings.orderTaking')}</strong>
-                  </Label>
-                  <SelectButton
-                    options={orderTakingOptions}
-                    id="UiSettings-orderTaking"
-                    value={UiSettingsEntity.orderTaking || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'orderTaking', value: e.target.value }))}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-email">
+                        <strong>{translate('tempApp.UiSettings.email')}</strong>
+                      </Label>
+                      <InputText
+                        id="UiSettings-email"
+                        value={UiSettingsEntity.email || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'email', value: e.target.value }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-domain">
-                    <strong>{translate('tempApp.UiSettings.domain')}</strong>
-                  </Label>
-                  <InputText
-                    id="UiSettings-domain"
-                    value={UiSettingsEntity.domain || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'domain', value: e.target.value }))}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-phoneNumber">
+                        <strong>{translate('tempApp.UiSettings.phoneNumber')}</strong>
+                      </Label>
+                      <InputText
+                        id="UiSettings-phoneNumber"
+                        value={UiSettingsEntity.phoneNumber || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'phoneNumber', value: e.target.value }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-digitsAfterDecimal">
-                    <strong>{translate('tempApp.UiSettings.digitsAfterDecimal')}</strong>
-                  </Label>
-                  <InputNumber
-                    id="UiSettings-digitsAfterDecimal"
-                    value={UiSettingsEntity.digitsAfterDecimal || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'digitsAfterDecimal', value: e.value }))}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-cookie">
+                        <strong>{translate('tempApp.UiSettings.cookie')}</strong>
+                      </Label>
+                      <InputText
+                        id="UiSettings-cookie"
+                        value={UiSettingsEntity.cookie || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'cookie', value: e.target.value }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-itemPerRow">
-                    <strong>{translate('tempApp.UiSettings.itemPerRow')}</strong>
-                  </Label>
-                  <InputNumber
-                    id="UiSettings-itemPerRow"
-                    value={UiSettingsEntity.itemPerRow || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'itemPerRow', value: e.value }))}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-privacyPolicy">
+                        <strong>{translate('tempApp.UiSettings.privacyPolicy')}</strong>
+                      </Label>
+                      <Editor
+                        value={UiSettingsEntity.privacyPolicy || null}
+                        onTextChange={e => dispatch(changeEntityField({ name: 'privacyPolicy', value: e.htmlValue }))}
+                        style={{
+                          minHeight: '400px',
+                        }}
+                        headerTemplate={quillHeader}
+                      />
+                    </div>
+                  </TabPanel>
+                  <TabPanel header="Order">
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-orderTaking">
+                        <strong>{translate('tempApp.UiSettings.orderTaking')}</strong>
+                      </Label>
+                      <SelectButton
+                        options={orderTakingOptions}
+                        id="UiSettings-orderTaking"
+                        value={UiSettingsEntity.orderTaking || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'orderTaking', value: e.target.value }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-hideItemDescription">
-                    <strong>{translate('tempApp.UiSettings.hideItemDescription')}</strong>
-                  </Label>
-                  <Checkbox
-                    id="UiSettings-hideItemDescription"
-                    checked={UiSettingsEntity.hideItemDescription || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'hideItemDescription', value: e.checked }))}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-orderConfirmation">
+                        <strong>{translate('tempApp.UiSettings.orderConfirmation')}</strong>
+                      </Label>
+                      <Checkbox
+                        id="UiSettings-orderConfirmation"
+                        checked={UiSettingsEntity.orderConfirmation || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'orderConfirmation', value: e.checked }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-hideModalDescription">
-                    <strong>{translate('tempApp.UiSettings.hideModalDescription')}</strong>
-                  </Label>
-                  <Checkbox
-                    id="UiSettings-hideModalDescription"
-                    checked={UiSettingsEntity.hideModalDescription || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'hideModalDescription', value: e.checked }))}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-scheduleOrders">
+                        <strong>{translate('tempApp.UiSettings.scheduleOrders')}</strong>
+                      </Label>
+                      <Checkbox
+                        id="UiSettings-scheduleOrders"
+                        checked={UiSettingsEntity.scheduleOrders || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'scheduleOrders', value: e.checked }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-scheduleOrders">
-                    <strong>{translate('tempApp.UiSettings.scheduleOrders')}</strong>
-                  </Label>
-                  <Checkbox
-                    id="UiSettings-scheduleOrders"
-                    checked={UiSettingsEntity.scheduleOrders || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'scheduleOrders', value: e.checked }))}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <TabView className='w-100' scrollable>
+                        {branchList?.map((branch, index) => (
+                          <TabPanel header={branch.name} key={index}>
+                            <div className="d-flex mb-3">
+                              <label className="font-bold">Hide Retail Shop</label>
+                              <Checkbox
+                                checked={UiSettingsEntity.branchDetail[index]?.hideRetailShop || false}
+                                onChange={(e) => handleBranchHideRetailShop(index, e.checked, branch.id)}
+                              />
+                            </div>
+                          </TabPanel>
+                        ))}
+                      </TabView>
+                    </div>
+                  </TabPanel>
+                  <TabPanel header="UI/UX">
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-itemPerRow">
+                        <strong>{translate('tempApp.UiSettings.itemPerRow')}</strong>
+                      </Label>
+                      <InputNumber
+                        id="UiSettings-itemPerRow"
+                        value={UiSettingsEntity.itemPerRow || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'itemPerRow', value: e.value }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-showDeliveryTips">
-                    <strong>{translate('tempApp.UiSettings.showDeliveryTips')}</strong>
-                  </Label>
-                  <Checkbox
-                    id="UiSettings-showDeliveryTips"
-                    checked={UiSettingsEntity.showDeliveryTips || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'showDeliveryTips', value: e.checked }))}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-logo">
+                        <strong>{translate('tempApp.UiSettings.logo')}</strong>
+                      </Label>
+                      <MediaLibrary
+                        handleFilesSelectCallback={files =>
+                          dispatch(
+                            changeEntityField({
+                              name: 'logo',
+                              value: transformAttachmentStructure(files, 'toIAttachment')[0],
+                            })
+                          )
+                        }
+                        defaultValues={transformAttachmentStructure(
+                          UiSettingsEntity.logo ? [UiSettingsEntity.logo] : [],
+                          'toFileLibraryListItem'
+                        )}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-orderConfirmation">
-                    <strong>{translate('tempApp.UiSettings.orderConfirmation')}</strong>
-                  </Label>
-                  <Checkbox
-                    id="UiSettings-orderConfirmation"
-                    checked={UiSettingsEntity.orderConfirmation || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'orderConfirmation', value: e.checked }))}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-colorSetting.title">
+                        <strong>{translate('tempApp.UiSettings.colorSetting.title')}</strong>
+                      </Label>
+                      {UiSettingsEntity?.colorSetting && (
+                        Object.keys(UiSettingsEntity.colorSetting).map(key => (
+                          <div className="d-flex gap-2" key={key}>
+                            <Label htmlFor={`UiSettings-colorSetting.${key}`}>
+                              <strong>{translate(`tempApp.UiSettings.colorSetting.${key}`)}</strong>
+                            </Label>
+                            <InputText
+                              id={`UiSettings-colorSetting.${key}`}
+                              value={UiSettingsEntity.colorSetting[key] || ''}
+                              onChange={(e) => handleColorSettingChange(key, e.target.value)}
+                            />
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-logo">
-                    <strong>{translate('tempApp.UiSettings.logo')}</strong>
-                  </Label>
-                  <MediaLibrary
-                    handleFilesSelectCallback={files =>
-                      dispatch(
-                        changeEntityField({
-                          name: 'logo',
-                          value: transformAttachmentStructure(files, 'toIAttachment')[0],
-                        })
-                      )
-                    }
-                    defaultValues={transformAttachmentStructure(
-                      UiSettingsEntity.logo ? [UiSettingsEntity.logo] : [],
-                      'toFileLibraryListItem'
-                    )}
-                  />
-                </div>
+                            <ColorPicker
+                              value={
+                                UiSettingsEntity && typeof UiSettingsEntity.colorSetting[key] === 'string'
+                                  ? hslToHex(UiSettingsEntity.colorSetting[key])
+                                  : '#000000'
+                              }
+                              onChange={(e) => handleColorSettingChange(key, e.value, true)}
+                            />
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-email">
-                    <strong>{translate('tempApp.UiSettings.email')}</strong>
-                  </Label>
-                  <InputText
-                    id="UiSettings-email"
-                    value={UiSettingsEntity.email || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'email', value: e.target.value }))}
-                  />
-                </div>
+                          </div>
+                        ))
+                      )}
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-phoneNumber">
-                    <strong>{translate('tempApp.UiSettings.phoneNumber')}</strong>
-                  </Label>
-                  <InputText
-                    id="UiSettings-phoneNumber"
-                    value={UiSettingsEntity.phoneNumber || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'phoneNumber', value: e.target.value }))}
-                  />
-                </div>
+                    </div>
+                  </TabPanel>
+                  <TabPanel header="Visibility & Formatting">
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-hideItemDescription">
+                        <strong>{translate('tempApp.UiSettings.hideItemDescription')}</strong>
+                      </Label>
+                      <Checkbox
+                        id="UiSettings-hideItemDescription"
+                        checked={UiSettingsEntity.hideItemDescription || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'hideItemDescription', value: e.checked }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-cookie">
-                    <strong>{translate('tempApp.UiSettings.cookie')}</strong>
-                  </Label>
-                  <InputText
-                    id="UiSettings-cookie"
-                    value={UiSettingsEntity.cookie || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'cookie', value: e.target.value }))}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-hideModalDescription">
+                        <strong>{translate('tempApp.UiSettings.hideModalDescription')}</strong>
+                      </Label>
+                      <Checkbox
+                        id="UiSettings-hideModalDescription"
+                        checked={UiSettingsEntity.hideModalDescription || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'hideModalDescription', value: e.checked }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <TabView className='w-100' scrollable>
-                    {branchList?.map((branch, index) => (
-                      <TabPanel header={branch.name} key={index}>
-                        <div className="d-flex mb-3">
-                          <label className="font-bold">Hide Retail Shop</label>
-                          <Checkbox
-                            checked={UiSettingsEntity.branchDetail[index]?.hideRetailShop || false}
-                            onChange={(e) => handleBranchHideRetailShop(index, e.checked, branch.id)}
-                          />
-                        </div>
-                      </TabPanel>
-                    ))}
-                  </TabView>
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-showDeliveryTips">
+                        <strong>{translate('tempApp.UiSettings.showDeliveryTips')}</strong>
+                      </Label>
+                      <Checkbox
+                        id="UiSettings-showDeliveryTips"
+                        checked={UiSettingsEntity.showDeliveryTips || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'showDeliveryTips', value: e.checked }))}
+                      />
+                    </div>
 
-                <div className={'d-flex flex-column mb-3'}>
-                  <Label htmlFor="UiSettings-privacyPolicy">
-                    <strong>{translate('tempApp.UiSettings.privacyPolicy')}</strong>
-                  </Label>
-                  <Editor
-                    value={UiSettingsEntity.privacyPolicy || null}
-                    onTextChange={e => dispatch(changeEntityField({ name: 'privacyPolicy', value: e.htmlValue }))}
-                    style={{
-                      minHeight: '400px',
-                    }}
-                    headerTemplate={quillHeader}
-                  />
-                </div>
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-currencySymbolPosition">
+                        <strong>{translate('tempApp.UiSettings.currencySymbolPosition')}</strong>
+                      </Label>
+                      <SelectButton
+                        options={currencySymbolPositionOptions}
+                        id="UiSettings-currencySymbolPosition"
+                        value={UiSettingsEntity.currencySymbolPosition || null}
+                        onChange={e =>
+                          dispatch(
+                            changeEntityField({
+                              name: 'currencySymbolPosition',
+                              value: e.target.value,
+                            })
+                          )
+                        }
+                      />
+                    </div>
 
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-digitsAfterDecimal">
+                        <strong>{translate('tempApp.UiSettings.digitsAfterDecimal')}</strong>
+                      </Label>
+                      <InputNumber
+                        id="UiSettings-digitsAfterDecimal"
+                        value={UiSettingsEntity.digitsAfterDecimal || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'digitsAfterDecimal', value: e.value }))}
+                      />
+                    </div>
+                  </TabPanel>
+                </TabView>
               </FormGroup>
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/online-ordering/settings" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
