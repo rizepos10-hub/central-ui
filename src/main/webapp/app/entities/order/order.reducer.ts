@@ -27,8 +27,8 @@ export const searchEntities = createAsyncThunk('order/search_entity', async ({ q
   return axios.get<IOrder[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('order/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+export const getEntities = createAsyncThunk('order/fetch_entity_list', async ({ page, size, sort, id }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&id=${id}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IOrder[]>(requestUrl);
 });
 

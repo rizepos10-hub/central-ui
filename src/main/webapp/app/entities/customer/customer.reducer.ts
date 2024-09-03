@@ -29,8 +29,8 @@ export const searchCustomers = createAsyncThunk('loyaltyRecords/fetch_loyalty_cu
   return axios.post<ICustomer[]>(apiSearchUrl, queryParams );
 });
 
-export const getEntities = createAsyncThunk('customer/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+export const getEntities = createAsyncThunk('customer/fetch_entity_list', async ({ page, size, sort, firstName }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&firstName=${firstName}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<ICustomer[]>(requestUrl);
 });
 
