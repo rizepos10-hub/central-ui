@@ -46,6 +46,14 @@
         "muted": "Muted",
         "muted-foreground": "Muted Foreground",
         "custom-color": "Custom Color"
+      },
+      "fontSetting": {
+        "title": "Font Setting",
+        "fontFamily": "Font Family",
+        "fontSize": "Font Size",
+        "fontWeight": "Font Weight",
+        "lineHeight": "Line Height",
+        "letterSpacing": "Letter Spacing"
       }
     }
   }

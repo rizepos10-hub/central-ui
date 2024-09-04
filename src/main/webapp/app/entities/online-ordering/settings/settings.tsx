@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
 import { Translate, translate } from 'react-jhipster';
@@ -10,6 +10,7 @@ import { getEntity, updateEntity, reset, changeEntityField } from './settings.re
 import { InputNumber } from "primereact/inputnumber";
 import {
   currencySymbolPositionOptions,
+  IFontSetting,
   IUiSettings,
   orderTakingOptions
 } from "app/shared/model/ONLINE_ORDERING/ui-setting.model";
@@ -34,6 +35,14 @@ export const UiSettingsUpdate = () => {
   const updating = useAppSelector(state => state.uiSettings.updating);
   const updateSuccess = useAppSelector(state => state.uiSettings.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
+
+  const [fontSettings, setFontSettings] = useState<IFontSetting>({
+    fontFamily: '',
+    fontSize: '',
+    fontWeight: '',
+    lineHeight: '',
+    letterSpacing: ''
+  });
 
 
   useEffect(() => {
@@ -81,6 +90,12 @@ export const UiSettingsUpdate = () => {
     const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.colorSetting)) || {};
     newData[field] = isHex ? hexToHSL(value) : value; // Convert to HSL if HEX is provided, else use the value directly
     dispatch(changeEntityField({ name: 'colorSetting', value: newData }));
+  };
+
+  const handlefontSettingChange = (field, value) => {
+    const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.fontSetting)) || {};
+    newData[field] = value;
+    dispatch(changeEntityField({ name: 'fontSetting', value: newData }));
   };
 
 
@@ -255,9 +270,9 @@ export const UiSettingsUpdate = () => {
                     </div>
 
                     <div className={'d-flex flex-column mb-3'}>
-                      <Label htmlFor="UiSettings-colorSetting.title">
+                      <h2>
                         <strong>{translate('tempApp.UiSettings.colorSetting.title')}</strong>
-                      </Label>
+                      </h2>
                       {UiSettingsEntity?.colorSetting && (
                         Object.keys(UiSettingsEntity.colorSetting).map(key => (
                           <div className="d-flex gap-2" key={key}>
@@ -278,10 +293,27 @@ export const UiSettingsUpdate = () => {
                               }
                               onChange={(e) => handleColorSettingChange(key, e.value, true)}
                             />
-
                           </div>
                         ))
                       )}
+                    </div>
+
+                    <div className={'d-flex flex-column mb-3'}>
+                      <h2>
+                        <strong>{translate('tempApp.UiSettings.fontSetting.title')}</strong>
+                      </h2>
+                      {Object.keys(fontSettings).map(key => (
+                        <div className="d-flex gap-2" key={key}>
+                          <Label htmlFor={`UiSettings-fontSetting.${key}`}>
+                            <strong>{translate(`tempApp.UiSettings.fontSetting.${key}`)}</strong>
+                          </Label>
+                          <InputText
+                            id={`UiSettings-fontSetting.${key}`}
+                            value={UiSettingsEntity?.fontSetting?.[key] || ''}
+                            onChange={(e) => handlefontSettingChange(key, e.target.value)}
+                          />
+                        </div>
+                      ))}
 
                     </div>
                   </TabPanel>

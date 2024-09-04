@@ -22,11 +22,11 @@ export interface IUiSettings {
   applicationName?: string;
   orderConfirmation?: boolean;
   branchDetail?: IBranchDetails[];
-  colorSetting?: ColorSetting | null
-  fontSetting?: FontSetting
+  colorSetting?: IColorSetting | null
+  fontSetting?: IFontSetting
 }
 
-export type ColorSetting = {
+export type IColorSetting = {
   background: string
   foreground: string
   primary: string
@@ -37,7 +37,7 @@ export type ColorSetting = {
   mutedForeground: string
 }
 
-export type FontSetting = {
+export type IFontSetting = {
   fontFamily: string
   fontSize: string
   fontWeight: string

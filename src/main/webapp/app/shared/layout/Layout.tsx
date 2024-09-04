@@ -206,7 +206,7 @@ export const Layout = (props: ChildContainerProps) => {
       <div className={classNames('layout-container', containerClass)}>
         {isAuthenticated &&
           <div ref={sidebarRef} className="layout-sidebar" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} style={{
-            height: '93vh',
+            height: '100%',
             top: '7vh'
           }}>
             {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
@@ -214,7 +214,7 @@ export const Layout = (props: ChildContainerProps) => {
           </div>}
         {isAuthenticated && <AppTopbar ref={topbarRef} />}
         <div className={isAuthenticated ? 'layout-content-wrapper' : ''} style={{ 
-          height: '93vh',
+          height: '100%',
          }}>
           <ConfirmDialog />
           <GlobalSearch data={model} />
