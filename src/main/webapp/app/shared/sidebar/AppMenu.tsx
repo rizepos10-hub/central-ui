@@ -378,14 +378,14 @@ export const model: MenuItem[] = [
     icon: ' pi pi-chart-bar',
     to: '/analytics/retail-dashboard',
     items: [
-      {
-        label: 'Retail Dashboard',
-        to: '/analytics/retail-dashboard',
-      },
-      {
-        label: 'Restaurant Dashboard',
-        to: '/analytics/restaurant-dashboard',
-      },
+      // {
+      //   label: 'Retail Dashboard',
+      //   to: '/analytics/retail-dashboard',
+      // },
+      // {
+      //   label: 'Restaurant Dashboard',
+      //   to: '/analytics/restaurant-dashboard',
+      // },
       {
         label: 'Sales Reports',
         to: '/analytics/sales',
@@ -442,10 +442,10 @@ export const model: MenuItem[] = [
           },
         ],
       },
-      {
-        label: 'Payment Reports',
-        to: '/analytics/payment-report',
-      },
+      // {
+      //   label: 'Payment Reports',
+      //   to: '/analytics/payment-report',
+      // },
       {
         label: 'Register Closures',
         to: '/analytics/register-closure',
@@ -462,18 +462,18 @@ export const model: MenuItem[] = [
         label: 'Shift Closures',
         to: '/analytics/shift-closure',
       },
-      {
-        label: 'Gift Cards',
-        to: '/analytics/gift-card',
-      },
-      {
-        label: 'Store Credits',
-        to: '/analytics/store-credit',
-      },
-      {
-        label: 'Tax Reports',
-        to: '/analytics/tax-report',
-      },
+      // {
+      //   label: 'Gift Cards',
+      //   to: '/analytics/gift-card',
+      // },
+      // {
+      //   label: 'Store Credits',
+      //   to: '/analytics/store-credit',
+      // },
+      // {
+      //   label: 'Tax Reports',
+      //   to: '/analytics/tax-report',
+      // },
       {
         label: 'AI Reporting',
         to: '/analytics/ai-reporting',
@@ -540,11 +540,11 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
         to: '/details',
       },
-      {
-        label: 'Billing',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/billing',
-      },
+      // {
+      //   label: 'Billing',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/billing',
+      // },
       {
         label: 'Branches',
         role: ['ROLE_ADMINISTRATOR'],
@@ -567,16 +567,16 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR'],
         to: '/service-charge',
       },
-      {
-        label: 'Registers',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/register',
-      },
-      {
-        label: 'Payment Types',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/payment-types',
-      },
+      // {
+      //   label: 'Registers',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/register',
+      // },
+      // {
+      //   label: 'Payment Types',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/payment-types',
+      // },
       {
         label: 'Discounts',
         role: ['ROLE_ADMINISTRATOR'],
@@ -587,11 +587,11 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR'],
         to: '/void-reasons',
       },
-      {
-        label: 'On Account',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/on-account',
-      },
+      // {
+      //   label: 'On Account',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/on-account',
+      // },
       {
         label: 'Taxes',
         role: ['ROLE_ADMINISTRATOR'],
@@ -694,17 +694,16 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR'],
         to: '/production-center',
       },
-      {
-        label: 'Account profiles',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/account-profiles',
-      },
-
-      {
-        label: 'Payment methods ',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/payment-methods',
-      },
+      // {
+      //   label: 'Account profiles',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/account-profiles',
+      // },
+      // {
+      //   label: 'Payment methods ',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/payment-methods',
+      // },
       {
         label: 'Data Management Tools',
         role: ['ROLE_ADMINISTRATOR'],

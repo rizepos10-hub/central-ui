@@ -228,7 +228,7 @@ export const UiSettingsUpdate = () => {
                             <div className="d-flex mb-3">
                               <label className="font-bold">Hide Retail Shop</label>
                               <Checkbox
-                                checked={UiSettingsEntity.branchDetail[index]?.hideRetailShop || false}
+                                checked={UiSettingsEntity?.branchDetail?.[index]?.hideRetailShop || false}
                                 onChange={(e) => handleBranchHideRetailShop(index, e.checked, branch.id)}
                               />
                             </div>
