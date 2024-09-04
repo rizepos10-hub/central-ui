@@ -205,7 +205,7 @@ const OrdersSearch = ({
     useEffect(() => {
         const timeout = setTimeout(() => {
             dispatch(getOrders({
-                id: inputValue || '',
+                query: inputValue || '',
                 sort: 'id,asc',
                 page: 0,
                 size: 15,
@@ -250,7 +250,7 @@ const CustomersSearch = ({
     useEffect(() => {
         const timeout = setTimeout(() => {
             dispatch(getCustomers({
-                firstName: inputValue || '',
+                query: inputValue || '',
                 sort: 'id,asc',
                 page: 0,
                 size: 15,
