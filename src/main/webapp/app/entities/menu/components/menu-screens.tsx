@@ -1131,9 +1131,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             <Button color="primary" onClick={() => handleButtonAdd('Item')} className="ml-2">
                                 <Translate contentKey={'menus.pos.update.buttons.addItem'}>Add Item</Translate>
                             </Button>
-                            <Button color="primary" onClick={() => handleButtonAdd('Sub-screen')} className="ml-2">
-                                <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>
-                            </Button>
+                            {menu.type === "POS" && (
+                                <Button color="primary" onClick={() => handleButtonAdd('Sub-screen')} className="ml-2">
+                                    <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>
+                                </Button>
+                            )}
 
                             <Button onClick={togglePreviewModal} className="mx-2 btn btn-info">
                                 <Translate contentKey={'menus.pos.update.buttons.preview'}>Preview</Translate>
