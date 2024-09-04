@@ -391,7 +391,7 @@ export const OrderDetail = () => {
                 <CardTitle tag="h5">Customer</CardTitle>
                 {filteredOrderEntity.customer ? (
                   <>
-                    <p>
+                    <div>
                       <Button
                         text
                         className="text-decoration-none p-0"
@@ -400,10 +400,10 @@ export const OrderDetail = () => {
                         {filteredOrderEntity.customer.firstName + ' ' + filteredOrderEntity.customer.lastName}
                       </Button>
                       {/* </a> */}
-                    </p>
-                    {/* <p>23 total orders</p> */}
-                    <p>{filteredOrderEntity.customer.email}</p>
-                    <p>{filteredOrderEntity.customer.phone}</p>
+                    </div>
+                    {/* <div>23 total orders</div> */}
+                    <div>{filteredOrderEntity.customer.email}</div>
+                    <div>{filteredOrderEntity.customer.phone}</div>
                   </>
                 ) : (
                   <p>No customer found</p>
@@ -420,21 +420,33 @@ export const OrderDetail = () => {
               </Card>
             )} */}
 
-            {/* <Card className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
-              <CardBody>
-                <CardTitle tag="h6">Shipping address</CardTitle>
-                <p>Sophia Anderson</p>
-                <p>1234 Main St.</p>
-                <p>Anytown, CA 12345</p>
-              </CardBody>
-            </Card>
+            {orderEntity.orderDeliveryDetails && (
+              <Card className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
+                <CardBody>
+                  <CardTitle tag="h6">Delviery Details</CardTitle>
+                  <div>{new Date(orderEntity.orderDeliveryDetails?.date).toLocaleString()}</div>
+                  <div>{orderEntity.orderDeliveryDetails?.driverInformation?.name}</div>
+                  <div>{orderEntity.orderDeliveryDetails?.driverInformation?.phone}</div>
+                  <div>
+                    <a target={'_blank'} rel="noreferrer" href={orderEntity.orderDeliveryDetails?.driverInformation?.trackOrderUrl}>
+                      {orderEntity.orderDeliveryDetails?.driverInformation?.trackOrderUrl}
+                    </a>
+                  </div>
+                  <div>
+                    Expected Arrival At: {new Date(orderEntity.orderDeliveryDetails?.expectedArrivalAt).toLocaleString()}
+                  </div>
+                  <div> {orderEntity.orderDeliveryDetails?.integrationDetails?.provider}, {orderEntity.orderDeliveryDetails?.integrationDetails?.tripId}</div>
+                </CardBody>
+              </Card>
+            )}
 
+            {/*
             <Card className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
               <CardBody>
                 <CardTitle tag="h6">Billing address</CardTitle>
                 <p>Same as shipping address</p>
               </CardBody>
-            </Card> */}
+            </Card>*/}
           </Col>
         </Row>
         {!orderEntity?.refund && orderEntity?.bills?.length > 0 && (
