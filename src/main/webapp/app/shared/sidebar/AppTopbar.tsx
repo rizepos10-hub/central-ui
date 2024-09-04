@@ -12,6 +12,9 @@ import { getEntities as getCustomers } from 'app/entities/customer/customer.redu
 import { Link, useNavigate } from 'react-router-dom';
 import { IItem } from '../model/ITEM/item.model';
 import { Button } from 'primereact/button';
+import { Spinner } from 'reactstrap';
+import { IOrder } from '../model/ORDER/order.model';
+import { ICustomer } from '../model/CUSTOMER/customer.model';
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const { onMenuToggle, showProfileSidebar, showConfigSidebar, layoutState, isDesktop } = useContext(LayoutContext);
@@ -105,7 +108,10 @@ const TopBarSearch = () => {
                 ref={inputRef}
                 type="text"
                 placeholder="Search"
-                className="w-12rem sm:w-full"
+                style={{
+                    borderRadius: '0.8em',
+                    width: dropdownOpen ? '700px' : '100%',
+                }}
                 value={inputValue}
                 onChange={handleInputChange}
                 onFocus={() => setDropdownOpen(true)}
@@ -116,11 +122,13 @@ const TopBarSearch = () => {
                     style={{
                         position: 'absolute',
                         zIndex: 1000,
-                        width: '500px',
+                        height: '500px',
+                        width: '700px',
                         background: 'var(--primary-color-text)',
-                        left: '-120%',
-                        maxHeight: '500px',
-                        overflowY: 'auto'
+                        overflowY: 'auto',
+                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                        border: '0.5px solid var(--primary-color-text)',
+                        borderRadius: '0.8em',
                     }}
                 >
                     <TabView>
@@ -135,8 +143,9 @@ const TopBarSearch = () => {
                         </TabPanel>
                     </TabView>
                 </div>
-            )}
-        </span>
+            )
+            }
+        </span >
     );
 }
 
@@ -186,7 +195,7 @@ const ItemsSearch = ({
                 ))}
             </div>
         ) : (
-            <div>Searching ...</div>
+            <div><Spinner /></div>
         )
     )
 }
@@ -199,7 +208,7 @@ const OrdersSearch = ({
     setDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const dispatch = useAppDispatch();
-    const orderList = useAppSelector(state => state.order.entities);
+    const orderList: IOrder[] = useAppSelector(state => state.order.entities);
     const loading = useAppSelector(state => state.order.loading);
 
     useEffect(() => {
@@ -226,12 +235,12 @@ const OrdersSearch = ({
                         to={`order/${order.id}`}
                         setDropdownOpen={setDropdownOpen}
                     >
-                        {order.id}
+                        {order.sequenceNumber}
                     </ClickableLink>
                 ))}
             </div>
         ) : (
-            <div>Searching ...</div>
+            <div><Spinner /></div>
         )
     )
 }
@@ -244,7 +253,7 @@ const CustomersSearch = ({
     setDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const dispatch = useAppDispatch();
-    const customerList = useAppSelector(state => state.customer.entities);
+    const customerList: ICustomer[] = useAppSelector(state => state.customer.entities);
     const loading = useAppSelector(state => state.customer.loading);
 
     useEffect(() => {
@@ -276,7 +285,7 @@ const CustomersSearch = ({
                 ))}
             </div>
         ) : (
-            <div>Searching ...</div>
+            <div><Spinner /></div>
         )
     )
 }
@@ -298,7 +307,7 @@ const ClickableLink = ({
     }
 
     return (
-        <Button text onClick={handleNavigate}>
+        <Button text onClick={handleNavigate} className="text-dark">
             {children}
         </Button>
     )
