@@ -21,6 +21,7 @@ export interface IOrder extends IOrderAudit {
   bills?: IBill[];
   scheduledAt?: string | null;
   orderCharges?: any[];
+  orderDeliveryDetails?: IOrderDeliveryDetails;
   paymentStatus?: PaymentStatus
   processingStatus?: OrderStatus
   deliveryStatus?: DeliverStatus
@@ -41,6 +42,37 @@ export interface IOrderCharge {
   id?: string;
   amount?: number | null;
   chargeType?: ServiceChargeKey;
+}
+
+export interface IOrderDeliveryDetails {
+  arriveDate?: string;
+  closeDate?: string;
+  contactDate?: string;
+  createDate?: string;
+  date?: string;
+  deliveryDetailId?: string;
+  deliveryProvider?: "ICABBI";
+  driverInformation?: IOrderDeliveryInformation;
+  expectedArrivalAt?: string;
+  integrationDetails?: IOrderIntegrationDetails;
+  pickupDate?: string;
+}
+
+export interface IOrderDeliveryInformation {
+  driverComment?: string;
+  lastName?: string;
+  name?: string;
+  notes?: string;
+  phone?: string;
+  photo?: string;
+  trackOrderUrl?: string;
+  vehicleGroup?: string;
+  vehicleType?: string;
+}
+
+export interface IOrderIntegrationDetails {
+  provider?: "ICABBI";
+  tripId?: string;
 }
 
 export enum ServiceChargeKey {
