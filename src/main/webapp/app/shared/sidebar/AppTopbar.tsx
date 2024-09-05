@@ -80,11 +80,6 @@ const TopBarSearch = () => {
 
     const handleInputChange = (event) => {
         setInputValue(event.target.value);
-        if (event.target.value.length > 0) {
-            setDropdownOpen(true);
-        } else {
-            setDropdownOpen(false);
-        }
     };
 
     useEffect(() => {
