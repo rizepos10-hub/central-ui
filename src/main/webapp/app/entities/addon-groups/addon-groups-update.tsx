@@ -14,6 +14,12 @@ import { Button as PrimeButton } from 'primereact/button';
 import { CreateAddonModal } from 'app/entities/addon-groups/add-addon-modal';
 import { InputText } from 'primereact/inputtext';
 import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
+import { TabPanel, TabView } from 'primereact/tabview';
+import { filterEntities as getRegularItems, updateEntity as updateRegularItem } from 'app/entities/item/restaurant/regular-item/regular-item.reducer';
+import { filterEntities as getPizzaItems, updateEntity as updatePizzaItem } from 'app/entities/item/restaurant/pizza-item/pizza-item.reducer';
+import { filterEntities as getComboItems, updateEntity as updateComboItem } from 'app/entities/item/restaurant/combo-item/combo-item.reducer';
+import { IItem } from 'app/shared/model/ITEM/item.model';
+import { ItemsTable } from 'app/shared/components/assign-to-item/assign-to-item';
 
 export const AddonGroupUpdate = () => {
   const dispatch = useAppDispatch();
@@ -108,7 +114,7 @@ export const AddonGroupUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newId = payload?.data?.id;
-          
+
           // @ts-expect-error -- unknown type
           if (!res?.error) {
             navigate(`/addon-groups/${newId}/edit`)
@@ -127,18 +133,16 @@ export const AddonGroupUpdate = () => {
   return (
     <div>
       <Row>
-        <Col md="8">
-          <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-            {isNew ? (
-              <Translate contentKey={'tempApp.addonGroup.createNewAddonGroup'}>Create New Addon Group</Translate>
-            ) : (
-              <Translate contentKey={'tempApp.addonGroup.editAddonGroup'}>Edit Addon Group</Translate>
-            )}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3">
+        <Col md={isNew ? "12" : "6"}>
+          <Row>
+            <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
+              {isNew ? (
+                <Translate contentKey={'tempApp.addonGroup.createNewAddonGroup'}>Create New Addon Group</Translate>
+              ) : (
+                <Translate contentKey={'tempApp.addonGroup.editAddonGroup'}>Edit Addon Group</Translate>
+              )}
+            </h2>
+          </Row>
           <PrimeCard>
             {loading ? (
               <p>Loading...</p>
@@ -204,9 +208,260 @@ export const AddonGroupUpdate = () => {
             )}
           </PrimeCard>
         </Col>
-      </Row>
+        {!isNew && (
+          <Col md="6">
+            <Row>
+              <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
+                <Translate contentKey={'tempApp.addon.assignToItem'}>Assign To Item</Translate>
+              </h2>
+            </Row>
+            <TabView>
+              <TabPanel header="Regular">
+                <RegularItemsTable id={id} />
+              </TabPanel>
+              <TabPanel header="Pizza">
+                <PizzaItemsTable id={id} />
+              </TabPanel>
+              <TabPanel header="Combo">
+                <ComboItemsTable id={id} />
+              </TabPanel>
+            </TabView>
+          </Col>
+        )}
+      </Row >
     </div>
   );
 };
+
+const RegularItemsTable = ({
+  id
+}: {
+  id: string
+}) => {
+  const dispatch = useAppDispatch();
+  const regularItems = useAppSelector(state => state.regularItem.entities);
+  const loading = useAppSelector(state => state.regularItem.loading);
+  const totalItems = useAppSelector(state => state.regularItem.totalItems);
+  const [isUpdating, setIsUpdating] = useState({
+    value: false,
+    id: ''
+  });
+
+  const assignNewEntity = (rowData) => {
+    setIsUpdating({
+      value: true,
+      id: regularItems.find(item => item.id === rowData.id)?.id
+    });
+    const entity = {
+      ...rowData,
+      addonGroups: [
+        ...rowData.addonGroups,
+        {
+          addonGroup: {
+            id
+          }
+        }
+      ]
+    }
+
+    dispatch(updateRegularItem(entity))
+      .finally(() => {
+        setIsUpdating({
+          value: false,
+          id: regularItems.find(item => item.id === rowData.id)?.id
+        });
+      })
+  }
+
+  const unassignNewEntity = (rowData) => {
+    setIsUpdating({
+      value: true,
+      id: regularItems.find(item => item.id === rowData.id)?.id
+    });
+    const entity = {
+      ...rowData,
+      addonGroups: rowData.addonGroups.filter(addon => addon.addonGroup.id !== id)
+    }
+
+    dispatch(updateRegularItem(entity))
+      .finally(() => {
+        setIsUpdating({
+          value: false,
+          id: regularItems.find(item => item.id === rowData.id)?.id
+        });
+      })
+  }
+
+  const getFieldAssigned = (rowData) => {
+    return rowData.addonGroups?.some(addon => addon.addonGroup.id === id);
+  }
+
+  return (
+    <ItemsTable
+      items={regularItems}
+      loading={loading}
+      totalItems={totalItems}
+      fetchEntities={getRegularItems}
+      assignNewEntity={assignNewEntity}
+      unassignNewEntity={unassignNewEntity}
+      isUpdating={isUpdating}
+      getFieldAssigned={getFieldAssigned}
+    />
+  );
+}
+
+const PizzaItemsTable = ({
+  id
+}: {
+  id: string
+}) => {
+  const dispatch = useAppDispatch();
+  const pizzaItems: IItem[] = useAppSelector(state => state.pizzaItem.entities);
+  const loading = useAppSelector(state => state.pizzaItem.loading);
+  const totalItems = useAppSelector(state => state.pizzaItem.totalItems);
+  const [isUpdating, setIsUpdating] = useState({
+    value: false,
+    id: ''
+  });
+
+  const assignNewEntity = (rowData) => {
+    setIsUpdating({
+      value: true,
+      id: pizzaItems.find(item => item.id === rowData.id)?.id
+    });
+    const entity = {
+      ...rowData,
+      addonGroups: [
+        ...rowData.addonGroups,
+        {
+          addonGroup: {
+            id
+          }
+        }
+      ]
+    }
+
+    dispatch(updatePizzaItem(entity))
+      .finally(() => {
+        setIsUpdating({
+          value: false,
+          id: pizzaItems.find(item => item.id === rowData.id)?.id
+        });
+      })
+  }
+
+  const unassignNewEntity = (rowData) => {
+    setIsUpdating({
+      value: true,
+      id: pizzaItems.find(item => item.id === rowData.id)?.id
+    });
+    const entity = {
+      ...rowData,
+      addonGroups: rowData.addonGroups.filter(addon => addon.addonGroup.id !== id)
+    }
+
+    dispatch(updatePizzaItem(entity))
+      .finally(() => {
+        setIsUpdating({
+          value: false,
+          id: pizzaItems.find(item => item.id === rowData.id)?.id
+        });
+      })
+  }
+
+  const getFieldAssigned = (rowData) => {
+    return rowData.addonGroups?.some(addon => addon.addonGroup.id === id);
+  }
+
+  return (
+    <ItemsTable
+      items={pizzaItems}
+      loading={loading}
+      totalItems={totalItems}
+      fetchEntities={getPizzaItems}
+      assignNewEntity={assignNewEntity}
+      unassignNewEntity={unassignNewEntity}
+      isUpdating={isUpdating}
+      getFieldAssigned={getFieldAssigned}
+    />
+  );
+}
+
+const ComboItemsTable = ({
+  id
+}: {
+  id: string
+}) => {
+  const dispatch = useAppDispatch();
+  const comboItems: IItem[] = useAppSelector(state => state.comboItem.entities);
+  const loading = useAppSelector(state => state.comboItem.loading);
+  const totalItems = useAppSelector(state => state.comboItem.totalItems);
+  const [isUpdating, setIsUpdating] = useState({
+    value: false,
+    id: ''
+  });
+
+  const assignNewEntity = (rowData) => {
+    setIsUpdating({
+      value: true,
+      id: comboItems.find(item => item.id === rowData.id)?.id
+    });
+    const entity = {
+      ...rowData,
+      addonGroups: [
+        ...rowData.addonGroups,
+        {
+          addonGroup: {
+            id
+          }
+        }
+      ]
+    }
+
+    dispatch(updateComboItem(entity))
+      .finally(() => {
+        setIsUpdating({
+          value: false,
+          id: comboItems.find(item => item.id === rowData.id)?.id
+        });
+      })
+  }
+
+  const unassignNewEntity = (rowData) => {
+    setIsUpdating({
+      value: true,
+      id: comboItems.find(item => item.id === rowData.id)?.id
+    });
+    const entity = {
+      ...rowData,
+      addonGroups: rowData.addonGroups.filter(addon => addon.addonGroup.id !== id)
+    }
+
+    dispatch(updateComboItem(entity))
+      .finally(() => {
+        setIsUpdating({
+          value: false,
+          id: comboItems.find(item => item.id === rowData.id)?.id
+        });
+      })
+  }
+
+  const getFieldAssigned = (rowData) => {
+    return rowData.addonGroups?.some(addon => addon.addonGroup.id === id);
+  }
+
+  return (
+    <ItemsTable
+      items={comboItems}
+      loading={loading}
+      totalItems={totalItems}
+      fetchEntities={getComboItems}
+      assignNewEntity={assignNewEntity}
+      unassignNewEntity={unassignNewEntity}
+      isUpdating={isUpdating}
+      getFieldAssigned={getFieldAssigned}
+    />
+  );
+}
 
 export default AddonGroupUpdate;
