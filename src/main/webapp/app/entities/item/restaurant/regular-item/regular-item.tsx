@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
-import {getSortState, translate, Translate} from 'react-jhipster';
+import { getSortState, translate, Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {  ITEMS_PER_PAGE, } from 'app/shared/util/pagination.constants';
+import { ITEMS_PER_PAGE, } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { deleteEntity, filterEntities} from "./regular-item.reducer";
+import { deleteEntity, filterEntities, updateEntities } from "./regular-item.reducer";
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
-import {Column} from "primereact/column";
-import {IRegularItem} from "app/shared/model/ITEM/restaurant/regular-item.model";
+import { Column } from "primereact/column";
+import { IRegularItem } from "app/shared/model/ITEM/restaurant/regular-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { ITerm } from "app/shared/model/term.model";
 import ImportButton from "app/shared/components/data-import/data-import";
@@ -19,7 +19,9 @@ import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import _ from "lodash";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { confirmDialog } from 'primereact/confirmdialog';
-
+import { IItem } from 'app/shared/model/ITEM/item.model';
+import { Dropdown } from 'primereact/dropdown';
+import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
 
 export const RegularItem = () => {
   const dispatch = useAppDispatch();
@@ -31,13 +33,16 @@ export const RegularItem = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [searchParams, setSearchParams]=  useSearchParams();
+  const [selectedActionOption, setSelectedActionOption] = useState(null)
+  const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
+
+  const [searchParams, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
 
-  const regularItemsList :IRegularItem[] = useAppSelector(state => state.regularItem.entities);
+  const regularItemsList: IRegularItem[] = useAppSelector(state => state.regularItem.entities);
 
   const importSuccess = useAppSelector(state => state.dataImport.importSuccess);
-  const categories :ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
+  const categories: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
   const loading = useAppSelector(state => state.regularItem.loading);
   const totalItems = useAppSelector(state => state.regularItem.totalItems);
 
@@ -63,7 +68,7 @@ export const RegularItem = () => {
 
   const onSort = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true })
   };
 
   const onFilter = (event: DataTableFilterEvent) => {
@@ -71,7 +76,7 @@ export const RegularItem = () => {
       event['first'] = 0;
       event['page'] = 0;
       const queryParams = JSON.stringify(event);
-      setSearchParams({query: queryParams}, {replace: true})
+      setSearchParams({ query: queryParams }, { replace: true })
     }, 300)
     debouncedSearchAction();
   };
@@ -79,19 +84,19 @@ export const RegularItem = () => {
 
   const onPage = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true })
   };
 
 
   const handleDropdownChange = (field, value) => {
-    const newQuery = JSON.stringify(  {
+    const newQuery = JSON.stringify({
       ...query,
       filters: {
         ...query.filters,
-        [field] : value
+        [field]: value
       }
     });
-    setSearchParams({query: newQuery}, {replace: true});
+    setSearchParams({ query: newQuery }, { replace: true });
   };
 
 
@@ -107,7 +112,7 @@ export const RegularItem = () => {
     const editUrl = `/restaurant/regular/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
       </Link>
     );
   };
@@ -123,7 +128,7 @@ export const RegularItem = () => {
     const deleteUrl = `/restaurant/regular/${rowData.id}/delete`;
     return (
       <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
       </Link>
     );
   };
@@ -163,11 +168,21 @@ export const RegularItem = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'items.view.titles.tableTitle.regular'}>Regular Items</Translate></span>
+      <span className="text-xl">
+        <Dropdown
+          value={selectedActionOption}
+          onChange={(e) => setSelectedActionOption(e.value)}
+          options={actionOptions}
+          optionLabel="name"
+          placeholder="Bulk Actions"
+          className="w-full md:w-14rem"
+          disabled={selectedProducts.length < 1}
+        />
+      </span>
       <div className="ms-auto">
 
         <ImportButton type={"REGULAR_RESTAURANT"} />
-         &nbsp;
+        &nbsp;
         <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
@@ -179,28 +194,55 @@ export const RegularItem = () => {
     </div>
   );
 
-
-
-
-
   return (
     <div>
-        <DataTable
-          value={regularItemsList} loading={loading} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
-          paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
-          onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
-        >
-          <Column field="name" header={translate('items.view.fields.name')}
-                  filter filterField={"name"} body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
+      {selectedActionOption?.code === "EDIT" && selectedProducts.length > 0 && (
+        <BulkEdit
+          products={regularItemsList}
+          selectedProducts={selectedProducts}
+          setSelectedProducts={setSelectedProducts}
+          setSelectedActionOption={setSelectedActionOption}
+          refetchEntities={getAllEntities}
+          loading={loading}
+          updateEntities={updateEntities}
+          isRetail={false}
+        />
+      )}
+      <DataTable
+        value={regularItemsList}
+        loading={loading}
+        editMode="row"
+        header={header}
+        removableSort
+        filters={query.filters}
+        filterDisplay="row"
+        paginator
+        totalRecords={totalItems}
+        rows={20}
+        lazy
+        first={query.first}
+        onPage={onPage}
+        onFilter={onFilter}
+        onSort={onSort}
+        sortField={query.sortField}
+        sortOrder={query.sortOrder}
+        showGridlines
+        selectionMode='checkbox'
+        selection={selectedProducts}
+        onSelectionChange={(e) => setSelectedProducts(e.value)}
+      >
+        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
+        <Column field="name" header={translate('items.view.fields.name')}
+          filter filterField={"name"} body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
 
-          <Column
-            header="Category"
-            field="categories"
-            body={rowData => rowData?.categories?.map(cat => cat?.name).join(" | ")}
-            sortable
-            filter
-            showFilterMatchModes={false}
-            filterElement={
+        <Column
+          header="Category"
+          field="categories"
+          body={rowData => rowData?.categories?.map(cat => cat?.name).join(" | ")}
+          sortable
+          filter
+          showFilterMatchModes={false}
+          filterElement={
             <DropDownFilter
               dropDownOptionType={"RESTAURANT_CATEGORY"}
               selectedOption={query?.filters?.["categories.id"]?.value}
@@ -208,32 +250,32 @@ export const RegularItem = () => {
               handleDropdownChange={handleDropdownChange}
             />
           }
-          />
+        />
 
-          <Column header={translate('items.view.fields.image')}  body={(rowData) =>
-            <ImageDisplay
-              imageType={"product"}
-              imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url }
-              height={50}
-              width={50}
-            />} />
+        <Column header={translate('items.view.fields.image')} body={(rowData) =>
+          <ImageDisplay
+            imageType={"product"}
+            imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
+            height={50}
+            width={50}
+          />} />
 
-          <Column header={translate('items.view.fields.menus')}  body={(rowData) =>
-            <MenusTemplate rowData={rowData} />}
-          />
-
-
-          <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
-
-          <Column header={translate('items.view.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
-
-          <Column  header={translate('items.view.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+        <Column header={translate('items.view.fields.menus')} body={(rowData) =>
+          <MenusTemplate rowData={rowData} />}
+        />
 
 
-        </DataTable>
-      </div>
+        <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
+
+        <Column header={translate('items.view.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+
+        <Column header={translate('items.view.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+
+
+      </DataTable>
+    </div>
   );
 };
 

@@ -53,6 +53,16 @@ export const updateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const updateEntities = createAsyncThunk(
+  'pizzaSize/update_entity',
+  async (entity: IPizzaSize[], thunkAPI) => {
+    const result = await axios.put<IPizzaSize[]>(`${apiUrl}`, entity);
+    thunkAPI.dispatch(getEntities({})).then(response => console.log(response, 'responseresponse'));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const updateAllEntities = createAsyncThunk(
   'pizzaSize/update_entities',
   async (entity: IPizzaSize[], thunkAPI) => {
@@ -112,7 +122,7 @@ export const PizzaSizeSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateAllEntities), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateAllEntities, getEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -123,7 +133,7 @@ export const PizzaSizeSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, updateAllEntities), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, updateAllEntities, getEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

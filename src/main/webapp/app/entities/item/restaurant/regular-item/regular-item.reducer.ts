@@ -62,6 +62,16 @@ export const updateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const updateEntities = createAsyncThunk(
+  'regular-item/update_entity',
+  async (entity: IRegularItem[], thunkAPI) => {
+    const result = await axios.put<IRegularItem[]>(`${apiUrl}`, entity);
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const partialUpdateEntity = createAsyncThunk(
   'regular-item/partial_update_entity',
   async (entity: IRegularItem, thunkAPI) => {
@@ -109,7 +119,7 @@ export const RegularItemSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -120,7 +130,7 @@ export const RegularItemSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, updateEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

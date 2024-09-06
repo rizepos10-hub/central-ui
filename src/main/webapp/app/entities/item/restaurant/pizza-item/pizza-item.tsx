@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
-import {getSortState, translate, Translate} from 'react-jhipster';
+import { getSortState, translate, Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {  ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { filterEntities, getEntities } from './pizza-item.reducer';
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
-import {Column} from "primereact/column";
-import {IPizzaItem} from "app/shared/model/ITEM/restaurant/pizza-item.model";
+import { Column } from "primereact/column";
+import { IPizzaItem } from "app/shared/model/ITEM/restaurant/pizza-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import _ from "lodash";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
+import { IItem } from 'app/shared/model/ITEM/item.model';
+import { Dropdown } from 'primereact/dropdown';
+import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
+import { updateEntities } from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
@@ -28,14 +32,16 @@ export const PizzaItem = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const pizzaItemsList:IPizzaItem[] = useAppSelector(state => state.pizzaItem.entities);
+  const pizzaItemsList: IPizzaItem[] = useAppSelector(state => state.pizzaItem.entities);
   const loading = useAppSelector(state => state.pizzaItem.loading);
   const totalItems = useAppSelector(state => state.pizzaItem.totalItems);
 
 
-  const [searchParams, setSearchParams]=  useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
 
+  const [selectedActionOption, setSelectedActionOption] = useState(null)
+  const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
 
 
 
@@ -58,7 +64,7 @@ export const PizzaItem = () => {
 
   const onSort = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true })
   };
 
   const onFilter = (event: DataTableFilterEvent) => {
@@ -66,7 +72,7 @@ export const PizzaItem = () => {
       event['first'] = 0;
       event['page'] = 0;
       const queryParams = JSON.stringify(event);
-      setSearchParams({query: queryParams}, {replace: true})
+      setSearchParams({ query: queryParams }, { replace: true })
     }, 300);
     debouncedSearchAction();
   };
@@ -74,19 +80,19 @@ export const PizzaItem = () => {
 
   const onPage = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true })
   };
 
 
   const handleDropdownChange = (field, value) => {
-    const newQuery = JSON.stringify(  {
+    const newQuery = JSON.stringify({
       ...query,
       filters: {
         ...query.filters,
-        [field] : value
+        [field]: value
       }
     });
-    setSearchParams({query: newQuery}, {replace: true});
+    setSearchParams({ query: newQuery }, { replace: true });
   };
 
 
@@ -102,7 +108,7 @@ export const PizzaItem = () => {
     const editUrl = `/restaurant/pizza/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
       </Link>
     );
   };
@@ -111,7 +117,7 @@ export const PizzaItem = () => {
     const deleteUrl = `/restaurant/pizza/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
       </Link>
     );
   };
@@ -139,7 +145,17 @@ export const PizzaItem = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'items.view.titles.tableTitle.pizza'}>Pizza Items</Translate></span>
+      <span className="text-xl">
+        <Dropdown
+          value={selectedActionOption}
+          onChange={(e) => setSelectedActionOption(e.value)}
+          options={actionOptions}
+          optionLabel="name"
+          placeholder="Bulk Actions"
+          className="w-full md:w-14rem"
+          disabled={selectedProducts.length < 1}
+        />
+      </span>
       <div className="ms-auto">
         <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
@@ -154,58 +170,87 @@ export const PizzaItem = () => {
 
 
   return (
+    <div>
+      {selectedActionOption?.code === "EDIT" && selectedProducts.length > 0 && (
+        <BulkEdit
+          products={pizzaItemsList}
+          selectedProducts={selectedProducts}
+          setSelectedProducts={setSelectedProducts}
+          setSelectedActionOption={setSelectedActionOption}
+          refetchEntities={getAllEntities}
+          loading={loading}
+          updateEntities={updateEntities}
+          isRetail={false}
+        />
+      )}
+      <DataTable
+        value={pizzaItemsList}
+        loading={loading}
+        editMode="row"
+        header={header}
+        removableSort
+        filters={query.filters}
+        filterDisplay="row"
+        paginator
+        totalRecords={totalItems}
+        rows={20}
+        lazy
+        first={query.first}
+        onPage={onPage}
+        onFilter={onFilter}
+        onSort={onSort}
+        sortField={query.sortField}
+        sortOrder={query.sortOrder}
+        showGridlines
+        selectionMode='checkbox'
+        selection={selectedProducts}
+        onSelectionChange={(e) => setSelectedProducts(e.value)}
+      >
+        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
+        <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
 
-      <div >
-        <DataTable
-          value={pizzaItemsList} loading={loading} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
-          paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
-          onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
-        >
+        <Column
+          header="Category"
+          field="categories"
+          body={rowData => rowData?.categories?.map(cat => cat?.name).join(" | ")}
+          sortable
+          filter
+          showFilterMatchModes={false}
+          filterElement={
+            <DropDownFilter
+              dropDownOptionType={"RESTAURANT_CATEGORY"}
+              selectedOption={query?.filters?.["categories.id"]?.value}
+              fieldName={"categories.id"}
+              handleDropdownChange={handleDropdownChange}
+            />
+          }
+        />
 
-          <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')}  sortable  />
+        <Column header={translate('items.view.fields.image')} body={(rowData) =>
+          <ImageDisplay
+            imageType={"product"}
+            imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
+            height={50}
+            width={50}
+          />} />
 
-          <Column
-            header="Category"
-            field="categories"
-            body={rowData => rowData?.categories?.map(cat => cat?.name).join(" | ")}
-            sortable
-            filter
-            showFilterMatchModes={false}
-            filterElement={
-              <DropDownFilter
-                dropDownOptionType={"RESTAURANT_CATEGORY"}
-                selectedOption={query?.filters?.["categories.id"]?.value}
-                fieldName={"categories.id"}
-                handleDropdownChange={handleDropdownChange}
-              />
-            }
-          />
+        <Column header={translate('items.view.fields.menus')} body={(rowData) =>
+          <MenusTemplate rowData={rowData} />}
+        />
 
-          <Column header={translate('items.view.fields.image')}  body={(rowData) =>
-            <ImageDisplay
-              imageType={"product"}
-              imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url }
-              height={50}
-              width={50}
-            />} />
-                    
-          <Column header={translate('items.view.fields.menus')} body={(rowData) =>
-            <MenusTemplate rowData={rowData} />}
-          />
-        
-          <Column field="desc" header={translate('items.view.fields.description')} />
+        <Column field="desc" header={translate('items.view.fields.description')} />
 
-          <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
+        <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
 
-          <Column header={translate('items.view.fields.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+        <Column header={translate('items.view.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-          <Column  header={translate('items.view.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+        <Column header={translate('items.view.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 
-        </DataTable>
-      </div>
+      </DataTable>
+    </div>
   );
 };
 
