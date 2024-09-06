@@ -5,7 +5,8 @@ import { getEntities as getProfileGroups } from 'app/entities/settings/profile-g
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import { getEntities as getTags } from 'app/entities/tag/tag.reducer';
 import { getEntities as getBrands } from 'app/entities/brand/brand.reducer';
-import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
+import { getEntities as getRestaurantItemCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import { getEntities as getRetailItemCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Col, Container, Row, Spinner } from 'reactstrap';
@@ -40,12 +41,24 @@ export const BulkEdit = ({
 }) => {
     const dispatch = useAppDispatch();
 
-    const categories = useAppSelector(state => state.retailCategory.entities)
+    const categories = isRetail
+        ? useAppSelector(state => state.retailCategory.entities)
+        : useAppSelector(state => state.restaurantCategory.entities);
+
+    const categoriesLoading = isRetail
+        ? useAppSelector(state => state.retailCategory.loading)
+        : useAppSelector(state => state.restaurantCategory.loading);
+
     const productionCenters = useAppSelector(state => state.productionCenter.entities);
+    const productionCentersLoading = useAppSelector(state => state.productionCenter.loading);
     const profileGroups = useAppSelector(state => state.profileGroup.entities);
+    const profileGroupsLoading = useAppSelector(state => state.profileGroup.loading);
     const tags = useAppSelector(state => state.tag.entities);
+    const tagsLoading = useAppSelector(state => state.tag.loading);
     const brands = useAppSelector(state => state.brand.entities);
+    const brandsLoading = useAppSelector(state => state.brand.loading);
     const discounts = useAppSelector(state => state.discount.entities);
+    const discountsLoading = useAppSelector(state => state.discount.loading);
 
     const [selectedCategories, setSelectedCategories] = useState<any>([]);
     const [selectedTags, setSelectedTags] = useState<any>([]);
@@ -150,16 +163,26 @@ export const BulkEdit = ({
                                     isMulti
                                     options={categories?.map(cat => ({ value: cat.id, label: cat.name }))}
                                     onMenuOpen={() => {
-                                        dispatch(
-                                            getCategories({
-                                                page: 0,
-                                                size: 1000,
-                                                sort: `id,desc`,
-                                            })
-                                        );
+                                        isRetail ?
+                                            dispatch(
+                                                getRetailItemCategories({
+                                                    page: 0,
+                                                    size: 1000,
+                                                    sort: `id,desc`,
+                                                })
+                                            ) : (
+                                                dispatch(
+                                                    getRestaurantItemCategories({
+                                                        page: 0,
+                                                        size: 1000,
+                                                        sort: `id,desc`,
+                                                    })
+                                                )
+                                            )
                                     }}
                                     value={selectedCategories}
                                     onChange={(e) => setSelectedCategories(e)}
+                                    isLoading={categoriesLoading}
                                 />
                             </div>
                             {selectedCategories.map((selectedCategory, idx) => (
@@ -202,6 +225,7 @@ export const BulkEdit = ({
                                             }}
                                             value={selectedProuctionCenter}
                                             onChange={(e) => setSelectedProductionCenter(e)}
+                                            isLoading={productionCentersLoading}
                                         />
                                     </div>
                                 </div>
@@ -226,6 +250,7 @@ export const BulkEdit = ({
                                             }}
                                             value={selectedTags}
                                             onChange={(e) => setSelectedTags(e)}
+                                            isLoading={tagsLoading}
                                         />
                                     </div>
                                 </div>
@@ -251,6 +276,7 @@ export const BulkEdit = ({
                                             }}
                                             value={selectedDiscount}
                                             onChange={(e) => setSelectedDiscount(e)}
+                                            isLoading={discountsLoading}
                                         />
                                     </div>
                                 </div>
@@ -274,6 +300,7 @@ export const BulkEdit = ({
                                             }}
                                             value={selectedProfileGroup}
                                             onChange={(e) => setSelectedProfileGroup(e)}
+                                            isLoading={profileGroupsLoading}
                                         />
                                     </div>
                                 </div>
@@ -300,6 +327,7 @@ export const BulkEdit = ({
                                                 }}
                                                 value={selectedBrands}
                                                 onChange={(e) => setSelectedBrands(e)}
+                                                isLoading={brandsLoading}
                                             />
                                         </div>
                                     </div>

@@ -19,7 +19,7 @@ import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { Dropdown } from 'primereact/dropdown';
 import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
-import { updateEntities } from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
+import { updateEntities } from './pizza-item.reducer'; 
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
