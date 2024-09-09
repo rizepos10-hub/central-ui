@@ -50,7 +50,7 @@ export const Customer = () => {
     if (search) {
       dispatch(
         searchEntities({
-          query: search,
+          query: search || '',
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
@@ -62,6 +62,7 @@ export const Customer = () => {
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
+          query: search || '',
         })
       );
     }
@@ -75,7 +76,7 @@ export const Customer = () => {
       });
       dispatch(
         searchEntities({
-          query: search,
+          query: search || '',
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,
