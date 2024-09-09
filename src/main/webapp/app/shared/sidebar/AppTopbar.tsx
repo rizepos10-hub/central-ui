@@ -45,8 +45,11 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                 {isDesktopEnvironment && (
                     <img src={logo} alt="logo" className="topbar-logo" style={{
                         height: '7vh',
-                        width: '264px',
-                        marginRight: '1.2rem',
+                        width: '238px',
+                        marginRight: '44px',
+                        paddingTop: '0.5vh',
+                        paddingBottom: '0.5vh',
+                        paddingLeft: '0.5vh',
                     }} />
                 )}
                 <AppBreadcrumb className="topbar-breadcrumb"></AppBreadcrumb>
