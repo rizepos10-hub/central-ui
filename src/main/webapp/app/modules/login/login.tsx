@@ -45,6 +45,7 @@ export const Login = () => {
   const dark = layoutConfig.colorScheme !== 'light';
 
   const { from } = (location.state as any) || { from: { pathname: '/', search: location.search } };
+  console.log(isAuthenticated)
   if (isAuthenticated) {
     return <Navigate to={from} replace />;
   }
