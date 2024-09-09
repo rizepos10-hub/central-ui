@@ -1,22 +1,24 @@
 import chroma from 'chroma-js';
 
+// Converts a HEX color to an HSL string "h s% l%"
 export const hexToHSL = (hex) => {
   const hsl = chroma(hex).hsl();
-  return `${Math.round(hsl[0])}, ${Math.round(hsl[1] * 100)}%, ${Math.round(hsl[2] * 100)}%`;
+  return `${hsl[0].toFixed(1)} ${hsl[1] * 100} ${hsl[2] * 100}%`;
 };
 
+// Converts an HSL string "h s% l%" to a HEX color
 export function hslToHex(hsl) {
   if (typeof hsl !== 'string') {
-    console.error('Invalid input for hslToHex, expected a string:', hsl);
+    console.error('Invalid input for hslToHex, expected a string in format "h s% l%":', hsl);
     return '#000000'; // Default or error color
   }
 
   try {
-    // Split the HSL string and remove the '%' from s and l, then parse them as numbers
-    const [h, s, l] = hsl.split(',').map(component => parseFloat(component.replace('%', '')));
+    const [h, s, l] = hsl.split(' ').map((component, index) =>
+      index > 0 ? parseFloat(component) / 100 : parseFloat(component)
+    );
 
-    // Use Chroma.js to convert HSL (with s and l as fractions) to HEX
-    return chroma.hsl(h, s / 100, l / 100).hex();
+    return chroma.hsl(h, s, l).hex();
   } catch (error) {
     console.error('Error converting HSL to HEX:', error);
     return '#000000'; // Default or error color

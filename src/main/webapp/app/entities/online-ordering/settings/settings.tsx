@@ -81,7 +81,7 @@ export const UiSettingsUpdate = () => {
       hideRetailShop: checked,
       branchId,
     };
-    console.log(branchIndex)
+    console.log(branchIndex) 
     console.log(newData)
     dispatch(changeEntityField({ name: 'branchDetail', value: newData }));
   };
@@ -288,10 +288,10 @@ export const UiSettingsUpdate = () => {
                             <ColorPicker
                               value={
                                 UiSettingsEntity && typeof UiSettingsEntity.colorSetting[key] === 'string'
-                                  ? hslToHex(UiSettingsEntity.colorSetting[key])
+                                  ? hslToHex(UiSettingsEntity.colorSetting[key])  // Convert from HSL to HEX for the color picker
                                   : '#000000'
                               }
-                              onChange={(e) => handleColorSettingChange(key, e.value, true)}
+                              onChange={(e) => handleColorSettingChange(key, e.value, true)}  // Passing HEX value from picker
                             />
                           </div>
                         ))
