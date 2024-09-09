@@ -66,24 +66,24 @@ export const authenticate = createAsyncThunk(
 
 export const login: (username: string, password: string, tenant: string, rememberMe?: boolean) => AppThunk =
   (username, password, tenant: string, rememberMe = false) =>
-  async dispatch => {
-    const result = await dispatch(authenticate({ username, password, tenant, rememberMe }));
-    const response = result.payload as AxiosResponse;
-    const bearerToken = response?.data?.access_token;
-    const refreshToken = response?.data?.refresh_token;
-    if (bearerToken && refreshToken) {
-      // Storage.session.set(TENANT_KEY, tenant);
-      // if (rememberMe) {
+    async dispatch => {
+      const result = await dispatch(authenticate({ username, password, tenant, rememberMe }));
+      const response = result.payload as AxiosResponse;
+      const bearerToken = response?.data?.access_token;
+      const refreshToken = response?.data?.refresh_token;
+      if (bearerToken && refreshToken) {
+        // Storage.session.set(TENANT_KEY, tenant);
+        // if (rememberMe) {
         Storage.local.set(AUTH_TOKEN_KEY, bearerToken);
         Storage.local.set(REFRESH_TOKEN_KEY, refreshToken);
         Storage.local.set(TENANT_KEY, tenant);
-      // } else {
-      //   Storage.session.set(AUTH_TOKEN_KEY, bearerToken);
-      //   Storage.session.set(REFRESH_TOKEN_KEY, refreshToken);
-      // }
-    }
-    dispatch(getSession());
-  };
+        // } else {
+        //   Storage.session.set(AUTH_TOKEN_KEY, bearerToken);
+        //   Storage.session.set(REFRESH_TOKEN_KEY, refreshToken);
+        // }
+      }
+      dispatch(getSession());
+    };
 
 export const clearAuthToken = () => {
   if (Storage.local.get(AUTH_TOKEN_KEY)) {
@@ -174,7 +174,7 @@ export const AuthenticationSlice = createSlice({
         errorMessage: action.error.message,
       }))
       .addCase(getAccount.fulfilled, (state, action) => {
-        const isAuthenticated = action.payload && action.payload.data && action.payload.data.activated;
+        const isAuthenticated = action.payload && action.payload.data && action.payload.data.verified;
         return {
           ...state,
           isAuthenticated,

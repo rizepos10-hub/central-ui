@@ -137,7 +137,7 @@
     }
 
     const activeColumnTemplate = rowData => {
-      return rowData.activated ?<p className="text-success ml-2  ">&#10004;</p>:
+      return rowData.verified ?<p className="text-success ml-2  ">&#10004;</p>:
         <p className="text-danger ml-2 ">&#10006;</p>
     };
 
