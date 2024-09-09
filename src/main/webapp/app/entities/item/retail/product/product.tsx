@@ -165,6 +165,7 @@ export const Product = () => {
           placeholder="Bulk Actions"
           className="w-full md:w-14rem"
           disabled={selectedProducts.length < 1}
+          optionDisabled={(option) => option.disabled}
         />
       </span>
       <div className="flex align-items-center justify-content-end gap-3">

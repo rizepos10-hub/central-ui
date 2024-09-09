@@ -14,9 +14,9 @@ import { Button } from 'primereact/button';
 import { IoMdCloseCircle } from 'react-icons/io';
 
 export const actionOptions = [
-    { name: 'Edit', code: 'EDIT' },
-    { name: 'Move To Trash', code: 'MOVE_TO_TRASH' },
-    { name: 'Export', code: 'EXPORT' },
+    { name: 'Edit', code: 'EDIT', disabled: false },
+    { name: 'Move To Trash', code: 'MOVE_TO_TRASH', disabled: true },
+    { name: 'Export', code: 'EXPORT', disabled: true },
 ];
 
 
