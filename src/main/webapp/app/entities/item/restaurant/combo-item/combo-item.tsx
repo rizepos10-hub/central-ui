@@ -209,7 +209,8 @@ export const ComboItem = () => {
         filterDisplay="row"
         paginator
         totalRecords={totalItems}
-        rows={20}
+        rowsPerPageOptions={[10, 20, 30, 40, 50]}
+        rows={query?.rows}
         lazy
         first={query.first}
         onPage={onPage}
