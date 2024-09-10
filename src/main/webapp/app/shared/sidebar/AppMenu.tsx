@@ -378,14 +378,14 @@ export const model: MenuItem[] = [
     icon: ' pi pi-chart-bar',
     to: '/analytics/sales',
     items: [
-      // {
-      //   label: 'Retail Dashboard',
-      //   to: '/analytics/retail-dashboard',
-      // },
-      // {
-      //   label: 'Restaurant Dashboard',
-      //   to: '/analytics/restaurant-dashboard',
-      // },
+      {
+        label: 'Retail Dashboard',
+        to: '/analytics/retail-dashboard',
+      },
+      {
+        label: 'Restaurant Dashboard',
+        to: '/analytics/restaurant-dashboard',
+      },
       {
         label: 'Sales Reports',
         to: '/analytics/sales',
