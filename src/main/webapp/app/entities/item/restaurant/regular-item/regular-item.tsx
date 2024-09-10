@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ITEMS_PER_PAGE, } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { deleteEntity, filterEntities, updateEntities } from "./regular-item.reducer";
+import { deleteEntities, deleteEntity, filterEntities, updateEntities } from "./regular-item.reducer";
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { IRegularItem } from "app/shared/model/ITEM/restaurant/regular-item.model";
@@ -35,6 +35,7 @@ export const RegularItem = () => {
 
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
@@ -166,6 +167,33 @@ export const RegularItem = () => {
     navigate('/restaurant/regular/new')
   }
 
+  useEffect(() => {
+    if (selectedActionOption?.code === "MOVE_TO_TRASH") {
+      confirm1()
+    }
+  }, [selectedActionOption])
+
+
+  const confirm1 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleItemsDelete(),
+      reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleItemsDelete = async () => {
+    setIsLoadingDelete(true);
+    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingDelete(false));
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl">
@@ -211,7 +239,7 @@ export const RegularItem = () => {
       )}
       <DataTable
         value={regularItemsList}
-        loading={loading}
+        loading={loading || isLoadingDelete}
         editMode="row"
         header={header}
         removableSort

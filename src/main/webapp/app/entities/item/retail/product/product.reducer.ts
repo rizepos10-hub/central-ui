@@ -92,6 +92,19 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const deleteEntities = createAsyncThunk(
+  'product/delete_entities',
+  async (ids: Array<string | number>, thunkAPI) => {
+    const requestUrl = `${apiUrl}`;
+    const result = await axios.delete<IProduct>(requestUrl, {
+      data: { ids }
+    });
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 // slice
 
 export const ProductSlice = createEntitySlice({
@@ -118,7 +131,7 @@ export const ProductSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, deleteEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -129,7 +142,7 @@ export const ProductSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, updateEntities), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, updateEntities, deleteEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

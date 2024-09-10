@@ -11,12 +11,13 @@ import { Column } from "primereact/column";
 import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
-import { filterEntities, updateEntities } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
+import { deleteEntities, filterEntities, updateEntities } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { Dropdown } from 'primereact/dropdown';
 import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
+import { confirmDialog } from 'primereact/confirmdialog';
 
 export const ComboItem = () => {
   const dispatch = useAppDispatch();
@@ -30,6 +31,7 @@ export const ComboItem = () => {
 
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
 
 
   const getAllEntities = () => {
@@ -126,6 +128,34 @@ export const ComboItem = () => {
     navigate('/restaurant/combo/new')
   }
 
+
+  useEffect(() => {
+    if (selectedActionOption?.code === "MOVE_TO_TRASH") {
+      confirm1()
+    }
+  }, [selectedActionOption])
+
+
+  const confirm1 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleItemsDelete(),
+      reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleItemsDelete = async () => {
+    setIsLoadingDelete(true);
+    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingDelete(false));
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl">
@@ -171,7 +201,7 @@ export const ComboItem = () => {
       )}
       <DataTable
         value={comboItemsList}
-        loading={loading}
+        loading={loading || isLoadingDelete}
         editMode="row"
         header={header}
         removableSort
