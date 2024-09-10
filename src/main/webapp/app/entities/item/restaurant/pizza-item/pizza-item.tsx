@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { filterEntities, getEntities } from './pizza-item.reducer';
+import { deleteEntities, filterEntities, getEntities } from './pizza-item.reducer';
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { IPizzaItem } from "app/shared/model/ITEM/restaurant/pizza-item.model";
@@ -19,7 +19,8 @@ import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { Dropdown } from 'primereact/dropdown';
 import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
-import { updateEntities } from './pizza-item.reducer'; 
+import { updateEntities } from './pizza-item.reducer';
+import { confirmDialog } from 'primereact/confirmdialog';
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
@@ -42,6 +43,7 @@ export const PizzaItem = () => {
 
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
 
 
 
@@ -143,6 +145,32 @@ export const PizzaItem = () => {
     navigate('/restaurant/pizza/new')
   }
 
+  useEffect(() => {
+    if (selectedActionOption?.code === "MOVE_TO_TRASH") {
+      confirm1()
+    }
+  }, [selectedActionOption])
+
+
+  const confirm1 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleItemsDelete(),
+      reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleItemsDelete = async () => {
+    setIsLoadingDelete(true);
+    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingDelete(false));
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl">
@@ -186,7 +214,7 @@ export const PizzaItem = () => {
       )}
       <DataTable
         value={pizzaItemsList}
-        loading={loading}
+        loading={loading || isLoadingDelete}
         editMode="row"
         header={header}
         removableSort

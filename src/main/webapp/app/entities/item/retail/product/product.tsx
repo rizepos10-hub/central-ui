@@ -14,7 +14,7 @@ import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import SharedFilter from "app/shared/components/item/shared-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import AttributeFilter from "app/shared/components/filter/attribute-filter";
-import { filterEntities, getEntities, updateEntities } from "app/entities/item/retail/product/product.reducer";
+import { deleteEntities, filterEntities, getEntities, updateEntities } from "app/entities/item/retail/product/product.reducer";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import ImportButton from "app/shared/components/data-import/data-import";
@@ -25,6 +25,7 @@ import { getEntities as getCategories } from 'app/entities/term/retail-item-cate
 
 import { IItem } from "app/shared/model/ITEM/item.model";
 import { actionOptions, BulkEdit } from "app/shared/components/item/bulk-edit";
+import { confirmDialog } from "primereact/confirmdialog";
 
 export const Product = () => {
   const dispatch = useAppDispatch();
@@ -34,8 +35,6 @@ export const Product = () => {
   const loading = useAppSelector(state => state.product.loading);
   const totalItems = useAppSelector(state => state.product.totalItems);
 
-  console.log(loading)
-
   const [searchParams, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
   const [localFilters, setLocalFilters] = useState(query?.filters);
@@ -43,6 +42,7 @@ export const Product = () => {
 
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
@@ -154,6 +154,32 @@ export const Product = () => {
     navigate(`/product/new`)
   }
 
+  useEffect(() => {
+    if (selectedActionOption?.code === "MOVE_TO_TRASH") {
+      confirm1()
+    }
+  }, [selectedActionOption])
+
+
+  const confirm1 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleItemsDelete(),
+      reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleItemsDelete = async () => {
+    setIsLoadingDelete(true);
+    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingDelete(false));
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
   const header = (
     <div className="bg-dark bg-opacity-10 mb-3 p-4 d-flex justify-content-between">
       <span className="text-xl">
@@ -225,7 +251,7 @@ export const Product = () => {
         sortOrder={query.sortOrder}
         onFilter={onFilter}
         filters={query.filters}
-        loading={loading}
+        loading={loading || isLoadingDelete}
         tableStyle={{ minWidth: '75rem' }}
         removableSort
         showGridlines
