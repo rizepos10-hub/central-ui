@@ -39,17 +39,17 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
         to: '/branch-register',
       },
+      // {
+      //   label: 'Switch Register',
+      //   to: '/switch-register',
+      // },
+      // {
+      //   label: 'Close Sales',
+      //   to: '/close-sales',
+      // },
       {
-        label: 'Switch Register',
-        to: '/switch-register',
-      },
-      {
-        label: 'Close Sales',
-        to: '/close-sales',
-      },
-      {
-        label: 'Daily Sales Report',
-        to: '/daily-sales-report',
+        label: 'General Report',
+        to: '/analytics/sales',
       },
     ],
   },
