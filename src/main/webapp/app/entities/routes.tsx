@@ -103,7 +103,7 @@ export default () => {
 
         <Route path="production-center/*" element={<ProductionCenter />} />
 
-        <Route path="branch-registry/*" element={<BranchRegistry />} />
+        <Route path="branch-register/*" element={<BranchRegistry />} />
 
         <Route path="void-reasons/*" element={<VoidReasons />} />
 
