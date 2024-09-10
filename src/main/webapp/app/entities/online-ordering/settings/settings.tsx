@@ -81,7 +81,7 @@ export const UiSettingsUpdate = () => {
       hideRetailShop: checked,
       branchId,
     };
-    console.log(branchIndex) 
+    console.log(branchIndex)
     console.log(newData)
     dispatch(changeEntityField({ name: 'branchDetail', value: newData }));
   };
@@ -98,8 +98,13 @@ export const UiSettingsUpdate = () => {
     dispatch(changeEntityField({ name: 'fontSetting', value: newData }));
   };
 
-
-  console.log(UiSettingsEntity, 'UiSettingsEntity')
+  const handleCustomThemeSelector = (theme) => {
+    const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.colorSetting)) || {};
+    Object.keys(theme).forEach(key => {
+      newData[key] = theme[key];
+    });
+    dispatch(changeEntityField({ name: 'colorSetting', value: newData }));
+  };
 
   return (
     <div>
@@ -273,6 +278,7 @@ export const UiSettingsUpdate = () => {
                       <h2>
                         <strong>{translate('tempApp.UiSettings.colorSetting.title')}</strong>
                       </h2>
+                      <PremadeColorThemes handleCustomThemeSelector={handleCustomThemeSelector} />
                       {UiSettingsEntity?.colorSetting && (
                         Object.keys(UiSettingsEntity.colorSetting).map(key => (
                           <div className="d-flex gap-2" key={key}>
@@ -403,5 +409,318 @@ export const UiSettingsUpdate = () => {
     </div>
   );
 };
+
+const PremadeColorThemes = ({
+  handleCustomThemeSelector
+}) => {
+  return (
+    <div className='d-flex flex-column gap-2 py-2'>
+      <h6 className='border-bottom-1'>Pre-made Themes</h6>
+      <div className='d-flex gap-2 pb-2'>
+        <div className='d-flex gap-2 flex-column'>
+          Light Crimson
+          <div onClick={() => {
+            handleCustomThemeSelector({
+              "background": '0 0% 100%',
+              "foreground": '20 14.3% 4.1%',
+              "primary": '24 9.8% 10%',
+              "primary-foreground": '60 9.1% 97.8%',
+              "secondary": '60 4.8% 95.9%',
+              "secondary-foreground": '24 9.8% 10%',
+              "muted": '60 4.8% 95.9%',
+              "muted-foreground": '25 5.3% 44.7%',
+              "custom-color": '0, 75%, 59%',
+            })
+          }}
+            style={{
+              height: '3rem',
+              width: '6rem',
+              borderRadius: '50%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{
+              backgroundColor: 'hsl(0 0% 100%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+            <div style={{
+              backgroundColor: 'hsl(60 4.8% 95.9%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+            <div style={{
+              backgroundColor: 'hsl(0, 75%, 59%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+          </div>
+        </div>
+        <div className='d-flex gap-2 flex-column'>
+          Dark Crimson
+          <div onClick={() => {
+            handleCustomThemeSelector({
+              "background": '24 10% 10%',
+              "foreground": '60 9.1% 97.8%',
+              "primary": '60 9.1% 97.8%',
+              "primary-foreground": '24 9.8% 10%',
+              "secondary": '12 6.5% 15.1%',
+              "secondary-foreground": '60 9.1% 97.8%',
+              "muted": '12 6.5% 15.1%',
+              "muted-foreground": '24 5.4% 63.9%',
+              "custom-color": '0, 75%, 59%',
+            })
+          }}
+            style={{
+              height: '3rem',
+              width: '6rem',
+              borderRadius: '50%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{
+              backgroundColor: 'hsl(24 10% 10%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+            <div style={{
+              backgroundColor: 'hsl(12 6.5% 15.1%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+            <div style={{
+              backgroundColor: 'hsl(0, 75%, 59%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+          </div>
+        </div>
+        <div className='d-flex gap-2 flex-column'>
+          Modern Ledger
+          <div onClick={() => {
+            handleCustomThemeSelector({
+              "background": '350 42% 98%',
+              "foreground": '350 80% 3%',
+              "primary": '350 40% 41%',
+              "primary-foreground": '0 0% 100%',
+              "secondary": '350 10% 84%',
+              "secondary-foreground": '350 10% 24%',
+              "muted": '350 33% 91%',
+              "muted-foreground": '350 13% 36%',
+              "custom-color": '349.8 39.25925925925926 26.47058823529412%',
+            })
+          }}
+            style={{
+              height: '3rem',
+              width: '6rem',
+              borderRadius: '50%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{
+              backgroundColor: 'hsl(350 42% 98%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+            <div style={{
+              backgroundColor: 'hsl(350 40% 41%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+            <div style={{
+              backgroundColor: 'hsl(350 10% 84%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+          </div>
+        </div>
+        <div className='d-flex gap-2 flex-column'>
+          Autumn Harvest
+          <div onClick={() => {
+            handleCustomThemeSelector({
+              "background": '222 39% 98%',
+              "foreground": '222 71% 4%',
+              "primary": '222 69% 44%',
+              "primary-foreground": '0 0% 100%',
+              "secondary": '42 69% 44%',
+              "secondary-foreground": '42 69% 4%',
+              "muted": '42 24% 88%',
+              "muted-foreground": '42 4% 25%',
+              "custom-color": '349.8 39.25925925925926 26.47058823529412%',
+            })
+          }}
+            style={{
+              height: '3rem',
+              width: '6rem',
+              borderRadius: '50%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{
+              backgroundColor: 'hsl(222 39% 98%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+            <div style={{
+              backgroundColor: 'hsl(222 69% 44%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+            <div style={{
+              backgroundColor: 'hsl(42 69% 44%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+          </div>
+        </div>
+        <div className='d-flex gap-2 flex-column'>
+          Mint
+          <div onClick={() => {
+            handleCustomThemeSelector({
+              "background": '186 63% 99%',
+              "foreground": '186 62% 5%',
+              "primary": '186 62% 66%',
+              "primary-foreground": '186 62% 5%',
+              "secondary": '186 2% 87%',
+              "secondary-foreground": '186 2% 27%',
+              "muted": '186 39% 89%',
+              "muted-foreground": '186 5% 27%',
+              "custom-color": '185.7 34.25925925925925 42.35294117647059%',
+            })
+          }}
+            style={{
+              height: '3rem',
+              width: '6rem',
+              borderRadius: '50%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{
+              backgroundColor: 'hsl(186 63% 99%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+            <div style={{
+              backgroundColor: 'hsl(186 62% 66%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+            <div style={{
+              backgroundColor: 'hsl(186 2% 87%)',
+              width: '100%',
+              height: '100%',
+            }}></div>
+          </div>
+        </div>
+        {/* <div className='d-flex gap-2 flex-column'>
+        Mint
+        <div onClick={() => {
+          handleCustomThemeSelector({
+            "background": '220 23% 5%',
+            "foreground": '210 25% 95%',
+            "primary": '346.42 78.12% 44.05%',
+            "primary-foreground": '210 0% 100%',
+            "secondary": '210 15% 25%',
+            "secondary-foreground": '210 15% 85%',
+            "muted": '220 12% 15%',
+            "muted-foreground": '220 12% 65%',
+            "custom-color": '185.7 34.25925925925925 42.35294117647059%',
+          })
+        }}
+          style={{
+            height: '3rem',
+            width: '6rem',
+            borderRadius: '50%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{
+            backgroundColor: 'hsl(220 23% 5%)',
+            width: '100%',
+            height: '100%',
+          }}></div>
+          <div style={{
+            backgroundColor: 'hsl(346.42 78.12% 44.05%)',
+            width: '100%',
+            height: '100%',
+          }}></div>
+          <div style={{
+            backgroundColor: 'hsl(210 15% 25%)',
+            width: '100%',
+            height: '100%',
+          }}></div>
+        </div>
+      </div> */}
+        {/* <div className='d-flex gap-2 flex-column'>
+        Mint
+        <div onClick={() => {
+          handleCustomThemeSelector({
+            "background": '69 62% 98%',
+            "foreground": '69 63% 4%',
+            "primary": '69 60% 12%',
+            "primary-foreground": '69 60% 52%',
+            "secondary": '39 60% 12%',
+            "secondary-foreground": '39 60% 52%',
+            "muted": '39 11% 92%',
+            "muted-foreground": '39 9% 39%',
+            "custom-color": '70.0 39.99999999999999 29.411764705882355%',
+          })
+        }}
+          style={{
+            height: '3rem',
+            width: '6rem',
+            borderRadius: '50%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{
+            backgroundColor: 'hsl(69 62% 98%)',
+            width: '100%',
+            height: '100%',
+          }}></div>
+          <div style={{
+            backgroundColor: 'hsl(69 60% 12%)',
+            width: '100%',
+            height: '100%',
+          }}></div>
+          <div style={{
+            backgroundColor: 'hsl(39 60% 12%)',
+            width: '100%',
+            height: '100%',
+          }}></div>
+        </div>
+      </div> */}
+      </div>
+    </div>
+  )
+}
 
 export default UiSettingsUpdate;
