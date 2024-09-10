@@ -24,7 +24,8 @@
       "searchName": "Search Name",
       "addons": "Addons",
       "editAddon": "Edit Addon",
-      "createAddon": "Create Addon"
+      "createAddon": "Create Addon",
+      "assignToItem": "Assign To Item"
     }
   }
 }

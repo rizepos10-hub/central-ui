@@ -25,7 +25,7 @@ export const DeleteToppingGroupDialog = () => {
   const updateSuccess = useAppSelector(state => state.toppingGroup.updateSuccess);
 
   const handleClose = () => {
-    navigate('/pizza-topping/groups' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

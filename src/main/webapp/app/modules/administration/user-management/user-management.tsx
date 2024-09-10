@@ -74,7 +74,7 @@ export const UserManagement = () => {
     dispatch(
       updateUser({
         ...user,
-        activated: !user.activated,
+        activated: !user.verified,
       })
     );
   };
@@ -147,7 +147,7 @@ export const UserManagement = () => {
               <td>{user.login}</td>
               <td>{user.email}</td>
               <td>
-                {user.activated ? (
+                {user.verified ? (
                   <Button color="success" onClick={toggleActive(user)}>
                     <Translate contentKey="userManagement.activated">Activated</Translate>
                   </Button>

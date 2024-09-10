@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col } from 'reactstrap';
-import {getSortState, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
+import { getSortState, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { getEntity, updateEntity, createEntity,changeEntityField, reset } from './item-restaurant-category.reducer';
+import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './item-restaurant-category.reducer';
 import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
-import {uploadImage} from "app/entities/attachment/attachment.reducer";
+import { uploadImage } from "app/entities/attachment/attachment.reducer";
 import Select from "react-select";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {getEntities} from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { getEntities } from "app/entities/term/restaurant-Item-category/item-restaurant-category.reducer";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { ITerm } from "app/shared/model/term.model";
@@ -33,11 +33,6 @@ export const UpdateItemRestaurantCategory = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-
-
-
-
-
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
@@ -55,20 +50,7 @@ export const UpdateItemRestaurantCategory = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-
-    return () => {
-      dispatch(reset());
-    };
-  }, [updateSuccess]);
-
-
-
-  useEffect(() => {
-    if (updateSuccess) {
-      navigate(`/category/${categoryEntity.id}/restaurant-items/edit?page=1&sort=id,asc`)
-    }
-
-  }, [updateSuccess]);
+  }, []);
 
   const handleProfileGroupsChange = (profileGroups) => {
     dispatch(changeEntityField({
@@ -84,31 +66,41 @@ export const UpdateItemRestaurantCategory = () => {
     }))
   };
 
-
-
-
-
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
     const entity = {
       ...categoryEntity,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/category/${newId}/restaurant-items/edit`)
+          }
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/category/restaurant-items/new`)
+        }
+      })
     }
   };
-
-
 
   return (
     <div>
       <Row >
         <Col md="8">
-          <h2  data-cy="TermCreateUpdateHeading">
-            {isNew ? <Translate contentKey={'itemCategories.update.restaurant.create.title'}/> : <Translate contentKey={'itemCategories.update.restaurant.edit.title'}/>}
+          <h2 data-cy="TermCreateUpdateHeading">
+            {isNew ? <Translate contentKey={'itemCategories.update.restaurant.create.title'} /> : <Translate contentKey={'itemCategories.update.restaurant.edit.title'} />}
           </h2>
         </Col>
       </Row>
@@ -117,14 +109,14 @@ export const UpdateItemRestaurantCategory = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form>
               <div className="mb-3 d-flex flex-column">
                 <Translate contentKey="itemCategories.update.name">Name</Translate>
                 <InputText
                   name={"name"}
                   id={"category-name"}
                   required
-                  value={categoryEntity.name}
+                  value={categoryEntity.name || ''}
                   onChange={e => dispatch(changeEntityField({ name: "name", value: e.target.value }))}
                 />
               </div>
@@ -132,7 +124,7 @@ export const UpdateItemRestaurantCategory = () => {
               <div className="mb-3">
                 <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
                 <Select
-                  value={categoryEntity.accountingGroups}
+                  value={categoryEntity.accountingGroups || []}
                   isClearable
                   onChange={handleProfileGroupsChange}
                   options={profileGroupsOptions}
@@ -166,20 +158,24 @@ export const UpdateItemRestaurantCategory = () => {
               </div>
 
 
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/category/restaurant-items"
-                      replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
-                  <Translate contentKey="common.buttons.back">Back</Translate>
+                  <Translate contentKey="entity.action.back">Back</Translate>
                 </span>
               </Button>
               &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                      disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
-                <Translate contentKey="common.buttons.save">Save</Translate>
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           )}

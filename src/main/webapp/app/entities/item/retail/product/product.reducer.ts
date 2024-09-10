@@ -26,8 +26,8 @@ export const filterEntities = createAsyncThunk('product/filter_entity_list', asy
   return axios.post<IProduct[]>(apiSearchUrl, query);
 });
 
-export const getEntities = createAsyncThunk('product/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+export const getEntities = createAsyncThunk('product/fetch_entity_list', async ({ page, size, sort, name }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&name=${name}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IProduct[]>(requestUrl);
 });
 
@@ -54,7 +54,17 @@ export const updateEntity = createAsyncThunk(
   'product/update_entity',
   async (entity: IProduct, thunkAPI) => {
     const result = await axios.put<IProduct>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntity(entity.id));
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const updateEntities = createAsyncThunk(
+  'product/update_entity',
+  async (entity: IProduct[], thunkAPI) => {
+    const result = await axios.put<IProduct[]>(`${apiUrl}`, entity);
+    thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -76,6 +86,19 @@ export const deleteEntity = createAsyncThunk(
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
     const result = await axios.delete<IProduct>(requestUrl);
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const deleteEntities = createAsyncThunk(
+  'product/delete_entities',
+  async (ids: Array<string | number>, thunkAPI) => {
+    const requestUrl = `${apiUrl}`;
+    const result = await axios.delete<IProduct>(requestUrl, {
+      data: { ids }
+    });
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -108,7 +131,7 @@ export const ProductSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, deleteEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -119,7 +142,7 @@ export const ProductSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, updateEntities, deleteEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

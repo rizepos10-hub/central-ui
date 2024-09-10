@@ -47,8 +47,8 @@ function VersionUpdateChecker() {
     }
   };
 
-
-  return <ToastContainer position="bottom-right" className="toastify-container" toastClassName="toastify-toast" />;
+  return null;
+  // return <ToastContainer position="bottom-right" className="toastify-container" toastClassName="toastify-toast" />;
 }
 
 export default VersionUpdateChecker;

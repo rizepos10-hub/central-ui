@@ -60,7 +60,7 @@ const WholesalePrices = ({toggle, isOpen, branchWholesalePrices,savePrices} :mod
                 name={`wholesale_price_${index + 1}`}
                 min={0}
                 maxFractionDigits={2}
-                value={wholeSalePrices[priceKey]}
+                value={wholeSalePrices[priceKey] || null}
                 onChange={(e) => handleWholesalePriceChange(priceKey, e.value)}
 
               />

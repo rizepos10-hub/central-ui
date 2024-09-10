@@ -41,6 +41,7 @@ import VariantBranchPrice from "app/shared/components/item/variant-branch-price"
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import MediaLibrary from "app/shared/components/media-library/media-library";
 import { transformAttachmentStructure } from "app/shared/util/attachment-utils";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 
 const defaultItemPriceNumber = {
@@ -478,32 +479,46 @@ export const VariableItemUpdate = () => {
     });
   };
 
+  const confirm1 = (variantIndex) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleDeleteVariant(variantIndex)
+    });
+  };
 
   const handleDeleteVariant = (variantIndex) => {
-    const isConfirmed = window.confirm(translate('items.update.deleteVariantMessage'));
-    if (isConfirmed) {
-      setVariableItem((prev) => {
-        const updatedVariants = [...prev.variants];
-        updatedVariants.splice(variantIndex, 1);
-        return {
-          ...prev,
-          variants: updatedVariants,
-        };
-      });
-    }
+    setVariableItem((prev) => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants.splice(variantIndex, 1);
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
   };
+
+  const confirm2 = (attributeIndex) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleRemoveAttribute(attributeIndex)
+    });
+  };
+
   const handleRemoveAttribute = (attributeIndex) => {
-    const isConfirmed = window.confirm("Are you sure?");
-    if (isConfirmed) {
-      setVariableItem((prev) => {
-        const updateAttributes = [...prev.attributes];
-        updateAttributes.splice(attributeIndex, 1);
-        return {
-          ...prev,
-          attributes: updateAttributes,
-        };
-      });
-    }
+    setVariableItem((prev) => {
+      const updateAttributes = [...prev.attributes];
+      updateAttributes.splice(attributeIndex, 1);
+      return {
+        ...prev,
+        attributes: updateAttributes,
+      };
+    });
   };
 
   const AttributeAccordionHeader = (attributeIndex) => (
@@ -513,7 +528,7 @@ export const VariableItemUpdate = () => {
     }} className={"d-flex gap-3 ml-2 w-full"}>
       <label className={"mt-2"}><strong>{variableItem?.attributes?.[attributeIndex]?.attributeTax?.name}</strong></label>
 
-      <PrimeButton className={"ml-auto"} color="danger" onClick={() => handleRemoveAttribute(attributeIndex)}>
+      <PrimeButton className={"ml-auto"} color="danger" onClick={() => confirm2(attributeIndex)}>
         <Translate contentKey={'items.update.removeAttribute'}>Remove Attribute</Translate>
       </PrimeButton>
     </div>
@@ -540,7 +555,7 @@ export const VariableItemUpdate = () => {
           />
         )
       })}
-      <Button className={"ml-auto"} color="danger" onClick={() => handleDeleteVariant(variantIndex)}>
+      <Button className={"ml-auto"} color="danger" onClick={() => confirm1(variantIndex)}>
         <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
       </Button>
     </div>

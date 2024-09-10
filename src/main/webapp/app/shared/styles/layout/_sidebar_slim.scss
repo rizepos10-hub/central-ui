@@ -25,7 +25,7 @@
                 z-index: 999;
 
                 .layout-menu-container {
-                    overflow: auto;
+                    overflow: hidden;
 
                     &::-webkit-scrollbar {
                         display: none;

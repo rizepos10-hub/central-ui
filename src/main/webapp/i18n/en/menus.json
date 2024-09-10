@@ -77,13 +77,15 @@
             "title": "Add Existing Items",
             "search": "Search Items",
             "filter": "Filter by Category",
+            "filterByUnassignedItems": "Filter by unselected items in menu",
             "filterMenu": "Filter by unselected items in menu",
             "table": {
               "id": "Id",
               "name": "Name",
               "action": "Action",
               "category": "Category",
-              "menu": "Menu"
+              "menu": "Menu",
+              "menus": "Menus"
             },
             "buttons": {
               "select": "Select",

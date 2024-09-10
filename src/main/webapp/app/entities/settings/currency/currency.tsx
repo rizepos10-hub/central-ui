@@ -7,16 +7,17 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntities as getCurrencies } from './currencies.reducer';
-import {Dropdown, DropdownChangeEvent} from "primereact/dropdown";
-import {ICurrencySettings} from "app/shared/model/CURRENCY/currency-settings.model";
-import {ICurrency} from "app/shared/model/CURRENCY/currency.model";
-import {InputNumber} from "primereact/inputnumber";
-import {Alert, Col, Row, Table} from "reactstrap";
-import {Button} from "primereact/button";
+import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
+import { ICurrencySettings } from "app/shared/model/CURRENCY/currency-settings.model";
+import { ICurrency } from "app/shared/model/CURRENCY/currency.model";
+import { InputNumber } from "primereact/inputnumber";
+import { Alert, Col, Row, Table } from "reactstrap";
+import { Button } from "primereact/button";
 import Select from "react-select";
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-import {IBranch} from "app/shared/model/branch.model";
-import {getEntity, updateEntity} from "app/entities/settings/currency/currency-settings.reducer";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { IBranch } from "app/shared/model/branch.model";
+import { getEntity, updateEntity } from "app/entities/settings/currency/currency-settings.reducer";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 
 export const Currency = () => {
@@ -28,7 +29,7 @@ export const Currency = () => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-  const currencies =  useAppSelector(state => state.currencies.entities);
+  const currencies = useAppSelector(state => state.currencies.entities);
   const branchList = useAppSelector(state => state.branch.entities);
   const currencySettingsEntity = useAppSelector(state => state.currencySettings.entity);
   const loading = useAppSelector(state => state.currencySettings.loading);
@@ -43,18 +44,23 @@ export const Currency = () => {
   const exchangeRatesArray = currencySettings?.exchangeRates || [];
   const currenciesSet = new Set(exchangeRatesArray.map(option => option.currency));
 
-  const filteredExchangeCurrencies =  currencies?.filter(currency => !currenciesSet.has(currency));
+  const filteredExchangeCurrencies = currencies?.filter(currency => !currenciesSet.has(currency));
 
 
   console.log(currencySettings, 'currencySettings')
 
+  const confirm1 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleSetDefaultCurrency()
+    });
+  };
+
   const handleSetDefaultCurrency = () => {
-    const isConfirmed = window.confirm("Attention! Default Currency Cannot Be Changed After Now!");
-
-    if (isConfirmed) {
-      handleCurrencyChange(defaultCurrency, "defaultCurrency");
-    }
-
+    handleCurrencyChange(defaultCurrency, "defaultCurrency");
   }
 
   const handleAddExchangeRate = () => {
@@ -130,7 +136,7 @@ export const Currency = () => {
   };
 
   const handleSave = () => {
-    const assignedBranchesCurrencies = currencySettings?.branchDisplayCurrencies?.filter((branchCur) => branchCur?.currency )
+    const assignedBranchesCurrencies = currencySettings?.branchDisplayCurrencies?.filter((branchCur) => branchCur?.currency)
     const entity = {
       ...currencySettings,
       branchDisplayCurrencies: assignedBranchesCurrencies
@@ -167,148 +173,150 @@ export const Currency = () => {
           </h2>
         </Col>
       </Row>
-  <Row>
-    <Col md="8"  className="d-flex flex-column p-3 gap-5  bg-white">
-      <Alert className={"alert-warning"}>Kindly be advised that after the implementation of the default currency, any alterations or modifications become permanent and cannot be reversed.</Alert>
-      <div className={"d-flex gap-2 w-auto"}>
-        <label className={"text-xl mt-2 font-bold"}>
-          Default Currency:
-        </label>
-      <Select
-        value={currencySettings?.defaultCurrency ?? defaultCurrency}
-        options={currencies}
-        placeholder="Select a Currency"
-        isDisabled={currencySettings?.defaultCurrency !== null}
-        onChange={(currency) => setDefaultCurrency(currency)}
-        getOptionLabel={option => option.name}
-        getOptionValue={option => option.code}
-      />
-        {currencySettings?.defaultCurrency === null ?
-          <Button
-            raised
-            disabled={defaultCurrency === null}
-            onClick={handleSetDefaultCurrency}>
-            Set Default Currency
-          </Button>: null}
+      <Row>
+        <Col md="8" className="d-flex flex-column p-3 gap-5  bg-white">
+          <Alert className={"alert-warning"}>Kindly be advised that after the implementation of the default currency, any alterations or modifications become permanent and cannot be reversed.</Alert>
+          <div className={"d-flex gap-2 w-auto"}>
+            <label className={"text-xl mt-2 font-bold"}>
+              Default Currency:
+            </label>
+            <Select
+              value={currencySettings?.defaultCurrency ?? defaultCurrency}
+              options={currencies}
+              placeholder="Select a Currency"
+              isDisabled={currencySettings?.defaultCurrency !== null}
+              onChange={(currency) => setDefaultCurrency(currency)}
+              getOptionLabel={option => option.name}
+              getOptionValue={option => option.code}
+            />
+            {currencySettings?.defaultCurrency === null ?
+              <Button
+                raised
+                disabled={defaultCurrency === null}
+                onClick={confirm1}>
+                Set Default Currency
+              </Button> : null}
 
+          </div>
+
+          <div className={"d-flex gap-2 w-auto"} >
+            <label className={"text-xl mt-2 font-bold"}>
+              Display Currency:
+            </label>
+
+            <Select
+              value={currencySettings?.displayCurrency}
+              onChange={(currency) => handleCurrencyChange(currency, "displayCurrency")}
+              options={currencies}
+              isClearable
+              styles={{
+                control: (baseStyles, state) => ({
+                  ...baseStyles,
+                  minWidth: '10rem',
+                }),
+              }}
+              getOptionLabel={option => option.name}
+              getOptionValue={option => option.code}
+              placeholder="Select a Currency"
+            />
+          </div>
+
+          <div className={"d-flex flex-column gap-2 w-auto mt-2"}>
+            <div className={"d-flex justify-content-between"}>
+              <label className={"text-xl mt-2 font-bold"}>
+                Exchange Rates
+              </label>
+              <Button onClick={handleAddExchangeRate}>Add Exchange Rate</Button>
+            </div>
+
+            <Table bordered >
+              <thead>
+                <tr>
+                  <th>Currency</th>
+                  <th>Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currencySettings?.exchangeRates?.map((exchangeRate, index) => {
+                  const { currency } = exchangeRate
+                  console.log(currency, 'currency')
+                  return (
+                    <tr key={index}>
+                      <td>
+                        <Select
+                          value={currency}
+                          onChange={(selectedCurrency) => handleExchangeRateChange(index, 'currency', selectedCurrency)}
+                          options={filteredExchangeCurrencies}
+                          placeholder="Select a Currency"
+                          getOptionLabel={option => option.name}
+                          getOptionValue={option => option.code}
+                        />
+                      </td>
+                      <td>
+                        {currency?.code &&
+                          <InputNumber
+                            value={exchangeRate.rate}
+                            onChange={(e) => handleExchangeRateChange(index, 'rate', e.value)}
+                            mode="currency"
+                            inputId={currency.code}
+                            currency={currency.code}
+                          />}
+                      </td>
+                      <td>
+                        <Button severity={"danger"} onClick={() => handleRemoveExchangeRate(index)}>Remove</Button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </Table>
+          </div>
+
+          <div className={"d-flex flex-column gap-2 w-auto mt-2"}>
+            <label className={"text-xl mt-2 font-bold"}>
+              Branches Currencies
+            </label>
+
+            <Table bordered >
+              <thead>
+                <tr>
+                  <th>Branch</th>
+                  <th>Currency</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currencySettings?.branchDisplayCurrencies?.map((branchCurrency, index) => {
+                  return (
+                    <tr key={index}>
+                      <td>
+                        {branchCurrency?.branch?.name}
+                      </td>
+                      <td>
+                        <Dropdown
+                          value={branchCurrency?.currency}
+                          onChange={(e: DropdownChangeEvent) => handleBranchCurrencyChange(index, 'currency', e.value)}
+                          options={currencies}
+                          optionLabel="name"
+                          placeholder="Select a Currency"
+                          filter
+                          showClear
+                          valueTemplate={selectedCurrencyTemplate}
+                          itemTemplate={currencyOptionTemplate}
+                        />
+                      </td>
+
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </Table>
+            <div className="d-flex justify-content-end align-items-end">
+              <Button label="Save" onClick={handleSave} />
+            </div>
+          </div>
+        </Col>
+      </Row>
     </div>
-
-    <div className={"d-flex gap-2 w-auto"} >
-        <label className={"text-xl mt-2 font-bold"}>
-        Display Currency:
-      </label>
-
-      <Select
-        value={currencySettings?.displayCurrency}
-        onChange={(currency) => handleCurrencyChange(currency, "displayCurrency")}
-        options={currencies}
-        isClearable
-        styles={{
-          control: (baseStyles, state) => ({
-            ...baseStyles,
-           minWidth: '10rem',
-          }),
-        }}
-        getOptionLabel={option => option.name}
-        getOptionValue={option => option.code}
-        placeholder="Select a Currency"
-      />
-    </div>
-
-      <div className={"d-flex flex-column gap-2 w-auto mt-2"}>
-        <div className={"d-flex justify-content-between"}>
-        <label className={"text-xl mt-2 font-bold"}>
-          Exchange Rates
-        </label>
-        <Button onClick={handleAddExchangeRate}>Add Exchange Rate</Button>
-      </div>
-
-        <Table bordered >
-          <thead>
-          <tr>
-            <th>Currency</th>
-            <th>Rate</th>
-          </tr>
-          </thead>
-          <tbody>
-          {currencySettings?.exchangeRates?.map((exchangeRate, index) => {
-              const  { currency} = exchangeRate
-              console.log(currency, 'currency')
-            return (
-            <tr key={index}>
-              <td>
-                <Select
-                  value={currency}
-                  onChange={(selectedCurrency) => handleExchangeRateChange(index, 'currency',selectedCurrency)}
-                  options={filteredExchangeCurrencies}
-                  placeholder="Select a Currency"
-                  getOptionLabel={option => option.name}
-                  getOptionValue={option => option.code}
-                />
-              </td>
-              <td>
-                {currency?.code &&
-                <InputNumber
-                  value={exchangeRate.rate}
-                  onChange={(e) => handleExchangeRateChange(index, 'rate', e.value)}
-                  mode="currency"
-                  inputId={currency.code}
-                  currency={currency.code}
-                />}
-              </td>
-              <td>
-                <Button severity={"danger"} onClick={() => handleRemoveExchangeRate(index)}>Remove</Button>
-              </td>
-            </tr>
-          )})}
-          </tbody>
-        </Table>
-      </div>
-
-      <div className={"d-flex flex-column gap-2 w-auto mt-2"}>
-          <label className={"text-xl mt-2 font-bold"}>
-            Branches Currencies
-          </label>
-
-        <Table bordered >
-          <thead>
-          <tr>
-            <th>Branch</th>
-            <th>Currency</th>
-          </tr>
-          </thead>
-          <tbody>
-          {currencySettings?.branchDisplayCurrencies?.map((branchCurrency, index) => {
-            return (
-              <tr key={index}>
-                <td>
-                  {branchCurrency?.branch?.name}
-                </td>
-                <td>
-                  <Dropdown
-                    value={branchCurrency?.currency}
-                    onChange={(e: DropdownChangeEvent) => handleBranchCurrencyChange(index, 'currency', e.value)}
-                    options={currencies}
-                    optionLabel="name"
-                    placeholder="Select a Currency"
-                    filter
-                    showClear
-                    valueTemplate={selectedCurrencyTemplate}
-                    itemTemplate={currencyOptionTemplate}
-                  />
-                </td>
-
-              </tr>
-            )})}
-          </tbody>
-        </Table>
-        <div className="d-flex justify-content-end align-items-end">
-          <Button label="Save" onClick={handleSave} />
-        </div>
-      </div>
-    </Col>
-  </Row>
-</div>
   );
 };
 

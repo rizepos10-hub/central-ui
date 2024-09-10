@@ -58,6 +58,16 @@ export const updateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const updateEntities = createAsyncThunk(
+  'combo-item/update_entity',
+  async (entity: IComboItem[], thunkAPI) => {
+    const result = await axios.put<IComboItem[]>(`${apiUrl}`, entity);
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const partialUpdateEntity = createAsyncThunk(
   'combo-item/partial_update_entity',
   async (entity: IComboItem, thunkAPI) => {
@@ -73,6 +83,19 @@ export const deleteEntity = createAsyncThunk(
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
     const result = await axios.delete<IComboItem>(requestUrl);
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const deleteEntities = createAsyncThunk(
+  'combo-item/delete_entities',
+  async (ids: Array<string | number>, thunkAPI) => {
+    const requestUrl = `${apiUrl}`;
+    const result = await axios.delete<IComboItem>(requestUrl, {
+      data: { ids }
+    });
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -105,7 +128,7 @@ export const ComboItemSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, deleteEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -116,7 +139,7 @@ export const ComboItemSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, updateEntities, deleteEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

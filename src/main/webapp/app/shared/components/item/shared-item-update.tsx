@@ -127,10 +127,10 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
         })
       );
       dispatch(getAddonGroups({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
       );
 
     } else if (isRetailItem) {
@@ -195,12 +195,21 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   <Translate contentKey="items.update.productionCenter">Production Center</Translate>
                 </label>
                 <Select
-                  value={item?.productionCenter}
+                  value={item?.productionCenter || null}
                   options={productionCenterOptions}
                   isClearable
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
                   onChange={productionCenter => onFieldChange('productionCenter', productionCenter)}
+                  onMenuOpen={() => {
+                    dispatch(
+                      getProductionCenters({
+                        page: paginationState.activePage - 1,
+                        size: paginationState.itemsPerPage,
+                        sort: `${paginationState.sort},${paginationState.order}`,
+                      })
+                    );
+                  }}
                 />
               </div>
 
@@ -209,12 +218,21 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   <Translate contentKey="items.update.profileGroups">Profile Groups</Translate>
                 </label>
                 <Select
-                  value={item?.accountingGroups}
+                  value={item?.accountingGroups || []}
                   isClearable
                   options={profileGroupsOptions}
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
                   onChange={profileGroup => onFieldChange('accountingGroups', profileGroup ? [profileGroup] : [])}
+                  onMenuOpen={() => {
+                    dispatch(
+                      getProfileGroups({
+                        page: paginationState.activePage - 1,
+                        size: paginationState.itemsPerPage,
+                        sort: `${paginationState.sort},${paginationState.order}`,
+                      })
+                    );
+                  }}
                 />
               </div>
 
@@ -230,12 +248,31 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   <Translate contentKey="items.update.categories">Categories</Translate>
                 </label>
                 <Select
-                  value={item?.categories}
+                  value={item?.categories || []}
                   isMulti={true}
                   options={itemCategoriesOptions}
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
                   onChange={selectedItemTerms => onFieldChange('categories', selectedItemTerms)}
+                  onMenuOpen={() => {
+                    if (isRestaurantItem) {
+                      dispatch(
+                        getRestaurantItemCategories({
+                          page: paginationState.activePage - 1,
+                          size: paginationState.itemsPerPage,
+                          sort: `${paginationState.sort},${paginationState.order}`,
+                        })
+                      )
+                    } else {
+                      dispatch(
+                        getRetailItemCategories({
+                          page: paginationState.activePage - 1,
+                          size: paginationState.itemsPerPage,
+                          sort: `${paginationState.sort},${paginationState.order}`,
+                        })
+                      )
+                    }
+                  }}
                 />
               </div>
 
@@ -244,12 +281,21 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   <Translate contentKey="items.update.tags">Tags</Translate>
                 </label>
                 <Select
-                  value={item?.tags}
+                  value={item?.tags || []}
                   isMulti={true}
                   options={tags}
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
                   onChange={selectedTags => onFieldChange('tags', selectedTags)}
+                  onMenuOpen={() => {
+                    dispatch(
+                      getTags({
+                        page: paginationState.activePage - 1,
+                        size: paginationState.itemsPerPage,
+                        sort: `${paginationState.sort},${paginationState.order}`,
+                      })
+                    );
+                  }}
                 />
               </div>
             </div>
@@ -261,7 +307,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                     <Translate contentKey="items.update.brand">brand</Translate>
                   </label>
                   <Select
-                    value={item?.brand}
+                    value={item?.brand || null}
                     isClearable
                     options={brands}
                     getOptionLabel={option => option.name}

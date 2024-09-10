@@ -32,6 +32,7 @@ import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { preventEnterSubmit } from "app/shared/util/form-utils";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 
 
@@ -174,7 +175,7 @@ export const RegularItemUpdate = () => {
       }
     });
 
-    setRegularItem(prev =>({
+    setRegularItem(prev => ({
       ...prev,
       variants: updatedVariants
     }));
@@ -217,25 +218,18 @@ export const RegularItemUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
-
     if (!isNew) {
       setRegularItem({
         ...regularItemEntity,
       });
     }
-
-    const regularItemId = regularItemEntity?.id
-    if (updateSuccess) {
-      handleNavigate(regularItemId);
-    }
-
-  }, [regularItemEntity, updateSuccess]);
+  }, [regularItemEntity]);
 
 
-  const saveEntity = e => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
 
-    const updatedVariants =  regularItem?.variants.map((variant, index) => {
+    const updatedVariants = regularItem?.variants.map((variant, index) => {
       if (index !== 0 && variant.order === 0) {
         return {
           ...variant,
@@ -251,29 +245,52 @@ export const RegularItemUpdate = () => {
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          reset()
+          setRegularItem({
+            itemType: "RESTAURANT",
+            itemVariantType: ItemVariantType.RESTAURANT_VARIABLE,
+            variants: []
+          })
+        } else {
+          const payload = res?.payload as any;
+          const newProductId = payload?.data?.id;
+        
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            handleNavigate(newProductId)
+          }
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/restaurant/regular/new`)
+        }
+      })
     }
   };
 
-
-
-
-
+  const confirm1 = (variantIndex) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleDeleteVariant(variantIndex)
+    });
+  };
 
   const handleDeleteVariant = (variantIndex) => {
-    const isConfirmed = window.confirm(translate('items.update.deleteVariantMessage'));
-    if (isConfirmed) {
-      setRegularItem((prev) => {
-        const updatedVariants = [...prev.variants];
-        updatedVariants.splice(variantIndex, 1);
-        return {
-          ...prev,
-          variants: updatedVariants,
-        };
-      });
-    }
+    setRegularItem((prev) => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants.splice(variantIndex, 1);
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
   };
 
   const VariantAccordionHeader = (variantIndex) => (
@@ -282,7 +299,7 @@ export const RegularItemUpdate = () => {
       e.stopPropagation()
     }} className={"d-flex gap-3 ml-2"}>
       <label className={"mt-2"}><strong>{regularItem?.variants?.[variantIndex]?.name}</strong></label>
-      <PrimeButton type={"button"} className={"ml-auto"} severity='danger' onClick={() => handleDeleteVariant(variantIndex)}>
+      <PrimeButton type={"button"} className={"ml-auto"} severity='danger' onClick={() => confirm1(variantIndex)}>
         <Translate contentKey={'items.update.deleteVariant'}>Delete Variant</Translate>
       </PrimeButton>
     </div>
@@ -294,7 +311,7 @@ export const RegularItemUpdate = () => {
   }
 
   return (
-    <form onSubmit={saveEntity} onKeyDown={preventEnterSubmit}>
+    <form onKeyDown={preventEnterSubmit}>
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card className="p-0">
@@ -346,7 +363,7 @@ export const RegularItemUpdate = () => {
                                                 id="name"
                                                 required={true}
                                                 placeholder={translate('items.update.placeholders.variantName')}
-                                                value={variant?.name}
+                                                value={variant?.name || ''}
                                                 onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
                                               />
                                             </div>
@@ -364,7 +381,7 @@ export const RegularItemUpdate = () => {
                                                 inputClassName={'w-1'}
                                                 required={true}
                                                 placeholder="Variant Price"
-                                                value={variant?.price}
+                                                value={variant?.price || null}
                                                 size={6}
                                                 min={0}
                                                 maxFractionDigits={2}
@@ -385,7 +402,7 @@ export const RegularItemUpdate = () => {
                                                 min={0}
                                                 size={6}
                                                 maxFractionDigits={2}
-                                                value={variant?.salePrice}
+                                                value={variant?.salePrice || null}
                                                 onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
                                               />
                                             </div>
@@ -399,7 +416,7 @@ export const RegularItemUpdate = () => {
                                                 <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
                                               </label>
                                               <Select
-                                                value={variant?.accountingGroups}
+                                                value={variant?.accountingGroups || []}
                                                 isClearable
                                                 options={profileGroupsOptions}
                                                 getOptionLabel={option => option.name}
@@ -419,7 +436,7 @@ export const RegularItemUpdate = () => {
                                                 <Translate contentKey={'items.update.addons'}>Addons</Translate>
                                               </label>
                                               <Select
-                                                value={variant.addons}
+                                                value={variant.addons || []}
                                                 options={addonList}
                                                 isMulti
                                                 getOptionLabel={option => option.name}
@@ -439,7 +456,7 @@ export const RegularItemUpdate = () => {
                                                 <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                               </label>
                                               <Select
-                                                value={variant?.mixAndMatchRule}
+                                                value={variant?.mixAndMatchRule || null}
                                                 options={mixAndMatchRuleList}
                                                 getOptionLabel={option => option.name}
                                                 getOptionValue={option => option.id}
@@ -523,8 +540,9 @@ export const RegularItemUpdate = () => {
         >
           <Card>
             <CardHeader>Actions</CardHeader>
-            <div className={'d-flex gap-3 mt-2'}>
+            <div className={'d-flex gap-1 mt-2'}>
               <PrimeButton
+                className='p-1 fs-6'
                 onClick={handleBackClick}
                 type={'button'}
                 id="cancel-save"
@@ -538,10 +556,15 @@ export const RegularItemUpdate = () => {
                 </span>
               </PrimeButton>
               &nbsp;
-              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <PrimeButton className='p-1 fs-6' onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
+              </PrimeButton>
+              <PrimeButton className='p-1 fs-6' onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
               </PrimeButton>
             </div>
           </Card>

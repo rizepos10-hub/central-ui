@@ -36,9 +36,19 @@
 
     .layout-menu {
         margin: 0;
-        padding: 0;
+        padding: 15px 0 0 0;
         list-style-type: none;
-
+        height: 93vh;
+        overflow-y: auto;
+        scrollbar-width: none; /* For Firefox */
+        -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+        border-right: 1px solid #d3d0d0ad;
+        
+        /* For Chrome, Safari, and Opera */
+        &::-webkit-scrollbar {
+            display: none;
+        }
+        
         .layout-root-menuitem {
             > .layout-menuitem-root-text {
                 font-size: 0.857rem;

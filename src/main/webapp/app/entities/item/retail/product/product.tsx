@@ -14,11 +14,18 @@ import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import SharedFilter from "app/shared/components/item/shared-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import AttributeFilter from "app/shared/components/filter/attribute-filter";
-import { filterEntities, getEntities } from "app/entities/item/retail/product/product.reducer";
+import { deleteEntities, filterEntities, getEntities, updateEntities } from "app/entities/item/retail/product/product.reducer";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import ImportButton from "app/shared/components/data-import/data-import";
+import { Dropdown } from "primereact/dropdown";
+import { Col, Container, Row, Spinner } from "reactstrap";
+import { IoMdCloseCircle } from "react-icons/io";
+import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 
+import { IItem } from "app/shared/model/ITEM/item.model";
+import { actionOptions, BulkEdit } from "app/shared/components/item/bulk-edit";
+import { confirmDialog } from "primereact/confirmdialog";
 
 export const Product = () => {
   const dispatch = useAppDispatch();
@@ -33,9 +40,9 @@ export const Product = () => {
   const [localFilters, setLocalFilters] = useState(query?.filters);
   const filteredAttributes = localFilters?.["attributes.attributeTerms.id"]?.constraints || [];
 
-
-
-
+  const [selectedActionOption, setSelectedActionOption] = useState(null)
+  const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
@@ -46,7 +53,15 @@ export const Product = () => {
     );
   };
 
-
+  useEffect(() => {
+    dispatch(
+      getCategories({
+        page: 0,
+        size: 1000,
+        sort: `id,desc`,
+      })
+    );
+  }, [])
 
   useEffect(() => {
     getAllEntities();
@@ -139,28 +154,74 @@ export const Product = () => {
     navigate(`/product/new`)
   }
 
+  useEffect(() => {
+    if (selectedActionOption?.code === "MOVE_TO_TRASH") {
+      confirm1()
+    }
+  }, [selectedActionOption])
+
+
+  const confirm1 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleItemsDelete(),
+      reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleItemsDelete = async () => {
+    setIsLoadingDelete(true);
+    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingDelete(false));
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
   const header = (
     <div className="bg-dark bg-opacity-10 mb-3 p-4 d-flex justify-content-between">
       <span className="text-xl">
-        Add, view and edit your products in one place.
+        <Dropdown
+          value={selectedActionOption}
+          onChange={(e) => setSelectedActionOption(e.value)}
+          options={actionOptions}
+          optionLabel="name"
+          placeholder="Bulk Actions"
+          className="w-full md:w-14rem"
+          disabled={selectedProducts.length < 1}
+          optionDisabled={(option) => option.disabled}
+        />
       </span>
-    <div className="flex align-items-center justify-content-end gap-3">
-      <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised color="info" onClick={handleSyncList} disabled={loading}>
-        <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-      </Button>
-      <ImportButton type={"REGULAR_RESTAURANT"} />
-      <Button label={translate('items.view.actions.createItem')} raised onClick={handleCreate} disabled={loading}>
-      </Button>
-    </div>
+      <div className="flex align-items-center justify-content-end gap-3">
+        <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised color="info" onClick={handleSyncList} disabled={loading}>
+          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
+        </Button>
+        <ImportButton type={"REGULAR_RESTAURANT"} />
+        <Button label={translate('items.view.actions.createItem')} raised onClick={handleCreate} disabled={loading}>
+        </Button>
+      </div>
     </div>
   );
 
-
   return (
     <div>
+      {selectedActionOption?.code === "EDIT" && selectedProducts.length > 0 && (
+        <BulkEdit
+          products={products}
+          selectedProducts={selectedProducts}
+          setSelectedProducts={setSelectedProducts}
+          setSelectedActionOption={setSelectedActionOption}
+          refetchEntities={getAllEntities}
+          loading={loading}
+          updateEntities={updateEntities}
+          isRetail={true}
+        />
+      )}
       {header}
       <Accordion
-        activeIndex={0}
+        activeIndex={1}
       >
         <AccordionTab header='Filters'>
           <div className="d-flex flex-column gap-3">
@@ -176,14 +237,30 @@ export const Product = () => {
       </Accordion>
 
       <DataTable
-        value={products} lazy filterDisplay="row" dataKey="id" paginator
-        first={query.first} rows={query?.rows} totalRecords={totalItems} onPage={onPage}
-        onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder}
-        onFilter={onFilter} filters={query.filters} loading={loading} tableStyle={{ minWidth: '75rem' }}
+        value={products}
+        lazy
+        filterDisplay="row"
+        dataKey="id"
+        paginator
+        first={query.first}
+        rows={query?.rows}
+        totalRecords={totalItems}
+        onPage={onPage}
+        onSort={onSort}
+        sortField={query.sortField}
+        sortOrder={query.sortOrder}
+        onFilter={onFilter}
+        filters={query.filters}
+        loading={loading || isLoadingDelete}
+        tableStyle={{ minWidth: '75rem' }}
         removableSort
         showGridlines
         className={"mt-3"}
+        selectionMode='checkbox'
+        selection={selectedProducts}
+        onSelectionChange={(e) => setSelectedProducts(e.value)}
       >
+        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
         <Column
           field="name"
           header={translate('items.view.fields.name')}
@@ -211,6 +288,7 @@ export const Product = () => {
             />
           )}
         />
+
         <Column
           field="desc"
           header={translate('items.view.fields.description')}

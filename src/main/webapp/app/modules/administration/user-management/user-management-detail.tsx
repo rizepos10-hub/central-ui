@@ -32,7 +32,7 @@ export const UserManagementDetail = () => {
           </dt>
           <dd>
             <span>{user.login}</span>&nbsp;
-            {user.activated ? (
+            {user.verified ? (
               <Badge color="success">
                 <Translate contentKey="userManagement.activated">Activated</Translate>
               </Badge>

@@ -62,7 +62,7 @@ export const BusinessDetailUpdate = () => {
   }
 
   const handleClose = () => {
-    navigate('/details' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

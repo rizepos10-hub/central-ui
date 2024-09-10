@@ -27,7 +27,7 @@ export const RetailAttributeDeleteDialog = () => {
   const updateSuccess= useAppSelector(state => state.retailAttribute.updateSuccess);
 
   const handleClose = () => {
-    navigate('/retail/attributes' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

@@ -27,7 +27,7 @@ const TagGroupDeleteDialog = () => {
   const updateSuccess= useAppSelector(state => state.tagGroup.updateSuccess);
 
   const handleClose = () => {
-    navigate('/tag-group' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

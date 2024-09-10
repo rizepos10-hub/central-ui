@@ -7,6 +7,7 @@ import { InputNumber } from 'primereact/inputnumber';
 import ItemSelectionModal from '../item-selection-modal';
 
 import { IMenu } from 'app/shared/model/menu.model';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -255,9 +256,27 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         });
     };
 
+    const confirm1 = (mainScreenIndex, index, item) => {
+        confirmDialog({
+            message: 'Do you want to delete this record?',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: () => handleRemoveCard(mainScreenIndex, index, item),
+            // reject
+        });
+    };
+
+    const confirm2 = (mainScreenIndex, mainScreenName) => {
+        confirmDialog({
+            message: 'Do you want to delete this record?',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: () => handleRemoveMainScreen(mainScreenIndex, mainScreenName),
+            // reject
+        });
+    };
+
     const handleRemoveCard = (mainScreenIndex, subScreenIndex, item) => {
-        const isConfirmed = window.confirm(`Are you sure you want to remove ${item?.name}`);
-        if (!isConfirmed) return;
         setData(prevData => {
             const updatedMenuScreens = prevData.menuScreens.map((mainScreen, i) => {
                 if (i === mainScreenIndex) {
@@ -339,7 +358,12 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                         <div className="ml-auto">
                                             <MdModeEditOutline size={20} onClick={() => openEditModal(item, index, 'sub')} />
                                             &nbsp;
-                                            <MdDeleteOutline size={20} color={'red'} onClick={() => handleRemoveCard(mainScreenIndex, index, item)} />
+                                            <MdDeleteOutline
+                                                size={20}
+                                                color={'red'}
+                                                onClick={(e) => confirm1(mainScreenIndex, index, item)}
+                                            // onClick={() => handleRemoveCard(mainScreenIndex, index, item)}
+                                            />
                                         </div>
                                     </div>
 
@@ -507,8 +531,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     }, [menu]);
 
     const handleRemoveMainScreen = (mainScreenIndex, mainScreenName) => {
-        const isConfirmed = window.confirm(`Are you sure you want to remove ${mainScreenName}`);
-        if (!isConfirmed) return;
         const updatedMenuScreens = [...data.menuScreens];
         updatedMenuScreens.splice(mainScreenIndex, 1);
 
@@ -538,6 +560,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         if (index !== draggedIndex) {
             const newData = [...data.menuScreens];
             const [draggedItem] = newData.splice(draggedIndex, 1);
+            if (!draggedItem) return;
             newData.splice(index, 0, draggedItem);
             setData({ ...data, menuScreens: newData });
             setDraggedIndex(index);
@@ -1079,7 +1102,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                             <div className="d-flex justify-content-end">
                                                 <MdModeEditOutline size={20} onClick={() => openEditModal(mainScreen, index, 'main')} />
                                                 &nbsp;
-                                                <MdDeleteOutline size={20} color={'red'} onClick={() => handleRemoveMainScreen(index, mainScreen.name)} />
+                                                <MdDeleteOutline size={20} color={'red'} onClick={() => confirm2(index, mainScreen.name)} />
                                             </div>
                                             <h5 className="m-0 mr-3 mb-2">{mainScreen?.name}</h5>
                                             <div className="d-flex flex-row justify-content-between">
@@ -1108,9 +1131,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             <Button color="primary" onClick={() => handleButtonAdd('Item')} className="ml-2">
                                 <Translate contentKey={'menus.pos.update.buttons.addItem'}>Add Item</Translate>
                             </Button>
-                            <Button color="primary" onClick={() => handleButtonAdd('Sub-screen')} className="ml-2">
-                                <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>
-                            </Button>
+                            {menu.type === "POS" && (
+                                <Button color="primary" onClick={() => handleButtonAdd('Sub-screen')} className="ml-2">
+                                    <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>
+                                </Button>
+                            )}
 
                             <Button onClick={togglePreviewModal} className="mx-2 btn btn-info">
                                 <Translate contentKey={'menus.pos.update.buttons.preview'}>Preview</Translate>

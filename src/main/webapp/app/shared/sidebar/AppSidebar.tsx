@@ -16,13 +16,13 @@ const AppSidebar = () => {
     };
     return (
         <>
-            <div className="sidebar-header" >
+            {/* <div className="sidebar-header" >
                 <Link to="/" className="app-logo">
                   <img  src={normalLogo} alt="logo" width={150} height={40}  className="app-logo-normal" />
                   <img src={smallLogo} alt="logo" width={18} height={18}  className="app-logo-small" />
                 </Link>
                 <button className="layout-sidebar-anchor p-link z-2 mb-2" type="button" onClick={anchor}></button>
-            </div>
+            </div> */}
             <div className="layout-menu-container">
                 <MenuProvider>
                     <AppMenu />

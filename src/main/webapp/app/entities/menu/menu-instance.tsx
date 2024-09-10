@@ -29,6 +29,7 @@ import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import MenuUpdate from './menu-update';
 import { Dialog } from "primereact/dialog";
 import Visibility from "app/shared/Visibility/Visibility";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 const MenuInstance = () => {
     const dispatch = useAppDispatch();
@@ -111,30 +112,42 @@ const MenuInstance = () => {
         setIsModalOpen(false)
     };
 
+    const confirm1 = () => {
+        console.log(1)
+        confirmDialog({
+            message: 'Are you sure you want to proceed?',
+            header: 'Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: () => handleDuplicateAction()
+        });
+    };
 
     const handleDuplicateAction = () => {
-        const isConfirmed = window.confirm('Are you sure you want to duplicate this menu?');
+        dispatch(duplicateMenu(id)).then((result: any) => {
+            if (result?.payload?.id) {
+                navigate(`/menu/${result?.payload?.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
+            }
+        });
+    };
 
-        if (isConfirmed) {
-            dispatch(duplicateMenu(id)).then((result: any) => {
-                if (result?.payload?.id) {
-                    navigate(`/menu/${result?.payload?.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
-                }
-            });
-        }
+    const confirm2 = () => {
+        confirmDialog({
+            message: 'Are you sure you want to proceed?',
+            header: 'Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: () => handleTransferToPOSAction()
+        });
     };
 
     const handleTransferToPOSAction = () => {
-        const isConfirmed = window.confirm('Are you sure you want to transfer this menu to POS?');
-
-        if (isConfirmed) {
-            if (menuEntity.type === 'ONLINE_ORDERING') {
-                saveEntity({ type: 'POS' });
-                navigate(`/menu/${menuEntity.id}/POS/edit?page=1&sort=id,asc`);
-            } else {
-                saveEntity({ type: 'ONLINE_ORDERING' });
-                navigate(`/menu/${menuEntity.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
-            }
+        if (menuEntity.type === 'ONLINE_ORDERING') {
+            saveEntity({ type: 'POS' });
+            navigate(`/menu/${menuEntity.id}/POS/edit?page=1&sort=id,asc`);
+        } else {
+            saveEntity({ type: 'ONLINE_ORDERING' });
+            navigate(`/menu/${menuEntity.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
         }
     }
 
@@ -180,10 +193,10 @@ const MenuInstance = () => {
                             <PrimeButton label="Trigger" className='p-1' onClick={() => { dispatch(sendEvent(id)) }} style={{
                                 height: '2.5rem',
                             }} />
-                            <PrimeButton label="Duplicate" className="p-button-secondary p-1" onClick={handleDuplicateAction} style={{
+                            <PrimeButton label="Duplicate" className="p-button-secondary p-1" onClick={confirm1} style={{
                                 height: '2.5rem',
                             }} />
-                            <PrimeButton label={`Transfer to ${menuEntity.type === 'POS' ? 'Online Ordering' : 'POS'}`} className="p-button-secondary p-1" onClick={handleTransferToPOSAction} style={{
+                            <PrimeButton label={`Transfer to ${menuEntity.type === 'POS' ? 'Online Ordering' : 'POS'}`} className="p-button-secondary p-1" onClick={confirm2} style={{
                                 height: '2.5rem',
                             }} />
 
@@ -191,16 +204,16 @@ const MenuInstance = () => {
                                 height: '2.5rem',
                             }} />
                             <Dialog
-                              visible={showVisibility}
-                              style={{ width: '50vw' }}
-                              onHide={() => setShowVisibility(false)}
+                                visible={showVisibility}
+                                style={{ width: '50vw' }}
+                                onHide={() => setShowVisibility(false)}
                             >
                                 <Visibility
-                                  initialState={data.visibilities}
-                                  title={"Menu Visibility"}
-                                  onStateChanged={(visibilities) => setData(prev => {
-                                      return { ...prev, visibilities }
-                                  })}
+                                    initialState={data.visibilities}
+                                    title={"Menu Visibility"}
+                                    onStateChanged={(visibilities) => setData(prev => {
+                                        return { ...prev, visibilities }
+                                    })}
                                 />
                             </Dialog>
                         </div>

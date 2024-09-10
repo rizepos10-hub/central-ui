@@ -1,6 +1,5 @@
 export function transformAttachmentStructure(array, flag: 'toIAttachment' | 'toFileLibraryListItem') {
-    console.log(array, 'dsdsdddsds')
-    if (!array || array.length === 0) {
+    if (!array || array.length === 0 || !array[0]) {
         return [];
     }
 

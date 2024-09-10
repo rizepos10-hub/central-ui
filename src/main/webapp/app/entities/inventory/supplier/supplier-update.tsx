@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './supplier.reducer';
-import {InputText} from "primereact/inputtext";
-import {ISupplier} from "app/shared/model/STOCK/supplier.model";
+import { InputText } from "primereact/inputtext";
+import { ISupplier } from "app/shared/model/STOCK/supplier.model";
 import { translate, Translate } from "react-jhipster";
 
 export const SupplierUpdate = () => {
@@ -26,11 +26,10 @@ export const SupplierUpdate = () => {
   const supplierEntity = useAppSelector(state => state.supplier.entity);
   const loading = useAppSelector(state => state.supplier.loading);
   const updating = useAppSelector(state => state.supplier.updating);
-  const updateSuccess = useAppSelector(state => state.supplier.updateSuccess);
 
 
   const handleClose = () => {
-    navigate('/inventory/supplier' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {
@@ -42,30 +41,43 @@ export const SupplierUpdate = () => {
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    if(supplierEntity){
+    if (supplierEntity) {
       setSupplier(supplierEntity)
     }
-  }, [updateSuccess, supplierEntity?.name]);
+  }, [supplierEntity?.name]);
 
   const handleChange = e => {
 
-    const { name, value } = e.target ;
+    const { name, value } = e.target;
     setSupplier(prevState => ({ ...prevState, [name]: value }));
   };
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault()
     const entity = {
       ...supplier,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/inventory/supplier/${newId}/edit`)
+          }
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/inventory/supplier/new`)
+        }
+      })
     }
   };
 
@@ -73,7 +85,7 @@ export const SupplierUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  `${translate("tempApp.supplier.createNew")}` : `${translate("tempApp.supplier.edit")}`}</h2>
+          <h2>{isNew ? `${translate("tempApp.supplier.createNew")}` : `${translate("tempApp.supplier.edit")}`}</h2>
         </Col>
       </Row>
       <Row>
@@ -81,7 +93,7 @@ export const SupplierUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form>
               <FormGroup>
                 <div className={"d-flex flex-column"}>
                   <Label for="name">
@@ -92,7 +104,7 @@ export const SupplierUpdate = () => {
                     name="name"
                     required={true}
                     id="name"
-                    value={supplier.name}
+                    value={supplier.name || ''}
                     onChange={handleChange}
                   />
                 </div>
@@ -103,7 +115,7 @@ export const SupplierUpdate = () => {
                     type="text"
                     name="address"
                     id="address"
-                    value={supplier.address}
+                    value={supplier.address || ''}
                     onChange={handleChange}
                   />
                 </div>
@@ -114,16 +126,16 @@ export const SupplierUpdate = () => {
                     <Translate contentKey={"common.contactInformation"} />
                   </label></strong>
                   <div className={"d-flex flex-column"}>
-                  <Label for="email">
-                    <Translate contentKey={"common.email"} />
-                  </Label>
-                  <InputText
-                    type="email"
-                    name="email"
-                    id="email"
-                    value={supplier?.email}
-                    onChange={handleChange}
-                  />
+                    <Label for="email">
+                      <Translate contentKey={"common.email"} />
+                    </Label>
+                    <InputText
+                      type="email"
+                      name="email"
+                      id="email"
+                      value={supplier?.email || ''}
+                      onChange={handleChange}
+                    />
                   </div>
 
                   <div className={"d-flex flex-column"}>
@@ -133,20 +145,30 @@ export const SupplierUpdate = () => {
                     <InputText
                       name="phoneNumber"
                       id="phoneNumber"
-                      value={supplier?.phoneNumber}
+                      value={supplier?.phoneNumber || ''}
                       onChange={handleChange}
                     />
                   </div>
                 </div>
               </FormGroup>
-              <Button tag={Link} to="/inventory/supplier" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;<Translate contentKey={"common.back"} />
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
               </Button>
               &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;<Translate contentKey={"common.save"} />
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           )}

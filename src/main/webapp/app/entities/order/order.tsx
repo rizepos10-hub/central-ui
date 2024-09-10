@@ -277,7 +277,7 @@ export const Order = ({customer = '', appSourceProp} :OrderProps) => {
 
               <Column
                 header={translate('orders.view.table.fields.source')}
-                field="orderSource" body={(rowData) => rowData.sourceApp.type} sortable filter={!appSourceProp}
+                field="orderSource" body={(rowData) => rowData.sourceApp?.type} sortable filter={!appSourceProp}
                 filterElement={ !appSourceProp ?
                   <Dropdown
                       value={lazyState.filters.orderSource?.value || ''}

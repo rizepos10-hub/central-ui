@@ -28,7 +28,7 @@ export const searchEntities = createAsyncThunk('attachment/search_entity', async
 });
 
 export const getEntities = createAsyncThunk('attachment/fetch_entity_list', async ({ page, size, sort, name }: IQueryParams) => {
-  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&name=${name}&` : '?'}cacheBuster=${new Date().getTime()}`;
+  const requestUrl = `${apiSearchUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&name=${name}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<IAttachment[]>(requestUrl);
 });
 

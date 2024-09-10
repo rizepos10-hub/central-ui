@@ -10,6 +10,7 @@ import { useDropzone } from 'react-dropzone'
 import { Spinner } from 'reactstrap';
 import { Button } from 'primereact/button';
 import { TiDelete } from "react-icons/ti";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 interface MediaLibraryProps {
     sizePerPage?: number
@@ -36,7 +37,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             toast.error('Only one image can be added for this field');
             return;
         } else {
-            setAttachments(acceptedFiles);
+            console.log(acceptedFiles, 'acceptedFiles')
+            // setAttachments(acceptedFiles);
             fileUploadCallback(acceptedFiles);
         }
     };
@@ -52,9 +54,10 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             setLoading(true);
             await dispatch(uploadImage(formData)).then((res) => {
                 const response = res.payload as any;
+                console.log(response)
                 setAttachments([]);
                 setSelectedItems(files.map(file => ({
-                    _id: file.name,
+                    _id: response?.id,
                     name: file.name,
                     path: file.name,
                     size: file.size,
@@ -63,11 +66,11 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     thumbnailUrl: response?.url,
                 })));
                 handleFilesSelectCallback(files.map(file => ({
-                    _id: file.name,
+                    _id: response?.id,
                     name: file.name,
                     path: file.name,
                     size: file.size,
-                    type: file.type,
+                    type: undefined,
                     updatedAt: new Date().toISOString(),
                     thumbnailUrl: response?.url,
                 })));
@@ -94,10 +97,17 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
         setIsOpen(prev => !prev);
     };
 
-    const handleRemove = (index) => {
-        const isConfirmed = window.confirm("Are you sure you want to delete the selected items?");
-        if (!isConfirmed) return;
+    const confirm1 = (index) => {
+        confirmDialog({
+            message: 'Are you sure you want to proceed?',
+            header: 'Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: () => handleRemove(index)
+        });
+    };
 
+    const handleRemove = (index) => {
         const newSelectedItems = selectedItems.filter((_, i) => i !== index);
         setSelectedItems(newSelectedItems);
         handleFilesSelectCallback(newSelectedItems);
@@ -129,7 +139,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                             }}
                         />
                         <TiDelete
-                            onClick={() => handleRemove(index)}
+                            onClick={() => confirm1(index)}
                             style={{
                                 position: 'absolute',
                                 top: '-0.5rem',
@@ -232,6 +242,7 @@ const MediaLibraryTest = ({
 
     const filesSelectCallback = (files: FileLibraryListItem[]) => {
         setSelectedItems(files)
+        console.log(files, 'files')
         handleFilesSelectCallback(files)
         setIsOpen(prev => !prev)
     }

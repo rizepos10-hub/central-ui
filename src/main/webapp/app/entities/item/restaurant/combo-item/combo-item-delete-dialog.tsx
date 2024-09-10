@@ -25,7 +25,7 @@ export const ComboDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.comboItem.updateSuccess);
 
   const handleClose = () => {
-    navigate('/restaurant/combo' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

@@ -220,7 +220,6 @@ export const ComboItemUpdate = () => {
     setComboItem(updatedComboItem);
   };
 
-
   const handleDeleteComboPackage = (index) => {
     const updatedComboItem = {
       ...comboItem,
@@ -234,9 +233,6 @@ export const ComboItemUpdate = () => {
 
     setComboItem(updatedComboItem);
   };
-
-
-
 
   const handleNavigate = (comboItemId) => {
     navigate(`/restaurant/combo/${comboItemId}/edit` + location.search);
@@ -280,7 +276,6 @@ export const ComboItemUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
-
     if (!isNew) {
       setComboItem(comboItemEntity);
     } else {
@@ -291,16 +286,10 @@ export const ComboItemUpdate = () => {
 
       })
     }
-    const comboItemId = comboItemEntity?.id
-    if (updateSuccess) {
-      console.log("helloooo")
-      handleNavigate(comboItemId);
-    }
-
   }, [comboItemEntity, updateSuccess]);
 
 
-  const saveEntity = e => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
     const entity = {
       ...comboItem,
@@ -312,9 +301,28 @@ export const ComboItemUpdate = () => {
       ],
     };
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          reset()
+          setComboItem({
+            itemType: "RESTAURANT",
+          })
+        } else {
+          const payload = res?.payload as any;
+          const newProductId = payload?.data?.id;
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            handleNavigate(newProductId)
+          }
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/restaurant/combo/new`)
+        }
+      })
     }
   };
 
@@ -324,7 +332,7 @@ export const ComboItemUpdate = () => {
   }
 
   return (
-    <form onSubmit={saveEntity}  onKeyDown={preventEnterSubmit}>
+    <form onKeyDown={preventEnterSubmit}>
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card>
@@ -342,11 +350,11 @@ export const ComboItemUpdate = () => {
 
                       {isModalOpen ?
                         <ComboItemSelection
-                        isOpen={isModalOpen}
-                        onAddItems={handleAddItems}
-                        toggleModal={toggleModal}
-                        comboPackages={comboItem?.variants?.[0]?.comboPackages}
-                      />
+                          isOpen={isModalOpen}
+                          onAddItems={handleAddItems}
+                          toggleModal={toggleModal}
+                          comboPackages={comboItem?.variants?.[0]?.comboPackages}
+                        />
                         : null}
 
                       <SharedItemUpdate
@@ -356,7 +364,6 @@ export const ComboItemUpdate = () => {
 
                       <Row>
                         <Col md="12">
-
                           <DiscountDropdown
                             discounts={comboItem?.variants?.[0]?.discounts}
                             handleChange={handleComboVariantChange}
@@ -367,11 +374,18 @@ export const ComboItemUpdate = () => {
                               <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                             </label>
                             <Select
-                              value={comboItem?.variants?.[0]?.mixAndMatchRule}
+                              value={comboItem?.variants?.[0]?.mixAndMatchRule || null}
                               options={mixAndMatchRuleList}
                               getOptionLabel={option => option.name}
                               getOptionValue={option => option.id}
                               onChange={(mixAndMatchRule) => handleComboVariantChange('mixAndMatchRule', mixAndMatchRule)}
+                              onMenuOpen={() => {
+                                dispatch(getMixAndMatchRules({
+                                  page: paginationState.activePage - 1,
+                                  size: paginationState.itemsPerPage,
+                                  sort: `${paginationState.sort},${paginationState.order}`,
+                                }));
+                              }}
                             />
                           </div>
                         </Col>
@@ -389,7 +403,7 @@ export const ComboItemUpdate = () => {
                             min={0}
                             maxFractionDigits={2}
                             placeholder={translate('items.update.placeholders.itemPrice')}
-                            value={comboItem?.variants?.[0]?.price}
+                            value={comboItem?.variants?.[0]?.price || null}
                             onChange={(e) => handleComboVariantChange("price", e.value)}
                           />
                         </div>
@@ -407,12 +421,11 @@ export const ComboItemUpdate = () => {
                             min={0}
                             size={6}
                             maxFractionDigits={2}
-                            value={comboItem?.variants?.[0]?.salePrice}
+                            value={comboItem?.variants?.[0]?.salePrice || null}
                             onChange={(e) => handleComboVariantChange('salePrice', e.value)}
                           />
                         </div>
                       </Col>
-
 
                       <VariantBranchPrice
                         branchVariantDetails={comboItem?.variants?.[0].branchVariantDetails}
@@ -421,7 +434,6 @@ export const ComboItemUpdate = () => {
                         variantIndex={0}
                         itemVariantType={"RESTAURANT"}
                       />
-
 
                       <Row>
                         <FormGroup>
@@ -460,7 +472,7 @@ export const ComboItemUpdate = () => {
                                       <InputNumber
                                         name={`quantity_${comboPackage?.variant?.id}`}
                                         placeholder={translate('items.update.combo.quantityPlaceholder', { variantName: comboPackage?.variant?.name })}
-                                        value={comboPackage.amount}
+                                        value={comboPackage.amount || null}
                                         min={0}
                                         onChange={(e) => handleComboAmountChange(index, e.value)}
                                       />
@@ -521,8 +533,15 @@ export const ComboItemUpdate = () => {
         }}>
           <Card>
             <CardHeader>Actions</CardHeader>
-            <div className={'d-flex gap-3 mt-2'}>
-              <PrimeButton type={"button"} id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleBackClick} severity='secondary'>
+            <div className={'d-flex gap-1 mt-2'}>
+              <PrimeButton
+                className='p-1 fs-6'
+                onClick={handleBackClick}
+                type={'button'}
+                id="cancel-save"
+                data-cy="entityCreateCancelButton"
+                severity="secondary"
+              >
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
@@ -530,11 +549,15 @@ export const ComboItemUpdate = () => {
                 </span>
               </PrimeButton>
               &nbsp;
-              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                disabled={updating}>
+              <PrimeButton className='p-1 fs-6' onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
+              </PrimeButton>
+              <PrimeButton className='p-1 fs-6' onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
               </PrimeButton>
             </div>
           </Card>

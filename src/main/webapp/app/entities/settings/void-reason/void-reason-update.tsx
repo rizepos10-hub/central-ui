@@ -5,10 +5,10 @@ import { getEntity, updateEntity, createEntity, reset, changeEntityField } from 
 import { getEntities as getTaxProfiles } from 'app/entities/settings/tax-profile/tax-profile.reducer';
 import { InputText } from "primereact/inputtext";
 import { Col, FormGroup, Row, Button, Spinner } from "reactstrap";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {getSortState, Translate} from "react-jhipster";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { getSortState, Translate } from "react-jhipster";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { IVoidReason } from "app/shared/model/void-reason.model"; // Import FormGroup from reactstrap
 
 export const VoidReasonUpdate = () => {
@@ -16,8 +16,7 @@ export const VoidReasonUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
   const navigate = useNavigate();
-  const voidReason :IVoidReason = useAppSelector(state => state.voidReason.entity);
-  const updateSuccess = useAppSelector(state => state.voidReason.updateSuccess);
+  const voidReason: IVoidReason = useAppSelector(state => state.voidReason.entity);
   const updating = useAppSelector(state => state.voidReason.updating);
   const loading = useAppSelector(state => state.voidReason.loading);
 
@@ -25,12 +24,8 @@ export const VoidReasonUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const handleClose = () => [
-    navigate('/void-reasons')
-  ]
-
   const handleChange = <T extends keyof IVoidReason>(field: T, value: IVoidReason[T]) => {
-      dispatch(changeEntityField({field, value}))
+    dispatch(changeEntityField({ field, value }))
   };
 
   useEffect(() => {
@@ -46,78 +41,90 @@ export const VoidReasonUpdate = () => {
     }));
   }, []);
 
-  useEffect(() => {
-    if(updateSuccess){
-      handleClose();
-    }
 
-    return () => {
-      dispatch(reset());
-    }
-  },[updateSuccess])
-
-
-  const handleSubmit = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
     const entity = {
-        ...voidReason
+      ...voidReason
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/void-reasons/${newId}/edit`)
+          }
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/void-reasons/new`)
+        }
+      })
     }
   };
 
-
-  if(loading) return <Spinner />;
+  if (loading) return <Spinner />;
 
   return (
     <div className="bg-light">
-      <h2> {isNew ? `Add New Void Reason` : `Edit Void Reason ${voidReason.code}` } </h2>
+      <h2> {isNew ? `Add New Void Reason` : `Edit Void Reason ${voidReason.code}`} </h2>
       <Row>
-        <form onSubmit={handleSubmit}>
-        <Col md="8" className="d-flex flex-column p-3 bg-white">
-      <FormGroup>
-          <div className="d-flex flex-column mb-3">
-            <label htmlFor="code">Code</label>
-            <InputText
-              id="code"
-              value={voidReason.code}
-              onChange={(e) => handleChange("code", e.target.value)}
-            />
-          </div>
-          <div className="d-flex flex-column mb-3">
+        <form>
+          <Col md="8" className="d-flex flex-column p-3 bg-white">
+            <FormGroup>
+              <div className="d-flex flex-column mb-3">
+                <label htmlFor="code">Code</label>
+                <InputText
+                  id="code"
+                  value={voidReason.code || ''}
+                  onChange={(e) => handleChange("code", e.target.value)}
+                />
+              </div>
+              <div className="d-flex flex-column mb-3">
 
 
-          <label htmlFor="reason">Reason</label>
-            <InputText
-              id="reason"
-              value={voidReason.reason}
-              onChange={(e) => handleChange("reason", e.target.value)}
-            />
-          </div>
-      </FormGroup>
-        </Col>
+                <label htmlFor="reason">Reason</label>
+                <InputText
+                  id="reason"
+                  value={voidReason.reason || ''}
+                  onChange={(e) => handleChange("reason", e.target.value)}
+                />
+              </div>
+            </FormGroup>
+          </Col>
 
-        <div className="d-flex justify-content-start align-items-center ga-3 mt-5">
-          <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/void-reasons" replace color="info">
-            <FontAwesomeIcon icon="arrow-left" />
+          <div className="d-flex justify-content-start align-items-center ga-3 mt-5">
+            <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
+              <FontAwesomeIcon icon="arrow-left" />
+              &nbsp;
+              <span className="d-none d-md-inline">
+                <Translate contentKey="entity.action.back">Back</Translate>
+              </span>
+            </Button>
             &nbsp;
-            <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-          </Button>
-          &nbsp;
-
-          <Button color="primary" disabled={updating}>
-            Save
-          </Button>
-        </div>
-      </form>
-    </Row>
-  </div>
+            <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <FontAwesomeIcon icon="save" />
+              &nbsp;
+              <Translate contentKey="entity.action.save">Save</Translate>
+            </Button>
+            &nbsp;
+            <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <FontAwesomeIcon icon="save" />
+              &nbsp;
+              <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+            </Button>
+          </div>
+        </form>
+      </Row>
+    </div>
   );
 };
 

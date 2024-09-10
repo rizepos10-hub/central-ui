@@ -27,7 +27,7 @@ export const AddonDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.addonGroups.updateSuccess);
 
   const handleClose = () => {
-    navigate('/addon-groups' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

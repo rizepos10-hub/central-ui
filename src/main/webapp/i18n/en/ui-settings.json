@@ -34,7 +34,27 @@
       "cookie": "Cookie",
       "logo": "Logo",
       "email": "Email",
-      "phoneNumber": "Phone Number"
+      "phoneNumber": "Phone Number",
+      "colorSetting": {
+        "title": "Color Setting",
+        "background": "Background",
+        "foreground": "Foreground",
+        "primary": "Primary",
+        "primary-foreground": "Primary Foreground",
+        "secondary": "Secondary",
+        "secondary-foreground": "Secondary Foreground",
+        "muted": "Muted",
+        "muted-foreground": "Muted Foreground",
+        "custom-color": "Custom Color"
+      },
+      "fontSetting": {
+        "title": "Font Setting",
+        "fontFamily": "Font Family",
+        "fontSize": "Font Size",
+        "fontWeight": "Font Weight",
+        "lineHeight": "Line Height",
+        "letterSpacing": "Letter Spacing"
+      }
     }
   }
 }

@@ -25,7 +25,7 @@ export const PrintingProfileDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.tax.updateSuccess);
 
   const handleClose = () => {
-    navigate('/tax' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

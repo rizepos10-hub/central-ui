@@ -11,6 +11,7 @@ import { Button } from 'primereact/button';
 import { Card, CardHeader, Col } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Translate } from 'react-jhipster';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 const ZonePage = () => {
     const params = useParams();
@@ -42,7 +43,7 @@ const ZonePage = () => {
         }
     }, [isNew, params?.id, dispatch]);
 
-    const saveEntity = (e) => {
+    const saveEntity = (e, createNew = false) => {
         e.preventDefault();
         const entity = {
             ...zone,
@@ -52,14 +53,40 @@ const ZonePage = () => {
             })),
         };
 
-        isNew ?
-            dispatch(createEntity(entity)).then(() => navigate(-1))
-            : dispatch(updateEntity(entity)).then(() => navigate(-1));
+        if (isNew) {
+            dispatch(createEntity(entity)).then((res) => {
+                if (createNew) {
+                    dispatch(reset());
+                } else {
+                    const payload = res?.payload as any;
+                    const newId = payload?.data?.id;
+
+                    // @ts-expect-error -- unknown type
+                    if (!res?.error) {
+                        navigate(`/zones/${newId}/edit`)
+                    }
+                }
+            })
+        } else {
+            dispatch(updateEntity(entity)).then(() => {
+                if (createNew) {
+                    navigate(`/zones/new`)
+                }
+            })
+        }
+    };
+
+    const confirm1 = (id) => {
+        confirmDialog({
+            message: 'Are you sure you want to proceed?',
+            header: 'Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            defaultFocus: 'accept',
+            accept: () => deleteZone(id)
+        });
     };
 
     const deleteZone = (id) => {
-        const alret = window.confirm("Are you sure you want to delete this zone?");
-        if (!alret) return;
         dispatch(deleteEntity(id)).then(() => (
             navigate(-1)
         ));
@@ -99,7 +126,7 @@ const ZonePage = () => {
                                 className="p-button-danger p-1"
                                 type='button'
                                 size='large'
-                                onClick={() => deleteZone(zone.id)}
+                                onClick={() => confirm1(zone.id)}
                             />
                         </div>
 
@@ -110,29 +137,24 @@ const ZonePage = () => {
             </div >
             <div>
                 <div className={'d-flex gap-3 mt-2'}>
-                    <Button
-                        onClick={() => navigate(-1)}
-                        id="cancel-save"
-                        data-cy="entityCreateCancelButton"
-                        severity='secondary'
-                        type='button'
-                    >
+                    <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                         <FontAwesomeIcon icon="arrow-left" />
                         &nbsp;
                         <span className="d-none d-md-inline">
                             <Translate contentKey="entity.action.back">Back</Translate>
                         </span>
                     </Button>
-                    <Button
-                        color="primary"
-                        id="save-entity"
-                        data-cy="entityCreateSaveButton"
-                        type="submit"
-                        disabled={loading}
-                    >
+                    &nbsp;
+                    <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit">
                         <FontAwesomeIcon icon="save" />
                         &nbsp;
                         <Translate contentKey="entity.action.save">Save</Translate>
+                    </Button>
+                    &nbsp;
+                    <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit">
+                        <FontAwesomeIcon icon="save" />
+                        &nbsp;
+                        <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
                     </Button>
                 </div>
             </div>

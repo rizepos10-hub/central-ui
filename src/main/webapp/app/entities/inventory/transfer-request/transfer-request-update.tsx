@@ -79,7 +79,7 @@ export const TransferRequestUpdate = () => {
   const isDisabled = !transferRequest.source || isConfirmed;
 
   const handleClose = () => {
-    navigate('/inventory/transfer-request' + location.search);
+    navigate(-1);
   };
 
   const handleAdd = (type) => {

@@ -79,7 +79,7 @@ export const UserUpdate = () => {
     branches: [],
     email: '',
     permissions: [],
-    activated: false,
+    verified: false,
     authorities: [],
     pinCode: '',
     password: ''
@@ -93,7 +93,7 @@ export const UserUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/branch-pos-user' + location.search);
+    navigate(-1);
   };
 
 
@@ -200,7 +200,7 @@ export const UserUpdate = () => {
         branches: [],
         email: '',
         permissions: [],
-        activated: false,
+        verified: false,
         authorities: [],
         pinCode: '',
         password: ''
@@ -228,7 +228,7 @@ export const UserUpdate = () => {
         branches: [],
         email: '',
         permissions: [],
-        activated: false,
+        verified: false,
         authorities: [],
         pinCode: '',
         password: ''
@@ -288,6 +288,7 @@ export const UserUpdate = () => {
         <div className="col-8">
           <div className="p-grid d-flex flex-column p-3  bg-white">
 
+          {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
           <form onSubmit={handleSubmit}>
 
             <div className="p-field d-flex flex-column mb-3">
@@ -401,12 +402,12 @@ export const UserUpdate = () => {
                 <Translate contentKey={'tempApp.activated'}/>
               </label>
               <Checkbox
-                inputId={`activated-${user.activated}`}
+                inputId={`activated-${user.verified}`}
                 name="Activated"
-                value={user.activated}
+                value={user.verified}
                 onChange={handleActivatedChange}
 
-                checked={user.activated}
+                checked={user.verified}
               />
             </div>
 

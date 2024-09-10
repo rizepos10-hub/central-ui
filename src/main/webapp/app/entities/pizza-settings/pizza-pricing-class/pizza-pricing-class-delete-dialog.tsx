@@ -26,7 +26,7 @@ export const PizzaPricingClassDeleteDialog = () => {
   const updating = useAppSelector(state => state.pizzaPricingClass.updating);
 
   const handleClose = () => {
-    navigate(`/pizza-pricing-class` + location.search);
+    navigate(-1);
 
   };
 

@@ -1,23 +1,15 @@
-import { IBill } from 'app/shared/model/ORDER/bill.model';
-import { IBilledItem } from 'app/shared/model/ORDER/billed-items.model';
-import { IPaymentTransaction } from 'app/shared/model/ORDER/payment-transaction.model';
-import {Button, Card, Col, ListGroup, ListGroupItem, Row, Table} from 'reactstrap';
-import {translate, Translate} from 'react-jhipster';
-import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Card } from 'reactstrap';
+import { translate, Translate } from 'react-jhipster';
 import React from 'react';
-import {IOrderedAddon} from "app/shared/model/ORDER/ordered-addon.model";
 import { format } from 'date-fns';
 import { TreeTable } from 'primereact/treetable';
-import {Column} from "primereact/column";
+import { Column } from "primereact/column";
 
 interface OrderBills {
-  list:any;
+  list: any;
   orderedItems: any
 }
 export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
-
-  const billList = list;
 
   const transformAddonToTreeNode = (addon) => {
 
@@ -38,7 +30,7 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
         amount: addon.amount.toFixed(2),
         price: addon.price.toFixed(2),
         discount: addon.discount ? (addon.discount.type === 'PERCENTAGE'
-            ? `${addon.discount.value}%` : `$${addon.discount.value.toFixed(2)}`)
+          ? `${addon.discount.value}%` : `$${addon.discount.value.toFixed(2)}`)
           : '-',
         total,
       },
@@ -46,6 +38,8 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
   };
 
   const transformBillToTreeNode = (bill, orderedItems) => {
+    console.log(bill)
+    console.log(orderedItems)
     const treeNodes = [];
     bill.billItems.forEach((billItem) => {
       const orderedItem = orderedItems.find((item) => item.id === billItem.orderedItemId);
@@ -68,8 +62,7 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
 
         const itemTotal = (orderedItem.price * billItem.amount) - (orderedItem.discount && orderedItem.discount.type === "PERCENTAGE" ?
           (orderedItem.discount.value / 100) * (orderedItem.price * billItem.amount) : (orderedItem.discount ? orderedItem.discount.value * billItem.amount : 0));
-        const total = itemTotal;
-
+        const total = itemTotal + orderedItem.taxValue;
 
 
         const treeNode = {
@@ -79,10 +72,11 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
             name: orderedItem.itemName,
             amount: billItem.amount.toFixed(2),
             price: orderedItem.price.toFixed(2),
+            taxValue: orderedItem.taxValue.toFixed(2),
             discount: orderedItem.discount ? (orderedItem.discount.type === 'PERCENTAGE'
-                ? `${orderedItem.discount.value}%` : `$${orderedItem.discount.value.toFixed(2)}`)
+              ? `${orderedItem.discount.value}%` : `$${orderedItem.discount.value.toFixed(2)}`)
               : '-',
-            total,
+            total: total.toFixed(2),
             date: format(new Date(bill.dateTime), 'MMMM dd, yyyy'),
           },
           children: orderedItem.addons.map(transformAddonToTreeNode),
@@ -97,7 +91,7 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
 
 
   return (
-    <div className="d-flex"  >
+    <div className="d-flex">
       <div>
         {list && list.length > 0 ? (
           list.filter((billItem) => !billItem.archived).map((bill, billIndex) => {
@@ -110,6 +104,7 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
             );
 
             const transformedTreeData = transformBillToTreeNode(bill, orderedItems);
+
             const itemsTotal = bill.billItems.reduce((total, billItem) => {
               const orderedItem = orderedItems.find((item) => item.id === billItem.orderedItemId);
               if (orderedItem) {
@@ -144,6 +139,7 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
             }, 0);
 
             const subtotal = itemsTotal;
+
             const totalDiscounts = bill.billItems.reduce((total, billItem) => {
               const orderedItem = orderedItems.find((item) => item.id === billItem.orderedItemId);
               if (orderedItem && orderedItem.discount?.type === 'PERCENTAGE') {
@@ -154,43 +150,46 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
               }
               return total;
             }, 0);
-            const totalPrice = subtotal - totalDiscounts;
+
+            const taxValues = bill.billItems.reduce((total, billItem) => {
+              const orderedItem = orderedItems.find((item) => item.id === billItem.orderedItemId);
+              if (orderedItem) {
+                return total + orderedItem.taxValue * billItem.amount;
+              }
+              return total;
+            }, 0);
+
+            const totalPrice = subtotal - totalDiscounts + taxValues;
             const remainingAmount = totalPrice - totalPaid;
 
-
-
-
-
-
-
-
-            return   (
+            return (
               <>
                 <div className="d-flex gap-2 ">
-                  <div className="flex-grow-1 flex-shrink-1-l" style={{marginBottom: '20px', width: '80%'}}>
+                  <div className="flex-grow-1 flex-shrink-1-l" style={{ marginBottom: '20px', width: '80%' }}>
                     {/* maxHeight: '300px', overflowY: 'auto', */}
-                    <h4><Translate contentKey={'orders.details.billsCard.subTitle'} interpolate={{billId: bill.sequenceNumber}}>Order Bill {bill.sequenceNumber}</Translate></h4>
+                    <h4><Translate contentKey={'orders.details.billsCard.subTitle'} interpolate={{ billId: bill.sequenceNumber }}>Order Bill {bill.sequenceNumber}</Translate></h4>
 
-                    <TreeTable value={transformedTreeData} resizableColumns showGridlines columnResizeMode="expand" tableStyle={{ minWidth: '50rem' }}  className="mt-4">
-                      <Column field="id" header={translate('orders.details.billsCard.table.id')}/>
-                      <Column field="name"  header={translate('orders.details.billsCard.table.name')}  />
-                      <Column field="amount" header={translate('orders.details.common.amount')}/>
-                      <Column field="price" header={translate('orders.details.common.price')}/>
-                      <Column field="discount" header={translate('orders.details.common.discount')}/>
-                      <Column field="total" header={translate('orders.details.common.total')}/>
-                      <Column field="date" header={translate('orders.details.billsCard.table.date')}/>
+                    <TreeTable value={transformedTreeData} resizableColumns showGridlines columnResizeMode="expand" tableStyle={{ minWidth: '50rem' }} className="mt-4">
+                      <Column field="id" header={translate('orders.details.billsCard.table.id')} />
+                      <Column field="name" header={translate('orders.details.billsCard.table.name')} />
+                      <Column field="amount" header={translate('orders.details.common.amount')} />
+                      <Column field="price" header={translate('orders.details.common.price')} />
+                      <Column field="taxValue" header={translate('orders.details.common.taxValue')} />
+                      <Column field="discount" header={translate('orders.details.common.discount')} />
+                      <Column field="total" header={translate('orders.details.common.total')} />
+                      <Column field="date" header={translate('orders.details.billsCard.table.date')} />
                     </TreeTable>
 
                   </div>
 
                   <Card className="p-3  ml-auto">
-                    <h4><Translate contentKey={'orders.details.billsCard.payment.title'} interpolate={{billId: billIndex + 1}}>Payment Transactions for Order Bill {billIndex + 1}</Translate></h4>
+                    <h4><Translate contentKey={'orders.details.billsCard.payment.title'} interpolate={{ billId: billIndex + 1 }}>Payment Transactions for Order Bill {billIndex + 1}</Translate></h4>
                     {bill.paymentTransactions.map((item, index) => (
                       <div key={`payment-${billIndex}-${index}`}>
                         <strong><Translate contentKey={'orders.details.billsCard.payment.method'}>Payment Method:</Translate></strong> {item.method}
                         <span className="ml-3">
                           <strong><Translate contentKey={'orders.details.billsCard.payment.amount'}>Amount:</Translate></strong> ${item.amount.toFixed(2)}
-                                </span>
+                        </span>
                       </div>
                     ))}
                   </Card>
@@ -210,6 +209,12 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
                   </div>
                   <div className="d-flex justify-content-between my-2">
                     <div>
+                      <strong><Translate contentKey={'orders.details.common.totalTaxes'}>Total Taxes</Translate></strong>
+                    </div>
+                    <div className="text-center">$ {taxValues.toFixed(2)}</div>
+                  </div>
+                  <div className="d-flex justify-content-between my-2">
+                    <div>
                       <strong><Translate contentKey={'orders.details.common.totalPrice'}>Total Price</Translate></strong>
                     </div>
                     <div className="text-center">$ {totalPrice.toFixed(2)}</div>
@@ -222,10 +227,8 @@ export const OrderBill: React.FC<OrderBills> = ({ list, orderedItems }) => {
                   </div>
                 </Card>
               </>
-
-
-
-            )})
+            )
+          })
         ) : (
           <div><Translate contentKey={'orders.details.billsCard.emptyMessage'}>No Bills available.</Translate></div>
         )}

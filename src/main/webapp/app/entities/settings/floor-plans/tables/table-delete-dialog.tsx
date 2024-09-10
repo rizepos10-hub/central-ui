@@ -25,7 +25,7 @@ export const PizzaSizeDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.floorPlanTable.updateSuccess);
 
   const handleClose = () => {
-    navigate('/floor-plan/table' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

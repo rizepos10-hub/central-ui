@@ -1,205 +1,120 @@
- import {Button, Card, Col, ListGroup, ListGroupItem, Row, Table} from 'reactstrap';
-  import {translate, Translate} from 'react-jhipster';
-  import React from 'react';
-  import { IOrderedItem } from 'app/shared/model/ORDER/ordered-item.model';
-  import { IOrderedAddon } from 'app/shared/model/ORDER/ordered-addon.model';
-  import {TreeTable} from "primereact/treetable";
-  import {Column} from "primereact/column";
-  import { DataTable } from "primereact/datatable";
+import React from 'react';
+import { Column } from "primereact/column";
+import { DataTable } from "primereact/datatable";
+import { Checkbox } from 'primereact/checkbox';
+import { ActionCreatorWithOptionalPayload } from '@reduxjs/toolkit';
+import { InputNumber } from 'primereact/inputnumber';
+import { IBill } from 'app/shared/model/ORDER/bill.model';
+import { useAppDispatch } from 'app/config/store';
 
-  interface OrderedItems {
-    list: IOrderedItem[];
-    totalPayments: number
+export const OrderedItems = ({
+  dataTableValues,
+  rowClick = false,
+  entity = {},
+  changeEntityField,
+  refundMode = false
+}: {
+  dataTableValues: any;
+  rowClick?: boolean;
+  entity?: IBill;
+  changeEntityField?: ActionCreatorWithOptionalPayload<{
+    name: string;
+    value: any;
+  }, string>;
+  refundMode?: boolean;
+}) => {
+  const dispatch = useAppDispatch();
+
+  const itemNameTemplate = (rowData) => {
+    return (
+      <div className={`${rowData?.isAddon ? 'ps-3' : 'fw-bold'}`}>{rowData?.isAddon && '+'} {rowData?.itemName}</div>
+    )
   }
-  export const OrderedItems: React.FC<OrderedItems> = ({ list,totalPayments }) => {
 
-    const calculateAllItemsPrice = () => {
-      return list.reduce((acc, item) => {
-        return acc + calculateTotalItemPriceWithAddonsAndDiscounts(item);
-      }, 0);
+  const taxesTemplate = (rowData) => {
+    if (Object.keys(rowData?.taxIdsToValues).length === 0) {
+      return <span></span>
     }
-
-    const calculateAllItemsPriceBeforeDiscount = () => {
-      return list.reduce((acc, item) => {
-        return acc + item.price * item.amount;
-      }, 0);
-    }
-
-    const calculateSubtractedDiscounts = () => {
-      return list.reduce((acc, item) => {
-        const totalAddonDiscounts = item.addons?.reduce((addonAcc, addon) => {
-          return addonAcc + calculateDiscount(addon);
-        }, 0) || 0;
-
-        return acc + calculateDiscount(item) + totalAddonDiscounts;
-      }, 0);
-    }
-
-    const calculateDiscount = (item: IOrderedItem) => {
-      if (item.discount?.type === 'PERCENTAGE') {
-        return (item.price * item.discount.value) / 100;
-      } else if (item.discount?.type === 'FLAT') {
-        return item.discount.value !== undefined ? item.discount.value : 0;
-      } else {
-        return 0;
-      }
-    }
-
-
-    const calculateTotalItemPriceWithAddonsAndDiscounts = (item: IOrderedItem) => {
-      const itemPrice = item.price * item.amount;
-      const addonsPrice = item.addons?.reduce((acc, addon) => {
-        return acc + calculateAddonPriceAfterDiscount(addon) * addon.amount;
-      }, 0);
-      const itemTotalPrice = itemPrice + addonsPrice;
-      const itemDiscount = item.discount?.type === 'PERCENTAGE' ? (itemTotalPrice * item.discount.value) / 100 : item.discount?.value !== undefined ? item.discount.value : 0;
-      return itemTotalPrice - itemDiscount;
-    }
-
-    const calculateAddonPriceAfterDiscount = (addon: IOrderedAddon) => {
-      if (addon.discount?.type === 'PERCENTAGE') {
-        return addon.price - (addon.price * addon.discount.value) / 100;
-      } else if (addon.discount?.type === 'FLAT') {
-        return addon.price - (addon.discount.value !== undefined ? addon.discount.value : 0);
-      } else {
-        return addon.price;
-      }
-    };
-
-    const calculateAllTaxValues = () => {
-      return list.reduce((acc, item) => {
-        return acc + item.taxValue * item.amount;
-      }, 0);
-    }
-
-
-    const nameBodyTemplate = (rowData: IOrderedItem) => {
-      const attributeNames = rowData?.selectedRetailAttributes?.map((attribute) => attribute?.valueName).join(', ');
-      return (
-        <div className="d-flex flex-column">
-          <div>
-            <div className={'d-flex gap-2'}>
-              {rowData.itemName} {!rowData?.selectedRetailAttributes && rowData.variantCount > 1 && `( ${rowData.variantName} )`}
-            </div>
-
-            {rowData?.addons?.length > 0 && (
-              <>
-                {rowData.addons.map((addon: IOrderedAddon, index: number) => (
-                  <div key={index}>
-                    + {addon.name} (x {addon.amount.toFixed(1)}) {(calculateAddonPriceAfterDiscount(addon) * addon.amount).toFixed(1)}
-                  </div>
-                ))}
-              </>
-            )}
-            {attributeNames && <div>*{attributeNames}</div>}
+    return (
+      <div className="d-flex flex-column gap-2">
+        {Object.keys(rowData?.taxIdsToValues).map((key) => (
+          <div key={key} className="d-flex flex-column gap-2">
+            {rowData?.taxIdsToValues[key].code} : {rowData?.taxIdsToValues[key].value?.toFixed(2)}
           </div>
-        </div>
-      );
-    }
+        ))}
+        <div className='ps-3 fw-bold'>Total : {rowData?.taxValue?.toFixed(2)}</div>
+      </div>
+    )
+  }
 
-
+  const discountTemplate = (rowData) => {
+    if (!rowData?.discount) return null
     return (
       <div>
-        <div>
-          {list && list.length > 0 ? (
-            <DataTable
-              value={list}
-              resizableColumns
-              showGridlines
-              columnResizeMode="expand"
-              tableStyle={{ minWidth: '70rem' }}
-              className="mt-4"
-            >
-              <Column field="amount" header={translate('orders.details.common.qty')} />
-              <Column field="itemName" body={nameBodyTemplate} header={translate('orders.details.itemsCard.table.name')} />
-              <Column body={rowData => (rowData.taxValue ? 'T' : 'N')} header={translate('orders.details.common.taxes')} />
-              {/* <Column field="returnedAmount" headerStyle={{width: '158px'}}  header={translate('orders.details.common.returnedQuantity')} /> */}
-              {/* <Column body={(rowData) => rowData.amount - (rowData?.returnedAmount || 0)}  headerStyle={{width: '148px'}} header={translate('orders.details.common.totalQuantity')}  /> */}
-              {/* <Column body={(rowDate) => calculateDiscount(rowDate)} header={translate('orders.details.common.discount')} /> */}
-              {/* <Column field="price" header={translate('orders.details.common.price')} /> */}
-              <Column
-                body={rowData => calculateTotalItemPriceWithAddonsAndDiscounts(rowData).toFixed(2)}
-                header={translate('orders.details.common.amount')}
-              />
-            </DataTable>
-          ) : (
-            <div>
-              <Translate contentKey={'orders.details.itemsCard.emptyMessage'}>No items available.</Translate>
-            </div>
-          )}
-        </div>
-
-        {list.length > 0 && (
-          <Row>
-            <Col md={7}>
-              <Card className="mt-3 p-3">
-                <Table>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <strong>{translate('orders.details.common.subtotal')}</strong>
-                      </td>
-                      <td className="text-center">{calculateAllItemsPrice().toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>{translate('orders.details.common.taxes')}</strong>
-                      </td>
-                      <td className="text-center">{calculateAllTaxValues().toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>{translate('orders.details.common.total')}</strong>
-                      </td>
-                      <td className="text-center">{(calculateAllItemsPrice() + calculateAllTaxValues()).toFixed(2)}</td>
-                    </tr>
-                  </tbody>
-                </Table>
-                {/* <div className="d-flex justify-content-between my-2"> */}
-                {/*   <div> */}
-                {/*     <strong>{translate('orders.details.common.subtotal')}</strong> */}
-                {/*   </div> */}
-                {/*   <div className="text-center">{calculateAllItemsPriceBeforeDiscount().toFixed(2)}</div> */}
-                {/* </div> */}
-                {/* <div className="d-flex justify-content-between my-2"> */}
-                {/*   <div> */}
-                {/*     <strong>{translate('orders.details.common.totalDiscounts')}</strong> */}
-                {/*   </div> */}
-                {/*   <div className="text-center">{calculateSubtractedDiscounts().toFixed(2)}</div> */}
-                {/* </div> */}
-                {/* <div className="d-flex justify-content-between my-2"> */}
-                {/*   <div> */}
-                {/*     <strong>{translate('orders.details.common.subtotal')}</strong> */}
-                {/*   </div> */}
-                {/*   <div className="text-center">{calculateAllItemsPrice().toFixed(2)}</div> */}
-                {/* </div> */}
-                {/* <div className="d-flex justify-content-between my-2"> */}
-                {/*   <div> */}
-                {/*     <strong>{translate('orders.details.common.taxes')}</strong> */}
-                {/*   </div> */}
-                {/*   <div className="text-center">{calculateAllTaxValues().toFixed(2)}</div> */}
-                {/* </div> */}
-                {/* <div className="d-flex justify-content-between my-2"> */}
-                {/*   <div> */}
-                {/*     <strong>{translate('orders.details.common.paid')}</strong> */}
-                {/*   </div> */}
-                {/*   <div className="text-center">{totalPayments.toFixed(2)}</div> */}
-                {/* </div> */}
-                {/* <div className="d-flex justify-content-between my-2"> */}
-                {/*   <div> */}
-                {/*     <strong>{translate('orders.details.common.remaining')}</strong> */}
-                {/*   </div> */}
-                {/*   <div className="text-center">{(calculateAllItemsPrice() - totalPayments).toFixed(2) }</div> */}
-                {/* </div> */}
-              </Card>
-            </Col>
-            {/* <Col md={6} className={"mt-3"}> */}
-            {/*   <Card> */}
-            {/*     <div className="text-center">{(calculateAllItemsPrice() + calculateAllTaxValues()).toFixed(2)}</div> */}
-            {/*   </Card> */}
-            {/* </Col> */}
-          </Row>
-        )}
+        {rowData.discount.value} {rowData.discount.type === "PERCENTAGE" && '%'}
       </div>
-    );
-  };
+    )
+  }
+  const multiSelectTemplate = (rowData) => {
+    if (rowData?.isAddon) return null
+    return (
+      <Checkbox
+        inputId={`${rowData.id}`}
+        checked={entity?.items?.some(item => item.id === rowData.id)}
+        onChange={(e) => {
+          dispatch(changeEntityField({
+            name: 'items',
+            value: [...entity.items, {
+              id: rowData.id,
+              amount: rowData.amount,
+            }]
+          }))
+        }}
+      />
+    )
+  }
+
+  const refundQuantityTemplate = (rowData) => {
+    if (rowData?.isAddon) return null
+    return (
+      <div>
+        <InputNumber
+          max={rowData.amount}
+          min={0}
+          value={rowData.amount}
+          onChange={(e) => {
+            dispatch(changeEntityField({
+              name: 'items',
+              value: [...entity.items, {
+                id: rowData.id,
+                amount: e.value,
+              }]
+            }))
+          }}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <DataTable
+        value={dataTableValues}
+        dataKey="id"
+        tableStyle={{ minWidth: '60rem' }}
+        selectionMode={rowClick ? null : 'checkbox'}
+        selection={entity?.items}
+        onSelectionChange={(e) => changeEntityField({ name: 'items', value: e.value })}
+      >
+        {refundMode ? <Column headerStyle={{ width: '3rem' }} body={multiSelectTemplate}></Column> : null}
+        {refundMode ? <Column header="Refund Quantity" headerStyle={{ width: '3rem' }} body={refundQuantityTemplate}></Column> : null}
+        <Column field="itemName" header="Name" sortable body={itemNameTemplate} />
+        <Column field="amount" header="Quantity" sortable />
+        <Column field="price" header="Price" sortable />
+        <Column field="taxIdsToValues" header="Taxes" sortable body={taxesTemplate} />
+        <Column field="discount" header="Discount" sortable body={discountTemplate} />
+        <Column field="total" header="Total" sortable />
+      </DataTable>
+    </div>
+  );
+};

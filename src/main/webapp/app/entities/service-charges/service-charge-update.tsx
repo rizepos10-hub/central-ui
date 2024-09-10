@@ -24,7 +24,6 @@ export const ServiceChargeUpdate = () => {
   const serviceChargeEntity = useAppSelector(state => state.serviceCharge.entity);
   const loading = useAppSelector(state => state.serviceCharge.loading);
   const updating = useAppSelector(state => state.serviceCharge.updating);
-  const updateSuccess = useAppSelector(state => state.serviceCharge.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
 
   useEffect(() => {
@@ -34,21 +33,11 @@ export const ServiceChargeUpdate = () => {
     dispatch(getBranches({}));
   }, []);
 
-  useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    return () => {
-      dispatch(reset());
-    }
-  }, [updateSuccess]);
-
-
   const handleClose = () => {
     navigate(-1);
   };
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault();
     const entity = {
       branchId: serviceChargeEntity.branch?.id,
@@ -64,9 +53,25 @@ export const ServiceChargeUpdate = () => {
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/service-charge/${newId}/edit`)
+          }
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/service-charge/new`)
+        }
+      })
     }
   };
 
@@ -119,13 +124,13 @@ export const ServiceChargeUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form>
               <FormGroup>
                 <div className={"d-flex gap-2 w-100"}>
                   <div className={"d-flex flex-column mb-3 w-100"}>
                     <Label htmlFor="service-charge-key">{translate('service-charge.key')}</Label>
                     <Dropdown
-                      value={serviceChargeEntity.key}
+                      value={serviceChargeEntity.key || null}
                       onChange={e => dispatch(changeEntityField({ name: 'key', value: e.value }))}
                       options={serviceChargeKeys}
                       placeholder="Select a Key"
@@ -148,7 +153,7 @@ export const ServiceChargeUpdate = () => {
                   <div className={"d-flex flex-column mb-3 w-100"}>
                     <Label htmlFor="service-charge-type">{translate('service-charge.settings.type')}</Label>
                     <Dropdown
-                      value={serviceChargeEntity.value?.setting?.type}
+                      value={serviceChargeEntity.value?.setting?.type || null}
                       onChange={e => handleTypeChange(e)}
                       options={typeOptions}
                       placeholder="Select a Setting"
@@ -160,7 +165,7 @@ export const ServiceChargeUpdate = () => {
                     <Label htmlFor="service-charge-applicableOn">{translate('service-charge.applicableOn')}</Label>
                     <Select
                       options={applicableOnOptions}
-                      value={applicableOnOptions.filter(option => serviceChargeEntity.value?.setting?.applicableOn?.includes(option.value))}
+                      value={applicableOnOptions.filter(option => serviceChargeEntity.value?.setting?.applicableOn?.includes(option.value)) || null}
                       onChange={handleApplicableOnChange}
                       isMulti
                     />
@@ -171,7 +176,7 @@ export const ServiceChargeUpdate = () => {
                   <div className={"d-flex flex-column mb-3 w-100"}>
                     <Label htmlFor="service-charge-whenToApply">{translate('service-charge.whenToApply')}</Label>
                     <Dropdown
-                      value={serviceChargeEntity.value?.whenToApply}
+                      value={serviceChargeEntity.value?.whenToApply || null}
                       options={whenToApplyOptions}
                       onChange={e => handleValueChange('whenToApply', e.value)}
                       placeholder="Select a When To Apply"
@@ -182,7 +187,7 @@ export const ServiceChargeUpdate = () => {
                   <div className={"d-flex flex-column mb-3 w-100"}>
                     <Label htmlFor="service-charge-branch">{translate('service-charge.branch')}</Label>
                     <Dropdown
-                      value={serviceChargeEntity.branch?.id}
+                      value={serviceChargeEntity.branch?.id || null}
                       onChange={e => handleBranchChange(e)}
                       options={branchList.map(branch => ({ label: branch.name, value: branch.id }))}
                       placeholder="Select a Branch"
@@ -230,8 +235,7 @@ export const ServiceChargeUpdate = () => {
                 </div>
 
               </FormGroup>
-
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/service-charge" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
@@ -239,10 +243,16 @@ export const ServiceChargeUpdate = () => {
                 </span>
               </Button>
               &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           )}

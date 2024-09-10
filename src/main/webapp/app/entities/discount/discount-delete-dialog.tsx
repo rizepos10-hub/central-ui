@@ -25,7 +25,7 @@ export const DiscountDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.discount.updateSuccess);
 
   const handleClose = () => {
-    navigate('/discount' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {

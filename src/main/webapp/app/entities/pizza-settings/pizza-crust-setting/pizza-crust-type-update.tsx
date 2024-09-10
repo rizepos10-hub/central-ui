@@ -6,15 +6,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-crust-type.reducer';
-import {InputText} from "primereact/inputtext";
+import { InputText } from "primereact/inputtext";
 import Select from "react-select";
-import {ICrustType} from "app/shared/model/PIZZA/crust-type.model";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState} from "react-jhipster";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {getEntities} from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
-import {getEntities as getPricingClasses} from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
-import {Checkbox} from "primereact/checkbox";
+import { ICrustType } from "app/shared/model/PIZZA/crust-type.model";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { getSortState, Translate } from "react-jhipster";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { getEntities } from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
+import { getEntities as getPricingClasses } from "app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer";
+import { Checkbox } from "primereact/checkbox";
 
 export const PizzaCrustTypeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -42,7 +42,7 @@ export const PizzaCrustTypeUpdate = () => {
 
 
   const handleClose = () => {
-    navigate('/pizza-crust' + location.search);
+    navigate(-1);
   };
 
   useEffect(() => {
@@ -64,13 +64,10 @@ export const PizzaCrustTypeUpdate = () => {
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
-      handleClose();
-    }
-    if(pizzaCrustTypeEntity){
+    if (pizzaCrustTypeEntity) {
       setPizzaCrustType(pizzaCrustTypeEntity)
     }
-  }, [updateSuccess, pizzaCrustTypeEntity?.name]);
+  }, [pizzaCrustTypeEntity?.name]);
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -79,19 +76,35 @@ export const PizzaCrustTypeUpdate = () => {
 
 
   const handleHiddenChange = (selectedSizes) => {
-    setPizzaCrustType(prevState => ({...prevState, hiddenOnSizes: selectedSizes}))
+    setPizzaCrustType(prevState => ({ ...prevState, hiddenOnSizes: selectedSizes }))
   }
 
-  const saveEntity = (e) => {
+  const saveEntity = (e, createNew = false) => {
     e.preventDefault()
     const entity = {
       ...pizzaCrustType,
     };
 
     if (isNew) {
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        if (createNew) {
+          dispatch(reset());
+        } else {
+          const payload = res?.payload as any;
+          const newId = payload?.data?.id;
+
+          // @ts-expect-error -- unknown type
+          if (!res?.error) {
+            navigate(`/pizza-crust-type/${newId}/edit`)
+          }
+        }
+      })
     } else {
-      dispatch(updateEntity(entity));
+      dispatch(updateEntity(entity)).then(() => {
+        if (createNew) {
+          navigate(`/pizza-crust-type/new`)
+        }
+      })
     }
   };
 
@@ -99,7 +112,7 @@ export const PizzaCrustTypeUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ?  "Add New Crust Type" : "Edit Crust Type"}</h2>
+          <h2>{isNew ? "Add New Crust Type" : "Edit Crust Type"}</h2>
         </Col>
       </Row>
       <Row>
@@ -107,7 +120,7 @@ export const PizzaCrustTypeUpdate = () => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <form onSubmit={saveEntity}>
+            <form>
               <FormGroup>
                 <div className={"d-flex flex-column"}>
                   <Label for="pizza-crustType-name">Name</Label>
@@ -116,7 +129,7 @@ export const PizzaCrustTypeUpdate = () => {
                     name="name"
                     required={true}
                     id="pizza-crustType-name"
-                    value={pizzaCrustType.name}
+                    value={pizzaCrustType.name || ''}
                     onChange={handleChange}
                   />
                 </div>
@@ -128,7 +141,7 @@ export const PizzaCrustTypeUpdate = () => {
                     getOptionValue={option => option.id}
                     getOptionLabel={option => option.name}
                     id="pizza-crustType-hiddenOn"
-                    value={pizzaCrustType?.hiddenOnSizes}
+                    value={pizzaCrustType?.hiddenOnSizes || []}
                     onChange={handleHiddenChange}
                   />
                 </div>
@@ -138,12 +151,12 @@ export const PizzaCrustTypeUpdate = () => {
                     Pricing Class
                   </label>
                   <Select
-                    value={pizzaCrustType?.pricingClass}
+                    value={pizzaCrustType?.pricingClass || null}
                     required
                     options={crustTypePricingClasses}
                     getOptionLabel={option => option.name}
                     getOptionValue={option => option.id}
-                    onChange={(toppingPriceOption) => setPizzaCrustType((prevState) => ({...prevState, pricingClass: toppingPriceOption}))}
+                    onChange={(toppingPriceOption) => setPizzaCrustType((prevState) => ({ ...prevState, pricingClass: toppingPriceOption }))}
                   />
                 </div>
 
@@ -154,20 +167,30 @@ export const PizzaCrustTypeUpdate = () => {
                   <Checkbox
                     checked={pizzaCrustType?.chosenByDefault}
                     onChange={(e) => setPizzaCrustType((prev) =>
-                      ({...prev, chosenByDefault: e.checked }))}
+                      ({ ...prev, chosenByDefault: e.checked }))}
                   />
                 </div>
 
 
               </FormGroup>
-              <Button tag={Link} to="/pizza-crust" replace color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;Back
+                &nbsp;
+                <span className="d-none d-md-inline">
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </span>
               </Button>
               &nbsp;
-              <Button color="primary" type="submit" disabled={updating}>
+              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
-                &nbsp;Save
+                &nbsp;
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              &nbsp;
+              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <FontAwesomeIcon icon="save" />
+                &nbsp;
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
             </form>
           )}

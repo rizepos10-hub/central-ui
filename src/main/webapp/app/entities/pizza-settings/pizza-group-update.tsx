@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Container,
   Row,
@@ -8,10 +8,10 @@ import {
 } from 'reactstrap';
 import { InputText } from "primereact/inputtext";
 import { TabMenu } from "primereact/tabmenu";
-import {Button as PrimeButton} from 'primereact/button'
+import { Button as PrimeButton } from 'primereact/button'
 
-import {TabPanel, TabView} from "primereact/tabview";
-import {useAppDispatch, useAppSelector} from "app/config/store";
+import { TabPanel, TabView } from "primereact/tabview";
+import { useAppDispatch, useAppSelector } from "app/config/store";
 import {
   createDefinitionGroup,
   createDefinitionGroupOption,
@@ -26,6 +26,7 @@ import {
   createDefinitions, deleteGroup, emptyGroupValues
 } from "app/entities/pizza-settings/utils";
 import OptionComponent from "app/entities/pizza-settings/option-component";
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 const PizzaGroupUpdate = () => {
 
@@ -72,30 +73,53 @@ const PizzaGroupUpdate = () => {
 
   const group = groups[selectedGroupIndex]
 
+  const confirm1 = (e) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => discardChanges(e)
+    });
+  };
+
+  const discardChanges = (e) => {
+    setNewGroup(emptyGroupValues);
+    checkAndFetchPizzaDefinition(dispatch)
+    setIsDirty(false);
+    setSelectedGroupIndex(e.index);
+  }
+
   const handleTabChange = (e) => {
     if (isDirty && e.index !== selectedGroupIndex) {
-      if (window.confirm('Discard changes?')) {
-        setNewGroup(emptyGroupValues);
-        checkAndFetchPizzaDefinition(dispatch)
-        setIsDirty(false);
-        setSelectedGroupIndex(e.index);
-      }
-    }else{
+      confirm1(e)
+    } else {
       setSelectedGroupIndex(e.index);
     }
   };
 
+  const confirm2 = (e) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => discardChanges2(e)
+    });
+  };
+
+  const discardChanges2 = (e) => {
+    setNewGroup(emptyGroupValues);
+    checkAndFetchPizzaDefinition(dispatch)
+    setIsDirty(false);
+    setSelectedGroupIndex(null);
+    setIsAddingGroup((prev) => !prev);
+  }
 
   const handleAddNewGroupInputs = (e) => {
     if (isDirty && e.index !== selectedGroupIndex) {
-      if (window.confirm('Discard changes?')) {
-        setNewGroup(emptyGroupValues);
-        checkAndFetchPizzaDefinition(dispatch)
-        setIsDirty(false);
-        setSelectedGroupIndex(null);
-        setIsAddingGroup((prev) => !prev);
-      }
-    }else{
+      confirm2(e)
+    } else {
       setSelectedGroupIndex(null);
       setIsAddingGroup((prev) => !prev);
 
@@ -107,8 +131,8 @@ const PizzaGroupUpdate = () => {
 
   const addNewGroup = () => {
     if (newGroup.name.trim() === '') {
-     alert("Please Enter group name")
-     return
+      alert("Please Enter group name")
+      return
     }
     setSelectedGroupIndex(groups.length);
     setNewGroup(emptyGroupValues);
@@ -136,24 +160,29 @@ const PizzaGroupUpdate = () => {
   };
 
 
+  const confirm3 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      accept: () => handleDeleteGroup()
+    });
+  };
 
   const handleDeleteGroup = () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this group?");
+    const updatedGroups = deleteGroup(groups, selectedGroupIndex);
 
-    if (confirmDelete) {
-      const updatedGroups = deleteGroup(groups, selectedGroupIndex);
+    setSelectedGroupIndex(updatedGroups.length > 0 ? 0 : null);
 
-      setSelectedGroupIndex(updatedGroups.length > 0 ? 0 : null);
+    setGroups(updatedGroups);
 
-      setGroups(updatedGroups);
-
-      dispatch(deleteDefinitionGroup({ groupId: group.id, id: pizzaDefinition.id }));
-    }
+    dispatch(deleteDefinitionGroup({ groupId: group.id, id: pizzaDefinition.id }));
   };
 
 
   const handleButtonAdd = (type) => {
-    if (selectedGroupIndex === null){
+    if (selectedGroupIndex === null) {
       alert("please select a group first")
       return
     }
@@ -162,14 +191,14 @@ const PizzaGroupUpdate = () => {
   };
 
   const handleAddNewOption = async (type) => {
-      const order = groups[selectedGroupIndex]?.options?.length + 1
-      const updatedGroups = await addNewOption( selectedGroupIndex, dispatch, pizzaDefinition, group, order, type);
-      setGroups(updatedGroups);
+    const order = groups[selectedGroupIndex]?.options?.length + 1
+    const updatedGroups = await addNewOption(selectedGroupIndex, dispatch, pizzaDefinition, group, order, type);
+    setGroups(updatedGroups);
 
 
-      setTimeout(() => {
+    setTimeout(() => {
       if (newOptionRef.current) {
-        newOptionRef.current.scrollIntoView({  behavior: "smooth", block: "start", inline: "nearest"});
+        newOptionRef.current.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
       }
     }, 100);
 
@@ -210,17 +239,9 @@ const PizzaGroupUpdate = () => {
     });
   };
 
-
-
-
-
-
-
-  if(pizzaDefinitionLoading){
+  if (pizzaDefinitionLoading) {
     return <Spinner />
   }
-
-
 
   return (
     <Row>
@@ -230,37 +251,38 @@ const PizzaGroupUpdate = () => {
           <Row>
             {groups.length > 0 && (
               <Col md="8">
-                <TabView  activeIndex={selectedGroupIndex} scrollable onTabChange={(e) => {
+                <TabView activeIndex={selectedGroupIndex} scrollable onTabChange={(e) => {
                   handleTabChange(e)
                   isAddingGroup && setIsAddingGroup(false)
                 }}>
                   {groups.map((tab, index) => (
                     <TabPanel key={index}
-                              header={<div style={{ outlineColor: '#eee189', userSelect: 'text' }} contentEditable
-                                           onInput={(e) => {
-                                             setNewGroup({...newGroup, name: e.currentTarget.innerText})
-                                             setIsDirty(true)}}>
-                              {tab.name}
-                            </div>} />
+                      header={<div style={{ outlineColor: '#eee189', userSelect: 'text' }} contentEditable
+                        onInput={(e) => {
+                          setNewGroup({ ...newGroup, name: e.currentTarget.innerText })
+                          setIsDirty(true)
+                        }}>
+                        {tab.name}
+                      </div>} />
                   ))}
                 </TabView>
               </Col>
             )}
             <Col md='4' >
-                  <button
-                    className="btn btn-primary ml-2 mb-1"
-                    onClick={handleAddNewGroupInputs}
-                  >
-                    +
-                  </button>
+              <button
+                className="btn btn-primary ml-2 mb-1"
+                onClick={handleAddNewGroupInputs}
+              >
+                +
+              </button>
 
-              {isDirty && <Button  color="primary" className="mx-2" onClick={handleSaveGroup}>
+              {isDirty && <Button color="primary" className="mx-2" onClick={handleSaveGroup}>
                 Save
               </Button>}
               {selectedGroupIndex !== null && <Button
                 color="danger"
                 className="ml-2"
-                onClick={handleDeleteGroup}
+                onClick={confirm3}
               >
                 Delete Group
               </Button>}
@@ -280,50 +302,50 @@ const PizzaGroupUpdate = () => {
 
               {isAddingGroup && (
 
-                  <div className="d-flex flex-column w-3">
-                    <InputText
-                      type="text"
-                      className="mb-1"
-                      placeholder="Enter Group Name"
-                      value={newGroup.name}
-                      onChange={(e) => handleNewGroupChange('name', e.target.value)}/>
+                <div className="d-flex flex-column w-3">
+                  <InputText
+                    type="text"
+                    className="mb-1"
+                    placeholder="Enter Group Name"
+                    value={newGroup.name}
+                    onChange={(e) => handleNewGroupChange('name', e.target.value)} />
+
+                  <InputText
+                    type="text"
+                    className="mb-1"
+                    placeholder="Enter Group Description"
+                    value={newGroup.desc}
+                    onChange={(e) => handleNewGroupChange('desc', e.target.value)}
+                  />
+
+                  <div className="d-flex">
 
                     <InputText
                       type="text"
                       className="mb-1"
-                      placeholder="Enter Group Description"
-                      value={newGroup.desc}
-                      onChange={(e) => handleNewGroupChange('desc', e.target.value)}
+                      placeholder="Enter Second Desc"
+                      value={newGroup.additionalDesc}
+                      onChange={(e) => handleNewGroupChange('additionalDesc', e.target.value)}
                     />
-
-                    <div className="d-flex">
-
-                <InputText
-                  type="text"
-                  className="mb-1"
-                  placeholder="Enter Second Desc"
-                  value={newGroup.additionalDesc}
-                  onChange={(e) => handleNewGroupChange('additionalDesc', e.target.value)}
-                />
                     <PrimeButton
                       className="btn btn-primary ml-2 mb-1"
                       onClick={addNewGroup}
                     >
                       Add Group
                     </PrimeButton>
-                    </div>
-                    </div>
+                  </div>
+                </div>
               )}
               {selectedGroupIndex !== null && (
                 <>
                   <div className="d-flex gap-3 mb-4">
                     <h2 contentEditable
-                        className="cursor-pointer"
-                        style={{outlineColor: '#eee189',  userSelect: 'text'}}
-                        onInput={(e) => {
-                          setNewGroup({...newGroup, desc: e.currentTarget.innerText});
-                          setIsDirty(true);
-                        }}>
+                      className="cursor-pointer"
+                      style={{ outlineColor: '#eee189', userSelect: 'text' }}
+                      onInput={(e) => {
+                        setNewGroup({ ...newGroup, desc: e.currentTarget.innerText });
+                        setIsDirty(true);
+                      }}>
                       {groups[selectedGroupIndex]?.desc || 'default group description'}
                     </h2>
                     <div>
@@ -364,9 +386,9 @@ const PizzaGroupUpdate = () => {
                             groupId={group.id}
                             groups={groups}
                             onOptionDelete={handleOptionDelete}
-                            onOptionSave={handleSaveUpdatedOption}/>
+                            onOptionSave={handleSaveUpdatedOption} />
                           {index < groups[selectedGroupIndex]?.options?.length - 1 && (
-                            <hr className="my-5 border border-dark"/>
+                            <hr className="my-5 border border-dark" />
                           )}
                         </React.Fragment>
                       ))
@@ -380,12 +402,12 @@ const PizzaGroupUpdate = () => {
 
                   <div className="d-flex flex-column gap-3 mt-5">
                     <h2 contentEditable
-                        className="cursor-pointer"
-                        style={{outlineColor: '#eee189',  userSelect: 'text'}}
-                        onInput={(e) => {
-                          setNewGroup({...newGroup, additionalDesc: e.currentTarget.innerText});
-                          setIsDirty(true);
-                        }}>
+                      className="cursor-pointer"
+                      style={{ outlineColor: '#eee189', userSelect: 'text' }}
+                      onInput={(e) => {
+                        setNewGroup({ ...newGroup, additionalDesc: e.currentTarget.innerText });
+                        setIsDirty(true);
+                      }}>
                       {groups[selectedGroupIndex]?.additionalDesc || ' Second group description'}
                     </h2>
                     <h3>Topping Options</h3>
@@ -399,9 +421,9 @@ const PizzaGroupUpdate = () => {
                             groupId={group.id}
                             groups={groups}
                             onOptionDelete={handleOptionDelete}
-                            onOptionSave={handleSaveUpdatedOption}/>
+                            onOptionSave={handleSaveUpdatedOption} />
                           {index < groups[selectedGroupIndex]?.options?.length - 1 && (
-                            <hr className="my-5 border border-dark"/>
+                            <hr className="my-5 border border-dark" />
                           )}
                         </React.Fragment>
                       ))

@@ -1,4 +1,4 @@
-import {IAttachment} from "app/shared/model/attachment.model";
+import { IAttachment } from "app/shared/model/attachment.model";
 import { IBranchDetails } from "../business-detail.model";
 import { ILayoutSettings, defaultLayoutValue } from "./layout-settings";
 
@@ -22,7 +22,29 @@ export interface IUiSettings {
   applicationName?: string;
   orderConfirmation?: boolean;
   branchDetail?: IBranchDetails[];
+  colorSetting?: IColorSetting | null
+  fontSetting?: IFontSetting
 }
+
+export type IColorSetting = {
+  background: string
+  foreground: string
+  primary: string
+  primaryForeground: string
+  secondary: string
+  secondaryForeground: string
+  muted: string
+  mutedForeground: string
+}
+
+export type IFontSetting = {
+  fontFamily: string
+  fontSize: string
+  fontWeight: string
+  lineHeight: string
+  letterSpacing: string
+}
+
 
 export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT"];
 export const orderTakingOptions: IUiSettings["orderTaking"][] = ["TAKE_AWAY", "DELIVERY"];
