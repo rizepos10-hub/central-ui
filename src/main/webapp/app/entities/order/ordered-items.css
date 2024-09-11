@@ -1,0 +1,33 @@
+@media print {
+  body,
+  html {
+    width: 210mm; /* A4 width */
+    height: 297mm; /* A4 height */
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .print-container {
+    width: 100%; /* A4 width */
+    height: 297mm; /* A4 height */
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .p-datatable-table {
+    width: 50% !important;
+  }
+
+  tbody,
+  td,
+  tfoot,
+  th,
+  thead,
+  tr {
+    border: 1px solid #ccc !important;
+  }
+}
