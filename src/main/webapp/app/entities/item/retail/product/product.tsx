@@ -198,7 +198,7 @@ export const Product = () => {
         <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised color="info" onClick={handleSyncList} disabled={loading}>
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <ImportButton type={"REGULAR_RESTAURANT"} />
+        <ImportButton type={"RETAIL"} />
         <Button label={translate('items.view.actions.createItem')} raised onClick={handleCreate} disabled={loading}>
         </Button>
       </div>

@@ -1,7 +1,7 @@
 import { Button } from "primereact/button";
 import React from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
-import { FileType, importData } from "app/shared/reducers/import-data";
+import { FileType, importData, importRetailData } from "app/shared/reducers/import-data";
 
 type ItemImportProps = {
   type:  FileType
@@ -22,7 +22,7 @@ const ImportButton = ({type} :ItemImportProps) => {
       const selectedFile = inputElement.files?.[0] || null;
 
       if (selectedFile) {
-        dispatch(importData({ file: selectedFile, type }));
+        dispatch(importRetailData({ file: selectedFile }));
       }
     };
     fileInput.click();
@@ -53,6 +53,10 @@ const ImportButton = ({type} :ItemImportProps) => {
       case "TOPPING":
         filePath = "content/samples/toppings.xlsx";
         fileName = "toppings.xlsx";
+        break;
+      case "RETAIL": 
+        filePath = "content/samples/retail.xlsx";
+        fileName = "retail.xlsx";
         break;
       default:
         return;
