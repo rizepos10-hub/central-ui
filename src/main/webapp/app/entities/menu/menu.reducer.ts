@@ -45,8 +45,8 @@ export const sendEvent = createAsyncThunk(
 
 export const getEntity = createAsyncThunk(
   'menu/fetch_entity',
-  async ({ id, page, size, category, name }: { id: string | number; page?: string | number; size?: string | number; category?: string; name?: string }) => {
-    const requestUrl = `${apiUrl}/${id}?page=${page}&size=${size}&category=${category}&name=${name}`;
+  async ({ id }: { id: string | number; }) => {
+    const requestUrl = `${apiUrl}/${id}`;
     return axios.get<IMenu>(requestUrl);
   },
   { serializeError: serializeAxiosError }
