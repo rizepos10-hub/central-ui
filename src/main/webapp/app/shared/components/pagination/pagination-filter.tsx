@@ -9,7 +9,7 @@ const PaginationFilter = ({ totalPages }) => {
     const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
     const pagesToShow = 3;
-    const halfToShow = Math.floor(pagesToShow / 2);
+    const halfToShow = Math.ceil(pagesToShow / 2);
 
     let startPage = Math.max(1, currentPage - halfToShow);
     let endPage = Math.min(totalPages, currentPage + halfToShow);

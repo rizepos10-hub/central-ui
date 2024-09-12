@@ -82,7 +82,7 @@ const MenuTable = ({
             const { headers } = res.payload as any;
             const totalCount = headers['x-total-count']
             if (headers['x-total-count']) {
-                setTotalPages(Math.floor(totalCount / 10))
+                setTotalPages(Math.ceil(totalCount / 10))
             }
         });
     }, [
