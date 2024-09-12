@@ -73,16 +73,12 @@ const MenuTable = ({
 
     useEffect(() => {
         dispatch(getEntity({
-            id: params?.id,
-            page: parseInt(searchParams.get("page"), 10) - 1 || 0,
-            size: parseInt(searchParams.get("size"), 10) || 10,
-            category: searchParams.get("categoryId") || '',
-            name: searchParams.get("name") || '',
+            id: params?.id
         })).then(res => {
             const { headers } = res.payload as any;
             const totalCount = headers['x-total-count']
             if (headers['x-total-count']) {
-                setTotalPages(Math.floor(totalCount / 10))
+                setTotalPages(Math.ceil(totalCount / 10))
             }
         });
     }, [
