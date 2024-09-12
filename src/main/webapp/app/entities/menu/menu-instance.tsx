@@ -59,13 +59,7 @@ const MenuInstance = () => {
 
     const searchParams = new URLSearchParams(location.search)
     useEffect(() => {
-        dispatch(getEntity({
-            id,
-            page: parseInt(searchParams.get("page"), 10) - 1 || 0,
-            size: parseInt(searchParams.get("size"), 10) || 10,
-            category: searchParams.get("categoryId") || '',
-            name: searchParams.get("name") || '',
-        }))
+        dispatch(getEntity({ id }))
     }, [
         navigate
     ]);
@@ -155,7 +149,6 @@ const MenuInstance = () => {
         <div>
             {menuEntity.id && (
                 <MenuUpdate
-                    menuEntity={menuEntity}
                     setIsModalOpen={setIsModalOpen}
                     isModalOpen={isModalOpen}
                     saveEntity={saveEntity}

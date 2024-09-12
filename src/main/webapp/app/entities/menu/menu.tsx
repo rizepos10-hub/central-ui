@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Translate, translate, TextFormat, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,6 +21,7 @@ import { convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util
 
 export const Menu = () => {
   const dispatch = useAppDispatch();
+  const { id } = useParams<'id'>();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -177,17 +178,18 @@ export const Menu = () => {
 
   return (
     <>
-      <MenuUpdate
-        menuEntity={menuList}
-        setIsModalOpen={setIsModalOpen}
-        isModalOpen={isModalOpen}
-        saveEntity={saveEntity}
-        updating={updating}
-        selectedName={selectedName}
-        setSelectedName={setSelectedName}
-        selectedBranches={selectedBranches}
-        setSelectedBranches={setSelectedBranches}
-      />
+      {id && (
+        <MenuUpdate
+          setIsModalOpen={setIsModalOpen}
+          isModalOpen={isModalOpen}
+          saveEntity={saveEntity}
+          updating={updating}
+          selectedName={selectedName}
+          setSelectedName={setSelectedName}
+          selectedBranches={selectedBranches}
+          setSelectedBranches={setSelectedBranches}
+        />
+      )}
       <div>
         <DataTable value={menuList} header={header} editMode="row"
           loading={loading} filters={filters} filterDisplay="row"
