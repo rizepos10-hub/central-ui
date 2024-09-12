@@ -499,7 +499,7 @@ const OrderCreate = () => {
                     </Row>
                     <Row>
                         <Col md={12} className="d-flex justify-content-center align-items-center pt-2">
-                            <PaginationFilter totalPages={Math.floor(totalItems / 10)} />
+                            <PaginationFilter totalPages={Math.ceil(totalItems / 10)} />
                         </Col>
                     </Row>
                 </Col>

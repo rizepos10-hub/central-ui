@@ -225,7 +225,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           </tbody>
         </table>
         <div className="d-flex justify-content-center mt-3">
-          <PaginationFilter totalPages={Math.floor(totalItems / 10)} />
+          <PaginationFilter totalPages={Math.ceil(totalItems / 10)} />
         </div>
         {/* <div className="d-flex justify-content-center mt-3">
           <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} color="primary" className="mr-2">
