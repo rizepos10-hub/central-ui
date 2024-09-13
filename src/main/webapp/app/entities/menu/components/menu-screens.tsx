@@ -1065,7 +1065,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             handleEditScreen();
                         }}
                     >
-                        <Translate contentKey={'entity.action.save'}>Save</Translate>
+                        <Translate contentKey={'entity.action.apply'}>Apply</Translate>
                     </Button>
                 </ModalBody>
             </Modal>
