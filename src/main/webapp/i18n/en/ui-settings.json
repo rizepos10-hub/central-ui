@@ -25,6 +25,7 @@
       "showDeliveryTips": "Show Delivery Tips",
       "orderConfirmation": "Enable Order Confirmation",
       "scheduleOrders": "Schedule Orders",
+      "canOrder": "Can Order",
       "hideModalDescription": "Hide Modal Description",
       "hideItemDescription": "Hide Item Description",
       "currencySymbolPosition": "Currency Symbol Position",
