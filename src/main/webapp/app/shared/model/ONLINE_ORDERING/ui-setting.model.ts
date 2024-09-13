@@ -24,6 +24,7 @@ export interface IUiSettings {
   branchDetail?: IBranchDetails[];
   colorSetting?: IColorSetting | null
   fontSetting?: IFontSetting
+  canOrder?: boolean
 }
 
 export type IColorSetting = {
