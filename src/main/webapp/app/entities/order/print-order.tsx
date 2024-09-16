@@ -127,6 +127,7 @@ const PrintOrder = () => {
                                 <table>
                                     <tr className={styles.information}>
                                         <td>
+                                            <th>Invoice</th>
                                             {uiSettings?.applicationName}<br />
                                             {/* 12345 Sunny Road<br /> */}
                                             {/* Sunnyville, TX 12345 */}

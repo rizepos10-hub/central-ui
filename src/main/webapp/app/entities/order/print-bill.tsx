@@ -54,8 +54,7 @@ const PrintBill = () => {
                                             />
                                         </td>
                                         <td>
-                                            Invoice #: {orderEntity?.sequenceNumber}<br />
-                                            Created: {new Date(orderEntity?.createdDate).toLocaleString()}<br />
+                                            Date : {new Date(billEntity?.createdDate).toLocaleString()}<br />
                                             {/* Due: February 1, 2023 */}
                                         </td>
                                     </tr>
@@ -68,6 +67,7 @@ const PrintBill = () => {
                                 <table>
                                     <tr className={styles.information}>
                                         <td>
+                                            <th>Receipt</th>
                                             {uiSettings?.applicationName}<br />
                                             {/* 12345 Sunny Road<br /> */}
                                             {/* Sunnyville, TX 12345 */}
@@ -82,7 +82,6 @@ const PrintBill = () => {
                                 </table>
                             </td>
                         </tr>
-
                         <tr className={styles.heading}>
                             <td>Invoice Number</td>
                             <td>Invoice Date</td>
@@ -91,7 +90,7 @@ const PrintBill = () => {
 
                         {billEntity?.paymentTransactions?.map((item, index) => (
                             <tr key={index} className={styles.item}>
-                                <td>{orderEntity?.id}</td>
+                                <td>{orderEntity?.sequenceNumber}</td>
                                 <td>{new Date(item.createdDate).toLocaleString()}</td>
                                 <td>{item.amount.toFixed(2)}</td>
                             </tr>
