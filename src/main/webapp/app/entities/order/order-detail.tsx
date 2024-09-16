@@ -576,6 +576,9 @@ export const OrderDetail = () => {
                                     <span>
                                       {new Date(bill.dateTime).toDateString()}
                                     </span>
+                                    <span>
+                                      {bill.status}
+                                    </span>
                                     <span id={`actionsTab-${idx}`} className='d-flex align-items-center justify-content-center gap-2'>
                                       <Button
                                         // eslint-disable-next-line @typescript-eslint/no-misused-promises
