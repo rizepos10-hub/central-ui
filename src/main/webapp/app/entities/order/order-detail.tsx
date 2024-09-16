@@ -441,14 +441,6 @@ export const OrderDetail = () => {
                       </div>
                     )}
                     <div className='d-flex gap-2'>
-                      {!orderEntity?.refund && (
-                        <Button
-                          color="secondary"
-                          onClick={() => setEditMode(prev => !prev)}
-                        >
-                          {editMode ? 'View' : 'Edit'}
-                        </Button>
-                      )}
                       <Link to={`/order/${filteredOrderEntity.id}/print?dataTableValues=${JSON.stringify(dataTableValues)}`}>
                         <Button
                           link
@@ -457,6 +449,14 @@ export const OrderDetail = () => {
                           Print
                         </Button>
                       </Link>
+                      {!orderEntity?.refund && (
+                        <Button
+                          color="secondary"
+                          onClick={() => setEditMode(prev => !prev)}
+                        >
+                          {editMode ? 'View' : 'Edit'}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardBody>
