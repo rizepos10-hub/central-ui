@@ -576,7 +576,7 @@ export const OrderDetail = () => {
                                       {new Date(bill.dateTime).toDateString()}
                                     </span>
                                     <span id={`actionsTab-${idx}`} className='d-flex align-items-center justify-content-center gap-2'>
-                                      <Link to={`/order/${filteredOrderEntity.id}/print/${bill.id}?dataTableValues=${JSON.stringify(newDataTableValues)}`}>
+                                      <Link to={`/order/${filteredOrderEntity.id}/print/${bill.id}`}>
                                         <Button
                                           // eslint-disable-next-line @typescript-eslint/no-misused-promises
                                           role={'link'}

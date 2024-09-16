@@ -31,7 +31,10 @@ const PrintBill = () => {
     useEffect(() => {
         dispatch(getOrder(id))
         dispatch(getSettings())
-        dispatch(getBill(billId))
+        dispatch(getBill({
+            orderId: id,
+            billId
+        }))
     }, [])
 
 

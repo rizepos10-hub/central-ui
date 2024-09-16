@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {createAction, createAsyncThunk, isFulfilled, isPending, isRejected} from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
@@ -21,8 +21,8 @@ const apiUrl = 'api/bills';
 
 export const getEntity = createAsyncThunk(
   'bill/fetch_entity',
-  async (id: string | number) => {
-    const requestUrl = `${apiUrl}/${id}`;
+  async ({ orderId, billId }: { orderId: string | number; billId: string | number }) => {
+    const requestUrl = `api/orders/${orderId}/${billId}`;
     return axios.get<IBill>(requestUrl);
   },
   { serializeError: serializeAxiosError }
