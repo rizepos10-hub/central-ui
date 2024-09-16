@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Container, Row, Col, Table, Card, CardBody, CardTitle, Spinner, Badge, CardFooter } from 'reactstrap';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeDeliveryStatus, changeProcessingStatus, createBill, getEntity, refundBill } from './order.reducer';
 import { FaArrowLeft, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
@@ -441,15 +441,6 @@ export const OrderDetail = () => {
                       </div>
                     )}
                     <div className='d-flex gap-2'>
-                      <Button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handlePagePrint();
-                        }}
-                      >
-                        Print
-                      </Button>
                       {!orderEntity?.refund && (
                         <Button
                           color="secondary"
@@ -458,6 +449,14 @@ export const OrderDetail = () => {
                           {editMode ? 'View' : 'Edit'}
                         </Button>
                       )}
+                      <Link to={`/order/${filteredOrderEntity.id}/print?dataTableValues=${JSON.stringify(dataTableValues)}`}>
+                        <Button
+                          link
+                          role="link"
+                        >
+                          Print
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </CardBody>
@@ -580,17 +579,15 @@ export const OrderDetail = () => {
                                       {bill.status}
                                     </span>
                                     <span id={`actionsTab-${idx}`} className='d-flex align-items-center justify-content-center gap-2'>
-                                      <Button
-                                        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                                        onClick={async (e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          await openOneAccordion(idx);
-                                          handleBillPrint();
-                                        }}
-                                      >
-                                        Print
-                                      </Button>
+                                      <Link to={`/order/${filteredOrderEntity.id}/print/${bill.id}`}>
+                                        <Button
+                                          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                          role={'link'}
+                                          link
+                                        >
+                                          Print
+                                        </Button>
+                                      </Link>
                                       <Button
                                         onClick={(e) => {
                                           e.preventDefault();
