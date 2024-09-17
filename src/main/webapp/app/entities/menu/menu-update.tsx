@@ -33,12 +33,12 @@ const MenuUpdate = ({
     const { id } = useParams<'id'>();
 
     const menuEntity = useAppSelector(state => state.menu.entity);
-    console.log(menuEntity, 'menuEntity')
+
     const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
 
     useEffect(() => {
-        if(!id) return;
         dispatch(getBranches({}));
+        if (!id) return;
         dispatch(getEntity({ id })).then((res) => {
             // @ts-expect-error -- unknown type
             if (res.payload?.data?.name) {
