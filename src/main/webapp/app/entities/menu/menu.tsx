@@ -32,6 +32,8 @@ export const Menu = () => {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  console.log(isModalOpen)
+
   const menuList = useAppSelector(state => state.menu.entities);
   const loading = useAppSelector(state => state.menu.loading);
   const updating = useAppSelector(state => state.menu.updating);
@@ -178,18 +180,16 @@ export const Menu = () => {
 
   return (
     <>
-      {id && (
-        <MenuUpdate
-          setIsModalOpen={setIsModalOpen}
-          isModalOpen={isModalOpen}
-          saveEntity={saveEntity}
-          updating={updating}
-          selectedName={selectedName}
-          setSelectedName={setSelectedName}
-          selectedBranches={selectedBranches}
-          setSelectedBranches={setSelectedBranches}
-        />
-      )}
+      <MenuUpdate
+        setIsModalOpen={setIsModalOpen}
+        isModalOpen={isModalOpen}
+        saveEntity={saveEntity}
+        updating={updating}
+        selectedName={selectedName}
+        setSelectedName={setSelectedName}
+        selectedBranches={selectedBranches}
+        setSelectedBranches={setSelectedBranches}
+      />
       <div>
         <DataTable value={menuList} header={header} editMode="row"
           loading={loading} filters={filters} filterDisplay="row"
