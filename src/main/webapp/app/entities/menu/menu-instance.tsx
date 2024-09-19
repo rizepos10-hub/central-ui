@@ -57,7 +57,6 @@ const MenuInstance = () => {
         menuScreens: [],
     });
 
-    const searchParams = new URLSearchParams(location.search)
     useEffect(() => {
         dispatch(getEntity({ id }))
     }, [
@@ -70,7 +69,9 @@ const MenuInstance = () => {
                 name: menuEntity.name,
                 branch: menuEntity.branch,
                 menuScreens: menuEntity.menuScreens,
-                visibilities: menuEntity.visibilities
+                visibilities: menuEntity.visibilities,
+                rowHeight: [],
+                id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
             };
             setData(newData);
         }

@@ -12,12 +12,23 @@ export interface IMenu {
   category?: ITerm;
   branches?: IBranch[] | null;
   items?: IItem[];
-  menuScreens?: any[];
+  menuScreens?: IMenuScreen[];
   excludedItems?: IItem[];
   itemType?: "RETAIL" | "RESTAURANT" | null;
   branch?: IBranch;
   visibilities?: IVisibility[];
   type?: "POS" | "ONLINE_ORDERING";
+}
+
+export interface IMenuScreen {
+  name?: string;
+  backgroundColor?: string;
+  managerOnlyAccess?: boolean;
+  componentType?: "SUB_SCREENS" | "ITEM" | "POS";
+  allowMultiButtonSelect?: boolean;
+  numberOfColumns?: number;
+  rowHeight?: number[];
+  subscreens?: IMenuScreen[];
 }
 
 export const defaultValue: Readonly<IMenu> = {};
