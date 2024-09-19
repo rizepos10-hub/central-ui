@@ -722,6 +722,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             managerOnlyAccess: '',
             componentType: 'SUB_SCREENS',
             subscreens: [],
+            rowHeight: [],
+            id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
         };
         setData({
             ...data,
@@ -765,6 +767,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             componentType: 'SUB_SCREENS',
                             managerOnlyAccess: false,
                             subScreens: [],
+                            rowHeight: [],
+                            id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
                         },
                     ],
                 };
@@ -784,6 +788,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         componentType: 'SUB_SCREENS',
                         managerOnlyAccess: false,
                         subScreens: [],
+                        rowHeight: [],
+                        id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
                     }),
                 };
                 updatedSubScreenStack = subScreenStack.map(subScreen =>
@@ -799,6 +805,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                     componentType: 'SUB_SCREENS',
                                     managerOnlyAccess: false,
                                     subScreens: [],
+                                    rowHeight: [],
+                                    id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
                                 },
                             ],
                         }
