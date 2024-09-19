@@ -46,6 +46,7 @@ export const Product = () => {
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
+    console.log(updatedQuery, 'updatedQuery')
     dispatch(
       filterEntities({
         query: updatedQuery,
@@ -68,7 +69,7 @@ export const Product = () => {
     return () => {
       searchParams.set("query", "")
     }
-  }, [query?.first, query?.page]);
+  }, [query?.first, query?.page, query?.rows]);
 
   const handleSyncList = () => {
     getAllEntities();
@@ -244,6 +245,7 @@ export const Product = () => {
         paginator
         first={query.first}
         rows={query?.rows}
+        rowsPerPageOptions={[10, 20, 30, 40, 50]}
         totalRecords={totalItems}
         onPage={onPage}
         onSort={onSort}
