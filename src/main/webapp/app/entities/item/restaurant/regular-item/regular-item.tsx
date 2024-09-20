@@ -9,7 +9,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { deleteEntities, deleteEntity, filterEntities, updateEntities } from "./regular-item.reducer";
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
-import { Column } from "primereact/column";
+import { Column, ColumnFilterElementTemplateOptions } from "primereact/column";
 import { IRegularItem } from "app/shared/model/ITEM/restaurant/regular-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { ITerm } from "app/shared/model/term.model";
@@ -22,6 +22,8 @@ import { confirmDialog } from 'primereact/confirmdialog';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { Dropdown } from 'primereact/dropdown';
 import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
+import { InputText } from 'primereact/inputtext';
+import { FilterMatchMode } from 'primereact/api';
 
 export const RegularItem = () => {
   const dispatch = useAppDispatch();
@@ -193,6 +195,42 @@ export const RegularItem = () => {
     setSelectedActionOption(null);
   }
 
+  const nameFilterTemplate = () => {
+    const [name, setName] = useState('');
+
+    return (
+      <form onSubmit={(e) => {
+        e.preventDefault()
+        const newQuery = {
+          ...query,
+          filters: {
+            ...query.filters,
+            name: {
+              ...query.filters?.name,
+              value: name,
+              matchMode: query.filters?.name?.matchMode || FilterMatchMode.CONTAINS,
+            },
+          }
+        }
+
+        const updatedQuery = applyMatchModeMap(newQuery);
+
+
+        dispatch(filterEntities({
+          query: updatedQuery,
+        }));
+      }}>
+        <InputText
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="p-inputtext-sm"
+          placeholder="Search by Name"
+        />
+      </form>
+    );
+  };
+
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
@@ -239,7 +277,7 @@ export const RegularItem = () => {
       )}
       <DataTable
         value={regularItemsList}
-        loading={loading || isLoadingDelete}
+        // loading={loading || isLoadingDelete}
         editMode="row"
         header={header}
         removableSort
@@ -263,7 +301,7 @@ export const RegularItem = () => {
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
         <Column field="name" header={translate('items.view.fields.name')}
-          filter filterField={"name"} body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
+          filter filterField={"name"} body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} filterElement={nameFilterTemplate} sortable />
 
         <Column
           header="Category"
