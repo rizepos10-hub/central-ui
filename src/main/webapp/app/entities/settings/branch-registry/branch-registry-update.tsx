@@ -79,7 +79,7 @@ const BranchRegistryUpdate = ({ isRegisterClosure }: { isRegisterClosure?: boole
       <div className={'mt-3'}>
         <Button
           tag={Link} id="cancel-save" data-cy="entityCreateCancelButton"
-          to={isRegisterClosure ? "/analytics/register-closure" : "/branch-registry"} replace color="info"
+          to={isRegisterClosure ? "/analytics/register-closure" : "/branch-register"} replace color="info"
         >
           <FontAwesomeIcon icon="arrow-left" />
           &nbsp;
