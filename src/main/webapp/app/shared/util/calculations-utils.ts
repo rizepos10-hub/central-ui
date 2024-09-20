@@ -85,7 +85,9 @@ export const getPriceForBranch = (
     branchId: string,
     salePrice: number | null
 ): number => {
-    const branch = branchDetails[branchId];
+    console.log(branchId, 'branchId')
+    console.log(branchDetails, 'branchDetails')
+    const branch = branchDetails?.[branchId];
     if (branch?.salePrice != null) return branch.salePrice;
     if (salePrice != null) return salePrice;
     if (branch?.price != null) return branch.price;
@@ -123,6 +125,7 @@ export const getFinalPrice = ({
     item?: IItem,
 }) => {
     let finalPrice = 0
+    console.log(variantItem, 'variantItem')
     if (branchId && variantItem) {
         finalPrice = getPriceForBranch(
             variantItem.price,
