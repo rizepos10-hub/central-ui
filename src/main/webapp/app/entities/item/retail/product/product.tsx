@@ -14,7 +14,7 @@ import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import SharedFilter from "app/shared/components/item/shared-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import AttributeFilter from "app/shared/components/filter/attribute-filter";
-import { deleteEntities, filterEntities, getEntities, updateEntities } from "app/entities/item/retail/product/product.reducer";
+import { deleteEntities, exportEntities, filterEntities, getEntities, updateEntities } from "app/entities/item/retail/product/product.reducer";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import ImportButton from "app/shared/components/data-import/data-import";
@@ -42,7 +42,7 @@ export const Product = () => {
 
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
-  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
@@ -175,8 +175,34 @@ export const Product = () => {
   };
 
   const handleItemsDelete = async () => {
-    setIsLoadingDelete(true);
-    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingDelete(false));
+    setIsLoadingAction(true);
+    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingAction(false));
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+  useEffect(() => {
+    if (selectedActionOption?.code === "EXPORT") {
+      confirm2()
+    }
+  }, [selectedActionOption])
+
+
+  const confirm2 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleItemsExport(),
+      reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleItemsExport = async () => {
+    setIsLoadingAction(true);
+    await dispatch(exportEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingAction(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
   }
@@ -199,6 +225,11 @@ export const Product = () => {
         <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised color="info" onClick={handleSyncList} disabled={loading}>
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
+        &nbsp;
+        <Button onClick={() => confirm2()}>
+          Export All
+        </Button>
+        &nbsp;
         <ImportButton type={"RETAIL"} />
         <Button label={translate('items.view.actions.createItem')} raised onClick={handleCreate} disabled={loading}>
         </Button>
@@ -253,7 +284,7 @@ export const Product = () => {
         sortOrder={query.sortOrder}
         onFilter={onFilter}
         filters={query.filters}
-        loading={loading || isLoadingDelete}
+        loading={loading || isLoadingAction}
         tableStyle={{ minWidth: '75rem' }}
         removableSort
         showGridlines
