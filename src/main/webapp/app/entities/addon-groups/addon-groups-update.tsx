@@ -85,7 +85,7 @@ export const AddonGroupUpdate = () => {
     if (addonUpdateSuccess && newAddon?.id) {
       const entity = {
         ...addonGroup,
-        addons: [...(addonGroupsEntity?.addons || []), newAddon],
+        addons: [...(addonGroup?.addons || []), newAddon],
       };
       dispatch(updateEntity(entity));
     }

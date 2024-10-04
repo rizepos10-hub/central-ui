@@ -11,7 +11,7 @@ import PaginationFilter from 'app/shared/components/pagination/pagination-filter
 import { useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 import { Checkbox } from 'primereact/checkbox';
-import { getEntities as getRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import { getEntities as getCategories } from 'app/entities/term/Item-category/item-category.reducer';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -30,7 +30,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const itemList = useAppSelector((state) => state.allItems.entities);
   const loading = useAppSelector((state) => state.allItems.loading);
 
-  const restaurantCategories = useAppSelector(state => state.restaurantCategory.entities);
+  const categories = useAppSelector(state => state.category.entities);
 
   const navigate = useNavigate();
 
@@ -119,7 +119,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
               <Select
                 id="searchCategory"
                 value={{
-                  label: restaurantCategories.find(cat => cat.id === searchParams.get('categoryId'))?.name,
+                  label: categories.find(cat => cat.id === searchParams.get('categoryId'))?.name,
                   value: searchParams.get('categoryId'),
                 }}
                 onChange={selectedOption => {
@@ -130,12 +130,12 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                     navigate(createQueryString('categoryId', selectedOption.value));
                   }
                 }}
-                options={restaurantCategories.map(cat => ({ value: cat.id, label: cat.name }))}
+                options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
                 isClearable={true}
                 className='w-100'
                 onMenuOpen={() => {
                   dispatch(
-                    getRestaurantCategories({
+                    getCategories({
                       page: 0,
                       size: 1000,
                       sort: `id,desc`,
