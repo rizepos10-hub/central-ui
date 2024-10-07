@@ -84,7 +84,7 @@ export const model: MenuItem[] = [
         to: '/tag',
       },
       {
-        label: 'Brand Groups',
+        label: 'Tag Groups',
         to: '/tag-group',
       },
     ],
