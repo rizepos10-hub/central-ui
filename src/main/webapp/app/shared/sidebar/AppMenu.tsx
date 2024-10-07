@@ -302,11 +302,11 @@ export const model: MenuItem[] = [
     icon: ' pi pi-users',
     to: '/customer',
     items: [
-      {
-        label: 'Groups',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/customer/group',
-      },
+      // {
+      //   label: 'Groups',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/customer/group',
+      // },
       {
         label: 'Customers',
         role: ['ROLE_ADMINISTRATOR'],
