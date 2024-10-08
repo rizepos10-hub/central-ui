@@ -2,6 +2,7 @@ import { IAttachment } from 'app/shared/model/attachment.model';
 import { IAddress } from 'app/shared/model/address.model';
 import { DayOfWeek } from "app/shared/model/ENUMS/day-of-week.model";
 import { IZone } from './ZONE/zone.model';
+import { EndingType } from './ENUMS/ending-type.model';
 export interface IBusinessDayDetail {
   day: DayOfWeek;
   openingHours: { from: string; to: string }[];
@@ -40,6 +41,7 @@ export interface IBranchDetails {
   zones: IZone[];
   hideRetailShop?: boolean;
   unitCostCalculationMode?: UnitCostCalculationMode;
+  endingType?: EndingType;
 }
 
 export enum UnitCostCalculationMode {
