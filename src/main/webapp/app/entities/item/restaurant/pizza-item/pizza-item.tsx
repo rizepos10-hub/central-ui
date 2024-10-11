@@ -21,6 +21,8 @@ import { Dropdown } from 'primereact/dropdown';
 import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
 import { updateEntities } from './pizza-item.reducer';
 import { confirmDialog } from 'primereact/confirmdialog';
+import { FilterMatchMode } from 'primereact/api';
+import { InputText } from 'primereact/inputtext';
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
@@ -151,6 +153,41 @@ export const PizzaItem = () => {
     }
   }, [selectedActionOption])
 
+  const nameFilterTemplate = () => {
+    const [name, setName] = useState('');
+
+    return (
+      <form onSubmit={(e) => {
+        e.preventDefault()
+        const newQuery = {
+          ...query,
+          filters: {
+            ...query.filters,
+            name: {
+              ...query.filters?.name,
+              value: name,
+              matchMode: query.filters?.name?.matchMode || FilterMatchMode.CONTAINS,
+            },
+          }
+        }
+
+        const updatedQuery = applyMatchModeMap(newQuery);
+
+
+        dispatch(filterEntities({
+          query: updatedQuery,
+        }));
+      }}>
+        <InputText
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="p-inputtext-sm"
+          placeholder="Search by Name"
+        />
+      </form>
+    );
+  };
 
   const confirm1 = () => {
     confirmDialog({
@@ -237,7 +274,7 @@ export const PizzaItem = () => {
         onSelectionChange={(e) => setSelectedProducts(e.value)}
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
-        <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
+        <Column filterElement={nameFilterTemplate} field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
 
         <Column
           header="Category"
