@@ -16,7 +16,7 @@ import { IoMdCloseCircle } from 'react-icons/io';
 export const actionOptions = [
     { name: 'Edit', code: 'EDIT', disabled: false },
     { name: 'Move To Trash', code: 'MOVE_TO_TRASH', disabled: false },
-    { name: 'Export', code: 'EXPORT', disabled: true },
+    { name: 'Export', code: 'EXPORT', disabled: false },
 ];
 
 

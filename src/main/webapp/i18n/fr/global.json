@@ -107,6 +107,7 @@
       "edit": "Edit",
       "open": "Open",
       "save": "Save",
+      "apply": "Apply",
       "saveandnew": "Save & create",
       "view": "View",
       "show": "Show {{otherEntity}}"

@@ -7,9 +7,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ITEMS_PER_PAGE, } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { deleteEntities, deleteEntity, filterEntities, updateEntities } from "./regular-item.reducer";
+import { deleteEntities, deleteEntity, exportEntities, filterEntities, updateEntities } from "./regular-item.reducer";
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
-import { Column } from "primereact/column";
+import { Column, ColumnFilterElementTemplateOptions } from "primereact/column";
 import { IRegularItem } from "app/shared/model/ITEM/restaurant/regular-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { ITerm } from "app/shared/model/term.model";
@@ -22,6 +22,8 @@ import { confirmDialog } from 'primereact/confirmdialog';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { Dropdown } from 'primereact/dropdown';
 import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
+import { InputText } from 'primereact/inputtext';
+import { FilterMatchMode } from 'primereact/api';
 
 export const RegularItem = () => {
   const dispatch = useAppDispatch();
@@ -35,7 +37,8 @@ export const RegularItem = () => {
 
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
-  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
+
 
   const [searchParams, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
@@ -187,11 +190,74 @@ export const RegularItem = () => {
   };
 
   const handleItemsDelete = async () => {
-    setIsLoadingDelete(true);
-    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingDelete(false));
+    setIsLoadingAction(true);
+    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingAction(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
   }
+
+  useEffect(() => {
+    if (selectedActionOption?.code === "EXPORT") {
+      confirm2()
+    }
+  }, [selectedActionOption])
+
+
+  const confirm2 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleExportItems(),
+      reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleExportItems = async () => {
+    console.log(1)
+    setIsLoadingAction(true);
+    await dispatch(exportEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingAction(false));
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+  const nameFilterTemplate = () => {
+    const [name, setName] = useState('');
+
+    return (
+      <form onSubmit={(e) => {
+        e.preventDefault()
+        const newQuery = {
+          ...query,
+          filters: {
+            ...query.filters,
+            name: {
+              ...query.filters?.name,
+              value: name,
+              matchMode: query.filters?.name?.matchMode || FilterMatchMode.CONTAINS,
+            },
+          }
+        }
+
+        const updatedQuery = applyMatchModeMap(newQuery);
+
+
+        dispatch(filterEntities({
+          query: updatedQuery,
+        }));
+      }}>
+        <InputText
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="p-inputtext-sm"
+          placeholder="Search by Name"
+        />
+      </form>
+    );
+  };
 
 
   const header = (
@@ -209,7 +275,10 @@ export const RegularItem = () => {
         />
       </span>
       <div className="ms-auto">
-
+        <Button onClick={() => confirm2()}>
+          Export All
+        </Button>
+        &nbsp;
         <ImportButton type={"REGULAR_RESTAURANT"} />
         &nbsp;
         <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
@@ -239,7 +308,7 @@ export const RegularItem = () => {
       )}
       <DataTable
         value={regularItemsList}
-        loading={loading || isLoadingDelete}
+        loading={loading || isLoadingAction}
         editMode="row"
         header={header}
         removableSort
@@ -247,7 +316,8 @@ export const RegularItem = () => {
         filterDisplay="row"
         paginator
         totalRecords={totalItems}
-        rows={20}
+        rowsPerPageOptions={[10, 20, 30, 40, 50]}
+        rows={query?.rows}
         lazy
         first={query.first}
         onPage={onPage}
@@ -262,7 +332,7 @@ export const RegularItem = () => {
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
         <Column field="name" header={translate('items.view.fields.name')}
-          filter filterField={"name"} body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
+          filter filterField={"name"} body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} filterElement={nameFilterTemplate} sortable />
 
         <Column
           header="Category"

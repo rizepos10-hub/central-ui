@@ -305,9 +305,9 @@ const OrderCreate = () => {
                     </InputGroup>
                 </Col>
                 <Col md={4} className="d-flex justify-content-end gap-2">
-                    <Button color="primary">Retrieve Sale</Button>
-                    <Button color="primary">Park Sale</Button>
-                    <Button color="primary" onClick={(e) => moreActionsOP.current.toggle(e)}>More Actions</Button>
+                    <Button disabled color="primary">Retrieve Sale</Button>
+                    <Button disabled color="primary">Park Sale</Button>
+                    <Button disabled color="primary" onClick={(e) => moreActionsOP.current.toggle(e)}>More Actions</Button>
                     <OverlayPanel ref={moreActionsOP} showCloseIcon>
                         <div className="d-flex flex-column gap-2">
                             <Button color="primary" className='w-100'>Create quote</Button>
@@ -499,7 +499,7 @@ const OrderCreate = () => {
                     </Row>
                     <Row>
                         <Col md={12} className="d-flex justify-content-center align-items-center pt-2">
-                            <PaginationFilter totalPages={Math.floor(totalItems / 10)} />
+                            <PaginationFilter totalPages={Math.ceil(totalItems / 10)} />
                         </Col>
                     </Row>
                 </Col>
@@ -507,7 +507,7 @@ const OrderCreate = () => {
                 <Col md={4} className="p-2 flex flex-column justify-content-between gap-2" style={{
                     height: '80vh'
                 }}>
-                    <div className="px-2">
+                    <div className="px-2">Edit User
                         <Dropdown
                             options={customers.map(customer => ({
                                 label: customer.firstName + ' ' + customer.lastName,
@@ -524,6 +524,7 @@ const OrderCreate = () => {
                             }))}
                             className='w-100'
                             showClear
+                            filter
                         />
                     </div>
                     <div
@@ -543,6 +544,7 @@ const OrderCreate = () => {
                             placeholder="Select a Branch"
                             className='w-100'
                             showClear
+                            filter
                         />
                         {!orderEntity?.branchId && orderEntity?.items?.length > 0 && (
                             <span className="text-danger">
@@ -717,13 +719,13 @@ const OrderCreate = () => {
                                             <div className='text-muted'>This discount will be applied to all items</div>
                                         </div>
                                     </OverlayPanel>
-                                    <Button text onClick={(e) => discountOP.current.toggle(e)}>
+                                    <Button disabled text onClick={(e) => discountOP.current.toggle(e)}>
                                         Discount
                                     </Button>
                                     <Button text disabled>
                                         Promo Code
                                     </Button>
-                                    <Button text>
+                                    <Button text disabled>
                                         Note
                                     </Button>
                                 </span>

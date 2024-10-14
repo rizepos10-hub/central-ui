@@ -15,6 +15,18 @@ export interface IBill extends IOrderAudit {
     [key: string]: number;
   },
   total?: number | null,
+  status?: BillStatus;
+}
+
+export enum BillStatus {
+  DRAFT,
+  PAID,
+  CANCELED,
+  REFUNDED,
+  REFUND_BILL,
+  REOPENED,
+  VOIDED,
+  VOID_BILL
 }
 
 export const defaultValue: Readonly<IBill> = {

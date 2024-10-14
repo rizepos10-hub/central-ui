@@ -25,6 +25,7 @@ import { Dialog } from 'primereact/dialog';
 import Select from 'react-select'
 import { getEntities as getZones } from 'app/entities/settings/zones/zones.reducer'
 import { Dropdown } from 'primereact/dropdown';
+import { EndingType } from 'app/shared/model/ENUMS/ending-type.model';
 
 export const Branches = () => {
   const dispatch = useAppDispatch();
@@ -226,6 +227,12 @@ export const Branches = () => {
     }));
   }
 
+  const handleEndingTypeChange = (branchIndex, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].endingType = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleUnitCostCalculationModeChange = (branchIndex, value) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].unitCostCalculationMode = value;
@@ -381,6 +388,16 @@ export const Branches = () => {
                       setEditingBranchPayments={setEditingBranchPayments}
                     />
                   </Dialog>
+
+                  <label className="font-bold mt-3">Ending Type</label>
+                  <Select
+                    value={{ label: branch.endingType, value: branch.endingType }}
+                    options={Object.values(EndingType).map(type => ({ label: type, value: type }))}
+                    getOptionLabel={option => option.label}
+                    getOptionValue={option => option.value}
+                    onChange={(selectedOption) => handleEndingTypeChange(branchIndex, selectedOption?.value)}
+                    placeholder="Select Ending Type.."
+                  />
 
                   <label className="font-bold mt-3">Zones</label>
                   <Select

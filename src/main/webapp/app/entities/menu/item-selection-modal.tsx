@@ -11,6 +11,7 @@ import PaginationFilter from 'app/shared/components/pagination/pagination-filter
 import { useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 import { Checkbox } from 'primereact/checkbox';
+import { getEntities as getCategories } from 'app/entities/term/Item-category/item-category.reducer';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const totalItems = useAppSelector((state) => state.allItems.totalItems);
   const itemList = useAppSelector((state) => state.allItems.entities);
   const loading = useAppSelector((state) => state.allItems.loading);
+
+  const categories = useAppSelector(state => state.category.entities);
 
   const navigate = useNavigate();
 
@@ -88,21 +91,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   const isItemSelected = (id) => selectedItems?.find((selected) => selected.id === id);
 
-  const categoryIds = itemList.map((item) => item.categories[0]?.id)
-
-  const uniqueCategoryIds = new Set(categoryIds);
-
-  const uniqueCategoryIdsArray = Array.from(uniqueCategoryIds);
-
-  const categoriesOption = uniqueCategoryIdsArray.map((categoryId) => {
-    const category = itemList.find((item) => item.categories[0]?.id === categoryId);
-
-    return {
-      label: category?.categories[0]?.name || "Unknown Category",
-      value: category?.categories[0]?.id,
-    };
-  });
-
   return (
     <Modal size="lg" isOpen={isOpen} toggle={toggle} backdrop="static">
       <ModalHeader toggle={toggle}>
@@ -131,7 +119,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
               <Select
                 id="searchCategory"
                 value={{
-                  label: categoriesOption.find(cat => cat.value === searchParams.get('categoryId'))?.label,
+                  label: categories.find(cat => cat.id === searchParams.get('categoryId'))?.name,
                   value: searchParams.get('categoryId'),
                 }}
                 onChange={selectedOption => {
@@ -142,9 +130,18 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                     navigate(createQueryString('categoryId', selectedOption.value));
                   }
                 }}
-                options={categoriesOption}
+                options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
                 isClearable={true}
                 className='w-100'
+                onMenuOpen={() => {
+                  dispatch(
+                    getCategories({
+                      page: 0,
+                      size: 1000,
+                      sort: `id,desc`,
+                    })
+                  );
+                }}
               />
             </div>
           </div>
@@ -225,7 +222,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           </tbody>
         </table>
         <div className="d-flex justify-content-center mt-3">
-          <PaginationFilter totalPages={Math.floor(totalItems / 10)} />
+          <PaginationFilter totalPages={Math.ceil(totalItems / 10)} />
         </div>
         {/* <div className="d-flex justify-content-center mt-3">
           <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} color="primary" className="mr-2">

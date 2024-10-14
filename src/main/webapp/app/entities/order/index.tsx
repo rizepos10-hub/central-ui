@@ -7,6 +7,8 @@ import Order from './order';
 import OrderDetail from './order-detail';
 import TodayOrder from "app/entities/order/order-today";
 import OrderCreate from './order-create';
+import PrintOrder from './print-order';
+import PrintBill from './print-bill';
 
 const OrderRoutes = () => (
   <ErrorBoundaryRoutes>
@@ -15,6 +17,8 @@ const OrderRoutes = () => (
     <Route path="today" element={<TodayOrder />} />
 
     <Route path=":id">
+      <Route path='print' element={<PrintOrder />} />
+      <Route path='print/:billId' element={<PrintBill />} />
       <Route index element={<OrderDetail />} />
     </Route>
   </ErrorBoundaryRoutes>

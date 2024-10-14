@@ -1,16 +1,16 @@
 import { Button } from "primereact/button";
 import React from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
-import { FileType, importData } from "app/shared/reducers/import-data";
+import { FileType, importData, importRetailData } from "app/shared/reducers/import-data";
 
 type ItemImportProps = {
-  type:  FileType
+  type: FileType
 }
 
-const ImportButton = ({type} :ItemImportProps) => {
+const ImportButton = ({ type }: ItemImportProps) => {
   const dispatch = useAppDispatch();
 
-  const {importSuccess, loading, errorMessage} = useAppSelector(state => state.dataImport);
+  const { importSuccess, loading, errorMessage } = useAppSelector(state => state.dataImport);
 
 
   const handleImportButtonClick = () => {
@@ -22,7 +22,11 @@ const ImportButton = ({type} :ItemImportProps) => {
       const selectedFile = inputElement.files?.[0] || null;
 
       if (selectedFile) {
-        dispatch(importData({ file: selectedFile, type }));
+        if (type === 'RETAIL') {
+          dispatch(importRetailData({ file: selectedFile }));
+        } else {
+          dispatch(importData({ file: selectedFile, type }));
+        }
       }
     };
     fileInput.click();
@@ -54,6 +58,10 @@ const ImportButton = ({type} :ItemImportProps) => {
         filePath = "content/samples/toppings.xlsx";
         fileName = "toppings.xlsx";
         break;
+      case "RETAIL":
+        filePath = "content/samples/retail.xlsx";
+        fileName = "retail.xlsx";
+        break;
       default:
         return;
     }
@@ -64,8 +72,8 @@ const ImportButton = ({type} :ItemImportProps) => {
 
   return (
     <>
-    <Button label="Import Data" severity="help" raised color="help"  onClick={handleImportButtonClick} disabled={loading} />
-    <Button  label="Download Sample" severity="secondary" raised className={"mr-4"}  onClick={handleDownloadSampleClick} />
+      <Button label="Import Data" severity="help" raised color="help" onClick={handleImportButtonClick} disabled={loading} />
+      <Button label="Download Sample" severity="secondary" raised className={"mr-4"} onClick={handleDownloadSampleClick} />
 
     </>
   )

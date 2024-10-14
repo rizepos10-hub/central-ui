@@ -6,14 +6,7 @@ import { ActionCreatorWithOptionalPayload } from '@reduxjs/toolkit';
 import { InputNumber } from 'primereact/inputnumber';
 import { IBill } from 'app/shared/model/ORDER/bill.model';
 import { useAppDispatch } from 'app/config/store';
-
-export const OrderedItems = ({
-  dataTableValues,
-  rowClick = false,
-  entity = {},
-  changeEntityField,
-  refundMode = false
-}: {
+interface OrderedItemsProps {
   dataTableValues: any;
   rowClick?: boolean;
   entity?: IBill;
@@ -22,7 +15,15 @@ export const OrderedItems = ({
     value: any;
   }, string>;
   refundMode?: boolean;
-}) => {
+}
+
+const OrderedItems = React.forwardRef<HTMLDivElement, OrderedItemsProps>(({
+  dataTableValues,
+  rowClick = false,
+  entity = {},
+  changeEntityField,
+  refundMode = false
+}, ref) => {
   const dispatch = useAppDispatch();
 
   const itemNameTemplate = (rowData) => {
@@ -97,24 +98,60 @@ export const OrderedItems = ({
   }
 
   return (
-    <div>
+    <div ref={ref} className="print-container">
+      <style>
+        {`
+          @media print {
+            body,
+              html {
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden;
+                box-sizing: border-box;
+              }
+
+            .print-container {
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: hidden;
+              box-sizing: border-box;
+            }
+
+            .p-datatable-table {
+              width: 50% !important;
+            }
+
+            tbody,
+            td,
+            tfoot,
+            th,
+            thead,
+            tr {
+              border: 1px solid #ccc !important;
+            }
+          }
+        `}
+      </style>
       <DataTable
         value={dataTableValues}
         dataKey="id"
-        tableStyle={{ minWidth: '60rem' }}
+        tableStyle={{ minWidth: '100%' }}
         selectionMode={rowClick ? null : 'checkbox'}
         selection={entity?.items}
         onSelectionChange={(e) => changeEntityField({ name: 'items', value: e.value })}
+        rowClassName={() => 'ctmBorder'}
       >
         {refundMode ? <Column headerStyle={{ width: '3rem' }} body={multiSelectTemplate}></Column> : null}
         {refundMode ? <Column header="Refund Quantity" headerStyle={{ width: '3rem' }} body={refundQuantityTemplate}></Column> : null}
-        <Column field="itemName" header="Name" sortable body={itemNameTemplate} />
-        <Column field="amount" header="Quantity" sortable />
-        <Column field="price" header="Price" sortable />
-        <Column field="taxIdsToValues" header="Taxes" sortable body={taxesTemplate} />
-        <Column field="discount" header="Discount" sortable body={discountTemplate} />
-        <Column field="total" header="Total" sortable />
+        <Column headerStyle={{ width: '15%' }} style={{ width: '15%' }} field="itemName" header="Name" sortable body={itemNameTemplate} />
+        <Column headerStyle={{ width: '15%' }} style={{ width: '15%' }} field="amount" header="Quantity" sortable />
+        <Column headerStyle={{ width: '15%' }} style={{ width: '15%' }} field="price" header="Price" sortable />
+        <Column headerStyle={{ width: '15%' }} style={{ width: '15%' }} field="taxIdsToValues" header="Taxes" sortable body={taxesTemplate} />
+        <Column headerStyle={{ width: '15%' }} style={{ width: '15%' }} field="discount" header="Discount" sortable body={discountTemplate} />
+        <Column headerStyle={{ width: '15%' }} style={{ width: '15%' }} field="total" header="Total" sortable />
       </DataTable>
     </div>
   );
-};
+});
+
+export default OrderedItems;

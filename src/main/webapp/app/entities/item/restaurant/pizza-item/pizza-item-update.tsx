@@ -25,6 +25,7 @@ import { getEntities as getToppings } from "app/entities/pizza-settings/pizza-to
 import { ITopping } from "app/shared/model/PIZZA/topping.model";
 import { ICrustType } from "app/shared/model/PIZZA/crust-type.model";
 import { getEntities as getCrustTypes } from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer";
+import { getEntities as getSizes } from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
 import { getEntities as getCrustThicknesses } from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness.reducer";
 import { ICrustThickness } from "app/shared/model/PIZZA/crust-thickness.model";
 import { TabPanel, TabView } from "primereact/tabview";
@@ -34,6 +35,7 @@ import { getEntities as getDiscounts } from "app/entities/discount/discount.redu
 import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-rule/mix-and-match-rule.reducer";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import { preventEnterSubmit } from "app/shared/util/form-utils";
+import { IPizzaSize } from 'app/shared/model/PIZZA/pizza-size.model';
 
 const items: MenuItem[] = [
   {
@@ -68,6 +70,7 @@ export const PizzaItemUpdate = () => {
   const pizzaToppingList = useAppSelector(state => state.pizzaTopping.entities);
   const crustTypeList = useAppSelector(state => state.pizzaCrustType.entities);
   const crustThicknessList = useAppSelector(state => state.pizzaCrustThickness.entities);
+  const sizeList = useAppSelector(state => state.pizzaSize.entities);
   const discountList = useAppSelector(state => state.discount.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const predefinedPizzaOptions = useAppSelector(state => state.predefinedPizza.entities);
@@ -171,6 +174,35 @@ export const PizzaItemUpdate = () => {
     });
   };
 
+  const handleDefaultPizzasChange = (fieldName, value, pizzaIndex) => {
+    setPizzaItem((prev) => {
+      const updatedVariants = [...prev.variants];
+      const multiplePizzaDetails = updatedVariants[0].multiplePizzaDetails || {
+        pizzaDefaults: []
+      }; // Ensure it's initialized
+      const pizzaDefaults = multiplePizzaDetails.pizzaDefaults || []; // Initialize pizzaDefaults if undefined
+
+      const updatedPizzaDefaults = [...pizzaDefaults];
+      updatedPizzaDefaults[pizzaIndex] = {
+        ...updatedPizzaDefaults[pizzaIndex],
+        [fieldName]: value,
+      };
+
+      return {
+        ...prev,
+        variants: [
+          {
+            ...updatedVariants[0],
+            multiplePizzaDetails: {
+              ...multiplePizzaDetails,
+              pizzaDefaults: updatedPizzaDefaults,
+            },
+          },
+        ],
+      };
+    });
+  };
+
 
   const handlePricingClassChangeSecondSelect = (fieldName, selectedPricingClass, index) => {
     setPizzaItem((prev) => {
@@ -256,10 +288,10 @@ export const PizzaItemUpdate = () => {
     });
   };
 
-  const handleMultiplePizzaInputChange = (index, fieldName, value) => {
+  const handleMultiplePizzaInputChange = (fieldName, value) => {
     setPizzaItem((prev) => {
-      const updatedDetails = [...prev.variants[0].multiplePizzaDetails];
-      updatedDetails[index][fieldName] = value;
+      const updatedDetails = prev.variants[0].multiplePizzaDetails;
+      updatedDetails[fieldName] = value;
 
       return {
         ...prev,
@@ -273,42 +305,42 @@ export const PizzaItemUpdate = () => {
     });
   };
 
-  const handleRemoveMultiplePizzaInput = (index) => {
-    setPizzaItem((prev) => {
-      const updatedPizzaDetails = prev?.variants?.[0]?.multiplePizzaDetails.filter((_, i) => i !== index);
+  // const handleRemoveMultiplePizzaInput = (index) => {
+  //   setPizzaItem((prev) => {
+  //     const updatedPizzaDetails = prev?.variants?.[0]?.multiplePizzaDetails.filter((_, i) => i !== index);
 
-      return {
-        ...prev,
-        variants: [
-          {
-            ...prev.variants?.[0],
-            multiplePizzaDetails: updatedPizzaDetails,
-          },
-        ],
-      };
-    });
-  };
+  //     return {
+  //       ...prev,
+  //       variants: [
+  //         {
+  //           ...prev.variants?.[0],
+  //           multiplePizzaDetails: updatedPizzaDetails,
+  //         },
+  //       ],
+  //     };
+  //   });
+  // };
 
-  const addNewMultiplePizzaDetail = () => {
-    setPizzaItem((prev) => {
-      const newDetail = {
-        numberOfPizza: 2,
-        freeToppingsNumber: null,
-      };
+  // const addNewMultiplePizzaDetail = () => {
+  //   setPizzaItem((prev) => {
+  //     const newDetail = {
+  //       numberOfPizza: 2,
+  //       freeToppingsNumber: null,
+  //     };
 
-      const updatedDetails = [...(prev?.variants?.[0].multiplePizzaDetails || []), newDetail];
+  //     const updatedDetails = [...(prev?.variants?.[0].multiplePizzaDetails || []), newDetail];
 
-      return {
-        ...prev,
-        variants: [
-          {
-            ...prev?.variants?.[0],
-            multiplePizzaDetails: updatedDetails,
-          },
-        ],
-      };
-    });
-  };
+  //     return {
+  //       ...prev,
+  //       variants: [
+  //         {
+  //           ...prev?.variants?.[0],
+  //           multiplePizzaDetails: updatedDetails,
+  //         },
+  //       ],
+  //     };
+  //   });
+  // };
 
   const multipleOptions = ["Single", "Multiple"];
 
@@ -332,7 +364,7 @@ export const PizzaItemUpdate = () => {
     if (!pizzaItem?.variants?.[0].multiple) {
       setPizzaItem((prev) => {
         const updatedVariants = { ...pizzaItem.variants }
-        updatedVariants[0].multiplePizzaDetails = [];
+        updatedVariants[0].multiplePizzaDetails = null;
         return {
           ...pizzaItem,
           variants: updatedVariants
@@ -379,6 +411,12 @@ export const PizzaItemUpdate = () => {
     }));
 
     dispatch(getCrustTypes({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getSizes({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -856,11 +894,92 @@ export const PizzaItemUpdate = () => {
                                       <tr>
                                         <th><Translate contentKey={'items.update.pizza.numberOfPizzas'}>Number of Pizzas</Translate></th>
                                         <th><Translate contentKey={'items.update.pizza.freeToppingsNumber'}>Free Toppings Number</Translate></th>
-                                        <th>Remove</th>
+                                        <th><Translate contentKey={'items.update.pizza.fixedPrice'}>Fixed Price</Translate></th>
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {pizzaItem?.variants?.[0]?.multiplePizzaDetails?.map((detail, index) => (
+                                      <tr>
+                                        <td>
+                                          <InputNumber
+                                            value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.numberOfPizza || null}
+                                            min={2}
+                                            onChange={(e) =>
+                                              handleMultiplePizzaInputChange("numberOfPizza", e.value)
+                                            }
+                                          />
+                                        </td>
+                                        <td>
+                                          <InputNumber
+                                            value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.freeToppingsNumber || null}
+                                            required
+                                            onChange={(e) =>
+                                              handleMultiplePizzaInputChange("freeToppingsNumber", e.value)
+                                            }
+                                          />
+                                        </td>
+                                        <td>
+                                          <InputNumber
+                                            value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.fixedPrice || null}
+                                            required
+                                            onChange={(e) =>
+                                              handleMultiplePizzaInputChange("fixedPrice", e.value)
+                                            }
+                                          />
+                                        </td>
+                                      </tr>
+                                      {Array.from({ length: pizzaItem?.variants?.[0]?.multiplePizzaDetails?.numberOfPizza || 0 }).map((_, index) => (
+                                        <tr key={index}>
+                                          <td>
+                                            <Select
+                                              value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.pizzaDefaults?.[index]?.pizzaSize || null}
+                                              getOptionLabel={(option: IPizzaSize) => option.name}
+                                              getOptionValue={(option: IPizzaSize) => option.id}
+                                              onChange={(sizeOption) => handleDefaultPizzasChange("pizzaSize", sizeOption, index)}
+                                              options={sizeList}
+                                              onMenuOpen={() => {
+                                                dispatch(getSizes({
+                                                  page: paginationState.activePage - 1,
+                                                  size: paginationState.itemsPerPage,
+                                                  sort: `${paginationState.sort},${paginationState.order}`,
+                                                }));
+                                              }}
+                                            />
+                                          </td>
+                                          <td>
+                                            <Select
+                                              value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.pizzaDefaults?.[index]?.defaultCrustThickness || null}
+                                              getOptionLabel={(option: ICrustThickness) => option.name}
+                                              getOptionValue={(option: ICrustThickness) => option.id}
+                                              onChange={(crustThicknessOption) => handleDefaultPizzasChange("defaultCrustThickness", crustThicknessOption, index)}
+                                              options={crustThicknessList}
+                                              onMenuOpen={() => {
+                                                dispatch(getCrustThicknesses({
+                                                  page: paginationState.activePage - 1,
+                                                  size: paginationState.itemsPerPage,
+                                                  sort: `${paginationState.sort},${paginationState.order}`,
+                                                }));
+                                              }}
+                                            />
+                                          </td>
+                                          <td>
+                                            <Select
+                                              value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.pizzaDefaults?.[index]?.defaultCrustType || null}
+                                              getOptionLabel={(option: ICrustType) => option.name}
+                                              getOptionValue={(option: ICrustType) => option.id}
+                                              onChange={(crustTypeOption) => handleDefaultPizzasChange("defaultCrustType", crustTypeOption, index)}
+                                              options={crustTypeList}
+                                              onMenuOpen={() => {
+                                                dispatch(getCrustTypes({
+                                                  page: paginationState.activePage - 1,
+                                                  size: paginationState.itemsPerPage,
+                                                  sort: `${paginationState.sort},${paginationState.order}`,
+                                                }));
+                                              }}
+                                            />
+                                          </td>
+                                        </tr>
+                                      ))}
+                                      {/* {pizzaItem?.variants?.[0]?.multiplePizzaDetails?.map((detail, index) => (
                                         <tr key={index}>
                                           <td>
                                             <InputNumber
@@ -886,13 +1005,13 @@ export const PizzaItemUpdate = () => {
                                             </PrimeButton>
                                           </td>
                                         </tr>
-                                      ))}
+                                      ))} */}
                                       <tr>
-                                        <td colSpan={2}>
+                                        {/* <td colSpan={2}>
                                           <Button type={"button"} color="primary" onClick={addNewMultiplePizzaDetail}>
                                             <Translate contentKey={'items.update.pizza.add'}>Add</Translate>
                                           </Button>
-                                        </td>
+                                        </td> */}
                                       </tr>
                                     </tbody>
                                   </Table>

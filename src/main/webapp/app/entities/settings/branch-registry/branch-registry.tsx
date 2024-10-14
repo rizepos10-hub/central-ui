@@ -123,7 +123,7 @@ export const BranchRegistry = ({isRegisterClosure} : { isRegisterClosure?: boole
 
 
   const nameColumnTemplate = (rowData) => {
-    const editUrl = isRegisterClosure ?  `/analytics/register-closure/${rowData.id}/edit` :  `/branch-registry/${rowData.id}/edit`;
+    const editUrl = isRegisterClosure ?  `/analytics/register-closure/${rowData.id}/edit` :  `/branch-register/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -132,7 +132,7 @@ export const BranchRegistry = ({isRegisterClosure} : { isRegisterClosure?: boole
   };
 
   const editColumnTemplate = (rowData: IBranchRegistry) => {
-    const editUrl = isRegisterClosure ?  `/analytics/register-closure/${rowData.id}/edit` :  `/branch-registry/${rowData.id}/edit`;
+    const editUrl = isRegisterClosure ?  `/analytics/register-closure/${rowData.id}/edit` :  `/branch-register/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
         <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />

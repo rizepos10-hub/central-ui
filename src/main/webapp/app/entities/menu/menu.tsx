@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Translate, translate, TextFormat, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,6 +21,7 @@ import { convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util
 
 export const Menu = () => {
   const dispatch = useAppDispatch();
+  const { id } = useParams<'id'>();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,6 +31,8 @@ export const Menu = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  console.log(isModalOpen)
 
   const menuList = useAppSelector(state => state.menu.entities);
   const loading = useAppSelector(state => state.menu.loading);
@@ -178,7 +181,6 @@ export const Menu = () => {
   return (
     <>
       <MenuUpdate
-        menuEntity={menuList}
         setIsModalOpen={setIsModalOpen}
         isModalOpen={isModalOpen}
         saveEntity={saveEntity}

@@ -23,6 +23,7 @@
       "itemPerRow": "Item Per Row",
       "showDeliveryTips": "Show Delivery Tips",
       "scheduleOrders": "Schedule Orders",
+      "canOrder": "Can Order",
       "hideModalDescription": "Hide Modal Description",
       "hideItemDescription": "Hide Item Description",
       "currencySymbolPosition": "Currency Symbol Position",

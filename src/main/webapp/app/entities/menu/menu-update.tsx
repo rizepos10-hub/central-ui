@@ -7,9 +7,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useAppDispatch, useAppSelector } from 'app/config/store'
 import { IMenu } from 'app/shared/model/menu.model'
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { useParams } from 'react-router-dom'
+import { getEntity } from './menu.reducer';
 
 const MenuUpdate = ({
-    menuEntity,
     setIsModalOpen,
     isModalOpen,
     saveEntity,
@@ -19,7 +20,6 @@ const MenuUpdate = ({
     selectedName,
     setSelectedName,
 }: {
-    menuEntity: IMenu;
     setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
     isModalOpen: boolean;
     saveEntity: (values?: any) => void;
@@ -30,16 +30,23 @@ const MenuUpdate = ({
     setSelectedName: React.Dispatch<React.SetStateAction<string>>;
 }) => {
     const dispatch = useAppDispatch();
+    const { id } = useParams<'id'>();
 
-    const ITEM_TYPE_OPTIONS = ["RETAIL", "RESTAURANT"];
+    const menuEntity = useAppSelector(state => state.menu.entity);
+
     const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
 
     useEffect(() => {
         dispatch(getBranches({}));
-        if (menuEntity.name) {
-            setSelectedName(menuEntity.name)
-        }
-    }, [])
+        if (!id) return;
+        dispatch(getEntity({ id })).then((res) => {
+            // @ts-expect-error -- unknown type
+            if (res.payload?.data?.name) {
+                // @ts-expect-error -- unknown type
+                setSelectedName(res.payload?.data?.name)
+            }
+        });
+    }, [id])
 
     return (
         <Modal isOpen={isModalOpen} toggle={() => setIsModalOpen(prev => !prev)} className="modal-lg">

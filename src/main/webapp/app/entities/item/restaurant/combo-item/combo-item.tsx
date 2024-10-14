@@ -11,13 +11,15 @@ import { Column } from "primereact/column";
 import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
-import { deleteEntities, filterEntities, updateEntities } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
+import { deleteEntities, exportEntities, filterEntities, updateEntities } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { Dropdown } from 'primereact/dropdown';
 import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
 import { confirmDialog } from 'primereact/confirmdialog';
+import { InputText } from 'primereact/inputtext';
+import { FilterMatchMode } from 'primereact/api';
 
 export const ComboItem = () => {
   const dispatch = useAppDispatch();
@@ -31,7 +33,7 @@ export const ComboItem = () => {
 
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
-  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
 
 
   const getAllEntities = () => {
@@ -149,8 +151,69 @@ export const ComboItem = () => {
   };
 
   const handleItemsDelete = async () => {
-    setIsLoadingDelete(true);
-    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingDelete(false));
+    setIsLoadingAction(true);
+    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingAction(false));
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+  useEffect(() => {
+    if (selectedActionOption?.code === "EXPORT") {
+      confirm2()
+    }
+  }, [selectedActionOption])
+
+  const nameFilterTemplate = () => {
+    const [name, setName] = useState('');
+
+    return (
+      <form onSubmit={(e) => {
+        e.preventDefault()
+        const newQuery = {
+          ...query,
+          filters: {
+            ...query.filters,
+            name: {
+              ...query.filters?.name,
+              value: name,
+              matchMode: query.filters?.name?.matchMode || FilterMatchMode.CONTAINS,
+            },
+          }
+        }
+
+        const updatedQuery = applyMatchModeMap(newQuery);
+
+
+        dispatch(filterEntities({
+          query: updatedQuery,
+        }));
+      }}>
+        <InputText
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="p-inputtext-sm"
+          placeholder="Search by Name"
+        />
+      </form>
+    );
+  };
+
+  const confirm2 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleItemsExport(),
+      reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleItemsExport = async () => {
+    setIsLoadingAction(true);
+    await dispatch(exportEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingAction(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
   }
@@ -171,6 +234,10 @@ export const ComboItem = () => {
         />
       </span>
       <div className="ms-auto">
+        <Button onClick={() => confirm2()}>
+          Export All
+        </Button>
+        &nbsp;
         <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
@@ -201,7 +268,7 @@ export const ComboItem = () => {
       )}
       <DataTable
         value={comboItemsList}
-        loading={loading || isLoadingDelete}
+        loading={loading || isLoadingAction}
         editMode="row"
         header={header}
         removableSort
@@ -209,7 +276,8 @@ export const ComboItem = () => {
         filterDisplay="row"
         paginator
         totalRecords={totalItems}
-        rows={20}
+        rowsPerPageOptions={[10, 20, 30, 40, 50]}
+        rows={query?.rows}
         lazy
         first={query.first}
         onPage={onPage}
@@ -223,7 +291,7 @@ export const ComboItem = () => {
         onSelectionChange={(e) => setSelectedProducts(e.value)}
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
-        <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
+        <Column field="name" filterElement={nameFilterTemplate} header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
 
         <Column
           header="Category"

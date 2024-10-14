@@ -214,7 +214,7 @@ const MediaLibraryTest = ({
                 const { headers } = res.payload as any;
                 const totalCount = headers['x-total-count']
                 if (headers['x-total-count']) {
-                    setTotalPages(Math.floor(totalCount / sizePerPage))
+                    setTotalPages(Math.ceil(totalCount / sizePerPage))
                 }
                 if (pageNumber === 0) {
                     setAttachments(newAttachments)

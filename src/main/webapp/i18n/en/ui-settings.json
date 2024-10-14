@@ -25,6 +25,7 @@
       "showDeliveryTips": "Show Delivery Tips",
       "orderConfirmation": "Enable Order Confirmation",
       "scheduleOrders": "Schedule Orders",
+      "canOrder": "Can Order",
       "hideModalDescription": "Hide Modal Description",
       "hideItemDescription": "Hide Item Description",
       "currencySymbolPosition": "Currency Symbol Position",
@@ -45,7 +46,18 @@
         "secondary-foreground": "Secondary Foreground",
         "muted": "Muted",
         "muted-foreground": "Muted Foreground",
-        "custom-color": "Custom Color"
+        "custom-color": "Custom Color",
+        "popover-foreground": "Popover Foreground",
+        "card": "Card",
+        "card-foreground": "Card Foreground",
+        "border": "Border",
+        "input": "Input",
+        "accent": "Accent",
+        "accent-foreground": "Accent Foreground",
+        "destructive": "Destructive",
+        "destructive-foreground": "Destructive Foreground",
+        "ring": "Ring",
+        "radius": "Radius"
       },
       "fontSetting": {
         "title": "Font Setting",
