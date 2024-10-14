@@ -7,7 +7,7 @@ import {
   Table,
   Label, FormGroup
 } from 'reactstrap';
-import { isNumber, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
+import { Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -23,7 +23,15 @@ import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 
-export const CustomerUpdate = () => {
+export const CustomerUpdate = ({
+  firstName,
+  isPopUp,
+  closePopUp
+}: {
+  firstName?: string
+  isPopUp?: boolean
+  closePopUp?: (id) => void
+}) => {
   const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
@@ -59,9 +67,17 @@ export const CustomerUpdate = () => {
   };
 
 
+  // useEffect(() => {
+  //   if (firstName) {
+  //     console.log(1)
+  //     dispatch(changeEntityField({ name: 'firstName', value: firstName }));
+  //     console.log(customerEntity)
+  //   }
+  // }, [firstName]);
 
 
-
+  // console.log(customerEntity)
+  // console.log(customerEntity?.firstName)
 
   const handleClose = () => {
     navigate(-1);
@@ -116,6 +132,10 @@ export const CustomerUpdate = () => {
 
           // @ts-expect-error -- unknown type
           if (!res?.error) {
+            if(isPopUp) {
+              closePopUp(newId)
+              return
+            }
             navigate(`/customer/${newId}/edit`)
           }
         }
@@ -132,7 +152,7 @@ export const CustomerUpdate = () => {
   return (
     <div>
       <Row>
-        <Col md="8">
+        <Col md="12">
           <h2 id="tempApp.customer.home.createOrEditLabel" data-cy="CustomerCreateUpdateHeading">
             {isNew ? (
               <Translate contentKey="tempApp.createNewCustomer">Create New Customer</Translate>
@@ -143,7 +163,7 @@ export const CustomerUpdate = () => {
         </Col>
       </Row>
       <Row>
-        <Col md="8" className="d-flex flex-column p-3">
+        <Col md="12" className="d-flex flex-column p-3">
           <PrimeCard>
             {loading ? (
               <p>Loading...</p>
@@ -270,25 +290,35 @@ export const CustomerUpdate = () => {
                     </div>
                   )}
                 </FormGroup>
-                <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                  <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;
-                  <span className="d-none d-md-inline">
-                    <Translate contentKey="entity.action.back">Back</Translate>
-                  </span>
-                </Button>
-                &nbsp;
-                <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-                &nbsp;
-                <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-                </Button>
+                {!isPopUp ? (
+                  <>
+                    <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
+                      <FontAwesomeIcon icon="arrow-left" />
+                      &nbsp;
+                      <span className="d-none d-md-inline">
+                        <Translate contentKey="entity.action.back">Back</Translate>
+                      </span>
+                    </Button>
+                    &nbsp;
+                    <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                      <FontAwesomeIcon icon="save" />
+                      &nbsp;
+                      <Translate contentKey="entity.action.save">Save</Translate>
+                    </Button>
+                    &nbsp;
+                    <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                      <FontAwesomeIcon icon="save" />
+                      &nbsp;
+                      <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                    </Button>
+                  </>
+                ) : (
+                  <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <FontAwesomeIcon icon="save" />
+                    &nbsp;
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                )}
               </form>
             )}
           </PrimeCard>
