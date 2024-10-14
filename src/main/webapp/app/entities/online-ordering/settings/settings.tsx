@@ -254,7 +254,7 @@ export const UiSettingsUpdate = () => {
                     </div>
                   </TabPanel>
                   <TabPanel header="UI/UX">
-                    <div className={'d-flex flex-column mb-3'}>
+                    {/* <div className={'d-flex flex-column mb-3'}>
                       <Label htmlFor="UiSettings-itemPerRow">
                         <strong>{translate('tempApp.UiSettings.itemPerRow')}</strong>
                       </Label>
@@ -263,7 +263,7 @@ export const UiSettingsUpdate = () => {
                         value={UiSettingsEntity.itemPerRow || null}
                         onChange={e => dispatch(changeEntityField({ name: 'itemPerRow', value: e.value }))}
                       />
-                    </div>
+                    </div> */}
 
                     <div className={'d-flex flex-column mb-3'}>
                       <Label htmlFor="UiSettings-logo">
