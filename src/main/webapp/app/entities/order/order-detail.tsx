@@ -19,6 +19,8 @@ import { RiRefund2Line } from 'react-icons/ri';
 import { DeliverStatus } from 'app/shared/model/ENUMS/delivery-status.model';
 import { useReactToPrint } from 'react-to-print';
 import { Dialog } from 'primereact/dialog';
+import { toast } from 'react-toastify';
+import { Storage } from 'react-jhipster';
 
 export const OrderDetail = () => {
   const dispatch = useAppDispatch();
@@ -589,6 +591,34 @@ export const OrderDetail = () => {
                                         </Button>
                                       </Link>
                                       <Button
+                                        outlined
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+
+                                          fetch(`${SERVER_API_URL}/api/orders/${orderEntity.id}/send-invoice?billId=${bill.id}`, {
+                                            method: 'POST',
+                                            headers: {
+                                              'Content-Type': 'application/json',
+                                              'Authorization': `Bearer ${Storage.local.get('jhi-authenticationToken')}`,
+                                            },
+                                          })
+                                            .then((response) => {
+                                              console.log(response)
+                                              if (!response.ok) {
+                                                toast.error("An error occurred");
+                                              } else {
+                                                toast.success("Email resent successfully");
+                                              }
+                                            })
+                                        }}
+                                      >
+                                        Resend E-mail
+                                      </Button>
+
+
+
+                                      <Button
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
@@ -652,7 +682,7 @@ export const OrderDetail = () => {
             </Row>
           )}
         </Container>
-      </div>
+      </div >
     </Container >
   );
 };
