@@ -82,7 +82,7 @@ export const AddonGroupUpdate = () => {
       })
     );
 
-    if (addonUpdateSuccess && newAddon?.id) {
+    if (addonUpdateSuccess && newAddon?.id && !isNew) {
       const entity = {
         ...addonGroup,
         addons: [...(addonGroup?.addons || []), newAddon],
