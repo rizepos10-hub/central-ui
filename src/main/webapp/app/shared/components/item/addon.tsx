@@ -214,9 +214,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                 getOptionValue={option => option.id}
                 onChange={selectedAddons => onFieldChange('addons', selectedAddons as IAddon[])}
                 onMenuOpen={() => {
-                  dispatch(
-                    getAddonsEntity({})
-                  );
+                  getAddons()
                 }}
               />
             </div>
