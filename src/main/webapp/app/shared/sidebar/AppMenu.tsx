@@ -587,6 +587,11 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR'],
         to: '/void-reasons',
       },
+      {
+        label: 'Custom Definitions',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/custom-definitions',
+      },
       // {
       //   label: 'On Account',
       //   role: ['ROLE_ADMINISTRATOR'],

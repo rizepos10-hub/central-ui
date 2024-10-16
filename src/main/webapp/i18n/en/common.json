@@ -1,6 +1,14 @@
 {
   "common": {
     "name": "Name",
+    "label": "Label",
+    "required": "Required",
+    "display": "Display",
+    "customDefinitions": "Custom Definitions",
+    "type": "Type",
+    "definitionName": "Definition Name",
+    "value": "Value",
+    "create": "Create",
     "image": "Image",
     "branch": "Branch",
     "email": "Email",
