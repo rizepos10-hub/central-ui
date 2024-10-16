@@ -110,15 +110,18 @@ export const ItemsTable = ({
     };
 
     const handleDropdownChange = (field, value) => {
-        const newQuery = JSON.stringify({
-            ...query,
+        setQuery(prev => ({
+            ...prev,
             filters: {
-                ...query.filters,
-                [field]: value
+                ...prev.filters,
+                [field]: {
+                    ...prev.filters[field],
+                    value: value?.value
+                }
             }
-        });
-        setQuery(prev => ({ ...prev, query: newQuery }));
+        }));
     };
+
 
     return (
         <DataTable
