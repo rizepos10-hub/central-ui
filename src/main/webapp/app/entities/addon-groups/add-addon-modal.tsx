@@ -117,6 +117,9 @@ export const CreateAddonModal = ({isOpen, toggle}) => {
                   id="addon-price"
                   value={addon?.price}
                   onChange={(e) => setAddon((prevState) => ({...prevState, price: e.value}))}
+                  mode="decimal"
+                  minFractionDigits={2}
+                  maxFractionDigits={2}
                 />
               </div>
 
