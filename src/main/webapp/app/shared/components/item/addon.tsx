@@ -16,6 +16,7 @@ import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-g
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { getEntities as getAddonsEntity } from 'app/entities/addon/addon.reducer';
+import { OrderList } from 'primereact/orderlist';
 
 type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
@@ -125,6 +126,19 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
     getAddons();
   }, [filterAddonState?.filters?.groupId?.value]);
 
+  const handleAddonGroupReorder = (event) => {
+    const reorderedAddonGroups = event.value.map(group => ({
+      required: addonGroups.find(g => g.addonGroup.id === group.id)?.required || false,
+      addonGroup: group,
+    }));
+    onFieldChange('addonGroups', reorderedAddonGroups);
+  };
+
+
+  const handleAddonReorder = (event) => {
+    onFieldChange('addons', event.value);
+  };
+
   return (
     <>
       <Row>
@@ -150,6 +164,19 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                   sort: `${paginationState.sort},${paginationState.order}`,
                 }))
               }}
+            />
+
+            <OrderList
+              value={addonGroups?.map(group => group.addonGroup) || []}
+              onChange={handleAddonGroupReorder}
+              itemTemplate={(group) => (
+                <div className="p-orderlist-item">
+                  <span>{group.name}</span>
+                </div>
+              )}
+              header="Reorder Addon Groups"
+              dragdrop
+              dataKey="id" // Ensure that `id` is unique for each addon group
             />
           </div>
           <Table>
@@ -216,6 +243,19 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                 onMenuOpen={() => {
                   getAddons()
                 }}
+              />
+
+              <OrderList
+                value={addons || []}
+                onChange={handleAddonReorder}
+                itemTemplate={(addon) => (
+                  <div className="p-orderlist-item">
+                    <span>{addon.name}</span>
+                  </div>
+                )}
+                header="Reorder Addons"
+                dragdrop
+                dataKey="id" // Ensure `id` is unique for each addon
               />
             </div>
             <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
