@@ -331,7 +331,7 @@ export const RegularItem = () => {
         onSelectionChange={(e) => setSelectedProducts(e.value)}
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
-        <Column field="name" header={translate('items.view.fields.name')}
+        <Column showFilterMatchModes={false} field="name" header={translate('items.view.fields.name')}
           filter filterField={"name"} body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} filterElement={nameFilterTemplate} sortable />
 
         <Column
