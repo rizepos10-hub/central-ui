@@ -37,6 +37,7 @@ import CustomDefinitionValues from 'app/shared/components/custom-definition-valu
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
 import { Dialog } from 'primereact/dialog';
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
+import { OrderList } from 'primereact/orderlist';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -304,6 +305,10 @@ export const RegularItemUpdate = () => {
     </div>
   );
 
+  const onReorder = (event, variantIndex) => {
+    const reorderedAddons = event.value;
+    handleVariantFieldChange(variantIndex, 'addons', reorderedAddons);
+  };
 
   if (loading) {
     return <Spinner />
@@ -443,6 +448,19 @@ export const RegularItemUpdate = () => {
                                                 onChange={addons => handleVariantFieldChange(variantIndex, 'addons', addons as IAddon[])}
                                               />
                                             </div>
+
+                                            <OrderList
+                                              value={variant.addons || []}
+                                              onChange={(e) => onReorder(e, variantIndex)}
+                                              itemTemplate={(addon) => (
+                                                <div className="p-orderlist-item">
+                                                  <span>{addon.name}</span>
+                                                </div>
+                                              )}
+                                              header="Reorder Addons"
+                                              dragdrop
+                                              dataKey="id"
+                                            />
 
                                             <DiscountDropdown
                                               discounts={variant.discounts}
