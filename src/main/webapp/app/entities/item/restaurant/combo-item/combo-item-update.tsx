@@ -28,6 +28,8 @@ import AuditLogs from "app/shared/components/logs/audit-logs";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import { preventEnterSubmit } from "app/shared/util/form-utils";
+import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
+import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
 
 
 export const ComboItemUpdate = () => {
@@ -504,6 +506,14 @@ export const ComboItemUpdate = () => {
                               })}
                             </tbody>
                           </Table>
+                          <Row>
+                            <Col>
+                              <CustomDefinitionValuesWrapper
+                                entityId={comboItem.id}
+                                entityType={CustomDefinitionEntityType.ITEM}
+                              />
+                            </Col>
+                          </Row>
                         </FormGroup>
                       </Row>
                     </div>

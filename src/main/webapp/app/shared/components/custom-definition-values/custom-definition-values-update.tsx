@@ -42,8 +42,7 @@ const CustomDefinitionValuesUpdate = ({
         } else {
             // @ts-expect-error -- special case
             dispatch(changeEntityField({ name: '', value: {
-                ...defaultValue,
-                id: '',
+                ...defaultValue
             } }))
         }
     }, [customFieldValueId, definitions])

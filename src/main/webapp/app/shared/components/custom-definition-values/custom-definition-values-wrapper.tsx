@@ -11,8 +11,6 @@ const CustomDefinitionValuesWrapper = ({
     entityType: CustomDefinitionEntityType
     entityId: string
 }) => {
-    const [visible, setVisible] = React.useState(false)
-
     return (
         <>
             <CustomDefinitionValues
