@@ -35,8 +35,6 @@ export const CustomDefinitionValues = ({
         customfieldValueId: ''
     });
 
-    console.log(entityId)
-
     const getAllEntities = () => {
         dispatch(getEntities({
             page: 0,
