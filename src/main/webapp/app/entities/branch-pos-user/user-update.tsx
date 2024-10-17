@@ -160,10 +160,10 @@ export const UserUpdate = () => {
     event.preventDefault();
 
 
-    if (!isPinCodeValid(user.pinCode)) {
-      console.error('Invalid pinCode. Please enter 4 digits.');
-      return;
-    }
+    // if (!isPinCodeValid(user.pinCode)) {
+    //   console.error('Invalid pinCode. Please enter 4 digits.');
+    //   return;
+    // }
 
     try {
       if (isNew) {
@@ -357,7 +357,7 @@ export const UserUpdate = () => {
                 value={user.pinCode}
                 onChange={handleInputChange}
                 required
-                minLength={3}
+                minLength={1}
                 maxLength={6}
                 placeholder={translate("tempApp.pinCode")}
 
