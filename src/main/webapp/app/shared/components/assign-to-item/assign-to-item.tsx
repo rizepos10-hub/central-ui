@@ -11,6 +11,7 @@ import _ from 'lodash';
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
 import { Link, useParams } from "react-router-dom";
 import { translate } from "react-jhipster";
+import { FilterMatchMode } from "primereact/api";
 
 export const ItemsTable = ({
     items,
@@ -122,7 +123,8 @@ export const ItemsTable = ({
                 ...prev.filters,
                 [field]: {
                     ...prev.filters[field],
-                    value: value?.value
+                    value: value?.value,
+                    matchMode: FilterMatchMode.EQUALS
                 }
             }
         }));
