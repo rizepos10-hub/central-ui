@@ -29,7 +29,19 @@ export const ComboItem = () => {
   const loading = useAppSelector(state => state.comboItem.loading);
   const totalItems = useAppSelector(state => state.comboItem.totalItems);
   const [searchParams, setSearchParams] = useSearchParams();
-  const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
+  const query = JSON.parse(searchParams.get("query")) || JSON.parse(searchParams.get("query")) || {
+    first: 0,
+    rows: 20,
+    page: 0,
+    sortField: null,
+    sortOrder: null,
+    query: '',
+    filters: {
+      "categories.id": { value: null, matchMode: FilterMatchMode.EQUALS },
+      "attributes": { value: null, matchMode: FilterMatchMode.EQUALS },
+      name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    }
+  };
 
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
@@ -291,7 +303,7 @@ export const ComboItem = () => {
         onSelectionChange={(e) => setSelectedProducts(e.value)}
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
-        <Column showFilterMatchModes={false} field="name" filterElement={nameFilterTemplate} header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
+        <Column field="name" filterElement={nameFilterTemplate} header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
 
         <Column
           header="Category"
