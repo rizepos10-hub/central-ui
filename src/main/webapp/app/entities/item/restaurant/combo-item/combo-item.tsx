@@ -291,7 +291,7 @@ export const ComboItem = () => {
         onSelectionChange={(e) => setSelectedProducts(e.value)}
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
-        <Column field="name" filterElement={nameFilterTemplate} header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
+        <Column showFilterMatchModes={false} field="name" filterElement={nameFilterTemplate} header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
 
         <Column
           header="Category"
