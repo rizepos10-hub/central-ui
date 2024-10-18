@@ -1,0 +1,43 @@
+{
+  "customDefinition": {
+    "view": {
+      "title": "Custom Definitions View",
+      "table": {
+        "title": "Custom Definitions",
+        "fields": {
+          "name": "Name",
+          "price": "Price",
+          "discounts": "Discounts",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "buttons": {
+          "refreshList": "Refresh List",
+          "createNewTag": "Create New Custom Definition"
+        },
+        "search": {
+          "name": "Search by Name"
+        }
+      }
+    },
+    "delete": {
+      "title": "Confirm Delete Operation",
+      "question": "Are you sure you want to delete Custom Definition {{ id }}",
+      "deleteRelated": "Delete related field values?"
+    },
+    "update": {
+      "id": "ID",
+      "name": "Name",
+      "description": "Description",
+      "price": "Price",
+      "required": "Required",
+      "display": "Display",
+      "create": {
+        "title": "Create Custom Definition"
+      },
+      "edit": {
+        "title": "Edit Custom Definition"
+      }
+    }
+  }
+}

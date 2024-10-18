@@ -27,6 +27,8 @@ import { filterEntities as getRegularItems, updateEntity as updateRegularItem } 
 import { filterEntities as getPizzaItems, updateEntity as updatePizzaItem } from 'app/entities/item/restaurant/pizza-item/pizza-item.reducer';
 import { filterEntities as getComboItems, updateEntity as updateComboItem } from 'app/entities/item/restaurant/combo-item/combo-item.reducer';
 import { IItem } from 'app/shared/model/ITEM/item.model';
+import { initialItemFilterState } from 'app/shared/model/filter-state.model';
+import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 
 
 export const AddonUpdate = () => {
@@ -279,6 +281,7 @@ const RegularItemsTable = ({
     value: false,
     id: ''
   });
+  const [query, setQuery] = useState(initialItemFilterState);
 
   const assignNewEntity = (rowData) => {
     setIsUpdating({
@@ -297,6 +300,12 @@ const RegularItemsTable = ({
 
     dispatch(updateRegularItem(entity))
       .finally(() => {
+        const updatedQuery = applyMatchModeMap(query);
+
+        dispatch(getRegularItems({
+          query: updatedQuery,
+        }));
+
         setIsUpdating({
           value: false,
           id: regularItems.find(item => item.id === rowData.id)?.id
@@ -316,6 +325,12 @@ const RegularItemsTable = ({
 
     dispatch(updateRegularItem(entity))
       .finally(() => {
+        const updatedQuery = applyMatchModeMap(query);
+
+        dispatch(getRegularItems({
+          query: updatedQuery,
+        }));
+
         setIsUpdating({
           value: false,
           id: regularItems.find(item => item.id === rowData.id)?.id
@@ -330,6 +345,8 @@ const RegularItemsTable = ({
 
   return (
     <ItemsTable
+      query={query}
+      setQuery={setQuery}
       items={regularItems}
       loading={loading}
       totalItems={totalItems}
@@ -355,6 +372,7 @@ const PizzaItemsTable = ({
     value: false,
     id: ''
   });
+  const [query, setQuery] = useState(initialItemFilterState);
 
   const assignNewEntity = (rowData) => {
     setIsUpdating({
@@ -373,6 +391,12 @@ const PizzaItemsTable = ({
 
     dispatch(updatePizzaItem(entity))
       .finally(() => {
+        const updatedQuery = applyMatchModeMap(query);
+
+        dispatch(getRegularItems({
+          query: updatedQuery,
+        }));
+
         setIsUpdating({
           value: false,
           id: pizzaItems.find(item => item.id === rowData.id)?.id
@@ -392,6 +416,12 @@ const PizzaItemsTable = ({
 
     dispatch(updatePizzaItem(entity))
       .finally(() => {
+        const updatedQuery = applyMatchModeMap(query);
+
+        dispatch(getRegularItems({
+          query: updatedQuery,
+        }));
+
         setIsUpdating({
           value: false,
           id: pizzaItems.find(item => item.id === rowData.id)?.id
@@ -405,6 +435,8 @@ const PizzaItemsTable = ({
 
   return (
     <ItemsTable
+      query={query}
+      setQuery={setQuery}
       items={pizzaItems}
       loading={loading}
       totalItems={totalItems}
@@ -430,6 +462,7 @@ const ComboItemsTable = ({
     value: false,
     id: ''
   });
+  const [query, setQuery] = useState(initialItemFilterState);
 
   const assignNewEntity = (rowData) => {
     setIsUpdating({
@@ -448,6 +481,12 @@ const ComboItemsTable = ({
 
     dispatch(updateComboItem(entity))
       .finally(() => {
+        const updatedQuery = applyMatchModeMap(query);
+
+        dispatch(getRegularItems({
+          query: updatedQuery,
+        }));
+
         setIsUpdating({
           value: false,
           id: comboItems.find(item => item.id === rowData.id)?.id
@@ -467,6 +506,12 @@ const ComboItemsTable = ({
 
     dispatch(updateComboItem(entity))
       .finally(() => {
+        const updatedQuery = applyMatchModeMap(query);
+
+        dispatch(getRegularItems({
+          query: updatedQuery,
+        }));
+
         setIsUpdating({
           value: false,
           id: comboItems.find(item => item.id === rowData.id)?.id
@@ -480,6 +525,8 @@ const ComboItemsTable = ({
 
   return (
     <ItemsTable
+      query={query}
+      setQuery={setQuery}
       items={comboItems}
       loading={loading}
       totalItems={totalItems}

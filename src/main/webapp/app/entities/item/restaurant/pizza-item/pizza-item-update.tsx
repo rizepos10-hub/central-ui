@@ -36,6 +36,8 @@ import { getEntities as getMixAndMatchRules } from "app/entities/mix-and-match-r
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import { preventEnterSubmit } from "app/shared/util/form-utils";
 import { IPizzaSize } from 'app/shared/model/PIZZA/pizza-size.model';
+import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
+import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
 
 const items: MenuItem[] = [
   {
@@ -1021,6 +1023,14 @@ export const PizzaItemUpdate = () => {
 
 
                           </div>
+                          <Row>
+                            <Col>
+                              <CustomDefinitionValuesWrapper
+                                entityId={pizzaItem.id}
+                                entityType={CustomDefinitionEntityType.ITEM}
+                              />
+                            </Col>
+                          </Row>
                         </FormGroup>
                       </TabPanel>
                       <TabPanel header={translate('items.update.tabs.visibility.label')}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import {  Translate, translate, } from 'react-jhipster';
+import { Translate, translate, } from 'react-jhipster';
 
 import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -12,9 +12,9 @@ import {
   reset,
   assignRole
 } from './user.reducer';
-import {InputText} from "primereact/inputtext";
-import {Checkbox} from "primereact/checkbox";
-import {Button} from "primereact/button";
+import { InputText } from "primereact/inputtext";
+import { Checkbox } from "primereact/checkbox";
+import { Button } from "primereact/button";
 import Authorities from "app/entities/back-office-user/Authority";
 
 export const UserUpdate = () => {
@@ -46,12 +46,12 @@ export const UserUpdate = () => {
 
 
   const handleClose = () => {
-    navigate(-1);
+    navigate('/back-office-user');
   };
 
 
   const handleInputChange = (event) => {
-    const { name, value  } = event.target;
+    const { name, value } = event.target;
     setUser((prevUser) => ({
       ...prevUser,
       [name]: value,
@@ -64,7 +64,7 @@ export const UserUpdate = () => {
       if (checked) {
         return {
           ...prevUser,
-        enabled:  checked,
+          enabled: checked,
         };
       } else {
         return {
@@ -115,9 +115,11 @@ export const UserUpdate = () => {
         }));
 
         dispatch(assignRole({ id: userEntity.id, selectedRoles: authoritiesWithAssignedTrue }));
+        handleClose()
       } else {
-         dispatch(assignRole({id, selectedRoles: authoritiesWithAssignedTrue}))
-         dispatch(updateEntity(user));
+        dispatch(assignRole({ id, selectedRoles: authoritiesWithAssignedTrue }))
+        dispatch(updateEntity(user));
+        handleClose()
       }
 
     } catch (error) {
@@ -140,25 +142,25 @@ export const UserUpdate = () => {
     //   handleClose();
     // }
 
-    if(userEntity){
+    if (userEntity) {
       setUser(userEntity)
     }
 
-  }, [updateSuccess,userEntity]);
+  }, [updateSuccess, userEntity]);
 
 
 
 
   return (
     <div className="" >
-        <div className="col-8">
-          <h2>
-            {isNew ? translate("tempApp.createNewUser") : translate("tempApp.editUser")}
-          </h2>
+      <div className="col-8">
+        <h2>
+          {isNew ? translate("tempApp.createNewUser") : translate("tempApp.editUser")}
+        </h2>
       </div>
       <div className="col-8">
 
-      <div className=" d-flex flex-column p-3  bg-white">
+        <div className=" d-flex flex-column p-3  bg-white">
           <form onSubmit={handleSubmit}>
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="username">

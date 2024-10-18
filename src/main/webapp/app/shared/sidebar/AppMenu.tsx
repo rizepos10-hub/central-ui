@@ -84,7 +84,7 @@ export const model: MenuItem[] = [
         to: '/tag',
       },
       {
-        label: 'Brand Groups',
+        label: 'Tag Groups',
         to: '/tag-group',
       },
     ],
@@ -302,11 +302,11 @@ export const model: MenuItem[] = [
     icon: ' pi pi-users',
     to: '/customer',
     items: [
-      {
-        label: 'Groups',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/customer/group',
-      },
+      // {
+      //   label: 'Groups',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/customer/group',
+      // },
       {
         label: 'Customers',
         role: ['ROLE_ADMINISTRATOR'],
@@ -586,6 +586,11 @@ export const model: MenuItem[] = [
         label: 'Voids',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/void-reasons',
+      },
+      {
+        label: 'Custom Definitions',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/custom-definitions',
       },
       // {
       //   label: 'On Account',

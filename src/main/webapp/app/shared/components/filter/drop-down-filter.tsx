@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { getEntities as getRestaurantCategories, searchEntities as searchRestaurantCategories} from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import { getEntities as getRestaurantCategories, searchEntities as searchRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
 import { getEntities as getRetailCategories, searchEntities as searchRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
-import { getEntities as getBranches, searchEntities as searchBranches} from "app/entities/branch/branch.reducer";
-import { getEntities as getMeasures, searchEntities as searchMeasures} from "app/entities/item-measure/item-measure.reducer";
+import { getEntities as getBranches, searchEntities as searchBranches } from "app/entities/branch/branch.reducer";
+import { getEntities as getMeasures, searchEntities as searchMeasures } from "app/entities/item-measure/item-measure.reducer";
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { ITerm } from 'app/shared/model/term.model';
@@ -24,11 +24,11 @@ type DropDownFilterProps = {
   placeholder?: string;
 };
 
-const DropDownFilter = ({ selectedOption, handleDropdownChange, dropDownOptionType, fieldName, style,classname, placeholder = "" }: DropDownFilterProps) => {
+const DropDownFilter = ({ selectedOption, handleDropdownChange, dropDownOptionType, fieldName, style, classname, placeholder = "" }: DropDownFilterProps) => {
   const dispatch = useAppDispatch();
   const restaurantCategories: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
   const retailCategories: ITerm[] = useAppSelector(state => state.retailCategory.entities);
-  const measureList :IMeasurementUnit[] = useAppSelector(state => state.itemMeasure.entities);
+  const measureList: IMeasurementUnit[] = useAppSelector(state => state.itemMeasure.entities);
   const branches: IBranch[] = useAppSelector(state => state.branch.entities);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -41,12 +41,12 @@ const DropDownFilter = ({ selectedOption, handleDropdownChange, dropDownOptionTy
     RESTAURANT_CATEGORY: {
       options: restaurantCategories,
       getEntities: getRestaurantCategories,
-      searchEntities:  searchRestaurantCategories,
+      searchEntities: searchRestaurantCategories,
     },
     BRANCH: {
-        options: branches,
-        getEntities: getBranches,
-        searchEntities: searchBranches,
+      options: branches,
+      getEntities: getBranches,
+      searchEntities: searchBranches,
     },
     MEASURE: {
       options: measureList,
@@ -82,14 +82,17 @@ const DropDownFilter = ({ selectedOption, handleDropdownChange, dropDownOptionTy
     };
   }, [searchTerm, dropDownOptionType]);
 
-  const filterElement = () => (
-    <span className="p-input-icon-right">
-           <InputText
-             placeholder="Search" value={searchTerm}
-             onChange={e => setSearchTerm(e.target.value)} />
-          <i className="pi pi-search" />
+
+  const filterElement = () => {
+    return (
+      <span className="p-input-icon-right" onBlur={e => setSearchTerm('')}>
+        <InputText
+          placeholder="Search" value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)} />
+        <i className="pi pi-search" />
       </span>
-  );
+    )
+  }
 
   return (
     <Dropdown

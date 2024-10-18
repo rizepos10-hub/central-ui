@@ -48,6 +48,8 @@ import { Column } from 'primereact/column';
 import VariantPackaging from 'app/shared/components/item/variant-packaging';
 import { Dropdown } from 'primereact/dropdown';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
+import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -1206,6 +1208,14 @@ export const ProductUpdate = () => {
                                   </Col>
                                 </Row>
                               )}
+                            </Row>
+                            <Row>
+                              <Col>
+                                <CustomDefinitionValuesWrapper
+                                  entityId={product.id}
+                                  entityType={CustomDefinitionEntityType.ITEM}
+                                />
+                              </Col>
                             </Row>
                           </div>
                         </FormGroup>

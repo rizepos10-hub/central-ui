@@ -18,6 +18,8 @@ import { IItem } from 'app/shared/model/ITEM/item.model';
 import { Dropdown } from 'primereact/dropdown';
 import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
 import { confirmDialog } from 'primereact/confirmdialog';
+import { InputText } from 'primereact/inputtext';
+import { FilterMatchMode } from 'primereact/api';
 
 export const ComboItem = () => {
   const dispatch = useAppDispatch();
@@ -27,7 +29,19 @@ export const ComboItem = () => {
   const loading = useAppSelector(state => state.comboItem.loading);
   const totalItems = useAppSelector(state => state.comboItem.totalItems);
   const [searchParams, setSearchParams] = useSearchParams();
-  const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
+  const query = JSON.parse(searchParams.get("query")) || JSON.parse(searchParams.get("query")) || {
+    first: 0,
+    rows: 20,
+    page: 0,
+    sortField: null,
+    sortOrder: null,
+    query: '',
+    filters: {
+      "categories.id": { value: null, matchMode: FilterMatchMode.EQUALS },
+      "attributes": { value: null, matchMode: FilterMatchMode.EQUALS },
+      name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    }
+  };
 
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
@@ -161,6 +175,41 @@ export const ComboItem = () => {
     }
   }, [selectedActionOption])
 
+  const nameFilterTemplate = () => {
+    const [name, setName] = useState('');
+
+    return (
+      <form onSubmit={(e) => {
+        e.preventDefault()
+        const newQuery = {
+          ...query,
+          filters: {
+            ...query.filters,
+            name: {
+              ...query.filters?.name,
+              value: name,
+              matchMode: query.filters?.name?.matchMode || FilterMatchMode.CONTAINS,
+            },
+          }
+        }
+
+        const updatedQuery = applyMatchModeMap(newQuery);
+
+
+        dispatch(filterEntities({
+          query: updatedQuery,
+        }));
+      }}>
+        <InputText
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="p-inputtext-sm"
+          placeholder="Search by Name"
+        />
+      </form>
+    );
+  };
 
   const confirm2 = () => {
     confirmDialog({
@@ -254,7 +303,7 @@ export const ComboItem = () => {
         onSelectionChange={(e) => setSelectedProducts(e.value)}
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
-        <Column field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
+        <Column field="name" filterElement={nameFilterTemplate} header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
 
         <Column
           header="Category"
