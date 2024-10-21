@@ -46,7 +46,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
   const [openedAddonModal, setOpenedAddonModal] = useState(false);
   const [filterAddonState, setFilterAddonState] = useState(initialState);
 
-  const restaurantItemsOptions = useAppSelector(state => state.restaurantItems.entities);
   const addonOptions = useAppSelector(state => state.addon.entities);
   const loadingAddonOptions = useAppSelector(state => state.addon.loading);
   const addonGroupsOptions = useAppSelector(state => state.addonGroups.entities);
@@ -338,7 +337,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
           showModal={openedAddonModal}
           handleSave={handleImportAddonModalSave}
           handleClose={handleImportAddonModalClose}
-          itemOptions={restaurantItemsOptions}
         />
       )}
     </>
