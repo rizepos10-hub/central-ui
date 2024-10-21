@@ -11,20 +11,7 @@ import Select from 'react-select';
 import { IRetailDashboard } from 'app/shared/model/retail-dashboard.model';
 import { getReportData } from './retail-dashboard.reducer';
 
-interface FilterState {
-    first: number;
-    rows: number;
-    page: number;
-    sortField: string | null;
-    sortOrder: string | null;
-    filters: {
-        branchId: { value: string | null; matchMode: string };
-        instantClockedIn: { value: string | null; matchMode: string };
-        instantClockedOut: { value: string | null; matchMode: string };
-    };
-}
-
-const initialState: FilterState = {
+const initialState = {
     first: 0,
     rows: 500,
     page: 0,
@@ -70,7 +57,7 @@ const RetialDashboard: React.FC = () => {
 
     const fetchData = async () => {
         console.log(branches)
-        if(branches?.length === 0) return
+        if (branches?.length === 0) return
         const payload: IRetailDashboard = {
             nodes: [],
             dateRange: {
@@ -113,20 +100,29 @@ const RetialDashboard: React.FC = () => {
         setView(e.value);
     };
 
-    const handleDateChange = (e: any) => {
-        const startDate = e.value[0] ? e.value[0].toISOString() : null;
-        const endDate = e.value[1] ? e.value[1].toISOString() : null;
+    const calenderValue =
+        filterState.filters?.instantClockedIn.value && !filterState.filters.instantClockedOut.value
+            ?
+            [filterState.filters?.instantClockedIn.value, null]
+            :
+            filterState.filters?.instantClockedIn.value && filterState.filters.instantClockedOut.value
+                ?
+                [filterState.filters?.instantClockedIn.value, filterState.filters?.instantClockedOut.value]
+                :
+                null;
 
+    const handleDateChange = (e: any) => {
+        const startDate = e.value[0];
+        const endDate = e.value[1];
         setFilterState({
             ...filterState,
             filters: {
                 ...filterState.filters,
                 instantClockedIn: { value: startDate, matchMode: FilterMatchMode.STARTS_WITH },
-                instantClockedOut: { value: endDate, matchMode: FilterMatchMode.ENDS_WITH }
+                instantClockedOut: { value: endDate, matchMode: FilterMatchMode.ENDS_WITH },
             }
         });
-    };
-
+    }
 
     const handleBranchChange = (selectedOption: any) => {
         setFilterState({
@@ -165,7 +161,8 @@ const RetialDashboard: React.FC = () => {
                     <label htmlFor="date">Date Range</label>
                     <Calendar
                         style={{ width: '12rem' }}
-                        value={calendarValue}
+                        disabled={!branches || branches?.length === 0}
+                        value={calenderValue}
                         id={'date'}
                         onChange={handleDateChange}
                         selectionMode="range"
