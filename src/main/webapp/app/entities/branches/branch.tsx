@@ -11,7 +11,7 @@ import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
 import { RadioButton } from 'primereact/radiobutton';
 import { InputSwitch } from 'primereact/inputswitch';
-import { IBusinessDetail, Metric, UnitCostCalculationMode } from 'app/shared/model/business-detail.model';
+import { IBusinessDetail, Metric, UnitCostCalculationMode, dayTypeEnum } from 'app/shared/model/business-detail.model';
 import { RequestType, fromAddress, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import usePlacesService from 'react-google-autocomplete/lib/usePlacesAutocompleteService';
@@ -189,7 +189,7 @@ export const Branches = () => {
 
   const handleAddOpeningHour = (branchIndex, dayIndex) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
-    newData[branchIndex].days[dayIndex].openingHours.push({ from: '', to: '' });
+    newData[branchIndex].days[dayIndex].openingHours.push({ from: '', to: '', dayType: 'TODAY' });
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -231,6 +231,14 @@ export const Branches = () => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].endingType = value;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleSelectedDayTypeChange = (branchIndex, dayIndex, hourIndex, field, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].days[dayIndex].openingHours[hourIndex][field] = value;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+    console.log(businessDetailsState);
+
   };
 
   const handleUnitCostCalculationModeChange = (branchIndex, value) => {
@@ -689,6 +697,17 @@ export const Branches = () => {
 
                             {day.openingHours.map((openingHour, hourIndex) => (
                               <div key={hourIndex} className="d-flex flex-row align-items-center mb-3">
+
+                                <Dropdown
+                                  value={openingHour.dayType}
+                                  options={Object.values(dayTypeEnum).map(dayType => ({ label: dayType, value: dayType }))}
+                                  onChange={(e) => handleSelectedDayTypeChange(branchIndex, dayIndex, hourIndex, 'dayType', e.target.value)}
+                                  placeholder="Day Type"
+                                  style={{ minWidth: '8rem' }}
+                                  optionValue={'value'}
+                                  optionLabel="label"
+                                  className='w-25 mr-2'
+                                />
 
                                 <label className="mr-2">From:</label>
                                 <InputText

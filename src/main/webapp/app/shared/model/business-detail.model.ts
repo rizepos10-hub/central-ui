@@ -5,7 +5,7 @@ import { IZone } from './ZONE/zone.model';
 import { EndingType } from './ENUMS/ending-type.model';
 export interface IBusinessDayDetail {
   day: DayOfWeek;
-  openingHours: { from: string; to: string }[];
+  openingHours: { dayType: dayTypeEnum; from: string; to: string }[];
   opensToday: boolean;
   status: string;
   shifts: IShifts[];
@@ -47,6 +47,11 @@ export interface IBranchDetails {
 export enum UnitCostCalculationMode {
   AVERAGE = 'AVERAGE',
   MAX = 'MAX',
+}
+
+export enum dayTypeEnum {
+  TODAY = 'TODAY',
+  NEXT_DAY = 'NEXT_DAY',
 }
 
 export interface IDeliveryConfiguration {
