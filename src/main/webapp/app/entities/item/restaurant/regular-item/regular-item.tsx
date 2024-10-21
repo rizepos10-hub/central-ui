@@ -41,7 +41,22 @@ export const RegularItem = () => {
 
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
+  console.log(searchParams.get("query"))
+  const query = JSON.parse(searchParams.get("query")) || {
+    first: 0,
+    rows: 20,
+    page: 0,
+    sortField: null,
+    sortOrder: null,
+    query: '',
+    filters: {
+      "categories.id": { value: null, matchMode: FilterMatchMode.EQUALS },
+      "attributes": { value: null, matchMode: FilterMatchMode.EQUALS },
+      name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    }
+  };
+  console.log(initialItemFilterState, 'initialItemFilterState')
+  console.log(query, 'query')
 
   const regularItemsList: IRegularItem[] = useAppSelector(state => state.regularItem.entities);
 

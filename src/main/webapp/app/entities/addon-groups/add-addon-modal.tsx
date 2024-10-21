@@ -113,10 +113,12 @@ export const CreateAddonModal = ({isOpen, toggle}) => {
                 </Label>
                 <InputNumber
                   name="price"
-                  required={true}
                   id="addon-price"
                   value={addon?.price}
                   onChange={(e) => setAddon((prevState) => ({...prevState, price: e.value}))}
+                  mode="decimal"
+                  minFractionDigits={2}
+                  maxFractionDigits={2}
                 />
               </div>
 

@@ -2,9 +2,7 @@ import React from 'react';
 import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
-
 import OnlineOrderingRoutes from 'app/entities/online-ordering/routes'
-
 import Menu from './menu/index';
 import Discount from './discount';
 import Customer from './customer';
@@ -13,19 +11,16 @@ import ComboItem from 'app/entities/item/restaurant/combo-item';
 import Addon from './addon';
 import AddonGroups from './addon-groups';
 import PizzaGroup from './pizza-settings';
-
 import Term from './term';
 import Order from './order';
 import Tax from './settings/tax';
 import TaxesProfile from './settings/tax-profile';
 import ProfileGroups from './settings/profile-group';
 import VoidReasons from './settings/void-reason';
-
 import BranchPosUser from './branch-pos-user';
 import BackOfficeUser from './back-office-user';
 import Printer from 'app/entities/settings/printing/printer';
 import PrintingProfiles from 'app/entities/settings/printing/printing-profiles';
-
 import ProductionCenter from 'app/entities/location/production-center';
 import PageNotFound from "app/shared/error/page-not-found";
 import PizzaSize from "app/entities/pizza-settings/pizza-size";
@@ -40,23 +35,13 @@ import FloorPlanSettings from "app/entities/settings/floor-plans/floor-plan-sett
 import FloorPlan from "app/entities/settings/floor-plans";
 import PizzaItem from "app/entities/item/restaurant/pizza-item";
 import PizzaToppingGroup from "app/entities/pizza-settings/pizza-topping-group";
-import SimpleItem from "app/entities/item/retail/simple-item";
 import RetailAttributes from "app/entities/item/retail/attributes";
-import VariableItem from "app/entities/item/retail/variable-item";
 import Loyalty from "app/entities/loyalty";
-
 import CurrencySettings from "app/entities/settings/currency";
 import ZonesSettings from 'app/entities/settings/zones';
 import Tv from "app/entities/settings/tv-config/tv";
 import TvDisplay from "app/entities/settings/tv-config/tv-display";
-
 import Supplier from "app/entities/inventory/supplier"
-import SalesLocation from "app/entities/inventory/sales-location"
-import Warehouse from "app/entities/inventory/warehouse"
-import PurchaseOrder from "app/entities/inventory/purchase-order";
-import StockConfig from "app/entities/inventory/stock-config";
-import TransferRequest from "app/entities/inventory/transfer-request";
-import SupplierReturn from "app/entities/inventory/supplier-return";
 import ItemMeasure from "app/entities/item-measure";
 import MixAndMatchRule from "app/entities/mix-and-match-rule"
 import Product from "app/entities/item/retail/product";
@@ -67,6 +52,7 @@ import Brand from "app/entities/brand";
 import Branches from './branches/branch';
 import ServiceCharge from './service-charges/index';
 import ImportFromOldSystem from './settings/import-from-old-system/import-from-old-system';
+import CustomDefinition from './settings/custom-definitions/index';
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -144,6 +130,7 @@ export default () => {
         <Route path="brand/*" element={<Brand />} />
 
         <Route path="currencies/*" element={<CurrencySettings />} />
+        <Route path="custom-definitions/*" element={<CustomDefinition />} />
         <Route path="zones/*" element={<ZonesSettings/>} />
         <Route path="import-from-old-system/*" element={<ImportFromOldSystem />} />
 

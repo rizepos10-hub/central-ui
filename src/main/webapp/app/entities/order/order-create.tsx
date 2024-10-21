@@ -26,6 +26,8 @@ import { IBranch } from 'app/shared/model/branch.model';
 import { toast } from 'react-toastify';
 import { Tooltip } from 'primereact/tooltip';
 import { OverlayPanel } from 'primereact/overlaypanel';
+import { InputText } from 'primereact/inputtext';
+import CustomerUpdate from '../customer/customer-update';
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
@@ -40,10 +42,13 @@ const OrderCreate = () => {
 
     const searchParams = new URLSearchParams(location.search);
 
+    const filterInputRef = useRef();
     const initialRender = useRef(true);
     const moreActionsOP = useRef(null);
     const discountOP = useRef(null);
 
+    const [filterValue, setFilterValue] = useState('');
+    const [filteredOptions, setFilteredOptions] = useState(customers);
     const [searchTermProduct, setSearchTermProduct] = useState('');
     const [variantDialog, setVariantDialog] = useState<{
         product: IProduct,
@@ -63,7 +68,11 @@ const OrderCreate = () => {
         availableVariants: []
     });
     const [openPaymentModal, setOpenPaymentModal] = useState(false);
+    const [visible, setVisible] = useState(false);
 
+    useEffect(() => {
+        setFilteredOptions(customers)
+    }, [customers])
 
     useEffect(() => {
         dispatch(getProducts({
@@ -76,7 +85,12 @@ const OrderCreate = () => {
 
     useEffect(() => {
         dispatch(getBranches({}))
-        dispatch(getCustomers({}))
+        dispatch(getCustomers({
+            query: '',
+            size: 1000,
+            sort: 'createdAt,asc',
+            page: 0
+        }))
         dispatch(reset())
     }, [])
     console.log(orderEntity, 'orderEntity')
@@ -238,12 +252,75 @@ const OrderCreate = () => {
             setOpenPaymentModal(false)
         })
     }
+    const footerTemplate = () => {
+        return (
+            <>
+                <div className="p-d-flex p-ai-center p-jc-center p-mt-2">
+                    <Button
+                        label={`Add "${filterValue || ''}" as a new customer`}
+                        icon="pi pi-plus"
+                        className="p-button-link"
+                        onClick={() => setVisible(true)}
+                    />
+                </div>
+            </>
+        )
+    };
+
+
+    const filterTemplate = (options) => {
+        const handleFilterChange = (event) => {
+            const value = event.target.value.toLowerCase();
+            setFilterValue(value);
+
+            // Apply manual filtering
+            const filtered = customers.filter(customer =>
+                `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(value)
+            );
+            setFilteredOptions(filtered);
+        };
+
+        const handleFilterReset = () => {
+            setFilterValue('');
+            setFilteredOptions(customers);
+            // @ts-expect-error -- type never
+            filterInputRef.current && filterInputRef.current?.focus();
+        };
+
+        return (
+            <div className="p-inputgroup">
+                <InputText
+                    ref={filterInputRef}
+                    value={filterValue}
+                    onChange={handleFilterChange}
+                    placeholder="Search customers"
+                />
+                <Button icon="pi pi-times" onClick={handleFilterReset} />
+            </div>
+        );
+    };
+
+    const closePopUp = (id) => {
+        setVisible(false)
+        // dispatch(changeEntityField({
+        //     name: 'customer',
+        //     value: {
+        //         id,
+        //     },
+        // }))
+    }
 
     return (
         <Container fluid className="d-flex flex-column justify-content-between" style={{
             maxWidth: '1100px',
             margin: '0 auto'
         }}>
+            <Dialog header="" visible={visible} style={{ width: '50vw' }} onHide={() => {
+                setVisible(false);
+            }}>
+                <CustomerUpdate firstName={filterValue} isPopUp closePopUp={closePopUp} />
+            </Dialog>
+
             <Dialog
                 header={`Amount to Pay : ${(calculateSubTotal() + calculateTaxes()).toFixed(2)}`}
                 visible={openPaymentModal}
@@ -509,10 +586,9 @@ const OrderCreate = () => {
                 }}>
                     <div className="px-2">Edit User
                         <Dropdown
-                            options={customers.map(customer => ({
-                                label: customer.firstName + ' ' + customer.lastName,
+                            options={filteredOptions.map(customer => ({
+                                label: `${customer.firstName} ${customer.lastName}`,
                                 value: customer.id,
-                                id: customer.id
                             }))}
                             placeholder="Add a customer"
                             value={orderEntity?.customer?.id}
@@ -522,9 +598,18 @@ const OrderCreate = () => {
                                     id: e.value,
                                 },
                             }))}
-                            className='w-100'
+                            className="w-100"
                             showClear
                             filter
+                            filterTemplate={filterTemplate}
+                            panelFooterTemplate={footerTemplate}
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            onFocus={() => dispatch(getCustomers({
+                                query: '',
+                                size: 1000,
+                                sort: 'createdAt,asc',
+                                page: 0
+                            }))}
                         />
                     </div>
                     <div

@@ -33,11 +33,11 @@ import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { preventEnterSubmit } from "app/shared/util/form-utils";
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-
-
-
-
-
+import CustomDefinitionValues from 'app/shared/components/custom-definition-values/custom-definition-values-update';
+import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
+import { Dialog } from 'primereact/dialog';
+import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
+import { OrderList } from 'primereact/orderlist';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -256,7 +256,7 @@ export const RegularItemUpdate = () => {
         } else {
           const payload = res?.payload as any;
           const newProductId = payload?.data?.id;
-        
+
           // @ts-expect-error -- unknown type
           if (!res?.error) {
             handleNavigate(newProductId)
@@ -305,6 +305,10 @@ export const RegularItemUpdate = () => {
     </div>
   );
 
+  const onReorder = (event, variantIndex) => {
+    const reorderedAddons = event.value;
+    handleVariantFieldChange(variantIndex, 'addons', reorderedAddons);
+  };
 
   if (loading) {
     return <Spinner />
@@ -445,6 +449,19 @@ export const RegularItemUpdate = () => {
                                               />
                                             </div>
 
+                                            <OrderList
+                                              value={variant.addons || []}
+                                              onChange={(e) => onReorder(e, variantIndex)}
+                                              itemTemplate={(addon) => (
+                                                <div className="p-orderlist-item">
+                                                  <span>{addon.name}</span>
+                                                </div>
+                                              )}
+                                              header="Reorder Addons"
+                                              dragdrop
+                                              dataKey="id"
+                                            />
+
                                             <DiscountDropdown
                                               discounts={variant.discounts}
                                               handleVariantChange={handleVariantFieldChange}
@@ -503,6 +520,14 @@ export const RegularItemUpdate = () => {
                             </Col>
                           </Col>
                         </FormGroup>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <CustomDefinitionValuesWrapper
+                            entityId={regularItem.id}
+                            entityType={CustomDefinitionEntityType.ITEM}
+                          />
+                        </Col>
                       </Row>
                     </TabPanel>
 

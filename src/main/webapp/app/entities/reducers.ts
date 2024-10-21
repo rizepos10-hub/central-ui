@@ -51,6 +51,8 @@ import retailAttribute from "app/entities/item/retail/attributes/retail-attribut
 import retailAttributeValue from "app/entities/item/retail/attributes/retail-attribute-values.reducer";
 import itemsForCombo from 'app/entities/item/restaurant/combo-item/items-for-combo.reducer';
 import currencies from "app/entities/settings/currency/currencies.reducer"
+import customDefinitions from "app/entities/settings/custom-definitions/custom-definitions.reducer"
+import customDefinitionValues from "app/shared/components/custom-definition-values/custom-definition-values.reducer"
 import currencySettings from "app/entities/settings/currency/currency-settings.reducer"
 import restaurantItems from 'app/entities/item/restaurant/restaurant-item.reducer';
 import allItems from 'app/entities/item/all-items.reducer';
@@ -135,6 +137,8 @@ const entitiesReducers = {
   loyalty,
   loyaltyExchange,
   currencies,
+  customDefinitions,
+  customDefinitionValues,
   currencySettings,
   tv,
   tvDisplay,

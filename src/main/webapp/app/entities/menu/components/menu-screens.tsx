@@ -507,6 +507,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     };
 
     const handleSubDragStart = (mainIndex, subIndex) => {
+        console.log(subIndex)
         setSelectedMainScreenIndex(mainIndex);
         setDraggedIndex(subIndex);
     };
@@ -1155,12 +1156,10 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         </Label>
                         <Input type="text" id="subScreenName" value={editScreenName} onChange={e => setEditScreenName(e.target.value)} />
 
-                        {editScreenCols ? (
-                            <div className={'d-flex flex-column mt-2'}>
-                                <Label for="editCols">Cols</Label>
-                                <InputNumber id="editCols" min={1} max={12} value={editScreenCols} onChange={e => setEditScreenCols(e.value)} />
-                            </div>
-                        ) : null}
+                        <div className={'d-flex flex-column mt-2'}>
+                            <Label for="editCols">Cols</Label>
+                            <InputNumber id="editCols" min={1} max={12} value={editScreenCols} onChange={e => setEditScreenCols(e.value)} />
+                        </div>
 
                         <Label for="subScreenColor">
                             <Translate contentKey={'menus.pos.update.modals.editScreen.color'}>Select color theme</Translate>
