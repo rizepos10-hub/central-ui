@@ -237,8 +237,6 @@ export const Branches = () => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].days[dayIndex].openingHours[hourIndex][field] = value;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
-    console.log(businessDetailsState);
-
   };
 
   const handleUnitCostCalculationModeChange = (branchIndex, value) => {
