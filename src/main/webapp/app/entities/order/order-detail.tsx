@@ -303,6 +303,14 @@ export const OrderDetail = () => {
                   </div>
                   <div className="mb-0 w-100 d-flex justify-content-between align-items-center">
                     <span>
+                      Service Chagres:
+                    </span>
+                    <span className='text-success'>
+                      + {orderEntity?.orderCharges?.reduce((acc, charge) => acc + charge?.amount, 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="mb-0 w-100 d-flex justify-content-between align-items-center">
+                    <span>
                       Taxes:
                     </span>
                     <span className='text-success'>
