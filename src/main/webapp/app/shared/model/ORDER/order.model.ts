@@ -20,7 +20,7 @@ export interface IOrder extends IOrderAudit {
   refund?: boolean | null;
   bills?: IBill[];
   scheduledAt?: string | null;
-  orderCharges?: any[];
+  orderCharges?: IOrderCharge[];
   orderDeliveryDetails?: IOrderDeliveryDetails;
   paymentStatus?: PaymentStatus
   processingStatus?: OrderStatus
