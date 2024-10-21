@@ -322,7 +322,7 @@ export const OrderDetail = () => {
                       Discount:
                     </span>
                     <span className='text-danger'>
-                      - {orderEntity?.totalDiscount?.toFixed(2)}
+                      - {orderEntity?.totalDiscount} %
                     </span>
                   </div>
                   <div className="mb-0 w-100 d-flex justify-content-between align-items-center">
@@ -480,16 +480,20 @@ export const OrderDetail = () => {
                       <div>
                         <Button
                           text
-                          className="text-decoration-none p-0"
+                          className="text-decoration-none p-0 text-start"
                           onClick={() => navigate(`/customer/${filteredOrderEntity.customer.id}/edit?page=1&sort=id,asc`)}
                         >
-                          {filteredOrderEntity.customer.firstName + ' ' + filteredOrderEntity.customer.lastName}
+                          Name: {filteredOrderEntity.customer.firstName + ' ' + filteredOrderEntity.customer.lastName}
                         </Button>
                         {/* </a> */}
                       </div>
                       {/* <div>23 total orders</div> */}
-                      <div>{filteredOrderEntity.customer.email}</div>
-                      <div>{filteredOrderEntity.customer.phone}</div>
+                      {filteredOrderEntity.customer.email && (
+                        <div>E-mail: {filteredOrderEntity.customer.email}</div>
+                      )}
+                      {filteredOrderEntity.customer.phone && (
+                        <div>Phone: {filteredOrderEntity.customer.phone}</div>
+                      )}
                     </>
                   ) : (
                     <p>No customer found</p>
