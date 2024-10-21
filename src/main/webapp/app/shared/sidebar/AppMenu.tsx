@@ -67,10 +67,10 @@ export const model: MenuItem[] = [
         label: 'POS',
         to: '/branch-pos-user',
       },
-      {
-        label: 'Activities',
-        to: '/activities',
-      },
+      // {
+      //   label: 'Activities',
+      //   to: '/activities',
+      // },
     ],
   },
   {
@@ -230,65 +230,65 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
         to: '/inventory/supplier-return',
       },
-      {
-        label: 'Inventory Count',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-        to: '/inventory/due',
-        items: [
-          {
-            label: 'Due',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-            to: '/inventory/due',
-          },
-          {
-            label: 'Upcoming',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-            to: '/inventory/upcoming',
-          },
-          {
-            label: 'Completed',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-            to: '/inventory/completed',
-          },
-          {
-            label: 'Canceled',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-            to: '/inventory/canceled',
-          },
-        ],
-      },
-      {
-        label: 'Fulfillments',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-        to: '/inventory/all',
-        items: [
-          {
-            label: 'All',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-            to: '/inventory/all',
-          },
-          {
-            label: 'Pack Orders',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-            to: '/inventory/pack-orders',
-          },
-          {
-            label: 'Customer Pickup',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-            to: '/inventory/customer-pickup',
-          },
-          {
-            label: 'Delivery',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-            to: '/inventory/delivery',
-          },
-        ],
-      },
-      {
-        label: 'Serial Numbers',
-        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-        to: '/inventory/serial-number',
-      },
+      // {
+      //   label: 'Inventory Count',
+      //   role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //   to: '/inventory/due',
+      //   items: [
+      //     {
+      //       label: 'Due',
+      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //       to: '/inventory/due',
+      //     },
+      //     {
+      //       label: 'Upcoming',
+      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //       to: '/inventory/upcoming',
+      //     },
+      //     {
+      //       label: 'Completed',
+      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //       to: '/inventory/completed',
+      //     },
+      //     {
+      //       label: 'Canceled',
+      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //       to: '/inventory/canceled',
+      //     },
+      //   ],
+      // },
+      // {
+      //   label: 'Fulfillments',
+      //   role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //   to: '/inventory/all',
+      //   items: [
+      //     {
+      //       label: 'All',
+      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //       to: '/inventory/all',
+      //     },
+      //     {
+      //       label: 'Pack Orders',
+      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //       to: '/inventory/pack-orders',
+      //     },
+      //     {
+      //       label: 'Customer Pickup',
+      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //       to: '/inventory/customer-pickup',
+      //     },
+      //     {
+      //       label: 'Delivery',
+      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //       to: '/inventory/delivery',
+      //     },
+      //   ],
+      // },
+      // {
+      //   label: 'Serial Numbers',
+      //   role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+      //   to: '/inventory/serial-number',
+      // },
       {
         label: 'Suppliers',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
@@ -376,7 +376,7 @@ export const model: MenuItem[] = [
     label: 'Reports',
     role: ['ROLE_ADMINISTRATOR'],
     icon: ' pi pi-chart-bar',
-    to: '/analytics/retail-dashboard',
+    to: '/analytics/sales',
     items: [
       // {
       //   label: 'Retail Dashboard',
@@ -394,14 +394,14 @@ export const model: MenuItem[] = [
             label: 'General Report',
             to: '/analytics/sales',
           },
-          {
-            label: 'Individual Performance',
-            to: '/analytics/sales-report/individual-performance',
-          },
-          {
-            label: 'Sales by Hour',
-            to: '/analytics/sales-report/summary',
-          },
+          // {
+          //   label: 'Individual Performance',
+          //   to: '/analytics/sales-report/individual-performance',
+          // },
+          // {
+          //   label: 'Sales by Hour',
+          //   to: '/analytics/sales-report/summary',
+          // },
           {
             label: 'Sales by Product',
             to: '/analytics/sales-report/sales-by-product',
@@ -420,28 +420,28 @@ export const model: MenuItem[] = [
           },
         ],
       },
-      {
-        label: 'Inventory Reports',
-        to: '/analytics/out-of-stock',
-        items: [
-          {
-            label: 'Out of Stock',
-            to: '/analytics/out-of-stock',
-          },
-          {
-            label: 'Sell Through',
-            to: '/analytics/sell-through',
-          },
-          {
-            label: 'Dusty Inventory',
-            to: '/analytics/dusty-inventory',
-          },
-          {
-            label: 'Performance',
-            to: '/analytics/performance',
-          },
-        ],
-      },
+      // {
+      //   label: 'Inventory Reports',
+      //   to: '/analytics/out-of-stock',
+      //   items: [
+      //     {
+      //       label: 'Out of Stock',
+      //       to: '/analytics/out-of-stock',
+      //     },
+      //     {
+      //       label: 'Sell Through',
+      //       to: '/analytics/sell-through',
+      //     },
+      //     {
+      //       label: 'Dusty Inventory',
+      //       to: '/analytics/dusty-inventory',
+      //     },
+      //     {
+      //       label: 'Performance',
+      //       to: '/analytics/performance',
+      //     },
+      //   ],
+      // },
       // {
       //   label: 'Payment Reports',
       //   to: '/analytics/payment-report',
@@ -458,10 +458,10 @@ export const model: MenuItem[] = [
         label: 'Employee Hours',
         to: '/analytics/employee-hours-report',
       },
-      {
-        label: 'Shift Closures',
-        to: '/analytics/shift-closure',
-      },
+      // {
+      //   label: 'Shift Closures',
+      //   to: '/analytics/shift-closure',
+      // },
       // {
       //   label: 'Gift Cards',
       //   to: '/analytics/gift-card',
@@ -474,10 +474,10 @@ export const model: MenuItem[] = [
       //   label: 'Tax Reports',
       //   to: '/analytics/tax-report',
       // },
-      {
-        label: 'AI Reporting',
-        to: '/analytics/ai-reporting',
-      },
+      // {
+      //   label: 'AI Reporting',
+      //   to: '/analytics/ai-reporting',
+      // },
       {
         label: 'Top Items',
         to: '/analytics/topItems',
@@ -651,13 +651,13 @@ export const model: MenuItem[] = [
       {
         label: 'Localization Settings',
         role: ['ROLE_ADMINISTRATOR'],
-        to: '/language',
+        to: '/currencies',
         items: [
-          {
-            label: 'Language',
-            role: ['ROLE_ADMINISTRATOR'],
-            to: '/language',
-          },
+          // {
+          //   label: 'Language',
+          //   role: ['ROLE_ADMINISTRATOR'],
+          //   to: '/language',
+          // },
           {
             label: 'Currencies',
             role: ['ROLE_ADMINISTRATOR'],
@@ -712,33 +712,33 @@ export const model: MenuItem[] = [
       {
         label: 'Data Management Tools',
         role: ['ROLE_ADMINISTRATOR'],
-        to: '/transfer-operations',
+        to: '/import-from-old-system',
         items: [
-          {
-            label: 'Transfer Operations',
-            role: ['ROLE_ADMINISTRATOR'],
-            to: '/transfer-operations',
-          },
-          {
-            label: 'Web extensions',
-            role: ['ROLE_ADMINISTRATOR'],
-            to: '/web-extensions',
-          },
+          // {
+          //   label: 'Transfer Operations',
+          //   role: ['ROLE_ADMINISTRATOR'],
+          //   to: '/transfer-operations',
+          // },
+          // {
+          //   label: 'Web extensions',
+          //   role: ['ROLE_ADMINISTRATOR'],
+          //   to: '/web-extensions',
+          // },
           {
             label: 'Import From Old System',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/import-from-old-system',
           },
-          {
-            label: 'Reporting automations',
-            role: ['ROLE_ADMINISTRATOR'],
-            to: '/reporting-automations',
-          },
-          {
-            label: 'App Integrations',
-            role: ['ROLE_ADMINISTRATOR'],
-            to: '/app-integration',
-          },
+          // {
+          //   label: 'Reporting automations',
+          //   role: ['ROLE_ADMINISTRATOR'],
+          //   to: '/reporting-automations',
+          // },
+          // {
+          //   label: 'App Integrations',
+          //   role: ['ROLE_ADMINISTRATOR'],
+          //   to: '/app-integration',
+          // },
         ]
       },
     ],
