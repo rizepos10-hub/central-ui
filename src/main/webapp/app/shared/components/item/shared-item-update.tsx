@@ -19,7 +19,6 @@ import Attachment from 'app/shared/components/attachment/attachment';
 import { Checkbox } from 'primereact/checkbox';
 import { cloneDeep } from 'lodash';
 import AddonImportModal from './addon-import-modal';
-import { getEntities as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import DiscountDropdown from 'app/shared/components/item/discount-dropdown';
@@ -114,13 +113,6 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
     if (isRestaurantItem) {
       dispatch(
         getRestaurantItemCategories({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-      dispatch(
-        getRestaurantItems({
           page: paginationState.activePage - 1,
           size: paginationState.itemsPerPage,
           sort: `${paginationState.sort},${paginationState.order}`,

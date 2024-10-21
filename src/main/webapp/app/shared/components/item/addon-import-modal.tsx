@@ -1,37 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Modal, ModalBody, ModalFooter } from 'reactstrap';
-import { getSortState, Translate, ValidatedForm } from 'react-jhipster';
-import { Column } from 'primereact/column';
-import { InputText } from 'primereact/inputtext';
-import { DataTable } from 'primereact/datatable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { FilterMatchMode } from 'primereact/api';
-import { Link } from 'react-router-dom';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+import { Translate } from 'react-jhipster';
 import Select from 'react-select';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { searchEntitiesRestaurant as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
+import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import debounce from 'lodash.debounce'; // Use lodash.debounce for debouncing
 import { IItem } from 'app/shared/model/ITEM/item.model';
 
 interface IAddonImportProps {
   showModal: boolean;
   handleClose?: () => void;
   handleSave: (item: IItem) => void;
-  itemOptions: { value: string; label: string }[];
 }
 
 const AddonImportModal = (props: IAddonImportProps) => {
+  const dispatch = useAppDispatch();
+  const restaurantItemsOptions = useAppSelector(state => state.restaurantItems.entities);
   const [selectedItemToImport, setSelectedItemToImport] = useState({});
-  const itemImportId = '';
+  const [filterData, setFilterData] = useState({
+    filters: {
+      name: {
+        value: '',
+        matchMode: 'contains', // Can change based on the requirement
+      },
+    },
+  });
+
+  const [restaurantPaginationState, setRestaurantPaginationState] = useState({
+    page: 0,
+    size: 10,
+    sort: 'id,asc',
+  });
+
+  // Use debounce to limit the API call rate
+  const handleFilterChange = debounce((inputValue) => {
+    // Pre-process the filter data to ensure valid values
+    setFilterData(prevFilterData => ({
+      ...prevFilterData,
+      filters: {
+        ...prevFilterData.filters,
+        name: {
+          value: inputValue || '', // If inputValue is null or undefined, use empty string
+          matchMode: 'contains',
+        },
+      },
+    }));
+  }, 500); // Wait 500ms after the last change
+
+  useEffect(() => {
+    console.log(filterData, 'filterData')
+    const query = applyMatchModeMap(filterData);
+    console.log(query, 'query');
+    dispatch(
+      getRestaurantItems({
+        page: restaurantPaginationState.page,
+        size: restaurantPaginationState.size,
+        sort: restaurantPaginationState.sort,
+        query: filterData.filters.name.value,
+      })
+    );
+  }, [dispatch, filterData, restaurantPaginationState]);
+
+  const handleItemImportChange = selectedItem => {
+    setSelectedItemToImport(selectedItem);
+  };
 
   const handleSaveImportAddons = () => {
     props.handleSave(selectedItemToImport);
-
     props.handleClose();
-  };
-
-  const handleItemImportChange = selectedItem => {
-    // itemImportId = selectedItemToImport.name
-    setSelectedItemToImport(selectedItem);
   };
 
   return (
@@ -48,7 +85,8 @@ const AddonImportModal = (props: IAddonImportProps) => {
             <Select
               isMulti={false}
               onChange={handleItemImportChange}
-              options={props.itemOptions}
+              onInputChange={handleFilterChange}
+              options={restaurantItemsOptions}
               getOptionLabel={option => option.name}
               getOptionValue={option => option.id}
             />
