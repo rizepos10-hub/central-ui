@@ -46,7 +46,7 @@ export const RetailDashboardSlice = createEntitySlice({
                     ...state,
                     loading: false,
                     entities: data,
-                    totalItems: parseInt(headers['x-total-count'], 10),
+                    // totalItems: parseInt(headers['x-total-count'], 10),
                 };
             })
             .addMatcher(isFulfilled(getReportData), (state, action) => {
