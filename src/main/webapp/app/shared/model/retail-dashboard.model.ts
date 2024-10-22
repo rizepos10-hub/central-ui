@@ -3,8 +3,20 @@ export interface IRetailDashboard {
     dateRange?: {
         from: string;
         to: string;
+        dateSlot: IDateSlot
     }
     branch?: string;
+}
+
+export interface IDateSlot {
+    period: DateSlotPeriod;
+    slots?: number;
+}
+
+export enum DateSlotPeriod {
+    WEEK = 'WEEK',
+    MONTH = 'MONTH',
+    YEAR = 'YEAR'
 }
 
 export interface IRetailDashboardNode {
