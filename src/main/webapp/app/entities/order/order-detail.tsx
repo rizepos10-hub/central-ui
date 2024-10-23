@@ -21,6 +21,9 @@ import { useReactToPrint } from 'react-to-print';
 import { Dialog } from 'primereact/dialog';
 import { toast } from 'react-toastify';
 import { Storage } from 'react-jhipster';
+import { Calendar } from 'primereact/calendar';
+import { cancelBooking, createBooking, updateBooking } from './delivery.reducer';
+import { toLocalISOString } from 'app/shared/util/date-utils';
 
 export const OrderDetail = () => {
   const dispatch = useAppDispatch();
@@ -81,8 +84,15 @@ export const OrderDetail = () => {
   const [processStatusTipAmount, setProcessStatusTipAmount] = React.useState(0);
   const [rowClick, setRowClick] = React.useState(true);
   const [showPrintableBillDialog, setShowPrintableBillDialog] = React.useState(false);
+  const [bookingDate, setBookingDate] = React.useState(null);
 
   const [activeIndexes, setActiveIndexes] = React.useState<number | number[]>();
+
+  useEffect(() => {
+    if (orderEntity.orderDeliveryDetails) {
+      setBookingDate(new Date(orderEntity.orderDeliveryDetails.pickupDate))
+    }
+  }, [orderEntity])
 
   const openAllAccordions = () => {
     return new Promise(resolve => {
@@ -222,6 +232,20 @@ export const OrderDetail = () => {
       chargesShares: bill.chargesShares,
     }))
   }
+
+  const confirm1 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to cancel this booking?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept() {
+        dispatch(cancelBooking(orderEntity))
+      },
+      // reject: () => setSelectedActionOption(null)
+    });
+  };
 
   if (loading) {
     return <Spinner />;
@@ -526,6 +550,40 @@ export const OrderDetail = () => {
                       Expected Arrival At: {new Date(orderEntity.orderDeliveryDetails?.expectedArrivalAt).toLocaleString()}
                     </div>
                     <div> {orderEntity.orderDeliveryDetails?.integrationDetails?.provider}, {orderEntity.orderDeliveryDetails?.integrationDetails?.tripId}</div>
+                  </CardBody>
+                </Card>
+              )}
+
+              {!orderEntity.orderDeliveryDetails ? (
+                <Card id='booking' className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
+                  <CardBody>
+                    <CardTitle tag="h6">Create Booking</CardTitle>
+                    <Calendar value={bookingDate} onChange={(e) => setBookingDate(e.value)} />
+                    <Button label='create' type='button' onClick={() => {
+
+                      dispatch(createBooking({
+                        date: bookingDate?.toISOString(),
+                        orderId: orderEntity.id
+                      }))
+                    }} />
+                  </CardBody>
+                </Card>
+              ) : (
+                <Card id='booking' className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
+                  <CardBody>
+                    <CardTitle tag="h6">Update Booking</CardTitle>
+                    <div className='d-flex flex-column gap-2'>
+                      <Calendar value={bookingDate} onChange={(e) => setBookingDate(e.value)} />
+                      <div className='d-flex justify-content-between'>
+                        <Button label='cancel booking' type='button' onClick={confirm1} />
+                        <Button label='update' type='button' onClick={() => {
+                          dispatch(updateBooking({
+                            date: toLocalISOString(bookingDate),
+                            orderId: orderEntity.id
+                          }))
+                        }} />
+                      </div>
+                    </div>
                   </CardBody>
                 </Card>
               )}
