@@ -94,45 +94,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [draggedItem, setDraggedItem] = useState(null)
 
 
-    const [mainScreen, setMainScreen] = useState({
-        id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
-        numberOfColumns: 1,
-        subScreens: []
-    })
-    const [currentSubScreens, setCurrentSubScreens] = useState([]);
-    const cols =
-        subScreenStack?.length === 1
-            ? mainScreen?.numberOfColumns
-            : subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns && subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns > 8
-                ? 8
-                : subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns || 1;
-
-
-    const [groupedSubscreens, setGroupedSubscreens] = useState([]);
-
-    useEffect(() => {
-        setGroupedSubscreens(() => {
-            const initialGroups = [];
-            for (let i = 0; i < currentSubScreens?.length; i += cols) {
-                initialGroups.push(currentSubScreens?.slice(i, i + cols));
-            }
-            return initialGroups;
-        })
-    }, [currentSubScreens])
-
-
-    useEffect(() => {
-        setCurrentSubScreens(mainScreen?.subScreens)
-    }, [mainScreen])
-
-    useEffect(() => {
-        setMainScreen(data?.menuScreens?.[selectedMainScreenIndex])
-    }, [data])
-
-
-    const [draggedItem, setDraggedItem] = useState(null)
-
-
     const handleMainScreenAdd = () => {
         setIsModalOpen({
             ...isModalOpen,
