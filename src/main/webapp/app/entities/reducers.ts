@@ -10,6 +10,7 @@ import addon from 'app/entities/addon/addon.reducer'
 import addonGroups from 'app/entities/addon-groups/addon-groups.reducer';
 
 import order from 'app/entities/order/order.reducer';
+import delivery from 'app/entities/order/delivery.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
 import tax from 'app/entities/settings/tax/tax.reducer';
@@ -98,6 +99,7 @@ const entitiesReducers = {
   addon,
   addonGroups,
   order,
+  delivery,
   user,
   PosBranchUser,
   tax,
