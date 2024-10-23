@@ -52,7 +52,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [breadcrumb, setBreadcrumb] = useState([]);
     const [subScreenStack, setSubScreenStack] = useState([]);
     const [newMainScreenName, setNewMainScreenName] = useState('');
-    const [newMainScreenCols, setNewMainScreenCols] = useState<number | null>(1);
+    const [newMainScreenCols, setNewMainScreenCols] = useState<number>(1);
 
     const handleMainScreenAdd = () => {
         setIsModalOpen({
@@ -719,7 +719,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         const newMainScreen = {
             name: newMainScreenName,
             backgroundColor: selectedColorTheme,
-            numberOfColumns: newMainScreenCols,
+            numberOfColumns: newMainScreenCols || 1,
             managerOnlyAccess: '',
             componentType: 'SUB_SCREENS',
             subscreens: [],
@@ -736,7 +736,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: false });
         setNewMainScreenName('');
         setSelectedColorTheme('');
-        setNewMainScreenCols(null);
+        setNewMainScreenCols(1);
     };
 
     const handleSubScreenModalSubmit = () => {
@@ -1059,7 +1059,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 value={newMainScreenCols}
                                 min={1}
                                 max={12}
-                                onChange={e => setNewMainScreenCols(e.value)}
+                                onChange={e => {
+                                    if (!e.value) {
+                                        setNewMainScreenCols(1)
+                                    } else {
+                                        setNewMainScreenCols(e.value)
+                                    }
+                                }}
                             />
                         </div>
 
