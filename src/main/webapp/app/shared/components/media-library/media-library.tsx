@@ -292,7 +292,7 @@ const MediaLibraryTest = ({
                         _id: item.id,
                         // createdAt: new Date(item.)
                         description: '',
-                        fileName: item.name + '.' + item.type.toLowerCase(),
+                        fileName: item.name + '.' + item.type?.toLowerCase(),
                         size: item.size,
                         thumbnailUrl: item.url,
                         title: item.name
