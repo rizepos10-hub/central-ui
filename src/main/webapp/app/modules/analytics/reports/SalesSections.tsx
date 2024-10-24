@@ -1,17 +1,24 @@
-import React from 'react';
-import {Translate} from "react-jhipster";
+import React, { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { formatPrice } from 'app/shared/util/price-utils';
+import { Translate } from "react-jhipster";
+import { getEntity as getCurrencySettings } from 'app/entities/settings/currency/currency-settings.reducer';
 
 const SalesSection = ({ title, data, isTotalSales = false }) => {
-  const formatValueWithCommas = (value) => {
-    return value ? value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 0;
-  };
-  console.log(data, 'dataInHere')
+  const dispatch = useAppDispatch();
 
-  // if (!data || !data.totalSales) {
-  //   return <div>No data available.</div>;
-  // }
+  const currencySettingsEntity = useAppSelector(state => state.currencySettings.entity);
+  const displayCurrency = currencySettingsEntity?.displayCurrency || currencySettingsEntity?.defaultCurrency;
+  const exchangeRatesArray = currencySettingsEntity?.exchangeRates || [];
+  const exchange =
+    exchangeRatesArray?.find(exRate => {
+      return exRate?.currency?.code === displayCurrency?.code;
+    }) || currencySettingsEntity.defaultCurrency;
 
-  console.log(data)
+  useEffect(() => {
+    dispatch(getCurrencySettings());
+  }, [])
+
   return (
     <div className="row mt-4">
       <div className="col-md-12">
@@ -22,55 +29,55 @@ const SalesSection = ({ title, data, isTotalSales = false }) => {
           <div className="d-flex justify-content-between mb-4">
             <p><Translate contentKey={'analytics.report.orders'}>Orders</Translate></p>
             <p className="text-end">
-              {data?.orders?.toFixed(2) ?? 0}
+              {data?.orders ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p><Translate contentKey={'analytics.report.subtotal'}>Subtotal</Translate></p>
             <p className="text-end">
-              {data?.subTotal?.toFixed(2) ?? 0}
+              {formatPrice(data?.subTotal ?? 0, exchange)}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p><Translate contentKey={'analytics.report.discount'}>Discount</Translate></p>
             <p className="text-end">
-              {data?.discount?.toFixed(2) ?? 0}
+              {data?.discount ?? 0} %
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p><Translate contentKey={'analytics.report.coupon'}>Applied Coupon</Translate></p>
             <p className="text-end">
-              {data?.appliedCoupon ?? 0}
+              {formatPrice(data?.appliedCoupon ?? 0, exchange)}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p><Translate contentKey={'analytics.report.d-charge'}>Delivery Charge</Translate></p>
             <p className="text-end">
-              {data?.deliveryCharge?.toFixed(2) ?? 0}
+              {formatPrice(data?.deliveryCharge ?? 0, exchange)}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p><Translate contentKey={'analytics.report.d-tax'}>Delivery TAX</Translate></p>
             <p className="text-end">
-              {data?.deliveryTAX?.toFixed(2) ?? 0}
+              {formatPrice(data?.deliveryTAX ?? 0, exchange)}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p><Translate contentKey={'analytics.report.refunds'}>Refunds</Translate></p>
             <p className="text-end">
-              {data?.refunds?.toFixed(2) ?? 0}
+              {formatPrice(data?.refunds ?? 0, exchange)}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p><Translate contentKey={'analytics.report.gst'}>Gst</Translate></p>
             <p className="text-end">
-              {data?.gst?.toFixed(2) ?? 0}
+              {data?.gst ?? 0}
             </p>
           </div>
           <div className="d-flex justify-content-between mb-4">
             <p><Translate contentKey={'analytics.report.hst'}>Hst</Translate></p>
             <p className="text-end">
-              {data?.hst?.toFixed(2) ?? 0}
+              {data?.hst ?? 0}
             </p>
           </div>
 
@@ -78,19 +85,19 @@ const SalesSection = ({ title, data, isTotalSales = false }) => {
           <hr />
           <div className="d-flex justify-content-between">
             <strong><Translate contentKey={'analytics.report.netSales'}>NET SALES</Translate></strong>
-            {data?.netSales?.toFixed(2) ?? 0}
+            {formatPrice(data?.netSales ?? 0, exchange)}
           </div>
           <div className="d-flex justify-content-between">
             <strong><Translate contentKey={'analytics.report.totalTax'}>TOTAL TAX</Translate></strong>
-            {data?.totalTAX?.toFixed(2) ?? 0}
+            {formatPrice(data?.totalTAX ?? 0, exchange)}
           </div>
           <div className="d-flex justify-content-between">
             <strong><Translate contentKey={'analytics.report.grossSales'}>GROSS SALES</Translate></strong>
-            {data?.grossSales?.toFixed(2) ?? 0}
+            {formatPrice(data?.grossSales ?? 0, exchange)}
           </div>
           <div className="d-flex justify-content-between">
             <strong><Translate contentKey={'analytics.report.totalTip'}>TOTAL TIP</Translate></strong>
-            {data?.totalTip?.toFixed(2) ?? 0}
+            {formatPrice(data?.totalTip ?? 0, exchange)}
           </div>
 
         </div>
