@@ -16,6 +16,7 @@ import { InputText } from 'primereact/inputtext';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import Select from 'react-select';
 import { getEntities as getAttributes } from 'app/entities/item/retail/attributes/retail-attribute.reducer';
+import { getEntities as getSuppliers } from 'app/entities/inventory/supplier/supplier.reducer';
 import { ITaxonomy } from 'app/shared/model/taxonomy.model';
 import { ITerm } from 'app/shared/model/term.model';
 import {
@@ -50,6 +51,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
+import SupplierAssociationTab from 'app/shared/components/item/supplier-association-tab';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -93,7 +95,7 @@ export const ProductUpdate = () => {
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
   const variantsList = useAppSelector(state => state.variant.entities);
-
+  const supplierList = useAppSelector(state => state.supplier.entities);
   const location = useLocation();
 
   const attributeValuesList = useAppSelector(state => state.retailAttributeValue.entities);
@@ -575,6 +577,13 @@ export const ProductUpdate = () => {
         sort: `${paginationState.sort},${paginationState.order}`,
       })
     );
+
+    dispatch(
+      getSuppliers({
+        page: 0,
+        size: 500
+      })
+    );
   }, [id, isNew]);
 
   useEffect(() => {
@@ -585,6 +594,21 @@ export const ProductUpdate = () => {
       });
     }
   }, [productEntity]);
+
+  const handleSupplierChange = (index, updatedVariant) => {
+  const updatedProduct = {
+    ...product,
+    variants: product.variants.map((variant, i) =>
+      i === index
+        ? {
+            ...variant,
+            supplierAssociation: updatedVariant,
+          }
+        : variant
+    ),
+  };
+  setProduct(updatedProduct);
+  };
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
@@ -1333,6 +1357,12 @@ export const ProductUpdate = () => {
                           </Table>
                         </Col>
                       </Row>
+                    </TabPanel>
+
+                    <TabPanel header={translate('items.update.tabs.supplier.label')}>
+                      <SupplierAssociationTab 
+                      onSupplierChange={handleSupplierChange} // Pass down the function as a prop
+                      variants={product?.variants} itemId={product.id} suppliers={supplierList}/>
                     </TabPanel>
                   </TabView>
                 </div>
