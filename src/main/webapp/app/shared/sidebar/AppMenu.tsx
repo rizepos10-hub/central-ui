@@ -51,6 +51,10 @@ export const model: MenuItem[] = [
         label: 'General Report',
         to: '/analytics/sales',
       },
+      {
+        label: 'Sell',
+        to: '/order/create',
+      },
     ],
   },
   {
