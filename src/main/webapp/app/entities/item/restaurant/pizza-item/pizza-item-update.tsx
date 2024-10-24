@@ -77,7 +77,6 @@ export const PizzaItemUpdate = () => {
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const predefinedPizzaOptions = useAppSelector(state => state.predefinedPizza.entities);
   const pizzaPricingClasses = useAppSelector(state => state.pizzaPricingClass.entities);
-  console.log(pizzaPricingClasses, 'pizzaPricingClasses')
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
@@ -210,7 +209,6 @@ export const PizzaItemUpdate = () => {
     setPizzaItem((prev) => {
       const updatedVariants = [...(prev.variants || [])];
       const updatedFieldPricing = [...(updatedVariants[0]?.[fieldName] || [])];
-      console.log(updatedFieldPricing, 'updatedFieldPricingupdatedFieldPricing')
 
       updatedFieldPricing[index] = {
         ...updatedFieldPricing[index],
@@ -292,9 +290,8 @@ export const PizzaItemUpdate = () => {
 
   const handleMultiplePizzaInputChange = (fieldName, value) => {
     setPizzaItem((prev) => {
-      const updatedDetails = prev.variants[0].multiplePizzaDetails;
+      const updatedDetails = { ...prev.variants[0].multiplePizzaDetails };
       updatedDetails[fieldName] = value;
-
       return {
         ...prev,
         variants: [
@@ -467,11 +464,9 @@ export const PizzaItemUpdate = () => {
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
-    console.table(pizzaItem)
     const entity = {
       ...pizzaItem,
     };
-    console.table(entity)
     if (isNew) {
       dispatch(createEntity(entity)).then((res) => {
         if (createNew) {
