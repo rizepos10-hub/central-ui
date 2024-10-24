@@ -92,6 +92,15 @@
             "combo": "Combo Item Stock",
             "pizza": "Pizza Item Stock"
           }
+        },
+
+        "supplier": {
+          "label": "Supplier Association",
+          "selectSuppliers":"Select Suppliers",
+          "selectSupplierPlaceHolder": "Select suppliers",
+          "supplierCodePlaceHolder": "Enter supplier code",
+          "supplierCode": "Supplier Code",
+          "searchSuppliers": "Search Suppliers..."
         }
       },
       "placeholders": {
