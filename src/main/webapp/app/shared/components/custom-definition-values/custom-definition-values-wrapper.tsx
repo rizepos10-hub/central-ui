@@ -11,6 +11,8 @@ const CustomDefinitionValuesWrapper = ({
     entityType: CustomDefinitionEntityType
     entityId: string
 }) => {
+    if (!entityId) return null
+
     return (
         <>
             <CustomDefinitionValues
