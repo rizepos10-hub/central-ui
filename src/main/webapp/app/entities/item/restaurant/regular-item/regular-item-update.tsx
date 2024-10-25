@@ -165,7 +165,7 @@ export const RegularItemUpdate = () => {
     const [reorderedVariant] = reorderedVariants.splice(draggedIndex, 1);
     reorderedVariants.splice(droppedIndex, 0, reorderedVariant);
 
-    const updatedVariants = reorderedVariants.map((variant, index) => {
+    const updatedVariants = reorderedVariants?.map((variant, index) => {
       if (index === droppedIndex) {
         return { ...variant, order: droppedIndex };
       } else if (index >= droppedIndex && index < draggedIndex) {
@@ -231,7 +231,7 @@ export const RegularItemUpdate = () => {
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
 
-    const updatedVariants = regularItem?.variants.map((variant, index) => {
+    const updatedVariants = regularItem?.variants?.map((variant, index) => {
       if (index !== 0 && variant.order === 0) {
         return {
           ...variant,

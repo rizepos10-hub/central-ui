@@ -134,7 +134,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
   }, [filterAddonState?.filters?.groupId?.value]);
 
   const handleAddonGroupReorder = (event) => {
-    const reorderedAddonGroups = event.value.map(group => ({
+    const reorderedAddonGroups = event.value?.map(group => ({
       required: addonGroups.find(g => g.addonGroup.id === group.id)?.required || false,
       addonGroup: group,
     }));
@@ -194,7 +194,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
     option => !selectedAddonGroupIds?.includes(option.id)
   );
 
-  const filteredAddons = addonOptions?.filter(option => !addons.map(addon => addon.id).includes(option.id));
+  const filteredAddons = addonOptions?.filter(option => !addons?.map(addon => addon.id).includes(option.id));
   return (
     <>
       <Row>
