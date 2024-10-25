@@ -38,6 +38,7 @@ import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/c
 import { Dialog } from 'primereact/dialog';
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { OrderList } from 'primereact/orderlist';
+import { Dropdown } from 'primereact/dropdown';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -55,6 +56,7 @@ export const RegularItemUpdate = () => {
   const discountList = useAppSelector(state => state.discount.entities);
   const addonList = useAppSelector(state => state.addon.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
+  const [selected, setSelected] = useState(null);
 
 
   const [paginationState, setPaginationState] = useState(
@@ -305,9 +307,52 @@ export const RegularItemUpdate = () => {
     </div>
   );
 
+  const reorderHeader = (
+    data: {
+      id: string;
+      name: string;
+    }[],
+    onChange: any,
+    value: any,
+    options,
+    onFocus,
+    variant,
+    variantIndex
+  ) => {
+    return (
+      <div className='d-flex gap-2 align-items-center'>
+        <Dropdown
+          value={selected}
+          onChange={e => setSelected(e.value)}
+          options={data}
+          placeholder="Select a City"
+          className="w-full md:w-14rem"
+          onFocus={onFocus}
+          optionLabel={'name'}
+          optionValue={'id'}
+        />
+        <Button onClick={() => onChange(options?.find(g => g?.id === selected), variant, variantIndex)} color="primary" className='p-1 mr-2'>
+          Assign
+        </Button>
+      </div>
+    )
+  }
+
   const onReorder = (event, variantIndex) => {
     const reorderedAddons = event.value;
     handleVariantFieldChange(variantIndex, 'addons', reorderedAddons);
+  };
+
+  const handleRemoveAddon = (addon: string, variant, variantIndex) => {
+    const updatedAddons = variant.addons.filter(a => a.id !== addon);
+
+    handleVariantFieldChange(variantIndex, 'addons', updatedAddons as IAddon[])
+  };
+
+
+  const handleAddonChange = (selectedAddon: IAddon, variant, variantIndex) => {
+    const updatedAddons = [...variant.addons, selectedAddon];
+    handleVariantFieldChange(variantIndex, 'addons', updatedAddons as IAddon[])
   };
 
   if (loading) {
@@ -439,25 +484,38 @@ export const RegularItemUpdate = () => {
                                               <label className={'font-semibold'}>
                                                 <Translate contentKey={'items.update.addons'}>Addons</Translate>
                                               </label>
-                                              <Select
+                                              {/* <Select
                                                 value={variant.addons || []}
                                                 options={addonList}
                                                 isMulti
                                                 getOptionLabel={option => option.name}
                                                 getOptionValue={option => option.id}
                                                 onChange={addons => handleVariantFieldChange(variantIndex, 'addons', addons as IAddon[])}
-                                              />
+                                              /> */}
                                             </div>
 
                                             <OrderList
                                               value={variant.addons || []}
                                               onChange={(e) => onReorder(e, variantIndex)}
                                               itemTemplate={(addon) => (
-                                                <div className="p-orderlist-item">
+                                                <div className="p-orderlist-item d-flex justify-content-between align-items-center">
                                                   <span>{addon.name}</span>
+                                                  <Button color="danger" size="sm" onClick={() => handleRemoveAddon(addon.id, variant, variantIndex)}>
+                                                    X
+                                                  </Button>
                                                 </div>
                                               )}
-                                              header="Reorder Addons"
+                                              header={
+                                                reorderHeader(
+                                                  addonList,
+                                                  handleAddonChange,
+                                                  variant.addons || [],
+                                                  addonList,
+                                                  () => { },
+                                                  variant,
+                                                  variantIndex
+                                                )
+                                              }
                                               dragdrop
                                               dataKey="id"
                                             />
