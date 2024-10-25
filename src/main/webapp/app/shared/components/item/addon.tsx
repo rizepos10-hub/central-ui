@@ -17,6 +17,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { getEntities as getAddonsEntity } from 'app/entities/addon/addon.reducer';
 import { OrderList } from 'primereact/orderlist';
+import { Dropdown } from 'primereact/dropdown';
 
 type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
@@ -39,7 +40,6 @@ const initialState = {
 };
 
 const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) => {
-
   const currencySettingsEntity = useAppSelector(state => state.currencySettings.entity);
 
   const dispatch = useAppDispatch();
@@ -81,18 +81,26 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
   };
 
   const handleAddonGroupChange = (
-    selectedAddonGroups: MultiValue<{ id: string; name: string }>,
+    selectedAddonGroup: IAddonGroup,
     actionMeta: ActionMeta<{ id: string; name: string }>
   ) => {
-    const existingAddonGroupsMap = new Map(addonGroups?.map(group => [group.addonGroup?.id, group]));
-    const updatedAddonGroups = selectedAddonGroups.map(selectedGroup => {
-      const existingGroup = existingAddonGroupsMap.get(selectedGroup?.id);
-      return {
-        required: existingGroup ? existingGroup.required : false,
-        addonGroup: selectedGroup,
-      };
-    });
-    onFieldChange('addonGroups', updatedAddonGroups);
+    // const existingAddonGroupsMap = new Map(addonGroups?.map(group => [group.addonGroup?.id, group]));
+    // const updatedAddonGroups = selectedAddonGroup.map(selectedGroup => {
+    //   const existingGroup = existingAddonGroupsMap.get(selectedGroup?.id);
+    //   return {
+    //     required: existingGroup ? existingGroup.required : false,
+    //     addonGroup: selectedGroup,
+    //   };
+    // });
+    const newGroup = {
+      addonGroup: selectedAddonGroup,
+      required: false,
+    };
+    onFieldChange('addonGroups', [...addonGroups, newGroup]);
+  };
+
+  const handleAddonChange = (selectedAddon: IAddon) => {
+    onFieldChange('addons', [...addons, selectedAddon]);
   };
 
   const handleImportAddonModalSave = (option: IItem) => {
@@ -133,11 +141,60 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
     onFieldChange('addonGroups', reorderedAddonGroups);
   };
 
+  const handleRemoveAddonGroup = (groupId: string) => {
+    const updatedAddonGroups = addonGroups.filter(group => group.addonGroup.id !== groupId);
+    onFieldChange('addonGroups', updatedAddonGroups);
+  };
+
+  const handleRemoveAddon = (addon: string) => {
+    const updatedAddons = addons.filter(a => a.id !== addon);
+    onFieldChange('addons', updatedAddons);
+  };
+
 
   const handleAddonReorder = (event) => {
     onFieldChange('addons', event.value);
   };
 
+  const reorderHeader = (
+    data: {
+      id: string;
+      name: string;
+    }[],
+    onChange: any,
+    value: any,
+    options,
+    onFocus: any
+  ) => {
+    const [selected, setSelected] = useState(value);
+
+    return (
+      <div className='d-flex gap-2 align-items-center'>
+        <Dropdown
+          value={selected}
+          onChange={e => setSelected(e.value)}
+          options={data}
+          placeholder="Select a City"
+          className="w-full md:w-14rem"
+          onFocus={onFocus}
+          optionLabel={'name'}
+          optionValue={'id'}
+        />
+        <Button onClick={() => onChange(options?.find(g => g?.id === selected))} color="primary" className='p-1 mr-2'>
+          Assign
+        </Button>
+      </div>
+    )
+  }
+
+  const selectedAddonGroupIds = addonGroups?.map(group => group.addonGroup.id);
+
+  // Filter out selected addon groups from options
+  const filteredAddonGroupsOptions = addonGroupsOptions?.filter(
+    option => !selectedAddonGroupIds?.includes(option.id)
+  );
+
+  const filteredAddons = addonOptions?.filter(option => !addons.map(addon => addon.id).includes(option.id));
   return (
     <>
       <Row>
@@ -146,36 +203,37 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
             <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
           </label>
           <div className="">
-            <Select
-              isMulti={true}
-              value={addonGroups?.map(group => ({
-                id: group?.addonGroup?.id,
-                name: group?.addonGroup?.name,
-              }))}
-              getOptionLabel={option => option?.name}
-              getOptionValue={option => option?.id}
-              options={addonGroupsOptions}
-              onChange={handleAddonGroupChange}
-              onMenuOpen={() => {
-                dispatch(getAddonGroups({
-                  page: paginationState.activePage - 1,
-                  size: paginationState.itemsPerPage,
-                  sort: `${paginationState.sort},${paginationState.order}`,
-                }))
-              }}
-            />
-
             <OrderList
               value={addonGroups?.map(group => group.addonGroup) || []}
               onChange={handleAddonGroupReorder}
               itemTemplate={(group) => (
-                <div className="p-orderlist-item">
+                <div className="p-orderlist-item d-flex justify-content-between align-items-center">
                   <span>{group.name}</span>
+                  <Button color="danger" size="sm" onClick={() => handleRemoveAddonGroup(group.id)}>
+                    X
+                  </Button>
                 </div>
               )}
-              header="Reorder Addon Groups"
+              header={
+                reorderHeader(
+                  filteredAddonGroupsOptions,
+                  handleAddonGroupChange,
+                  addonGroups?.map(group => ({
+                    id: group?.addonGroup?.id,
+                    name: group?.addonGroup?.name,
+                  })),
+                  addonGroupsOptions,
+                  () => {
+                    dispatch(getAddonGroups({
+                      page: paginationState.activePage - 1,
+                      size: paginationState.itemsPerPage,
+                      sort: `${paginationState.sort},${paginationState.order}`,
+                    }))
+                  }
+                )
+              }
               dragdrop
-              dataKey="id" // Ensure that `id` is unique for each addon group
+              dataKey="id"
             />
           </div>
           <Table>
@@ -204,59 +262,27 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
       </Row>
 
       <Row className={'my-3'}>
-        <div className="row">
+        <div className="row d-flex flex-column gap-2">
           <div className={'d-flex flex-row gap-4'}>
-            <div className={'d-flex flex-column gap-2 col-3'}>
-              <label className={'text-xl font-semibold'}>
-                <Translate contentKey={'items.update.filterByGroup'}>Filter by Group</Translate>
-              </label>
-              <Select
-                options={addonGroupsOptions}
-                isLoading={loadingAddonGroupsOptions}
-                isClearable
-                getOptionLabel={option => option?.name}
-                getOptionValue={option => option?.id}
-                onChange={handleAddonGroupFilterChange}
-                onMenuOpen={() => {
-                  dispatch(getAddonGroups({
-                    page: paginationState.activePage - 1,
-                    size: paginationState.itemsPerPage,
-                    sort: `${paginationState.sort},${paginationState.order}`,
-                  }))
-                }}
-              />
-            </div>
-            <div className={'d-flex flex-column gap-2 col-5'}>
-              <label className={'text-xl font-semibold'}>
-                <Translate contentKey={'items.update.addons'}>Addons</Translate>
-              </label>
-              <Select
-                value={addons}
-                isMulti={true}
-                isLoading={loadingAddonOptions}
-                // isDisabled={loadingAddonOptions}
-                options={addonOptions}
-                getOptionLabel={option => option.price ? `${option.name} ${option.price}` : option.name}
-                getOptionValue={option => option.id}
-                onChange={selectedAddons => onFieldChange('addons', selectedAddons as IAddon[])}
-                onMenuOpen={() => {
-                  getAddons()
-                }}
-              />
+            <label className={'text-xl font-semibold'}>
+              <Translate contentKey={'items.update.filterByGroup'}>Filter by Group</Translate>
+            </label>
+            <Select
+              options={addonGroupsOptions}
+              isLoading={loadingAddonGroupsOptions}
+              isClearable
+              getOptionLabel={option => option?.name}
+              getOptionValue={option => option?.id}
+              onChange={handleAddonGroupFilterChange}
+              onMenuOpen={() => {
+                dispatch(getAddonGroups({
+                  page: paginationState.activePage - 1,
+                  size: paginationState.itemsPerPage,
+                  sort: `${paginationState.sort},${paginationState.order}`,
+                }))
+              }}
+            />
 
-              <OrderList
-                value={addons || []}
-                onChange={handleAddonReorder}
-                itemTemplate={(addon) => (
-                  <div className="p-orderlist-item">
-                    <span>{addon.name}</span>
-                  </div>
-                )}
-                header="Reorder Addons"
-                dragdrop
-                dataKey="id" // Ensure `id` is unique for each addon
-              />
-            </div>
             <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
               <div>
                 <Button type="button" onClick={openImportAddonModal}>
@@ -264,6 +290,37 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                 </Button>
               </div>
             </div>
+          </div>
+          <div className={'d-flex flex-column gap-2'}>
+            <label className={'text-xl font-semibold'}>
+              <Translate contentKey={'items.update.addons'}>Addons</Translate>
+            </label>
+
+            <OrderList
+              value={addons || []}
+              onChange={handleAddonReorder}
+              itemTemplate={(addon) => (
+                <div className="p-orderlist-item d-flex justify-content-between align-items-center">
+                  <span>{addon.name}</span>
+                  <Button color="danger" size="sm" onClick={() => handleRemoveAddon(addon.id)}>
+                    X
+                  </Button>
+                </div>
+              )}
+              dragdrop
+              dataKey="id"
+              header={
+                reorderHeader(
+                  filteredAddons,
+                  handleAddonChange,
+                  addons,
+                  addonOptions,
+                  () => {
+                    getAddons()
+                  }
+                )
+              }
+            />
           </div>
         </div>
       </Row>
