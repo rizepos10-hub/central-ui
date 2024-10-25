@@ -77,7 +77,7 @@ const OrderCreate = () => {
     useEffect(() => {
         dispatch(getProducts({
             page: parseInt(searchParams.get("page"), 10) - 1 || 0,
-            size: parseInt(searchParams.get("size"), 10) || 42,
+            size: parseInt(searchParams.get("size"), 10) || 24,
             name: searchParams.get("name") || '',
             sort: `id,asc`,
         }))
@@ -400,7 +400,7 @@ const OrderCreate = () => {
             }}>
                 <Col md={8} className="p-1 h-100">
                     <Row style={{
-                        height: '100%',
+                        maxHeight: '100%',
                         overflowY: 'auto'
                     }}>
                         <Dialog
@@ -576,7 +576,7 @@ const OrderCreate = () => {
                     </Row>
                     <Row>
                         <Col md={12} className="d-flex justify-content-center align-items-center pt-2">
-                            <PaginationFilter totalPages={Math.ceil(totalItems / 10)} />
+                            <PaginationFilter totalPages={Math.ceil(totalItems / 24)} />
                         </Col>
                     </Row>
                 </Col>
