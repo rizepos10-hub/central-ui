@@ -50,8 +50,6 @@ export const CustomDefinitionValues = ({
     }, [entityId, entityType]);
 
     const editColumnTemplate = rowData => {
-        console.log(rowData)
-        console.log(rowData?.id)
         return (
             <FontAwesomeIcon
                 icon="pencil-alt"
