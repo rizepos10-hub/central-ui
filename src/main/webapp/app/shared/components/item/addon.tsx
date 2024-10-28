@@ -166,8 +166,8 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
     options,
     onFocus: any
   ) => {
-    const [selected, setSelected] = useState(value);
-
+    const [selected, setSelected] = useState(null);
+    console.log(selected)
     return (
       <div className='d-flex gap-2 align-items-center'>
         <Dropdown
@@ -180,7 +180,15 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
           optionLabel={'name'}
           optionValue={'id'}
         />
-        <Button onClick={() => onChange(options?.find(g => g?.id === selected))} color="primary" className='p-1 mr-2'>
+        <Button
+          disabled={!selected}
+          onClick={() => {
+            onChange(options?.find(g => g?.id === selected))
+            setSelected(null)
+          }}
+          color="primary"
+          className='p-1 mr-2'
+        >
           Assign
         </Button>
       </div>
