@@ -336,7 +336,15 @@ export const RegularItemUpdate = () => {
           optionLabel={'name'}
           optionValue={'id'}
         />
-        <Button onClick={() => onChange(options?.find(g => g?.id === selected), variant, variantIndex)} color="primary" className='p-1 mr-2'>
+        <Button
+          disabled={!selected}
+          onClick={() => {
+            onChange(options?.find(g => g?.id === selected), variant, variantIndex)
+            setSelected(null)
+          }}
+          color="primary"
+          className='p-1 mr-2'
+        >
           Assign
         </Button>
       </div>
