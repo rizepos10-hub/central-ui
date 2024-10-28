@@ -103,6 +103,9 @@ export const VariableItemUpdate = () => {
     variantIndex: null
   });
 
+  const refreshProduct =() => {
+    dispatch(getEntity(id));
+  }
 
   const filteredAvailableAttributes = () => {
     const existingAttributeIds = variableItem?.attributes?.map(attr => attr.attributeTax.id);
@@ -818,7 +821,7 @@ export const VariableItemUpdate = () => {
                       />
                     </TabPanel>
                     <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
-                      <ItemStockTab variants={variableItem?.variants} itemId={variableItem.id} />
+                      <ItemStockTab refreshProduct={refreshProduct} variants={variableItem?.variants} itemId={variableItem.id} />
                     </TabPanel>
                     <TabPanel header={translate('items.update.measures')}>
                       <Row className={'mb-3 d-flex flex-column gap-3'}>
