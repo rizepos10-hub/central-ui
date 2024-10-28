@@ -9,6 +9,7 @@ export interface IStockQuantity {
   variantId?: string;
   location?: IWarehouse | ISalesLocation;
   quantity?: number
+  minimumStockLevel?: number
   unitCost?: number;
 }
 

@@ -97,10 +97,9 @@ export const ProductUpdate = () => {
   const variantsList = useAppSelector(state => state.variant.entities);
   const supplierList = useAppSelector(state => state.supplier.entities);
   const location = useLocation();
-
   const attributeValuesList = useAppSelector(state => state.retailAttributeValue.entities);
   const loadingAttributesValues = useAppSelector(state => state.retailAttributeValue.loading);
-
+  const [activeIndex, setActiveIndex] = useState(0);
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
@@ -531,6 +530,11 @@ export const ProductUpdate = () => {
     navigate(`/product/${productId}/edit` + location.search);
   };
 
+  const refreshProduct =() => {
+    dispatch(getEntity(id));
+    setActiveIndex(3)
+  }
+
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
@@ -809,7 +813,7 @@ export const ProductUpdate = () => {
             <CardBody>
               <Row>
                 <div>
-                  <TabView>
+                  <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
                       <div className="w-100">
                         <div className="text-xl font-semibold">
@@ -1261,7 +1265,7 @@ export const ProductUpdate = () => {
                       <ItemLoyaltyTab excludedFromLoyaltyPoints={product?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
                     </TabPanel>
                     <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
-                      <ItemStockTab variants={product?.variants} itemId={product.id} />
+                      <ItemStockTab refreshProduct={refreshProduct} variants={product?.variants} itemId={product.id} />
                     </TabPanel>
                     <TabPanel header={translate('items.update.measures')}>
                       <Row className={'mb-3 d-flex flex-column gap-3'}>
