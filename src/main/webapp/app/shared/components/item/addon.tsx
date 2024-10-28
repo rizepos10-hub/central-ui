@@ -175,7 +175,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
           value={selected}
           onChange={e => setSelected(e.value)}
           options={data}
-          placeholder="Select a City"
+          placeholder=""
           className="w-full md:w-14rem"
           onFocus={onFocus}
           optionLabel={'name'}
