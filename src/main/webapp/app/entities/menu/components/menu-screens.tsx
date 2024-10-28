@@ -81,7 +81,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         })
     }, [currentSubScreens])
 
-
     useEffect(() => {
         setCurrentSubScreens(mainScreen?.subScreens)
     }, [mainScreen])
