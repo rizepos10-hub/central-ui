@@ -10,6 +10,7 @@ import { IMenu } from 'app/shared/model/menu.model';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Slider } from 'primereact/slider';
 import { InputText } from 'primereact/inputtext';
+import _, { update } from 'lodash';
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -342,6 +343,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             groupedSubscreens.push(subscreens.slice(i, i + cols));
         }
 
+        console.log(groupedSubscreens, 'groupedSubscreens')
+
         function findScreenById(menuScreens, targetId) {
             for (const screen of menuScreens) {
                 if (screen.id === targetId) {
@@ -465,8 +468,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                         key={index}
                                         draggable
                                         className={'col'}
-                                        onDragStart={() => handleSubDragStart(mainScreenIndex, index)}
-                                        onDragOver={e => handleSubDragOver(index, e)}
+                                        onDragStart={() => handleSubDragStart(mainScreenIndex, [rowIndex, index])}
+                                        onDragOver={e => handleSubDragOver([rowIndex, index], e)}
                                         onDragEnd={handleSubDragEnd}
                                     >
                                         <div className="d-flex flex-column p-1 cursor-pointer card p-3 h-100">
@@ -507,23 +510,32 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     };
 
     const handleSubDragStart = (mainIndex, subIndex) => {
+        console.log(mainIndex)
         console.log(subIndex)
         setSelectedMainScreenIndex(mainIndex);
         setDraggedIndex(subIndex);
     };
 
+
     const handleSubDragOver = (subIndex, e) => {
         e.preventDefault();
-
+        console.log(subIndex)
         setData(prevData => {
             const updatedData = { ...prevData };
             const updatedMenuScreens = [...updatedData.menuScreens];
             const targetMainScreen = updatedMenuScreens[selectedMainScreenIndex];
 
-            if (subIndex === draggedIndex) {
+            console.log(updatedData)
+            console.log(updatedMenuScreens)
+            console.log(targetMainScreen)
+
+            console.log(draggedIndex)
+            console.log(_.isEqual(subIndex, draggedIndex))
+            if (_.isEqual(subIndex, draggedIndex)) {
                 return updatedData;
             }
 
+            console.log(subScreenStack, 'subScreenStack')
             if (subScreenStack.length === 1) {
                 const targetSubScreens = [...targetMainScreen.subScreens];
                 const [draggedItem] = targetSubScreens.splice(draggedIndex, 1);
@@ -532,16 +544,26 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 updatedMenuScreens[selectedMainScreenIndex] = { ...targetMainScreen, subScreens: targetSubScreens };
             } else {
                 const updatedSubscreenStack = [...subScreenStack];
+                console.log(updatedSubscreenStack, 'updatedSubscreenStack')
+
                 const topSubScreen = updatedSubscreenStack[updatedSubscreenStack.length - 1];
+                console.log(topSubScreen, 'topSubScreen')
 
                 const updatedSubScreens = updateSubScreens(targetMainScreen.subScreens, topSubScreen, subIndex);
-
+                console.log(updatedSubScreens, 'updatedSubScreens')
+                
                 const lastSubScreenInSubScreenStack = [...(topSubScreen?.subScreens || [])];
-                const [draggedItem] = lastSubScreenInSubScreenStack.splice(draggedIndex, 1);
+                console.log(lastSubScreenInSubScreenStack, 'lastSubScreenInSubScreenStack')
 
+                const [draggedItem] = lastSubScreenInSubScreenStack.splice(draggedIndex[1], 1);
+                console.log(draggedItem, 'draggedItem')
+                
                 lastSubScreenInSubScreenStack.splice(subIndex, 0, draggedItem);
-                updatedSubscreenStack[updatedSubscreenStack.length - 1] = { ...topSubScreen, subScreens: lastSubScreenInSubScreenStack };
+                console.log(lastSubScreenInSubScreenStack, 'lastSubScreenInSubScreenStack')
 
+                updatedSubscreenStack[updatedSubscreenStack.length - 1] = { ...topSubScreen, subScreens: lastSubScreenInSubScreenStack };
+                console.log(updatedSubscreenStack, 'updatedSubscreenStack')
+                
                 setSubScreenStack(updatedSubscreenStack);
                 updatedMenuScreens[selectedMainScreenIndex] = { ...targetMainScreen, subScreens: updatedSubScreens };
             }
