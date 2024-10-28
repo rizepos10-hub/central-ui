@@ -41,6 +41,8 @@ import { OrderList } from 'primereact/orderlist';
 import { Dropdown } from 'primereact/dropdown';
 import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
 import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
+import { Checkbox } from 'primereact/checkbox';
+import { cloneDeep } from 'lodash';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -382,6 +384,12 @@ export const RegularItemUpdate = () => {
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups)
   };
 
+  const handleCheckboxChange = (variant: IRegularItemVariant, variantIndex, addonGroupIndex: number) => {
+    const updatedAddonGroups = cloneDeep([...variant.addonGroups]);
+    updatedAddonGroups[addonGroupIndex].required = !updatedAddonGroups[addonGroupIndex].required;
+    handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
+  };
+
   if (loading) {
     return <Spinner />
   }
@@ -570,6 +578,30 @@ export const RegularItemUpdate = () => {
                                               dragdrop
                                               dataKey="id"
                                             />
+
+
+                                            <Table>
+                                              <thead>
+                                                <tr>
+                                                  <th>
+                                                    <Translate contentKey={'items.update.name'}>Name</Translate>
+                                                  </th>
+                                                  <th>
+                                                    <Translate contentKey={'items.update.required'}>Required</Translate>
+                                                  </th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                {variant?.addonGroups?.map((group, index) => (
+                                                  <tr key={index}>
+                                                    <td>{group?.addonGroup?.name}</td>
+                                                    <td>
+                                                      <Checkbox checked={group?.required} onChange={e => handleCheckboxChange(variant, variantIndex, index)} />
+                                                    </td>
+                                                  </tr>
+                                                ))}
+                                              </tbody>
+                                            </Table>
 
                                             <DiscountDropdown
                                               discounts={variant.discounts}
