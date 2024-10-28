@@ -141,6 +141,8 @@ export const RegularItemUpdate = () => {
           name: regularItem?.name,
           accountingGroups: prev?.accountingGroups || [],
           attachments: [],
+          addons: [],
+          addonGroups: [],
           discounts: [],
           sku: '',
           price: null,
