@@ -38,6 +38,11 @@ import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/c
 import { Dialog } from 'primereact/dialog';
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { OrderList } from 'primereact/orderlist';
+import { Dropdown } from 'primereact/dropdown';
+import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
+import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
+import { Checkbox } from 'primereact/checkbox';
+import { cloneDeep } from 'lodash';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -54,7 +59,9 @@ export const RegularItemUpdate = () => {
 
   const discountList = useAppSelector(state => state.discount.entities);
   const addonList = useAppSelector(state => state.addon.entities);
+  const addonGroupsList = useAppSelector(state => state.addonGroups.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
+  const [selected, setSelected] = useState(null);
 
 
   const [paginationState, setPaginationState] = useState(
@@ -134,6 +141,8 @@ export const RegularItemUpdate = () => {
           name: regularItem?.name,
           accountingGroups: prev?.accountingGroups || [],
           attachments: [],
+          addons: [],
+          addonGroups: [],
           discounts: [],
           sku: '',
           price: null,
@@ -163,7 +172,7 @@ export const RegularItemUpdate = () => {
     const [reorderedVariant] = reorderedVariants.splice(draggedIndex, 1);
     reorderedVariants.splice(droppedIndex, 0, reorderedVariant);
 
-    const updatedVariants = reorderedVariants.map((variant, index) => {
+    const updatedVariants = reorderedVariants?.map((variant, index) => {
       if (index === droppedIndex) {
         return { ...variant, order: droppedIndex };
       } else if (index >= droppedIndex && index < draggedIndex) {
@@ -229,7 +238,7 @@ export const RegularItemUpdate = () => {
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
 
-    const updatedVariants = regularItem?.variants.map((variant, index) => {
+    const updatedVariants = regularItem?.variants?.map((variant, index) => {
       if (index !== 0 && variant.order === 0) {
         return {
           ...variant,
@@ -305,9 +314,90 @@ export const RegularItemUpdate = () => {
     </div>
   );
 
+  const reorderHeader = (
+    data: {
+      id: string;
+      name: string;
+    }[],
+    onChange: any,
+    value: any,
+    options,
+    onFocus,
+    variant,
+    variantIndex
+  ) => {
+    return (
+      <div className='d-flex gap-2 align-items-center'>
+        <Dropdown
+          value={selected}
+          onChange={e => setSelected(e.value)}
+          options={data}
+          placeholder=""
+          className="w-full md:w-14rem"
+          onFocus={onFocus}
+          optionLabel={'name'}
+          optionValue={'id'}
+        />
+        <Button
+          disabled={!selected}
+          onClick={() => {
+            onChange(options?.find(g => g?.id === selected), variant, variantIndex)
+            setSelected(null)
+          }}
+          color="primary"
+          className='p-1 mr-2'
+        >
+          Assign
+        </Button>
+      </div>
+    )
+  }
+
   const onReorder = (event, variantIndex) => {
     const reorderedAddons = event.value;
     handleVariantFieldChange(variantIndex, 'addons', reorderedAddons);
+  };
+
+  const onReorderAddonGroups = (event, variantIndex) => {
+    const reorderedAddonGroups = event.value?.map(group => ({
+      required: addonGroupsList.find(g => g.addonGroup.id === group.id)?.required || false,
+      addonGroup: group,
+    }));
+    handleVariantFieldChange(variantIndex, 'addonGroups', reorderedAddonGroups);
+  };
+
+  const handleRemoveAddon = (addon: string, variant, variantIndex) => {
+    const updatedAddons = variant.addons.filter(a => a.id !== addon);
+
+    handleVariantFieldChange(variantIndex, 'addons', updatedAddons as IAddon[])
+  };
+
+  const handleRemoveAddonGroup = (addonGroup: string, variant: IRegularItemVariant, variantIndex) => {
+    const updatedAddonGroups = variant.addonGroups.filter(a => a.addonGroup.id !== addonGroup);
+
+    handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups)
+  };
+
+
+  const handleAddonChange = (selectedAddon: IAddon, variant, variantIndex) => {
+    const updatedAddons = [...variant.addons, selectedAddon];
+    handleVariantFieldChange(variantIndex, 'addons', updatedAddons as IAddon[])
+  };
+
+  const handleAddonGroupChange = (selectedAddonGroup: IAddonGroup, variant: IRegularItemVariant, variantIndex) => {
+    const newGroup = {
+      required: false,
+      addonGroup: selectedAddonGroup
+    }
+
+    const updatedAddonGroups = [...variant.addonGroups, newGroup];
+    handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups)
+  };
+
+  const handleCheckboxChange = (variant: IRegularItemVariant, variantIndex, addonGroupIndex: number) => {
+    const updatedAddonGroups = cloneDeep([...variant.addonGroups]);
+    updatedAddonGroups[addonGroupIndex].required = !updatedAddonGroups[addonGroupIndex].required;
+    handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
   };
 
   if (loading) {
@@ -439,28 +529,89 @@ export const RegularItemUpdate = () => {
                                               <label className={'font-semibold'}>
                                                 <Translate contentKey={'items.update.addons'}>Addons</Translate>
                                               </label>
-                                              <Select
-                                                value={variant.addons || []}
-                                                options={addonList}
-                                                isMulti
-                                                getOptionLabel={option => option.name}
-                                                getOptionValue={option => option.id}
-                                                onChange={addons => handleVariantFieldChange(variantIndex, 'addons', addons as IAddon[])}
-                                              />
                                             </div>
 
                                             <OrderList
                                               value={variant.addons || []}
                                               onChange={(e) => onReorder(e, variantIndex)}
                                               itemTemplate={(addon) => (
-                                                <div className="p-orderlist-item">
+                                                <div className="p-orderlist-item d-flex justify-content-between align-items-center">
                                                   <span>{addon.name}</span>
+                                                  <Button color="danger" size="sm" onClick={() => handleRemoveAddon(addon.id, variant, variantIndex)}>
+                                                    X
+                                                  </Button>
                                                 </div>
                                               )}
-                                              header="Reorder Addons"
+                                              header={
+                                                reorderHeader(
+                                                  addonList,
+                                                  handleAddonChange,
+                                                  variant.addons || [],
+                                                  addonList,
+                                                  () => { },
+                                                  variant,
+                                                  variantIndex
+                                                )
+                                              }
                                               dragdrop
                                               dataKey="id"
                                             />
+
+                                            <div className={'d-flex flex-column gap-2 mt-2'}>
+                                              <label className={'font-semibold'}>
+                                                <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
+                                              </label>
+                                            </div>
+
+                                            <OrderList
+                                              value={variant?.addonGroups?.map(group => group.addonGroup) || []}
+                                              onChange={e => onReorderAddonGroups(e, variantIndex)}
+                                              itemTemplate={(group) => (
+                                                <div className="p-orderlist-item d-flex justify-content-between align-items-center">
+                                                  <span>{group?.name}</span>
+                                                  <Button color="danger" size="sm" onClick={() => handleRemoveAddonGroup(group.id, variant, variantIndex)}>
+                                                    X
+                                                  </Button>
+                                                </div>
+                                              )}
+                                              header={
+                                                reorderHeader(
+                                                  addonGroupsList,
+                                                  handleAddonGroupChange,
+                                                  variant.addonGroups || [],
+                                                  addonGroupsList,
+                                                  () => { },
+                                                  variant,
+                                                  variantIndex
+                                                )
+                                              }
+                                              dragdrop
+                                              dataKey="id"
+                                            />
+
+
+                                            <Table>
+                                              <thead>
+                                                <tr>
+                                                  <th>
+                                                    <Translate contentKey={'items.update.name'}>Name</Translate>
+                                                  </th>
+                                                  <th>
+                                                    <Translate contentKey={'items.update.required'}>Required</Translate>
+                                                  </th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                {variant?.addonGroups?.map((group, index) => (
+                                                  <tr key={index}>
+                                                    <td>{group?.addonGroup?.name}</td>
+                                                    <td>
+                                                      <Checkbox checked={group?.required} onChange={e => handleCheckboxChange(variant, variantIndex, index)} />
+                                                    </td>
+                                                  </tr>
+                                                ))}
+                                              </tbody>
+                                            </Table>
 
                                             <DiscountDropdown
                                               discounts={variant.discounts}

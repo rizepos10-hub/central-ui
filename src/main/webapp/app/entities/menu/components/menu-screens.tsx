@@ -10,6 +10,7 @@ import { IMenu } from 'app/shared/model/menu.model';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Slider } from 'primereact/slider';
 import { InputText } from 'primereact/inputtext';
+import _, { update } from 'lodash';
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -53,6 +54,45 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [subScreenStack, setSubScreenStack] = useState([]);
     const [newMainScreenName, setNewMainScreenName] = useState('');
     const [newMainScreenCols, setNewMainScreenCols] = useState<number | null>(1);
+
+    const [mainScreen, setMainScreen] = useState({
+        id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+        numberOfColumns: 1,
+        subScreens: []
+    })
+    const [currentSubScreens, setCurrentSubScreens] = useState([]);
+    const cols =
+        subScreenStack?.length === 1
+            ? mainScreen?.numberOfColumns
+            : subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns && subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns > 8
+                ? 8
+                : subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns || 1;
+
+
+    const [groupedSubscreens, setGroupedSubscreens] = useState([]);
+
+    useEffect(() => {
+        setGroupedSubscreens(() => {
+            const initialGroups = [];
+            for (let i = 0; i < currentSubScreens?.length; i += cols) {
+                initialGroups.push(currentSubScreens?.slice(i, i + cols));
+            }
+            return initialGroups;
+        })
+    }, [currentSubScreens])
+
+
+    useEffect(() => {
+        setCurrentSubScreens(mainScreen?.subScreens)
+    }, [mainScreen])
+
+    useEffect(() => {
+        setMainScreen(data?.menuScreens?.[selectedMainScreenIndex])
+    }, [data])
+
+
+    const [draggedItem, setDraggedItem] = useState(null)
+
 
     const handleMainScreenAdd = () => {
         setIsModalOpen({
@@ -324,23 +364,95 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     };
 
     const renderSubScreens = (subscreens, mainScreenIndex) => {
+        const handleDragStart = (e, { rowIndex, itemIndex }) => {
+            setDraggedItem({ rowIndex, itemIndex });
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', ''); // Required for Firefox compatibility
+        };
+
+        const handleDragOver = (e) => {
+            e.preventDefault(); // Necessary to allow dropping
+            e.dataTransfer.dropEffect = 'move';
+        };
+
+        function updateScreenSubscreens(
+            data,
+            targetId,
+            newSubscreens
+        ) {
+            return data.map(screen => {
+                if (screen.id === targetId) {
+                    // Found the screen, return a new object with updated subscreens
+                    return { ...screen, subScreens: newSubscreens };
+                } else if (screen.subScreens) {
+                    // If subscreens exist, recursively update them
+                    return {
+                        ...screen,
+                        subScreens: updateScreenSubscreens(screen.subScreens, targetId, newSubscreens),
+                    };
+                } else {
+                    // Return the screen as is if no changes are needed
+                    return screen;
+                }
+            });
+        }
+
+        const handleDrop = (e, { rowIndex: destRowIndex, itemIndex: destItemIndex }) => {
+            e.preventDefault();
+
+            if (draggedItem) {
+                const { rowIndex: sourceRowIndex, itemIndex: sourceItemIndex } = draggedItem;
+
+                // Avoid unnecessary updates
+                if (sourceRowIndex === destRowIndex && sourceItemIndex === destItemIndex) {
+                    return;
+                }
+
+                // Deep copy of groupedSubscreens
+                const newGroupedSubscreens = groupedSubscreens.map((row) => [...row]);
+
+                // Remove item from source
+                const [movedItem] = newGroupedSubscreens[sourceRowIndex].splice(sourceItemIndex, 1);
+
+                // Calculate destination index in the flat array
+                const destIndexInFlatArray = destRowIndex * cols + destItemIndex;
+
+                // Flatten items
+                const flatItems = newGroupedSubscreens.flat();
+
+                const updatedData = updateScreenSubscreens(data?.menuScreens, subScreenStack.at(-1)?.id, flatItems);
+                setData({
+                    ...data,
+                    menuScreens: updatedData
+                });
+                
+
+                // Insert moved item at destination
+                flatItems.splice(destIndexInFlatArray, 0, movedItem);
+
+                // Regroup items
+                const regroupedSubscreens = [];
+                for (let i = 0; i < flatItems.length; i += cols) {
+                    regroupedSubscreens.push(flatItems.slice(i, i + cols));
+                }
+
+                // Update state
+                setGroupedSubscreens(regroupedSubscreens);
+            }
+
+            // Reset dragged item
+            setDraggedItem(null);
+        };
+
+        const handleDragEnd = () => {
+            setDraggedItem(null);
+        };
+
         if (!subscreens || subscreens.length === 0) {
             return null;
         }
 
-        const mainScreen = data?.menuScreens?.[selectedMainScreenIndex];
-        const cols =
-            subScreenStack?.length === 1
-                ? mainScreen.numberOfColumns
-                : subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns && subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns > 8
-                    ? 8
-                    : subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns || 1;
-
         // Group subscreens into rows based on the number of columns
-        const groupedSubscreens = [];
-        for (let i = 0; i < subscreens.length; i += cols) {
-            groupedSubscreens.push(subscreens.slice(i, i + cols));
-        }
 
         function findScreenById(menuScreens, targetId) {
             for (const screen of menuScreens) {
@@ -360,8 +472,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         function updateSubScreenById(menuScreens, subScreenToUpdate) {
             return menuScreens.map(screen => {
                 if (screen.id === subScreenToUpdate.id) {
-                    console.log(screen, 'screen');
-                    console.log(subScreenToUpdate, 'subScreenToUpdate');
                     // Replace the matching screen with the updated one
                     return { ...subScreenToUpdate };
                 }
@@ -382,12 +492,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         const handleRowHeightChange = (value, rowIndex) => {
             let updatedMenuScreens = [...data.menuScreens];
 
-            console.log(updatedMenuScreens, 'updatedMenuScreens');
-            console.log(subScreenStack, 'subScreenStack');
 
             let subScreenToUpdate = findScreenById(updatedMenuScreens, subScreenStack?.at(-1).id);
 
-            console.log(subScreenToUpdate, 'subScreenToUpdate');
 
             // Ensure rowHeight is initialized as an array for the selected main screen
             if (!subScreenToUpdate.rowHeight) {
@@ -407,11 +514,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 ...subScreenToUpdate,
                 rowHeight: updatedRowHeight,
             };
-            console.log(subScreenToUpdate, 'subScreenToUpdate');
 
             updatedMenuScreens = updateSubScreenById(updatedMenuScreens, subScreenToUpdate);
 
-            console.log(updatedMenuScreens, 'updatedMenuScreens');
             setData({
                 ...data,
                 menuScreens: updatedMenuScreens,
@@ -433,7 +538,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             {/* Add the slider and input text for each row */}
                             <div className="mb-2 d-flex align-items-center">
                                 <Slider
-                                    value={findScreenById(data?.menuScreens, subScreenStack?.at(-1).id)?.rowHeight?.[rowIndex] || 1}
+                                    value={findScreenById(data?.menuScreens, subScreenStack?.at(-1)?.id)?.rowHeight?.[rowIndex] || 1}
                                     onChange={(e) => handleRowHeightChange(e.value, rowIndex)}
                                     min={1}
                                     max={2}
@@ -464,13 +569,20 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                     <div
                                         key={index}
                                         draggable
-                                        className={'col'}
-                                        onDragStart={() => handleSubDragStart(mainScreenIndex, index)}
-                                        onDragOver={e => handleSubDragOver(index, e)}
-                                        onDragEnd={handleSubDragEnd}
+                                        className="col"
+                                        onDragStart={(e) => handleDragStart(e, { rowIndex, itemIndex: index })}
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, { rowIndex, itemIndex: index })}
+                                        onDragEnd={handleDragEnd}
                                     >
                                         <div className="d-flex flex-column p-1 cursor-pointer card p-3 h-100">
                                             <div className={'d-flex'}>
+                                                {/* // onDragStart={() => handleSubDragStart(mainScreenIndex, [rowIndex, index])}
+                                        onDragOver={e => handleSubDragOver([rowIndex, index], e)}
+                                        onDragEnd={handleSubDragEnd}
+                                    >
+                                        <div className="d-flex flex-column p-1 cursor-pointer card p-3 h-100">
+                                            <div className={'d-flex'}> */}
                                                 <span className="m-0">{item?.componentType}</span>
                                                 <div className="ml-auto">
                                                     <MdModeEditOutline size={20} onClick={() => openEditModal(item, index, 'sub')} />
@@ -506,21 +618,21 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         );
     };
 
-    const handleSubDragStart = (mainIndex, subIndex) => {
-        console.log(subIndex)
-        setSelectedMainScreenIndex(mainIndex);
-        setDraggedIndex(subIndex);
-    };
+    // const handleSubDragStart = (mainIndex, subIndex) => {
+    //     setSelectedMainScreenIndex(mainIndex);
+    //     setDraggedIndex(subIndex);
+    // };
+
 
     const handleSubDragOver = (subIndex, e) => {
         e.preventDefault();
-
         setData(prevData => {
             const updatedData = { ...prevData };
             const updatedMenuScreens = [...updatedData.menuScreens];
             const targetMainScreen = updatedMenuScreens[selectedMainScreenIndex];
 
-            if (subIndex === draggedIndex) {
+
+            if (_.isEqual(subIndex, draggedIndex)) {
                 return updatedData;
             }
 
@@ -532,14 +644,17 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 updatedMenuScreens[selectedMainScreenIndex] = { ...targetMainScreen, subScreens: targetSubScreens };
             } else {
                 const updatedSubscreenStack = [...subScreenStack];
+
                 const topSubScreen = updatedSubscreenStack[updatedSubscreenStack.length - 1];
 
                 const updatedSubScreens = updateSubScreens(targetMainScreen.subScreens, topSubScreen, subIndex);
 
                 const lastSubScreenInSubScreenStack = [...(topSubScreen?.subScreens || [])];
-                const [draggedItem] = lastSubScreenInSubScreenStack.splice(draggedIndex, 1);
+
+                const [draggedItem] = lastSubScreenInSubScreenStack.splice(draggedIndex[1], 1);
 
                 lastSubScreenInSubScreenStack.splice(subIndex, 0, draggedItem);
+
                 updatedSubscreenStack[updatedSubscreenStack.length - 1] = { ...topSubScreen, subScreens: lastSubScreenInSubScreenStack };
 
                 setSubScreenStack(updatedSubscreenStack);
@@ -591,13 +706,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             return null;
         }
 
-        const mainScreen = data.menuScreens[selectedMainScreenIndex];
-
         if (!mainScreen || !mainScreen.subScreens || mainScreen.subScreens.length === 0) {
             return null;
         }
-
-        let currentSubScreens = mainScreen.subScreens;
 
         for (let i = 1; i < subScreenStack.length; i++) {
             const nextScreenName = subScreenStack[i].name;
@@ -606,8 +717,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             if (!nextScreen || !nextScreen.subScreens) {
                 break;
             }
-
-            currentSubScreens = nextScreen.subScreens;
+            setCurrentSubScreens(nextScreen.subScreens);
         }
         return <div className="mt-3">{renderSubScreens(currentSubScreens, selectedMainScreenIndex)}</div>;
     };
@@ -699,7 +809,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setSelectedMainScreenIndex(index);
         setSubScreenStack([mainScreen]);
         setBreadcrumb(() => [mainScreen.name]);
+        setMainScreen(mainScreen)
     };
+
 
     const handleModalSubmit = () => {
         if (newMainScreenName.trim() === '') {
