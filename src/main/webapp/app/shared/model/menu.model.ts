@@ -21,6 +21,7 @@ export interface IMenu {
 }
 
 export interface IMenuScreen {
+  id?: string;
   name?: string;
   backgroundColor?: string;
   managerOnlyAccess?: boolean;
