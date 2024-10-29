@@ -6,7 +6,7 @@ import {useNavigate} from "react-router-dom";
 import MinimumStockLevelModal from "./minimum-stock-level-modal";
 import { useAppDispatch } from 'app/config/store';
 import { IStockQuantity } from "app/shared/model/STOCK/stock-quantity.model";
-import { partialUpdateEntity } from "app/entities/inventory/stock-config/stock-minimum-stock-level.reducer";
+import { partialUpdateMiniStockLevelEntity } from "app/entities/inventory/stock-config/stock-quantity.reducer";
 import { Spinner } from "reactstrap";
 
 const ItemStockTab = ({variants, itemId, refreshProduct }) => {
@@ -28,7 +28,7 @@ const ItemStockTab = ({variants, itemId, refreshProduct }) => {
   
   const handleMinimumStockLevelModalSave = (stockQuantities: IStockQuantity[]) => {
     setLoading(true);
-    dispatch(partialUpdateEntity(stockQuantities)).then(() => {
+    dispatch(partialUpdateMiniStockLevelEntity(stockQuantities)).then(() => {
       setLoading(false);
       setVariantSpinnerId(null);
       refreshProduct();
