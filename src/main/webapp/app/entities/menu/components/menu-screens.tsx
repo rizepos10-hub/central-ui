@@ -95,6 +95,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
 
     const [mainScreen, setMainScreen] = useState({
+        id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
         numberOfColumns: 1,
         subScreens: []
     })
@@ -119,6 +120,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         })
     }, [currentSubScreens])
 
+
     useEffect(() => {
         setCurrentSubScreens(mainScreen?.subScreens)
     }, [mainScreen])
@@ -127,8 +129,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setMainScreen(data?.menuScreens?.[selectedMainScreenIndex])
     }, [data])
 
-    console.log(currentSubScreens, 'currentSubScreens')
-    console.log(groupedSubscreens, 'groupedSubscreens')
 
     const [draggedItem, setDraggedItem] = useState(null)
 
