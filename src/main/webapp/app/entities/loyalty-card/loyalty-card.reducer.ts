@@ -19,9 +19,8 @@ const apiSearchUrl = 'api/_search/loyalty-cards';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('loyaltycard/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<ILoyaltyCard[]>(requestUrl);
+export const searchEntities = createAsyncThunk('loyaltycard/filter_entity_list', async ({ query, }: IQueryParams) => {
+  return axios.post<ILoyaltyCard[]>(apiSearchUrl, query);
 });
 
 
@@ -67,7 +66,7 @@ export const addBalance = createAsyncThunk(
 export const transferFundsFromCard = createAsyncThunk(
   'loyaltycard/create_entity',
   async ({ fromCard, toCard, amount, comment }: { fromCard: string; toCard: string; amount: number; comment?: string }, thunkAPI) => {
-    const result = await axios.post<ILoyaltyCard>(`${apiUrl}/transfer?fromCard=${fromCard}&toCard=${toCard}&amount=${amount}&comment=${comment}`);
+    const result = await axios.post<ILoyaltyCard>(`${apiUrl}/transfer/by-reference-number?fromCard=${fromCard}&toCard=${toCard}&amount=${amount}&comment=${comment}`);
     thunkAPI.dispatch(getEntities({}));
     return result;
   },

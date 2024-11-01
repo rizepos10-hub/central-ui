@@ -316,11 +316,6 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR'],
         to: '/customer',
       },
-      {
-        label: 'Loyalty Cards',
-        role: ['ROLE_ADMINISTRATOR'],
-        to: '/loyalty-cards',
-      },
     ],
   },
   {
@@ -350,10 +345,15 @@ export const model: MenuItem[] = [
     label: 'Loyalty',
     role: ['ROLE_ADMINISTRATOR'],
     icon: 'pi pi-wallet',
-    to: '/loyalty',
+    to: '/loyalty-cards',
     items: [
       {
-        label: 'Loyalty',
+        label: 'Loyalty Cards',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/loyalty-cards',
+      },
+      {
+        label: 'Loyalty Points',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/loyalty'
       }

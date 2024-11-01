@@ -14,6 +14,8 @@
     "active": "Active",
     "editLoyaltyCard": "Edit Loyalty Card",
     "addBalance": "Add Balance",
+    "walletBalance": "Wallet Balance",
+    "expiryDate": "Expiry Date",
     "required": "Required",
     "display": "Display",
     "customDefinitions": "Custom Definitions",
