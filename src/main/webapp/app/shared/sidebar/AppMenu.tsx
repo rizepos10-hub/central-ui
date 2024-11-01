@@ -316,6 +316,11 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR'],
         to: '/customer',
       },
+      {
+        label: 'Loyalty Cards',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/loyalty-cards',
+      },
     ],
   },
   {

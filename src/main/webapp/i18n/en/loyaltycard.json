@@ -1,0 +1,59 @@
+{
+  "loyaltycard": {
+    "itemSelection": {
+      "title": "Add Variants",
+      "searchVariant": "Search Variant",
+      "id": "ID",
+      "name": "Name",
+      "selectedVariant": "Selected Variant",
+      "action": "Action",
+      "next": "Next",
+      "previous": "Previous",
+      "save": "Save"
+    },
+    "view": {
+      "title": "Loyalty Cards View",
+      "table": {
+        "title": "Loyalty Cards",
+        "buttons": {
+          "refreshList": "Refresh List",
+          "create": "Create New Loyalty Card",
+          "transfer": "Transfer Funds"
+        },
+        "fields": {
+          "name": "Name",
+          "email": "Email",
+          "phone": "Phone Number",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "search": {
+          "name": "Search by Name",
+          "email": "Search by Email",
+          "phone": "Search by Phone Number"
+        }
+      }
+    },
+    "delete": {
+      "title": "Confirm Delete Customer",
+      "question": "Are you sure you want to delete customer {{ customer }}"
+    },
+    "update": {
+      "create": {
+        "title": "Create New Customer"
+      },
+      "edit": {
+        "title": "Edit Customer"
+      },
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "mobileNumber": "Mobile Number",
+      "fax": "FAX",
+      "email": "Email",
+      "loyaltyRecord": "Loyalty Record",
+      "businessName": "Business Name"
+    }
+  }
+}
