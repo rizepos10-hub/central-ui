@@ -6,6 +6,7 @@ import OnlineOrderingRoutes from 'app/entities/online-ordering/routes'
 import Menu from './menu/index';
 import Discount from './discount';
 import Customer from './customer';
+import LoyaltyCard from './loyalty-card';
 import RegularItem from 'app/entities/item/restaurant/regular-item';
 import ComboItem from 'app/entities/item/restaurant/combo-item';
 import Addon from './addon';
@@ -71,6 +72,7 @@ export default () => {
         <Route path="service-charge/*" element={<ServiceCharge />} />
         <Route path="discount/*" element={<Discount />} />
         <Route path="customer/*" element={<Customer />} />
+        <Route path="loyalty-cards/*" element={<LoyaltyCard />} />
         <Route path="loyalty/*" element={<Loyalty />}/>
         <Route path="addon/*" element={<Addon />} />
         <Route path="addon-groups/*" element={<AddonGroups />} />
