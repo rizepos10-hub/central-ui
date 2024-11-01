@@ -69,6 +69,7 @@ export const RegularItem = () => {
   const getAllEntities = () => {
     console.log(query, 'query')
     const updatedQuery = applyMatchModeMap(query);
+    console.log(updatedQuery)
     dispatch(
       filterEntities({
         query: updatedQuery,
@@ -257,7 +258,7 @@ export const RegularItem = () => {
         }
 
         const updatedQuery = applyMatchModeMap(newQuery);
-
+        console.log(updatedQuery)
 
         dispatch(filterEntities({
           query: updatedQuery,

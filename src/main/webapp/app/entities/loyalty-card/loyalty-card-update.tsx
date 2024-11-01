@@ -25,16 +25,9 @@ import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { ILoyaltyCard } from 'app/shared/model/loyalty-card.model';
 import { Checkbox } from 'primereact/checkbox';
+import { Calendar } from 'primereact/calendar';
 
-export const LoyaltyCardUpdate = ({
-  firstName,
-  isPopUp,
-  closePopUp
-}: {
-  firstName?: string
-  isPopUp?: boolean
-  closePopUp?: (id) => void
-}) => {
+export const LoyaltyCardUpdate = () => {
   const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
@@ -164,6 +157,16 @@ export const LoyaltyCardUpdate = ({
                   </div>
 
                   <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="loyalty-card-code">{translate('common.expiryDate')}</Label>
+                    <Calendar
+                      id="loyalty-card-code"
+                      value={loyaltyCardEntity?.expiryDate ? new Date(loyaltyCardEntity?.expiryDate) : null}
+                      onChange={(e) => dispatch(changeEntityField({ name: 'expiryDate', value: e.value }))}
+                    />
+                  </div>
+
+
+                  {/* <div className={'d-flex flex-column mb-3'}>
                     <Label htmlFor="loyalty-card-walletId">{translate('common.wallet')}</Label>
                     <Dropdown
                       placeholder={'Wallet Id'}
@@ -187,7 +190,7 @@ export const LoyaltyCardUpdate = ({
                       style={{ minWidth: '15rem' }}
                       onChange={e => dispatch(changeEntityField({ name: 'walletId', value: e.target.value }))}
                     />
-                  </div>
+                  </div> */}
 
                   <div className={'d-flex flex-column mb-3'}>
                     <Label htmlFor="loyalty-card-createdByBranchId">{translate('common.branch')}</Label>
