@@ -1,0 +1,21 @@
+{
+  "tempApp": {
+    "pizzaItemMeasure": {
+      "created": "A new Item Measure is created with identifier {{ param }}",
+      "updated": "A Item Measure is updated with identifier {{ param }}",
+      "deleted": "A Item Measure is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Item Measure",
+        "question": "Are you sure you want to delete Item Measure {{ param }}"
+      },
+      "title": "Item Measures",
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "createNew": "Create New Item Measure",
+      "edit": "Edit Item Measure"
+    }
+  }
+}

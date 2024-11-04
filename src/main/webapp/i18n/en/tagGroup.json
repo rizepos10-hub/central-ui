@@ -1,0 +1,21 @@
+{
+  "tempApp": {
+    "tagGroup": {
+      "created": "A new Tag group is created with identifier {{ param }}",
+      "updated": "A Tag group is updated with identifier {{ param }}",
+      "deleted": "A Tag group is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Tag group",
+        "question": "Are you sure you want to delete Tag group {{ param }}"
+      },
+      "title": "Tag groups",
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "createNew": "Create New Tag group",
+      "edit": "Edit Tag group"
+    }
+  }
+}
