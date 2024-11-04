@@ -49,7 +49,7 @@ export const LoyaltyCardUpdate = () => {
   const updateSuccess = useAppSelector(state => state.loyaltycard.updateSuccess);
 
   const handleClose = () => {
-    navigate(-1);
+    navigate('/loyalty-cards');
   };
 
   useEffect(() => {
@@ -142,8 +142,10 @@ export const LoyaltyCardUpdate = () => {
                     <Label htmlFor="loyalty-card-referenceNumber">{translate('common.referenceNumber')}</Label>
                     <InputText
                       id="loyalty-card-referenceNumber"
-                      value={loyaltyCardEntity?.referenceNumber || ''}
-                      onChange={e => dispatch(changeEntityField({ name: 'referenceNumber', value: e.target.value }))}
+                      // value={loyaltyCardEntity?.referenceNumber || ''}
+                      // onChange={e => dispatch(changeEntityField({ name: 'referenceNumber', value: e.target.value }))}
+                      disabled
+                      placeholder='Auto Generated'
                     />
                   </div>
 
@@ -223,7 +225,7 @@ export const LoyaltyCardUpdate = () => {
 
                 </FormGroup>
                 <>
-                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
+                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={handleClose} color="info">
                     <FontAwesomeIcon icon="arrow-left" />
                     &nbsp;
                     <span className="d-none d-md-inline">

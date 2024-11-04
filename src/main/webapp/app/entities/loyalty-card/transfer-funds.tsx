@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 import { FilterMatchMode } from 'primereact/api';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 
-const TransferFunds = ({ transferDialogVisibile, setTransferDialogVisible }) => {
+const TransferFunds = ({ transferDialogVisibile, onCloseHandle }) => {
     const dispatch = useAppDispatch();
     const [transferFunds, setTransferFunds] = useState({
         fromCard: null,
@@ -63,7 +63,7 @@ const TransferFunds = ({ transferDialogVisibile, setTransferDialogVisible }) => 
         dispatch(transferFundsFromCard(transferData))
             .then(() => {
                 toast.success('Funds Transferred Successfully!');
-                setTransferDialogVisible(false);
+                onCloseHandle()
             })
             .catch(err => {
                 toast.error('Error Transferring Funds!');
@@ -76,7 +76,9 @@ const TransferFunds = ({ transferDialogVisibile, setTransferDialogVisible }) => 
             header="Transfer Funds"
             visible={transferDialogVisibile}
             className={'w-50'}
-            onHide={() => setTransferDialogVisible(false)}
+            onHide={() => {
+                onCloseHandle()
+            }}
         >
             <div>
                 <div className="d-flex flex-column gap-2">
