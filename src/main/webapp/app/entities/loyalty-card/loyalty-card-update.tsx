@@ -142,7 +142,7 @@ export const LoyaltyCardUpdate = () => {
                     <Label htmlFor="loyalty-card-referenceNumber">{translate('common.referenceNumber')}</Label>
                     <InputText
                       id="loyalty-card-referenceNumber"
-                      // value={loyaltyCardEntity?.referenceNumber || ''}
+                      value={loyaltyCardEntity?.referenceNumber || ''}
                       // onChange={e => dispatch(changeEntityField({ name: 'referenceNumber', value: e.target.value }))}
                       disabled
                       placeholder='Auto Generated'
