@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Button as PrimeButton } from 'primereact/button';
-
 import { createEntity, getEntity, reset, updateEntity } from './product.reducer';
 import SharedItemUpdate from 'app/shared/components/item/shared-item-update';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
@@ -30,6 +29,7 @@ import _, { isEqual } from 'lodash';
 import Visibility from 'app/shared/Visibility/Visibility';
 import { TabPanel, TabView } from 'primereact/tabview';
 import ItemStockTab from 'app/shared/components/item/item-stock-tab';
+import ItemStockAccordion from 'app/shared/components/item/item-stock-accordion';
 import { IExchangeMeasure } from 'app/shared/model/ITEM/retail/simple-item.model';
 import { getEntities as getMeasures } from 'app/entities/item-measure/item-measure.reducer';
 import ItemLoyaltyTab from 'app/shared/components/item/item-loyalty-tab';
@@ -52,6 +52,8 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
 import SupplierAssociationTab from 'app/shared/components/item/supplier-association-tab';
+import { IPurchaseConfig } from 'app/shared/model/STOCK/purchase-config.model';
+import { IStockQuantity } from 'app/shared/model/STOCK/stock-quantity.model';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -535,6 +537,37 @@ export const ProductUpdate = () => {
     setActiveIndex(3)
   }
 
+  const productPurchaseConfig = (purchaseConfig: IPurchaseConfig, variantIndex: Number) => {
+    setProduct((prevProduct) => ({
+      ...prevProduct,
+      variants: prevProduct.variants.map((variant, index) => 
+        index === variantIndex
+          ? {
+              ...variant,
+              purchaseConfig: purchaseConfig,
+            } 
+          : variant
+      ),
+    }));
+  }
+
+const stockQuantityUpdate = (stockQuantities: IStockQuantity[], variantIndex: Number) => {
+  console.log("data " + variantIndex);
+  console.log("data " +  stockQuantities);
+  setProduct((prevProduct) => ({
+    ...prevProduct,
+    variants: prevProduct.variants.map((variant, index) => {
+      if (index === variantIndex) {
+        return {
+          ...variant,
+          stockQuantities: stockQuantities,
+        }
+      }
+      return variant;
+    }),
+  }));
+};
+
   useEffect(() => {
     if (isNew) {
       dispatch(reset());
@@ -929,6 +962,13 @@ export const ProductUpdate = () => {
                                   variant={product?.variants?.[0]}
                                   handleVariantFieldChange={handleVariantFieldChange}
                                 />
+                                <ItemStockAccordion 
+                                  productPurchaseConfig={productPurchaseConfig} 
+                                  stockQuantityUpdate={stockQuantityUpdate} 
+                                  variant={product?.variants?.[0]}
+                                  variantIndex={0} 
+                                  itemId={product.id} 
+                                />
 
                                 <VariantBranchPrice
                                   itemVariantType={'RETAIL'}
@@ -1219,6 +1259,18 @@ export const ProductUpdate = () => {
                                                 </Col>
                                               </Row>
 
+                                              <Row>
+                                                <Col md="12">
+                                                  <ItemStockAccordion 
+                                                    productPurchaseConfig={productPurchaseConfig} 
+                                                    stockQuantityUpdate={stockQuantityUpdate} 
+                                                    variant={variant}
+                                                    variantIndex={variantIndex} 
+                                                    itemId={product.id} 
+                                                  />
+                                                </Col>
+                                              </Row>
+
                                               <VariantBranchPrice
                                                 branchList={branchList}
                                                 handleBranchPriceChange={handleBranchPriceChange}
@@ -1263,9 +1315,6 @@ export const ProductUpdate = () => {
                     </TabPanel>
                     <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
                       <ItemLoyaltyTab excludedFromLoyaltyPoints={product?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
-                    </TabPanel>
-                    <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
-                      <ItemStockTab refreshProduct={refreshProduct} variants={product?.variants} itemId={product.id} />
                     </TabPanel>
                     <TabPanel header={translate('items.update.measures')}>
                       <Row className={'mb-3 d-flex flex-column gap-3'}>

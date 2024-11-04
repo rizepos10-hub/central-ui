@@ -103,6 +103,12 @@
           "searchSuppliers": "Search Suppliers..."
         }
       },
+
+      "stockQuantity": {
+        "quantity": "Quantity",
+        "unitCost": "unitCost"
+      },
+
       "placeholders": {
         "itemName": "Item Name",
         "itemDescription": "Item Description",
@@ -113,7 +119,9 @@
         "itemBranchSalePrice": "Enter sale price for {{ branchName }}",
         "variantName": "Variant Name",
         "variantPrice": "Variant Price",
-        "minimumStockLevelPlaceHolder":"Minimum Stock Level"
+        "minimumStockLevelPlaceHolder":"Minimum Stock Level",
+        "quantity": "Quantity",
+        "unitCost": "unitCost"
       },
       "name": "Name",
       "description": "Description",
