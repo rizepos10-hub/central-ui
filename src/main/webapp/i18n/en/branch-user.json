@@ -1,0 +1,22 @@
+{
+    "tempApp": {
+      "branch-user": {
+        "created": "A new Branch User is created with identifier {{ param }}",
+        "updated": "A Branch User is updated with identifier {{ param }}",
+        "deleted": "A Branch User is deleted with identifier {{ param }}",
+        "delete": {
+          "title": "Confirm Delete Branch User",
+          "question": "Are you sure you want to delete Branch User {{ param }}"
+        },
+        "title": "Branch Users",
+        "id": "Id",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "phone": "Phone Number",
+        "email": "Email",
+        "createNew": "Create New Branch User",
+        "edit": "Edit Branch User"
+      }
+    }
+  }
+  

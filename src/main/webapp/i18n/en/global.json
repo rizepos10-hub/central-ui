@@ -16,6 +16,7 @@
         "taxonomy": "Taxonomy",
         "addon": "Addon",
         "term": "Term",
+        "combo-item": "Combo Item",
         "order": "Order",
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)"
       },
