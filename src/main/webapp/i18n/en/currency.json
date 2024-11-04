@@ -1,0 +1,21 @@
+{
+  "tempApp": {
+    "currency": {
+      "created": "A new Currency is created with identifier {{ param }}",
+      "updated": "A Currency is updated with identifier {{ param }}",
+      "deleted": "A Currency is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Currency",
+        "question": "Are you sure you want to delete Currency {{ param }}"
+      },
+      "title": "Currencies",
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "createNew": "Create New Currency",
+      "edit": "Edit Currency"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "tempApp": {
+    "customFieldDefinition": {
+      "created": "A new Custom Definition is created with identifier {{ param }}",
+      "updated": "A Custom Definition is updated with identifier {{ param }}",
+      "deleted": "A Custom Definition is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Custom Definition",
+        "question": "Are you sure you want to delete Custom Definition {{ param }}"
+      },
+      "title": "Custom Definitions",
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "createNew": "Create New Custom Definition",
+      "edit": "Edit Custom Definition"
+    }
+  }
+}

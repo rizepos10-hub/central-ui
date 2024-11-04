@@ -1,0 +1,21 @@
+{
+  "tempApp": {
+    "restaurant-combo": {
+      "created": "A new Item is created with identifier {{ param }}",
+      "updated": "A Item is updated with identifier {{ param }}",
+      "deleted": "A Item is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Item",
+        "question": "Are you sure you want to delete item {{ param }}"
+      },
+      "title": "Items",
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "createNew": "Create New Item",
+      "edit": "Edit Item"
+    }
+  }
+}

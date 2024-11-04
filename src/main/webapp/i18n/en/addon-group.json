@@ -17,6 +17,24 @@
       "addons": "Addon Groups",
       "editAddonGroup": "Edit Addon Group",
       "createAndAddAddon": "Create And Add Addon"
+    },
+    "addon-group": {
+      "created": "Addon Group {{ param }} is created successfully",
+      "updated": "Addon Group {{ param }} is updated successfully",
+      "deleted": "Addon Group {{ param }} is deleted successfully",
+      "delete": {
+        "question": "Are you sure you want to delete Addon Group {{ param }}?"
+      },
+      "title": "Addon Groups",
+      "id": "ID",
+      "name": "Name",
+      "desc": "Desc",
+      "createNewAddonGroup": "Create New Addon Group",
+      "searchAddonGroup": "Search Group",
+      "searchName": "Search Name",
+      "addons": "Addon Groups",
+      "editAddonGroup": "Edit Addon Group",
+      "createAndAddAddon": "Create And Add Addon"
     }
   }
 }

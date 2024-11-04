@@ -3,9 +3,12 @@ import { translate } from 'react-jhipster';
 import { toast } from 'react-toastify';
 import { isFulfilledAction, isRejectedAction } from 'app/shared/reducers/reducer.utils';
 
-const addErrorAlert = (message, key?, data?) => {
+const addErrorAlert = (message, key?, data?, localizedMessage?) => {
   key = key ? key : message;
-  toast.error(translate(key, data));
+  console.log(message)
+  console.log(key)
+  console.log(data)
+  localizedMessage ? toast.error(localizedMessage) : toast.error(translate(key, data));
 };
 
 export default () => next => action => {
@@ -30,7 +33,10 @@ export default () => next => action => {
       });
     if (alert) {
       const alertParam = alertParams;
-      toast.success(translate(alert, { param: entityName ?? alertParam}));
+      console.log(entityName)
+      console.log(alert)
+      console.log(alertParam)
+      toast.success(translate(alert, { param: entityName ?? alertParam }));
     }
   }
 
@@ -40,6 +46,9 @@ export default () => next => action => {
     if (error.response && !isLoginPage && !isLogoutPage) {
       const response = error.response;
       const data = response.data;
+      console.log(data)
+      const localizedMessage = data?.localizedMessage
+      console.log(localizedMessage)
       if (
 
         !(
@@ -65,8 +74,10 @@ export default () => next => action => {
                 }
               });
             if (errorHeader) {
+              console.log(1)
               const entityName = translate('global.menu.entities.' + entityKey);
-              addErrorAlert(errorHeader, errorHeader, { entityName });
+              console.log(1)
+              addErrorAlert(errorHeader, errorHeader, { entityName }, localizedMessage);
             } else if (data?.fieldErrors) {
               const fieldErrors = data.fieldErrors;
               for (const fieldError of fieldErrors) {
@@ -75,17 +86,24 @@ export default () => next => action => {
                 }
                 // convert 'something[14].other[4].id' to 'something[].other[].id' so translations can be written to it
                 const convertedField = fieldError.field.replace(/\[\d*\]/g, '[]');
+                console.log(1)
                 const fieldName = translate(`tempApp.${fieldError.objectName}.${convertedField}`);
-                addErrorAlert(`Error on field "${fieldName}"`, `error.${fieldError.message}`, { fieldName });
+                console.log(1)
+                addErrorAlert(`Error on field "${fieldName}"`, `error.${fieldError.message}`, { fieldName }, localizedMessage);
               }
             } else if (typeof data === 'string' && data !== '') {
+              console.log(data)
               addErrorAlert(data);
+              console.log(1)
             } else {
+              console.log(data)
               toast.error(data?.message || data?.error || data?.title || 'Unknown error!');
+              console.log(1)
             }
             break;
           }
           case 404:
+            console.log(1)
             addErrorAlert('Not found', 'error.url.not.found');
             break;
           case 401:
@@ -93,9 +111,13 @@ export default () => next => action => {
 
           default:
             if (typeof data === 'string' && data !== '') {
+              console.log(1)
               addErrorAlert(data);
+              console.log(1)
             } else {
+              console.log(1)
               toast.error(data?.message || data?.error || data?.title || 'Unknown error!');
+              console.log(1)
             }
         }
       }
@@ -103,12 +125,18 @@ export default () => next => action => {
       /* eslint-disable no-console */
       console.log('Authentication Error: Trying to access url api/account with GET.');
     } else if (isLoginPage) {
+      console.log(1)
       toast.warning('Wrong username or password');
+      console.log(1)
     } else {
+      console.log(1)
       toast.error(error.message || 'Unknown error!');
+      console.log(1)
     }
   } else if (error && error.response?.status !== 401) {
+    console.log(1)
     toast.error(error.message || 'Unknown error!');
+    console.log(1)
   }
   return next(action);
 };
