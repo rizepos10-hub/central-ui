@@ -167,11 +167,25 @@ export const GiftCard = () => {
     });
   };
 
+  const editColumnTemplate = (rowData) => {
+    const editUrl = `/loyalty-cards/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    return (
+      <Link to={editUrl}>
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
+      </Link>
+    );
+  };
+
+  const onTransferFundsCloseHandle = () => {
+    setTransferDialogVisible(false)
+    getAllEntities()
+  }
+
   return (
     <div>
       <TransferFunds
         transferDialogVisibile={transferDialogVisibile}
-        setTransferDialogVisible={setTransferDialogVisible}
+        onCloseHandle={onTransferFundsCloseHandle}
       />
 
       <AddBalance addBalanceDialog={addBalanceDialog} setAddBalanceDialog={setAddBalanceDialog} />
@@ -264,6 +278,13 @@ export const GiftCard = () => {
           headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
         />
+        <Column
+          header={translate('common.edit')}
+          body={editColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
+
       </DataTable>
     </div>
   );
