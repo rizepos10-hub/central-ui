@@ -18,6 +18,7 @@ export interface ISalesSummary {
   totalTAX: number;
   grossSales: number;
   totalTip: number;
+  walletCredits? : number;
   taxes: {
     [taxType: string]: number;
   };
