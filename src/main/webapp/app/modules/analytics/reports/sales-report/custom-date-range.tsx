@@ -36,21 +36,13 @@ type dateRange = {
   };
 };
 
-const DateCustomComponent = ({ onApplyDateRange }) => {
-  const currentDate = new Date();
+const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [primeDateValue, setPrimeDateValue] = useState({
     from: '',
     to: '',
   });
-  const [dateRange, setDateRange] = useState<any | null>({
-    from: toLocalISOString(startOfYear(currentDate)),
-    to: toLocalISOString(currentDate),
-    dateSlot: {
-      period: 'YEAR',
-      slots: 1,
-    },
-  });
+
   const [slotNumber, setSlotNumber] = useState<number | null>(4);
 
   const [selectedPeriodOption, setSelectedPeriodOption] = useState('period-to-date');
