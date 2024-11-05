@@ -10,6 +10,7 @@ import {IAddonGroup} from "app/shared/model/ADDON/addon-groups.model";
 import { IDiscount } from "app/shared/model/discount.model";
 import { ITag } from "app/shared/model/TAG/tag.model";
 import { IBrand } from "app/shared/model/brand.model";
+import { ShippingDimension } from "app/shared/model/shipping-dimension.model";
 
 export interface IItem {
   id?: string;
@@ -35,7 +36,7 @@ export interface IItem {
   terms?: ITerm[] | null;
   accountingGroups?: IProfileGroup[] | null;
   productionCenter?: IProductionCenter | null;
-
+  shippingDimension?: ShippingDimension | null;
 }
 
 export const defaultValue: Readonly<IItem> = {};
