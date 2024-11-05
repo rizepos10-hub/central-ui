@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Dropdown } from 'primereact/dropdown';
 import { SalesReportsMeasures, SalesReportsTypes } from 'app/shared/model/ENUMS/sales-reports.models';
 
@@ -21,6 +21,8 @@ import { formatPrice } from 'app/shared/util/price-utils';
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { useParams } from 'react-router-dom';
 import { capitalizeFirstLetter, capitalizeString } from 'app/shared/util/string-utils';
+import { Button } from 'primereact/button';
+import ReactToPrint from 'react-to-print';
 
 type Slot = {
   order: number;
@@ -88,8 +90,12 @@ export const SalesReport = () => {
   const dispatch = useAppDispatch();
   const { reportType } = useParams();
 
+  const dt = useRef(null);
+  const dtWrapper = useRef(null);
+
   console.log(reportType, 'reportTypereportType');
   console.log(reportMeasuresOptions, 'reportMeasuresOptions');
+  const currentDate = new Date();
 
   const initialSelectedType = reportTypesOptions?.[0]?.value;
   const initialSelectedMeasure = reportType
@@ -98,7 +104,14 @@ export const SalesReport = () => {
 
   const [selectedType, setSelectedType] = useState(initialSelectedType);
   const [selectedMeasure, setSelectedMeasure] = useState(initialSelectedMeasure);
-  const [appliedDateRange, setAppliedDateRange] = useState<dateRange | null>();
+  const [dateRange, setDateRange] = useState<any | null>({
+    from: toLocalISOString(startOfYear(currentDate)),
+    to: toLocalISOString(currentDate),
+    dateSlot: {
+      period: 'YEAR',
+      slots: 1,
+    },
+  });
   const salesReportData = useAppSelector(state => state.salesReportReducer.data);
   const salesReportLoading = useAppSelector(state => state.salesReportReducer.loading);
   const salesReportError = useAppSelector(state => state.salesReportReducer.error);
@@ -117,8 +130,10 @@ export const SalesReport = () => {
     }) || currencySettingsEntity.defaultCurrency;
 
   const handleDateRangeApply = (selectedDateRange: dateRange) => {
-    setAppliedDateRange(selectedDateRange);
+    setDateRange(selectedDateRange);
   };
+
+  // eslint-disable-next-line @typescript-eslint/require-await
   const fetchReportData = async () => {
     const currentDate = new Date();
     const defaultDateRange = {
@@ -131,7 +146,7 @@ export const SalesReport = () => {
     };
 
     const formRequest = {
-      dateRange: appliedDateRange || defaultDateRange,
+      dateRange: dateRange || defaultDateRange,
       measure: selectedMeasure,
       type: reportType ? capitalizeString(reportType) : selectedType,
     };
@@ -159,7 +174,7 @@ export const SalesReport = () => {
 
   useEffect(() => {
     fetchReportData();
-  }, [selectedMeasure, selectedType, appliedDateRange, reportType]);
+  }, [selectedMeasure, selectedType, dateRange, reportType]);
 
   const handleTypeChange = e => {
     const type = e.value;
@@ -301,6 +316,87 @@ export const SalesReport = () => {
     </ColumnGroup>
   );
 
+  const exportExcel = () => {
+    import('xlsx').then((xlsx) => {
+      const worksheet = xlsx.utils.json_to_sheet(salesReportData?.rows.map(({ rowRecord, slots, ...rest }) => rest));
+      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+      const excelBuffer = xlsx.write(workbook, {
+        bookType: 'xlsx',
+        type: 'array'
+      });
+
+      saveAsExcelFile(excelBuffer, 'products');
+    });
+  };
+
+  const saveAsExcelFile = (buffer, fileName) => {
+    import('file-saver').then((module) => {
+      if (module && module.default) {
+        const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+        const EXCEL_EXTENSION = '.xlsx';
+        const data = new Blob([buffer], {
+          type: EXCEL_TYPE
+        });
+
+        module.default.saveAs(data, fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION);
+      }
+    });
+  };
+
+  const pageStyle = `
+  @media print {
+    /* Remove scrollbars and display all content */
+    .p-datatable-wrapper, .p-datatable-scrollable-body {
+      overflow: visible !important;
+      max-height: none !important;
+    }
+
+    tr {
+      border-bottom: 0.1px solid gray !important; 
+    }
+
+    .p-datatable tfoot {
+      position: relative !important;
+    }
+
+    /* Optional: Hide the header during print */
+    .p-datatable-header {
+      display: none !important;
+    }
+
+    .sales-report-print-header {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    /* Set page size to A4 and remove margins */
+    @page {
+      size: A4;
+    }
+
+  }
+`;
+
+  const header = (
+    <div className="flex align-items-center justify-content-end gap-2">
+      <Button type="button" className='rounded-circle' icon="pi pi-file-excel" severity="success" rounded onClick={exportExcel} data-pr-tooltip="XLS" />
+      <ReactToPrint
+        trigger={() => (
+          <Button
+            type="button"
+            className="rounded-circle"
+            icon="pi pi-print"
+            severity="info"
+            rounded
+            data-pr-tooltip="PRINT"
+          />
+        )}
+        content={() => dtWrapper.current}
+        pageStyle={pageStyle}
+      />
+    </div>
+  );
+
   return (
     <>
       <h1>
@@ -329,13 +425,14 @@ export const SalesReport = () => {
         <div className="d-flex flex-column gap-1">
           <div className="d-flex flex-column gap-1">
             <label>Date Range</label>
-            <DateCustomComponent onApplyDateRange={handleDateRangeApply} />
+            <DateCustomComponent onApplyDateRange={handleDateRangeApply} dateRange={dateRange} setDateRange={setDateRange} />
           </div>
         </div>
         <div className="d-flex flex-column gap-1">
           <div className="d-flex flex-column gap-1">
             <label>Display Currency</label>
             <Dropdown
+              ref={dt}
               value={displayCurrency}
               onChange={e => setDisplayCurrency(e.value)}
               options={filteredDisplayCurrencies}
@@ -348,42 +445,71 @@ export const SalesReport = () => {
       </div>
       <div className="my-3 card">
         <Tooltip target=".export-buttons>button" position="bottom" />
-        <DataTable
-          headerColumnGroup={headerGroup}
-          footerColumnGroup={footerGroup}
-          scrollable
-          stripedRows
-          showGridlines
-          loading={salesReportLoading}
-          size={'small'}
-          tableStyle={{ minWidth: '50rem' }}
-          scrollHeight="45rem"
-          value={salesReportData?.rows}
-        >
-          <Column field={'rowRecord.name'} />
-          {sortedHeaderSlots?.map(
-            header =>
-              header.order >= 0 && (
-                <Column
-                  key={header.order}
-                  body={rowData => {
-                    const slotIndex = rowData.slots.findIndex(s => s.order === header.order);
-                    return slotIndex >= 0
-                      ? selectedMeasure !== 'SALE_COUNT'
-                        ? `${formatPrice(rowData.slots[slotIndex].value, exchange)} `
-                        : rowData.slots[slotIndex].value
-                      : null;
-                  }}
-                />
-              )
-          )}
-          <Column
-            body={rowData => {
-              return selectedMeasure !== 'SALE_COUNT' ? `${formatPrice(rowData['value'], exchange)} ` : rowData['value'];
+        <div ref={dtWrapper}>
+
+          <div
+            className='gap-3 sales-report-print-header'
+            style={{
+              display: 'none',
             }}
-          />
-          {datatableRows}
-        </DataTable>
+          >
+            <div className='fs-2 fw-bold text-center'>Sales Report</div>
+            <div className='fs-5 fw-semibold d-flex flex-column gap-1'>
+              <div>
+                <span>Report Type : </span>
+                <span>{reportType ? capitalizeString(reportType) : selectedType}</span>
+              </div>
+              <div>
+                <span>Measure Type : </span>
+                <span>{selectedMeasure ? capitalizeString(selectedMeasure) : selectedMeasure}</span>
+              </div>
+              {dateRange?.from && dateRange?.to && (
+                <div>
+                  <span>Date Range : </span>
+                  <span>{format(new Date(dateRange?.from), "yyyy-MM-dd")} - {format(new Date(dateRange?.to), "yyyy-MM-dd")}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DataTable
+            headerColumnGroup={headerGroup}
+            footerColumnGroup={footerGroup}
+            scrollable
+            stripedRows
+            showGridlines
+            loading={salesReportLoading}
+            size={'small'}
+            tableStyle={{ minWidth: '50rem' }}
+            scrollHeight="45rem"
+            value={salesReportData?.rows}
+            header={header}
+          >
+            <Column field={'rowRecord.name'} />
+            {sortedHeaderSlots?.map(
+              header =>
+                header.order >= 0 && (
+                  <Column
+                    key={header.order}
+                    body={rowData => {
+                      const slotIndex = rowData.slots.findIndex(s => s.order === header.order);
+                      return slotIndex >= 0
+                        ? selectedMeasure !== 'SALE_COUNT'
+                          ? `${formatPrice(rowData.slots[slotIndex].value, exchange)} `
+                          : rowData.slots[slotIndex].value
+                        : null;
+                    }}
+                  />
+                )
+            )}
+            <Column
+              body={rowData => {
+                return selectedMeasure !== 'SALE_COUNT' ? `${formatPrice(rowData['value'], exchange)} ` : rowData['value'];
+              }}
+            />
+            {datatableRows}
+          </DataTable>
+        </div>
       </div>
     </>
   );

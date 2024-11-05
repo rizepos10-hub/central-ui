@@ -31,40 +31,7 @@ export const OrderDetail = () => {
   const location = useLocation();
 
   const billPrintRef = useRef(null);
-
-  const handleBillPrint = useReactToPrint({
-    content: () => billPrintRef.current,
-    pageStyle: "@page { size: A4 portrait; margin: 0; }",
-  });
-
   const pagePrintRef = useRef(null);
-
-  const handlePagePrint = useReactToPrint({
-    content: () => pagePrintRef.current,
-    pageStyle: "@page { size: A4 portrait; margin: 0; }",
-    async onBeforeGetContent() {
-      await openAllAccordions();
-      // loop through all bills 
-      filteredOrderEntity?.bills?.forEach((_, idx) => {
-        document.getElementById(`actionsTab-${idx}`).style.visibility = 'hidden';
-      })
-      document.getElementById('orderStatus').style.display = 'none';
-      document.getElementById('customer').style.display = 'none';
-      if (orderEntity.orderDeliveryDetails) {
-        document.getElementById('deliveryDetails').style.display = 'none';
-      }
-    },
-    onAfterPrint() {
-      filteredOrderEntity?.bills?.forEach((_, idx) => {
-        document.getElementById(`actionsTab-${idx}`).style.visibility = 'visible';
-      })
-      document.getElementById('orderStatus').style.display = 'block';
-      document.getElementById('customer').style.display = 'block';
-      if (orderEntity.orderDeliveryDetails) {
-        document.getElementById('deliveryDetails').style.display = 'block';
-      }
-    },
-  });
 
   const { id } = useParams<'id'>();
   const orderEntity: IOrder = useAppSelector(state => state.order.entity);

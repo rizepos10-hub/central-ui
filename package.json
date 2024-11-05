@@ -89,6 +89,7 @@
     "chroma-js": "^3.0.0",
     "date-fns": "^2.30.0",
     "dayjs": "1.11.5",
+    "file-saver": "^2.0.5",
     "lodash": "4.17.21",
     "path-browserify": "1.0.1",
     "primeflex": "^3.3.1",
@@ -119,7 +120,8 @@
     "sockjs-client": "1.5.0",
     "tslib": "2.4.0",
     "uuid": "8.3.2",
-    "webstomp-client": "1.2.6"
+    "webstomp-client": "1.2.6",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@testing-library/react": "13.3.0",

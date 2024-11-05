@@ -14,6 +14,7 @@ import RegisterClosures from "app/modules/analytics/register-closures";
 import ShiftReport from "app/modules/analytics/reports/shit/shift-report";
 import EmployeeHoursReport from './reports/employee-hours/employee-hours';
 import RetialDashboard from './reports/retail-dashboard/retail-dashboard';
+import SalesReportPrint from './reports/sales-report/sales-report-print';
 
 
 
@@ -32,6 +33,7 @@ export default () => {
         <Route path="reports" element={<SalesSummaryReport />} />
         <Route path="sales" element={<SalesReport />} />
         <Route path="/sales-report/sales-by-:reportType" element={<SalesReport />} />
+        <Route path="/sales-report/print" element={<SalesReportPrint />} />
         <Route path="*" element={<PageNotFound />} />
 
 
