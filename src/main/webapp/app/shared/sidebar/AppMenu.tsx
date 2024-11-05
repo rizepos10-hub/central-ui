@@ -335,6 +335,11 @@ export const model: MenuItem[] = [
         to: '/order',
       },
       {
+        label: 'Scheduled',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/order/scheduled',
+      },
+      {
         label: 'Create',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/order/create',
