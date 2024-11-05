@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import SalesSection from 'app/modules/analytics/reports/SalesSections';
 import axios from 'axios';
@@ -10,9 +10,13 @@ import { translate, Translate } from 'react-jhipster';
 import GenericSalesReport from 'app/shared/components/report/generic-sales-report';
 import EndOfTillTotalReceived from 'app/shared/components/report/summary-report-total-received';
 import RelatedTills from 'app/modules/analytics/reports/end-of-day/related-tills';
+import ReactToPrint from 'react-to-print';
+import { Button } from 'primereact/button';
+import { ScrollPanel } from 'primereact/scrollpanel';
 
 const EndOfDayReport = () => {
   const dispatch = useAppDispatch();
+  const printWrapper = useRef(null);
   const { id } = useParams();
 
   const [endOfDay, setEndOfDay] = useState(null);
@@ -103,19 +107,54 @@ const EndOfDayReport = () => {
     return <Spinner />;
   }
 
+  const pageStyle = `
+    @media print {
+      .hide-on-print {
+        display: none !important;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+    }
+  `;
 
   return (
-    <>
+    <div ref={printWrapper}>
       <div className="container my-5">
-        <div className="text-center">
-          <h4>
-            <Translate contentKey={'analytics.endOfDay.report.title'}>End OF Day Report</Translate>
-          </h4>
-          <p>
-            <Translate contentKey={'analytics.report.location'} interpolate={{ location: 'Random Location' }}>
-              Location: Random Location
-            </Translate>
-          </p>
+        <div className='d-flex justify-content-between align-items-center'>
+          <span></span>
+          <span>
+            <h4>
+              <Translate contentKey={'analytics.endOfDay.report.title'}>
+                End OF Day Report
+              </Translate>
+            </h4>
+            <p>
+              <Translate contentKey={'analytics.report.location'} interpolate={{ location: 'Random Location' }}>
+                Location: Random Location
+              </Translate>
+            </p>
+          </span>
+          <span>
+            <span className="hide-on-print">
+              <ReactToPrint
+                trigger={() => (
+                  <Button
+                    type="button"
+                    className="rounded-circle"
+                    icon="pi pi-print"
+                    severity="info"
+                    rounded
+                    data-pr-tooltip="PRINT"
+                  />
+                )}
+                content={() => printWrapper.current}
+                pageStyle={pageStyle}
+              />
+            </span>
+          </span>
         </div>
       </div>
       <div className="container mt-5 bg-white">
@@ -138,7 +177,7 @@ const EndOfDayReport = () => {
           <RelatedTills fromDate={endOfDay?.fromDate} toDate={endOfDay?.toDate} />
         </div>
       )}
-    </>
+    </div>
   );
 };
 
