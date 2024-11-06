@@ -1,8 +1,6 @@
 import {useAppSelector} from "app/config/store";
 
 export const formatPrice = (number, exchange) => {
-  console.log(number)
-  console.log(exchange)
   if (typeof number === 'number') {
     const formattedNumber = (number * (exchange?.rate || 1)).toLocaleString(undefined, {
       minimumFractionDigits: 2,
@@ -10,7 +8,6 @@ export const formatPrice = (number, exchange) => {
     });
 
     const currencySymbol = exchange?.currency?.code || exchange?.code;
-
     return `${formattedNumber} ${currencySymbol}`;
   }
 };
