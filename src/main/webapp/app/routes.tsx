@@ -36,7 +36,7 @@ const Admin = Loadable({
 const AppRoutes = () => {
   const location = useLocation();
   React.useEffect(() => {
-    sendActivity(location.pathname);
+    // sendActivity(location.pathname);
   }, [location]);
 
   return (
