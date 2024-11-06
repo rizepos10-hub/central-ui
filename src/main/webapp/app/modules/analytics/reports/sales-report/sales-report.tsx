@@ -93,8 +93,6 @@ export const SalesReport = () => {
   const dt = useRef(null);
   const dtWrapper = useRef(null);
 
-  console.log(reportType, 'reportTypereportType');
-  console.log(reportMeasuresOptions, 'reportMeasuresOptions');
   const currentDate = new Date();
 
   const initialSelectedType = reportTypesOptions?.[0]?.value;
@@ -182,7 +180,6 @@ export const SalesReport = () => {
   };
 
   const handleMeasureChange = e => {
-    console.log(e, 'hahahha');
     const measure = e.value;
     setSelectedMeasure(measure);
   };
@@ -331,7 +328,6 @@ export const SalesReport = () => {
           : slot?.value || 0]);
       });
 
-      console.log(row)
       // Add remaining properties in the desired order
       entries.push(['Total', formatPrice(row.value, exchange)]);
       selectedMeasure !== 'REVENUE' && entries.push(['Revenue', formatPrice(row.revenue, exchange)]);
@@ -360,7 +356,6 @@ export const SalesReport = () => {
       selectedMeasure !== 'RETURNS' ? 'Returns' : '',
     ].filter(header => header !== '');
 
-    console.log(headers)
 
     // Initialize totals
     const totals = {};
@@ -388,7 +383,6 @@ export const SalesReport = () => {
 
     const excelFooterData = Object.values(salesReportData?.totalByDateRange || {});
 
-    console.log(excelFooterData)
 
     // unshifting an empty object to be able to catch index 0 without ruining the calcs of the values
     excelFooterData.unshift({});
@@ -472,19 +466,6 @@ export const SalesReport = () => {
       });
       additionalData.push(taxRow);
     }
-
-    console.log(structuredExcelData)
-    console.log(additionalData)
-
-    // const revenueRow = headers.map((header, index) => {
-    //   if (index === 0) {
-    //     return 'Revenue';
-    //   } else {
-    //     // Compute or assign revenue values here
-    //     return ''; // Replace with actual revenue values if available
-    //   }
-    // });
-    // additionalData.push(revenueRow);
 
     import('xlsx-js-style').then((xlsx) => {
       const worksheet = xlsx.utils.json_to_sheet(structuredExcelData, { header: headers });
@@ -712,7 +693,6 @@ export const SalesReport = () => {
                     key={header.order}
                     body={rowData => {
                       const slotIndex = rowData.slots.findIndex(s => s.order === header.order);
-                      console.log(rowData)
                       return slotIndex >= 0
                         ? selectedMeasure !== 'SALE_COUNT'
                           ? `${formatPrice(rowData.slots[slotIndex].value, exchange)} `
