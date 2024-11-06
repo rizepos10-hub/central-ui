@@ -143,9 +143,7 @@ export const LoyaltyCardUpdate = () => {
                     <InputText
                       id="loyalty-card-referenceNumber"
                       value={loyaltyCardEntity?.referenceNumber || ''}
-                      // onChange={e => dispatch(changeEntityField({ name: 'referenceNumber', value: e.target.value }))}
-                      disabled
-                      placeholder='Auto Generated'
+                      onChange={e => dispatch(changeEntityField({ name: 'referenceNumber', value: e.target.value }))}
                     />
                   </div>
 
