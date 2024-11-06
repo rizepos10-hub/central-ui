@@ -194,14 +194,26 @@ export const ProductUpdate = () => {
     });
   };
 
-  const handleShippingDimenssionChange = (field, value) => {
-    setProduct(prevState => ({
-      ...prevState,
-      shippingDimension: {
-        ...prevState.shippingDimension,
-        [field]: value,
-      },
-    }));
+  const handleShippingDimensionChange = (field, value, variantIndex) => {
+    setProduct(prev => {
+      const updatedVariants = [...prev.variants];
+      // Ensure that the variant exists and has a shippingDimension object
+      const updatedVariant = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        shippingDimension: {
+          ...(prev.variants[variantIndex].shippingDimension || {}),
+          [field]: value
+        }
+      };
+  
+      // Update the specific variant
+      updatedVariants[variantIndex] = updatedVariant;
+  
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
   };
 
   // variantPackage is like this
@@ -884,75 +896,6 @@ const stockQuantityUpdate = (stockQuantities: IStockQuantity[], variantIndex: Nu
                             )}
                             <SharedItemUpdate item={product} onFieldChange={handleFieldChange} />
 
-                            <div className="mb-3 mt-3">
-                              <p className="text-xl font-bold">Shipping calculation: </p>
-                              <div className='row'>
-                                <div className='col-6 d-flex flex-column gap-2'>
-                                  <label className="font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="minimumStockLevel"
-                                    id="minimumStockLevel"
-                                    required
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName='w-1'
-                                    placeholder={translate('items.update.placeholders.height')}
-                                    value={product?.shippingDimension?.height ?? null}
-                                    onChange={(e) => handleShippingDimenssionChange("height", e.value)}
-                                  />
-                                </div>
-                                <div className='col-6 d-flex flex-column gap-2'>
-                                  <label className="font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="quantity"
-                                    id="quantity"
-                                    required
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName='w-1'
-                                    placeholder={translate('items.update.placeholders.length')}
-                                    value={product?.shippingDimension?.length ?? null}
-                                    onChange={(e) => handleShippingDimenssionChange("length", e.value)}
-                                  />
-                                </div>
-                                <div className='col-6 d-flex flex-column gap-2'>
-                                  <label className="font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="unitCost"
-                                    id="unitCost"
-                                    required
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName='w-1'
-                                    placeholder={translate('items.update.placeholders.width')}
-                                    value={product?.shippingDimension?.width ?? null}
-                                    onChange={(e) => handleShippingDimenssionChange("width", e.value)}
-                                  />
-                                </div>
-                                <div className='col-6 d-flex flex-column gap-2'>
-                                  <label className="font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="unitCost"
-                                    id="unitCost"
-                                    required
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName='w-1'
-                                    placeholder={translate('items.update.placeholders.weight')}
-                                    value={product?.shippingDimension?.weight ?? null}
-                                    onChange={(e) => handleShippingDimenssionChange("weight", e.value)}
-                                  />
-                                </div>
-                              </div>
-                            </div>
 
                             <div className={'d-flex flex-column gap-2 mb-3'}>
                               <label className={'font-semibold'}>
@@ -993,6 +936,76 @@ const stockQuantityUpdate = (stockQuantities: IStockQuantity[], variantIndex: Nu
                                     />
                                   </div>
                                 </Col>
+
+                                <div className="mb-3 mt-3">
+                                  <p className="text-xl font-bold">Shipping Details: </p>
+                                  <div className='row'>
+                                    <div className='col-6 d-flex flex-column gap-2'>
+                                      <label className="font-semibold">
+                                        <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="minimumStockLevel"
+                                        id="minimumStockLevel"
+                                        required
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        inputClassName='w-1'
+                                        placeholder={translate('items.update.placeholders.height')}
+                                        value={product?.variants?.[0]?.shippingDimension?.height ?? null}
+                                        onChange={(e) => handleShippingDimensionChange("height", e.value, 0)}
+                                      />
+                                    </div>
+                                    <div className='col-6 d-flex flex-column gap-2'>
+                                      <label className="font-semibold">
+                                        <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="quantity"
+                                        id="quantity"
+                                        required
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        inputClassName='w-1'
+                                        placeholder={translate('items.update.placeholders.length')}
+                                        value={product?.variants?.[0]?.shippingDimension?.length ?? null}
+                                        onChange={(e) => handleShippingDimensionChange("length", e.value, 0)}
+                                      />
+                                    </div>
+                                    <div className='col-6 d-flex flex-column gap-2'>
+                                      <label className="font-semibold">
+                                        <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="unitCost"
+                                        id="unitCost"
+                                        required
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        inputClassName='w-1'
+                                        placeholder={translate('items.update.placeholders.width')}
+                                        value={product?.variants?.[0]?.shippingDimension?.width ?? null}
+                                        onChange={(e) => handleShippingDimensionChange("width", e.value, 0)}
+                                      />
+                                    </div>
+                                    <div className='col-6 d-flex flex-column gap-2'>
+                                      <label className="font-semibold">
+                                        <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="unitCost"
+                                        id="unitCost"
+                                        required
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        inputClassName='w-1'
+                                        placeholder={translate('items.update.placeholders.weight')}
+                                        value={product?.variants?.[0]?.shippingDimension?.weight ?? null}
+                                        onChange={(e) => handleShippingDimensionChange("weight", e.value, 0)}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
 
                                 <Col md="6">
                                   <div className={'d-flex flex-column gap-2'}>
@@ -1350,7 +1363,87 @@ const stockQuantityUpdate = (stockQuantities: IStockQuantity[], variantIndex: Nu
                                                   />
                                                 </Col>
                                               </Row>
+                                              <div className="p-3">
+                                                <h4>Shipping Details:</h4>
+                                                <Accordion multiple>
+                                                <AccordionTab header="Shipping Details" className="p-3">
+                                                  <Row>
+                                                    <Col md="12">
+                                                    <div className="mb-3 mt-3">
+                                                        <p className="text-xl font-bold">Shipping Details: </p>
+                                                        <div className='row'>
+                                                          <div className='col-6 d-flex flex-column gap-2'>
+                                                            <label className="font-semibold">
+                                                              <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
+                                                            </label>
+                                                            <InputNumber
+                                                              name="minimumStockLevel"
+                                                              id="minimumStockLevel"
+                                                              required
+                                                              min={0}
+                                                              maxFractionDigits={2}
+                                                              inputClassName='w-1'
+                                                              placeholder={translate('items.update.placeholders.height')}
+                                                              value={product?.variants?.[variantIndex].shippingDimension?.height ?? null}
+                                                              onChange={(e) => handleShippingDimensionChange("height", e.value, variantIndex)}
+                                                            />
+                                                          </div>
+                                                          <div className='col-6 d-flex flex-column gap-2'>
+                                                            <label className="font-semibold">
+                                                              <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
+                                                            </label>
+                                                            <InputNumber
+                                                              name="quantity"
+                                                              id="quantity"
+                                                              required
+                                                              min={0}
+                                                              maxFractionDigits={2}
+                                                              inputClassName='w-1'
+                                                              placeholder={translate('items.update.placeholders.length')}
+                                                              value={product?.variants?.[variantIndex].shippingDimension?.length ?? null}
+                                                              onChange={(e) => handleShippingDimensionChange("length", e.value, variantIndex)}
+                                                            />
+                                                          </div>
+                                                          <div className='col-6 d-flex flex-column gap-2'>
+                                                            <label className="font-semibold">
+                                                              <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
+                                                            </label>
+                                                            <InputNumber
+                                                              name="unitCost"
+                                                              id="unitCost"
+                                                              required
+                                                              min={0}
+                                                              maxFractionDigits={2}
+                                                              inputClassName='w-1'
+                                                              placeholder={translate('items.update.placeholders.width')}
+                                                              value={product?.variants?.[variantIndex].shippingDimension?.width ?? null}
+                                                              onChange={(e) => handleShippingDimensionChange("width", e.value, variantIndex)}
+                                                            />
+                                                          </div>
+                                                          <div className='col-6 d-flex flex-column gap-2'>
+                                                            <label className="font-semibold">
+                                                              <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
+                                                            </label>
+                                                            <InputNumber
+                                                              name="unitCost"
+                                                              id="unitCost"
+                                                              required
+                                                              min={0}
+                                                              maxFractionDigits={2}
+                                                              inputClassName='w-1'
+                                                              placeholder={translate('items.update.placeholders.weight')}
+                                                              value={product?.variants?.[variantIndex].shippingDimension?.weight ?? null}
+                                                              onChange={(e) => handleShippingDimensionChange("weight", e.value, variantIndex)}
+                                                            />
+                                                          </div>
+                                                        </div>
+                                                      </div>
 
+                                                    </Col>
+                                                  </Row>
+                                                </AccordionTab>
+                                                </Accordion>
+                                              </div>
                                               <VariantBranchPrice
                                                 branchList={branchList}
                                                 handleBranchPriceChange={handleBranchPriceChange}

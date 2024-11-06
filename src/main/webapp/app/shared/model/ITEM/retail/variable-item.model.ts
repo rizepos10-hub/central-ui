@@ -10,6 +10,7 @@ import { IItemMeasure } from "app/shared/model/item-measure.model";
 import { IExchangeMeasure, IItemPriceNumber } from "app/shared/model/ITEM/retail/simple-item.model";
 import { IMixAndMatchRule } from "app/shared/model/mix-and-match-rule.model";
 import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
+import { ShippingDimension } from "app/shared/model/shipping-dimension.model";
 
 export interface IBranchVariantDetails {
   [key: string]: {
@@ -44,6 +45,7 @@ export interface IVariableItemVariant {
   mixAndMatchRule?: IMixAndMatchRule;
   variantPackage?: IVariantPackage | null;
   itemMeasure?: IItemMeasure;
+  shippingDimension?: ShippingDimension | null;
 }
 
 export interface IVariableItem extends IItem {
