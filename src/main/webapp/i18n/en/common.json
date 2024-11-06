@@ -3,7 +3,7 @@
     "name": "Name",
     "code": "Code",
     "printed": "Printed",
-    "referenceNumber": "Reference Number",
+    "referenceNumber": "Card Number",
     "walletId": "Wallet Id",
     "wallet": "Wallet",
     "createNewLoyaltyCard": "Create New Loyalty Card",
