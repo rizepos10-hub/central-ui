@@ -255,7 +255,6 @@ export const SalesReport = () => {
           <Column className="bg-white" colSpan={10} />
         </PrimeRow>
       ) : null}
-
       {selectedMeasure !== 'REVENUE' ? (
         <PrimeRow>
           <Column footer={'Revenue'} className="bg-white text-left" />
@@ -317,8 +316,227 @@ export const SalesReport = () => {
   );
 
   const exportExcel = () => {
-    import('xlsx').then((xlsx) => {
-      const worksheet = xlsx.utils.json_to_sheet(salesReportData?.rows.map(({ rowRecord, slots, ...rest }) => rest));
+    const structuredExcelData = salesReportData?.rows?.map(row => {
+      // Use an array to keep track of property insertion order
+      const entries = [];
+
+      // Add Product
+      entries.push(['Product', row?.rowRecord?.name]);
+
+      // Add date properties
+      sortedHeaderSlots.forEach(header => {
+        const slot = row.slots.find(s => s.order === header.order);
+        entries.push([header.label, selectedMeasure !== 'SALE_COUNT'
+          ? `${formatPrice(slot?.value || 0, exchange)} `
+          : slot?.value || 0]);
+      });
+
+      console.log(row)
+      // Add remaining properties in the desired order
+      entries.push(['Total', formatPrice(row.value, exchange)]);
+      selectedMeasure !== 'REVENUE' && entries.push(['Revenue', formatPrice(row.revenue, exchange)]);
+      entries.push(['Cost Of Goods', formatPrice(row.costOfGoods, exchange)]);
+      entries.push(['Gross Profit', formatPrice(row.grossProfit, exchange)]);
+      entries.push(['Margin', formatPrice(row.margin, exchange)]);
+      selectedMeasure !== 'TAX' && entries.push(['Tax', formatPrice(row.tax, exchange)]);
+      selectedMeasure !== 'Returns' && entries.push(['Returns', formatPrice(row.returns, exchange)]);
+
+      // Convert entries to an object
+      const rowData = Object.fromEntries(entries);
+
+      return rowData;
+    });
+
+    // Create the worksheet with specified headers
+    const headers = [
+      'Product',
+      ...sortedHeaderSlots.map(header => header.label),
+      'Total',
+      selectedMeasure !== 'REVENUE' ? 'Revenue' : '',
+      'Cost Of Goods',
+      'Gross Profit',
+      'Margin',
+      selectedMeasure !== 'TAX' ? 'Tax' : '',
+      selectedMeasure !== 'RETURNS' ? 'Returns' : '',
+    ].filter(header => header !== '');
+
+    console.log(headers)
+
+    // Initialize totals
+    const totals = {};
+    headers.forEach(header => {
+      if (header !== 'Product') {
+        totals[header] = 0;
+      }
+    });
+
+    // Compute totals
+    structuredExcelData.forEach(rowData => {
+      headers.forEach(header => {
+        if (header !== 'Product') {
+          // Remove currency symbols and whitespace, then parse to float
+          const value = parseFloat(rowData[header].replace(/[^\d.-]/g, '')) || 0;
+          totals[header] += value;
+        }
+      });
+    });
+
+    // Create additional data
+    const additionalData = [
+      [], // Empty row for readability
+    ];
+
+    const excelFooterData = Object.values(salesReportData?.totalByDateRange || {});
+
+    console.log(excelFooterData)
+
+    // unshifting an empty object to be able to catch index 0 without ruining the calcs of the values
+    excelFooterData.unshift({});
+    // Totals row
+    const totalsRow = excelFooterData.map((header: any, index) => {
+      if (index === 0) {
+        return 'Totals';
+      } else {
+        return formatPrice(header?.value, exchange);
+      }
+    });
+    additionalData.push(totalsRow);
+
+    if (selectedMeasure !== 'SALE_COUNT') {
+      const selectedMesaureRow = excelFooterData.map((header: any, index) => {
+        if (index === 0) {
+          return capitalizeFirstLetter(selectedMeasure.toLowerCase());
+        } else {
+          return formatPrice(header[selectedMeasure.toLowerCase()], exchange)
+        }
+      });
+      additionalData.push(selectedMesaureRow);
+    }
+
+    if (selectedMeasure !== 'REVENUE') {
+      const revenueRow = excelFooterData.map((header: any, index) => {
+        if (index === 0) {
+          return 'Revenue';
+        } else {
+          return formatPrice(header?.revenue, exchange);
+        }
+      });
+      additionalData.push(revenueRow);
+    }
+
+    const costOfGoodsRow = excelFooterData.map((header: any, index) => {
+      if (index === 0) {
+        return 'Cost Of Goods';
+      } else {
+        return formatPrice(header?.costOfGoods, exchange);
+      }
+    });
+    additionalData.push(costOfGoodsRow);
+
+    if (selectedMeasure !== 'RETURNS') {
+      const returnsRow = excelFooterData.map((header: any, index) => {
+        if (index === 0) {
+          return 'Returns';
+        } else {
+          return formatPrice(header?.returns, exchange);
+        }
+      });
+      additionalData.push(returnsRow);
+    }
+
+    const marginRow = excelFooterData.map((header: any, index) => {
+      if (index === 0) {
+        return 'Margin';
+      } else {
+        return formatPrice(header?.margin, exchange);
+      }
+    });
+    additionalData.push(marginRow);
+
+    const grossProfitRow = excelFooterData.map((header: any, index) => {
+      if (index === 0) {
+        return 'Gross Profit';
+      } else {
+        return formatPrice(header?.grossProfit, exchange);
+      }
+    });
+    additionalData.push(grossProfitRow);
+
+    if (selectedMeasure !== 'TAX') {
+      const taxRow = excelFooterData.map((header: any, index) => {
+        if (index === 0) {
+          return 'Tax';
+        } else {
+          return formatPrice(header?.tax, exchange);
+        }
+      });
+      additionalData.push(taxRow);
+    }
+
+    console.log(structuredExcelData)
+    console.log(additionalData)
+
+    // const revenueRow = headers.map((header, index) => {
+    //   if (index === 0) {
+    //     return 'Revenue';
+    //   } else {
+    //     // Compute or assign revenue values here
+    //     return ''; // Replace with actual revenue values if available
+    //   }
+    // });
+    // additionalData.push(revenueRow);
+
+    import('xlsx-js-style').then((xlsx) => {
+      const worksheet = xlsx.utils.json_to_sheet(structuredExcelData, { header: headers });
+
+      // Add additional data to worksheet
+      xlsx.utils.sheet_add_aoa(worksheet, additionalData, { origin: -1 });
+
+      // Apply bold styling to the first row (headers)
+      headers.forEach((_, index) => {
+        const cellAddress = xlsx.utils.encode_cell({ r: 0, c: index });
+        if (!worksheet[cellAddress]) return;
+        worksheet[cellAddress].s = {
+          font: {
+            bold: true,
+          },
+        };
+      });
+
+      // Apply bold styling to the first column (Product column)
+      structuredExcelData.forEach((_, rowIndex) => {
+        const cellAddress = xlsx.utils.encode_cell({ r: rowIndex + 1, c: 0 }); // +1 because headers are at r=0
+        if (!worksheet[cellAddress]) return;
+        worksheet[cellAddress].s = {
+          font: {
+            bold: true,
+          },
+        };
+      });
+
+      // Apply bold styling to the first column (totals per year column)
+      additionalData.forEach((rowData, index) => {
+        if (index === 0) return; // Skip the empty array
+
+        const rowIndex = structuredExcelData.length + 1 + index; // Calculate the correct row index
+
+        // Get the cell address for the first cell in this row
+        const cellAddress = xlsx.utils.encode_cell({ r: rowIndex, c: 0 });
+        // Apply bold styling to the first cell
+        if (worksheet[cellAddress]) {
+          worksheet[cellAddress].s = {
+            font: {
+              bold: true,
+            },
+          };
+        }
+      });
+
+
+      worksheet['!cols'] = headers.map(() => ({
+        wpx: 144,
+      }));
+
       const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
       const excelBuffer = xlsx.write(workbook, {
         bookType: 'xlsx',
@@ -342,6 +560,7 @@ export const SalesReport = () => {
       }
     });
   };
+
 
   const pageStyle = `
   @media print {
@@ -493,6 +712,7 @@ export const SalesReport = () => {
                     key={header.order}
                     body={rowData => {
                       const slotIndex = rowData.slots.findIndex(s => s.order === header.order);
+                      console.log(rowData)
                       return slotIndex >= 0
                         ? selectedMeasure !== 'SALE_COUNT'
                           ? `${formatPrice(rowData.slots[slotIndex].value, exchange)} `
