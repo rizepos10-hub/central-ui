@@ -109,6 +109,13 @@
         "unitCost": "unitCost"
       },
 
+      "shippingDimension": {
+        "length": "Length",
+        "width": "Width",
+        "weight": "Weight",
+        "height": "Height"
+      },
+
       "placeholders": {
         "itemName": "Item Name",
         "itemDescription": "Item Description",
@@ -121,7 +128,11 @@
         "variantPrice": "Variant Price",
         "minimumStockLevelPlaceHolder":"Minimum Stock Level",
         "quantity": "Quantity",
-        "unitCost": "unitCost"
+        "unitCost": "unitCost",
+        "length": "Length",
+        "width": "Width",
+        "weight": "Weight",
+        "height": "Height"
       },
       "name": "Name",
       "description": "Description",
