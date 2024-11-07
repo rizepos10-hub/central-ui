@@ -159,6 +159,7 @@
       "baseMeasure": "Select Base Measure",
       "measures": "Measures",
       "measure": "Measure",
+      "isBaseMeasure": "Is Measure Base",
       "exchangeRate": "Exchange Rate",
       "remove": "Remove",
       "filterByGroup":  "Filter by Group",
