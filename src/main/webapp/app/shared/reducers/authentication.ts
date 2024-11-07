@@ -77,6 +77,7 @@ export const login: (username: string, password: string, tenant: string, remembe
         Storage.local.set(AUTH_TOKEN_KEY, bearerToken);
         Storage.local.set(REFRESH_TOKEN_KEY, refreshToken);
         Storage.local.set(TENANT_KEY, tenant);
+        sessionStorage.setItem(TENANT_KEY, tenant);
         // } else {
         //   Storage.session.set(AUTH_TOKEN_KEY, bearerToken);
         //   Storage.session.set(REFRESH_TOKEN_KEY, refreshToken);

@@ -76,13 +76,19 @@ export const AdministrationSlice = createSlice({
   name: 'administration',
   initialState: initialState as AdministrationState,
   reducers: {
-    websocketActivityMessage(state, action) {
-      // filter out activities from the same session
-      const uniqueActivities = state.tracker.activities.filter(activity => activity.sessionId !== action.payload.sessionId);
-      // remove any activities with the page of logout
-      const activities = [...uniqueActivities, action.payload].filter(activity => activity.page !== 'logout');
-      state.tracker = { activities };
-    },
+    // websocketActivityMessage(state, action) {
+    //   console.log("Dispatching activity:", action.payload); // Debug log
+    //
+    //   // filter out activities from the same session
+    //   const uniqueActivities = state.tracker.activities.filter(activity => activity.sessionId !== action.payload.sessionId);
+    //   // remove any activities with the page of logout
+    //   const activities = [...uniqueActivities, action.payload].filter(activity => activity.page !== 'logout');
+    //   state.tracker = { activities };
+    // },
+    // websocketNotificationMessage(state, action) {
+    //   console.log("Dispatching notification:", action);
+    //   state.notifications = [...state.notifications, action.payload];
+    // },
   },
   extraReducers(builder) {
     builder
@@ -132,7 +138,7 @@ export const AdministrationSlice = createSlice({
   },
 });
 
-export const { websocketActivityMessage } = AdministrationSlice.actions;
+// export const { websocketActivityMessage } = AdministrationSlice.actions;
 
 // Reducer
 export default AdministrationSlice.reducer;
