@@ -204,6 +204,23 @@ export const PizzaItemUpdate = () => {
     });
   };
 
+  const resetDefaultPizza = () => {
+    setPizzaItem((prev) => {
+      const updatedVariants = prev.variants.map((variant) => ({
+        ...variant,
+        multiplePizzaDetails: {
+          ...variant.multiplePizzaDetails,
+          pizzaDefaults: []
+        }
+      }));
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  }
+
 
   const handlePricingClassChangeSecondSelect = (fieldName, selectedPricingClass, index) => {
     setPizzaItem((prev) => {
@@ -899,10 +916,11 @@ export const PizzaItemUpdate = () => {
                                         <td>
                                           <InputNumber
                                             value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.numberOfPizza || null}
-                                            min={2}
-                                            onChange={(e) =>
+                                            min={1}
+                                            onChange={(e) => {
                                               handleMultiplePizzaInputChange("numberOfPizza", e.value)
-                                            }
+                                              resetDefaultPizza()
+                                            }}
                                           />
                                         </td>
                                         <td>
