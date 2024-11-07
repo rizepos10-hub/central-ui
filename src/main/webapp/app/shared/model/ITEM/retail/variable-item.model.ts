@@ -46,6 +46,12 @@ export interface IVariableItemVariant {
   variantPackage?: IVariantPackage | null;
   itemMeasure?: IItemMeasure;
   shippingDimension?: ShippingDimension | null;
+  measureValue?: IMeasureValue;
+}
+
+export interface IMeasureValue {
+  measure: number,
+  isBase?: boolean,
 }
 
 export interface IVariableItem extends IItem {
