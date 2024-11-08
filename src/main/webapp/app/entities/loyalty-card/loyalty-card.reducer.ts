@@ -3,7 +3,7 @@ import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } fr
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { ILoyaltyCard, defaultValue } from 'app/shared/model/loyalty-card.model';
+import { ILoyaltyCard, defaultValue, ILoyaltyCardBalance } from 'app/shared/model/loyalty-card.model';
 
 const initialState: EntityState<ILoyaltyCard> = {
   loading: false,
@@ -55,8 +55,8 @@ export const createEntity = createAsyncThunk(
 
 export const addBalance = createAsyncThunk(
   'loyaltycard/create_entity',
-  async ({ entity, balance }: { entity: ILoyaltyCard; balance: number }, thunkAPI) => {
-    const result = await axios.post<ILoyaltyCard>(`${apiUrl}/${entity.referenceNumber}/add-balance?balance=${balance}`, cleanEntity(entity));
+  async ({ entity, refNumber }: { entity: ILoyaltyCardBalance, refNumber: string }, thunkAPI) => {
+    const result = await axios.post<ILoyaltyCardBalance>(`${apiUrl}/${refNumber}/add-balance`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
