@@ -55,6 +55,7 @@ import SupplierAssociationTab from 'app/shared/components/item/supplier-associat
 import { IPurchaseConfig } from 'app/shared/model/STOCK/purchase-config.model';
 import { IStockQuantity } from 'app/shared/model/STOCK/stock-quantity.model';
 import { Checkbox } from 'primereact/checkbox';
+import ItemLocation from 'app/shared/components/item/item-location';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -166,6 +167,16 @@ export const ProductUpdate = () => {
     });
   }, []);
 
+  const updateItemLocation = (fieldName, value) => {
+    setProduct(prevProduct => ({
+      ...prevProduct,
+      itemLocation: {
+        ...prevProduct.itemLocation,
+        [fieldName]: value
+      }
+    }));
+  };
+  
   const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
     console.log('helloooo111o', value, variantIndex);
     setProduct(prev => {
@@ -1627,6 +1638,13 @@ export const ProductUpdate = () => {
                         onSupplierChange={handleSupplierChange} // Pass down the function as a prop
                         variants={product?.variants} itemId={product.id} suppliers={supplierList} />
                     </TabPanel>
+
+                    <TabPanel header={translate('items.update.tabs.itemLocation.label')}>
+                      <ItemLocation
+                        onItemLocationChange={updateItemLocation} // Pass down the function as a prop
+                        itemLocaion={product?.itemLocation} />
+                    </TabPanel>
+
                   </TabView>
                 </div>
               </Row>
