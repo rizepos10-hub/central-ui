@@ -16,7 +16,7 @@ const initialState: EntityState<IItem> = {
 };
 
 const apiUrl = 'api/items/combo-related';
-
+const apiSearchUrl = 'api/_search/items/combo-assignable';
 
 // Actions
 
@@ -28,6 +28,9 @@ export const searchEntities = createAsyncThunk('items-for-combo/search_entity', 
 
 
 
+export const filterEntities = createAsyncThunk('items-for-combo/filter_entity_list', async ({ query, }: IQueryParams) => {
+  return axios.post<IItem[]>(apiSearchUrl, query);
+});
 
 
 export const getEntities = createAsyncThunk('items-for-combo/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
@@ -50,7 +53,7 @@ export const ItemsForComboSlice = createEntitySlice({
   initialState,
   extraReducers(builder) {
     builder
-      .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, filterEntities, searchEntities), (state, action) => {
         const { data, headers } = action.payload;
         return {
           ...state,
@@ -59,7 +62,7 @@ export const ItemsForComboSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isPending(getEntities, searchEntities), state => {
+      .addMatcher(isPending(getEntities, filterEntities, searchEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

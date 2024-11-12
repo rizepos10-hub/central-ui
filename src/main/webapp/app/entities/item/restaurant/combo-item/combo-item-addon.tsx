@@ -1,5 +1,7 @@
+import { Button } from "primereact/button";
 import React, { useState } from "react";
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownToggle } from "reactstrap";
+import { MdDeleteOutline } from "react-icons/md";
+import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle } from "reactstrap";
 
 const ComboItemAddonDropDown = ({ itemAddons = [], variantAddons = [], selectedComboAddons, onAddAddon, onDeleteAddon, onIncrement = null, onDecrement = null }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -25,33 +27,47 @@ const ComboItemAddonDropDown = ({ itemAddons = [], variantAddons = [], selectedC
       </DropdownMenu>
       <div>
         {selectedComboAddons.map((comboAddon, index) => (
-          <div key={comboAddon?.addon?.id} className="mt-2">
-            <span style={{ width: '130px', display: 'inline-block' }}>{comboAddon?.addon?.name}:</span>
-            <Button
-              className="decrement-button"
-              onClick={() => onDecrement(index)}
-              style={{ display: 'inline-block', marginRight: '10px' }}
-              disabled={comboAddon?.addon?.amount <= 0}
-            >
-              -
-            </Button>
-            <span className="p-3" style={{ display: 'inline-block' }}>
-              {comboAddon?.amount || null}
-            </span>
-            <Button
-              className="increment-button"
-              onClick={() => onIncrement(index)}
-              style={{ display: 'inline-block', marginLeft: '10px' }}
-            >
-              +
-            </Button>
-            <Button
-              className="delete-button"
-              onClick={() => onDeleteAddon(index)}
-              style={{ display: 'inline-block', marginLeft: '10px' }}
-            >
-              Delete
-            </Button>
+          <div key={comboAddon?.addon?.id} className="mt-2 d-flex flex-column gap-2">
+            <div style={{ width: '130px', display: 'inline-block' }}>{comboAddon?.addon?.name}:</div>
+            <div className="d-flex gap-2 align-items-center">
+              <Button
+                className="decrement-button p-2"
+                style={{
+                  width: "26px",
+                  height: '26px'
+                }}
+                outlined
+                onClick={() => onDecrement(index)}
+                disabled={comboAddon?.addon?.amount <= 0}
+              >
+                -
+              </Button>
+              <span>
+                {comboAddon?.amount || null}
+              </span>
+              <Button
+                className="increment-button p-2"
+                style={{
+                  width: "26px",
+                  height: '26px'
+                }}
+                outlined
+                onClick={() => onIncrement(index)}
+              >
+                +
+              </Button>
+              <Button
+                className="delete-button p-2"
+                style={{
+                  width: "26px",
+                  height: '26px'
+                }}
+                outlined
+                onClick={() => onDeleteAddon(index)}
+              >
+                X
+              </Button>
+            </div>
           </div>
         ))}
       </div>
