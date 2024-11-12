@@ -9,12 +9,14 @@ import TodayOrder from "app/entities/order/order-today";
 import OrderCreate from './order-create';
 import PrintOrder from './print-order';
 import PrintBill from './print-bill';
+import OrderScheduled from './order-scheduled';
 
 const OrderRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<Order />} />
     <Route path="create" element={<OrderCreate />} />
     <Route path="today" element={<TodayOrder />} />
+    <Route path="scheduled" element={<OrderScheduled />} /> 
 
     <Route path=":id">
       <Route path='print' element={<PrintOrder />} />
