@@ -39,7 +39,7 @@ export const sendActivity = (page: string) => {
   let tenant = sessionStorage.getItem('TENANT');
 
   let activity = '/topic/activity/' + tenant;
-  console.log('WS Sending Activity to : '+ activity )
+  console.log('WS Sending Activity to : ' + activity)
 
   connection?.then(() => {
     stompClient?.send(
@@ -53,7 +53,7 @@ export const sendActivity = (page: string) => {
 const subscribe = () => {
   connection.then(() => {
     let tenant = sessionStorage.getItem('TENANT');
-    console.log("WS SUBSCRIBE : "+ tenant)
+    console.log("WS SUBSCRIBE : " + tenant)
     subscriber = stompClient.subscribe('/topic/tracker/' + tenant, data => {
       console.log("WS RECEIVED MESSAGE : " + data)
       listenerObserver.next(JSON.parse(data.body));
@@ -64,7 +64,7 @@ const subscribe = () => {
 const subscribeToNotifications = () => {
   connection.then(() => {
     let tenant = sessionStorage.getItem('TENANT');
-    console.log("WS SUBSCRIBE notifications : "+ tenant)
+    console.log("WS SUBSCRIBE notifications : " + tenant)
     subscriber = stompClient.subscribe('/topic/notifications/' + tenant, data => {
       console.log("WS RECEIVED NOTIFICATION : " + data)
       notificationListenerObserver.next(JSON.parse(data.body));
@@ -122,41 +122,40 @@ const unsubscribe = () => {
   // listener = createListener();
 };
 
+let notificationSubscriptionSet = false;
+
 export default store => next => action => {
   if (getAccount.fulfilled.match(action)) {
     connect();
-    console.log("WS already connected : {}", alreadyConnectedOnce)
-    if (!alreadyConnectedOnce) {
-      // subscribe();
+    console.log("WS already connected : {}", alreadyConnectedOnce);
+    if (!notificationSubscriptionSet) {
+      notificationSubscriptionSet = true;
       subscribeToNotifications();
-      console.log(store)
-      // receive().subscribe(activity => {
-      //   console.log(activity)
-      //   // toast.info(activity.page)
-      //   return store.dispatch(websocketActivityMessage(activity));
-      // });
+      console.log(store);
       receiveNotifications().subscribe(notification => {
         console.log("WS RECEIVED NOTIFICATION : " + notification);
-        toast.info(notification.message)
+        toast.info(notification.message);
         handleNewNotification(notification);
-        // store.dispatch(websocketNotificationMessage(notification)); // Update state with the new notification
       });
     }
   } else if (getAccount.rejected.match(action) || action.type === logoutSession().type) {
     unsubscribe();
     disconnect();
+    notificationSubscriptionSet = false; // Reset the flag on disconnect
   }
   return next(action);
 };
 
-const handleNewNotification = (notification: any) => {
+
+const handleNewNotification = async (notification: any) => {
   updateTabTitle();
-  playNotificationSound();
+  await playNotificationSound();
+  incrementUnreadCount();
 };
 
-const playNotificationSound = () => {
+const playNotificationSound = async () => {
   const audio = new Audio('/content/audio/notification-sound.mp3');
-  audio.play().catch(error => {
+  await audio.play().catch(error => {
     console.error("Error playing notification sound:", error);
   });
 };
@@ -171,3 +170,14 @@ const updateTabTitle = () => {
     document.title = "Rize Cloud";
   }, 5000);
 };
+
+const incrementUnreadCount = () => {
+  const currentCount = parseInt(localStorage.getItem('notificationsCount'), 10) || 0;
+  const newCount = currentCount + 1;
+  localStorage.setItem('notificationsCount', newCount.toString());
+
+  // Dispatch a custom event to notify components
+  const event = new CustomEvent('notificationsCountUpdated', { detail: newCount });
+  window.dispatchEvent(event);
+
+}

@@ -11,23 +11,18 @@ import { getEntities } from "./notifications.reducer";
 const NotificationsCenter = ({
     showMenu,
     setShowMenu
-} : {
+}: {
     showMenu: boolean;
     setShowMenu: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    
+
     const notifications: INotification[] = useAppSelector(state => state.notification.entities);
     console.log(notifications)
 
-    // const [notifications, setNotifications] = useState([]);
-    const [onlyUnread, setOnlyUnread] = useState(false);
-    const [unreadClicked, setUnreadClicked] = useState(false);
-    const [notificationsNext, setNotificationsNext] = useState(true);
-    const [notificationsOffset, setNotificationsOffset] = useState(0);
-    const [unreadCount, setUnreadCount] = useState(0);
-    
+    const [unreadCount, setUnreadCount] = useState<number>(parseInt(localStorage.getItem('notificationsCount'), 10) || 0);
+
     useEffect(() => {
         dispatch(getEntities({
             page: 0,
@@ -35,118 +30,6 @@ const NotificationsCenter = ({
             sort: 'sentAt,desc'
         }));
     }, [])
-
-    //get NotificationsCenter Request
-    // const applyGetNotifications = (res) => {
-    //     if (unreadClicked) {
-    //         setNotifications(res.results.notifications);
-    //         setUnreadClicked(false);
-    //     } else {
-    //         setNotifications([...notifications, ...res.results.notifications]);
-    //     }
-    //     setUnreadCount(res.results.unread_count);
-    //     setNotificationsOffset(notificationsOffset + 10);
-    //     if (res.next !== null) {
-    //         // setNotificationsPageNumber(notificationsPageNumber + 1);
-    //         setNotificationsNext(true);
-    //     } else {
-    //         setNotificationsNext(false);
-    //     }
-    // };
-
-    // const {
-    //     sendReqeust: getNotifications,
-    //     isLoading: isLoadingGetNotifications,
-    // } = useAxios(
-    //     {
-    //         url,
-    //         unread: onlyUnread ? "unread" : "",
-    //         limit: 10,
-    //         offset: notificationsOffset,
-    //     },
-    //     applyGetNotifications
-    // );
-
-    // //get Unread NotificationsCenter Request
-    // const applyGetUnreadNotifications = (res) => {
-    //     console.log(res);
-    // };
-
-    // const {
-    //     sendReqeust: getUnreadNotifications,
-    //     isLoading: isLoadingGetUnreadNotifications,
-    // } = useAxios(
-    //     {
-    //         url: url + "?unread",
-    //     },
-    //     applyGetUnreadNotifications
-    // );
-
-    // useEffect(() => {
-    //     getNotifications();
-    // }, []);
-
-    //mark as read Request
-    const applyMarkAsRead = (res) => { };
-
-    // const { sendReqeust: markAsRead, isLoading: isLoadingMarkAsRead } =
-    //     useAxios(
-    //         {
-    //             url: url + "update-status/",
-    //             method: "POST",
-    //         },
-    //         applyMarkAsRead
-    //     );
-
-    //Handlers
-    // const getNotificationsHandler = () => {
-    //     if (notificationsNext) {
-    //         getNotifications();
-    //     }
-    // };
-
-    const getUnreadNotificationsHandler = (e) => {
-        setNotificationsOffset(0);
-        setUnreadClicked(true);
-        if (e.target.checked) {
-            setOnlyUnread(true);
-        } else {
-            setOnlyUnread(false);
-        }
-    };
-
-    //refresh notifications
-    const refreshNotifications = () => {
-        // setNotifications([""]);
-        // setNotificationsOffset(0);
-        // getNotifications();
-        // not working
-    };
-    // useEffect(() => {
-    //     getNotifications();
-    // }, [onlyUnread]);
-
-    const markAsReadHandler = (notification) => {
-        // if (notification.is_unread) {
-        //     markAsRead({ ids: [notification.id], status: "READ" });
-        // } else {
-        //     markAsRead({ ids: [notification.id], status: "UNREAD" });
-        // }
-        // refreshNotifications();
-    };
-
-    const markAllAsReadHandler = () => {
-        // markAsRead({ is_all: true, status: "READ" });
-        // let unreadNotifications = [];
-        // notifications.map((notification) => {
-        //     if (notification.is_unread) {
-        //         unreadNotifications.push(notification.id);
-        //     }
-        // });
-        // console.log(unreadNotifications);
-
-        refreshNotifications();
-    };
 
     const listInnerRef = useRef();
 
@@ -160,6 +43,15 @@ const NotificationsCenter = ({
             }
         }
     };
+
+    useEffect(() => {
+        if (unreadCount > 0) {
+            localStorage.removeItem('notificationsCount');
+
+            const event = new CustomEvent('notificationsCountUpdated', { detail: 0 });
+            window.dispatchEvent(event);
+        }
+    }, [unreadCount])
 
     return (
         <>
@@ -221,7 +113,7 @@ const NotificationsCenter = ({
                                     navigate(notification.url)
                                 }}
                             >
-                                <div className={"notification"}>
+                                <div className={`notification ${key < unreadCount ? 'unread' : ''}`}>
                                     <span>
                                         {notification.message}
                                         <span style={{ color: "#9ca3a9" }}>

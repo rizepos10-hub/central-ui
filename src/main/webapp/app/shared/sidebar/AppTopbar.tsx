@@ -28,6 +28,23 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     };
 
     const [isNotificationsMenuOpen, setIsNotificationsMenuOpen] = useState(false)
+    const [notificationsCount, setNotificationsCount] = useState(parseInt(localStorage.getItem('notificationsCount'), 10) || 0);
+
+
+    useEffect(() => {
+        // Event handler to update state when notificationsCount changes
+        const handleNotificationsCountUpdated = (event) => {
+            setNotificationsCount(event.detail);
+        };
+
+        // Add event listener for the custom event
+        window.addEventListener('notificationsCountUpdated', handleNotificationsCountUpdated);
+
+        return () => {
+            // Clean up the event listener on unmount
+            window.removeEventListener('notificationsCountUpdated', handleNotificationsCountUpdated);
+        };
+    }, []);
 
     useImperativeHandle(ref, () => ({
         menubutton: menubuttonRef.current
@@ -73,6 +90,11 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                             }
                             data-cy="notification-icon"
                         >
+                            {notificationsCount ? (
+                                <div className='notificationsBadge'>
+                                    {notificationsCount}
+                                </div>
+                            ) : <></>}
                             <button type="button" className="p-link" onClick={() => setIsNotificationsMenuOpen(!isNotificationsMenuOpen)}>
                                 <i className="pi pi-bell" style={{ fontSize: '1.2rem', translate: '33%' }}></i>
                             </button>
