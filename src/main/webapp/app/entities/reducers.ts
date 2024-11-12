@@ -5,6 +5,7 @@ import serviceCharge from 'app/entities/service-charges/service-charge.reducer';
 import attachment from 'app/entities/attachment/attachment.reducer';
 import customer from 'app/entities/customer/customer.reducer';
 import loyaltycard from 'app/entities/loyalty-card/loyalty-card.reducer';
+import notification from 'app/shared/components/notifications-center/notifications.reducer';
 import wallet from 'app/entities/wallet/wallet.reducer';
 import bill from 'app/entities/bill/bill.reducer';
 import taxonomy from 'app/entities/taxonomy/taxonomy.reducer';
@@ -97,6 +98,7 @@ const entitiesReducers = {
   attachment,
   customer,
   loyaltycard,
+  notification,
   wallet,
   bill,
   taxonomy,
