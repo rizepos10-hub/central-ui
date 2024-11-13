@@ -374,7 +374,7 @@ export const ComboItemUpdate = () => {
                             <InputTextarea
                               name="desc"
                               id="desc"
-                              placeholder={translate('items.update.placeholders.itemDescription')}
+                              placeholder={translate('items.update.description')}
                               value={comboItem?.variants?.[0]?.description || ''}
                               onChange={e => setComboItem(prev => {
                                 return {

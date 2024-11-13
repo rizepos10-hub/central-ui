@@ -167,6 +167,18 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                 </div>
               ) : null}
 
+              <div className={'d-flex flex-column gap-1  col'}>
+                <label className={'font-semibold'}>
+                  <Translate contentKey={'items.update.shortDescription'}>Short Description</Translate>
+                </label>
+                <InputTextarea
+                  name="desc"
+                  id="desc"
+                  placeholder={translate('items.update.placeholders.shortDescription')}
+                  value={item.desc || ''}
+                  onChange={e => onFieldChange('desc', e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="row">

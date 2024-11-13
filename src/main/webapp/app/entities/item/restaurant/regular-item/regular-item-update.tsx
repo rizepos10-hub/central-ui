@@ -533,7 +533,7 @@ export const RegularItemUpdate = () => {
                                               <InputTextarea
                                                 name="desc"
                                                 id="desc"
-                                                placeholder={translate('items.update.placeholders.itemDescription')}
+                                                placeholder={translate('items.update.description')}
                                                 value={variant.description || ''}
                                                 onChange={e =>
                                                   handleVariantFieldChange(
