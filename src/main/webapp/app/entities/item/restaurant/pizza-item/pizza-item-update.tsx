@@ -38,6 +38,7 @@ import { preventEnterSubmit } from "app/shared/util/form-utils";
 import { IPizzaSize } from 'app/shared/model/PIZZA/pizza-size.model';
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
+import { InputTextarea } from 'primereact/inputtextarea';
 
 const items: MenuItem[] = [
   {
@@ -589,6 +590,25 @@ export const PizzaItemUpdate = () => {
                             <SharedItemUpdate item={pizzaItem} onFieldChange={handleFieldChange} />
 
                             <Row className={""} >
+                              <div className={'d-flex flex-column gap-1'}>
+                                <label className={'font-semibold'}>
+                                  <Translate contentKey={'items.update.description'}>Description</Translate>
+                                </label>
+                                <InputTextarea
+                                  name="desc"
+                                  id="desc"
+                                  placeholder={translate('items.update.description')}
+                                  value={pizzaItem?.variants?.[0]?.description || ''}
+                                  onChange={e => setPizzaItem(prev => {
+                                    return {
+                                      ...prev, variants: prev.variants.map(variant => {
+                                        return { ...variant, description: e.target.value }
+                                      })
+                                    }
+                                  })}
+                                />
+                              </div>
+
                               {!pizzaItem?.variants?.[0]?.multiple ?
                                 <Col md="4">
                                   <div className={"d-flex flex-column gap-2"}>
