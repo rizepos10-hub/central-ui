@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ICustomer, IWholesalePriceLine } from 'app/shared/model/CUSTOMER/customer.model';
-import { getEntityInfo, updateEntity, createEntity, reset, changeEntityField, updatePrices, getPricesForCustomer, assignCard } from './customer.reducer';
+import { getEntity, updateEntity, createEntity, reset, changeEntityField, updatePrices, getPricesForCustomer, assignCard } from './customer.reducer';
 import { Card as PrimeCard } from 'primereact/card'
 import { filterOrders } from "app/entities/order/order.reducer";
 import Order from "app/entities/order/order";
@@ -112,7 +112,7 @@ export const CustomerUpdate = ({
     if (isNew) {
       dispatch(reset());
     } else {
-      dispatch(getEntityInfo(id));
+      dispatch(getEntity(id));
       const filters = {};
       filters['customer.id'] = { value: id, matchMode: "EQUALS" }
       const params = {
@@ -135,6 +135,16 @@ export const CustomerUpdate = ({
     }));
 
   }, []);
+
+  useEffect(() => {
+    if (customerEntity?.loyaltyCard?.id) {
+      setSelectedCardToAssign({
+        value: customerEntity?.loyaltyCard?.referenceNumber,
+        label: customerEntity?.loyaltyCard?.referenceNumber,
+        card: customerEntity?.loyaltyCard,
+      })
+    }
+  }, [customerEntity?.loyaltyCard?.id]);
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
@@ -272,7 +282,9 @@ export const CustomerUpdate = ({
                           loadOptions={loadOptions}
                           defaultOptions
                           value={selectedCardToAssign}
-                          onChange={option => setSelectedCardToAssign(option)}
+                          onChange={option => {
+                            console.log(option)
+                          }}
                           placeholder="Select a Card"
                           isClearable
                           className='w-50'
