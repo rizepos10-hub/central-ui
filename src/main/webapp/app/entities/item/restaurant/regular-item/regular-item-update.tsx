@@ -43,6 +43,7 @@ import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
 import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
 import { Checkbox } from 'primereact/checkbox';
 import { cloneDeep } from 'lodash';
+import { InputTextarea } from 'primereact/inputtextarea';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -520,6 +521,25 @@ export const RegularItemUpdate = () => {
                                                     variantIndex,
                                                     'accountingGroups',
                                                     profileGroup ? [profileGroup] : []
+                                                  )
+                                                }
+                                              />
+                                            </div>
+
+                                            <div className={'d-flex flex-column gap-2 mt-2'}>
+                                              <label className={'font-semibold'}>
+                                                <Translate contentKey={'items.update.description'}>Description</Translate>
+                                              </label>
+                                              <InputTextarea
+                                                name="desc"
+                                                id="desc"
+                                                placeholder={translate('items.update.placeholders.itemDescription')}
+                                                value={variant.description || ''}
+                                                onChange={e =>
+                                                  handleVariantFieldChange(
+                                                    variantIndex,
+                                                    'description',
+                                                    e.target.value
                                                   )
                                                 }
                                               />

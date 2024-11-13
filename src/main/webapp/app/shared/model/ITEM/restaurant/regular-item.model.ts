@@ -19,6 +19,7 @@ interface IBranchVariantDetails {
 export interface IRegularItemVariant {
   id?: string | null;
   name?: string | null;
+  description?: string | null;
   attachments?: IAttachment[];
   accountingGroups?: IProfileGroup[];
   order?: number;

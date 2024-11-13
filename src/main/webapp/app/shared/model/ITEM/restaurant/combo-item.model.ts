@@ -29,6 +29,7 @@ export interface IComboPackage {
 interface IComboItemVariant {
   id?: string | null;
   name?: string | null;
+  description?: string | null;
   attachments?: IAttachment[];
   discounts?: IDiscount[];
   price?: number;

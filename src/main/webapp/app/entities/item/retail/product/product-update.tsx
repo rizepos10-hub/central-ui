@@ -55,6 +55,7 @@ import SupplierAssociationTab from 'app/shared/components/item/supplier-associat
 import { IPurchaseConfig } from 'app/shared/model/STOCK/purchase-config.model';
 import { IStockQuantity } from 'app/shared/model/STOCK/stock-quantity.model';
 import { Checkbox } from 'primereact/checkbox';
+import { InputTextarea } from 'primereact/inputtextarea';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -935,6 +936,27 @@ export const ProductUpdate = () => {
 
 
                             <div className={'d-flex flex-column gap-2 mb-3'}>
+                              {product?.itemVariantType === 'RETAIL_SIMPLE' && (
+                                <div className={'d-flex flex-column gap-1'}>
+                                  <label className={'font-semibold'}>
+                                    <Translate contentKey={'items.update.description'}>Description</Translate>
+                                  </label>
+                                  <InputTextarea
+                                    name="desc"
+                                    id="desc"
+                                    placeholder={translate('items.update.placeholders.itemDescription')}
+                                    value={product?.variants?.[0]?.description || ''}
+                                    onChange={e => setProduct(prev => {
+                                      return {
+                                        ...prev, variants: prev.variants.map(variant => {
+                                          return { ...variant, description: e.target.value }
+                                        })
+                                      }
+                                    })}
+                                  />
+                                </div>
+                              )}
+
                               <label className={'font-semibold'}>
                                 <Translate contentKey={'items.update.measure'}>Measure</Translate>
                               </label>
@@ -1321,6 +1343,25 @@ export const ProductUpdate = () => {
 
                                               <Row>
                                                 <Col md="7">
+                                                  <div className={'d-flex flex-column gap-2 mt-2'}>
+                                                    <label className={'font-semibold'}>
+                                                      <Translate contentKey={'items.update.description'}>Description</Translate>
+                                                    </label>
+                                                    <InputTextarea
+                                                      name="desc"
+                                                      id="desc"
+                                                      placeholder={translate('items.update.placeholders.itemDescription')}
+                                                      value={variant.description || ''}
+                                                      onChange={e =>
+                                                        handleVariantFieldChange(
+                                                          variantIndex,
+                                                          'description',
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                  </div>
+
                                                   <div className={'d-flex flex-column '}>
                                                     <label className={'font-semibold'}>
                                                       <Translate contentKey={'items.update.image'}>Image</Translate>
