@@ -14,6 +14,22 @@
   &:hover {
     color: var(--primary-color);
   }
+
+  .notificationsBadge {
+    position: absolute;
+    top: -8px;
+    right: -3px;
+    background-color: var(--primary-color);
+    color: var(--primary-color-text);
+    font-size: 0.8em;
+    width: 1.5em;
+    height: 1.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 9999px;
+    box-shadow: 0 0 8px 2px rgba(0, 0, 0, 0.2);
+  }
 }
 .notificationsIsActive {
   color: var(--primary-color);
@@ -95,6 +111,7 @@
         // @include themify($themes) {
         //     background-color: themed("highlight--1");
         // }
+        opacity: 0.7;
       }
       .notification {
         padding: 1em calc(1em - 2px);

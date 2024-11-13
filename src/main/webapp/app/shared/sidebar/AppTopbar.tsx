@@ -15,6 +15,7 @@ import { Button } from 'primereact/button';
 import { Spinner } from 'reactstrap';
 import { IOrder } from '../model/ORDER/order.model';
 import { ICustomer } from '../model/CUSTOMER/customer.model';
+import "../components/notifications-center/notifications-center.scss";
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const { onMenuToggle, showProfileSidebar, showConfigSidebar, layoutState, isDesktop } = useContext(LayoutContext);
@@ -25,6 +26,25 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const onConfigButtonClick = () => {
         showConfigSidebar();
     };
+
+    const [isNotificationsMenuOpen, setIsNotificationsMenuOpen] = useState(false)
+    const [notificationsCount, setNotificationsCount] = useState(parseInt(localStorage.getItem('notificationsCount'), 10) || 0);
+
+
+    useEffect(() => {
+        // Event handler to update state when notificationsCount changes
+        const handleNotificationsCountUpdated = (event) => {
+            setNotificationsCount(event.detail);
+        };
+
+        // Add event listener for the custom event
+        window.addEventListener('notificationsCountUpdated', handleNotificationsCountUpdated);
+
+        return () => {
+            // Clean up the event listener on unmount
+            window.removeEventListener('notificationsCountUpdated', handleNotificationsCountUpdated);
+        };
+    }, []);
 
     useImperativeHandle(ref, () => ({
         menubutton: menubuttonRef.current
@@ -64,7 +84,24 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                         {/* <Button type="button" icon="pi pi-cog" text rounded className="p-button-text p-button-secondary flex-shrink-0" onClick={onConfigButtonClick}></Button> */}
                     </li>
                     <li className="topbar-profile">
-                        <NotificationsCenter />
+                        <div
+                            className={
+                                isNotificationsMenuOpen ? "notificationIcon notificationsIsActive" : "notificationIcon"
+                            }
+                            data-cy="notification-icon"
+                        >
+                            {notificationsCount ? (
+                                <div className='notificationsBadge'>
+                                    {notificationsCount}
+                                </div>
+                            ) : <></>}
+                            <button type="button" className="p-link" onClick={() => setIsNotificationsMenuOpen(!isNotificationsMenuOpen)}>
+                                <i className="pi pi-bell" style={{ fontSize: '1.2rem', translate: '33%' }}></i>
+                            </button>
+                        </div>
+                        {isNotificationsMenuOpen && (
+                            <NotificationsCenter setShowMenu={setIsNotificationsMenuOpen} showMenu={isNotificationsMenuOpen} />
+                        )}
                         <button type="button" className="p-link" onClick={showProfileSidebar}>
                             <i className="pi pi-user" style={{ fontSize: '1.2rem', translate: '33%' }}></i>
                         </button>

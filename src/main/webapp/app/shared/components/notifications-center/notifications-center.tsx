@@ -1,171 +1,35 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./notifications-center.scss";
 import { AiOutlineBell } from "react-icons/ai";
-import { useEffect, useRef, useState } from "react";
 import { InputSwitch } from "primereact/inputswitch";
 import { UncontrolledTooltip } from "reactstrap";
+import { useAppDispatch, useAppSelector } from "app/config/store";
+import { INotification } from "app/shared/model/notification.model";
+import { useNavigate } from "react-router-dom";
+import { getEntities } from "./notifications.reducer";
 
-const NotificationsCenter = () => {
-    const notifications = [
-        {
-            "is_unread": true,
-            "verb": "Your order has been shipped!",
-            "created_at": "2024-08-25T14:23:00",
-            "level": "info"
-        },
-        {
-            "is_unread": true,
-            "verb": "Your order has been shipped!",
-            "created_at": "2024-08-25T14:23:00",
-            "level": "info"
-        },
-        {
-            "is_unread": false,
-            "verb": "Your payment was successful.",
-            "created_at": "2024-08-24T09:45:00",
-            "level": "success"
-        },
-        {
-            "is_unread": false,
-            "verb": "Your payment was successful.",
-            "created_at": "2024-08-24T09:45:00",
-            "level": "success"
-        },
-        {
-            "is_unread": false,
-            "verb": "Your payment was successful.",
-            "created_at": "2024-08-24T09:45:00",
-            "level": "success"
-        },
-        {
-            "is_unread": true,
-            "verb": "Update available for your application.",
-            "created_at": "2024-08-23T16:00:00",
-            "level": "warning"
-        }
-    ]
+const NotificationsCenter = ({
+    showMenu,
+    setShowMenu
+}: {
+    showMenu: boolean;
+    setShowMenu: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+    const navigate = useNavigate();
+    const dispatch = useAppDispatch();
 
-    const [showMenu, setShowMenu] = useState(false);
+    const notifications: INotification[] = useAppSelector(state => state.notification.entities);
+    console.log(notifications)
 
-    // const [notifications, setNotifications] = useState([]);
-    const [onlyUnread, setOnlyUnread] = useState(false);
-    const [unreadClicked, setUnreadClicked] = useState(false);
-    const [notificationsNext, setNotificationsNext] = useState(true);
-    const [notificationsOffset, setNotificationsOffset] = useState(0);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const url = "/api/v1/notifications/notifications/";
+    const [unreadCount, setUnreadCount] = useState<number>(parseInt(localStorage.getItem('notificationsCount'), 10) || 0);
 
-    //get NotificationsCenter Request
-    // const applyGetNotifications = (res) => {
-    //     if (unreadClicked) {
-    //         setNotifications(res.results.notifications);
-    //         setUnreadClicked(false);
-    //     } else {
-    //         setNotifications([...notifications, ...res.results.notifications]);
-    //     }
-    //     setUnreadCount(res.results.unread_count);
-    //     setNotificationsOffset(notificationsOffset + 10);
-    //     if (res.next !== null) {
-    //         // setNotificationsPageNumber(notificationsPageNumber + 1);
-    //         setNotificationsNext(true);
-    //     } else {
-    //         setNotificationsNext(false);
-    //     }
-    // };
-
-    // const {
-    //     sendReqeust: getNotifications,
-    //     isLoading: isLoadingGetNotifications,
-    // } = useAxios(
-    //     {
-    //         url,
-    //         unread: onlyUnread ? "unread" : "",
-    //         limit: 10,
-    //         offset: notificationsOffset,
-    //     },
-    //     applyGetNotifications
-    // );
-
-    // //get Unread NotificationsCenter Request
-    // const applyGetUnreadNotifications = (res) => {
-    //     console.log(res);
-    // };
-
-    // const {
-    //     sendReqeust: getUnreadNotifications,
-    //     isLoading: isLoadingGetUnreadNotifications,
-    // } = useAxios(
-    //     {
-    //         url: url + "?unread",
-    //     },
-    //     applyGetUnreadNotifications
-    // );
-
-    // useEffect(() => {
-    //     getNotifications();
-    // }, []);
-
-    //mark as read Request
-    const applyMarkAsRead = (res) => { };
-
-    // const { sendReqeust: markAsRead, isLoading: isLoadingMarkAsRead } =
-    //     useAxios(
-    //         {
-    //             url: url + "update-status/",
-    //             method: "POST",
-    //         },
-    //         applyMarkAsRead
-    //     );
-
-    //Handlers
-    // const getNotificationsHandler = () => {
-    //     if (notificationsNext) {
-    //         getNotifications();
-    //     }
-    // };
-
-    const getUnreadNotificationsHandler = (e) => {
-        setNotificationsOffset(0);
-        setUnreadClicked(true);
-        if (e.target.checked) {
-            setOnlyUnread(true);
-        } else {
-            setOnlyUnread(false);
-        }
-    };
-
-    //refresh notifications
-    const refreshNotifications = () => {
-        // setNotifications([""]);
-        // setNotificationsOffset(0);
-        // getNotifications();
-        // not working
-    };
-    // useEffect(() => {
-    //     getNotifications();
-    // }, [onlyUnread]);
-
-    const markAsReadHandler = (notification) => {
-        // if (notification.is_unread) {
-        //     markAsRead({ ids: [notification.id], status: "READ" });
-        // } else {
-        //     markAsRead({ ids: [notification.id], status: "UNREAD" });
-        // }
-        // refreshNotifications();
-    };
-
-    const markAllAsReadHandler = () => {
-        // markAsRead({ is_all: true, status: "READ" });
-        // let unreadNotifications = [];
-        // notifications.map((notification) => {
-        //     if (notification.is_unread) {
-        //         unreadNotifications.push(notification.id);
-        //     }
-        // });
-        // console.log(unreadNotifications);
-
-        refreshNotifications();
-    };
+    useEffect(() => {
+        dispatch(getEntities({
+            page: 0,
+            size: 100,
+            sort: 'sentAt,desc'
+        }));
+    }, [])
 
     const listInnerRef = useRef();
 
@@ -180,18 +44,17 @@ const NotificationsCenter = () => {
         }
     };
 
+    useEffect(() => {
+        if (unreadCount > 0) {
+            localStorage.removeItem('notificationsCount');
+
+            const event = new CustomEvent('notificationsCountUpdated', { detail: 0 });
+            window.dispatchEvent(event);
+        }
+    }, [unreadCount])
+
     return (
         <>
-            <div
-                className={
-                    showMenu ? "notificationIcon notificationsIsActive" : "notificationIcon"
-                }
-                data-cy="notification-icon"
-            >
-                <button type="button" className="p-link" onClick={() => setShowMenu(!showMenu)}>
-                    <i className="pi pi-bell" style={{ fontSize: '1.2rem', translate: '33%' }}></i>
-                </button>
-            </div>
             <div className={showMenu ? "notificationsContainer notificationsVisible" : "notificationsContainer"}>
                 <div
                     className="popup-dropback--2"
@@ -211,7 +74,7 @@ const NotificationsCenter = () => {
                     <div className="notificationsStickyHeader">
                         <div className="notificationHeader">
                             <div className="menuTitle">Notifications</div>
-                            <div className="readOptions">
+                            {/* <div className="readOptions">
                                 <div className="notificationsReadOption">
                                     Show only unread
                                     <InputSwitch
@@ -219,10 +82,10 @@ const NotificationsCenter = () => {
                                         checked={onlyUnread}
                                     />
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
 
-                        <div
+                        {/* <div
                             style={{
                                 display: "flex",
                                 justifyContent: "end",
@@ -238,7 +101,7 @@ const NotificationsCenter = () => {
                             ) : (
                                 " "
                             )}
-                        </div>
+                        </div> */}
                     </div>
 
                     {notifications.map((notification, key) => (
@@ -246,23 +109,27 @@ const NotificationsCenter = () => {
                             <div
                                 className="notificationCon"
                                 onClick={() => {
-                                    markAsReadHandler(notification);
+                                    // markAsReadHandler(notification);
+                                    navigate(notification.url)
                                 }}
                             >
-                                <div
-                                    className={
-                                        notification.is_unread
-                                            ? "notification unread"
-                                            : "notification"
-                                    }
-                                >
+                                <div className={`notification ${key < unreadCount ? 'unread' : ''}`}>
                                     <span>
-                                        {notification.verb}
+                                        {notification.message}
                                         <span style={{ color: "#9ca3a9" }}>
-                                            {notification.created_at}
+                                            {new Date(notification.sentAt).toLocaleString()}
                                         </span>
                                     </span>
-                                    <span className="mark-as-read">
+                                    {/* <span className="mark-as-read">
+                                        <>
+                                            <span id="marked-as-read" className="marked-as-read"></span>
+                                            <UncontrolledTooltip
+                                                placement="left"
+                                                target="marked-as-read"
+                                            >
+                                                mark as read
+                                            </UncontrolledTooltip>
+                                        </>
                                         {notification.is_unread ? (
                                             <>
                                                 <span id="marked-as-read" className="marked-as-read"></span>
@@ -283,9 +150,8 @@ const NotificationsCenter = () => {
                                                     mark as unread
                                                 </UncontrolledTooltip>
                                             </>
-
                                         )}
-                                    </span>
+                                    </span> */}
                                 </div>
                             </div>
                         </div>
