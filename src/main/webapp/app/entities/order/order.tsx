@@ -50,7 +50,8 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
       id: { value: '', matchMode: 'contains' },
       byClient: { value: '', matchMode: 'contains' },
       status: { value: '', matchMode: 'contains' },
-      "customer.email": { value: customer, matchMode: 'contains' },
+      "customer.email": { value: '', matchMode: 'contains' },
+      "customer.id": { value: customer, matchMode: 'contains' },
       "customer.phone": { value: '', matchMode: 'contains' },
       branchId: { value: '', matchMode: 'equals' },
       tables: { value: '', matchMode: 'contains' }
@@ -137,6 +138,7 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
           page: lazyState.page,
           customerPhone: lazyState.filters['customer.phone']?.value || '',
           customerEmail: lazyState.filters['customer.email']?.value || '',
+          customerId: lazyState.filters['customer.id']?.value || '',
           branchId: lazyState.filters.branchId?.value || '',
           tables: lazyState.filters.tables?.value || '',
           size: lazyState.rows,

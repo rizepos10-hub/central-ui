@@ -13,15 +13,21 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { ICustomer, IWholesalePriceLine } from 'app/shared/model/CUSTOMER/customer.model';
-import { getEntity, updateEntity, createEntity, reset, changeEntityField, updatePrices, getPricesForCustomer } from './customer.reducer';
+import { getEntityInfo, updateEntity, createEntity, reset, changeEntityField, updatePrices, getPricesForCustomer, assignCard } from './customer.reducer';
 import { Card as PrimeCard } from 'primereact/card'
 import { filterOrders } from "app/entities/order/order.reducer";
 import Order from "app/entities/order/order";
 import { getEntities } from "app/entities/loyalty/loyalty-records.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { searchEntities as getLoyaltCards } from "app/entities/loyalty-card/loyalty-card.reducer";
 import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
+import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { FilterMatchMode } from 'primereact/api';
+import AsyncSelect from 'react-select/async';
+import { ILoyaltyCard } from 'app/shared/model/loyalty-card.model';
+import { confirmDialog } from 'primereact/confirmdialog';
 
 export const CustomerUpdate = ({
   firstName,
@@ -51,11 +57,14 @@ export const CustomerUpdate = ({
   const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
   const loyaltyRecord = useAppSelector(state => state.loyalty.entities?.[0]);
   const branchList = useAppSelector(state => state.branch.entities);
+  const loyaltyCardsList = useAppSelector(state => state.loyaltycard.entities);
   const wholeSaleBranches = branchList?.filter(branch => branch.wholesale);
   const loading = useAppSelector(state => state.customer.loading);
   const updating = useAppSelector(state => state.customer.updating);
   const updateSuccess = useAppSelector(state => state.customer.updateSuccess);
 
+  const [selectedCardToAssign, setSelectedCardToAssign] = useState(null);
+  console.log(selectedCardToAssign)
   const handleBranchPriceChange = (branchId, priceLine) => {
     dispatch(changeEntityField({
       name: 'wholesalePriceLines',
@@ -66,29 +75,44 @@ export const CustomerUpdate = ({
     }));
   };
 
+  const loadOptions = (inputValue, callback) => {
+    const query = {
+      first: 0,
+      rows: 10,
+      page: 0,
+      sortField: null,
+      sortOrder: null,
+      query: '',
+      filters: {
+        referenceNumber: { value: inputValue, matchMode: FilterMatchMode.CONTAINS },
+      },
+    };
 
-  // useEffect(() => {
-  //   if (firstName) {
-  //     console.log(1)
-  //     dispatch(changeEntityField({ name: 'firstName', value: firstName }));
-  //     console.log(customerEntity)
-  //   }
-  // }, [firstName]);
+    const updatedQuery = applyMatchModeMap(query);
 
+    dispatch(
+      getLoyaltCards({
+        query: updatedQuery,
+      })
+    ).then(response => {
+      // Use the data from the response
+      const res = response.payload as any;
+      const data = res?.data;
 
-  // console.log(customerEntity)
-  // console.log(customerEntity?.firstName)
-
-  const handleClose = () => {
-    navigate(-1);
+      const options = data.map(card => ({
+        value: card.referenceNumber,
+        label: card.referenceNumber,
+        card,
+      }));
+      callback(options);
+    });
   };
 
   useEffect(() => {
-
     if (isNew) {
       dispatch(reset());
     } else {
-      dispatch(getEntity(id));
+      dispatch(getEntityInfo(id));
       const filters = {};
       filters['customer.id'] = { value: id, matchMode: "EQUALS" }
       const params = {
@@ -102,10 +126,6 @@ export const CustomerUpdate = ({
       dispatch(
         getEntities(params)
       );
-      const queryParams = {
-        customerEmail: id,
-      };
-      dispatch(filterOrders(queryParams));
     }
 
     dispatch(getBranches({
@@ -132,7 +152,7 @@ export const CustomerUpdate = ({
 
           // @ts-expect-error -- unknown type
           if (!res?.error) {
-            if(isPopUp) {
+            if (isPopUp) {
               closePopUp(newId)
               return
             }
@@ -148,6 +168,24 @@ export const CustomerUpdate = ({
       })
     }
   };
+
+  const confirm1 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleAssignCard(),
+    });
+  };
+
+  const handleAssignCard = () => {
+    dispatch(assignCard({
+      entity: customerEntity,
+      cardRefNumber: selectedCardToAssign?.card?.referenceNumber
+    }))
+  }
 
   return (
     <div>
@@ -224,6 +262,33 @@ export const CustomerUpdate = ({
                       onChange={e => dispatch(changeEntityField({ name: 'email', value: e.target.value }))}
                     />
                   </div>
+
+                  {!isNew && (
+                    <div className={'d-flex flex-column mb-3 w-100'}>
+                      <Label htmlFor="customer-phone">{translate('tempApp.assignCard')}</Label>
+                      <div className='d-flex gap-2 align-items-center w-50'>
+                        <AsyncSelect
+                          cacheOptions
+                          loadOptions={loadOptions}
+                          defaultOptions
+                          value={selectedCardToAssign}
+                          onChange={option => setSelectedCardToAssign(option)}
+                          placeholder="Select a Card"
+                          isClearable
+                          className='w-50'
+                        />
+                        <Button
+                          label="Assign Card"
+                          className="p-button-link"
+                          onClick={() => confirm1()}
+                          disabled={!selectedCardToAssign}
+                        >
+                          {translate('tempApp.assignCard')}
+                          <i className="pi pi-plus ml-2" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
                   {!isNew && (
                     <div className={'d-flex flex-column mb-3'}>
