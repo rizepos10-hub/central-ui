@@ -30,6 +30,7 @@ import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import { preventEnterSubmit } from "app/shared/util/form-utils";
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
+import { InputTextarea } from 'primereact/inputtextarea';
 
 
 export const ComboItemUpdate = () => {
@@ -366,6 +367,24 @@ export const ComboItemUpdate = () => {
 
                       <Row>
                         <Col md="12">
+                          <div className={'d-flex flex-column gap-1'}>
+                            <label className={'font-semibold'}>
+                              <Translate contentKey={'items.update.description'}>Description</Translate>
+                            </label>
+                            <InputTextarea
+                              name="desc"
+                              id="desc"
+                              placeholder={translate('items.update.placeholders.itemDescription')}
+                              value={comboItem?.variants?.[0]?.description || ''}
+                              onChange={e => setComboItem(prev => {
+                                return {
+                                  ...prev, variants: prev.variants.map(variant => {
+                                    return { ...variant, description: e.target.value }
+                                  })
+                                }
+                              })}
+                            />
+                          </div>
                           <DiscountDropdown
                             discounts={comboItem?.variants?.[0]?.discounts}
                             handleChange={handleComboVariantChange}

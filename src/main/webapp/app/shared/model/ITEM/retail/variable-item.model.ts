@@ -30,6 +30,7 @@ interface IAttributes {
 export interface IVariableItemVariant {
   id?: string | null;
   name?: string | null;
+  description?: string | null;
   attachments?: IAttachment[];
   order?: number;
   discounts?: IDiscount[];
