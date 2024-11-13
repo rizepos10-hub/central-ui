@@ -119,6 +119,7 @@
       "placeholders": {
         "itemName": "Item Name",
         "itemDescription": "Item Description",
+        "shortDescription": "Short Description",
         "itemSku": "Item SKU",
         "itemPrice": "Item Price",
         "itemSalePrice": "Item Sale Price",
@@ -136,6 +137,7 @@
       },
       "name": "Name",
       "description": "Description",
+      "shortDescription": "Short Description",
       "variants": "Variants",
       "productionCenter": "Production Center",
       "categories": "Categories",

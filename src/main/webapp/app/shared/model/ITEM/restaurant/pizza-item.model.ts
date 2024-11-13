@@ -47,6 +47,7 @@ export interface IBasePizzaDetail {
 export interface IPizzaItemVariant {
   id?: string | null;
   name?: string | null;
+  description?: string | null;
   attachments?: IAttachment[];
   discounts?: IDiscount[];
   mixAndMatchRule?: IMixAndMatchRule;

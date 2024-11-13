@@ -936,27 +936,6 @@ export const ProductUpdate = () => {
 
 
                             <div className={'d-flex flex-column gap-2 mb-3'}>
-                              {product?.itemVariantType === 'RETAIL_SIMPLE' && (
-                                <div className={'d-flex flex-column gap-1'}>
-                                  <label className={'font-semibold'}>
-                                    <Translate contentKey={'items.update.description'}>Description</Translate>
-                                  </label>
-                                  <InputTextarea
-                                    name="desc"
-                                    id="desc"
-                                    placeholder={translate('items.update.placeholders.itemDescription')}
-                                    value={product?.variants?.[0]?.description || ''}
-                                    onChange={e => setProduct(prev => {
-                                      return {
-                                        ...prev, variants: prev.variants.map(variant => {
-                                          return { ...variant, description: e.target.value }
-                                        })
-                                      }
-                                    })}
-                                  />
-                                </div>
-                              )}
-
                               <label className={'font-semibold'}>
                                 <Translate contentKey={'items.update.measure'}>Measure</Translate>
                               </label>
@@ -1005,6 +984,26 @@ export const ProductUpdate = () => {
                                       placeholder={translate('items.update.placeholders.itemPrice')}
                                       value={product?.variants?.[0]?.price || null}
                                       onChange={e => handleVariantFieldChange(0, 'price', e.value)}
+                                    />
+                                  </div>
+                                </Col>
+                                <Col md="6">
+                                  <div className={'d-flex flex-column gap-1'}>
+                                    <label className={'font-semibold'}>
+                                      <Translate contentKey={'items.update.description'}>Description</Translate>
+                                    </label>
+                                    <InputTextarea
+                                      name="desc"
+                                      id="desc"
+                                      placeholder={translate('items.update.description')}
+                                      value={product?.variants?.[0]?.description || ''}
+                                      onChange={e => setProduct(prev => {
+                                        return {
+                                          ...prev, variants: prev.variants.map(variant => {
+                                            return { ...variant, description: e.target.value }
+                                          })
+                                        }
+                                      })}
                                     />
                                   </div>
                                 </Col>
