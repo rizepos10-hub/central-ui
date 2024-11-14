@@ -449,7 +449,6 @@ export const Branches = () => {
                       onChange={(e) => handleAddressFieldChange(branchIndex, 'street', e.target.value)}
                     />
                     <label className="font-bold">City</label>
-
                     <InputText
                       type="text"
                       placeholder="Enter City"
@@ -469,6 +468,20 @@ export const Branches = () => {
                       placeholder="Enter Postal Code"
                       value={branch.address?.postalCode}
                       onChange={(e) => handleAddressFieldChange(branchIndex, 'postalCode', e.target.value)}
+                    />
+                    <label className="font-bold">Email</label>
+                    <InputText
+                      type="text"
+                      placeholder="Enter Email"
+                      value={branch.address?.email}
+                      onChange={(e) => handleAddressFieldChange(branchIndex, 'email', e.target.value)}
+                    />
+                    <label className="font-bold">Phone Number</label>
+                    <InputText
+                      type="text"
+                      placeholder="Enter Phone Number"
+                      value={branch.address?.phoneNumber}
+                      onChange={(e) => handleAddressFieldChange(branchIndex, 'phoneNumber', e.target.value)}
                     />
                   </div>
                 </div>
