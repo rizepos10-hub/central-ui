@@ -258,7 +258,7 @@ export const BusinessDetailUpdate = () => {
                 <ValidatedField
                   label={'Email'}
                   id="details-address-email"
-                  name="email"
+                  name="address.email"
                   data-cy="value"
                   type="text"
                   validate={{
@@ -269,7 +269,7 @@ export const BusinessDetailUpdate = () => {
                 <ValidatedField
                   label={'Phone Number'}
                   id="details-address-phone-number"
-                  name="phoneNumber"
+                  name="address.phoneNumber"
                   data-cy="value"
                   type="text"
                   validate={{
