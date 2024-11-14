@@ -6,6 +6,8 @@ export interface IAddress {
   fullAddress?: string;
   longitude?: number;
   latitude?: number;
+  email?: string;
+  phoneNumber?: string;
 }
 
 export const defaultValue: Readonly<IAddress> = {};
