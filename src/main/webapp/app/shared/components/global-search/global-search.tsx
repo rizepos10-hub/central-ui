@@ -21,25 +21,24 @@ const GlobalSearch = ({ data }: { data: MenuItem[] }) => {
         return shortcuts.some(shortcut => shortcut.to === item.to);
     };
 
-    const findItemInModel = (model: MenuItem[], targetTo: string): MenuItem | undefined => {
+    const findItemInModel = (model: MenuItem[], targetTo: string, oldItem: MenuItem): MenuItem | undefined => {
         for (const item of model) {
             if (item.to === targetTo) {
                 return item;
             }
             if (item.items && item.items.length > 0) {
-                const found = findItemInModel(item.items, targetTo);
+                const found = findItemInModel(item.items, targetTo, oldItem);
                 if (found) {
                     return found;
                 }
             }
         }
-        return undefined;
+        return oldItem;
     };
 
     const handleShortcutToggle = (item: MenuItem) => {
-        const fullItem = findItemInModel(model, item.to);
+        const fullItem = findItemInModel(model, item.to, item);
 
-        console.log(fullItem)
         if (isShortcutAdded(fullItem)) {
             dispatch(removeShortcut(fullItem.to));
         } else {

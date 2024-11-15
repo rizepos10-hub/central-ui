@@ -40,6 +40,7 @@ export interface IItemPriceNumber {
 export interface ISimpleItemVariant {
   id?: string | null;
   name?: string | null;
+  description?: string | null;
   attachments?: IAttachment[];
   discounts?: IDiscount[];
   sku?: string;

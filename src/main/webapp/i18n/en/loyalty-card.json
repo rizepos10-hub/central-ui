@@ -1,0 +1,21 @@
+{
+  "tempApp": {
+    "loyalty-card": {
+      "created": "A new Loyalty Card is created with identifier {{ param }}",
+      "updated": "A Loyalty Card is updated with identifier {{ param }}",
+      "deleted": "A Loyalty Card is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Loyalty Card",
+        "question": "Are you sure you want to delete Loyalty Card {{ param }}"
+      },
+      "title": "Loyalty Cards",
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "createNew": "Create New Loyalty Card",
+      "edit": "Edit Loyalty Card"
+    }
+  }
+}

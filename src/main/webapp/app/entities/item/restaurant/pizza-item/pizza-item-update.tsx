@@ -38,6 +38,7 @@ import { preventEnterSubmit } from "app/shared/util/form-utils";
 import { IPizzaSize } from 'app/shared/model/PIZZA/pizza-size.model';
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
+import { InputTextarea } from 'primereact/inputtextarea';
 
 const items: MenuItem[] = [
   {
@@ -77,7 +78,6 @@ export const PizzaItemUpdate = () => {
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const predefinedPizzaOptions = useAppSelector(state => state.predefinedPizza.entities);
   const pizzaPricingClasses = useAppSelector(state => state.pizzaPricingClass.entities);
-  console.log(pizzaPricingClasses, 'pizzaPricingClasses')
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
@@ -205,12 +205,28 @@ export const PizzaItemUpdate = () => {
     });
   };
 
+  const resetDefaultPizza = () => {
+    setPizzaItem((prev) => {
+      const updatedVariants = prev.variants.map((variant) => ({
+        ...variant,
+        multiplePizzaDetails: {
+          ...variant.multiplePizzaDetails,
+          pizzaDefaults: []
+        }
+      }));
+
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  }
+
 
   const handlePricingClassChangeSecondSelect = (fieldName, selectedPricingClass, index) => {
     setPizzaItem((prev) => {
       const updatedVariants = [...(prev.variants || [])];
       const updatedFieldPricing = [...(updatedVariants[0]?.[fieldName] || [])];
-      console.log(updatedFieldPricing, 'updatedFieldPricingupdatedFieldPricing')
 
       updatedFieldPricing[index] = {
         ...updatedFieldPricing[index],
@@ -292,9 +308,8 @@ export const PizzaItemUpdate = () => {
 
   const handleMultiplePizzaInputChange = (fieldName, value) => {
     setPizzaItem((prev) => {
-      const updatedDetails = prev.variants[0].multiplePizzaDetails;
+      const updatedDetails = { ...prev.variants[0].multiplePizzaDetails };
       updatedDetails[fieldName] = value;
-
       return {
         ...prev,
         variants: [
@@ -467,11 +482,9 @@ export const PizzaItemUpdate = () => {
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
-    console.table(pizzaItem)
     const entity = {
       ...pizzaItem,
     };
-    console.table(entity)
     if (isNew) {
       dispatch(createEntity(entity)).then((res) => {
         if (createNew) {
@@ -577,6 +590,25 @@ export const PizzaItemUpdate = () => {
                             <SharedItemUpdate item={pizzaItem} onFieldChange={handleFieldChange} />
 
                             <Row className={""} >
+                              <div className={'d-flex flex-column gap-1'}>
+                                <label className={'font-semibold'}>
+                                  <Translate contentKey={'items.update.description'}>Description</Translate>
+                                </label>
+                                <InputTextarea
+                                  name="desc"
+                                  id="desc"
+                                  placeholder={translate('items.update.description')}
+                                  value={pizzaItem?.variants?.[0]?.description || ''}
+                                  onChange={e => setPizzaItem(prev => {
+                                    return {
+                                      ...prev, variants: prev.variants.map(variant => {
+                                        return { ...variant, description: e.target.value }
+                                      })
+                                    }
+                                  })}
+                                />
+                              </div>
+
                               {!pizzaItem?.variants?.[0]?.multiple ?
                                 <Col md="4">
                                   <div className={"d-flex flex-column gap-2"}>
@@ -904,10 +936,11 @@ export const PizzaItemUpdate = () => {
                                         <td>
                                           <InputNumber
                                             value={pizzaItem?.variants?.[0]?.multiplePizzaDetails?.numberOfPizza || null}
-                                            min={2}
-                                            onChange={(e) =>
+                                            min={1}
+                                            onChange={(e) => {
                                               handleMultiplePizzaInputChange("numberOfPizza", e.value)
-                                            }
+                                              resetDefaultPizza()
+                                            }}
                                           />
                                         </td>
                                         <td>

@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { Col, Container, Row, Table } from 'reactstrap';
 import { ISummaryReport } from "app/shared/model/report-summary.model";
 
-const GenericSalesReport = ({  title, report }: {title: string; report: ISummaryReport["totalSales"] }) => {
-  if(!report) return;
+const GenericSalesReport = ({ title, report }: { title: string; report: ISummaryReport["totalSales"] }) => {
+  if (!report) return;
 
   const { orders, subTotal, discount, appliedCoupon, deliveryCharge, deliveryTAX,
-    refunds, netSales, totalTAX, grossSales, totalTip,taxes} = report;
+    refunds, netSales, totalTAX, grossSales, walletCredits, totalTip, taxes } = report;
 
   const [show, setShow] = useState(false);
 
@@ -14,6 +14,7 @@ const GenericSalesReport = ({  title, report }: {title: string; report: ISummary
     setShow(prevState => !prevState);
   }
 
+  console.log(walletCredits)
   return (
     <Col>
       <h3>{title}</h3>
@@ -32,6 +33,13 @@ const GenericSalesReport = ({  title, report }: {title: string; report: ISummary
               <td colSpan={2}>Gross Sales</td>
               <td colSpan={2} className="text-right">
                 {grossSales}
+              </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td colSpan={2}>Wallet Credits</td>
+              <td colSpan={2} className="text-right">
+                {walletCredits || 0}
               </td>
             </tr>
             <tr>

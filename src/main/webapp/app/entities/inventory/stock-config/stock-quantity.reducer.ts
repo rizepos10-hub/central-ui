@@ -21,6 +21,7 @@ const apiSearchUrl = 'api/inventory/_search/stock-quantities';
 
 const patchUrl = '/api/inventory/stock-quantities'
 
+const miniStockLevel = '/api/inventory/minimum-stock-level'
 // Actions
 
 export const searchEntities = createAsyncThunk('stock-quantity/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
@@ -41,6 +42,15 @@ export const getEntity = createAsyncThunk(
   },
   { serializeError: serializeAxiosError }
 );
+
+export const partialUpdateMiniStockLevelEntity = createAsyncThunk(
+  'minimum-stock-level/partial_update_entity',
+  async (entity: IStockQuantity[], thunkAPI) => {
+    return await axios.patch<IStockQuantity>(miniStockLevel, entity);
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const partialUpdateEntity = createAsyncThunk(
   'stock-quantity/partial_update_entity',
   async (entity: IStockQuantity, thunkAPI) => {

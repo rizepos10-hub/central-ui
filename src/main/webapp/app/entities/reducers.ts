@@ -4,12 +4,16 @@ import discount from 'app/entities/discount/discount.reducer';
 import serviceCharge from 'app/entities/service-charges/service-charge.reducer';
 import attachment from 'app/entities/attachment/attachment.reducer';
 import customer from 'app/entities/customer/customer.reducer';
+import loyaltycard from 'app/entities/loyalty-card/loyalty-card.reducer';
+import notification from 'app/shared/components/notifications-center/notifications.reducer';
+import wallet from 'app/entities/wallet/wallet.reducer';
 import bill from 'app/entities/bill/bill.reducer';
 import taxonomy from 'app/entities/taxonomy/taxonomy.reducer';
 import addon from 'app/entities/addon/addon.reducer'
 import addonGroups from 'app/entities/addon-groups/addon-groups.reducer';
 
 import order from 'app/entities/order/order.reducer';
+import delivery from 'app/entities/order/delivery.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
 import tax from 'app/entities/settings/tax/tax.reducer';
@@ -93,11 +97,15 @@ const entitiesReducers = {
   serviceCharge,
   attachment,
   customer,
+  loyaltycard,
+  notification,
+  wallet,
   bill,
   taxonomy,
   addon,
   addonGroups,
   order,
+  delivery,
   user,
   PosBranchUser,
   tax,

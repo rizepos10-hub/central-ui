@@ -92,21 +92,74 @@
             "combo": "Combo Item Stock",
             "pizza": "Pizza Item Stock"
           }
+        },
+
+        "supplier": {
+          "label": "Supplier Association",
+          "selectSuppliers":"Select Suppliers",
+          "selectSupplierPlaceHolder": "Select suppliers",
+          "supplierCodePlaceHolder": "Enter supplier code",
+          "supplierCode": "Supplier Code",
+          "searchSuppliers": "Search Suppliers..."
+        },
+
+        "itemLocation": {
+          "department": "Department",
+          "section": "Section",
+          "isle": "Isle",
+          "shelf": "Shelf",
+          "shelfLocation":"shelf Location",
+          "sectionPlaceHolder": "Enter Section",
+          "departmentPlaceHolder": "Enter Department",
+          "islePlaceHolder": "Enter Isle",
+          "shelfPlaceHolder": "Enter Shelf",
+          "shelfLocationPlaceHolder":"Enter shelf Location",
+          "label": "Item Location"
         }
       },
+
+      "itemLocation": {
+        "department": "Department",
+          "section": "Section",
+          "isle": "Isle",
+          "shelf": "Shelf",
+          "shelfLocation":"shelf Location"
+      },
+
+      "stockQuantity": {
+        "quantity": "Quantity",
+        "unitCost": "unitCost"
+      },
+
+      "shippingDimension": {
+        "length": "Length",
+        "width": "Width",
+        "weight": "Weight",
+        "height": "Height"
+      },
+
       "placeholders": {
         "itemName": "Item Name",
         "itemDescription": "Item Description",
+        "shortDescription": "Short Description",
         "itemSku": "Item SKU",
         "itemPrice": "Item Price",
         "itemSalePrice": "Item Sale Price",
         "itemBranchPrice": "Enter price for {{ branchName }}",
         "itemBranchSalePrice": "Enter sale price for {{ branchName }}",
         "variantName": "Variant Name",
-        "variantPrice": "Variant Price"
+        "variantPrice": "Variant Price",
+        "minimumStockLevelPlaceHolder":"Minimum Stock Level",
+        "quantity": "Quantity",
+        "unitCost": "unitCost",
+        "length": "Length",
+        "width": "Width",
+        "weight": "Weight",
+        "height": "Height"
       },
       "name": "Name",
       "description": "Description",
+      "shortDescription": "Short Description",
       "variants": "Variants",
       "productionCenter": "Production Center",
       "categories": "Categories",
@@ -130,6 +183,7 @@
       "baseMeasure": "Select Base Measure",
       "measures": "Measures",
       "measure": "Measure",
+      "isBaseMeasure": "Is Measure Base",
       "exchangeRate": "Exchange Rate",
       "remove": "Remove",
       "filterByGroup":  "Filter by Group",
@@ -152,6 +206,13 @@
         "title": "Import Addons From Item",
         "search": "Search for Item"
       },
+      "minimumStockLevel": {
+        "title": "Minimum Stock Level",
+        "search": "Update Minimum Stock Level",
+        "save": "Save Minimum Stock"
+      },
+      
+
       "addonGroups": "Addon Groups",
       "required": "Required",
       "combo": {

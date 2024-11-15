@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { Container, Row, Col, Card, CardImg, CardBody, CardTitle, CardSubtitle, InputGroup, InputGroupText, Input } from 'reactstrap';
+import { Container, Row, Col, Card, CardImg, CardBody, CardTitle, CardSubtitle, InputGroup, InputGroupText, Input, Label } from 'reactstrap';
 import { Button } from 'primereact/button';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
-import { getEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
+import { filterEntities as getProducts } from "app/entities/item/retail/product/product.reducer";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { changeEntityField, createEntity, reset } from './order.reducer';
 import { IOrder } from 'app/shared/model/ORDER/order.model';
@@ -28,6 +28,10 @@ import { Tooltip } from 'primereact/tooltip';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { InputText } from 'primereact/inputtext';
 import CustomerUpdate from '../customer/customer-update';
+import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { initialItemFilterState } from 'app/shared/model/filter-state.model';
+import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
+import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
@@ -74,14 +78,26 @@ const OrderCreate = () => {
         setFilteredOptions(customers)
     }, [customers])
 
+    const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
     useEffect(() => {
-        dispatch(getProducts({
+        console.log(query, 'query')
+        const newQuery = {
+            ...query,
             page: parseInt(searchParams.get("page"), 10) - 1 || 0,
             size: parseInt(searchParams.get("size"), 10) || 24,
             name: searchParams.get("name") || '',
-            sort: `id,asc`,
+            filters: {
+                ...query.filters,
+                'categories.id': { value: searchParams.get("categoryId"), matchMode: 'equals' }
+            }
+        }
+        const updatedQuery = applyMatchModeMap(newQuery);
+        console.log(updatedQuery, 'updatedQuery')
+
+        dispatch(getProducts({
+            query: updatedQuery,
         }))
-    }, [searchParams.get("page"), searchParams.get("size"), searchParams.get("name")])
+    }, [searchParams.get("page"), searchParams.get("size"), searchParams.get("name"), searchParams.get("categoryId")])
 
     useEffect(() => {
         dispatch(getBranches({}))
@@ -91,6 +107,13 @@ const OrderCreate = () => {
             sort: 'createdAt,asc',
             page: 0
         }))
+        dispatch(
+            getCategories({
+                page: 0,
+                size: 1000,
+                sort: `id,desc`,
+            })
+        );
         dispatch(reset())
     }, [])
     console.log(orderEntity, 'orderEntity')
@@ -99,6 +122,12 @@ const OrderCreate = () => {
         sParams.set(name, value);
         return `?${sParams.toString()}`;
     }, [searchParams]);
+
+    const deleteQueryString = useCallback((name) => {
+        const sParams = new URLSearchParams(searchParams);
+        sParams.delete(name);
+        return `?${sParams.toString()}`;
+    }, []);
 
     const debouncedItemNameNavigate = useCallback(
         _.debounce((newItemName) => {
@@ -372,14 +401,35 @@ const OrderCreate = () => {
             </Dialog>
             <Row className="mb-3 h-100">
                 <Col md={8}>
-                    <InputGroup>
-                        <InputGroupText>Search for products</InputGroupText>
-                        <Input
-                            placeholder="Start typing"
-                            value={searchTermProduct}
-                            onChange={(e) => setSearchTermProduct(e.target.value)}
-                        />
-                    </InputGroup>
+                    <Row>
+                        <Col md={6}>
+                            <InputGroup>
+                                <InputGroupText>Search for products</InputGroupText>
+                                <Input
+                                    placeholder="Search for products"
+                                    value={searchTermProduct}
+                                    onChange={(e) => setSearchTermProduct(e.target.value)}
+                                />
+                            </InputGroup>
+                        </Col>
+                        <Col md={6}>
+                            <InputGroup>
+                                <DropDownFilter
+                                    placeholder={'Select Category'}
+                                    dropDownOptionType={'RETAIL_CATEGORY'}
+                                    selectedOption={searchParams.get("categoryId")}
+                                    fieldName={'categories.id'}
+                                    handleDropdownChange={(f, v) => {
+                                        if (!v.value) {
+                                            navigate(deleteQueryString('categoryId'));
+                                        } else {
+                                            navigate(createQueryString('categoryId', v.value))
+                                        }
+                                    }}
+                                />
+                            </InputGroup>
+                        </Col>
+                    </Row>
                 </Col>
                 <Col md={4} className="d-flex justify-content-end gap-2">
                     <Button disabled color="primary">Retrieve Sale</Button>

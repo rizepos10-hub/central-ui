@@ -30,6 +30,14 @@ export const searchEntities = createAsyncThunk('restaurant_items/search_entity',
 });
 
 
+export const searchEntitiesRestaurant = createAsyncThunk('restaurant_items/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
+  const requestUrl = `${apiUrl}?query=${query}&page=${page}&size=${size}`;
+
+  // Perform the API call
+  return axios.get<IItem[]>(requestUrl);
+});
+
+
 
 
 

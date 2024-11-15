@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Dropdown } from 'primereact/dropdown';
 import { SalesReportsMeasures, SalesReportsTypes } from 'app/shared/model/ENUMS/sales-reports.models';
 
@@ -21,6 +21,8 @@ import { formatPrice } from 'app/shared/util/price-utils';
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { useParams } from 'react-router-dom';
 import { capitalizeFirstLetter, capitalizeString } from 'app/shared/util/string-utils';
+import { Button } from 'primereact/button';
+import ReactToPrint from 'react-to-print';
 
 type Slot = {
   order: number;
@@ -88,8 +90,10 @@ export const SalesReport = () => {
   const dispatch = useAppDispatch();
   const { reportType } = useParams();
 
-  console.log(reportType, 'reportTypereportType');
-  console.log(reportMeasuresOptions, 'reportMeasuresOptions');
+  const dt = useRef(null);
+  const dtWrapper = useRef(null);
+
+  const currentDate = new Date();
 
   const initialSelectedType = reportTypesOptions?.[0]?.value;
   const initialSelectedMeasure = reportType
@@ -98,7 +102,14 @@ export const SalesReport = () => {
 
   const [selectedType, setSelectedType] = useState(initialSelectedType);
   const [selectedMeasure, setSelectedMeasure] = useState(initialSelectedMeasure);
-  const [appliedDateRange, setAppliedDateRange] = useState<dateRange | null>();
+  const [dateRange, setDateRange] = useState<any | null>({
+    from: toLocalISOString(startOfYear(currentDate)),
+    to: toLocalISOString(currentDate),
+    dateSlot: {
+      period: 'YEAR',
+      slots: 1,
+    },
+  });
   const salesReportData = useAppSelector(state => state.salesReportReducer.data);
   const salesReportLoading = useAppSelector(state => state.salesReportReducer.loading);
   const salesReportError = useAppSelector(state => state.salesReportReducer.error);
@@ -117,8 +128,10 @@ export const SalesReport = () => {
     }) || currencySettingsEntity.defaultCurrency;
 
   const handleDateRangeApply = (selectedDateRange: dateRange) => {
-    setAppliedDateRange(selectedDateRange);
+    setDateRange(selectedDateRange);
   };
+
+  // eslint-disable-next-line @typescript-eslint/require-await
   const fetchReportData = async () => {
     const currentDate = new Date();
     const defaultDateRange = {
@@ -131,7 +144,7 @@ export const SalesReport = () => {
     };
 
     const formRequest = {
-      dateRange: appliedDateRange || defaultDateRange,
+      dateRange: dateRange || defaultDateRange,
       measure: selectedMeasure,
       type: reportType ? capitalizeString(reportType) : selectedType,
     };
@@ -159,7 +172,7 @@ export const SalesReport = () => {
 
   useEffect(() => {
     fetchReportData();
-  }, [selectedMeasure, selectedType, appliedDateRange, reportType]);
+  }, [selectedMeasure, selectedType, dateRange, reportType]);
 
   const handleTypeChange = e => {
     const type = e.value;
@@ -167,7 +180,6 @@ export const SalesReport = () => {
   };
 
   const handleMeasureChange = e => {
-    console.log(e, 'hahahha');
     const measure = e.value;
     setSelectedMeasure(measure);
   };
@@ -240,7 +252,6 @@ export const SalesReport = () => {
           <Column className="bg-white" colSpan={10} />
         </PrimeRow>
       ) : null}
-
       {selectedMeasure !== 'REVENUE' ? (
         <PrimeRow>
           <Column footer={'Revenue'} className="bg-white text-left" />
@@ -301,6 +312,291 @@ export const SalesReport = () => {
     </ColumnGroup>
   );
 
+  const exportExcel = () => {
+    const structuredExcelData = salesReportData?.rows?.map(row => {
+      // Use an array to keep track of property insertion order
+      const entries = [];
+
+      // Add Product
+      entries.push(['Product', row?.rowRecord?.name]);
+
+      // Add date properties
+      sortedHeaderSlots.forEach(header => {
+        const slot = row.slots.find(s => s.order === header.order);
+        entries.push([header.label, selectedMeasure !== 'SALE_COUNT'
+          ? `${formatPrice(slot?.value || 0, exchange)} `
+          : slot?.value || 0]);
+      });
+
+      // Add remaining properties in the desired order
+      entries.push(['Total', formatPrice(row.value, exchange)]);
+      selectedMeasure !== 'REVENUE' && entries.push(['Revenue', formatPrice(row.revenue, exchange)]);
+      entries.push(['Cost Of Goods', formatPrice(row.costOfGoods, exchange)]);
+      entries.push(['Gross Profit', formatPrice(row.grossProfit, exchange)]);
+      entries.push(['Margin', formatPrice(row.margin, exchange)]);
+      selectedMeasure !== 'TAX' && entries.push(['Tax', formatPrice(row.tax, exchange)]);
+      selectedMeasure !== 'Returns' && entries.push(['Returns', formatPrice(row.returns, exchange)]);
+
+      // Convert entries to an object
+      const rowData = Object.fromEntries(entries);
+
+      return rowData;
+    });
+
+    // Create the worksheet with specified headers
+    const headers = [
+      'Product',
+      ...sortedHeaderSlots.map(header => header.label),
+      'Total',
+      selectedMeasure !== 'REVENUE' ? 'Revenue' : '',
+      'Cost Of Goods',
+      'Gross Profit',
+      'Margin',
+      selectedMeasure !== 'TAX' ? 'Tax' : '',
+      selectedMeasure !== 'RETURNS' ? 'Returns' : '',
+    ].filter(header => header !== '');
+
+
+    // Initialize totals
+    const totals = {};
+    headers.forEach(header => {
+      if (header !== 'Product') {
+        totals[header] = 0;
+      }
+    });
+
+    // Compute totals
+    structuredExcelData.forEach(rowData => {
+      headers.forEach(header => {
+        if (header !== 'Product') {
+          // Remove currency symbols and whitespace, then parse to float
+          const value = parseFloat(rowData[header].replace(/[^\d.-]/g, '')) || 0;
+          totals[header] += value;
+        }
+      });
+    });
+
+    // Create additional data
+    const additionalData = [
+      [], // Empty row for readability
+    ];
+
+    const excelFooterData = Object.values(salesReportData?.totalByDateRange || {});
+
+
+    // unshifting an empty object to be able to catch index 0 without ruining the calcs of the values
+    excelFooterData.unshift({});
+    // Totals row
+    const totalsRow = excelFooterData.map((header: any, index) => {
+      if (index === 0) {
+        return 'Totals';
+      } else {
+        return formatPrice(header?.value, exchange);
+      }
+    });
+    additionalData.push(totalsRow);
+
+    if (selectedMeasure !== 'SALE_COUNT') {
+      const selectedMesaureRow = excelFooterData.map((header: any, index) => {
+        if (index === 0) {
+          return capitalizeFirstLetter(selectedMeasure.toLowerCase());
+        } else {
+          return formatPrice(header[selectedMeasure.toLowerCase()], exchange)
+        }
+      });
+      additionalData.push(selectedMesaureRow);
+    }
+
+    if (selectedMeasure !== 'REVENUE') {
+      const revenueRow = excelFooterData.map((header: any, index) => {
+        if (index === 0) {
+          return 'Revenue';
+        } else {
+          return formatPrice(header?.revenue, exchange);
+        }
+      });
+      additionalData.push(revenueRow);
+    }
+
+    const costOfGoodsRow = excelFooterData.map((header: any, index) => {
+      if (index === 0) {
+        return 'Cost Of Goods';
+      } else {
+        return formatPrice(header?.costOfGoods, exchange);
+      }
+    });
+    additionalData.push(costOfGoodsRow);
+
+    if (selectedMeasure !== 'RETURNS') {
+      const returnsRow = excelFooterData.map((header: any, index) => {
+        if (index === 0) {
+          return 'Returns';
+        } else {
+          return formatPrice(header?.returns, exchange);
+        }
+      });
+      additionalData.push(returnsRow);
+    }
+
+    const marginRow = excelFooterData.map((header: any, index) => {
+      if (index === 0) {
+        return 'Margin';
+      } else {
+        return formatPrice(header?.margin, exchange);
+      }
+    });
+    additionalData.push(marginRow);
+
+    const grossProfitRow = excelFooterData.map((header: any, index) => {
+      if (index === 0) {
+        return 'Gross Profit';
+      } else {
+        return formatPrice(header?.grossProfit, exchange);
+      }
+    });
+    additionalData.push(grossProfitRow);
+
+    if (selectedMeasure !== 'TAX') {
+      const taxRow = excelFooterData.map((header: any, index) => {
+        if (index === 0) {
+          return 'Tax';
+        } else {
+          return formatPrice(header?.tax, exchange);
+        }
+      });
+      additionalData.push(taxRow);
+    }
+
+    import('xlsx-js-style').then((xlsx) => {
+      const worksheet = xlsx.utils.json_to_sheet(structuredExcelData, { header: headers });
+
+      // Add additional data to worksheet
+      xlsx.utils.sheet_add_aoa(worksheet, additionalData, { origin: -1 });
+
+      // Apply bold styling to the first row (headers)
+      headers.forEach((_, index) => {
+        const cellAddress = xlsx.utils.encode_cell({ r: 0, c: index });
+        if (!worksheet[cellAddress]) return;
+        worksheet[cellAddress].s = {
+          font: {
+            bold: true,
+          },
+        };
+      });
+
+      // Apply bold styling to the first column (Product column)
+      structuredExcelData.forEach((_, rowIndex) => {
+        const cellAddress = xlsx.utils.encode_cell({ r: rowIndex + 1, c: 0 }); // +1 because headers are at r=0
+        if (!worksheet[cellAddress]) return;
+        worksheet[cellAddress].s = {
+          font: {
+            bold: true,
+          },
+        };
+      });
+
+      // Apply bold styling to the first column (totals per year column)
+      additionalData.forEach((rowData, index) => {
+        if (index === 0) return; // Skip the empty array
+
+        const rowIndex = structuredExcelData.length + 1 + index; // Calculate the correct row index
+
+        // Get the cell address for the first cell in this row
+        const cellAddress = xlsx.utils.encode_cell({ r: rowIndex, c: 0 });
+        // Apply bold styling to the first cell
+        if (worksheet[cellAddress]) {
+          worksheet[cellAddress].s = {
+            font: {
+              bold: true,
+            },
+          };
+        }
+      });
+
+
+      worksheet['!cols'] = headers.map(() => ({
+        wpx: 144,
+      }));
+
+      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+      const excelBuffer = xlsx.write(workbook, {
+        bookType: 'xlsx',
+        type: 'array'
+      });
+
+      saveAsExcelFile(excelBuffer, 'products');
+    });
+  };
+
+  const saveAsExcelFile = (buffer, fileName) => {
+    import('file-saver').then((module) => {
+      if (module && module.default) {
+        const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+        const EXCEL_EXTENSION = '.xlsx';
+        const data = new Blob([buffer], {
+          type: EXCEL_TYPE
+        });
+
+        module.default.saveAs(data, fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION);
+      }
+    });
+  };
+
+
+  const pageStyle = `
+  @media print {
+    /* Remove scrollbars and display all content */
+    .p-datatable-wrapper, .p-datatable-scrollable-body {
+      overflow: visible !important;
+      max-height: none !important;
+    }
+
+    tr {
+      border-bottom: 0.1px solid gray !important; 
+    }
+
+    .p-datatable tfoot {
+      position: relative !important;
+    }
+
+    /* Optional: Hide the header during print */
+    .p-datatable-header {
+      display: none !important;
+    }
+
+    .sales-report-print-header {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    /* Set page size to A4 and remove margins */
+    @page {
+      size: A4;
+    }
+
+  }
+`;
+
+  const header = (
+    <div className="flex align-items-center justify-content-end gap-2">
+      <Button type="button" className='rounded-circle' icon="pi pi-file-excel" severity="success" rounded onClick={exportExcel} data-pr-tooltip="XLS" />
+      <ReactToPrint
+        trigger={() => (
+          <Button
+            type="button"
+            className="rounded-circle"
+            icon="pi pi-print"
+            severity="info"
+            rounded
+            data-pr-tooltip="PRINT"
+          />
+        )}
+        content={() => dtWrapper.current}
+        pageStyle={pageStyle}
+      />
+    </div>
+  );
+
   return (
     <>
       <h1>
@@ -329,13 +625,14 @@ export const SalesReport = () => {
         <div className="d-flex flex-column gap-1">
           <div className="d-flex flex-column gap-1">
             <label>Date Range</label>
-            <DateCustomComponent onApplyDateRange={handleDateRangeApply} />
+            <DateCustomComponent onApplyDateRange={handleDateRangeApply} dateRange={dateRange} setDateRange={setDateRange} />
           </div>
         </div>
         <div className="d-flex flex-column gap-1">
           <div className="d-flex flex-column gap-1">
             <label>Display Currency</label>
             <Dropdown
+              ref={dt}
               value={displayCurrency}
               onChange={e => setDisplayCurrency(e.value)}
               options={filteredDisplayCurrencies}
@@ -348,42 +645,71 @@ export const SalesReport = () => {
       </div>
       <div className="my-3 card">
         <Tooltip target=".export-buttons>button" position="bottom" />
-        <DataTable
-          headerColumnGroup={headerGroup}
-          footerColumnGroup={footerGroup}
-          scrollable
-          stripedRows
-          showGridlines
-          loading={salesReportLoading}
-          size={'small'}
-          tableStyle={{ minWidth: '50rem' }}
-          scrollHeight="45rem"
-          value={salesReportData?.rows}
-        >
-          <Column field={'rowRecord.name'} />
-          {sortedHeaderSlots?.map(
-            header =>
-              header.order >= 0 && (
-                <Column
-                  key={header.order}
-                  body={rowData => {
-                    const slotIndex = rowData.slots.findIndex(s => s.order === header.order);
-                    return slotIndex >= 0
-                      ? selectedMeasure !== 'SALE_COUNT'
-                        ? `${formatPrice(rowData.slots[slotIndex].value, exchange)} `
-                        : rowData.slots[slotIndex].value
-                      : null;
-                  }}
-                />
-              )
-          )}
-          <Column
-            body={rowData => {
-              return selectedMeasure !== 'SALE_COUNT' ? `${formatPrice(rowData['value'], exchange)} ` : rowData['value'];
+        <div ref={dtWrapper}>
+
+          <div
+            className='gap-3 sales-report-print-header'
+            style={{
+              display: 'none',
             }}
-          />
-          {datatableRows}
-        </DataTable>
+          >
+            <div className='fs-2 fw-bold text-center'>Sales Report</div>
+            <div className='fs-5 fw-semibold d-flex flex-column gap-1'>
+              <div>
+                <span>Report Type : </span>
+                <span>{reportType ? capitalizeString(reportType) : selectedType}</span>
+              </div>
+              <div>
+                <span>Measure Type : </span>
+                <span>{selectedMeasure ? capitalizeString(selectedMeasure) : selectedMeasure}</span>
+              </div>
+              {dateRange?.from && dateRange?.to && (
+                <div>
+                  <span>Date Range : </span>
+                  <span>{format(new Date(dateRange?.from), "yyyy-MM-dd")} - {format(new Date(dateRange?.to), "yyyy-MM-dd")}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DataTable
+            headerColumnGroup={headerGroup}
+            footerColumnGroup={footerGroup}
+            scrollable
+            stripedRows
+            showGridlines
+            loading={salesReportLoading}
+            size={'small'}
+            tableStyle={{ minWidth: '50rem' }}
+            scrollHeight="45rem"
+            value={salesReportData?.rows}
+            header={header}
+          >
+            <Column field={'rowRecord.name'} />
+            {sortedHeaderSlots?.map(
+              header =>
+                header.order >= 0 && (
+                  <Column
+                    key={header.order}
+                    body={rowData => {
+                      const slotIndex = rowData.slots.findIndex(s => s.order === header.order);
+                      return slotIndex >= 0
+                        ? selectedMeasure !== 'SALE_COUNT'
+                          ? `${formatPrice(rowData.slots[slotIndex].value, exchange)} `
+                          : rowData.slots[slotIndex].value
+                        : null;
+                    }}
+                  />
+                )
+            )}
+            <Column
+              body={rowData => {
+                return selectedMeasure !== 'SALE_COUNT' ? `${formatPrice(rowData['value'], exchange)} ` : rowData['value'];
+              }}
+            />
+            {datatableRows}
+          </DataTable>
+        </div>
       </div>
     </>
   );

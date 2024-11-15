@@ -76,7 +76,7 @@ export const SimpleItemUpdate = () => {
   const location = useLocation();
   const attributeValuesList = useAppSelector(state => state.retailAttributeValue.entities);
   const loadingAttributesValues = useAppSelector(state => state.retailAttributeValue.loading);
-
+  const [activeIndex, setActiveIndex] = useState(0);
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
@@ -296,7 +296,10 @@ export const SimpleItemUpdate = () => {
     }));
   };
 
-
+  const refreshProduct =() => {
+    dispatch(getEntity(id));
+    setActiveIndex(3)
+  }
 
 
   const handleNavigate = (simpleItemId) => {
@@ -401,7 +404,7 @@ export const SimpleItemUpdate = () => {
             <CardBody>
               <Row>
                 <Col md={10}>
-                  <TabView>
+                  <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
                       <div className='w-100'>
                         <div className='text-xl font-semibold'>
@@ -582,7 +585,7 @@ export const SimpleItemUpdate = () => {
                     </TabPanel>
 
                     <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
-                      <ItemStockTab variants={simpleItem?.variants} itemId={simpleItem.id} />
+                      <ItemStockTab refreshProduct={refreshProduct} variants={simpleItem?.variants} itemId={simpleItem.id} />
                     </TabPanel>
 
                     <TabPanel header={translate('items.update.measures')}>

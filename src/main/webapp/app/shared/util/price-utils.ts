@@ -8,7 +8,6 @@ export const formatPrice = (number, exchange) => {
     });
 
     const currencySymbol = exchange?.currency?.code || exchange?.code;
-
     return `${formattedNumber} ${currencySymbol}`;
   }
 };

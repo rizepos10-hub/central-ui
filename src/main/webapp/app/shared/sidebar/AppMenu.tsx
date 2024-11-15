@@ -51,6 +51,10 @@ export const model: MenuItem[] = [
         label: 'General Report',
         to: '/analytics/sales',
       },
+      {
+        label: 'Sell',
+        to: '/order/create',
+      },
     ],
   },
   {
@@ -331,6 +335,11 @@ export const model: MenuItem[] = [
         to: '/order',
       },
       {
+        label: 'Scheduled',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/order/scheduled',
+      },
+      {
         label: 'Create',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/order/create',
@@ -341,10 +350,15 @@ export const model: MenuItem[] = [
     label: 'Loyalty',
     role: ['ROLE_ADMINISTRATOR'],
     icon: 'pi pi-wallet',
-    to: '/loyalty',
+    to: '/loyalty-cards',
     items: [
       {
-        label: 'Loyalty',
+        label: 'Loyalty Cards',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/loyalty-cards',
+      },
+      {
+        label: 'Loyalty Points',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/loyalty'
       }
@@ -378,10 +392,10 @@ export const model: MenuItem[] = [
     icon: ' pi pi-chart-bar',
     to: '/analytics/sales',
     items: [
-      // {
-      //   label: 'Retail Dashboard',
-      //   to: '/analytics/retail-dashboard',
-      // },
+      {
+        label: 'Retail Dashboard',
+        to: '/analytics/retail-dashboard',
+      },
       // {
       //   label: 'Restaurant Dashboard',
       //   to: '/analytics/restaurant-dashboard',

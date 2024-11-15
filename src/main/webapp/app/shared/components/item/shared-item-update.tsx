@@ -19,7 +19,6 @@ import Attachment from 'app/shared/components/attachment/attachment';
 import { Checkbox } from 'primereact/checkbox';
 import { cloneDeep } from 'lodash';
 import AddonImportModal from './addon-import-modal';
-import { getEntities as getRestaurantItems } from 'app/entities/item/restaurant/restaurant-item.reducer';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { getEntities as getDiscounts } from 'app/entities/discount/discount.reducer';
 import DiscountDropdown from 'app/shared/components/item/discount-dropdown';
@@ -119,13 +118,6 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
           sort: `${paginationState.sort},${paginationState.order}`,
         })
       );
-      dispatch(
-        getRestaurantItems({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
       dispatch(getAddonGroups({
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
@@ -177,12 +169,12 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
 
               <div className={'d-flex flex-column gap-1  col'}>
                 <label className={'font-semibold'}>
-                  <Translate contentKey={'items.update.description'}>Description</Translate>
+                  <Translate contentKey={'items.update.shortDescription'}>Short Description</Translate>
                 </label>
                 <InputTextarea
                   name="desc"
                   id="desc"
-                  placeholder={translate('items.update.placeholders.itemDescription')}
+                  placeholder={translate('items.update.placeholders.shortDescription')}
                   value={item.desc || ''}
                   onChange={e => onFieldChange('desc', e.target.value)}
                 />

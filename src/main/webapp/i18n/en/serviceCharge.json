@@ -1,0 +1,21 @@
+{
+  "tempApp": {
+    "serviceCharge": {
+      "created": "A new Service Charge is created with identifier {{ param }}",
+      "updated": "A Service Charge is updated with identifier {{ param }}",
+      "deleted": "A Service Charge is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Service Charge",
+        "question": "Are you sure you want to delete Service Charge {{ param }}"
+      },
+      "title": "Service Charges",
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "createNew": "Create New Service Charge",
+      "edit": "Edit Service Charge"
+    }
+  }
+}

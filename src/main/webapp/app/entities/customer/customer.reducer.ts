@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {createAction, createAsyncThunk, isFulfilled, isPending, isRejected} from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
@@ -26,7 +26,7 @@ export const searchEntities = createAsyncThunk('customer/search_entity', async (
 });
 
 export const searchCustomers = createAsyncThunk('loyaltyRecords/fetch_loyalty_customers', async (queryParams: any) => {
-  return axios.post<ICustomer[]>(apiSearchUrl, queryParams );
+  return axios.post<ICustomer[]>(apiSearchUrl, queryParams);
 });
 
 export const getEntities = createAsyncThunk('customer/fetch_entity_list', async ({ page, size, sort, query }: IQueryParams) => {
@@ -38,6 +38,15 @@ export const getEntity = createAsyncThunk(
   'customer/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
+    return axios.get<ICustomer>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const getEntityInfo = createAsyncThunk(
+  'customer/fetch_entity',
+  async (id: string | number) => {
+    const requestUrl = `${apiUrl}/${id}/info`;
     return axios.get<ICustomer>(requestUrl);
   },
   { serializeError: serializeAxiosError }
@@ -66,8 +75,8 @@ export const getPricesForCustomer = createAsyncThunk(
 
 export const updatePrices = createAsyncThunk(
   'customer/update_prices',
-  async ({pricesData, customerId} :any) => {
-    const request  = `${priceApiUrl}/${customerId}`
+  async ({ pricesData, customerId }: any) => {
+    const request = `${priceApiUrl}/${customerId}`
     const result = await axios.put(request, (pricesData));
 
     return result;
@@ -75,13 +84,21 @@ export const updatePrices = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-
-
 export const updateEntity = createAsyncThunk(
   'customer/update_entity',
   async (entity: ICustomer, thunkAPI) => {
     const result = await axios.put<ICustomer>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const assignCard = createAsyncThunk(
+  'customer/assign_card',
+  async ({ entity, cardRefNumber }: { entity: ICustomer, cardRefNumber: string }, thunkAPI) => {
+    const result = await axios.post<ICustomer>(`${apiUrl}/${entity.id}/assign-card?cardRefNumber=${cardRefNumber}`);
+    thunkAPI.dispatch(getEntity(entity.id));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -140,7 +157,7 @@ export const CustomerSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, assignCard, partialUpdateEntity), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -151,7 +168,7 @@ export const CustomerSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, assignCard, partialUpdateEntity, deleteEntity), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

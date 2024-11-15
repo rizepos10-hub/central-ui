@@ -1,0 +1,21 @@
+{
+  "tempApp": {
+    "tax-profiles": {
+      "created": "A new Tax Profile is created with identifier {{ param }}",
+      "updated": "A Tax Profile is updated with identifier {{ param }}",
+      "deleted": "A Tax Profile is deleted with identifier {{ param }}",
+      "delete": {
+        "title": "Confirm Delete Tax Profile",
+        "question": "Are you sure you want to delete Tax Profile {{ param }}"
+      },
+      "title": "Tax Profiles",
+      "id": "Id",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "createNew": "Create New Tax Profile",
+      "edit": "Edit Tax Profile"
+    }
+  }
+}

@@ -71,15 +71,13 @@ export const filterOrders = createAsyncThunk(
   'order/filter_orders',
   async (queryParams: any) => {
     try {
-      const formData = new URLSearchParams(queryParams).toString();
-      const response = await axios.post<IOrder[]>('api/orders/filtered', formData);
+      const response = await axios.post<IOrder[]>(`api/orders/filtered?page=${queryParams.page}&size=${queryParams.size}&sort=${queryParams.sort}`, cleanEntity(queryParams));
       return response;
     } catch (error) {
       throw new Error(error.message);
     }
   }
 );
-
 
 
 export const getEntity = createAsyncThunk(

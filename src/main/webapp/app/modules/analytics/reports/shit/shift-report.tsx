@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 
-import { Button, Spinner } from "reactstrap";
+import { Spinner } from "reactstrap";
 
 import { FilterMatchMode } from "primereact/api";
 import { Calendar } from "primereact/calendar";
 import { translate } from "react-jhipster";
 import { Dropdown } from "primereact/dropdown";
-import { getEntities as getUsers} from "app/entities/branch-pos-user/user.reducer";
+import { getEntities as getUsers } from "app/entities/branch-pos-user/user.reducer";
 import userClock, { filterEntities, getEntityReport } from "app/modules/analytics/user-clock/user-clock.reducer";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import { convertDateTimeFromServer, convertDateTimeFromServerTimeOnly } from "app/shared/util/date-utils";
@@ -15,6 +15,9 @@ import GenericSalesReport from "app/shared/components/report/generic-sales-repor
 import SummaryReportTotalReceived from "app/shared/components/report/summary-report-total-received";
 import { Link } from "react-router-dom";
 import { IUserClock } from "app/shared/model/user-clock.model";
+import ReactToPrint from "react-to-print";
+import { Button } from "primereact/button";
+import { format } from "date-fns";
 
 
 const initialState = {
@@ -34,6 +37,7 @@ const initialState = {
 
 const ShiftReport = () => {
   const dispatch = useAppDispatch();
+  const printWrapper = useRef(null);
   const users = useAppSelector(state => state.PosBranchUser.entities);
   const loadingUsers = useAppSelector(state => state.PosBranchUser.loading);
   const userClocks = useAppSelector(state => state.userClock.entities);
@@ -42,7 +46,7 @@ const ShiftReport = () => {
   const loadingReport = useAppSelector(state => state.userClock.loadingReport);
 
   const [filterState, setFilterState] = useState(initialState);
-  const [selectedShift, setSelectedShift] = useState<IUserClock |null>(null);
+  const [selectedShift, setSelectedShift] = useState<IUserClock | null>(null);
 
   console.log(userClocks, "userClocksuserClocks")
 
@@ -56,14 +60,14 @@ const ShiftReport = () => {
   }, [filterState]);
 
   useEffect(() => {
-    if(selectedShift?.id){
+    if (selectedShift?.id) {
       dispatch(getEntityReport(selectedShift?.id))
     }
-  },[selectedShift?.id]);
+  }, [selectedShift?.id]);
 
 
   const getShifts = () => {
-    if(!filterState.filters.instantClockedIn.value || !filterState.filters.instantClockedOut.value || !filterState.filters.username.value) return;
+    if (!filterState.filters.instantClockedIn.value || !filterState.filters.instantClockedOut.value || !filterState.filters.username.value) return;
     const updatedState = applyMatchModeMap(filterState);
     dispatch(
       filterEntities({
@@ -80,8 +84,8 @@ const ShiftReport = () => {
       ...filterState,
       filters: {
         ...filterState.filters,
-        instantClockedIn: {value: startDate, matchMode: FilterMatchMode.STARTS_WITH},
-        instantClockedOut: {value: endDate, matchMode: FilterMatchMode.ENDS_WITH},
+        instantClockedIn: { value: startDate, matchMode: FilterMatchMode.STARTS_WITH },
+        instantClockedOut: { value: endDate, matchMode: FilterMatchMode.ENDS_WITH },
       }
     });
   }
@@ -89,13 +93,13 @@ const ShiftReport = () => {
   const calenderValue =
     filterState.filters?.instantClockedIn.value && !filterState.filters.instantClockedOut.value
       ?
-    [filterState.filters?.instantClockedIn.value, null]
+      [filterState.filters?.instantClockedIn.value, null]
       :
-    filterState.filters?.instantClockedIn.value && filterState.filters.instantClockedOut.value
-      ?
-      [filterState.filters?.instantClockedIn.value, filterState.filters?.instantClockedOut.value]
-      :
-      null;
+      filterState.filters?.instantClockedIn.value && filterState.filters.instantClockedOut.value
+        ?
+        [filterState.filters?.instantClockedIn.value, filterState.filters?.instantClockedOut.value]
+        :
+        null;
 
   const selectedShiftTemplate = (option, props) => {
     console.log(option, "option");
@@ -113,19 +117,56 @@ const ShiftReport = () => {
   };
 
   const shiftOptionTemplate = option => {
-      return (
-        <div className="flex align-items-center">
-          <div>
-            {convertDateTimeFromServer(option.instantClockedIn)} - {convertDateTimeFromServer(option.instantClockedOut)}
-          </div>
+    return (
+      <div className="flex align-items-center">
+        <div>
+          {convertDateTimeFromServer(option.instantClockedIn)} - {convertDateTimeFromServer(option.instantClockedOut)}
         </div>
-      );
+      </div>
+    );
   };
+
+  const pageStyle = `
+    @media print {
+      .hide-on-print {
+        display: none !important;
+      }
+
+      .shift-report-print-header {
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+    }
+  `;
 
 
   return (
     <div className={'bg-white p-5'}>
-      <h1>Shift Report</h1>
+      <div className="w-100 flex justify-content-between align-items-center">
+        <h1>Shift Report</h1>
+        <span className="hide-on-print">
+          <ReactToPrint
+            trigger={() => (
+              <Button
+                type="button"
+                className="rounded-circle"
+                icon="pi pi-print"
+                severity="info"
+                rounded
+                data-pr-tooltip="PRINT"
+                disabled={!summaryReport}
+              />
+            )}
+            content={() => printWrapper.current}
+            pageStyle={pageStyle}
+          />
+        </span>
+      </div>
       <div className={'d-flex flex-column gap-3'}>
         <div className={'col-8 d-flex gap-3'}>
           <div className={'d-flex flex-column gap-3'}>
@@ -182,21 +223,47 @@ const ShiftReport = () => {
       </div>
       {loadingReport && <Spinner />}
 
-      { summaryReport ?
-        <div className={"mt-3"}>
+      {summaryReport ?
+        <div ref={printWrapper}>
+          <div className={"mt-3"}>
 
-          <GenericSalesReport title={'Total Sales'} report={summaryReport?.totalSales} />
+            <div
+              className='gap-3 px-2 shift-report-print-header'
+              style={{
+                display: 'none',
+              }}
+            >
+              <div className='fs-2 fw-bold text-center'>Shift Report</div>
+              <div className='fs-5 fw-semibold d-flex flex-column gap-1'>
+                <div>
+                  <span>Username : </span>
+                  <span>{filterState.filters.username.value}</span>
+                </div>
+                <div>
+                  <span>Date Range : </span>
+                  <span>{format(new Date(filterState.filters.instantClockedIn.value), "yyyy-MM-dd")} - {format(new Date(filterState.filters.instantClockedOut.value), "yyyy-MM-dd")}</span>
+                </div>
+                <div>
+                  <span>Selected Shift : </span>
+                  <span>{format(new Date(selectedShift?.instantClockedIn), "yyyy-MM-dd")} - {format(new Date(selectedShift?.instantClockedOut), "yyyy-MM-dd")}</span>
+                </div>
+              </div>
+            </div>
 
-          <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["DineIn"]} title={"Dine In Sales"} />
 
-          <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["Delivery"]} title={"Delivery Sales"} />
+            <GenericSalesReport title={'Total Sales'} report={summaryReport?.totalSales} />
 
-          <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["PickUp"]} title={"Pick Up Sales"} />
+            <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["DineIn"]} title={"Dine In Sales"} />
 
-          <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["WalkIn"]} title={"Walk In Sales"} />
+            <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["Delivery"]} title={"Delivery Sales"} />
 
-        {summaryReport?.totalReceived && <SummaryReportTotalReceived totalReceived={summaryReport.totalReceived} />}
-      </div>
+            <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["PickUp"]} title={"Pick Up Sales"} />
+
+            <GenericSalesReport report={summaryReport.totalSalesByOrderOption?.["WalkIn"]} title={"Walk In Sales"} />
+
+            {summaryReport?.totalReceived && <SummaryReportTotalReceived totalReceived={summaryReport.totalReceived} />}
+          </div>
+        </div>
         : null}
 
 

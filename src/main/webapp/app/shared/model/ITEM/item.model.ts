@@ -35,7 +35,6 @@ export interface IItem {
   terms?: ITerm[] | null;
   accountingGroups?: IProfileGroup[] | null;
   productionCenter?: IProductionCenter | null;
-
 }
 
 export const defaultValue: Readonly<IItem> = {};

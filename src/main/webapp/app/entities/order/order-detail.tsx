@@ -21,6 +21,9 @@ import { useReactToPrint } from 'react-to-print';
 import { Dialog } from 'primereact/dialog';
 import { toast } from 'react-toastify';
 import { Storage } from 'react-jhipster';
+import { Calendar } from 'primereact/calendar';
+import { cancelBooking, createBooking, updateBooking } from './delivery.reducer';
+import { toLocalISOString } from 'app/shared/util/date-utils';
 
 export const OrderDetail = () => {
   const dispatch = useAppDispatch();
@@ -28,40 +31,7 @@ export const OrderDetail = () => {
   const location = useLocation();
 
   const billPrintRef = useRef(null);
-
-  const handleBillPrint = useReactToPrint({
-    content: () => billPrintRef.current,
-    pageStyle: "@page { size: A4 portrait; margin: 0; }",
-  });
-
   const pagePrintRef = useRef(null);
-
-  const handlePagePrint = useReactToPrint({
-    content: () => pagePrintRef.current,
-    pageStyle: "@page { size: A4 portrait; margin: 0; }",
-    async onBeforeGetContent() {
-      await openAllAccordions();
-      // loop through all bills 
-      filteredOrderEntity?.bills?.forEach((_, idx) => {
-        document.getElementById(`actionsTab-${idx}`).style.visibility = 'hidden';
-      })
-      document.getElementById('orderStatus').style.display = 'none';
-      document.getElementById('customer').style.display = 'none';
-      if (orderEntity.orderDeliveryDetails) {
-        document.getElementById('deliveryDetails').style.display = 'none';
-      }
-    },
-    onAfterPrint() {
-      filteredOrderEntity?.bills?.forEach((_, idx) => {
-        document.getElementById(`actionsTab-${idx}`).style.visibility = 'visible';
-      })
-      document.getElementById('orderStatus').style.display = 'block';
-      document.getElementById('customer').style.display = 'block';
-      if (orderEntity.orderDeliveryDetails) {
-        document.getElementById('deliveryDetails').style.display = 'block';
-      }
-    },
-  });
 
   const { id } = useParams<'id'>();
   const orderEntity: IOrder = useAppSelector(state => state.order.entity);
@@ -81,8 +51,15 @@ export const OrderDetail = () => {
   const [processStatusTipAmount, setProcessStatusTipAmount] = React.useState(0);
   const [rowClick, setRowClick] = React.useState(true);
   const [showPrintableBillDialog, setShowPrintableBillDialog] = React.useState(false);
+  const [bookingDate, setBookingDate] = React.useState(null);
 
   const [activeIndexes, setActiveIndexes] = React.useState<number | number[]>();
+
+  useEffect(() => {
+    if (orderEntity.orderDeliveryDetails) {
+      setBookingDate(new Date(orderEntity.orderDeliveryDetails.pickupDate))
+    }
+  }, [orderEntity])
 
   const openAllAccordions = () => {
     return new Promise(resolve => {
@@ -223,6 +200,20 @@ export const OrderDetail = () => {
     }))
   }
 
+  const confirm1 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to cancel this booking?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept() {
+        dispatch(cancelBooking(orderEntity))
+      },
+      // reject: () => setSelectedActionOption(null)
+    });
+  };
+
   if (loading) {
     return <Spinner />;
   }
@@ -303,6 +294,14 @@ export const OrderDetail = () => {
                   </div>
                   <div className="mb-0 w-100 d-flex justify-content-between align-items-center">
                     <span>
+                      Service Chagres:
+                    </span>
+                    <span className='text-success'>
+                      + {orderEntity?.orderCharges?.reduce((acc, charge) => acc + charge?.amount, 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="mb-0 w-100 d-flex justify-content-between align-items-center">
+                    <span>
                       Taxes:
                     </span>
                     <span className='text-success'>
@@ -314,7 +313,7 @@ export const OrderDetail = () => {
                       Discount:
                     </span>
                     <span className='text-danger'>
-                      - {orderEntity?.totalDiscount?.toFixed(2)}
+                      - {orderEntity?.totalDiscount} %
                     </span>
                   </div>
                   <div className="mb-0 w-100 d-flex justify-content-between align-items-center">
@@ -472,16 +471,20 @@ export const OrderDetail = () => {
                       <div>
                         <Button
                           text
-                          className="text-decoration-none p-0"
+                          className="text-decoration-none p-0 text-start"
                           onClick={() => navigate(`/customer/${filteredOrderEntity.customer.id}/edit?page=1&sort=id,asc`)}
                         >
-                          {filteredOrderEntity.customer.firstName + ' ' + filteredOrderEntity.customer.lastName}
+                          Name: {filteredOrderEntity.customer.firstName + ' ' + filteredOrderEntity.customer.lastName}
                         </Button>
                         {/* </a> */}
                       </div>
                       {/* <div>23 total orders</div> */}
-                      <div>{filteredOrderEntity.customer.email}</div>
-                      <div>{filteredOrderEntity.customer.phone}</div>
+                      {filteredOrderEntity.customer.email && (
+                        <div>E-mail: {filteredOrderEntity.customer.email}</div>
+                      )}
+                      {filteredOrderEntity.customer.phone && (
+                        <div>Phone: {filteredOrderEntity.customer.phone}</div>
+                      )}
                     </>
                   ) : (
                     <p>No customer found</p>
@@ -514,6 +517,40 @@ export const OrderDetail = () => {
                       Expected Arrival At: {new Date(orderEntity.orderDeliveryDetails?.expectedArrivalAt).toLocaleString()}
                     </div>
                     <div> {orderEntity.orderDeliveryDetails?.integrationDetails?.provider}, {orderEntity.orderDeliveryDetails?.integrationDetails?.tripId}</div>
+                  </CardBody>
+                </Card>
+              )}
+
+              {!orderEntity.orderDeliveryDetails ? (
+                <Card id='booking' className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
+                  <CardBody>
+                    <CardTitle tag="h6">Create Booking</CardTitle>
+                    <Calendar value={bookingDate} onChange={(e) => setBookingDate(e.value)} />
+                    <Button label='create' type='button' onClick={() => {
+
+                      dispatch(createBooking({
+                        date: bookingDate?.toISOString(),
+                        orderId: orderEntity.id
+                      }))
+                    }} />
+                  </CardBody>
+                </Card>
+              ) : (
+                <Card id='booking' className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
+                  <CardBody>
+                    <CardTitle tag="h6">Update Booking</CardTitle>
+                    <div className='d-flex flex-column gap-2'>
+                      <Calendar value={bookingDate} onChange={(e) => setBookingDate(e.value)} />
+                      <div className='d-flex justify-content-between'>
+                        <Button label='cancel booking' type='button' onClick={confirm1} />
+                        <Button label='update' type='button' onClick={() => {
+                          dispatch(updateBooking({
+                            date: toLocalISOString(bookingDate),
+                            orderId: orderEntity.id
+                          }))
+                        }} />
+                      </div>
+                    </div>
                   </CardBody>
                 </Card>
               )}

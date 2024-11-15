@@ -68,7 +68,7 @@ const DropDownFilter = ({ selectedOption, handleDropdownChange, dropDownOptionTy
       } else {
         dispatch(action({
           page: 0,
-          size: 10,
+          size: 100,
           sort: `name,asc`,
         }));
       }
