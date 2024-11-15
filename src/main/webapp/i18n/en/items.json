@@ -101,7 +101,29 @@
           "supplierCodePlaceHolder": "Enter supplier code",
           "supplierCode": "Supplier Code",
           "searchSuppliers": "Search Suppliers..."
+        },
+
+        "itemLocation": {
+          "department": "Department",
+          "section": "Section",
+          "isle": "Isle",
+          "shelf": "Shelf",
+          "shelfLocation":"shelf Location",
+          "sectionPlaceHolder": "Enter Section",
+          "departmentPlaceHolder": "Enter Department",
+          "islePlaceHolder": "Enter Isle",
+          "shelfPlaceHolder": "Enter Shelf",
+          "shelfLocationPlaceHolder":"Enter shelf Location",
+          "label": "Item Location"
         }
+      },
+
+      "itemLocation": {
+        "department": "Department",
+          "section": "Section",
+          "isle": "Isle",
+          "shelf": "Shelf",
+          "shelfLocation":"shelf Location"
       },
 
       "stockQuantity": {
