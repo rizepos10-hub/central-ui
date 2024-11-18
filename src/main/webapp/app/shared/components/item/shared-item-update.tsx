@@ -324,7 +324,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
               </Col>
             </Row>
 
-            {isRestaurantItem ? <SharedAddon onFieldChange={onFieldChange} addons={item.addons} addonGroups={item.addonGroups} /> : null}
+            {isRestaurantItem ? <SharedAddon onFieldChange={onFieldChange} addons={item.addons} addonGroups={item.addonGroups} addonPriceOverrides={item.addonPriceOverrides} /> : null}
           </Col>
         </FormGroup>
       </Row>

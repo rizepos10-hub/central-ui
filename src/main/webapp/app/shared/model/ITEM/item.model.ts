@@ -10,6 +10,7 @@ import {IAddonGroup} from "app/shared/model/ADDON/addon-groups.model";
 import { IDiscount } from "app/shared/model/discount.model";
 import { ITag } from "app/shared/model/TAG/tag.model";
 import { IBrand } from "app/shared/model/brand.model";
+import { IAddonPriceOverride } from '../ADDON/addon-price-override';
 
 export interface IItem {
   id?: string;
@@ -22,6 +23,7 @@ export interface IItem {
   stock?: number;
   tags?: ITag[];
   brand?: IBrand;
+  addonPriceOverrides?: IAddonPriceOverride[];
   addons?: IAddon[];
   addonGroups?: {
     required?: boolean,

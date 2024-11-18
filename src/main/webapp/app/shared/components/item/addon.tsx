@@ -1,5 +1,5 @@
 import { Button, Row, Table } from 'reactstrap';
-import { getSortState, Translate } from 'react-jhipster';
+import { getSortState, translate, Translate } from 'react-jhipster';
 import Select, { ActionMeta, MultiValue } from 'react-select';
 import React, { useEffect, useState } from 'react';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
@@ -18,11 +18,14 @@ import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { getEntities as getAddonsEntity } from 'app/entities/addon/addon.reducer';
 import { OrderList } from 'primereact/orderlist';
 import { Dropdown } from 'primereact/dropdown';
+import { InputNumber } from 'primereact/inputnumber';
+import { IAddonPriceOverride } from 'app/shared/model/ADDON/addon-price-override';
 
 type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
   addons: IAddon[];
   addonGroups: IItem['addonGroups'];
+  addonPriceOverrides: IAddonPriceOverride[];
 };
 
 
@@ -39,7 +42,7 @@ const initialState = {
   },
 };
 
-const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) => {
+const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }: SharedAddonProps) => {
   const currencySettingsEntity = useAppSelector(state => state.currencySettings.entity);
 
   const dispatch = useAppDispatch();
@@ -151,6 +154,30 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
     onFieldChange('addons', updatedAddons);
   };
 
+  const handleOverridedPriceChange = (addonId, price) => {
+    const updatedAddonPriceOverrides = [...addonPriceOverrides];
+    const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
+    console.log(index)
+    if (price !== null && price !== undefined && price !== '') {
+      if (index >= 0) {
+        // Update existing price override
+        updatedAddonPriceOverrides[index].price = price;
+      } else {
+        // Add new price override
+        updatedAddonPriceOverrides.push({ id: addonId, price });
+      }
+    } else {
+      // Remove price override if price is empty or null
+      if (index >= 0) {
+        updatedAddonPriceOverrides.splice(index, 1);
+      }
+    }
+
+    console.log(updatedAddonPriceOverrides)
+
+    onFieldChange('addonPriceOverrides', updatedAddonPriceOverrides);
+  };
+
 
   const handleAddonReorder = (event) => {
     onFieldChange('addons', event.value);
@@ -218,7 +245,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                 <div className="p-orderlist-item d-flex justify-content-between align-items-center">
                   <span>{group.name}</span>
                   <Button color="danger" size="sm" onClick={() => handleRemoveAddonGroup(group.id)}>
-                    X
+                    {translate("items.update.remove")}
                   </Button>
                 </div>
               )}
@@ -308,10 +335,20 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
               value={addons || []}
               onChange={handleAddonReorder}
               itemTemplate={(addon) => (
-                <div className="p-orderlist-item d-flex justify-content-between align-items-center">
+                <div className="p-orderlist-item d-flex justify-content-between align-items-end">
                   <span>{addon.name}</span>
+                  <span className='d-flex flex-column gap-1'>
+                    <label>{translate('items.update.overridedPrice')}</label>
+                    <InputNumber
+                      value={addonPriceOverrides.find(override => override.id === addon.id)?.price}
+                      onChange={e => handleOverridedPriceChange(addon.id, e.value)}
+                      mode="decimal"
+                      minFractionDigits={2}
+                      maxFractionDigits={2}
+                    />
+                  </span>
                   <Button color="danger" size="sm" onClick={() => handleRemoveAddon(addon.id)}>
-                    X
+                    {translate("items.update.remove")}
                   </Button>
                 </div>
               )}

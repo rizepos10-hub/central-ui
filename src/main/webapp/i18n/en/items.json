@@ -189,6 +189,7 @@
       "filterByGroup":  "Filter by Group",
       "tags": "Tags",
       "price": "Price",
+      "overridedPrice": "Overrided Price",
       "salePrice": "Sale Price",
       "branchPrices": "Branch Prices",
       "brand": "Brand",
