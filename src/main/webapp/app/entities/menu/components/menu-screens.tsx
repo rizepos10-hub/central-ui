@@ -505,7 +505,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             const updatedRowHeight = [...subScreenToUpdate.rowHeight];
 
             // Clamp the value between 1 and 2
-            const newValue = Math.max(1, Math.min(2, value));
+            const newValue = Math.max(0.5, Math.min(2, value));
 
             updatedRowHeight[rowIndex] = newValue;
 
@@ -538,19 +538,19 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             {/* Add the slider and input text for each row */}
                             <div className="mb-2 d-flex align-items-center">
                                 <Slider
-                                    value={findScreenById(data?.menuScreens, subScreenStack?.at(-1)?.id)?.rowHeight?.[rowIndex] || 1}
+                                    value={findScreenById(data?.menuScreens, subScreenStack?.at(-1)?.id)?.rowHeight?.[rowIndex] || 0.5}
                                     onChange={(e) => handleRowHeightChange(e.value, rowIndex)}
-                                    min={1}
+                                    min={0.5}
                                     max={2}
                                     step={0.01}
                                     className="w-full"
                                 />
                                 <InputText
-                                    value={findScreenById(data?.menuScreens, subScreenStack?.at(-1).id)?.rowHeight?.[rowIndex] || 1}
+                                    value={findScreenById(data?.menuScreens, subScreenStack?.at(-1).id)?.rowHeight?.[rowIndex] || 0.5}
                                     onChange={(e) => handleInputChange(e, rowIndex)}
                                     className="w-full ml-2"
                                     type="number"
-                                    min={1}
+                                    min={0.5}
                                     max={2}
                                     step={0.1}
                                 />
