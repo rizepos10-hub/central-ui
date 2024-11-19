@@ -1,4 +1,4 @@
-import { Button, Row, Table } from 'reactstrap';
+import { Button, Col, Row, Table } from 'reactstrap';
 import { getSortState, translate, Translate } from 'react-jhipster';
 import Select, { ActionMeta, MultiValue } from 'react-select';
 import React, { useEffect, useState } from 'react';
@@ -11,7 +11,7 @@ import { cloneDeep } from 'lodash';
 import { filterEntities } from 'app/entities/addon/addon.reducer';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { FilterMatchMode } from 'primereact/api';
-import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
+import { IAddonGroup, IAddonGroups } from 'app/shared/model/ADDON/addon-groups.model';
 import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-groups.reducer';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
@@ -20,6 +20,7 @@ import { OrderList } from 'primereact/orderlist';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { IAddonPriceOverride } from 'app/shared/model/ADDON/addon-price-override';
+import { InputText } from 'primereact/inputtext';
 
 type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
@@ -46,95 +47,130 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
   const currencySettingsEntity = useAppSelector(state => state.currencySettings.entity);
 
   const dispatch = useAppDispatch();
-  const [openedAddonModal, setOpenedAddonModal] = useState(false);
-  const [filterAddonState, setFilterAddonState] = useState(initialState);
+  // const [openedAddonModal, setOpenedAddonModal] = useState(false);
+  // const [filterAddonState, setFilterAddonState] = useState(initialState);
 
   const addonOptions = useAppSelector(state => state.addon.entities);
-  const loadingAddonOptions = useAppSelector(state => state.addon.loading);
+  // const loadingAddonOptions = useAppSelector(state => state.addon.loading);
   const addonGroupsOptions = useAppSelector(state => state.addonGroups.entities);
-  const loadingAddonGroupsOptions = useAppSelector(state => state.addonGroups.loading);
+  // const loadingAddonGroupsOptions = useAppSelector(state => state.addonGroups.loading);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
+  const [selectedAddonGroup, setSelectedAddonGroup] = useState<IAddonGroups>();
 
-  const handleAddonGroupFilterChange = (selectedGroup: IAddonGroup) => {
-    setFilterAddonState(prevState => ({
-      ...prevState,
-      filters: {
-        ...prevState.filters,
-        groupId: { value: selectedGroup?.id, matchMode: FilterMatchMode.EQUALS }
-      }
-    }))
-  }
+
+  // const handleAddonGroupFilterChange = (selectedGroup: IAddonGroup) => {
+  //   setFilterAddonState(prevState => ({
+  //     ...prevState,
+  //     filters: {
+  //       ...prevState.filters,
+  //       groupId: { value: selectedGroup?.id, matchMode: FilterMatchMode.EQUALS }
+  //     }
+  //   }))
+  // }
+
+  // const openImportAddonModal = () => {
+  //   setOpenedAddonModal(true);
+  // };
+
+  // const handleImportAddonModalClose = () => {
+  //   setOpenedAddonModal(false);
+  // };
+
+
+  // const handleImportAddonModalSave = (option: IItem) => {
+  //   const extraAddons = option.addons;
+  //   const uniqueAddonIds = Array.from(new Set([...(addons || []), ...extraAddons].map(addon => addon.id)));
+  //   const mergedAddons = uniqueAddonIds.map(id => [...(addons || []), ...extraAddons].find(addon => addon.id === id));
+
+  //   const extraAddonGroups = option.addonGroups;
+  //   const uniqueAddonGroupIds = Array.from(
+  //     new Set([...addonGroups.map(group => group.addonGroup.id), ...extraAddonGroups.map(group => group.addonGroup.id)])
+  //   );
+  //   const mergedAddonGroups = uniqueAddonGroupIds.map(id =>
+  //     [...addonGroups, ...extraAddonGroups].find(addonGroup => addonGroup.addonGroup.id === id)
+  //   );
+
+  //   onFieldChange('addonGroups', mergedAddonGroups);
+  //   onFieldChange('addons', mergedAddons);
+  // };
+
+  // const getAddons = () => {
+  //   const updatedQuery = applyMatchModeMap(filterAddonState);
+  //   dispatch(
+  //     filterEntities({
+  //       query: updatedQuery,
+  //     })
+  //   );
+  // };
+
+  // useEffect(() => {
+  //   getAddons();
+  // }, [filterAddonState?.filters?.groupId?.value]);
+
+
+
+  // const handleAddonChange = (selectedAddon: IAddon) => {
+  //   onFieldChange('addons', [...addons, selectedAddon]);
+  // };
+
+  // const handleRemoveAddon = (addon: string) => {
+  //   const updatedAddons = addons.filter(a => a.id !== addon);
+  //   onFieldChange('addons', updatedAddons);
+  // };
+
+  // const handleAddonOverridedPriceChange = (addonId, price) => {
+  //   const updatedAddonPriceOverrides = [...addonPriceOverrides];
+  //   const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
+  //   if (price !== null && price !== undefined && price !== '') {
+  //     if (index >= 0) {
+  //       // Update existing price override
+  //       updatedAddonPriceOverrides[index].price = price;
+  //     } else {
+  //       // Add new price override
+  //       updatedAddonPriceOverrides.push({ id: addonId, price });
+  //     }
+  //   } else {
+  //     // Remove price override if price is empty or null
+  //     if (index >= 0) {
+  //       updatedAddonPriceOverrides.splice(index, 1);
+  //     }
+  //   }
+
+
+  //   onFieldChange('addonPriceOverrides', updatedAddonPriceOverrides);
+  // };
+
+
+  // const handleAddonReorder = (event) => {
+  //   onFieldChange('addons', event.value);
+  // };
+
   const handleCheckboxChange = (addonGroupIndex: number) => {
     const updatedAddonGroups = cloneDeep([...addonGroups]);
     updatedAddonGroups[addonGroupIndex].required = !updatedAddonGroups[addonGroupIndex].required;
     onFieldChange('addonGroups', updatedAddonGroups);
   };
 
-
-  const openImportAddonModal = () => {
-    setOpenedAddonModal(true);
-  };
-
-  const handleImportAddonModalClose = () => {
-    setOpenedAddonModal(false);
-  };
-
   const handleAddonGroupChange = (
     selectedAddonGroup: IAddonGroup,
     actionMeta: ActionMeta<{ id: string; name: string }>
   ) => {
-    // const existingAddonGroupsMap = new Map(addonGroups?.map(group => [group.addonGroup?.id, group]));
-    // const updatedAddonGroups = selectedAddonGroup.map(selectedGroup => {
-    //   const existingGroup = existingAddonGroupsMap.get(selectedGroup?.id);
-    //   return {
-    //     required: existingGroup ? existingGroup.required : false,
-    //     addonGroup: selectedGroup,
-    //   };
-    // });
-    const newGroup = {
+    const newGroup : IAddonGroups = {
       addonGroup: selectedAddonGroup,
       required: false,
+      minQuantity: null,
+      maxQuantity: null,
+      addAutomatically: false,
+      addonPriceOverrides: [],
+      excluded: [],
+      name: null
     };
     onFieldChange('addonGroups', [...addonGroups, newGroup]);
   };
-
-  const handleAddonChange = (selectedAddon: IAddon) => {
-    onFieldChange('addons', [...addons, selectedAddon]);
-  };
-
-  const handleImportAddonModalSave = (option: IItem) => {
-    const extraAddons = option.addons;
-    const uniqueAddonIds = Array.from(new Set([...(addons || []), ...extraAddons].map(addon => addon.id)));
-    const mergedAddons = uniqueAddonIds.map(id => [...(addons || []), ...extraAddons].find(addon => addon.id === id));
-
-    const extraAddonGroups = option.addonGroups;
-    const uniqueAddonGroupIds = Array.from(
-      new Set([...addonGroups.map(group => group.addonGroup.id), ...extraAddonGroups.map(group => group.addonGroup.id)])
-    );
-    const mergedAddonGroups = uniqueAddonGroupIds.map(id =>
-      [...addonGroups, ...extraAddonGroups].find(addonGroup => addonGroup.addonGroup.id === id)
-    );
-
-    onFieldChange('addonGroups', mergedAddonGroups);
-    onFieldChange('addons', mergedAddons);
-  };
-
-  const getAddons = () => {
-    const updatedQuery = applyMatchModeMap(filterAddonState);
-    dispatch(
-      filterEntities({
-        query: updatedQuery,
-      })
-    );
-  };
-
-  useEffect(() => {
-    getAddons();
-  }, [filterAddonState?.filters?.groupId?.value]);
 
   const handleAddonGroupReorder = (event) => {
     const reorderedAddonGroups = event.value?.map(group => ({
@@ -149,36 +185,17 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
     onFieldChange('addonGroups', updatedAddonGroups);
   };
 
-  const handleRemoveAddon = (addon: string) => {
-    const updatedAddons = addons.filter(a => a.id !== addon);
-    onFieldChange('addons', updatedAddons);
-  };
+  const handleAddonGroupFieldChange = (addonGroupIndex: number, fieldName: string, value: any) => {
+    console.log(value)
+    const updatedAddonGroups = [...addonGroups];
 
-  const handleAddonOverridedPriceChange = (addonId, price) => {
-    const updatedAddonPriceOverrides = [...addonPriceOverrides];
-    const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
-    if (price !== null && price !== undefined && price !== '') {
-      if (index >= 0) {
-        // Update existing price override
-        updatedAddonPriceOverrides[index].price = price;
-      } else {
-        // Add new price override
-        updatedAddonPriceOverrides.push({ id: addonId, price });
-      }
-    } else {
-      // Remove price override if price is empty or null
-      if (index >= 0) {
-        updatedAddonPriceOverrides.splice(index, 1);
-      }
-    }
+    const updatedItem = {
+      ...updatedAddonGroups[addonGroupIndex],
+      [fieldName]: value,
+    };
 
-
-    onFieldChange('addonPriceOverrides', updatedAddonPriceOverrides);
-  };
-
-
-  const handleAddonReorder = (event) => {
-    onFieldChange('addons', event.value);
+    updatedAddonGroups[addonGroupIndex] = updatedItem;
+    onFieldChange('addonGroups', updatedAddonGroups);
   };
 
   const reorderHeader = (
@@ -226,11 +243,12 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
     option => !selectedAddonGroupIds?.includes(option.id)
   );
 
+  console.log(selectedAddonGroup)
   const filteredAddons = addonOptions?.filter(option => !addons?.map(addon => addon.id).includes(option.id));
   return (
     <>
       <Row>
-        <div className="">
+        <Col md={9}>
           <label className={'font-semibold'}>
             <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
           </label>
@@ -238,14 +256,63 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
             <OrderList
               value={addonGroups?.map(group => group.addonGroup) || []}
               onChange={handleAddonGroupReorder}
-              itemTemplate={(group) => (
-                <div className="p-orderlist-item d-flex justify-content-between align-items-center">
-                  <span>{group.name}</span>
-                  <Button color="danger" size="sm" onClick={() => handleRemoveAddonGroup(group.id)}>
-                    {translate("items.update.remove")}
-                  </Button>
-                </div>
-              )}
+              style={{ padding: '0px' }}  
+              listStyle={{ padding: '0px' }}
+              itemTemplate={(addonGroup: IAddonGroup) => {
+                const index = addonGroups.findIndex(group => group.addonGroup.id === addonGroup.id);
+
+                return (
+                  <div
+                   className="p-orderlist-item d-flex justify-content-between align-items-end p-0"
+                   onClick={() => setSelectedAddonGroup(addonGroups[index])}
+                   >
+                    <span className='fw-bold'>{addonGroup.name}</span>
+                    <span className='d-flex flex-column gap-1'>
+                      <label>{translate('items.update.name')}</label>
+                      <InputText
+                        value={addonGroups[index]?.name}
+                        onChange={e => handleAddonGroupFieldChange(index, 'name', e.target.value)}
+                        style={{ width: '120px' }}
+                      />
+                    </span>
+                    <span className='d-flex gap-1'>
+                      <span className='d-flex flex-column gap-1'>
+                        <label>{translate('items.update.min')}</label>
+                        <InputNumber
+                          value={addonGroups[index]?.minQuantity}
+                          onChange={e => handleAddonGroupFieldChange(index, 'minQuantity', e.value)}
+                          inputStyle={{ width: '40px' }}
+                        />
+                      </span>
+                      <span className='d-flex flex-column gap-1'>
+                        <label>{translate('items.update.max')}</label>
+                        <InputNumber
+                          value={addonGroups[index]?.maxQuantity}
+                          onChange={e => handleAddonGroupFieldChange(index, 'maxQuantity', e.value)}
+                          inputStyle={{ width: '40px' }}
+                        />
+                      </span>
+                    </span>
+                    <span className='d-flex flex-column gap-1'>
+                      <label>{translate('items.update.required')}</label>
+                      <Checkbox
+                        checked={addonGroups[index]?.required}
+                        onChange={e => handleAddonGroupFieldChange(index, 'required', e.checked)}
+                      />
+                    </span>
+                    <span className='d-flex flex-column gap-1'>
+                      <label>{translate('items.update.addAutomatically')}</label>
+                      <Checkbox
+                        checked={addonGroups[index]?.addAutomatically}
+                        onChange={e => handleAddonGroupFieldChange(index, 'addAutomatically', e.checked)}
+                      />
+                    </span>
+                    <Button color="danger" size="sm" onClick={() => handleRemoveAddonGroup(addonGroup.id)}>
+                      X
+                    </Button>
+                  </div>
+                )
+              }}
               header={
                 reorderHeader(
                   filteredAddonGroupsOptions,
@@ -268,7 +335,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
               dataKey="id"
             />
           </div>
-          <Table>
+          {/* <Table>
             <thead>
               <tr>
                 <th>
@@ -289,11 +356,11 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
                 </tr>
               ))}
             </tbody>
-          </Table>
-        </div>
+          </Table> */}
+        </Col>
       </Row>
 
-      <Row className={'my-3'}>
+      {/* <Row className={'my-3'}>
         <div className="row d-flex flex-column gap-2">
           <div className={'d-flex flex-row gap-4'}>
             <label className={'text-xl font-semibold'}>
@@ -314,7 +381,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
                 }))
               }}
             />
-
+            
             <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
               <div>
                 <Button type="button" onClick={openImportAddonModal}>
@@ -365,14 +432,14 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
             />
           </div>
         </div>
-      </Row>
-      {openedAddonModal && (
+      </Row> */}
+      {/* {openedAddonModal && (
         <AddonImportModal
           showModal={openedAddonModal}
           handleSave={handleImportAddonModalSave}
           handleClose={handleImportAddonModalClose}
         />
-      )}
+      )} */}
     </>
   );
 };
