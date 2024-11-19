@@ -298,12 +298,12 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         });
     };
 
-    const confirm1 = (mainScreenIndex, index, item) => {
+    const confirm1 = (mainScreenIndex, item) => {
         confirmDialog({
             message: 'Do you want to delete this record?',
             icon: 'pi pi-exclamation-triangle',
             defaultFocus: 'accept',
-            accept: () => handleRemoveCard(mainScreenIndex, index, item),
+            accept: () => handleRemoveCard(mainScreenIndex, item),
             // reject
         });
     };
@@ -317,20 +317,19 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             // reject
         });
     };
-
-    const handleRemoveCard = (mainScreenIndex, subScreenIndex, item) => {
+    
+    const handleRemoveCard = (mainScreenIndex, item) => {
         setData(prevData => {
             const updatedMenuScreens = prevData.menuScreens.map((mainScreen, i) => {
                 if (i === mainScreenIndex) {
                     if (subScreenStack.length === 1) {
-                        const cardToRemove = mainScreen.subScreens[subScreenIndex];
-                        if (cardToRemove.componentType === 'ITEM') {
-                            const itemID = cardToRemove?.component?.item?.id;
+                        if (item.componentType === 'ITEM') {
+                            const itemID = item?.component?.item?.id;
                             const newItemsToDisplay = selectedItems.filter(itm => itm.id !== itemID);
                             setSelectedItems(newItemsToDisplay);
                         }
 
-                        const updatedSubScreens = mainScreen.subScreens.filter((subScreen, j) => j !== subScreenIndex);
+                        const updatedSubScreens = mainScreen.subScreens.filter(subScreen => subScreen.id !== item.id);
                         return {
                             ...mainScreen,
                             subScreens: updatedSubScreens,
@@ -340,13 +339,21 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             subScreen === subScreenStack[subScreenStack.length - 1]
                                 ? {
                                     ...subScreen,
-                                    subScreens: subScreen.subScreens.filter((_, k) => k !== subScreenIndex),
+                                    subScreens: subScreen.subScreens.filter(subScreen => subScreen.id !== item.id),
                                 }
                                 : subScreen
                         );
                         setSubScreenStack(updatedSubScreenStack);
-                        const topSubScreen = subScreenStack[subScreenStack.length - 1];
-                        const updatedSubScreens = findAndRemoveCard(mainScreen.subScreens, topSubScreen, subScreenIndex);
+                        // Update mainScreen.subScreens if necessary
+                        const updatedSubScreens = mainScreen.subScreens.map(subScreen => {
+                            if (subScreen.id === subScreenStack[subScreenStack.length - 1].id) {
+                                return {
+                                    ...subScreen,
+                                    subScreens: subScreen.subScreens.filter(subScreen => subScreen.id !== item.id),
+                                };
+                            }
+                            return subScreen;
+                        });
                         return {
                             ...mainScreen,
                             subScreens: updatedSubScreens,
@@ -362,6 +369,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             };
         });
     };
+
 
     const renderSubScreens = (subscreens, mainScreenIndex) => {
         const handleDragStart = (e, { rowIndex, itemIndex }) => {
@@ -425,7 +433,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     ...data,
                     menuScreens: updatedData
                 });
-                
+
 
                 // Insert moved item at destination
                 flatItems.splice(destIndexInFlatArray, 0, movedItem);
@@ -530,6 +538,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             }
         };
 
+        console.log(groupedSubscreens, 'groupedSubscreens');
+
         return (
             <div className="d-flex gap-3 mb-3" onDragOver={e => e.preventDefault()}>
                 <Col md={12}>
@@ -590,7 +600,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                     <MdDeleteOutline
                                                         size={20}
                                                         color={'red'}
-                                                        onClick={(e) => confirm1(mainScreenIndex, index, item)}
+                                                        onClick={(e) => confirm1(mainScreenIndex, item)}
                                                     />
                                                 </div>
                                             </div>
