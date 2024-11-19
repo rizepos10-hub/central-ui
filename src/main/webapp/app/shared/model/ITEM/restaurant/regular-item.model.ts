@@ -7,6 +7,7 @@ import { IAddon } from "app/shared/model/ADDON/addon.model";
 import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 import { IMenu } from "../../menu.model";
 import { IAddonGroup } from "../../ADDON/addon-groups.model";
+import { IAddonPriceOverride } from "../../ADDON/addon-price-override";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -24,6 +25,7 @@ export interface IRegularItemVariant {
   accountingGroups?: IProfileGroup[];
   order?: number;
   discounts?: IDiscount[];
+  addonPriceOverrides?: IAddonPriceOverride[];
   addons?: IAddon[];
   addonGroups?: {
     required: boolean;

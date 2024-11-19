@@ -401,6 +401,28 @@ export const RegularItemUpdate = () => {
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
   };
 
+  const handleAddonOverridedPriceChange = (addonId, price, variantIndex) => {
+    const variant: IRegularItemVariant = regularItem.variants[variantIndex];
+    const updatedAddonPriceOverrides = [...variant.addonPriceOverrides];
+    const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
+    if (price !== null && price !== undefined && price !== '') {
+      if (index >= 0) {
+        // Update existing price override
+        updatedAddonPriceOverrides[index].price = price;
+      } else {
+        // Add new price override
+        updatedAddonPriceOverrides.push({ id: addonId, price });
+      }
+    } else {
+      // Remove price override if price is empty or null
+      if (index >= 0) {
+        updatedAddonPriceOverrides.splice(index, 1);
+      }
+    }
+
+    handleVariantFieldChange(variantIndex, 'addonPriceOverrides', updatedAddonPriceOverrides);
+  };
+
   if (loading) {
     return <Spinner />
   }
@@ -557,8 +579,18 @@ export const RegularItemUpdate = () => {
                                               itemTemplate={(addon) => (
                                                 <div className="p-orderlist-item d-flex justify-content-between align-items-center">
                                                   <span>{addon.name}</span>
+                                                  <span className='d-flex flex-column gap-1'>
+                                                    <label>{translate('items.update.overridedPrice')}</label>
+                                                    <InputNumber
+                                                      value={variant.addonPriceOverrides.find(override => override.id === addon.id)?.price}
+                                                      onChange={e => handleAddonOverridedPriceChange(addon.id, e.value, variantIndex)}
+                                                      mode="decimal"
+                                                      minFractionDigits={2}
+                                                      maxFractionDigits={2}
+                                                    />
+                                                  </span>
                                                   <Button color="danger" size="sm" onClick={() => handleRemoveAddon(addon.id, variant, variantIndex)}>
-                                                    X
+                                                    {translate("items.update.remove")}
                                                   </Button>
                                                 </div>
                                               )}
