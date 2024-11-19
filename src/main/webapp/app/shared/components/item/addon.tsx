@@ -154,10 +154,9 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
     onFieldChange('addons', updatedAddons);
   };
 
-  const handleOverridedPriceChange = (addonId, price) => {
+  const handleAddonOverridedPriceChange = (addonId, price) => {
     const updatedAddonPriceOverrides = [...addonPriceOverrides];
     const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
-    console.log(index)
     if (price !== null && price !== undefined && price !== '') {
       if (index >= 0) {
         // Update existing price override
@@ -173,7 +172,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
       }
     }
 
-    console.log(updatedAddonPriceOverrides)
 
     onFieldChange('addonPriceOverrides', updatedAddonPriceOverrides);
   };
@@ -194,7 +192,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
     onFocus: any
   ) => {
     const [selected, setSelected] = useState(null);
-    console.log(selected)
     return (
       <div className='d-flex gap-2 align-items-center'>
         <Dropdown
@@ -341,7 +338,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, addonPriceOverrides }
                     <label>{translate('items.update.overridedPrice')}</label>
                     <InputNumber
                       value={addonPriceOverrides.find(override => override.id === addon.id)?.price}
-                      onChange={e => handleOverridedPriceChange(addon.id, e.value)}
+                      onChange={e => handleAddonOverridedPriceChange(addon.id, e.value)}
                       mode="decimal"
                       minFractionDigits={2}
                       maxFractionDigits={2}
