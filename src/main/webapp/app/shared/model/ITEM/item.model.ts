@@ -6,7 +6,7 @@ import {IProductionCenter} from "app/shared/model/PRINTER/production-center.mode
 import {IVisibility} from "app/shared/model/visibility.model";
 import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {IAddon} from "app/shared/model/ADDON/addon.model";
-import {IAddonGroup} from "app/shared/model/ADDON/addon-groups.model";
+import {IAddonGroup, IAddonGroups} from "app/shared/model/ADDON/addon-groups.model";
 import { IDiscount } from "app/shared/model/discount.model";
 import { ITag } from "app/shared/model/TAG/tag.model";
 import { IBrand } from "app/shared/model/brand.model";
@@ -25,10 +25,7 @@ export interface IItem {
   brand?: IBrand;
   addonPriceOverrides?: IAddonPriceOverride[];
   addons?: IAddon[];
-  addonGroups?: {
-    required?: boolean,
-    addonGroup?: IAddonGroup
-  }[];
+  addonGroups?: IAddonGroups[];
   excludedFromLoyaltyPoints?: boolean;
   status?: ItemStatus | null;
   variants?: any;

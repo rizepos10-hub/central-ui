@@ -354,10 +354,6 @@ export const RegularItemUpdate = () => {
     )
   }
 
-  const onReorder = (event, variantIndex) => {
-    const reorderedAddons = event.value;
-    handleVariantFieldChange(variantIndex, 'addons', reorderedAddons);
-  };
 
   const onReorderAddonGroups = (event, variantIndex) => {
     const reorderedAddonGroups = event.value?.map(group => ({
@@ -367,22 +363,10 @@ export const RegularItemUpdate = () => {
     handleVariantFieldChange(variantIndex, 'addonGroups', reorderedAddonGroups);
   };
 
-  const handleRemoveAddon = (addon: string, variant, variantIndex) => {
-    const updatedAddons = variant.addons.filter(a => a.id !== addon);
-
-    handleVariantFieldChange(variantIndex, 'addons', updatedAddons as IAddon[])
-  };
-
   const handleRemoveAddonGroup = (addonGroup: string, variant: IRegularItemVariant, variantIndex) => {
     const updatedAddonGroups = variant.addonGroups.filter(a => a.addonGroup.id !== addonGroup);
 
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups)
-  };
-
-
-  const handleAddonChange = (selectedAddon: IAddon, variant, variantIndex) => {
-    const updatedAddons = [...variant.addons, selectedAddon];
-    handleVariantFieldChange(variantIndex, 'addons', updatedAddons as IAddon[])
   };
 
   const handleAddonGroupChange = (selectedAddonGroup: IAddonGroup, variant: IRegularItemVariant, variantIndex) => {
@@ -401,27 +385,44 @@ export const RegularItemUpdate = () => {
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
   };
 
-  const handleAddonOverridedPriceChange = (addonId, price, variantIndex) => {
-    const variant: IRegularItemVariant = regularItem.variants[variantIndex];
-    const updatedAddonPriceOverrides = [...variant.addonPriceOverrides];
-    const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
-    if (price !== null && price !== undefined && price !== '') {
-      if (index >= 0) {
-        // Update existing price override
-        updatedAddonPriceOverrides[index].price = price;
-      } else {
-        // Add new price override
-        updatedAddonPriceOverrides.push({ id: addonId, price });
-      }
-    } else {
-      // Remove price override if price is empty or null
-      if (index >= 0) {
-        updatedAddonPriceOverrides.splice(index, 1);
-      }
-    }
+  // const onReorder = (event, variantIndex) => {
+  //   const reorderedAddons = event.value;
+  //   handleVariantFieldChange(variantIndex, 'addons', reorderedAddons);
+  // };
 
-    handleVariantFieldChange(variantIndex, 'addonPriceOverrides', updatedAddonPriceOverrides);
-  };
+  // const handleAddonChange = (selectedAddon: IAddon, variant, variantIndex) => {
+  //   const updatedAddons = [...variant.addons, selectedAddon];
+  //   handleVariantFieldChange(variantIndex, 'addons', updatedAddons as IAddon[])
+  // };
+
+
+  // const handleRemoveAddon = (addon: string, variant, variantIndex) => {
+  //   const updatedAddons = variant.addons.filter(a => a.id !== addon);
+
+  //   handleVariantFieldChange(variantIndex, 'addons', updatedAddons as IAddon[])
+  // };
+
+  // const handleAddonOverridedPriceChange = (addonId, price, variantIndex) => {
+  //   const variant: IRegularItemVariant = regularItem.variants[variantIndex];
+  //   const updatedAddonPriceOverrides = [...variant.addonPriceOverrides];
+  //   const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
+  //   if (price !== null && price !== undefined && price !== '') {
+  //     if (index >= 0) {
+  //       // Update existing price override
+  //       updatedAddonPriceOverrides[index].price = price;
+  //     } else {
+  //       // Add new price override
+  //       updatedAddonPriceOverrides.push({ id: addonId, price });
+  //     }
+  //   } else {
+  //     // Remove price override if price is empty or null
+  //     if (index >= 0) {
+  //       updatedAddonPriceOverrides.splice(index, 1);
+  //     }
+  //   }
+
+  //   handleVariantFieldChange(variantIndex, 'addonPriceOverrides', updatedAddonPriceOverrides);
+  // };
 
   if (loading) {
     return <Spinner />
@@ -567,7 +568,7 @@ export const RegularItemUpdate = () => {
                                               />
                                             </div>
 
-                                            <div className={'d-flex flex-column gap-2 mt-2'}>
+                                            {/* <div className={'d-flex flex-column gap-2 mt-2'}>
                                               <label className={'font-semibold'}>
                                                 <Translate contentKey={'items.update.addons'}>Addons</Translate>
                                               </label>
@@ -607,7 +608,7 @@ export const RegularItemUpdate = () => {
                                               }
                                               dragdrop
                                               dataKey="id"
-                                            />
+                                            /> */}
 
                                             <div className={'d-flex flex-column gap-2 mt-2'}>
                                               <label className={'font-semibold'}>

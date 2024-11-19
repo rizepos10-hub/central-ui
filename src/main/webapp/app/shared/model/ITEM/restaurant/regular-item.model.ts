@@ -6,7 +6,7 @@ import { IMixAndMatchRule } from "app/shared/model/mix-and-match-rule.model";
 import { IAddon } from "app/shared/model/ADDON/addon.model";
 import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 import { IMenu } from "../../menu.model";
-import { IAddonGroup } from "../../ADDON/addon-groups.model";
+import { IAddonGroup, IAddonGroups } from "../../ADDON/addon-groups.model";
 import { IAddonPriceOverride } from "../../ADDON/addon-price-override";
 
 interface IBranchVariantDetails {
@@ -27,10 +27,7 @@ export interface IRegularItemVariant {
   discounts?: IDiscount[];
   addonPriceOverrides?: IAddonPriceOverride[];
   addons?: IAddon[];
-  addonGroups?: {
-    required: boolean;
-    addonGroup: IAddonGroup;
-  }[];
+  addonGroups?: IAddonGroups[];
   price?: number;
   salePrice?: number;
   branchVariantDetails?: IBranchVariantDetails;
