@@ -39,6 +39,7 @@ import { IPizzaSize } from 'app/shared/model/PIZZA/pizza-size.model';
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
 import { InputTextarea } from 'primereact/inputtextarea';
+import SharedAddon from 'app/shared/components/item/addon';
 
 const items: MenuItem[] = [
   {
@@ -1065,6 +1066,9 @@ export const PizzaItemUpdate = () => {
                             </Col>
                           </Row>
                         </FormGroup>
+                      </TabPanel>
+                      <TabPanel header={translate('items.update.tabs.addons.label')}>
+                        {pizzaItem ? <SharedAddon onFieldChange={handleFieldChange} addons={pizzaItem.addons} addonGroups={pizzaItem.addonGroups} addonPriceOverrides={pizzaItem.addonPriceOverrides} /> : null}
                       </TabPanel>
                       <TabPanel header={translate('items.update.tabs.visibility.label')}>
                         <Visibility
