@@ -80,6 +80,9 @@
             "pizza": "Pizza Item Visibility"
           }
         },
+        "addons": {
+          "label": "Addons"
+        },
         "excludedFromLoyaltyPoints": {
           "label": "Loyalty"
         },
@@ -193,6 +196,8 @@
       "min": "Min",
       "max": "Max",
       "addAutomatically": "Add Automatically",
+      "relatedAddons": "Related Addons",
+      "exclude": "Exclude",
       "salePrice": "Sale Price",
       "branchPrices": "Branch Prices",
       "brand": "Brand",
