@@ -151,7 +151,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
     updatedAddonGroups[addonGroupIndex].required = !updatedAddonGroups[addonGroupIndex].required;
     onFieldChange('addonGroups', updatedAddonGroups);
   };
-
   const handleAddonGroupChange = (
     selectedAddonGroup: IAddonGroup,
     actionMeta: ActionMeta<{ id: string; name: string }>
@@ -164,9 +163,14 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
       addAutomatically: false,
       addonPriceOverrides: [],
       excluded: [],
-      name: null
+      name: null,
     };
-    onFieldChange('addonGroups', [...addonGroups, newGroup]);
+
+    // Ensure addonGroups is an array
+    const updatedAddonGroups = Array.isArray(addonGroups) ? addonGroups : [];
+
+    // Add the new group
+    onFieldChange('addonGroups', [...updatedAddonGroups, newGroup]);
   };
 
   const handleAddonGroupReorder = (event) => {
