@@ -433,24 +433,39 @@ export const RegularItemUpdate = () => {
 
   //   handleVariantFieldChange(variantIndex, 'addonPriceOverrides', updatedAddonPriceOverrides);
   // };
-
-  const handleVariantAddonGroupFieldChange = (addonGroupIndex: number, fieldName: string, value: any, variantIndex: number) => {
-    console.log(value)
+  const handleVariantAddonGroupFieldChange = (
+    addonGroupIndex: number,
+    fieldName: string,
+    value: any,
+    variantIndex: number
+  ) => {
+    console.log(value);
     const variant = regularItem.variants[variantIndex];
+
     const updatedAddonGroups = [...variant.addonGroups];
-    console.log(updatedAddonGroups)
+
     const updatedItem = {
       ...updatedAddonGroups[addonGroupIndex],
       [fieldName]: value,
     };
-    console.log(updatedItem)
+    console.log(updatedItem);
 
     updatedAddonGroups[addonGroupIndex] = updatedItem;
+
+    const updatedVariant = {
+      ...variant,
+      addonGroups: updatedAddonGroups,
+    };
+
     const updatedVariants = [...regularItem.variants];
-    updatedVariants[variantIndex].addonGroups = [...updatedAddonGroups];
-    console.log(updatedVariants)
+
+    updatedVariants[variantIndex] = updatedVariant;
+
+    console.log(updatedVariants);
+
     handleFieldChange('variants', updatedVariants);
   };
+
 
   const handleAddonGroupOverridedPriceChange = (addonGroupIndex: number, addonId: string, price: number | null | undefined, variantIndex: number) => {
     const variant: IRegularItemVariant = regularItem.variants[variantIndex];
@@ -778,63 +793,65 @@ export const RegularItemUpdate = () => {
                                                   />
                                                 </div>
                                               </Col>
-                                              {variant.addonGroups.includes(selectedAddonGroup) && (
-                                                <Col md={3}>
-                                                  <label className={'font-semibold'}>
-                                                    <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
-                                                  </label>
-                                                  <div className='border'>
-                                                    <Table>
-                                                      <thead>
-                                                        <tr>
-                                                          <th>
-                                                            <Translate contentKey={'items.update.name'}>Name</Translate>
-                                                          </th>
-                                                          <th>
-                                                            <Translate contentKey={'items.update.price'}>Price</Translate>
-                                                          </th>
-                                                          <th>
-                                                            <Translate contentKey={'items.update.exclude'}>Exclude</Translate>
-                                                          </th>
-                                                        </tr>
-                                                      </thead>
-                                                      <tbody>
-                                                        {selectedAddonGroup?.addonGroup.addons?.map((addon, index) => (
-                                                          <tr key={index}>
-                                                            <td className='align-content-center'>{addon.name}</td>
-                                                            <td className='align-content-center'>
-                                                              <InputNumber
-                                                                value={variant.addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.addonPriceOverrides?.find(override => override.id === addon.id)?.price}
-                                                                onChange={e => handleAddonGroupOverridedPriceChange(
-                                                                  variant?.addonGroups.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
-                                                                  addon.id,
-                                                                  e.value,
-                                                                  variantIndex
-                                                                )}
-                                                                inputStyle={{ width: '50px' }}
-                                                                mode="decimal"
-                                                                minFractionDigits={2}
-                                                                maxFractionDigits={2}
-                                                              />
-                                                            </td>
-                                                            <td className='align-content-center'>
-                                                              <Checkbox
-                                                                checked={variant.addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.excluded?.map(excluded => excluded.id).includes(addon.id)}
-                                                                onChange={e => handleVariantAddonGroupExcludedChange(
-                                                                  e,
-                                                                  variant?.addonGroups.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
-                                                                  addon,
-                                                                  variantIndex
-                                                                )}
-                                                              />
-                                                            </td>
+                                              {variant?.addonGroups.some(
+                                                (group) => group.addonGroup.id === selectedAddonGroup?.addonGroup.id
+                                              ) && (
+                                                  <Col md={3}>
+                                                    <label className={'font-semibold'}>
+                                                      <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
+                                                    </label>
+                                                    <div className='border'>
+                                                      <Table>
+                                                        <thead>
+                                                          <tr>
+                                                            <th>
+                                                              <Translate contentKey={'items.update.name'}>Name</Translate>
+                                                            </th>
+                                                            <th>
+                                                              <Translate contentKey={'items.update.price'}>Price</Translate>
+                                                            </th>
+                                                            <th>
+                                                              <Translate contentKey={'items.update.exclude'}>Exclude</Translate>
+                                                            </th>
                                                           </tr>
-                                                        ))}
-                                                      </tbody>
-                                                    </Table>
-                                                  </div>
-                                                </Col>
-                                              )}
+                                                        </thead>
+                                                        <tbody>
+                                                          {selectedAddonGroup?.addonGroup.addons?.map((addon, index) => (
+                                                            <tr key={index}>
+                                                              <td className='align-content-center'>{addon.name}</td>
+                                                              <td className='align-content-center'>
+                                                                <InputNumber
+                                                                  value={variant.addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.addonPriceOverrides?.find(override => override.id === addon.id)?.price}
+                                                                  onChange={e => handleAddonGroupOverridedPriceChange(
+                                                                    variant?.addonGroups.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
+                                                                    addon.id,
+                                                                    e.value,
+                                                                    variantIndex
+                                                                  )}
+                                                                  inputStyle={{ width: '50px' }}
+                                                                  mode="decimal"
+                                                                  minFractionDigits={2}
+                                                                  maxFractionDigits={2}
+                                                                />
+                                                              </td>
+                                                              <td className='align-content-center'>
+                                                                <Checkbox
+                                                                  checked={variant.addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.excluded?.map(excluded => excluded.id).includes(addon.id)}
+                                                                  onChange={e => handleVariantAddonGroupExcludedChange(
+                                                                    e,
+                                                                    variant?.addonGroups.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
+                                                                    addon,
+                                                                    variantIndex
+                                                                  )}
+                                                                />
+                                                              </td>
+                                                            </tr>
+                                                          ))}
+                                                        </tbody>
+                                                      </Table>
+                                                    </div>
+                                                  </Col>
+                                                )}
                                             </Row>
 
                                             {/* <div className={'d-flex flex-column gap-2 mt-2'}>
