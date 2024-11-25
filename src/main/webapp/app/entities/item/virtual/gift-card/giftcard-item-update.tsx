@@ -228,7 +228,7 @@ export const GiftCardItemUpdate = () => {
                     <TabPanel header={translate('items.update.tabs.visibility.label')}>
                       <Visibility
                         initialState={giftCardItem.visibility}
-                        title={translate('items.update.tabs.visibility.titles.simple')}
+                        title={translate('items.update.tabs.visibility.titles.giftCard')}
                         onStateChanged={(state) => setGiftCardItem(prev => {
                           return { ...prev, visibility: state }
                         })} />
