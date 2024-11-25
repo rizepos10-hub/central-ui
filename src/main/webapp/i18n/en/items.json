@@ -81,7 +81,8 @@
             "variable": "Variable Item Visibility",
             "regular": "Regular Item Visibility",
             "combo": "Combo Item Visibility",
-            "pizza": "Pizza Item Visibility"
+            "pizza": "Pizza Item Visibility",
+            "giftCard": "Gift Card Item Visibility"
           }
         },
         "excludedFromLoyaltyPoints": {
