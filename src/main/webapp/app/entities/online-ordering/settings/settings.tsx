@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
-import { Translate, translate } from 'react-jhipster';
+import { Translate, translate, ValidatedField } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -163,6 +163,17 @@ export const UiSettingsUpdate = () => {
                         id="UiSettings-phoneNumber"
                         value={UiSettingsEntity.phoneNumber || null}
                         onChange={e => dispatch(changeEntityField({ name: 'phoneNumber', value: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-address">
+                        <strong>{translate('tempApp.UiSettings.address')}</strong>
+                      </Label>
+                      <InputText
+                        id="UiSettings-address"
+                        value={UiSettingsEntity.address || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'address', value: e.target.value }))}
                       />
                     </div>
 
