@@ -18,7 +18,7 @@ export interface IItem {
   categories?: ITerm[];
   discounts?: IDiscount[];
   itemVariantType?: ItemVariantType;
-  itemType?: "RESTAURANT" | "RETAIL";
+  itemType?: "RESTAURANT" | "RETAIL" | "VIRTUAL";
   stock?: number;
   tags?: ITag[];
   brand?: IBrand;
