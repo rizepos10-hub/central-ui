@@ -54,6 +54,7 @@ import Branches from './branches/branch';
 import ServiceCharge from './service-charges/index';
 import ImportFromOldSystem from './settings/import-from-old-system/import-from-old-system';
 import CustomDefinition from './settings/custom-definitions/index';
+import GiftCardsRoutes from './item/virtual/gift-card';
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -144,6 +145,7 @@ export default () => {
 
         <Route path="online-ordering/*" element={<OnlineOrderingRoutes />} />
 
+        <Route path="gift-cards/*" element={<GiftCardsRoutes />} />
 
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>
