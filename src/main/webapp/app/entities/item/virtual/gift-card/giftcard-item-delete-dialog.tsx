@@ -41,10 +41,10 @@ export const GiftCardItemDeleteDialog = () => {
 
   return (
     <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="simpleItemDeleteDialogHeading">
+      <ModalHeader toggle={handleClose} data-cy="GiftCardItemDeleteDialog">
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="tempApp.restaurant-simple.delete.question">
+      <ModalBody id="tempApp.item.delete.question">
         <Translate contentKey="items.delete.question" interpolate={{ id: giftCardItemEntity.id }}>
           Are you sure you want to delete this GiftCard?
         </Translate>
@@ -55,7 +55,7 @@ export const GiftCardItemDeleteDialog = () => {
           &nbsp;
           <Translate contentKey="entity.action.cancel">Cancel</Translate>
         </Button>
-        <Button id="jhi-confirm-delete-restaurant-simple" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+        <Button id="jhi-confirm-delete-gift-card-item" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
           <FontAwesomeIcon icon="trash" />
           &nbsp;
           <Translate contentKey="entity.action.delete">Delete</Translate>

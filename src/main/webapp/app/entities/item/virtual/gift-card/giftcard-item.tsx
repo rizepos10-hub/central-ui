@@ -7,27 +7,23 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities } from './giftcard-item.reducer';
 import { DataTable } from "primereact/datatable";
 import {Column} from "primereact/column";
-import {ISimpleItem} from "app/shared/model/ITEM/retail/simple-item.model";
 import {SummarizeText} from "app/shared/util/SummarizeText";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { updateTableFilters } from "app/shared/util/filter-match-model-util";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
+import { IGiftCardItem } from "app/shared/model/ITEM/virtual/giftcard-item.model";
 
 
 export const GiftCardItem = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const simpleItemsList:ISimpleItem[] = useAppSelector(state => state.GiftCardItem.entities)
+  const giftCardItemsList:IGiftCardItem[] = useAppSelector(state => state.GiftCardItem.entities)
   const loading = useAppSelector(state => state.GiftCardItem.loading);
   const totalItems = useAppSelector(state => state.GiftCardItem.totalItems);
   const [searchParams, setSearchParams]=  useSearchParams();
   const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
   const [localFilters, setLocalFilters] = useState(query?.filters);
-
-
-
-
 
   const getAllEntities = () => {
     dispatch(
@@ -146,7 +142,7 @@ export const GiftCardItem = () => {
     <div>
       <h2>Gift Card Items</h2>
       <DataTable
-        value={simpleItemsList} lazy filterDisplay="row" dataKey="id" paginator
+        value={giftCardItemsList} lazy filterDisplay="row" dataKey="id" paginator
         first={query.first} rows={query?.rows} totalRecords={totalItems} onPage={onPage}
         onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder}
         onFilter={onFilter} filters={query.filters} loading={loading} tableStyle={{ minWidth: '75rem' }}
@@ -163,9 +159,9 @@ export const GiftCardItem = () => {
         />
 
         <Column
-          header="Category"
-          field="categories"
-          body={rowData => rowData?.categories?.map(cat => cat?.name).join(' | ')}
+          header="Tag"
+          field="tags"
+          body={rowData => rowData?.tags?.map(cat => cat?.name).join(' | ')}
           sortable
           showFilterMatchModes={false}
         />
@@ -186,8 +182,6 @@ export const GiftCardItem = () => {
           header={translate('items.view.fields.description')}
           body={rowData => <SummarizeText>{rowData.desc}</SummarizeText>}
         />
-
-        <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
 
         <Column
           header={translate('items.view.fields.edit')}
