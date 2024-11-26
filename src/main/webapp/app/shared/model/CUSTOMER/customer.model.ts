@@ -1,10 +1,12 @@
 import { ILoyaltyCard } from "../loyalty-card.model";
+import { IAddress } from "../address.model";
 
 export interface ICustomer {
   id?: string;
   orderCount?: number | null;
   phone?: string;
   fax?: string;
+  deliveryAddresses?: IAddress[];
   mobileNumber?: string;
   status?: string | null;
   firstName?: string;
