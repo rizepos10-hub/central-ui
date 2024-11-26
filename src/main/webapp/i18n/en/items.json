@@ -252,6 +252,7 @@
         "addCrustThickness": "Add Crust Thickness",
         "pricingClass": "Pricing Class",
         "numberOfPizzas": "Number of Pizzas",
+        "numberOfPizza": "Number of Pizza",
         "numberOfToppings": "Number of Toppings",
         "freeToppingsNumber": "Free Toppings Number",
         "fixedPrice": "Fixed Price",
