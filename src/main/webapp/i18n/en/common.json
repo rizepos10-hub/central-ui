@@ -1,6 +1,7 @@
 {
   "common": {
     "name": "Name",
+    "addresses": "Addresses",
     "code": "Code",
     "printed": "Printed",
     "referenceNumber": "Card Number",
