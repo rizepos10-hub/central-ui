@@ -40,6 +40,7 @@ export interface ICrustThicknessPricingItem {
 }
 
 export interface IBasePizzaDetail {
+  numberOfPizza: number;
   toppingsNumber: number;
   pricingClass: IPizzaPricingClass;
 }

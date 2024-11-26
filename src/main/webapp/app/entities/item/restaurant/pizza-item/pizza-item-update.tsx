@@ -251,8 +251,9 @@ export const PizzaItemUpdate = () => {
   const addNewBaseDetail = () => {
     setPizzaItem((prev) => {
       const newDetail: IBasePizzaDetail = {
-        toppingsNumber: 2,
+        toppingsNumber: 1,
         pricingClass: null,
+        numberOfPizza: 1
       };
 
       const updatedDetails = [...(prev?.variants?.[0].basePizzaDetails || []), newDetail];
@@ -689,6 +690,7 @@ export const PizzaItemUpdate = () => {
                                       <Table>
                                         <thead>
                                           <tr>
+                                            <th><Translate contentKey={'items.update.pizza.numberOfPizza'}>Number of Pizza</Translate></th>
                                             <th><Translate contentKey={'items.update.pizza.numberOfToppings'}>Number of Toppings</Translate></th>
                                             <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
                                             <th><Translate contentKey={'items.update.pizza.remove'}>Remove</Translate></th>
@@ -699,8 +701,17 @@ export const PizzaItemUpdate = () => {
                                             <tr key={index}>
                                               <td>
                                                 <InputNumber
+                                                  value={baseDetail?.numberOfPizza || null}
+                                                  min={1}
+                                                  onChange={(e) =>
+                                                    handleBaseDetailChange(index, "numberOfPizza", e.value)
+                                                  }
+                                                />
+                                              </td>
+                                              <td>
+                                                <InputNumber
                                                   value={baseDetail?.toppingsNumber || null}
-                                                  min={2}
+                                                  min={1}
                                                   onChange={(e) =>
                                                     handleBaseDetailChange(index, "toppingsNumber", e.value)
                                                   }
