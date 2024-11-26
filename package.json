@@ -119,7 +119,7 @@
     "rxjs": "6.6.3",
     "sockjs-client": "1.5.0",
     "tslib": "2.4.0",
-    "uuid": "8.3.2",
+    "uuid": "^8.3.2",
     "webstomp-client": "1.2.6",
     "xlsx": "^0.18.5",
     "xlsx-js-style": "^1.2.0"
