@@ -204,6 +204,7 @@
       "addAutomatically": "Add Automatically",
       "relatedAddons": "Related Addons",
       "exclude": "Exclude",
+      "include": "Include",
       "giftCard": "Gift Card",
       "salePrice": "Sale Price",
       "branchPrices": "Branch Prices",
