@@ -40,7 +40,7 @@ export const getEntity = createAsyncThunk(
 export const createEntity = createAsyncThunk(
   'giftcard-item/create_entity',
   async (entity: IGiftCardItem, thunkAPI) => {
-    const result = await axios.post<IGiftCardItem>('http://localhost:8080/api/items/virtual-giftcard', cleanEntity(entity));
+    const result = await axios.post<IGiftCardItem>(apiUrl, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -50,7 +50,7 @@ export const createEntity = createAsyncThunk(
 export const updateEntity = createAsyncThunk(
   'giftcard-item/update_entity',
   async (entity: IGiftCardItem, thunkAPI) => {
-    const result = await axios.put<IGiftCardItem>(`http://localhost:8080/api/items/virtual-giftcard/${entity.id}`, cleanEntity(entity));
+    const result = await axios.put<IGiftCardItem>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
