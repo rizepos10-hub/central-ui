@@ -198,6 +198,7 @@
       "addAutomatically": "Add Automatically",
       "relatedAddons": "Related Addons",
       "exclude": "Exclude",
+      "include": "Include",
       "salePrice": "Sale Price",
       "branchPrices": "Branch Prices",
       "brand": "Brand",
