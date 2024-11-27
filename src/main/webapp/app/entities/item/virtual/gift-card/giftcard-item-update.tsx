@@ -8,7 +8,6 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { Button as PrimeButton } from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './giftcard-item.reducer';
-import { getEntities as getGiftCardsCoupons } from 'app/entities/coupon/gift-card/giftcard-coupon.reducer';
 import SharedVirtualItemUpdate from "app/shared/components/item/shared-virtual-update";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
@@ -117,7 +116,6 @@ export const GiftCardItemUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
 
-    dispatch(getGiftCardsCoupons({}));
 
   }, [id, isNew]);
 
@@ -195,25 +193,6 @@ export const GiftCardItemUpdate = () => {
                                     placeholder={translate('items.update.placeholders.itemPrice')}
                                     value={giftCardItem?.variants?.[0]?.price}
                                     onChange={(e) => handleGiftCardItemVariantChange('price', e.value)}
-                                  />
-                                </div>
-                              </Col>
-
-                              <Col md="6">
-                                <div className={"d-flex flex-column gap-2"}>
-                                  <label className={"font-semibold"}>
-                                    <Translate contentKey={'items.update.giftCard'}>Gift Card</Translate>
-                                  </label>
-                                  <Dropdown
-                                    id="giftCardDropdown"
-                                    value={selectedGiftCard}
-                                    options={giftCardsCouponEntities}
-                                    optionLabel="name"
-                                    optionValue="id"
-                                    onChange={(e) => handleGiftCardChange(e.value)}
-                                    placeholder={translate('items.update.placeholders.giftCard')}
-                                    filter
-                                    filterBy="name" 
                                   />
                                 </div>
                               </Col>
