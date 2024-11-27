@@ -37,6 +37,7 @@ import { Column } from 'primereact/column';
 import { Dialog } from 'primereact/dialog';
 import { AddressTypeEnum, IAddress } from 'app/shared/model/address.model';
 import { v4 as uuidv4 } from 'uuid';
+import { COUNTRIES } from './customer-addresses';
 
 export const CustomerUpdate = ({
   firstName,
@@ -485,11 +486,15 @@ export const CustomerUpdate = ({
                         />
                       </div>
                       <div className="d-flex flex-column gap-1">
-                        <label>Country</label>
-                        <InputText
+                        <label>Country/Region</label>
+                        <Dropdown
                           value={currentAddress?.country || ''}
-                          onChange={e => handleAddressChange('country', e.target.value)}
+                          options={COUNTRIES}
+                          optionValue="name"
+                          optionLabel="name"
+                          onChange={e => handleAddressChange('country', e.value)}
                           style={{ width: '100%' }}
+                          filter
                         />
                       </div>
                       <div className="d-flex flex-column gap-1">
