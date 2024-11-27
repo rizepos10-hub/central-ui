@@ -14,7 +14,7 @@ interface BranchPriceComponentProps<T extends IVariableItemVariant | IRegularIte
   branchVariantDetails: IBranchVariantDetails;
   branchList: IBranch[];
   handleBranchPriceChange: (variantIndex: number, branchId: string, field: string, value: number) => void;
-  itemVariantType: 'RETAIL' | 'RESTAURANT';
+  itemVariantType: 'RETAIL' | 'RESTAURANT' | 'VIRTUAL_GIFTCARD';
   handleSaveWholesalePrices?: (variantIndex: number, branchId: string, prices: number) => void;
   handleHideItemPerBranch?: (branchId: string, variantIndex: number, field: 'hideItem' | 'hideOnline') => void;
 }

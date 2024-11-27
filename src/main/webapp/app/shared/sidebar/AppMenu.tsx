@@ -93,7 +93,6 @@ export const model: MenuItem[] = [
       },
     ],
   },
-
   {
     label: 'Restaurant Catalog',
     role: ['ROLE_ADMINISTRATOR'],
@@ -361,7 +360,19 @@ export const model: MenuItem[] = [
         label: 'Loyalty Points',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/loyalty'
-      }
+      },
+      {
+        label: 'Gift Cards Catalog',
+        role: ['ROLE_ADMINISTRATOR'],
+        icon: '',
+        to: '/gift-cards',
+        items: [
+          {
+            label: 'Gift Cards',
+            to: '/gift-cards',
+          }
+        ],
+      },
     ],
   },
   {
