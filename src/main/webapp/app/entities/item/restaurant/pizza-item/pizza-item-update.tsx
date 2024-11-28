@@ -683,78 +683,91 @@ export const PizzaItemUpdate = () => {
 
 
                             {!pizzaItem?.variants?.[0]?.multiple && pizzaItem?.variants?.[0]?.predefinedPizza?.base ?
-                              <Accordion multiple activeIndex={[0]} className={"my-3"}>
-                                <AccordionTab header={translate('items.update.pizza.makeYourOwnPizzaSettings')}>
-                                  <Row>
-                                    <Col md="8">
-                                      <Table>
-                                        <thead>
-                                          <tr>
-                                            <th><Translate contentKey={'items.update.pizza.numberOfPizza'}>Number of Pizza</Translate></th>
-                                            <th><Translate contentKey={'items.update.pizza.numberOfToppings'}>Number of Toppings</Translate></th>
-                                            <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
-                                            <th><Translate contentKey={'items.update.pizza.remove'}>Remove</Translate></th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {pizzaItem?.variants?.[0]?.basePizzaDetails?.map((baseDetail, index) => (
-                                            <tr key={index}>
-                                              <td>
-                                                <InputNumber
-                                                  value={baseDetail?.numberOfPizza || null}
-                                                  min={1}
-                                                  onChange={(e) =>
-                                                    handleBaseDetailChange(index, "numberOfPizza", e.value)
-                                                  }
-                                                />
-                                              </td>
-                                              <td>
-                                                <InputNumber
-                                                  value={baseDetail?.toppingsNumber || null}
-                                                  min={1}
-                                                  onChange={(e) =>
-                                                    handleBaseDetailChange(index, "toppingsNumber", e.value)
-                                                  }
-                                                />
-                                              </td>
-                                              <td>
-                                                <Select
-                                                  options={pizzaPricingClasses}
-                                                  value={baseDetail?.pricingClass || null}
-                                                  getOptionValue={(option: IPizzaPricingClass) => option.id}
-                                                  getOptionLabel={(option: IPizzaPricingClass) => option.name}
-                                                  onChange={(pricingClass) =>
-                                                    handleBaseDetailChange(index, "pricingClass", pricingClass)
-                                                  }
-                                                  onMenuOpen={() => {
-                                                    dispatch(getPricingClasses({
-                                                      page: paginationState.activePage - 1,
-                                                      size: paginationState.itemsPerPage,
-                                                      sort: `${paginationState.sort},${paginationState.order}`,
-                                                    }));
-                                                  }}
-                                                />
-                                              </td>
-                                              <td>
-                                                <PrimeButton type={"button"} onClick={() => handleRemoveBaseDetail(index)} severity={"danger"}>
-                                                  <Translate contentKey={'items.update.pizza.remove'}>Remove</Translate>
-                                                </PrimeButton>
+                              <>
+                                <div className='d-flex flex-column gap-1'>
+                                  <label className="form-label">{translate('items.update.pizza.numberOfPizza')}</label>
+                                  <InputNumber
+                                    value={pizzaItem?.variants?.[0]?.numberOfPizza || null}
+                                    min={1}
+                                    onChange={(e) =>
+                                      handlePizzaVariantChange("numberOfPizza", e.value)
+                                    }
+                                  />
+                                </div>
+                                <Accordion multiple activeIndex={[0]} className={"my-3"}>
+                                  <AccordionTab header={translate('items.update.pizza.makeYourOwnPizzaSettings')}>
+                                    <Row>
+                                      <Col md="8">
+                                        <Table>
+                                          <thead>
+                                            <tr>
+                                              {/* <th><Translate contentKey={'items.update.pizza.numberOfPizza'}>Number of Pizza</Translate></th> */}
+                                              <th><Translate contentKey={'items.update.pizza.numberOfToppings'}>Number of Toppings</Translate></th>
+                                              <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
+                                              <th><Translate contentKey={'items.update.pizza.remove'}>Remove</Translate></th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {pizzaItem?.variants?.[0]?.basePizzaDetails?.map((baseDetail, index) => (
+                                              <tr key={index}>
+                                                {/* <td>
+                                                  <InputNumber
+                                                    value={baseDetail?.numberOfPizza || null}
+                                                    min={1}
+                                                    onChange={(e) =>
+                                                      handleBaseDetailChange(index, "numberOfPizza", e.value)
+                                                    }
+                                                  />
+                                                </td> */}
+                                                <td>
+                                                  <InputNumber
+                                                    value={baseDetail?.toppingsNumber || null}
+                                                    min={1}
+                                                    onChange={(e) =>
+                                                      handleBaseDetailChange(index, "toppingsNumber", e.value)
+                                                    }
+                                                  />
+                                                </td>
+                                                <td>
+                                                  <Select
+                                                    options={pizzaPricingClasses}
+                                                    value={baseDetail?.pricingClass || null}
+                                                    getOptionValue={(option: IPizzaPricingClass) => option.id}
+                                                    getOptionLabel={(option: IPizzaPricingClass) => option.name}
+                                                    onChange={(pricingClass) =>
+                                                      handleBaseDetailChange(index, "pricingClass", pricingClass)
+                                                    }
+                                                    onMenuOpen={() => {
+                                                      dispatch(getPricingClasses({
+                                                        page: paginationState.activePage - 1,
+                                                        size: paginationState.itemsPerPage,
+                                                        sort: `${paginationState.sort},${paginationState.order}`,
+                                                      }));
+                                                    }}
+                                                  />
+                                                </td>
+                                                <td>
+                                                  <PrimeButton type={"button"} onClick={() => handleRemoveBaseDetail(index)} severity={"danger"}>
+                                                    <Translate contentKey={'items.update.pizza.remove'}>Remove</Translate>
+                                                  </PrimeButton>
+                                                </td>
+                                              </tr>
+                                            ))}
+                                            <tr>
+                                              <td colSpan={2}>
+                                                <Button type={"button"} color="primary" onClick={addNewBaseDetail}>
+                                                  <Translate contentKey={'items.update.pizza.add'}>Add</Translate>
+                                                </Button>
                                               </td>
                                             </tr>
-                                          ))}
-                                          <tr>
-                                            <td colSpan={2}>
-                                              <Button type={"button"} color="primary" onClick={addNewBaseDetail}>
-                                                <Translate contentKey={'items.update.pizza.add'}>Add</Translate>
-                                              </Button>
-                                            </td>
-                                          </tr>
-                                        </tbody>
-                                      </Table>
-                                    </Col>
-                                  </Row>
-                                </AccordionTab>
-                              </Accordion> : null}
+                                          </tbody>
+                                        </Table>
+                                      </Col>
+                                    </Row>
+                                  </AccordionTab>
+                                </Accordion>
+                              </>
+                              : null}
                             <Row>
                               <Col md="4">
                                 <Accordion multiple activeIndex={[0]} className={"my-3"}>
