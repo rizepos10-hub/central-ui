@@ -730,7 +730,8 @@ export const PizzaItemUpdate = () => {
                                                 </td>
                                                 <td>
                                                   <Select
-                                                    options={pizzaPricingClasses}
+                                                  // show only options of type PREDEFINED
+                                                    options={pizzaPricingClasses?.filter((option: IPizzaPricingClass) => option.type === 'PREDEFINED')}
                                                     value={baseDetail?.pricingClass || null}
                                                     getOptionValue={(option: IPizzaPricingClass) => option.id}
                                                     getOptionLabel={(option: IPizzaPricingClass) => option.name}
