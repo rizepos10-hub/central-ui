@@ -61,6 +61,7 @@ export interface IPizzaItemVariant {
   basePizzaDetails?: IBasePizzaDetail[];
   multiple?: boolean;
   archived?: boolean;
+  numberOfPizza?: number;
 }
 
 export interface IPizzaItem extends IItem{
