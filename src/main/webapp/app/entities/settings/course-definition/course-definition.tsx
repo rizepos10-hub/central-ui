@@ -84,7 +84,7 @@ export const CourseDefinition = () => {
         tableStyle={{ minWidth: '50rem' }}
         header={header}
       >
-        <Column rowReorder style={{ width: '3rem' }} />
+        {/* <Column rowReorder style={{ width: '3rem' }} /> */}
         <Column field="order" header="Order" filter filterPlaceholder={"Search by name"} sortable />
         <Column field="name" header="Name" filter filterPlaceholder={"Search by name"} sortable />
         <Column field="description" header="Description" filter filterPlaceholder={"Search by description"} sortable />
