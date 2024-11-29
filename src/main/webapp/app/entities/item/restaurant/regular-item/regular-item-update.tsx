@@ -361,7 +361,7 @@ export const RegularItemUpdate = () => {
 
   const onReorderAddonGroups = (event, variantIndex) => {
     const reorderedAddonGroups = event.value?.map(group => ({
-      required: addonGroupsList?.find(g => g.addonGroup.id === group.id)?.required || false,
+      required: addonGroupsList?.find(g => g.id === group.id)?.required || false,
       addonGroup: group,
     }));
     handleVariantFieldChange(variantIndex, 'addonGroups', reorderedAddonGroups);
