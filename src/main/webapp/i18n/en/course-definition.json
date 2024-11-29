@@ -1,0 +1,32 @@
+{
+  "tempApp": {
+    "course": {
+      "home": {
+        "title": "Course Definitions",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Course Definition",
+        "editLabel": "Create or edit a Course Definition",
+        "createOrEditLabel": "Create or edit a Course Definition",
+        "notFound": "No Course Definitions found"
+      },
+      "created": "A new Course Definition is created with identifier {{ param }}",
+      "updated": "A Course Definition is updated with identifier {{ param }}",
+      "deleted": "A Course Definition is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Course Definition {{ id }}?"
+      },
+      "detail": {
+        "title": "Course Definition"
+      },
+      "id": "ID",
+      "name": "Name",
+      "description": "Description",
+      "order": "Order",
+      "image": "Image",
+      "branch": "Branch",
+      "dimensions": "Dimensions",
+      "width": "Width",
+      "height": "Height"
+    }
+  }
+}

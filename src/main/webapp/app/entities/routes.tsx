@@ -55,6 +55,7 @@ import ServiceCharge from './service-charges/index';
 import ImportFromOldSystem from './settings/import-from-old-system/import-from-old-system';
 import CustomDefinition from './settings/custom-definitions/index';
 import GiftCardsRoutes from './item/virtual/gift-card';
+import CourseDefinitionRoutes from './settings/course-definition';
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -109,6 +110,7 @@ export default () => {
         <Route path="pizza-pricing-class/*" element={<PizzaPricingClass />} />
 
 
+        <Route path="course-definition*" element={<CourseDefinitionRoutes />} />
         <Route path="floor-plan/table/*" element={<FloorPlanTable />} />
         <Route path="floor-plan/settings/*" element={<FloorPlanSettings />} />
         <Route path="floor-plan/*" element={<FloorPlan />} />

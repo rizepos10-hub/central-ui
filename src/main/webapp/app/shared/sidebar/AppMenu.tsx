@@ -650,24 +650,55 @@ export const model: MenuItem[] = [
         to: '/item-measure',
       },
       {
-        label: 'Floor plans',
+        label: 'Restaurant',
         role: ['ROLE_ADMINISTRATOR'],
-        to: '/floor-plan',
+        to: '/course-definition',
         items: [
           {
-            label: 'List',
+            label: 'Course Definitions',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/course-definition',
+          },
+          {
+            label: 'Floor plans',
+            role: ['ROLE_ADMINISTRATOR'],
             to: '/floor-plan',
+            items: [
+              {
+                label: 'List',
+                to: '/floor-plan',
+              },
+              {
+                label: 'Tables',
+                to: '/floor-plan/table',
+              },
+              {
+                label: 'Settings',
+                to: '/floor-plan/settings',
+              },
+            ],
           },
-          {
-            label: 'Tables',
-            to: '/floor-plan/table',
-          },
-          {
-            label: 'Settings',
-            to: '/floor-plan/settings',
-          },
-        ],
+        ]
       },
+      // {
+      //   label: 'Floor plans',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/floor-plan',
+      //   items: [
+      //     {
+      //       label: 'List',
+      //       to: '/floor-plan',
+      //     },
+      //     {
+      //       label: 'Tables',
+      //       to: '/floor-plan/table',
+      //     },
+      //     {
+      //       label: 'Settings',
+      //       to: '/floor-plan/settings',
+      //     },
+      //   ],
+      // },
       {
         label: 'Themes',
         role: ['ROLE_ADMINISTRATOR'],
