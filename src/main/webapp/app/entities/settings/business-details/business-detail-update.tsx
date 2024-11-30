@@ -72,10 +72,7 @@ export const BusinessDetailUpdate = () => {
       dispatch(getEntities({}))
     }
     dispatch(getEntities({}))
-    if (updateSuccess) {
-      handleClose();
-    }
-
+   
   }, [updateSuccess]);
 
   useEffect(() => {
@@ -197,7 +194,7 @@ export const BusinessDetailUpdate = () => {
                         sizePerPage={80}
                         handleFilesSelectCallback={(files) => setSelectedAttachments(transformAttachmentStructure(files, 'toIAttachment')[0])}
                         defaultValues={
-                          businessDetailsState?.logo ? transformAttachmentStructure([businessDetailsState.logo], 'toFileLibraryListItem') :
+                          selectedAttachments ? transformAttachmentStructure([selectedAttachments], 'toFileLibraryListItem') :
                             []
                         }
                       />

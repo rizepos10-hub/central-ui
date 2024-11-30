@@ -1,0 +1,10 @@
+{
+    "tempApp": {
+      "giftcard": {
+        "created": "A New Gift Card Created with identifier {{ param }}",
+        "updated":"A Gift Card is updated with identifier {{ param }}",
+        "deleted":"A Gift Card is deleted with identifier {{ param }}"
+      }
+    }
+  }
+  

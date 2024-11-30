@@ -42,6 +42,7 @@ import pizzaCrustThickness from 'app/entities/pizza-settings/pizza-crust-setting
 import pizzaCrustType from 'app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer';
 import pizzaTopping from 'app/entities/pizza-settings/pizza-topping/pizza-topping.reducer';
 import predefinedPizza from 'app/entities/pizza-settings/pizza-predefined/pizza-predefined.reducer';
+import courseDefinition from 'app/entities/settings/course-definition/course-definition.reducer';
 import floorPlanTable from 'app/entities/settings/floor-plans/tables/table.reducer';
 import floorPlanSettings from 'app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer';
 import floorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
@@ -87,6 +88,8 @@ import branchRegistry from "app/entities/settings/branch-registry/branch-registr
 import till from "app/entities/settings/branch-registry/till/till.reducer";
 import itemDefinitions from 'app/entities/item-definitions/item-definitions.reducer';
 import onlineOrderingReducers from "app/entities/online-ordering/reducer";
+import GiftCardItem from './item/virtual/gift-card/giftcard-item.reducer';
+import GiftCardCoupon from './coupon/gift-card/giftcard-coupon.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
@@ -123,6 +126,7 @@ const entitiesReducers = {
   pizzaCrustType,
   pizzaPricingClass,
   predefinedPizza,
+  courseDefinition,
   floorPlanTable,
   floorPlanSettings,
   floorPlan,
@@ -170,6 +174,8 @@ const entitiesReducers = {
   brand,
   zones,
   variant,
+  GiftCardItem,
+  GiftCardCoupon,
   ...onlineOrderingReducers
 
 

@@ -14,6 +14,7 @@ import { filterEntities } from 'app/entities/addon/addon.reducer';
 import { Dropdown } from 'primereact/dropdown';
 import { getEntities } from 'app/entities/addon-groups/addon-groups.reducer';
 import { IAddonGroup } from "app/shared/model/ADDON/addon-groups.model";
+import { IProfileGroup } from 'app/shared/model/TAX/profile-group.model';
 
 const initialState = {
   first: 0,
@@ -172,6 +173,26 @@ export const Addon = () => {
     ));
   };
 
+  const renderAccountingGroups = rowData => {
+    return (
+      <>
+        {rowData?.accountingGroups?.map((grp: IProfileGroup) =>
+          grp.profiles
+            ?.map((profile) => (
+              <Link key={profile.id} to={`/tax-profiles/${profile.id}/edit`}>
+                {profile.name}
+              </Link>
+            ))
+            .reduce((prev, curr) => (
+              <>
+                {prev} | {curr}
+              </>
+            ))
+        )}
+      </>
+    );
+  };
+
   return (
     <div>
       <DataTable
@@ -217,6 +238,7 @@ export const Addon = () => {
 
         <Column field="price" header={translate('common.price')} sortable />
         <Column field="discounts" header={translate('common.discounts')} body={renderDiscounts} sortable />
+        <Column field="accountingGroups" header={translate('common.taxProfiles')} body={renderAccountingGroups} sortable />
 
         <Column
           header={translate('common.edit')}

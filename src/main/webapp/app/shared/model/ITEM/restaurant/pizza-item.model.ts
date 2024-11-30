@@ -40,6 +40,7 @@ export interface ICrustThicknessPricingItem {
 }
 
 export interface IBasePizzaDetail {
+  numberOfPizza: number;
   toppingsNumber: number;
   pricingClass: IPizzaPricingClass;
 }
@@ -60,6 +61,7 @@ export interface IPizzaItemVariant {
   basePizzaDetails?: IBasePizzaDetail[];
   multiple?: boolean;
   archived?: boolean;
+  numberOfPizza?: number;
 }
 
 export interface IPizzaItem extends IItem{
