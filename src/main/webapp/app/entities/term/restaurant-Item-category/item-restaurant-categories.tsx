@@ -115,7 +115,7 @@ export const ItemRestaurantCategories = () => {
     const editUrl = `/category/${rowData.id}/restaurant-items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        {rowData.name} - {rowData?.itemsCount == null ? 0 : rowData?.itemsCount}
+        {rowData.name} <br/><span className="text-xs">#{rowData?.itemsCount == null ? 0 : rowData?.itemsCount}</span>
       </Link>
     );
   };
