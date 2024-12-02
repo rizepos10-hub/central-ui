@@ -1,32 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import {getSortState, isNumber, Translate, translate, ValidatedField, ValidatedForm} from 'react-jhipster';
-
-import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
-import {mapIdList, overridePaginationStateWithQueryParams} from 'app/shared/util/entity-utils';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getSortState, Translate, translate } from 'react-jhipster';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
-import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
-
-
-import { IUser } from 'app/shared/model/user.model';
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { getEntities as getPosAuthorityGroups } from "app/entities/pos-authority-groups/pos-authority-group.reducer";
 import {
   getEntity,
   updateEntity,
   createEntity,
   reset,
-  assignRole
 } from './user.reducer';
-import {InputText} from "primereact/inputtext";
-import {Checkbox} from "primereact/checkbox";
-import {Button} from "primereact/button";
+import { InputText } from "primereact/inputtext";
+import { Checkbox } from "primereact/checkbox";
+import { Button } from "primereact/button";
 import Select from "react-select";
-import {Alert} from "reactstrap";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { IPosAuthorityGroup } from 'app/shared/model/pos-authority-group';
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
-
   const navigate = useNavigate();
 
   const { id } = useParams<'id'>();
@@ -36,27 +29,20 @@ export const UserUpdate = () => {
   const loading = useAppSelector(state => state.PosBranchUser.loading);
   const updating = useAppSelector(state => state.PosBranchUser.updating);
   const updateSuccess = useAppSelector(state => state.PosBranchUser.updateSuccess);
-
   const branchList = useAppSelector(state => state.branch.entities)
+  const posAuthorityGroupList: IPosAuthorityGroup[] = useAppSelector(state => state.posAuthorityGroup.entities);
+
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
+  const [selectedBranches, setSelectedBranches]: any = useState([]);
+  const [selectedAuthorities, setSelectedAuthorities]: any = useState([])
+  const [selectedAuthoritiesGroups, setSelectedAuthoritiesGroups] = useState<IPosAuthorityGroup[]>([]);
 
-  const [selectedBranches, setSelectedBranches] :any = useState([]);
-
-  const [selectedAuthorities, setSelectedAuthorities] :any = useState()
-
-
-  console.log(branchList, 'branchList')
   const getBranchName = (branchId) => {
-    console.log(branchId, 'branchID1')
-    console.log(branchList, 'branchId12')
-     const branch = branchList.find(branch => branch.id === branchId);
-    console.log(branch, 'branch')
-
+    const branch = branchList.find(branch => branch.id === branchId);
     return branch ? branch.name : 'Unknown Branch';
   };
-
 
   const initialBranches = isNew
     ? null
@@ -64,19 +50,13 @@ export const UserUpdate = () => {
       ? { label: getBranchName(userEntity?.branchId), value: userEntity?.branchId }
       : null;
 
-  const initialAuthorities = isNew
-    ? null
-    : userEntity?.authorities
-      ? { label:  userEntity?.authorities, value: userEntity?.authorities }
-      : null;
-  console.log(userEntity,'userEntity')
-
   const [user, setUser] = useState({
     firstName: '',
     lastName: '',
     userName: '',
     id: null,
     branches: [],
+    authoritiesGroups: [],
     email: '',
     permissions: [],
     verified: false,
@@ -85,20 +65,12 @@ export const UserUpdate = () => {
     password: ''
   });
 
-
-  const authoritiesOptions = [
-    {value: "ADMIN" , label: 'ADMIN'},
-    {value: "USER" , label: 'USER'},
-  ]
-
-
   const handleClose = () => {
     navigate(-1);
   };
 
-
   const handleInputChange = (event) => {
-    const { name, value  } = event.target;
+    const { name, value } = event.target;
     setUser((prevUser) => ({
       ...prevUser,
       [name]: value,
@@ -113,7 +85,6 @@ export const UserUpdate = () => {
     setSelectedBranches(selectedBranches);
   };
 
-
   const handleAuthoritiesChange = (authorities) => {
     setUser((prev) => ({
       ...prev,
@@ -124,8 +95,6 @@ export const UserUpdate = () => {
 
   const handlePasswordChange = (event) => {
     const newPass = event.target.value
-
-    console.log(newPass, 'passwod')
 
     setUser((prev) => ({
       ...prev,
@@ -139,7 +108,7 @@ export const UserUpdate = () => {
       if (checked) {
         return {
           ...prevUser,
-        activated:  checked,
+          activated: checked,
         };
       } else {
         return {
@@ -150,20 +119,8 @@ export const UserUpdate = () => {
     });
   };
 
-
-  const isPinCodeValid = (pinCode) => {
-    return /^\d{6}$/.test(pinCode);
-  };
-
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-
-    // if (!isPinCodeValid(user.pinCode)) {
-    //   console.error('Invalid pinCode. Please enter 4 digits.');
-    //   return;
-    // }
 
     try {
       if (isNew) {
@@ -177,6 +134,21 @@ export const UserUpdate = () => {
     }
   };
 
+  useEffect(() => {
+    console.log(selectedAuthoritiesGroups, 'selectedAuthoritiesGroups');
+    setUser((prevUser) => ({
+      ...prevUser,
+      authoritiesGroups: [...selectedAuthoritiesGroups],
+    }));
+  }, [selectedAuthoritiesGroups]);
+  console.log(user, 'user')
+
+  // useEffect(() => {
+  //   setUser({
+  //     ...user,
+  //     authorities: selectedAuthorities
+  //   })
+  // }, [selectedAuthorities])
 
   useEffect(() => {
     if (isNew) {
@@ -190,7 +162,12 @@ export const UserUpdate = () => {
       sort: `${paginationState.sort},${paginationState.order}`,
     }))
 
-    console.log(user)
+    dispatch(getPosAuthorityGroups({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }))
+
     return () => {
       setUser({
         firstName: '',
@@ -202,24 +179,21 @@ export const UserUpdate = () => {
         permissions: [],
         verified: false,
         authorities: [],
+        authoritiesGroups: [],
         pinCode: '',
         password: ''
-
-
-
       });
       reset()
     }
-
   }, [userEntity?.branchId]);
 
   useEffect(() => {
     if (updateSuccess) {
       handleClose();
     }
-    if(!isNew){
+    if (!isNew) {
       setUser(userEntity)
-    }else{
+    } else {
       setUser({
         firstName: '',
         lastName: '',
@@ -228,6 +202,7 @@ export const UserUpdate = () => {
         branches: [],
         email: '',
         permissions: [],
+        authoritiesGroups: [],
         verified: false,
         authorities: [],
         pinCode: '',
@@ -235,65 +210,45 @@ export const UserUpdate = () => {
 
       });
       setSelectedBranches([])
-      setSelectedAuthorities('')
+      setSelectedAuthorities([])
     }
 
-
-
-    if (userEntity?.branches){
+    if (userEntity?.branches) {
       setSelectedBranches(userEntity.branches?.map((branch) => ({ label: getBranchName(userEntity.branchId), value: userEntity.branchId })))
     }
 
-    if (userEntity?.branches){
-      setSelectedBranches(userEntity.branches?.map((branch) => ({  label: getBranchName(branch.id),value: branch.id,id: branch.id})))
+    if (userEntity?.branches) {
+      setSelectedBranches(userEntity.branches?.map((branch) => ({ label: getBranchName(branch.id), value: branch.id, id: branch.id })))
     }
 
     if (userEntity?.authorities) {
-      setSelectedAuthorities({ label: userEntity.authorities, value: userEntity.authorities });
+      setSelectedAuthorities(userEntity.authorities);
     }
-    return () => {
 
+    if (userEntity?.authoritiesGroups) {
+      console.log(userEntity.authoritiesGroups, 'authoritiesGroups')
+      setSelectedAuthoritiesGroups(userEntity.authoritiesGroups);
+    }
+
+    return () => {
       reset()
     }
-
-
-  }, [updateSuccess, userEntity?.branches, userEntity?.authorities]);
-
-
-
-  // const saveEntity = values => {
-  //   // const entity = {
-  //   //   ...userEntity,
-  //   //   ...values,
-  //   // };
-  //   //
-  //   // if (isNew) {
-  //   //   dispatch(createEntity(entity));
-  //   // } else {
-  //   //   dispatch(updateEntity(entity));
-  //   // }
-  //   console.log('Saving back-office-user:', values);
-  //   handleClose();
-  //
-  // };
-
+  }, [updateSuccess]);
 
   return (
     <div>
-        <div className="col-8">
-          <h2>
-            {isNew ? <Translate contentKey={'tempApp.createNewUser'}/> : <Translate contentKey={'tempApp.editUser'}/>}
-          </h2>
-        </div>
-        <div className="col-8">
-          <div className="p-grid d-flex flex-column p-3  bg-white">
-
+      <div className="col-8">
+        <h2>
+          {isNew ? <Translate contentKey={'tempApp.createNewUser'} /> : <Translate contentKey={'tempApp.editUser'} />}
+        </h2>
+      </div>
+      <div className="col-8">
+        <div className="p-grid d-flex flex-column p-3  bg-white">
           {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
           <form onSubmit={handleSubmit}>
-
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="firstName">
-                <Translate contentKey={'tempApp.firstName'}/>
+                <Translate contentKey={'tempApp.firstName'} />
               </label>
               <InputText
                 id="firstName"
@@ -304,9 +259,10 @@ export const UserUpdate = () => {
                 placeholder={translate("tempApp.firstName")}
               />
             </div>
+
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="lastName">
-                <Translate contentKey={'tempApp.lastName'}/>
+                <Translate contentKey={'tempApp.lastName'} />
               </label>
               <InputText
                 id="lastName"
@@ -320,7 +276,7 @@ export const UserUpdate = () => {
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="userName">
-                <Translate contentKey={'tempApp.username'}/>
+                <Translate contentKey={'tempApp.username'} />
               </label>
               <InputText
                 id="userName"
@@ -335,7 +291,7 @@ export const UserUpdate = () => {
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="email">
-                <Translate contentKey={'tempApp.email'}/>
+                <Translate contentKey={'tempApp.email'} />
               </label>
               <InputText
                 id="email"
@@ -349,7 +305,7 @@ export const UserUpdate = () => {
 
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="pinCode">
-                <Translate contentKey={'tempApp.pinCode'}/>&nbsp;<label className="text-sm"> (6 digits)</label>
+                <Translate contentKey={'tempApp.pinCode'} />&nbsp;<label className="text-sm"> (6 digits)</label>
               </label>
               <InputText
                 id="pinCode"
@@ -360,13 +316,12 @@ export const UserUpdate = () => {
                 minLength={1}
                 maxLength={6}
                 placeholder={translate("tempApp.pinCode")}
-
-
               />
             </div>
-             <div className="p-field d-flex flex-column mb-3">
+
+            <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="password">
-                <Translate contentKey={'tempApp.password'}/>
+                <Translate contentKey={'tempApp.password'} />
               </label>
               <InputText
                 id="password"
@@ -376,38 +331,91 @@ export const UserUpdate = () => {
                 onChange={handlePasswordChange}
                 required={isNew ? true : false}
                 placeholder={translate("tempApp.password")}
-
               />
             </div>
 
             <div className="mb-3">
-              <Translate contentKey={'tempApp.authorities'}/>
-              <Select  defaultValue={initialAuthorities}
-                       value={selectedAuthorities}
-                       onChange={handleAuthoritiesChange}
-                       options={authoritiesOptions} />
+              <Translate contentKey={'common.branches'} />
+              <Select defaultValue={initialBranches}
+                value={selectedBranches}
+                isMulti
+                onChange={handleBranchChange}
+                options={branchList.map(branch => ({ value: branch.id, label: branch.name }))} />
             </div>
 
-            <div className="mb-3">
-              <Translate contentKey={'common.branches'}/>
-              <Select  defaultValue={initialBranches}
-                       value={selectedBranches}
-                       isMulti
-                       onChange={handleBranchChange}
-                       options={branchList.map(branch => ({ value: branch.id, label: branch.name }))} />
-            </div>
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="activated">
-                <Translate contentKey={'tempApp.activated'}/>
+                <Translate contentKey={'tempApp.activated'} />
               </label>
               <Checkbox
                 inputId={`activated-${user.verified}`}
                 name="Activated"
                 value={user.verified}
                 onChange={handleActivatedChange}
-
                 checked={user.verified}
               />
+            </div>
+
+            <div className="mb-3">
+              <div>
+                {posAuthorityGroupList.map((group, idx) => {
+                  return (
+                    <div key={`group-${idx}`} className="d-flex flex-column gap-2 mb-3">
+                      <div className='fw-bold'>
+                        <Checkbox
+                          inputId={`group-${idx}`}
+                          name="group"
+                          value={group.id}
+                          onChange={(e) => {
+                            const updatedAuthorityGroups = [...selectedAuthoritiesGroups];
+                            let updatedAuthorities = [];
+
+                            if (e.checked) {
+                              updatedAuthorityGroups.push(group);
+                              updatedAuthorities = [...selectedAuthorities, ...group.authorities];
+                            } else {
+                              updatedAuthorityGroups.splice(updatedAuthorityGroups.indexOf(group), 1);
+                              updatedAuthorities = selectedAuthorities.filter(authority => !group.authorities.includes(authority));
+                            }
+                            setSelectedAuthorities(updatedAuthorities);
+                            setSelectedAuthoritiesGroups(updatedAuthorityGroups);
+                          }}
+                          checked={selectedAuthoritiesGroups.some(g => g.id === group.id)}
+                        />
+                        <label htmlFor={`group-${idx}`}>{group.name}</label>
+                      </div>
+                      <div>
+                        {group.authorities.map((authority, i) => {
+                          return (
+                            <div key={`authority-${i}`} className="ms-2">
+                              <Checkbox
+                                inputId={`authority-${i}`}
+                                name="authority"
+                                value={authority}
+                                onChange={(e) => {
+                                  const updatedAuthorities = [...selectedAuthorities];
+                                  if (e.checked) {
+                                    updatedAuthorities.push(authority);
+                                  } else {
+                                    updatedAuthorities.splice(updatedAuthorities.indexOf(authority), 1);
+                                  }
+                                  setSelectedAuthorities(updatedAuthorities);
+                                  setUser({
+                                    ...user,
+                                    authorities: updatedAuthorities
+                                  })
+                                }}
+                                checked={selectedAuthorities?.includes(authority)}
+                              />
+                              <label htmlFor={`authority-${i}`}>{authority}</label>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             <div className="p-field d-flex gap-2 align-items-center mb-3">
@@ -417,7 +425,7 @@ export const UserUpdate = () => {
                 className="p-button-secondary"
                 onClick={() => navigate('/branch-pos-user')}
               >
-                <Translate contentKey={'common.buttons.back'}/>
+                <Translate contentKey={'common.buttons.back'} />
               </Button>
               <Button
                 id="save-entity"
@@ -425,7 +433,7 @@ export const UserUpdate = () => {
                 disabled={updating}
                 icon="pi pi-save"
               >
-                <Translate contentKey={'common.buttons.save'}/>
+                <Translate contentKey={'common.buttons.save'} />
               </Button>
             </div>
           </form>
