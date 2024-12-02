@@ -115,7 +115,7 @@ export const ItemRestaurantCategories = () => {
     const editUrl = `/category/${rowData.id}/retail-items/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
       <Link to={editUrl}>
-        {rowData.name}
+        {rowData.name} - {rowData?.itemsCount == null ? 0 : rowData?.itemsCount}
       </Link>
     );
   };
