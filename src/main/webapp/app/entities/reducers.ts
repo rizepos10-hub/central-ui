@@ -16,6 +16,7 @@ import order from 'app/entities/order/order.reducer';
 import delivery from 'app/entities/order/delivery.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
+import posAuthorityGroup from 'app/entities/pos-authority-groups/pos-authority-group.reducer';
 import tax from 'app/entities/settings/tax/tax.reducer';
 import profileGroup from 'app/entities/settings/profile-group/profile-group.reducer';
 import voidReason from 'app/entities/settings/void-reason/void-reason.reducer';
@@ -111,6 +112,7 @@ const entitiesReducers = {
   delivery,
   user,
   PosBranchUser,
+  posAuthorityGroup,
   tax,
   taxProfiles,
   profileGroup,

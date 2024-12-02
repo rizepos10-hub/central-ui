@@ -71,10 +71,10 @@ export const model: MenuItem[] = [
         label: 'POS',
         to: '/branch-pos-user',
       },
-      // {
-      //   label: 'Activities',
-      //   to: '/activities',
-      // },
+      {
+        label: 'POS Authority Groups',
+        to: '/pos-authority-group',
+      },
     ],
   },
   {
