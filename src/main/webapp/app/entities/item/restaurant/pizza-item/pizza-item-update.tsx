@@ -488,12 +488,12 @@ export const PizzaItemUpdate = () => {
       ...pizzaItem,
     };
 
-    // if base type, then add number of pizza
-    // if (pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE) {
-    //   if (entity.variants && entity.variants[0]) {
-    //     entity.variants[0].numberOfPizza = 1;
-    //   }
-    // }
+    if (pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE || pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN) {
+      if (entity.variants && entity.variants[0]) {
+        const basePredefined = predefinedPizzaOptions.find(p => p?.base)
+        entity.variants[0].predefinedPizza = basePredefined;
+      }
+    }
 
     if (isNew) {
       dispatch(createEntity(entity)).then((res) => {
@@ -747,7 +747,13 @@ export const PizzaItemUpdate = () => {
                               || pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE) ?
                               <>
                                 <Accordion multiple activeIndex={[0]} className={"my-3"}>
-                                  <AccordionTab header={translate('items.update.pizza.makeYourOwnPizzaSettings')}>
+                                  <AccordionTab header={
+                                    pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN ? (
+                                      translate('items.update.pizza.makeYourOwnPizzaSettings')
+                                    ) : (
+                                      'Base pizza settings'
+                                    )
+                                  }>
                                     <Row>
                                       <Col md="8">
                                         <Table>
@@ -755,7 +761,11 @@ export const PizzaItemUpdate = () => {
                                             <tr>
                                               {/* <th><Translate contentKey={'items.update.pizza.numberOfPizza'}>Number of Pizza</Translate></th> */}
                                               <th><Translate contentKey={'items.update.pizza.numberOfToppings'}>Number of Toppings</Translate></th>
-                                              <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
+                                              {pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN ? (
+                                                <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
+                                              ) : (
+                                                <th>Topping Pricing Class</th>
+                                              )}
                                               <th><Translate contentKey={'items.update.pizza.remove'}>Remove</Translate></th>
                                             </tr>
                                           </thead>
