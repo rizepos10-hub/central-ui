@@ -484,16 +484,38 @@ export const PizzaItemUpdate = () => {
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
-    const entity = {
+    let entity = {
       ...pizzaItem,
     };
 
-    if (pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE || pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN || pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.FIXED_DEAL) {
+    if (
+      pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE ||
+      pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN ||
+      pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.FIXED_DEAL
+    ) {
       if (entity.variants && entity.variants[0]) {
-        const basePredefined = predefinedPizzaOptions.find(p => p?.base)
-        entity.variants[0].predefinedPizza = basePredefined;
+        const basePredefined = predefinedPizzaOptions.find(p => p?.base);
+
+        // Create a new variant object by copying the existing one and adding the predefinedPizza property
+        const updatedVariant = {
+          ...entity.variants[0],
+          predefinedPizza: basePredefined,
+        };
+
+        // Replace the old variant with the new one in a new variants array
+        const updatedVariants = [
+          updatedVariant,
+          ...entity.variants.slice(1), // Include other variants if they exist
+        ];
+
+        // Update the entity with the new variants array
+        entity = {
+          ...entity,
+          variants: updatedVariants,
+        };
       }
     }
+
 
     if (isNew) {
       dispatch(createEntity(entity)).then((res) => {
