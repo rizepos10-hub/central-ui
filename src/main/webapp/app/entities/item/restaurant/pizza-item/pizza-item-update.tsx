@@ -488,7 +488,7 @@ export const PizzaItemUpdate = () => {
       ...pizzaItem,
     };
 
-    if (pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE || pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN) {
+    if (pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE || pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN || pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.FIXED_DEAL) {
       if (entity.variants && entity.variants[0]) {
         const basePredefined = predefinedPizzaOptions.find(p => p?.base)
         entity.variants[0].predefinedPizza = basePredefined;
