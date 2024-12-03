@@ -26,6 +26,7 @@
         "inStock": "In Stock",
         "edit": "Edit",
         "delete": "Delete",
+        "type": "Type",
         "regular": {
           "variant": "Variant",
           "category": "Category",
@@ -273,7 +274,11 @@
           "pizzaItemType": "Pizza Item Type",
           "single": "Single",
           "multiple": "Multiple",
-          "next": "Next"
+          "next": "Next",
+          "BASE": "Base",
+          "PREDEFINED": "Predefined",
+          "MAKE_YOUR_OWN": "Make Your Own",
+          "FIXED_DEAL": "Fixed Deal"
         }
       },
       "regular": {
