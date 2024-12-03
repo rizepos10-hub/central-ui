@@ -62,6 +62,14 @@ export interface IPizzaItemVariant {
   multiple?: boolean;
   archived?: boolean;
   numberOfPizza?: number;
+  pizzaVariantType?: PizzaVariantTypeEnum;
+}
+
+export enum PizzaVariantTypeEnum {
+  BASE = "BASE",
+  PREDEFINED = "PREDEFINED",
+  MAKE_YOUR_OWN = "MAKE_YOUR_OWN",
+  FIXED_DEAL = "FIXED_DEAL",
 }
 
 export interface IPizzaItem extends IItem{
