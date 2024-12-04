@@ -777,7 +777,7 @@ export const RegularItemUpdate = () => {
                                                           onClick={() => setSelectedAddonGroup(variant?.addonGroups[index])}
                                                         >
                                                           <span className='d-flex flex-column gap-1'>
-                                                            <label>{translate('items.update.name')}</label>
+                                                            <label>{addonGroup.name}</label>
                                                             <InputText
                                                               value={variant?.addonGroups[index]?.name || addonGroup.name}
                                                               onChange={e => handleVariantAddonGroupFieldChange(index, 'name', e.target.value, variantIndex)}

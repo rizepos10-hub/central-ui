@@ -344,7 +344,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                     onClick={() => setSelectedAddonGroup(addonGroups[index])}
                   >
                     <span className='d-flex flex-column gap-1'>
-                      <label>{translate('items.update.name')}</label>
+                      <label>{addonGroup?.name}</label>
                       <InputText
                         value={addonGroups[index]?.name || addonGroup?.name}
                         onChange={e => handleAddonGroupFieldChange(index, 'name', e.target.value)}
