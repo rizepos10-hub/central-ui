@@ -130,24 +130,55 @@ export const PrinterUpdate = () => {
                 </div>
 
                 <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-ipAddress">{translate('tempApp.printer.ipAddress')}</Label>
-                  <InputText
-                    id="printer-ipAddress"
-                    value={printerEntity.ipAddress || ""}
-                    onChange={e => dispatch(changeEntityField({ name: 'ipAddress', value: e.target.value }))}
-                    required
-                  />
+                  <Label htmlFor="printer-connectionType">{translate('tempApp.printer.connectionType')}</Label>
+                  <SelectButton
+                    value={printerEntity?.connectionType || "NETWORK"}
+                    allowEmpty={false}
+                    onChange={(e) => {
+                      dispatch(changeEntityField({ name: 'connectionType', value: e.value }));
+                      dispatch(changeEntityField({ name: 'ipAddress', value: null }));
+                      dispatch(changeEntityField({ name: 'port', value: null }));
+                      dispatch(changeEntityField({ name: 'serviceName', value: null }));
+                    }}
+                    options={CONNECTION_TYPES} />
                 </div>
 
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-port">{translate('tempApp.printer.port')}</Label>
-                  <InputNumber
-                    id="printer-port"
-                    value={printerEntity.port || 0}
-                    onChange={e => dispatch(changeEntityField({ name: 'port', value: e.value }))}
-                    required
-                  />
-                </div>
+                {
+                  printerEntity?.connectionType === "NETWORK" ? (
+                    <>
+                      <div className={"d-flex flex-column mb-3"}>
+                        <Label htmlFor="printer-ipAddress">{translate('tempApp.printer.ipAddress')}</Label>
+                        <InputText
+                          id="printer-ipAddress"
+                          value={printerEntity.ipAddress || ""}
+                          onChange={e => dispatch(changeEntityField({ name: 'ipAddress', value: e.target.value }))}
+                          required
+                        />
+                      </div>
+
+                      <div className={"d-flex flex-column mb-3"}>
+                        <Label htmlFor="printer-port">{translate('tempApp.printer.port')}</Label>
+                        <InputNumber
+                          id="printer-port"
+                          value={printerEntity.port || 0}
+                          onChange={e => dispatch(changeEntityField({ name: 'port', value: e.value }))}
+                          required
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className={"d-flex flex-column mb-3"}>
+                      <Label htmlFor="printer-serviceName">{translate('tempApp.printer.serviceName')}</Label>
+                      <InputText
+                        id="printer-serviceName"
+                        value={printerEntity.serviceName || ""}
+                        onChange={e => dispatch(changeEntityField({ name: 'serviceName', value: e.target.value }))}
+                        required
+                      />
+                    </div>
+                  )
+                }
+
 
                 <div className={"d-flex flex-column mb-3"}>
                   <Label htmlFor="printer-printSpeed">{translate('tempApp.printer.printSpeed')}</Label>
@@ -179,15 +210,6 @@ export const PrinterUpdate = () => {
                     allowEmpty={false}
                     onChange={(e) => dispatch(changeEntityField({ name: 'size', value: e.value }))}
                     options={SIZES} />
-                </div>
-
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="printer-connectionType">{translate('tempApp.printer.connectionType')}</Label>
-                  <SelectButton
-                    value={printerEntity?.connectionType || "NETWORK"}
-                    allowEmpty={false}
-                    onChange={(e) => dispatch(changeEntityField({ name: 'connectionType', value: e.value }))}
-                    options={CONNECTION_TYPES} />
                 </div>
 
                 <div className={"d-flex flex-column mb-3"}>
