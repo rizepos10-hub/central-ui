@@ -758,7 +758,7 @@ export const RegularItemUpdate = () => {
                                             /> */}
 
                                             <Row>
-                                              <Col md={9}>
+                                              <Col md={6}>
                                                 <label className={'font-semibold'}>
                                                   <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
                                                 </label>
@@ -843,7 +843,7 @@ export const RegularItemUpdate = () => {
                                               {variant?.addonGroups.some(
                                                 (group) => group.addonGroup.id === selectedAddonGroup?.addonGroup.id
                                               ) && (
-                                                  <Col md={3}>
+                                                  <Col md={6}>
                                                     <label className={'font-semibold'}>
                                                       <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
                                                     </label>
@@ -1027,7 +1027,7 @@ export const RegularItemUpdate = () => {
                     </TabPanel>
 
                     <TabPanel header={translate('items.update.tabs.addons.label')}>
-                      {regularItem ? <SharedAddon onFieldChange={handleFieldChange} addons={regularItem.addons} addonGroups={regularItem.addonGroups} addonPriceOverrides={regularItem.addonPriceOverrides} /> : null}
+                      {regularItem ? <SharedAddon onFieldChange={handleFieldChange} addons={regularItem.addons} addonGroups={regularItem.addonGroups || []} addonPriceOverrides={regularItem.addonPriceOverrides} /> : null}
                     </TabPanel>
 
                     <TabPanel header={translate('items.update.tabs.visibility.label')}>

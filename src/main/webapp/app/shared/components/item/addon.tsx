@@ -202,7 +202,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
   };
 
   useEffect(() => {
-    const updatedAddonGroups = addonGroups.map(addonGroup => {
+    const updatedAddonGroups = addonGroups?.map(addonGroup => {
       const isRequired = addonGroup.minQuantity > 0;
       // Only update if 'required' has changed
       if (addonGroup.required !== isRequired) {
@@ -325,7 +325,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
   return (
     <>
       <Row>
-        <Col md={9}>
+        <Col md={6}>
           <label className={'font-semibold'}>
             <Translate contentKey={'items.update.addonGroups'}>Addon Groups</Translate>
           </label>
@@ -340,7 +340,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
 
                 return (
                   <div
-                    className="p-orderlist-item d-flex justify-content-between align-items-end p-0"
+                    className="p-orderlist-item d-flex gap-2 align-items-end p-0"
                     onClick={() => setSelectedAddonGroup(addonGroups[index])}
                   >
                     <span className='d-flex flex-column gap-1'>
@@ -415,7 +415,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
           </div>
         </Col>
         {selectedAddonGroup && (
-          <Col md={3}>
+          <Col md={6}>
             <label className={'font-semibold'}>
               <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
             </label>
