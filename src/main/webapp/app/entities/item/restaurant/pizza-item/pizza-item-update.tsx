@@ -9,7 +9,7 @@ import { Button as PrimeButton } from "primereact/button"
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-item.reducer';
 import SharedItemUpdate from "app/shared/components/item/shared-item-update";
-import { IBasePizzaDetail, IPizzaItem, IPizzaItemVariant } from "app/shared/model/ITEM/restaurant/pizza-item.model";
+import { IBasePizzaDetail, IPizzaItem, IPizzaItemVariant, PizzaVariantTypeEnum } from "app/shared/model/ITEM/restaurant/pizza-item.model";
 import { Steps } from "primereact/steps";
 import { MenuItem } from "primereact/menuitem";
 import Select from "react-select";
@@ -40,6 +40,7 @@ import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definiti
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
 import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
+import { IPredefinedPizza } from 'app/shared/model/PIZZA/predefined-pizza.model';
 
 const items: MenuItem[] = [
   {
@@ -77,7 +78,7 @@ export const PizzaItemUpdate = () => {
   const sizeList = useAppSelector(state => state.pizzaSize.entities);
   const discountList = useAppSelector(state => state.discount.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
-  const predefinedPizzaOptions = useAppSelector(state => state.predefinedPizza.entities);
+  const predefinedPizzaOptions: IPredefinedPizza[] = useAppSelector(state => state.predefinedPizza.entities);
   const pizzaPricingClasses = useAppSelector(state => state.pizzaPricingClass.entities);
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -361,14 +362,13 @@ export const PizzaItemUpdate = () => {
   //   });
   // };
 
-  const multipleOptions = ["Single", "Multiple"];
-
-  const handleMultipleClick = (type) => {
+  const handlePizzaVariantTypeClick = (type: PizzaVariantTypeEnum) => {
     setPizzaItem((prev) => {
       const updatedVariants = [
         {
           ...prev.variants[0],
-          multiple: type === "MULTIPLE",
+          pizzaVariantType: type,
+          multiple: type === PizzaVariantTypeEnum.FIXED_DEAL,
         },
       ];
       return {
@@ -484,9 +484,39 @@ export const PizzaItemUpdate = () => {
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
-    const entity = {
+    let entity = {
       ...pizzaItem,
     };
+
+    if (
+      pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE ||
+      pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN ||
+      pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.FIXED_DEAL
+    ) {
+      if (entity.variants && entity.variants[0]) {
+        const basePredefined = predefinedPizzaOptions.find(p => p?.base);
+
+        // Create a new variant object by copying the existing one and adding the predefinedPizza property
+        const updatedVariant = {
+          ...entity.variants[0],
+          predefinedPizza: basePredefined,
+        };
+
+        // Replace the old variant with the new one in a new variants array
+        const updatedVariants = [
+          updatedVariant,
+          ...entity.variants.slice(1), // Include other variants if they exist
+        ];
+
+        // Update the entity with the new variants array
+        entity = {
+          ...entity,
+          variants: updatedVariants,
+        };
+      }
+    }
+
+
     if (isNew) {
       dispatch(createEntity(entity)).then((res) => {
         if (createNew) {
@@ -511,6 +541,16 @@ export const PizzaItemUpdate = () => {
     }
   };
 
+
+  const filteredPredefinedPizzaOptions = useMemo(() => {
+    let filteredOptions = predefinedPizzaOptions;
+    if (pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.PREDEFINED) {
+      filteredOptions = filteredOptions.filter(p => p.base === false);
+    }
+
+    return filteredOptions;
+  }, [predefinedPizzaOptions, pizzaItem]);
+
   if (loading) {
     return <Spinner />
   }
@@ -531,24 +571,50 @@ export const PizzaItemUpdate = () => {
           <div className={"card d-flex flex-column w-7 h-40rem "}>
             <div className={"  p-6  d-flex flex-column justify-content-center align-items-center"}>
               <h4><Translate contentKey={'items.update.pizza.createNewPizzaSteps.pizzaItemType'}>Pizza Item Type</Translate></h4>
-              <div className="p-selectbutton d-flex gap-8 p-buttonset p-component p-3" role="group" data-pc-name="selectbutton"
+              <div className="p-selectbutton d-flex flex-column gap-2 p-component p-3" role="group" data-pc-name="selectbutton"
                 data-pc-section="root">
-                <div className={`p-button h-20rem w-20rem p-component ${!isMultiple ? "p-highlight" : ""}`} role="button" aria-label="Single" aria-pressed="true"
-                  tabIndex={0} data-pc-section="button" onClick={() => handleMultipleClick("SINGLE")}>
-                  <span className="p-button-label p-c" data-pc-section="label">
-                    <Translate contentKey={'items.update.pizza.createNewPizzaSteps.single'}>Single</Translate>
-                  </span>
-                  <span role="presentation" className="p-ink" style={{ height: "78.0256px", width: "78.0256px" }}></span>
+                <div className='d-flex gap-8 justify-content-between'>
+                  <div className={`p-button  h-8rem w-12rem  p-component d-flex flex-column gap-2`} role="button" aria-label="Base" aria-pressed="false"
+                    tabIndex={0} data-pc-section="button" onClick={() => handlePizzaVariantTypeClick(PizzaVariantTypeEnum.BASE)}>
+                    <span className="p-button-label p-c fw-bolder fs-5" data-pc-section="label">
+                      <Translate contentKey={'items.update.pizza.createNewPizzaSteps.BASE'}>Base</Translate>
+                    </span>
+                    <span data-pc-section="label" className='fw-lighter'>
+                      Only Dough and cheese without toppings configuration
+                    </span>
+                  </div>
+                  <div className={`p-button h-8rem w-12rem p-component d-flex flex-column gap-2`} role="button" aria-label="Predefined" aria-pressed="false"
+                    tabIndex={1} data-pc-section="button" onClick={() => handlePizzaVariantTypeClick(PizzaVariantTypeEnum.PREDEFINED)}>
+                    <span className="p-button-label p-c fw-bolder fs-5" data-pc-section="label">
+                      <Translate contentKey={'items.update.pizza.createNewPizzaSteps.PREDEFINED'}>Predefined</Translate>
+                    </span>
+                    <span data-pc-section="label" className='fw-lighter'>
+                      Vegetarian, Peperoni, etc...
+                    </span>
+                  </div>
                 </div>
-                <div className={`p-button  h-20rem w-20rem  p-component ${isMultiple ? "p-highlight" : ""}`} role="button" aria-label="Multiple" aria-pressed="false"
-                  tabIndex={0} data-pc-section="button" onClick={() => handleMultipleClick("MULTIPLE")}>
-                  <span className="p-button-label p-c" data-pc-section="label">
-                    <Translate contentKey={'items.update.pizza.createNewPizzaSteps.multiple'}>Multiple</Translate>
-                  </span>
-                  <span role="presentation" className="p-ink" style={{ height: "78.0256px", width: "78.0256px" }}></span>
+                <div className='d-flex gap-8 justify-content-between'>
+                  <div className={`p-button h-8rem w-12rem p-component d-flex flex-column gap-2`} role="button" aria-label="Make Your Own" aria-pressed="false"
+                    tabIndex={2} data-pc-section="button" onClick={() => handlePizzaVariantTypeClick(PizzaVariantTypeEnum.MAKE_YOUR_OWN)}>
+                    <span className="p-button-label p-c fw-bolder fs-5" data-pc-section="label">
+                      <Translate contentKey={'items.update.pizza.createNewPizzaSteps.MAKE_YOUR_OWN'}>Make Your Own</Translate>
+                    </span>
+                    <span data-pc-section="label" className='fw-lighter'>
+                      Choose Number Of PIzza with Topping Number and enter your item pricing class
+                    </span>
+                  </div>
+                  <div className={`p-button  h-8rem w-12rem  p-component d-flex flex-column gap-2`} role="button" aria-label="Fixed Deal" aria-pressed="false"
+                    tabIndex={3} data-pc-section="button" onClick={() => handlePizzaVariantTypeClick(PizzaVariantTypeEnum.FIXED_DEAL)}>
+                    <span className="p-button-label p-c fw-bolder fs-5" data-pc-section="label">
+                      <Translate contentKey={'items.update.pizza.createNewPizzaSteps.FIXED_DEAL'}>Fixed Deal</Translate>
+                    </span>
+                    <span data-pc-section="label" className='fw-lighter'>
+                      Same as Make you own with selected options and fixed price
+                    </span>
+                  </div>
                 </div>
               </div>
-              {/* <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Single'} onChange={handleMultipleClick} options={multipleOptions} /> */}
+              {/* <SelectButton className={"p-3"}  value={pizzaItem?.variants?.[0]?.multiple ? 'Multiple' : 'Single'} onChange={handlePizzaVariantTypeClick} options={multipleOptions} /> */}
             </div>
             <div className={"ml-auto"}>
               <Button type={"button"} onClick={handleNextClick}><Translate contentKey={'items.update.pizza.createNewPizzaSteps.next'}>Next</Translate></Button>
@@ -579,9 +645,14 @@ export const PizzaItemUpdate = () => {
                                     <Translate contentKey={'items.update.pizza.predefined'}>Predefined Pizza</Translate>
                                   </label>
                                   <Select
-                                    value={pizzaItem?.variants?.[0]?.predefinedPizza || null}
+                                    value={
+                                      (pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE || pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN) ?
+                                        filteredPredefinedPizzaOptions.find(p => p.base) :
+                                        pizzaItem?.variants?.[0]?.predefinedPizza || null
+                                    }
                                     required
-                                    options={predefinedPizzaOptions}
+                                    isDisabled={pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE || pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN}
+                                    options={filteredPredefinedPizzaOptions}
                                     getOptionLabel={option => option.name}
                                     getOptionValue={option => option.id}
                                     onChange={(predefinedPizza) => handleSinglePizzaValuesChange("predefinedPizza", predefinedPizza)}
@@ -681,21 +752,30 @@ export const PizzaItemUpdate = () => {
                               </Col>
                             </Row>
 
-
-                            {!pizzaItem?.variants?.[0]?.multiple && pizzaItem?.variants?.[0]?.predefinedPizza?.base ?
+                            {pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN ?
+                              <div className='d-flex flex-column gap-1'>
+                                <label className="form-label">{translate('items.update.pizza.numberOfPizza')}</label>
+                                <InputNumber
+                                  value={pizzaItem?.variants?.[0]?.numberOfPizza || null}
+                                  min={1}
+                                  onChange={(e) =>
+                                    handlePizzaVariantChange("numberOfPizza", e.value)
+                                  }
+                                />
+                              </div>
+                              : null}
+                            {(
+                              pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN
+                              || pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE) ?
                               <>
-                                <div className='d-flex flex-column gap-1'>
-                                  <label className="form-label">{translate('items.update.pizza.numberOfPizza')}</label>
-                                  <InputNumber
-                                    value={pizzaItem?.variants?.[0]?.numberOfPizza || null}
-                                    min={1}
-                                    onChange={(e) =>
-                                      handlePizzaVariantChange("numberOfPizza", e.value)
-                                    }
-                                  />
-                                </div>
                                 <Accordion multiple activeIndex={[0]} className={"my-3"}>
-                                  <AccordionTab header={translate('items.update.pizza.makeYourOwnPizzaSettings')}>
+                                  <AccordionTab header={
+                                    pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN ? (
+                                      translate('items.update.pizza.makeYourOwnPizzaSettings')
+                                    ) : (
+                                      'Base pizza settings'
+                                    )
+                                  }>
                                     <Row>
                                       <Col md="8">
                                         <Table>
@@ -703,7 +783,11 @@ export const PizzaItemUpdate = () => {
                                             <tr>
                                               {/* <th><Translate contentKey={'items.update.pizza.numberOfPizza'}>Number of Pizza</Translate></th> */}
                                               <th><Translate contentKey={'items.update.pizza.numberOfToppings'}>Number of Toppings</Translate></th>
-                                              <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
+                                              {pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.MAKE_YOUR_OWN ? (
+                                                <th><Translate contentKey={'items.update.pizza.pricingClass'}>Pricing Class</Translate></th>
+                                              ) : (
+                                                <th>Topping Pricing Class</th>
+                                              )}
                                               <th><Translate contentKey={'items.update.pizza.remove'}>Remove</Translate></th>
                                             </tr>
                                           </thead>
@@ -730,8 +814,12 @@ export const PizzaItemUpdate = () => {
                                                 </td>
                                                 <td>
                                                   <Select
-                                                  // show only options of type PREDEFINED
-                                                    options={pizzaPricingClasses?.filter((option: IPizzaPricingClass) => option.type === 'PREDEFINED')}
+                                                    // show only options of type PREDEFINED
+                                                    options={
+                                                      pizzaItem.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.BASE ?
+                                                        filteredOptions?.toppings :
+                                                        filteredOptions?.itemPricingClass
+                                                    }
                                                     value={baseDetail?.pricingClass || null}
                                                     getOptionValue={(option: IPizzaPricingClass) => option.id}
                                                     getOptionLabel={(option: IPizzaPricingClass) => option.name}
@@ -1093,7 +1181,7 @@ export const PizzaItemUpdate = () => {
                         </FormGroup>
                       </TabPanel>
                       <TabPanel header={translate('items.update.tabs.addons.label')}>
-                        {pizzaItem ? <SharedAddon onFieldChange={handleFieldChange} addons={pizzaItem.addons} addonGroups={pizzaItem.addonGroups} addonPriceOverrides={pizzaItem.addonPriceOverrides} /> : null}
+                        {pizzaItem ? <SharedAddon onFieldChange={handleFieldChange} addons={pizzaItem.addons} addonGroups={pizzaItem.addonGroups || []} addonPriceOverrides={pizzaItem.addonPriceOverrides} /> : null}
                       </TabPanel>
                       <TabPanel header={translate('items.update.tabs.visibility.label')}>
                         <Visibility
