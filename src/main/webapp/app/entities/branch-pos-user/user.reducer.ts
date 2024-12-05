@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
-import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
+import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError, ChangeFieldPayload } from 'app/shared/reducers/reducer.utils';
 import { IUser, defaultValue } from 'app/shared/model/user.model';
 
 const initialState: EntityState<IUser> = {
@@ -25,16 +25,9 @@ export const searchEntities = createAsyncThunk('branch-pos-user/search_entity', 
   return axios.get<IUser[]>(requestUrl);
 });
 
-export const getEntities  = createAsyncThunk('branch-pos-user/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
-  const requestUrl = '/api/users/branch';
-
-  console.log('Fetching user entities with parameters:', { page, size, sort, requestUrl });
-
-  const response = await axios.get<IUser[]>(requestUrl);
-
-    console.log('Received response data:', response);
-
-  return response;
+export const getEntities = createAsyncThunk('addon-groups/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+  const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
+  return axios.get<IUser[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
@@ -52,7 +45,7 @@ export const getEntity = createAsyncThunk(
 
 export const assignRole = createAsyncThunk(
   'branch-pos-user/assign_role',
-  async ({ id, selectedRoles }: { id: string; selectedRoles: any[] }, ) => {
+  async ({ id, selectedRoles }: { id: string; selectedRoles: any[] },) => {
     const rolesData = selectedRoles.map(roleId => ({ id: roleId }));
     console.log(rolesData, '12roles12')
     console.log(id, '12id12')
@@ -111,6 +104,8 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const changeEntityField = createAction<ChangeFieldPayload<IUser>>('pos-user-authority/change_field');
+
 // slice
 
 export const UserSlice = createEntitySlice({
@@ -118,6 +113,10 @@ export const UserSlice = createEntitySlice({
   initialState,
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { name, value } = action.payload;
+        state.entity[name] = value;
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
