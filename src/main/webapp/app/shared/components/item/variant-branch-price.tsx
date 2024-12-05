@@ -102,6 +102,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   size={12}
                   value={branchVariantDetails?.[branch.id]?.price || null}
                   onChange={e => handleBranchPriceChange(variantIndex, branch.id, 'price', e.value)}
+                  draggable={false}
                 />
               </td>
               <td>
@@ -116,6 +117,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   maxFractionDigits={2}
                   value={branchVariantDetails?.[branch.id]?.salePrice || null}
                   onChange={e => handleBranchPriceChange(variantIndex, branch.id, 'salePrice', e.value)}
+                  draggable={false}
                 />
               </td>
 
