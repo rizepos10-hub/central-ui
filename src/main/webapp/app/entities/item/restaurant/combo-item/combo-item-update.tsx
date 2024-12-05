@@ -541,7 +541,7 @@ export const ComboItemUpdate = () => {
                 </Row>
               </TabPanel>
               <TabPanel header={translate('items.update.tabs.addons.label')}>
-                {comboItem ? <SharedAddon onFieldChange={handleFieldChange} addons={comboItem.addons} addonGroups={comboItem.addonGroups} addonPriceOverrides={comboItem.addonPriceOverrides} /> : null}
+                {comboItem ? <SharedAddon onFieldChange={handleFieldChange} addons={comboItem.addons || []} addonGroups={comboItem.addonGroups || []} addonPriceOverrides={comboItem.addonPriceOverrides} /> : null}
               </TabPanel>
               <TabPanel header={translate('items.update.tabs.visibility.label')}>
                 <Visibility

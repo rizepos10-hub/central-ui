@@ -358,12 +358,12 @@ export const RegularItemUpdate = () => {
     )
   }
 
-
   const onReorderAddonGroups = (event, variantIndex) => {
-    const reorderedAddonGroups = event.value?.map(group => ({
-      required: addonGroupsList?.find(g => g.id === group.id)?.required || false,
-      addonGroup: group,
-    }));
+    const variant = regularItem.variants[variantIndex];
+    const reorderedAddonGroups = event.value?.map(group => {
+      const existingGroup = variant.addonGroups?.find(g => g.addonGroup.id === group.id);
+      return existingGroup ? existingGroup : { addonGroup: group };
+    });
     handleVariantFieldChange(variantIndex, 'addonGroups', reorderedAddonGroups);
   };
 
@@ -779,7 +779,7 @@ export const RegularItemUpdate = () => {
                                                           <span className='d-flex flex-column gap-1'>
                                                             <label>{addonGroup.name}</label>
                                                             <InputText
-                                                              value={variant?.addonGroups[index]?.name || addonGroup.name}
+                                                              value={variant?.addonGroups[index]?.name ?? addonGroup.name}
                                                               onChange={e => handleVariantAddonGroupFieldChange(index, 'name', e.target.value, variantIndex)}
                                                               style={{ width: '120px' }}
                                                             />
