@@ -45,6 +45,7 @@ import { Checkbox } from 'primereact/checkbox';
 import { cloneDeep } from 'lodash';
 import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
+import AddonImportModal from 'app/shared/components/item/addon-import-modal';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -64,6 +65,7 @@ export const RegularItemUpdate = () => {
   const addonGroupsList = useAppSelector(state => state.addonGroups.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const [selected, setSelected] = useState(null);
+  const [openedAddonModal, setOpenedAddonModal] = useState(false);
 
 
   const [paginationState, setPaginationState] = useState(
@@ -91,6 +93,8 @@ export const RegularItemUpdate = () => {
   }
 
   const handleFieldChange = useCallback((fieldName, value) => {
+    console.log(value, 'value')
+    console.log(fieldName, 'fieldName')
     setRegularItem((prevState) => ({
       ...prevState,
       [fieldName]: value,
@@ -319,6 +323,24 @@ export const RegularItemUpdate = () => {
     </div>
   );
 
+  const openImportAddonModal = () => {
+    setOpenedAddonModal(true);
+  };
+
+  const handleImportAddonModalSave = (groups: IAddonGroups[], variantId?: string) => {
+    if (!variantId) return;
+    console.log(variantId, 'variantId')
+    console.log(groups)
+    const variantIndex = regularItem.variants.findIndex(variant => variant.id === variantId);
+    console.log(variantIndex)
+    const newAddonGroups = [...groups];
+    console.log(newAddonGroups)
+
+    handleVariantFieldChange(variantIndex, 'addonGroups', newAddonGroups);
+    setOpenedAddonModal(false);
+  }
+
+
   const reorderHeader = (
     data: {
       id: string;
@@ -354,6 +376,13 @@ export const RegularItemUpdate = () => {
         >
           Assign
         </Button>
+        {/* <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
+          <div>
+            <Button type="button" onClick={openImportAddonModal}>
+              <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
+            </Button>
+          </div>
+        </div> */}
       </div>
     )
   }
@@ -569,7 +598,7 @@ export const RegularItemUpdate = () => {
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
   };
 
-  console.log(selectedAddonGroup)
+  console.log(regularItem?.addonGroups, 'regularItem?.addonGroups')
 
   if (loading) {
     return <Spinner />
@@ -577,6 +606,13 @@ export const RegularItemUpdate = () => {
 
   return (
     <form onKeyDown={preventEnterSubmit}>
+      {openedAddonModal && (
+        <AddonImportModal
+          showModal={openedAddonModal}
+          handleSave={handleImportAddonModalSave}
+          handleClose={() => { setOpenedAddonModal(false) }}
+        />
+      )}
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card className="p-0">

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Modal, ModalBody, ModalFooter } from 'reactstrap';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Button, Col, Modal, ModalBody, ModalFooter, Row } from 'reactstrap';
 import { Translate } from 'react-jhipster';
 import Select from 'react-select';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -7,17 +7,21 @@ import { searchEntitiesRestaurant as getRestaurantItems } from 'app/entities/ite
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import debounce from 'lodash.debounce'; // Use lodash.debounce for debouncing
 import { IItem } from 'app/shared/model/ITEM/item.model';
+import { confirmDialog } from 'primereact/confirmdialog';
+import { IRegularItem } from 'app/shared/model/ITEM/restaurant/regular-item.model';
+import { IAddonGroups } from 'app/shared/model/ADDON/addon-groups.model';
 
 interface IAddonImportProps {
   showModal: boolean;
   handleClose?: () => void;
-  handleSave: (item: IItem) => void;
+  handleSave: (item: IAddonGroups[], variantId?: string) => void;
 }
 
 const AddonImportModal = (props: IAddonImportProps) => {
   const dispatch = useAppDispatch();
   const restaurantItemsOptions = useAppSelector(state => state.restaurantItems.entities);
-  const [selectedItemToImport, setSelectedItemToImport] = useState({});
+  const [chosenItem, setChosenItem] = useState<IRegularItem>({});
+  // const [selectedItemToImport, setSelectedItemToImport] = useState({});
   const [filterData, setFilterData] = useState({
     filters: {
       name: {
@@ -62,14 +66,33 @@ const AddonImportModal = (props: IAddonImportProps) => {
     );
   }, [dispatch, filterData, restaurantPaginationState]);
 
-  const handleItemImportChange = selectedItem => {
-    setSelectedItemToImport(selectedItem);
+  const handleSelectedItemChange = (selectedItem) => {
+    setChosenItem(selectedItem);
   };
 
-  const handleSaveImportAddons = () => {
-    props.handleSave(selectedItemToImport);
-    props.handleClose();
+  // const handleSaveImportAddons = () => {
+  //   confirm1(selectedItemToImport);
+  // };
+
+  const handleImportAddons = (selectedGroupsToImport: IAddonGroups[], variantId?: string) => {
+    confirm1(selectedGroupsToImport, variantId);
+  }
+
+  const confirm1 = (selectedItemToImport: IAddonGroups[], variantId?: string) => {
+    confirmDialog({
+      message: 'Importing this item will overrides the existing addons, are you sure you want to continue?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => props.handleSave(selectedItemToImport, variantId)
+    });
   };
+
+  // const allAddonGroups = useMemo(() => {
+  //   const variantAddonGroups = chosenItem.variants.flatMap(variant => variant.addonGroups);
+  //   return [...chosenItem.addonGroups, ...variantAddonGroups];
+  // }, [])
 
   return (
     <>
@@ -84,24 +107,84 @@ const AddonImportModal = (props: IAddonImportProps) => {
             </h4>
             <Select
               isMulti={false}
-              onChange={handleItemImportChange}
+              onChange={handleSelectedItemChange}
               onInputChange={handleFilterChange}
               options={restaurantItemsOptions}
               getOptionLabel={option => option.name}
               getOptionValue={option => option.id}
             />
           </div>
+          <Row>
+            {chosenItem.addonGroups?.length > 0 && (
+              <Col md={4}>
+                <div className='d-flex flex-column gap-1'>
+                  <div className='border-bottom'>
+                    {chosenItem.addonGroups?.map((group, idx) => {
+                      if (group.addonGroup.addons?.length === 0) return null
+                      const addonNames = group.addonGroup.addons?.map(
+                        addon => addon.name
+                      )
+                      return (
+                        <div key={idx}>
+                          <div className='fs-5 fw-bold'>
+                            {group.addonGroup.name || group.name}
+                          </div>
+                          <div>
+                            <div>
+                              {addonNames}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div>
+                    <Button onClick={() => handleImportAddons(chosenItem?.addonGroups)}>
+                      Import
+                    </Button>
+                  </div>
+                </div>
+              </Col>
+            )}
+            {chosenItem.variants?.map((variant, vIndex) => {
+              if (variant.addonGroups?.length === 0) return null
+              return (
+                <Col md={4} key={vIndex}>
+                  <div className='border-bottom'>
+                    {variant.addonGroups?.map((group, idx) => {
+                      const addonNames = group.addonGroup.addons?.map(addon => addon.name).join(", ")
+                      return (
+                        <div key={idx}>
+                          <div className='fs-5 fw-bold'>
+                            {group.addonGroup.name || group.name}
+                          </div>
+                          <div>
+                            {addonNames}
+                          </div>
+                        </div>
+                      )
+                    })}
+                    <div>
+                      <Button onClick={() => handleImportAddons(variant?.addonGroups, variant?.id)}>
+                        Import
+                      </Button>
+                    </div>
+                  </div>
+                </Col>
+              )
+            })}
+          </Row>
 
           <ModalFooter>
             <Button color="secondary" onClick={props.handleClose} tabIndex={1}>
               <Translate contentKey="entity.action.cancel">Cancel</Translate>
             </Button>{' '}
-            <Button color="primary" onClick={handleSaveImportAddons}>
+            {/* <Button color="primary" onClick={handleSaveImportAddons}>
               <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
-            </Button>
+            </Button> */}
           </ModalFooter>
         </ModalBody>
-      </Modal>
+      </Modal >
     </>
   );
 };
