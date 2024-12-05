@@ -15,6 +15,7 @@ interface IAddonImportProps {
   showModal: boolean;
   handleClose?: () => void;
   handleSave: (item: IAddonGroups[], variantId?: string) => void;
+  variantId?: string;
 }
 
 const AddonImportModal = (props: IAddonImportProps) => {
@@ -74,18 +75,18 @@ const AddonImportModal = (props: IAddonImportProps) => {
   //   confirm1(selectedItemToImport);
   // };
 
-  const handleImportAddons = (selectedGroupsToImport: IAddonGroups[], variantId?: string) => {
-    confirm1(selectedGroupsToImport, variantId);
-  }
+  const handleImportAddons = (selectedGroupsToImport: IAddonGroups[]) => {
+    confirm1(selectedGroupsToImport);
+  };
 
-  const confirm1 = (selectedItemToImport: IAddonGroups[], variantId?: string) => {
+  const confirm1 = (selectedItemToImport: IAddonGroups[]) => {
     confirmDialog({
-      message: 'Importing this item will overrides the existing addons, are you sure you want to continue?',
+      message:
+        'Importing this item will override the existing addons. Are you sure you want to continue?',
       header: 'Confirmation',
       icon: 'pi pi-exclamation-triangle',
       defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => props.handleSave(selectedItemToImport, variantId)
+      accept: () => props.handleSave(selectedItemToImport, props.variantId),
     });
   };
 
@@ -147,11 +148,12 @@ const AddonImportModal = (props: IAddonImportProps) => {
               </Col>
             )}
             {chosenItem.variants?.map((variant, vIndex) => {
-              if (variant.addonGroups?.length === 0) return null
+              if (!variant?.addonGroups || variant?.addonGroups?.length === 0) return null
               return (
                 <Col md={4} key={vIndex}>
                   <div className='border-bottom'>
                     {variant.addonGroups?.map((group, idx) => {
+                      if (group?.addonGroup?.addons?.length === 0) return null
                       const addonNames = group.addonGroup.addons?.map(addon => addon.name).join(", ")
                       return (
                         <div key={idx}>
@@ -165,7 +167,7 @@ const AddonImportModal = (props: IAddonImportProps) => {
                       )
                     })}
                     <div>
-                      <Button onClick={() => handleImportAddons(variant?.addonGroups, variant?.id)}>
+                      <Button onClick={() => handleImportAddons(variant?.addonGroups)}>
                         Import
                       </Button>
                     </div>

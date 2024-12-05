@@ -82,6 +82,8 @@ export const RegularItemUpdate = () => {
   const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const [selectedAddonGroup, setSelectedAddonGroup] = useState<IAddonGroups>();
+  const [currentVariantId, setCurrentVariantId] = useState<string>();
+
 
   const handleBackClick = () => {
     const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
@@ -323,22 +325,27 @@ export const RegularItemUpdate = () => {
     </div>
   );
 
-  const openImportAddonModal = () => {
+  const openImportAddonModal = (variantId?: string) => {
+    setCurrentVariantId(variantId);
     setOpenedAddonModal(true);
   };
 
   const handleImportAddonModalSave = (groups: IAddonGroups[], variantId?: string) => {
-    if (!variantId) return;
-    console.log(variantId, 'variantId')
-    console.log(groups)
-    const variantIndex = regularItem.variants.findIndex(variant => variant.id === variantId);
-    console.log(variantIndex)
-    const newAddonGroups = [...groups];
-    console.log(newAddonGroups)
-
-    handleVariantFieldChange(variantIndex, 'addonGroups', newAddonGroups);
+    if (variantId) {
+      const variantIndex = regularItem.variants.findIndex(variant => variant.id === variantId);
+      if (variantIndex >= 0) {
+        handleVariantFieldChange(variantIndex, 'addonGroups', groups);
+      }
+    } else {
+      // Update the regularItem's own addonGroups if no variantId is provided
+      setRegularItem(prev => ({
+        ...prev,
+        addonGroups: groups,
+      }));
+    }
     setOpenedAddonModal(false);
-  }
+  };
+
 
 
   const reorderHeader = (
@@ -376,13 +383,9 @@ export const RegularItemUpdate = () => {
         >
           Assign
         </Button>
-        {/* <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
-          <div>
-            <Button type="button" onClick={openImportAddonModal}>
-              <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
-            </Button>
-          </div>
-        </div> */}
+        <Button type="button" onClick={() => openImportAddonModal(variant.id)}>
+          <Translate contentKey="items.update.importAddons">Import Addons</Translate>
+        </Button>
       </div>
     )
   }
@@ -610,7 +613,8 @@ export const RegularItemUpdate = () => {
         <AddonImportModal
           showModal={openedAddonModal}
           handleSave={handleImportAddonModalSave}
-          handleClose={() => { setOpenedAddonModal(false) }}
+          handleClose={() => setOpenedAddonModal(false)}
+          variantId={currentVariantId}
         />
       )}
       <div className={'d-flex row'}>

@@ -312,7 +312,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
         <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
           <div>
             <Button type="button" onClick={openImportAddonModal}>
-              <Translate contentKey={'items.update.importAddons'}>Import Addons</Translate>
+              <Translate contentKey={'items.update.importAddons'}>Import</Translate>
             </Button>
           </div>
         </div>
