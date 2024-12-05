@@ -174,10 +174,10 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
   };
 
   const handleAddonGroupReorder = (event) => {
-    const reorderedAddonGroups = event.value?.map(group => ({
-      required: addonGroups?.find(g => g.addonGroup.id === group.id)?.required || false,
-      addonGroup: group,
-    }));
+    const reorderedAddonGroups = event.value?.map(group => {
+      const existingGroup = addonGroups?.find(g => g.addonGroup.id === group.id);
+      return existingGroup ? existingGroup : { addonGroup: group };
+    });
     onFieldChange('addonGroups', reorderedAddonGroups);
   };
 
@@ -358,7 +358,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                     <span className='d-flex flex-column gap-1'>
                       <label>{addonGroup?.name}</label>
                       <InputText
-                        value={addonGroups[index]?.name || addonGroup?.name}
+                        value={addonGroups[index]?.name ?? addonGroup?.name}
                         onChange={e => handleAddonGroupFieldChange(index, 'name', e.target.value)}
                         style={{ width: '120px' }}
                       />
