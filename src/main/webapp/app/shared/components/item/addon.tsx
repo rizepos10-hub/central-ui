@@ -47,7 +47,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
   const currencySettingsEntity = useAppSelector(state => state.currencySettings.entity);
 
   const dispatch = useAppDispatch();
-  // const [openedAddonModal, setOpenedAddonModal] = useState(false);
+  const [openedAddonModal, setOpenedAddonModal] = useState(false);
   // const [filterAddonState, setFilterAddonState] = useState(initialState);
 
   const addonOptions = useAppSelector(state => state.addon.entities);
@@ -61,6 +61,96 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
 
   const [selectedAddonGroup, setSelectedAddonGroup] = useState<IAddonGroups>();
 
+
+  // const handleAddonGroupFilterChange = (selectedGroup: IAddonGroup) => {
+  //   setFilterAddonState(prevState => ({
+  //     ...prevState,
+  //     filters: {
+  //       ...prevState.filters,
+  //       groupId: { value: selectedGroup?.id, matchMode: FilterMatchMode.EQUALS }
+  //     }
+  //   }))
+  // }
+
+  const openImportAddonModal = () => {
+    setOpenedAddonModal(true);
+  };
+
+  // const handleImportAddonModalClose = () => {
+  //   setOpenedAddonModal(false);
+  // };
+
+
+  // const handleImportAddonModalSave = (option: IItem) => {
+  //   const extraAddons = option.addons;
+  //   const uniqueAddonIds = Array.from(new Set([...(addons || []), ...extraAddons].map(addon => addon.id)));
+  //   const mergedAddons = uniqueAddonIds.map(id => [...(addons || []), ...extraAddons].find(addon => addon.id === id));
+
+  //   const extraAddonGroups = option.addonGroups;
+  //   const uniqueAddonGroupIds = Array.from(
+  //     new Set([...addonGroups.map(group => group.addonGroup.id), ...extraAddonGroups.map(group => group.addonGroup.id)])
+  //   );
+  //   const mergedAddonGroups = uniqueAddonGroupIds.map(id =>
+  //     [...addonGroups, ...extraAddonGroups].find(addonGroup => addonGroup.addonGroup.id === id)
+  //   );
+
+  //   onFieldChange('addonGroups', mergedAddonGroups);
+  //   onFieldChange('addons', mergedAddons);
+  // };
+
+  // const getAddons = () => {
+  //   const updatedQuery = applyMatchModeMap(filterAddonState);
+  //   dispatch(
+  //     filterEntities({
+  //       query: updatedQuery,
+  //     })
+  //   );
+  // };
+
+  // useEffect(() => {
+  //   getAddons();
+  // }, [filterAddonState?.filters?.groupId?.value]);
+
+
+
+  // const handleAddonChange = (selectedAddon: IAddon) => {
+  //   onFieldChange('addons', [...addons, selectedAddon]);
+  // };
+
+  // const handleRemoveAddon = (addon: string) => {
+  //   const updatedAddons = addons.filter(a => a.id !== addon);
+  //   onFieldChange('addons', updatedAddons);
+  // };
+
+  // const handleAddonOverridedPriceChange = (addonId, price) => {
+  //   const updatedAddonPriceOverrides = [...addonPriceOverrides];
+  //   const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
+  //   if (price !== null && price !== undefined && price !== '') {
+  //     if (index >= 0) {
+  //       // Update existing price override
+  //       updatedAddonPriceOverrides[index].price = price;
+  //     } else {
+  //       // Add new price override
+  //       updatedAddonPriceOverrides.push({ id: addonId, price });
+  //     }
+  //   } else {
+  //     // Remove price override if price is empty or null
+  //     if (index >= 0) {
+  //       updatedAddonPriceOverrides.splice(index, 1);
+  //     }
+  //   }
+
+
+
+  // const handleAddonReorder = (event) => {
+  //   onFieldChange('addons', event.value);
+  // };
+
+  const handleCheckboxChange = (addonGroupIndex: number) => {
+    const updatedAddonGroups = cloneDeep([...addonGroups]);
+    updatedAddonGroups[addonGroupIndex].required = !updatedAddonGroups[addonGroupIndex].required;
+    onFieldChange('addonGroups', updatedAddonGroups);
+  };
   const handleAddonGroupChange = (
     selectedAddonGroup: IAddonGroup,
     actionMeta: ActionMeta<{ id: string; name: string }>
@@ -219,6 +309,13 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
         >
           Assign
         </Button>
+        <div className={'d-flex flex-column gap-1 flex-end justify-content-end col-2 pe-0'}>
+          <div>
+            <Button type="button" onClick={openImportAddonModal}>
+              <Translate contentKey={'items.update.importAddons'}>Import</Translate>
+            </Button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -230,8 +327,13 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
     option => !selectedAddonGroupIds?.includes(option.id)
   );
 
-  console.log(selectedAddonGroup)
-  const filteredAddons = addonOptions?.filter(option => !addons?.map(addon => addon.id).includes(option.id));
+  const handleImportAddonModalSave = (groups: IAddonGroups[]) => {
+    const newAddonGroups = [...groups];
+
+    onFieldChange('addonGroups', newAddonGroups);
+    setOpenedAddonModal(false);
+  }
+
   return (
     <>
       <Row>
@@ -380,6 +482,14 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
           </Col>
         )}
       </Row>
+
+      {openedAddonModal && (
+        <AddonImportModal
+          showModal={openedAddonModal}
+          handleSave={handleImportAddonModalSave}
+          handleClose={() => { setOpenedAddonModal(false) }}
+        />
+      )}
     </>
   );
 };
