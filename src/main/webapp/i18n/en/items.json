@@ -27,6 +27,7 @@
         "duplicate": "Duplicate",
         "edit": "Edit",
         "delete": "Delete",
+        "type": "Type",
         "regular": {
           "variant": "Variant",
           "category": "Category",
@@ -202,7 +203,7 @@
       "overridedPrice": "Overrided Price",
       "min": "Min",
       "max": "Max",
-      "addAutomatically": "Add Automatically",
+      "addAutomatically": "Print",
       "relatedAddons": "Related Addons",
       "exclude": "Exclude",
       "include": "Include",
@@ -219,7 +220,7 @@
       "deleteVariant": "Delete Variant",
       "deleteVariantMessage": "Are you sure you want to delete this variant?",
       "addons": "Addons",
-      "importAddons": "Import Addons",
+      "importAddons": "Import",
       "importAddonsModal": {
         "title": "Import Addons From Item",
         "search": "Search for Item"
@@ -274,7 +275,11 @@
           "pizzaItemType": "Pizza Item Type",
           "single": "Single",
           "multiple": "Multiple",
-          "next": "Next"
+          "next": "Next",
+          "BASE": "Base",
+          "PREDEFINED": "Predefined",
+          "MAKE_YOUR_OWN": "Make Your Own",
+          "FIXED_DEAL": "Fixed Deal"
         }
       },
       "regular": {

@@ -16,6 +16,7 @@ import order from 'app/entities/order/order.reducer';
 import delivery from 'app/entities/order/delivery.reducer';
 import user from 'app/entities/back-office-user/user.reducer';
 import PosBranchUser from 'app/entities/branch-pos-user/user.reducer';
+import posAuthorityGroup from 'app/entities/pos-authority-groups/pos-authority-group.reducer';
 import tax from 'app/entities/settings/tax/tax.reducer';
 import profileGroup from 'app/entities/settings/profile-group/profile-group.reducer';
 import voidReason from 'app/entities/settings/void-reason/void-reason.reducer';
@@ -42,6 +43,7 @@ import pizzaCrustThickness from 'app/entities/pizza-settings/pizza-crust-setting
 import pizzaCrustType from 'app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer';
 import pizzaTopping from 'app/entities/pizza-settings/pizza-topping/pizza-topping.reducer';
 import predefinedPizza from 'app/entities/pizza-settings/pizza-predefined/pizza-predefined.reducer';
+import courseDefinition from 'app/entities/settings/course-definition/course-definition.reducer';
 import floorPlanTable from 'app/entities/settings/floor-plans/tables/table.reducer';
 import floorPlanSettings from 'app/entities/settings/floor-plans/floor-plan-settings/floor-plan-settings.reducer';
 import floorPlan from "app/entities/settings/floor-plans/floor-plan/floor-plan.reducer";
@@ -110,6 +112,7 @@ const entitiesReducers = {
   delivery,
   user,
   PosBranchUser,
+  posAuthorityGroup,
   tax,
   taxProfiles,
   profileGroup,
@@ -125,6 +128,7 @@ const entitiesReducers = {
   pizzaCrustType,
   pizzaPricingClass,
   predefinedPizza,
+  courseDefinition,
   floorPlanTable,
   floorPlanSettings,
   floorPlan,
