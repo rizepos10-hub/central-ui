@@ -24,6 +24,7 @@
         "menus": "Menus",
         "description": "Description",
         "inStock": "In Stock",
+        "duplicate": "Duplicate",
         "edit": "Edit",
         "delete": "Delete",
         "type": "Type",
