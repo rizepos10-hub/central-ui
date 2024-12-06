@@ -141,11 +141,19 @@ export const Product = () => {
           icon: 'pi pi-exclamation-triangle',
           accept() {
             const { id, ...entityWithoutId } = rowData;
-            entityWithoutId.variants = entityWithoutId?.variants.map(variant => ({
-              ...variant,
+            entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+              ...variantWithoutId,
               sku: null,
             }));
-            dispatch(createEntity(entityWithoutId));
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
+
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/product/${newProductId}/edit`)
+              }
+            });
           }
         })}
         text
