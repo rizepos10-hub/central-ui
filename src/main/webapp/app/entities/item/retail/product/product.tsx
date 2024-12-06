@@ -26,6 +26,8 @@ import { getEntities as getCategories } from 'app/entities/term/retail-item-cate
 import { IItem } from "app/shared/model/ITEM/item.model";
 import { actionOptions, BulkEdit } from "app/shared/components/item/bulk-edit";
 import { confirmDialog } from "primereact/confirmdialog";
+import { FaCopy } from "react-icons/fa";
+import { createEntity } from './product.reducer';
 
 export const Product = () => {
   const dispatch = useAppDispatch();
@@ -120,10 +122,6 @@ export const Product = () => {
     dispatch(getEntities({}))
   };
 
-
-
-
-
   const nameColumnTemplate = rowData => {
     const editUrl = `/product/${rowData.id}/edit`;
     return (
@@ -132,6 +130,39 @@ export const Product = () => {
       </Link>
     );
   };
+
+  const duplicateColumnTemplate = (rowData) => {
+    return (
+      <Button
+        className="d-flex justify-content-center w-100"
+        onClick={() => confirmDialog({
+          message: 'Are you sure you want to duplicate this product?',
+          header: 'Duplicate Product',
+          icon: 'pi pi-exclamation-triangle',
+          accept() {
+            const { id, ...entityWithoutId } = rowData;
+            entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+              ...variantWithoutId,
+              sku: null,
+            }));
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
+
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/product/${newProductId}/edit`)
+              }
+            });
+          }
+        })}
+        text
+      >
+        <FaCopy style={{ cursor: 'pointer', color: 'black', marginLeft: '0.3rem' }} />
+      </Button>
+    );
+  };
+
   const editColumnTemplate = (rowData) => {
     const editUrl = `/product/${rowData.id}/edit`;
 
@@ -329,6 +360,13 @@ export const Product = () => {
         />
 
         <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
+
+        <Column
+          header={translate('items.view.fields.duplicate')}
+          body={duplicateColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
 
         <Column
           header={translate('items.view.fields.edit')}

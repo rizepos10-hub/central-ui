@@ -1073,6 +1073,9 @@ export const PizzaItemUpdate = () => {
                                             onChange={(e) =>
                                               handleMultiplePizzaInputChange("fixedPrice", e.value)
                                             }
+                                            mode="decimal"
+                                            minFractionDigits={2}
+                                            maxFractionDigits={2}
                                           />
                                         </td>
                                       </tr>

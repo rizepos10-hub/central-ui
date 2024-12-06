@@ -24,6 +24,7 @@
         "menus": "Menus",
         "description": "Description",
         "inStock": "In Stock",
+        "duplicate": "Duplicate",
         "edit": "Edit",
         "delete": "Delete",
         "type": "Type",
@@ -219,7 +220,7 @@
       "deleteVariant": "Delete Variant",
       "deleteVariantMessage": "Are you sure you want to delete this variant?",
       "addons": "Addons",
-      "importAddons": "Import Addons",
+      "importAddons": "Import",
       "importAddonsModal": {
         "title": "Import Addons From Item",
         "search": "Search for Item"

@@ -3,20 +3,22 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getSortState, Translate, translate } from 'react-jhipster';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { getEntities as getPosAuthorityGroups } from "app/entities/pos-authority-groups/pos-authority-group.reducer";
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import { getEntities as getPosAuthorityGroups } from 'app/entities/pos-authority-groups/pos-authority-group.reducer';
 import {
   getEntity,
   updateEntity,
   createEntity,
   reset,
+  changeEntityField,
 } from './user.reducer';
-import { InputText } from "primereact/inputtext";
-import { Checkbox } from "primereact/checkbox";
-import { Button } from "primereact/button";
-import Select from "react-select";
-import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { InputText } from 'primereact/inputtext';
+import { Checkbox } from 'primereact/checkbox';
+import { Button } from 'primereact/button';
+import Select from 'react-select';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { IPosAuthorityGroup } from 'app/shared/model/pos-authority-group';
+import { IUser } from 'app/shared/model/user.model';
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
@@ -25,215 +27,60 @@ export const UserUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const userEntity = useAppSelector(state => state.PosBranchUser.entity);
+  const userEntity: IUser = useAppSelector(state => state.PosBranchUser.entity);
   const loading = useAppSelector(state => state.PosBranchUser.loading);
   const updating = useAppSelector(state => state.PosBranchUser.updating);
   const updateSuccess = useAppSelector(state => state.PosBranchUser.updateSuccess);
-  const branchList = useAppSelector(state => state.branch.entities)
+  const branchList = useAppSelector(state => state.branch.entities);
   const posAuthorityGroupList: IPosAuthorityGroup[] = useAppSelector(state => state.posAuthorityGroup.entities);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-  const [selectedBranches, setSelectedBranches]: any = useState([]);
-  const [selectedAuthorities, setSelectedAuthorities]: any = useState([])
-  const [selectedAuthoritiesGroups, setSelectedAuthoritiesGroups] = useState<IPosAuthorityGroup[]>([]);
-
-  const getBranchName = (branchId) => {
-    const branch = branchList.find(branch => branch.id === branchId);
-    return branch ? branch.name : 'Unknown Branch';
-  };
-
-  const initialBranches = isNew
-    ? null
-    : userEntity?.branchId
-      ? { label: getBranchName(userEntity?.branchId), value: userEntity?.branchId }
-      : null;
-
-  const [user, setUser] = useState({
-    firstName: '',
-    lastName: '',
-    userName: '',
-    id: null,
-    branches: [],
-    authoritiesGroups: [],
-    email: '',
-    permissions: [],
-    verified: false,
-    authorities: [],
-    pinCode: '',
-    password: ''
-  });
-
-  const handleClose = () => {
-    navigate(-1);
-  };
-
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setUser((prevUser) => ({
-      ...prevUser,
-      [name]: value,
-    }));
-  };
-
-  const handleBranchChange = (selectedBranches) => {
-    setUser((prev) => ({
-      ...prev,
-      branches: selectedBranches.map((branch) => ({ id: branch.value, value: branch.value })),
-    }));
-    setSelectedBranches(selectedBranches);
-  };
-
-  const handleAuthoritiesChange = (authorities) => {
-    setUser((prev) => ({
-      ...prev,
-      authorities: [authorities?.value],
-    }));
-    setSelectedAuthorities(authorities);
-  };
-
-  const handlePasswordChange = (event) => {
-    const newPass = event.target.value
-
-    setUser((prev) => ({
-      ...prev,
-      password: newPass
-    }))
-  }
-
-  const handleActivatedChange = (event) => {
-    const { value, checked } = event.target;
-    setUser((prevUser) => {
-      if (checked) {
-        return {
-          ...prevUser,
-          activated: checked,
-        };
-      } else {
-        return {
-          ...prevUser,
-          activated: checked,
-        };
-      }
-    });
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    try {
-      if (isNew) {
-        await dispatch(createEntity(user));
-      } else {
-        await dispatch(updateEntity(user));
-      }
-
-    } catch (error) {
-      console.error('Error occurred while submitting:', error);
-    }
-  };
 
   useEffect(() => {
-    console.log(selectedAuthoritiesGroups, 'selectedAuthoritiesGroups');
-    setUser((prevUser) => ({
-      ...prevUser,
-      authoritiesGroups: [...selectedAuthoritiesGroups],
-    }));
-  }, [selectedAuthoritiesGroups]);
-  console.log(user, 'user')
-
-  // useEffect(() => {
-  //   setUser({
-  //     ...user,
-  //     authorities: selectedAuthorities
-  //   })
-  // }, [selectedAuthorities])
-
-  useEffect(() => {
-    if (isNew) {
-      dispatch(reset());
-    } else {
-      dispatch(getEntity(id));
-    }
-    dispatch(getBranches({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    dispatch(
+      getBranches({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
 
     dispatch(getPosAuthorityGroups({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
-    }))
+    }));
 
-    return () => {
-      setUser({
-        firstName: '',
-        lastName: '',
-        userName: '',
-        id: '',
-        branches: [],
-        email: '',
-        permissions: [],
-        verified: false,
-        authorities: [],
-        authoritiesGroups: [],
-        pinCode: '',
-        password: ''
-      });
-      reset()
+    if (!isNew) {
+      dispatch(getEntity(id));
     }
-  }, [userEntity?.branchId]);
+  }, []);
 
   useEffect(() => {
     if (updateSuccess) {
-      handleClose();
-    }
-    if (!isNew) {
-      setUser(userEntity)
-    } else {
-      setUser({
-        firstName: '',
-        lastName: '',
-        userName: '',
-        id: null,
-        branches: [],
-        email: '',
-        permissions: [],
-        authoritiesGroups: [],
-        verified: false,
-        authorities: [],
-        pinCode: '',
-        password: ''
-
-      });
-      setSelectedBranches([])
-      setSelectedAuthorities([])
-    }
-
-    if (userEntity?.branches) {
-      setSelectedBranches(userEntity.branches?.map((branch) => ({ label: getBranchName(userEntity.branchId), value: userEntity.branchId })))
-    }
-
-    if (userEntity?.branches) {
-      setSelectedBranches(userEntity.branches?.map((branch) => ({ label: getBranchName(branch.id), value: branch.id, id: branch.id })))
-    }
-
-    if (userEntity?.authorities) {
-      setSelectedAuthorities(userEntity.authorities);
-    }
-
-    if (userEntity?.authoritiesGroups) {
-      console.log(userEntity.authoritiesGroups, 'authoritiesGroups')
-      setSelectedAuthoritiesGroups(userEntity.authoritiesGroups);
-    }
-
-    return () => {
-      reset()
+      navigate('/branch-pos-user');
     }
   }, [updateSuccess]);
+
+  const handleSubmit = async event => {
+    event.preventDefault();
+
+    try {
+      if (isNew) {
+        await dispatch(createEntity(userEntity));
+      } else {
+        await dispatch(updateEntity(userEntity));
+      }
+    } catch (error) {
+      console.error('Error occurred while submitting:', error);
+    }
+  };
+
+  const updateUserFieldvalue = (fieldName, value) => {
+    dispatch(changeEntityField({ name: fieldName, value }));
+  };
 
   return (
     <div>
@@ -253,10 +100,10 @@ export const UserUpdate = () => {
               <InputText
                 id="firstName"
                 name="firstName"
-                value={user.firstName || ''}
-                onChange={handleInputChange}
+                value={userEntity.firstName || ''}
+                onChange={e => updateUserFieldvalue('firstName', e.target.value)}
                 required
-                placeholder={translate("tempApp.firstName")}
+                placeholder={translate('tempApp.firstName')}
               />
             </div>
 
@@ -267,10 +114,10 @@ export const UserUpdate = () => {
               <InputText
                 id="lastName"
                 name="lastName"
-                value={user.lastName || ''}
-                onChange={handleInputChange}
+                value={userEntity.lastName || ''}
+                onChange={e => updateUserFieldvalue('lastName', e.target.value)}
                 required
-                placeholder={translate("tempApp.lastName")}
+                placeholder={translate('tempApp.lastName')}
               />
             </div>
 
@@ -281,11 +128,11 @@ export const UserUpdate = () => {
               <InputText
                 id="userName"
                 name="userName"
-                value={user.userName || ''}
+                value={userEntity.userName || ''}
                 readOnly={!isNew}
-                onChange={handleInputChange}
+                onChange={e => updateUserFieldvalue('userName', e.target.value)}
                 required
-                placeholder={translate("posUsers.update.placeholders.username")}
+                placeholder={translate('posUsers.update.placeholders.username')}
               />
             </div>
 
@@ -296,10 +143,10 @@ export const UserUpdate = () => {
               <InputText
                 id="email"
                 name="email"
-                value={user.email}
-                onChange={handleInputChange}
+                value={userEntity.email}
+                onChange={e => updateUserFieldvalue('email', e.target.value)}
                 required
-                placeholder={translate("tempApp.email")}
+                placeholder={translate('tempApp.email')}
               />
             </div>
 
@@ -310,12 +157,12 @@ export const UserUpdate = () => {
               <InputText
                 id="pinCode"
                 name="pinCode"
-                value={user.pinCode}
-                onChange={handleInputChange}
+                value={userEntity.pinCode}
+                onChange={e => updateUserFieldvalue('pinCode', e.target.value)}
                 required
                 minLength={1}
                 maxLength={6}
-                placeholder={translate("tempApp.pinCode")}
+                placeholder={translate('tempApp.pinCode')}
               />
             </div>
 
@@ -327,20 +174,23 @@ export const UserUpdate = () => {
                 id="password"
                 name="password"
                 type="password"
-                value={user.password}
-                onChange={handlePasswordChange}
+                value={userEntity.password}
+                onChange={e => updateUserFieldvalue('password', e.target.value)}
                 required={isNew ? true : false}
-                placeholder={translate("tempApp.password")}
+                placeholder={translate('tempApp.password')}
               />
             </div>
 
             <div className="mb-3">
               <Translate contentKey={'common.branches'} />
-              <Select defaultValue={initialBranches}
-                value={selectedBranches}
+              <Select
+                value={userEntity.branches}
                 isMulti
-                onChange={handleBranchChange}
-                options={branchList.map(branch => ({ value: branch.id, label: branch.name }))} />
+                getOptionLabel={option => option.name}
+                getOptionValue={option => option.id}
+                onChange={e => updateUserFieldvalue('branches', e)}
+                options={branchList}
+              />
             </div>
 
             <div className="p-field d-flex flex-column mb-3">
@@ -348,72 +198,81 @@ export const UserUpdate = () => {
                 <Translate contentKey={'tempApp.activated'} />
               </label>
               <Checkbox
-                inputId={`activated-${user.verified}`}
+                inputId={`activated-${userEntity.verified}`}
                 name="Activated"
-                value={user.verified}
-                onChange={handleActivatedChange}
-                checked={user.verified}
+                value={userEntity.verified}
+                onChange={e => updateUserFieldvalue('verified', e.checked)}
+                checked={userEntity.verified}
               />
             </div>
 
             <div className="mb-3">
               <div>
                 {posAuthorityGroupList.map((group, idx) => {
+                  const isGroupSelected = userEntity.authoritiesGroups?.some(g => g?.id === group?.id);
+
                   return (
                     <div key={`group-${idx}`} className="d-flex flex-column gap-2 mb-3">
-                      <div className='fw-bold'>
+                      <div className="fw-bold">
                         <Checkbox
                           inputId={`group-${idx}`}
                           name="group"
                           value={group.id}
-                          onChange={(e) => {
-                            const updatedAuthorityGroups = [...selectedAuthoritiesGroups];
-                            let updatedAuthorities = [];
+                          onChange={e => {
+                            let updatedAuthorityGroups = userEntity.authoritiesGroups ? [...userEntity.authoritiesGroups] : [];
+                            let updatedAuthorities = userEntity.authorities ? [...userEntity.authorities] : [];
 
                             if (e.checked) {
+                              // Add group to authorityGroups
                               updatedAuthorityGroups.push(group);
-                              updatedAuthorities = [...selectedAuthorities, ...group.authorities];
+                              // Add group's authorities to authorities
+                              updatedAuthorities = Array.from(new Set([...updatedAuthorities, ...group.authorities]));
                             } else {
-                              updatedAuthorityGroups.splice(updatedAuthorityGroups.indexOf(group), 1);
-                              updatedAuthorities = selectedAuthorities.filter(authority => !group.authorities.includes(authority));
+                              // Remove group from authorityGroups
+                              updatedAuthorityGroups = updatedAuthorityGroups.filter(g => g.id !== group.id);
+                              // Remove group's authorities from authorities
+                              updatedAuthorities = updatedAuthorities.filter(authority => !group.authorities.includes(authority));
                             }
-                            setSelectedAuthorities(updatedAuthorities);
-                            setSelectedAuthoritiesGroups(updatedAuthorityGroups);
+
+                            // Update userEntity in Redux state
+                            dispatch(changeEntityField({ name: 'authoritiesGroups', value: updatedAuthorityGroups }));
+                            dispatch(changeEntityField({ name: 'authorities', value: updatedAuthorities }));
                           }}
-                          checked={selectedAuthoritiesGroups.some(g => g.id === group.id)}
+                          checked={isGroupSelected}
                         />
                         <label htmlFor={`group-${idx}`}>{group.name}</label>
                       </div>
                       <div>
                         {group.authorities.map((authority, i) => {
+                          const isAuthoritySelected = userEntity.authorities?.includes(authority);
                           return (
                             <div key={`authority-${i}`} className="ms-2">
                               <Checkbox
                                 inputId={`authority-${i}`}
                                 name="authority"
                                 value={authority}
-                                onChange={(e) => {
-                                  const updatedAuthorities = [...selectedAuthorities];
+                                onChange={e => {
+                                  let updatedAuthorities = userEntity.authorities ? [...userEntity.authorities] : [];
                                   if (e.checked) {
-                                    updatedAuthorities.push(authority);
+                                    if (!updatedAuthorities.includes(authority)) {
+                                      updatedAuthorities.push(authority);
+                                    }
                                   } else {
-                                    updatedAuthorities.splice(updatedAuthorities.indexOf(authority), 1);
+                                    updatedAuthorities = updatedAuthorities.filter(a => a !== authority);
                                   }
-                                  setSelectedAuthorities(updatedAuthorities);
-                                  setUser({
-                                    ...user,
-                                    authorities: updatedAuthorities
-                                  })
+
+                                  // Update userEntity.authorities in Redux state
+                                  dispatch(changeEntityField({ name: 'authorities', value: updatedAuthorities }));
                                 }}
-                                checked={selectedAuthorities?.includes(authority)}
+                                checked={isAuthoritySelected}
                               />
                               <label htmlFor={`authority-${i}`}>{authority}</label>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -427,12 +286,7 @@ export const UserUpdate = () => {
               >
                 <Translate contentKey={'common.buttons.back'} />
               </Button>
-              <Button
-                id="save-entity"
-                type="submit"
-                disabled={updating}
-                icon="pi pi-save"
-              >
+              <Button id="save-entity" type="submit" disabled={updating} icon="pi pi-save">
                 <Translate contentKey={'common.buttons.save'} />
               </Button>
             </div>
