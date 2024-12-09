@@ -361,6 +361,11 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                         value={addonGroups[index]?.name ?? addonGroup?.name}
                         onChange={e => handleAddonGroupFieldChange(index, 'name', e.target.value)}
                         style={{ width: '120px' }}
+                        onKeyDown={(e) => {
+                          if (e.key === ' ') {
+                            e.stopPropagation();
+                          }
+                        }}
                       />
                     </span>
                     <span className='d-flex gap-1'>
