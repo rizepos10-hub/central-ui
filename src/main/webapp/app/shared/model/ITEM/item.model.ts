@@ -6,10 +6,11 @@ import {IProductionCenter} from "app/shared/model/PRINTER/production-center.mode
 import {IVisibility} from "app/shared/model/visibility.model";
 import {ItemVariantType} from "app/shared/model/ENUMS/item-variant-type.model";
 import {IAddon} from "app/shared/model/ADDON/addon.model";
-import {IAddonGroup} from "app/shared/model/ADDON/addon-groups.model";
+import {IAddonGroup, IAddonGroups} from "app/shared/model/ADDON/addon-groups.model";
 import { IDiscount } from "app/shared/model/discount.model";
 import { ITag } from "app/shared/model/TAG/tag.model";
 import { IBrand } from "app/shared/model/brand.model";
+import { IAddonPriceOverride } from '../ADDON/addon-price-override';
 
 export interface IItem {
   id?: string;
@@ -18,15 +19,13 @@ export interface IItem {
   categories?: ITerm[];
   discounts?: IDiscount[];
   itemVariantType?: ItemVariantType;
-  itemType?: "RESTAURANT" | "RETAIL";
+  itemType?: "RESTAURANT" | "RETAIL" | "VIRTUAL";
   stock?: number;
   tags?: ITag[];
   brand?: IBrand;
+  addonPriceOverrides?: IAddonPriceOverride[];
   addons?: IAddon[];
-  addonGroups?: {
-    required?: boolean,
-    addonGroup?: IAddonGroup
-  }[];
+  addonGroups?: IAddonGroups[];
   excludedFromLoyaltyPoints?: boolean;
   status?: ItemStatus | null;
   variants?: any;

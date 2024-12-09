@@ -31,6 +31,7 @@ import { preventEnterSubmit } from "app/shared/util/form-utils";
 import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definition-values/custom-definition-values-wrapper';
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
 import { InputTextarea } from 'primereact/inputtextarea';
+import SharedAddon from 'app/shared/components/item/addon';
 
 
 export const ComboItemUpdate = () => {
@@ -538,6 +539,9 @@ export const ComboItemUpdate = () => {
                     </div>
                   </FormGroup>
                 </Row>
+              </TabPanel>
+              <TabPanel header={translate('items.update.tabs.addons.label')}>
+                {comboItem ? <SharedAddon onFieldChange={handleFieldChange} addons={comboItem.addons || []} addonGroups={comboItem.addonGroups || []} addonPriceOverrides={comboItem.addonPriceOverrides} /> : null}
               </TabPanel>
               <TabPanel header={translate('items.update.tabs.visibility.label')}>
                 <Visibility

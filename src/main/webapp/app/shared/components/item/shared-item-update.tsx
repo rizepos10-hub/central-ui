@@ -150,22 +150,20 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
         <FormGroup className={'d-flex flex-column gap-1'}>
           <Col md="12">
             <div className="row">
-              {!isSimplePizza ? (
-                <div className={'d-flex flex-column gap-1  col'}>
-                  <label className={'font-semibold'}>
-                    <Translate contentKey={'items.update.name'}>Name</Translate>
-                  </label>
-                  <InputText
-                    type="text"
-                    name="name"
-                    id="name"
-                    required={true}
-                    placeholder={translate('items.update.placeholders.itemName')}
-                    value={item.name || ''}
-                    onChange={e => onFieldChange('name', e.target.value)}
-                  />
-                </div>
-              ) : null}
+              <div className={'d-flex flex-column gap-1  col'}>
+                <label className={'font-semibold'}>
+                  <Translate contentKey={'items.update.name'}>Name</Translate>
+                </label>
+                <InputText
+                  type="text"
+                  name="name"
+                  id="name"
+                  required={true}
+                  placeholder={translate('items.update.placeholders.itemName')}
+                  value={item.name || ''}
+                  onChange={e => onFieldChange('name', e.target.value)}
+                />
+              </div>
 
               <div className={'d-flex flex-column gap-1  col'}>
                 <label className={'font-semibold'}>
@@ -177,7 +175,14 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                   placeholder={translate('items.update.placeholders.shortDescription')}
                   value={item.desc || ''}
                   onChange={e => onFieldChange('desc', e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.stopPropagation();
+                    }
+                  }}
+                  rows={5}
                 />
+
               </div>
             </div>
 
@@ -323,8 +328,6 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                 </div>
               </Col>
             </Row>
-
-            {isRestaurantItem ? <SharedAddon onFieldChange={onFieldChange} addons={item.addons} addonGroups={item.addonGroups} /> : null}
           </Col>
         </FormGroup>
       </Row>

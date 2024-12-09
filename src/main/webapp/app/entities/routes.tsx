@@ -54,6 +54,9 @@ import Branches from './branches/branch';
 import ServiceCharge from './service-charges/index';
 import ImportFromOldSystem from './settings/import-from-old-system/import-from-old-system';
 import CustomDefinition from './settings/custom-definitions/index';
+import GiftCardsRoutes from './item/virtual/gift-card';
+import CourseDefinitionRoutes from './settings/course-definition';
+import PosAuthorityGroupRoutes from './pos-authority-groups';
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -67,6 +70,7 @@ export default () => {
         <Route path="menu/*" element={<Menu />} />
         <Route path="back-office-user/*" element={<BackOfficeUser />} />
         <Route path="branch-pos-user/*" element={<BranchPosUser />} />
+        <Route path="pos-authority-group/*" element={<PosAuthorityGroupRoutes />} />
 
         <Route path="branches/*" element={<Branches />} />
         <Route path="service-charge/*" element={<ServiceCharge />} />
@@ -108,6 +112,7 @@ export default () => {
         <Route path="pizza-pricing-class/*" element={<PizzaPricingClass />} />
 
 
+        <Route path="course-definition*" element={<CourseDefinitionRoutes />} />
         <Route path="floor-plan/table/*" element={<FloorPlanTable />} />
         <Route path="floor-plan/settings/*" element={<FloorPlanSettings />} />
         <Route path="floor-plan/*" element={<FloorPlan />} />
@@ -144,6 +149,7 @@ export default () => {
 
         <Route path="online-ordering/*" element={<OnlineOrderingRoutes />} />
 
+        <Route path="gift-cards/*" element={<GiftCardsRoutes />} />
 
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>

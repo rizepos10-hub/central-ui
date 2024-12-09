@@ -143,6 +143,7 @@
         "crustThickness": "Crust Thickness",
         "addCrustThickness": "Add Crust Thickness",
         "pricingClass": "Pricing Class",
+        "toppingPricingClass": "Topping Pricing Class",
         "numberOfPizzas": "Number of Pizzas",
         "numberOfToppings": "Number of Toppings",
         "freeToppingsNumber": "Free Toppings Number",
@@ -150,6 +151,7 @@
         "remove": "Remove",
         "add": "Add",
         "makeYourOwnPizzaSettings": "Make Your Own Pizza Settings",
+        "basePizzasettings": "Base Pizza Settings",
         "createNewPizzaSteps": {
           "choosePizzaType": "Choose Pizza Type",
           "createYourPizza": "Create Your Pizza",

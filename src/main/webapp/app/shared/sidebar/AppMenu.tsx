@@ -71,10 +71,10 @@ export const model: MenuItem[] = [
         label: 'POS',
         to: '/branch-pos-user',
       },
-      // {
-      //   label: 'Activities',
-      //   to: '/activities',
-      // },
+      {
+        label: 'POS Authority Groups',
+        to: '/pos-authority-group',
+      },
     ],
   },
   {
@@ -93,7 +93,6 @@ export const model: MenuItem[] = [
       },
     ],
   },
-
   {
     label: 'Restaurant Catalog',
     role: ['ROLE_ADMINISTRATOR'],
@@ -361,7 +360,19 @@ export const model: MenuItem[] = [
         label: 'Loyalty Points',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/loyalty'
-      }
+      },
+      {
+        label: 'Gift Cards Catalog',
+        role: ['ROLE_ADMINISTRATOR'],
+        icon: '',
+        to: '/gift-cards',
+        items: [
+          {
+            label: 'Gift Cards',
+            to: '/gift-cards',
+          }
+        ],
+      },
     ],
   },
   {
@@ -639,24 +650,55 @@ export const model: MenuItem[] = [
         to: '/item-measure',
       },
       {
-        label: 'Floor plans',
+        label: 'Restaurant',
         role: ['ROLE_ADMINISTRATOR'],
-        to: '/floor-plan',
+        to: '/course-definition',
         items: [
           {
-            label: 'List',
+            label: 'Course Definitions',
+            role: ['ROLE_ADMINISTRATOR'],
+            to: '/course-definition',
+          },
+          {
+            label: 'Floor plans',
+            role: ['ROLE_ADMINISTRATOR'],
             to: '/floor-plan',
+            items: [
+              {
+                label: 'List',
+                to: '/floor-plan',
+              },
+              {
+                label: 'Tables',
+                to: '/floor-plan/table',
+              },
+              {
+                label: 'Settings',
+                to: '/floor-plan/settings',
+              },
+            ],
           },
-          {
-            label: 'Tables',
-            to: '/floor-plan/table',
-          },
-          {
-            label: 'Settings',
-            to: '/floor-plan/settings',
-          },
-        ],
+        ]
       },
+      // {
+      //   label: 'Floor plans',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/floor-plan',
+      //   items: [
+      //     {
+      //       label: 'List',
+      //       to: '/floor-plan',
+      //     },
+      //     {
+      //       label: 'Tables',
+      //       to: '/floor-plan/table',
+      //     },
+      //     {
+      //       label: 'Settings',
+      //       to: '/floor-plan/settings',
+      //     },
+      //   ],
+      // },
       {
         label: 'Themes',
         role: ['ROLE_ADMINISTRATOR'],

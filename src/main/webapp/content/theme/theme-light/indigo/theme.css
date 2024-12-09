@@ -3144,7 +3144,7 @@
   }
 
   .p-orderlist .p-orderlist-controls {
-    padding: 1.25rem;
+    padding: 0rem;
   }
   .p-orderlist .p-orderlist-controls .p-button {
     margin-bottom: 0.5rem;
@@ -3153,7 +3153,7 @@
     background: #f8fafc;
     color: #334155;
     border: 1px solid #e2e8f0;
-    padding: 1.25rem;
+    padding: 0rem;
     font-weight: 700;
     border-bottom: 0 none;
     border-top-right-radius: 6px;
@@ -3181,7 +3181,7 @@
     border-bottom-left-radius: 6px;
   }
   .p-orderlist .p-orderlist-list .p-orderlist-item {
-    padding: 0.75rem 1.25rem;
+    padding: 0rem;
     margin: 0;
     border: 0 none;
     color: #1e293b;

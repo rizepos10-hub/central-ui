@@ -7,12 +7,14 @@
         "regular": "Regular Items View",
         "combo": "Combo Items View",
         "pizza": "Pizza Items View",
+        "giftcard": "Gift Card View",
         "tableTitle": {
           "simple": "Simple Items",
           "variable": "Variables Items",
           "regular": "Regular Items",
           "combo": "Combo Items",
-          "pizza": "Pizza Items"
+          "pizza": "Pizza Items",
+          "giftcard": "Gift Card"
         }
       },
       "fields": {
@@ -22,8 +24,10 @@
         "menus": "Menus",
         "description": "Description",
         "inStock": "In Stock",
+        "duplicate": "Duplicate",
         "edit": "Edit",
         "delete": "Delete",
+        "type": "Type",
         "regular": {
           "variant": "Variant",
           "category": "Category",
@@ -46,7 +50,8 @@
         "createRegular": "Create New Regular Item",
         "createCombo": "Create New Combo Item",
         "createPizza": "Create New Pizza Item",
-        "importData": "Import Data"
+        "importData": "Import Data",
+        "createGiftCard": "Creat New Gift Card Item"
       }
     },
     "update": {
@@ -59,7 +64,8 @@
               "variable": "Create New Variable Item",
               "regular": "Create New Regular Item",
               "combo": "Create New Combo Item",
-              "pizza": "Create New Pizza Item"
+              "pizza": "Create New Pizza Item",
+              "giftcard": "Create New Gift Card Item"
             },
             "edit": {
               "simple": "Edit Simple Item",
@@ -77,8 +83,12 @@
             "variable": "Variable Item Visibility",
             "regular": "Regular Item Visibility",
             "combo": "Combo Item Visibility",
-            "pizza": "Pizza Item Visibility"
+            "pizza": "Pizza Item Visibility",
+            "giftCard": "Gift Card Item Visibility"
           }
+        },
+        "addons": {
+          "label": "Addons"
         },
         "excludedFromLoyaltyPoints": {
           "label": "Loyalty"
@@ -150,6 +160,7 @@
         "variantName": "Variant Name",
         "variantPrice": "Variant Price",
         "minimumStockLevelPlaceHolder":"Minimum Stock Level",
+        "giftCard":"Choose a Gift Card",
         "quantity": "Quantity",
         "unitCost": "unitCost",
         "length": "Length",
@@ -189,6 +200,14 @@
       "filterByGroup":  "Filter by Group",
       "tags": "Tags",
       "price": "Price",
+      "overridedPrice": "Overrided Price",
+      "min": "Min",
+      "max": "Max",
+      "addAutomatically": "Print",
+      "relatedAddons": "Related Addons",
+      "exclude": "Exclude",
+      "include": "Include",
+      "giftCard": "Gift Card",
       "salePrice": "Sale Price",
       "branchPrices": "Branch Prices",
       "brand": "Brand",
@@ -201,7 +220,7 @@
       "deleteVariant": "Delete Variant",
       "deleteVariantMessage": "Are you sure you want to delete this variant?",
       "addons": "Addons",
-      "importAddons": "Import Addons",
+      "importAddons": "Import",
       "importAddonsModal": {
         "title": "Import Addons From Item",
         "search": "Search for Item"
@@ -243,6 +262,7 @@
         "addCrustThickness": "Add Crust Thickness",
         "pricingClass": "Pricing Class",
         "numberOfPizzas": "Number of Pizzas",
+        "numberOfPizza": "Number of Pizza",
         "numberOfToppings": "Number of Toppings",
         "freeToppingsNumber": "Free Toppings Number",
         "fixedPrice": "Fixed Price",
@@ -255,7 +275,11 @@
           "pizzaItemType": "Pizza Item Type",
           "single": "Single",
           "multiple": "Multiple",
-          "next": "Next"
+          "next": "Next",
+          "BASE": "Base",
+          "PREDEFINED": "Predefined",
+          "MAKE_YOUR_OWN": "Make Your Own",
+          "FIXED_DEAL": "Fixed Deal"
         }
       },
       "regular": {

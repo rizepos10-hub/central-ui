@@ -14,7 +14,7 @@ interface BranchPriceComponentProps<T extends IVariableItemVariant | IRegularIte
   branchVariantDetails: IBranchVariantDetails;
   branchList: IBranch[];
   handleBranchPriceChange: (variantIndex: number, branchId: string, field: string, value: number) => void;
-  itemVariantType: 'RETAIL' | 'RESTAURANT';
+  itemVariantType: 'RETAIL' | 'RESTAURANT' | 'VIRTUAL_GIFTCARD';
   handleSaveWholesalePrices?: (variantIndex: number, branchId: string, prices: number) => void;
   handleHideItemPerBranch?: (branchId: string, variantIndex: number, field: 'hideItem' | 'hideOnline') => void;
 }
@@ -102,6 +102,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   size={12}
                   value={branchVariantDetails?.[branch.id]?.price || null}
                   onChange={e => handleBranchPriceChange(variantIndex, branch.id, 'price', e.value)}
+                  draggable={false}
                 />
               </td>
               <td>
@@ -116,6 +117,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   maxFractionDigits={2}
                   value={branchVariantDetails?.[branch.id]?.salePrice || null}
                   onChange={e => handleBranchPriceChange(variantIndex, branch.id, 'salePrice', e.value)}
+                  draggable={false}
                 />
               </td>
 

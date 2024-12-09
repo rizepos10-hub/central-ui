@@ -1,8 +1,10 @@
 import { IAttachment } from "app/shared/model/attachment.model";
+import { IAddress } from "../address.model";
 import { IBranchDetails } from "../business-detail.model";
 import { ILayoutSettings, defaultLayoutValue } from "./layout-settings";
 
 export interface IUiSettings {
+  address?: string,
   key?: "ONLINE_ORDERING_UI",
   currencySymbolPosition?: "LEFT" | "RIGHT",
   digitsAfterDecimal?: number,

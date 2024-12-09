@@ -36,6 +36,7 @@
       "logo": "Logo",
       "email": "Email",
       "phoneNumber": "Phone Number",
+      "address": "Address",
       "colorSetting": {
         "title": "Color Setting",
         "background": "Background",

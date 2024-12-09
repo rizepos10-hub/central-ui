@@ -317,7 +317,12 @@ export const PizzaItem = () => {
           <MenusTemplate rowData={rowData} />}
         />
 
-        <Column field="desc" header={translate('items.view.fields.description')} />
+        <Column field="desc" header={translate('items.view.fields.type')} body={(rowData) =>
+          rowData?.variants?.[0]?.pizzaVariantType
+        }
+        />
+
+        <Column field="Type" header={translate('items.view.fields.description')} />
 
         <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
 

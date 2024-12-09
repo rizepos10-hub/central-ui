@@ -9,6 +9,7 @@ export interface IPrinter {
   branch?: IBranch;
   colorPrinter?: boolean;
   port?: number;
+  serviceName?: string;
   size?:  "mm58" | "mm72" | "mm80";
   ipAddress?: string;
   connectionType?: "NETWORK" | "USB"

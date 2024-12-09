@@ -40,6 +40,7 @@ export interface ICrustThicknessPricingItem {
 }
 
 export interface IBasePizzaDetail {
+  numberOfPizza: number;
   toppingsNumber: number;
   pricingClass: IPizzaPricingClass;
 }
@@ -60,6 +61,15 @@ export interface IPizzaItemVariant {
   basePizzaDetails?: IBasePizzaDetail[];
   multiple?: boolean;
   archived?: boolean;
+  numberOfPizza?: number;
+  pizzaVariantType?: PizzaVariantTypeEnum;
+}
+
+export enum PizzaVariantTypeEnum {
+  BASE = "BASE",
+  PREDEFINED = "PREDEFINED",
+  MAKE_YOUR_OWN = "MAKE_YOUR_OWN",
+  FIXED_DEAL = "FIXED_DEAL",
 }
 
 export interface IPizzaItem extends IItem{

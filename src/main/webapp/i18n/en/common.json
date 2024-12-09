@@ -1,6 +1,7 @@
 {
   "common": {
     "name": "Name",
+    "addresses": "Addresses",
     "code": "Code",
     "printed": "Printed",
     "referenceNumber": "Card Number",
@@ -38,6 +39,7 @@
     "profileGroup": "Profile Group",
     "discount": "Discount",
     "discounts": "Discounts",
+    "taxProfiles": "Tax Profiles",
     "variant": "Variant",
     "subtotal": "Subtotal",
     "address": "Address",

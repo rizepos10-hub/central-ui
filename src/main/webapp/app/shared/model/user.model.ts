@@ -1,5 +1,8 @@
+import { IBranch } from "./branch.model";
+import { IPosAuthorityGroup, POSAuthorityEnum } from "./pos-authority-group";
+
 export interface IUser {
-  phone?:string;
+  phone?: string;
   id?: any;
   login?: string;
   firstName?: string;
@@ -15,8 +18,13 @@ export interface IUser {
   permissions?: any[];
   isActive?: boolean;
   roles?: RolePermissions;
-  username?: string ;
-  authorities?: any[];
+  username?: string;
+  authorities?: POSAuthorityEnum[];
+  authoritiesGroups?: IPosAuthorityGroup[];
+  branches?: IBranch[];
+  userName?: string;
+  verified?: boolean;
+  pinCode?: string;
 }
 
 interface Authority {
@@ -35,10 +43,10 @@ export interface RolePermissions {
 }
 
 export interface AvailableRoles {
-id?: string;
-name?: string;
+  id?: string;
+  name?: string;
 
-description:string;
+  description: string;
 }
 
 export const defaultValue: Readonly<IUser> = {
