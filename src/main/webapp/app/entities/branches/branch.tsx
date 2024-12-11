@@ -1,23 +1,20 @@
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getEntities, updateEntity, createEntity } from '../settings/business-details/business-detail.reducer';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { InputText } from 'primereact/inputtext';
 import { Checkbox } from 'primereact/checkbox';
-import SearchPredictions from 'app/shared/components/google/search-predictions';
-import { ControlPosition, Map, MapMouseEvent, Marker } from '@vis.gl/react-google-maps';
-import { Alert, Card, Col, Container, FormGroup, Input, Label, ListGroup, Row } from 'reactstrap';
+import { ControlPosition, Map, MapMouseEvent, Marker, useMap } from '@vis.gl/react-google-maps';
+import { Alert, Card, Col, FormGroup, Label, ListGroup, Row } from 'reactstrap';
 import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
 import { RadioButton } from 'primereact/radiobutton';
 import { InputSwitch } from 'primereact/inputswitch';
-import { IBusinessDetail, Metric, UnitCostCalculationMode, dayTypeEnum } from 'app/shared/model/business-detail.model';
+import { IBusinessDetail, Metric, UnitCostCalculationMode, dayTypeEnum, IBranchDetails } from 'app/shared/model/business-detail.model';
 import { RequestType, fromAddress, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
-import usePlacesService from 'react-google-autocomplete/lib/usePlacesAutocompleteService';
 import _ from 'lodash';
-import MapHandler from 'app/shared/components/google/map-handler';
-import { AutocompleteMode, CustomMapControl, autocompleteModes } from 'app/shared/components/google/map-control';
+import { CustomMapControl, autocompleteModes } from 'app/shared/components/google/map-control';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Translate } from 'react-jhipster';
 import BranchPaymentConfig from '../settings/business-details/branch-payment-config';
@@ -65,13 +62,12 @@ export const Branches = () => {
     setEditingBranchPayments(null)
   }
 
-  const [selectedPlace, setSelectedPlace] =
-    useState<google.maps.places.PlaceResult | null>(null);
-
   const metrics = [Metric.KILOMETERS, Metric.MILES, Metric.NEUTRAL];
 
   // key for geocode
   setKey(GOOGLE_MAPS_API_KEY)
+
+  const map = useMap();
 
   useEffect(() => {
     dispatch(getEntities({})).then((res: any) => setBusinessDetailsState(res.payload.data[0]));
@@ -245,26 +241,6 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
-  useEffect(() => {
-    if (selectedPlace) {
-      selectePlaceHandler(selectedPlace, activeIndex);
-    }
-  }, [selectedPlace]);
-
-  const selectePlaceHandler = (place: google.maps.places.PlaceResult | null, branchIndex) => {
-    fromAddress(place.formatted_address).then((response) => {
-      const { lat, lng } = response.results[0].geometry.location;
-      handleBranchAddressFieldChange(branchIndex, {
-        latitude: lat,
-        longitude: lng,
-        fullAddress: place
-      });
-    }).catch((error) => {
-      console.error('Geocode error:', error);
-    });
-  };
-
-
   const saveEntity = () => {
     const entity: IBusinessDetail = {
       ...businessDetailEntity,
@@ -422,22 +398,12 @@ export const Branches = () => {
                   <div>
                     <label className="font-bold my-2">Branch Address</label>
                     <div className='d-flex flex-column'>
-                      <Map
-                        style={{ width: '500px', height: '500px' }}
-                        defaultZoom={3}
-                        gestureHandling={'greedy'}
-                        disableDefaultUI={true}
-                        onClick={(e) => handleGeocode(e, branchIndex)}
-                        defaultCenter={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }}
-                      >
-                        <Marker position={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }} />
-
-                        <CustomMapControl
-                          controlPosition={ControlPosition.TOP}
-                          selectedAutocompleteMode={autocompleteModes[0]}
-                          onPlaceSelect={setSelectedPlace}
-                        />
-                      </Map>
+                      <MapComponent
+                        branch={branch}
+                        branchIndex={branchIndex}
+                        handleGeocode={handleGeocode}
+                        handleBranchAddressFieldChange={handleBranchAddressFieldChange}
+                      />
                     </div>
                   </div>
                   <div className='d-flex flex-column gap-2 w-100'>
@@ -830,3 +796,61 @@ export const Branches = () => {
 };
 
 export default Branches;
+
+
+const MapComponent = ({
+  branch,
+  branchIndex,
+  handleGeocode,
+  handleBranchAddressFieldChange
+}: {
+  branch: IBranchDetails,
+  branchIndex: number,
+  handleGeocode: (e: MapMouseEvent, branchIndex: number) => void,
+  handleBranchAddressFieldChange: any
+}) => {
+  const [selectedPlace, setSelectedPlace] =
+    useState<google.maps.places.PlaceResult | null>(null);
+
+  const map = useMap(`map-${branchIndex}`);
+
+  useEffect(() => {
+    if (selectedPlace) {
+      selectePlaceHandler(selectedPlace);
+    }
+  }, [selectedPlace]);
+
+  const selectePlaceHandler = (place: google.maps.places.PlaceResult | null) => {
+    fromAddress(place.formatted_address).then((response) => {
+      const { lat, lng } = response.results[0].geometry.location;
+      handleBranchAddressFieldChange(branchIndex, {
+        latitude: lat,
+        longitude: lng,
+        fullAddress: place.formatted_address
+      });
+      map.setCenter({ lat, lng });
+    }).catch((error) => {
+      console.error('Geocode error:', error);
+    });
+  };
+
+  return (
+    <Map
+      style={{ width: '500px', height: '500px' }}
+      defaultZoom={3}
+      gestureHandling={'greedy'}
+      disableDefaultUI={true}
+      onClick={(e) => handleGeocode(e, branchIndex)}
+      defaultCenter={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }}
+      id={`map-${branchIndex}`}
+    >
+      <Marker position={{ lat: branch.address?.latitude || 0, lng: branch.address?.longitude || 0 }} />
+
+      <CustomMapControl
+        controlPosition={ControlPosition.TOP}
+        selectedAutocompleteMode={autocompleteModes[0]}
+        onPlaceSelect={setSelectedPlace}
+      />
+    </Map>
+  );
+};
