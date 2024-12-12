@@ -91,6 +91,7 @@ import itemDefinitions from 'app/entities/item-definitions/item-definitions.redu
 import onlineOrderingReducers from "app/entities/online-ordering/reducer";
 import GiftCardItem from './item/virtual/gift-card/giftcard-item.reducer';
 import GiftCardCoupon from './coupon/gift-card/giftcard-coupon.reducer';
+import ReportSummary from 'app/modules/analytics/reports/summary-report.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
@@ -178,6 +179,7 @@ const entitiesReducers = {
   variant,
   GiftCardItem,
   GiftCardCoupon,
+  ReportSummary,
   ...onlineOrderingReducers
 
 
