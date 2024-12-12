@@ -44,8 +44,8 @@
       },
       "select": {
         "source": "Select a source",
-        "branch": "Select a branch"
-
+        "branch": "Select a branch",
+        "day": "Select a day"
       },
       "report": {
         "title": "Sales Summary Report"

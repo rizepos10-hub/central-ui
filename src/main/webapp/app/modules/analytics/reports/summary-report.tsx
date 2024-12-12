@@ -34,6 +34,7 @@ const SalesSummaryReport = () => {
   const [toDate, setToDate] = useState(format((new Date()), "yyyy-MM-dd"));
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedSource, setSelectedSource] = useState(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   const branchList = useAppSelector(state => state.branch.entities)
 
@@ -126,6 +127,11 @@ const SalesSummaryReport = () => {
           formData.append('source', selectedSource)
       }
 
+      {
+        selectedDay &&
+          formData.append('dayOfWeek', selectedDay)
+      }
+
 
       const { data } = await axios.post(`/api/report/sales-summary`, formData, {
         headers: {
@@ -206,13 +212,14 @@ const SalesSummaryReport = () => {
           <div className="text-center">
             <button type="submit" className="btn btn-primary" ><Translate contentKey={'analytics.summary.buttons.getReport'}>Get Report</Translate></button>
           </div>
-          <div className="d-flex  justify-content-start gap-5 ">
+          <div className="d-flex justify-content-start gap-5 my-2">
             <Dropdown
               style={{ minWidth: '7rem' }}
               value={selectedSource}
               options={sourceTypeOptions}
               onChange={(e) => setSelectedSource(e.value)}
               placeholder={translate('analytics.summary.select.source')}
+              showClear
             />
             <Dropdown
               style={{ minWidth: '7rem' }}
@@ -220,6 +227,23 @@ const SalesSummaryReport = () => {
               options={filteredBranchOptions}
               onChange={(e) => setSelectedBranch(e.value)}
               placeholder={translate('analytics.summary.select.branch')}
+              showClear
+            />
+            <Dropdown
+              style={{ minWidth: '7rem' }}
+              value={selectedDay}
+              options={[
+                { label: 'Monday', value: 'MONDAY' },
+                { label: 'Tuesday', value: 'TUESDAY' },
+                { label: 'Wednesday', value: 'WEDNESDAY' },
+                { label: 'Thursday', value: 'THURSDAY' },
+                { label: 'Friday', value: 'FRIDAY' },
+                { label: 'Saturday', value: 'SATURDAY' },
+                { label: 'Sunday', value: 'SUNDAY' },
+              ]}
+              onChange={(e) => setSelectedDay(e.value)}
+              placeholder={translate('analytics.summary.select.day')}
+              showClear
             />
           </div>
           <div className="d-flex justify-content-end gap-3">
