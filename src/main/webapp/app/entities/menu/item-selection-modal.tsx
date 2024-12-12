@@ -11,7 +11,12 @@ import PaginationFilter from 'app/shared/components/pagination/pagination-filter
 import { useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 import { Checkbox } from 'primereact/checkbox';
-import { getEntities as getCategories } from 'app/entities/term/Item-category/item-category.reducer';
+// import { getEntities as getCategories } from 'app/entities/term/Item-category/item-category.reducer';
+import { ITerm } from 'app/shared/model/term.model';
+import { getEntities as getRestaurantCategories, searchEntities as searchRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import { getEntities as getRetailCategories, searchEntities as searchRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
+import { Dropdown } from 'primereact/dropdown';
+import { TabPanel, TabView } from 'primereact/tabview';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -24,13 +29,21 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const searchParams = new URLSearchParams(location.search);
 
   const [itemName, setItemName] = useState<string>(searchParams.get('name') || '');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [retailFilter, setRetailFilter] = useState('');
+  const [restaurantFilter, setRestaurantFilter] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  console.log(selectedCategory)
 
   const dispatch = useAppDispatch();
   const totalItems = useAppSelector((state) => state.allItems.totalItems);
   const itemList = useAppSelector((state) => state.allItems.entities);
   const loading = useAppSelector((state) => state.allItems.loading);
 
-  const categories = useAppSelector(state => state.category.entities);
+  // const categories = useAppSelector(state => state.category.entities);
+  const restaurantCategories: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
+  const retailCategories: ITerm[] = useAppSelector(state => state.retailCategory.entities);
 
   const navigate = useNavigate();
 
@@ -44,14 +57,14 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
       size: parseInt(searchParams.get("size"), 10) || 10,
       name: searchParams.get("name") || '',
       sort: `id,asc`,
-      categoryId: searchParams.get("categoryId") || '',
+      categoryId: selectedCategory || '',
       unassignedItems: searchParams.get("unassignedItems") || '',
     }));
   }, [
     searchParams.get("page"),
     searchParams.get("size"),
     searchParams.get("name"),
-    searchParams.get("categoryId"),
+    selectedCategory,
     searchParams.get("unassignedItems")
   ]);
 
@@ -91,6 +104,58 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   const isItemSelected = (id) => selectedItems?.find((selected) => selected.id === id);
 
+  useEffect(() => {
+    dispatch(
+      getRestaurantCategories({
+        page: 0,
+        size: 1000,
+        sort: `id,desc`,
+      })
+    );
+
+    dispatch(
+      getRetailCategories({
+        page: 0,
+        size: 1000,
+        sort: `id,desc`,
+      })
+    );
+  }, [])
+
+  const filteredRetail = retailCategories.filter(c =>
+    c.name.toLowerCase().includes(retailFilter.toLowerCase())
+  )
+  const filteredRestaurant = restaurantCategories.filter(c =>
+    c.name.toLowerCase().includes(restaurantFilter.toLowerCase())
+  )
+
+  const panelItemTemplate = () => {
+    return (
+      <div className="w-full">
+        <TabView onClick={e => e.stopPropagation()} activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
+          <TabPanel header="Retail Categories" >
+            <input
+              type="text"
+              className="mb-2 border rounded p-1 w-full"
+              placeholder="Filter Retail Categories..."
+              value={retailFilter}
+              onChange={(e) => setRetailFilter(e.target.value)}
+            />
+          </TabPanel>
+          <TabPanel header="Restaurant Categories">
+            <input
+              type="text"
+              className="mb-2 border rounded p-1 w-full"
+              placeholder="Filter Restaurant Categories..."
+              value={restaurantFilter}
+              onChange={(e) => setRestaurantFilter(e.target.value)}
+            />
+          </TabPanel>
+        </TabView>
+      </div>
+    )
+  }
+
   return (
     <Modal size="lg" isOpen={isOpen} toggle={toggle} backdrop="static">
       <ModalHeader toggle={toggle}>
@@ -116,32 +181,17 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
               <Label for="searchCategory">
                 <Translate contentKey={'menus.pos.update.modals.item.filter'}>Filter By Category</Translate>
               </Label>
-              <Select
-                id="searchCategory"
-                value={{
-                  label: categories.find(cat => cat.id === searchParams.get('categoryId'))?.name,
-                  value: searchParams.get('categoryId'),
-                }}
-                onChange={selectedOption => {
-                  console.log(selectedOption)
-                  if (!selectedOption) {
-                    navigate(deleteQueryString('categoryId'));
-                  } else {
-                    navigate(createQueryString('categoryId', selectedOption.value));
-                  }
-                }}
-                options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
-                isClearable={true}
-                className='w-100'
-                onMenuOpen={() => {
-                  dispatch(
-                    getCategories({
-                      page: 0,
-                      size: 1000,
-                      sort: `id,desc`,
-                    })
-                  );
-                }}
+              <Dropdown
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.value)}
+                options={activeIndex === 0 ? filteredRetail : filteredRestaurant}
+                optionLabel={"name"}
+                optionValue={"id"}
+                filter
+                filterTemplate={panelItemTemplate}
+                placeholder="Select a Category"
+                className="w-full"
+                showClear
               />
             </div>
           </div>
