@@ -332,7 +332,7 @@ export const RegularItem = () => {
         filterDisplay="row"
         paginator
         totalRecords={totalItems}
-        rowsPerPageOptions={[10, 20, 30, 40, 50]}
+        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
         rows={query?.rows}
         lazy
         first={query.first}

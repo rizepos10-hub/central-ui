@@ -139,7 +139,7 @@ const Order = () => {
         dataKey="id"
         paginator
         first={lazyState.first}
-        rowsPerPageOptions={[10, 20, 30, 40, 50]}
+        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
         rows={lazyState.rows}
         totalRecords={totalOrders}
         onPage={onPage}
