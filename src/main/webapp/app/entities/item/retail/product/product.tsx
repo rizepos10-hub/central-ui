@@ -307,7 +307,7 @@ export const Product = () => {
         paginator
         first={query.first}
         rows={query?.rows}
-        rowsPerPageOptions={[10, 20, 30, 40, 50]}
+        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
         totalRecords={totalItems}
         onPage={onPage}
         onSort={onSort}

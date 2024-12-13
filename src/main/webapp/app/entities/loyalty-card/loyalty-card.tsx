@@ -200,7 +200,7 @@ export const GiftCard = () => {
         totalRecords={totalItems}
         rows={paginationState.itemsPerPage}
         first={(paginationState.activePage - 1) * paginationState.itemsPerPage}
-        rowsPerPageOptions={[10, 20, 30, 40, 50]}
+        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
         lazy
         onPage={onPage}
         loading={loading}
