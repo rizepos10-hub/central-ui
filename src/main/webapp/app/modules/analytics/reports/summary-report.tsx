@@ -12,6 +12,9 @@ import applicationProfile from "app/shared/reducers/application-profile";
 import tenant from "app/shared/tenant/TenantContext";
 import { getEntity as getCurrencySettings } from 'app/entities/settings/currency/currency-settings.reducer';
 import { formatPrice } from 'app/shared/util/price-utils';
+import { ISummaryReport } from 'app/shared/model/report-summary.model';
+import { Button } from 'primereact/button';
+import { exportExcelSummaryReport } from 'app/shared/util/excel-utils';
 
 const SalesSummaryReport = () => {
   const dispatch = useAppDispatch();
@@ -28,7 +31,7 @@ const SalesSummaryReport = () => {
     dispatch(getCurrencySettings());
   }, [])
 
-  const [salesData, setSalesData]: any = useState([]);
+  const [salesData, setSalesData] = useState<ISummaryReport>();
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [toDate, setToDate] = useState(format((new Date()), "yyyy-MM-dd"));
@@ -133,7 +136,7 @@ const SalesSummaryReport = () => {
       }
 
 
-      const { data } = await axios.post(`/api/report/sales-summary`, formData, {
+      const { data } = await axios.post<ISummaryReport>(`/api/report/sales-summary`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -195,8 +198,14 @@ const SalesSummaryReport = () => {
 
     <div className="container mt-5">
       <div className="text-center">
-        <h4><Translate contentKey={'analytics.summary.report.title'}>Sales Summary Report</Translate></h4>
-        <p><Translate contentKey={'analytics.report.location'} interpolate={{ location: "Random Location" }}>Location: Random Location</Translate></p>
+        <div className='d-flex justify-content-between align-items-center'>
+          <span></span>
+          <h4><Translate contentKey={'analytics.summary.report.title'}>Sales Summary Report</Translate></h4>
+          <Button type="button" className='rounded-circle' icon="pi pi-file-excel" severity="success" rounded onClick={
+            () => exportExcelSummaryReport(salesData)
+          } data-pr-tooltip="XLS" />
+        </div>
+        {/* <p><Translate contentKey={'analytics.report.location'} interpolate={{ location: "Random Location" }}>Location: Random Location</Translate></p> */}
         <form onSubmit={handleSubmit}>
           <div className="row mb-3">
             <div className="col-md-6">

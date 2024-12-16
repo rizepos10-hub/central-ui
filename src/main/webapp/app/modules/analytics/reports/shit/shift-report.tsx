@@ -18,6 +18,7 @@ import { IUserClock } from "app/shared/model/user-clock.model";
 import ReactToPrint from "react-to-print";
 import { Button } from "primereact/button";
 import { format } from "date-fns";
+import { exportExcelSummaryReport } from "app/shared/util/excel-utils";
 
 
 const initialState = {
@@ -149,7 +150,12 @@ const ShiftReport = () => {
     <div className={'bg-white p-5'}>
       <div className="w-100 flex justify-content-between align-items-center">
         <h1>Shift Report</h1>
-        <span className="hide-on-print">
+        <span className="hide-on-print d-flex gap-2">
+          <Button type="button" className='rounded-circle' icon="pi pi-file-excel" severity="success" rounded onClick={
+            () => exportExcelSummaryReport(summaryReport)
+          } data-pr-tooltip="XLS"
+            disabled={!summaryReport}
+          />
           <ReactToPrint
             trigger={() => (
               <Button
