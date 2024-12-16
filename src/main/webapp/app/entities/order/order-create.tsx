@@ -187,7 +187,7 @@ const OrderCreate = () => {
 
     const calculateSubTotal = () => {
         const subTotal = orderEntity.items.reduce((acc, item) => {
-            return acc + calculateCustomDiscount(item.customDiscount, item.price * item.amount);
+            return acc + calculateCustomDiscount(item?.discount?.value || 0, item.price * item.amount, item?.discount?.type || 'PERCENTAGE');
         }, 0);
         return subTotal;
     }
@@ -259,6 +259,12 @@ const OrderCreate = () => {
                 amount: item.amount,
                 price: item.price,
                 selectedRetailAttributes: item.selectedRetailAttributes,
+                ...(item?.discount?.value && item?.discount?.type ? {
+                    discount: {
+                        value: item.discount.value,
+                        type: item.discount.type
+                    }
+                } : {}),
             })),
             branchId: orderEntity?.branchId,
             customer: orderEntity?.customer,
@@ -708,7 +714,7 @@ const OrderCreate = () => {
                                             <div className='d-flex justify-content-between align-items-center'>
                                                 <div className="d-flex flex-column">
                                                     <div className="mb-1">
-                                                        {calculateCustomDiscount(product.customDiscount, product.price * product.amount)}
+                                                        {calculateCustomDiscount(product?.discount?.value || 0, product.price * product.amount, product?.discount?.type || 'PERCENTAGE')}
                                                     </div>
                                                     <div className="text-muted fs-6 text-decoration-line-through">sale price</div>
                                                 </div>
@@ -751,7 +757,7 @@ const OrderCreate = () => {
                                                 inputStyle={{
                                                     width: "100px"
                                                 }}
-                                                value={calculateCustomDiscount(product.customDiscount, product.price)}
+                                                value={calculateCustomDiscount(product?.discount?.value || 0, product.price, product?.discount?.type || 'PERCENTAGE')}
                                                 onChange={e => dispatch((changeEntityField({
                                                     name: 'items',
                                                     value: orderEntity.items.map(item => item.cartId === product.cartId ? {
@@ -773,9 +779,39 @@ const OrderCreate = () => {
                                                     name: 'items',
                                                     value: orderEntity.items.map(item => item.cartId === product.cartId ? {
                                                         ...item,
+                                                        discount: {
+                                                            value: e.value,
+                                                            type: product?.discount?.type || 'PERCENTAGE'
+                                                        },
                                                         customDiscount: e.value
                                                     } : item)
                                                 })))}
+                                            />
+                                        </Col>
+
+                                        <Col md={12} className="d-flex flex-column gap-2">
+                                            <label className="mb-0">Discount Type</label>
+                                            <Dropdown
+                                                value={product?.discount?.type || 'PERCENTAGE'}
+                                                options={[
+                                                    { label: "Percentage", value: "PERCENTAGE" },
+                                                    { label: "Flat", value: "FLAT" }
+                                                ]}
+
+                                                onChange={e => dispatch((changeEntityField({
+                                                    name: 'items',
+                                                    value: orderEntity.items.map(item => item.cartId === product.cartId ? {
+                                                        ...item,
+                                                        discount: {
+                                                            value: item?.customDiscount,
+                                                            type: e.value
+                                                        }
+                                                    } : item)
+                                                })))}
+
+                                                placeholder="Select Discount Type"
+                                                className="w-100"
+                                                showClear
                                             />
                                         </Col>
                                     </Row>
