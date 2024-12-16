@@ -10,9 +10,10 @@ import { Button as PrimeButton } from "primereact/button";
 import TillDetails from "app/modules/analytics/reports/end-of-till/till-details";
 import GenericSalesReport from "app/shared/components/report/generic-sales-report";
 ;
-import { ISummaryReport } from "app/shared/model/report-summary.model";
+import { ISalesSummary, ISummaryReport } from "app/shared/model/report-summary.model";
 import EndOfTillTotalReceived from "app/shared/components/report/summary-report-total-received";
 import ReactToPrint from "react-to-print";
+import { exportExcelSummaryReport, saveAsExcelFile } from "app/shared/util/excel-utils";
 
 const EndOfTillReport = () => {
   const { id, tillId } = useParams();
@@ -49,7 +50,10 @@ const EndOfTillReport = () => {
       <div className={'bg-white p-5'}>
         <div className="w-100 flex justify-content-between align-items-center">
           <h1>End of Till Report</h1>
-          <span className="hide-on-print">
+          <span className="hide-on-print d-flex gap-2">
+            <PrimeButton type="button" className='rounded-circle' icon="pi pi-file-excel" severity="success" rounded onClick={
+              () => exportExcelSummaryReport(summaryReport)
+            } data-pr-tooltip="XLS" />
             <ReactToPrint
               trigger={() => (
                 <PrimeButton

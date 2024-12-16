@@ -13,6 +13,9 @@ import RelatedTills from 'app/modules/analytics/reports/end-of-day/related-tills
 import ReactToPrint from 'react-to-print';
 import { Button } from 'primereact/button';
 import { ScrollPanel } from 'primereact/scrollpanel';
+import { IEndOfDayReport } from 'app/shared/model/eod-report.model';
+import { ISalesSummary } from 'app/shared/model/report-summary.model';
+import { exportExcelSummaryReport, saveAsExcelFile } from 'app/shared/util/excel-utils';
 
 const EndOfDayReport = () => {
   const dispatch = useAppDispatch();
@@ -29,9 +32,8 @@ const EndOfDayReport = () => {
     }
     try {
       setLoading(true);
-      const { data } = await axios.get(`/api/end-of-day/${id}`);
+      const { data } = await axios.get<IEndOfDayReport>(`/api/end-of-day/${id}`);
       const reportData = JSON.parse(data.report);
-
       setEndOfDay(data);
       setSalesData(reportData);
       setLoading(false);
@@ -131,14 +133,17 @@ const EndOfDayReport = () => {
                 End OF Day Report
               </Translate>
             </h4>
-            <p>
+            {/* <p>
               <Translate contentKey={'analytics.report.location'} interpolate={{ location: 'Random Location' }}>
                 Location: Random Location
               </Translate>
-            </p>
+            </p> */}
           </span>
           <span>
-            <span className="hide-on-print">
+            <span className="hide-on-print d-flex gap-2">
+              <Button type="button" className='rounded-circle' icon="pi pi-file-excel" severity="success" rounded onClick={
+                () => exportExcelSummaryReport(salesData)
+              } data-pr-tooltip="XLS" />
               <ReactToPrint
                 trigger={() => (
                   <Button
