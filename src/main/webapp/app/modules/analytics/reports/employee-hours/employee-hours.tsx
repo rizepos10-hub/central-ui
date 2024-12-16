@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 
-import { Button, Spinner } from "reactstrap";
+import { Spinner } from "reactstrap";
 
 import { FilterMatchMode } from "primereact/api";
 import { Calendar } from "primereact/calendar";
@@ -20,6 +20,8 @@ import { Column } from "primereact/column";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { format, intervalToDuration } from "date-fns";
+import { Button } from "primereact/button";
+import { saveAsExcelFile } from "app/shared/util/excel-utils";
 
 
 const initialState = {
@@ -41,7 +43,7 @@ const EmployeeHoursReport = () => {
     const dispatch = useAppDispatch();
     const branches = useAppSelector(state => state.branch.entities);
     const loadingUsers = useAppSelector(state => state.PosBranchUser.loading);
-    const userClocks = useAppSelector(state => state.userClock.entities);
+    const userClocks: IUserClock[] = useAppSelector(state => state.userClock.entities);
     const loadingClocks = useAppSelector(state => state.userClock.loading);
     const loadingReport = useAppSelector(state => state.userClock.loadingReport);
 
@@ -86,6 +88,7 @@ const EmployeeHoursReport = () => {
                 [filterState.filters?.instantClockedIn.value, filterState.filters?.instantClockedOut.value]
                 :
                 null;
+
 
 
     const onPage = (event) => {
@@ -134,6 +137,105 @@ const EmployeeHoursReport = () => {
             </React.Fragment>
         );
     };
+
+    const exportExcel = async () => {
+        // Group userClocks by username
+        const clocksByUser = {};
+        userClocks.forEach(clock => {
+            if (!clocksByUser[clock.username]) {
+                clocksByUser[clock.username] = [];
+            }
+            clocksByUser[clock.username].push(clock);
+        });
+
+        // Build an array of rows in the order we want for Excel
+        // We'll also calculate the working hours (HH:MM:SS) for each row
+        // and then a "Total Hours" row per user
+        const structuredExcelData = [];
+
+        Object.keys(clocksByUser).forEach(username => {
+            let totalSeconds = 0;
+            clocksByUser[username].forEach(clock => {
+                const clockIn = new Date(clock.instantClockedIn);
+                const clockOut = new Date(clock.instantClockedOut);
+
+                const duration = intervalToDuration({ start: clockIn, end: clockOut });
+                const secondsThisClock = duration.hours * 3600 + duration.minutes * 60 + duration.seconds;
+                totalSeconds += secondsThisClock;
+
+                // Format single row time
+                const hours = String(duration.hours).padStart(2, '0');
+                const mins = String(duration.minutes).padStart(2, '0');
+                const secs = String(duration.seconds).padStart(2, '0');
+                const workingHours = `${hours}:${mins}:${secs}`;
+
+                structuredExcelData.push({
+                    Name: username,
+                    'Clock In': clock.instantClockedIn,
+                    'Clock Out': clock.instantClockedOut,
+                    'Working Hours': workingHours
+                });
+            });
+
+            // After we push the user clock rows, push a "Total Hours" row
+            const totalHours = Math.floor(totalSeconds / 3600);
+            const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+            const totalSecs = totalSeconds % 60;
+            const formattedTotal = `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}:${String(totalSecs).padStart(2, '0')}`;
+
+            structuredExcelData.push({
+                Name: '', // empty name cell
+                'Clock In': '',
+                'Clock Out': '',
+                'Working Hours': `Total Hours : ${formattedTotal}`
+            });
+        });
+
+        // Prepare headers
+        const headers = ['Name', 'Clock In', 'Clock Out', 'Working Hours'];
+
+        // Use xlsx-js-style to create and style the sheet
+        const xlsx = await import('xlsx-js-style');
+        const worksheet = xlsx.utils.json_to_sheet(structuredExcelData, { header: headers });
+
+        // Make the first row (headers) bold
+        headers.forEach((_, colIndex) => {
+            const cellAddress = xlsx.utils.encode_cell({ r: 0, c: colIndex });
+            if (worksheet[cellAddress]) {
+                worksheet[cellAddress].s = {
+                    font: { bold: true },
+                };
+            }
+        });
+
+        // Adjust column widths
+        worksheet['!cols'] = headers.map(() => ({ wpx: 180 }));
+
+        // Create the workbook and write it
+        const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+        const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' });
+        saveAsExcelFile(excelBuffer, 'UserClocks.xlsx');
+    };
+
+    const header = (
+        <div className="flex align-items-center justify-content-end gap-2">
+            <Button type="button" className='rounded-circle' icon="pi pi-file-excel" severity="success" rounded onClick={exportExcel} data-pr-tooltip="XLS" />
+            {/* <ReactToPrint
+                trigger={() => (
+                    <Button
+                        type="button"
+                        className="rounded-circle"
+                        icon="pi pi-print"
+                        severity="info"
+                        rounded
+                        data-pr-tooltip="PRINT"
+                    />
+                )}
+                content={() => dtWrapper.current}
+                pageStyle={pageStyle}
+            /> */}
+        </div>
+    );
 
     return (
         <div className={'bg-white p-5'}>
@@ -191,6 +293,7 @@ const EmployeeHoursReport = () => {
                         scrollHeight="400px"
                         tableStyle={{ minWidth: '50rem' }}
                         rowGroupFooterTemplate={footerTemplate}
+                        header={header}
                     >
 
                         {/* <DataTable

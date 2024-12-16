@@ -791,6 +791,11 @@ export const RegularItemUpdate = () => {
                                                               onChange={e => handleVariantAddonGroupFieldChange(index, 'name', e.target.value, variantIndex)}
                                                               style={{ width: '120px' }}
                                                               draggable={false}
+                                                              onKeyDown={(e) => {
+                                                                if (e.key === ' ') {
+                                                                  e.stopPropagation();
+                                                                }
+                                                              }}
                                                             />
                                                           </span>
                                                           <span className='d-flex gap-1'>

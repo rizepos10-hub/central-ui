@@ -23,6 +23,7 @@ import { useParams } from 'react-router-dom';
 import { capitalizeFirstLetter, capitalizeString } from 'app/shared/util/string-utils';
 import { Button } from 'primereact/button';
 import ReactToPrint from 'react-to-print';
+import { saveAsExcelFile } from 'app/shared/util/excel-utils';
 
 type Slot = {
   order: number;
@@ -527,21 +528,6 @@ export const SalesReport = () => {
       saveAsExcelFile(excelBuffer, 'products');
     });
   };
-
-  const saveAsExcelFile = (buffer, fileName) => {
-    import('file-saver').then((module) => {
-      if (module && module.default) {
-        const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-        const EXCEL_EXTENSION = '.xlsx';
-        const data = new Blob([buffer], {
-          type: EXCEL_TYPE
-        });
-
-        module.default.saveAs(data, fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION);
-      }
-    });
-  };
-
 
   const pageStyle = `
   @media print {
