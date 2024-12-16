@@ -78,8 +78,6 @@ const EmployeeHoursReport = () => {
         });
     }
 
-    console.log(filterState)
-
     const calenderValue =
         filterState.filters?.instantClockedIn.value && !filterState.filters.instantClockedOut.value
             ?
@@ -218,8 +216,6 @@ const EmployeeHoursReport = () => {
         const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' });
         saveAsExcelFile(excelBuffer, 'UserClocks.xlsx');
     };
-
-    console.log(userClocks, 'userClocks')
 
     const header = (
         <div className="flex align-items-center justify-content-end gap-2">

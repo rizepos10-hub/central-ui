@@ -49,8 +49,6 @@ const ShiftReport = () => {
   const [filterState, setFilterState] = useState(initialState);
   const [selectedShift, setSelectedShift] = useState<IUserClock | null>(null);
 
-  console.log(userClocks, "userClocksuserClocks")
-
 
   useEffect(() => {
     dispatch(getUsers({}));
@@ -103,7 +101,6 @@ const ShiftReport = () => {
         null;
 
   const selectedShiftTemplate = (option, props) => {
-    console.log(option, "option");
     if (option) {
       return (
         <div className="flex align-items-center">

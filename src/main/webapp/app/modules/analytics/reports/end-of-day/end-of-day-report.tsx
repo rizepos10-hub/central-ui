@@ -34,8 +34,6 @@ const EndOfDayReport = () => {
       setLoading(true);
       const { data } = await axios.get<IEndOfDayReport>(`/api/end-of-day/${id}`);
       const reportData = JSON.parse(data.report);
-      console.log(data, 'data')
-      console.log(reportData, 'reportData')
       setEndOfDay(data);
       setSalesData(reportData);
       setLoading(false);
