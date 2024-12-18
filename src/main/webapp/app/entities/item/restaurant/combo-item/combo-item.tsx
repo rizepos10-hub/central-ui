@@ -336,7 +336,7 @@ export const ComboItem = () => {
 
         <Column field="description" header={translate('items.view.fields.description')} />
 
-        <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
+        {/* <Column field="stock" sortable header={translate('items.view.fields.inStock')} /> */}
 
         <Column header={translate('items.view.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
