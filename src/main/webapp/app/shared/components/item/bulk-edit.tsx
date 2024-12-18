@@ -23,6 +23,7 @@ import { getEntities as getAddonGroups } from 'app/entities/addon-groups/addon-g
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
+import { SelectButton } from 'primereact/selectbutton';
 
 export const actionOptions = [
     { name: 'Edit', code: 'EDIT', disabled: false },
@@ -84,6 +85,7 @@ export const BulkEdit = ({
     );
     const [addonGroups, setAddonGroups] = useState<IAddonGroups[]>([])
     const [selectedAddonGroup, setSelectedAddonGroup] = useState<IAddonGroups>();
+    const [addonGroupsActionValue, setAddonGroupsActionValue] = useState<'Append To Items' | 'Override'>('Append To Items');
 
     const [isloadingUpdate, setIsLoadingUpdate] = useState(false);
 
@@ -124,10 +126,17 @@ export const BulkEdit = ({
             discounts: selectedDiscount.value ? [{
                 id: selectedDiscount.value
             }] : [],
-            addonGroups: addonGroups.length > 0 ? addonGroups : [],
+            addonGroups: addonGroupsActionValue === 'Override'
+            ? addonGroups
+            : [
+                ...sp.addonGroups.map(existing => {
+                  const override = addonGroups.find(newItem => newItem.addonGroup.id === existing.addonGroup.id);
+                  return override || existing;
+                }),
+                ...addonGroups.filter(newItem => !sp.addonGroups.some(existing => existing.addonGroup.id === newItem.addonGroup.id))
+              ],
         }));
 
-        console.log(entitiesToUpdate)
 
         await dispatch(updateEntities(entitiesToUpdate));
         await refetchEntities();
@@ -136,14 +145,11 @@ export const BulkEdit = ({
     }
 
     const handleAddonGroupFieldChange = (addonGroupIndex: number, fieldName: string, value: any) => {
-        console.log(value)
         const updatedAddonGroups = [...addonGroups];
-        console.log(updatedAddonGroups)
         const updatedItem = {
             ...updatedAddonGroups[addonGroupIndex],
             [fieldName]: value,
         };
-        console.log(updatedItem)
 
         updatedAddonGroups[addonGroupIndex] = updatedItem;
         setAddonGroups(updatedAddonGroups)
@@ -283,7 +289,8 @@ export const BulkEdit = ({
 
     return (
         <Container className="p-0 m-0" style={{
-            height: '75vh'
+            height: '75vh',
+            overflow: 'auto'
         }}>
             {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
             <form onSubmit={handleSubmit}>
@@ -503,9 +510,9 @@ export const BulkEdit = ({
                             </Row>
                         )}
                     </Col>
-                </Row> 
+                </Row>
                 {!isRetail && (
-                    <Row className='mt-3'>
+                    <Row className='mt-3 border mx-0 p-1'>
                         <Col md={6}>
                             <OrderList
                                 value={addonGroups?.map(group => group.addonGroup) || []}
@@ -643,6 +650,15 @@ export const BulkEdit = ({
                                 </div>
                             </Col>
                         )}
+                        <Row>
+                            <div className="flex justify-content-start">
+                                <SelectButton
+                                    value={addonGroupsActionValue}
+                                    onChange={(e) => setAddonGroupsActionValue(e.value)}
+                                    options={['Append To Items', 'Override']}
+                                />
+                            </div>
+                        </Row>
                     </Row>
                 )}
                 <Row>
