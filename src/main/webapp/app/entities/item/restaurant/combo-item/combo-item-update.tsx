@@ -313,7 +313,7 @@ export const ComboItemUpdate = () => {
   };
 
 
-  const saveEntity = (e, createNew = false) => {
+  const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
     const entity = {
       ...comboItem,
@@ -335,6 +335,20 @@ export const ComboItemUpdate = () => {
           const payload = res?.payload as any;
           const newProductId = payload?.data?.id;
 
+          const { id, ...entityWithoutId } = entity;
+          entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+            ...variantWithoutId,
+          }));
+          dispatch(createEntity(entityWithoutId)).then(res => {
+            const payload = res?.payload as any;
+            const newProductId = payload?.data?.id;
+
+            // @ts-expect-error -- unknown type
+            if (!res?.error) {
+              navigate(`/restaurant/combo/${newProductId}/edit`)
+            }
+          });
+
           // @ts-expect-error -- unknown type
           if (!res?.error) {
             handleNavigate(newProductId)
@@ -343,6 +357,21 @@ export const ComboItemUpdate = () => {
       })
     } else {
       dispatch(updateEntity(entity)).then(() => {
+        if (clone) {
+          const { id, ...entityWithoutId } = entity;
+          entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+            ...variantWithoutId,
+          }));
+          dispatch(createEntity(entityWithoutId)).then(res => {
+            const payload = res?.payload as any;
+            const newProductId = payload?.data?.id;
+
+            // @ts-expect-error -- unknown type
+            if (!res?.error) {
+              navigate(`/restaurant/combo/${newProductId}/edit`)
+            }
+          });
+        }
         if (createNew) {
           navigate(`/restaurant/combo/new`)
         }
@@ -587,33 +616,41 @@ export const ComboItemUpdate = () => {
         }}>
           <Card>
             <CardHeader>Actions</CardHeader>
-            <div className={'d-flex gap-1 mt-2'}>
-              <PrimeButton
-                className='p-1 fs-6'
-                onClick={handleBackClick}
-                type={'button'}
-                id="cancel-save"
-                data-cy="entityCreateCancelButton"
-                severity="secondary"
-              >
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </PrimeButton>
-              &nbsp;
-              <PrimeButton className='p-1 fs-6' onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </PrimeButton>
-              <PrimeButton className='p-1 fs-6' onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
-              </PrimeButton>
-            </div>
+            <Row>
+              <Row>
+                <Col>
+                  <PrimeButton
+                    className='p-1 fs-6 w-100'
+                    onClick={handleBackClick}
+                    type={'button'}
+                    id="cancel-save"
+                    data-cy="entityCreateCancelButton"
+                    severity="secondary"
+                  >
+                    <span className="d-none d-md-inline">
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </span>
+                  </PrimeButton>
+                </Col>
+                <Col>
+                  <PrimeButton className='p-1 fs-6 w-100' onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </PrimeButton>
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <PrimeButton className='p-1 fs-6 w-100' onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
+                  </PrimeButton>
+                </Col>
+                <Col>
+                  <PrimeButton className='p-1 fs-6 w-100' onClick={(e) => saveEntity(e, false, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <Translate contentKey="entity.action.saveandclone">Save and create clone</Translate>
+                  </PrimeButton>
+                </Col>
+              </Row>
+            </Row>
           </Card>
           {comboItemEntity?.id && <AuditLogs entityId={comboItemEntity?.id} />}
         </Col>

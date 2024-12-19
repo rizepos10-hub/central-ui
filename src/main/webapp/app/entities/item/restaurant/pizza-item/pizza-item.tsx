@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { deleteEntities, filterEntities, getEntities } from './pizza-item.reducer';
+import { createEntity, deleteEntities, filterEntities, getEntities } from './pizza-item.reducer';
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { IPizzaItem } from "app/shared/model/ITEM/restaurant/pizza-item.model";
@@ -23,6 +23,7 @@ import { updateEntities } from './pizza-item.reducer';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { FilterMatchMode } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
+import { FaCopy } from 'react-icons/fa';
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
@@ -220,6 +221,38 @@ export const PizzaItem = () => {
     setSelectedActionOption(null);
   }
 
+  const duplicateColumnTemplate = (rowData) => {
+    console.log(rowData)
+    return (
+      <Button
+        className="d-flex justify-content-center w-100"
+        onClick={() => confirmDialog({
+          message: 'Are you sure you want to duplicate this product?',
+          header: 'Duplicate Product',
+          icon: 'pi pi-exclamation-triangle',
+          accept() {
+            const { id, ...entityWithoutId } = rowData;
+            entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+              ...variantWithoutId,
+            }));
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
+
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/restaurant/pizza/${newProductId}/edit`)
+              }
+            });
+          }
+        })}
+        text
+      >
+        <FaCopy style={{ cursor: 'pointer', color: 'black', marginLeft: '0.3rem' }} />
+      </Button>
+    );
+  };
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl">
@@ -325,6 +358,13 @@ export const PizzaItem = () => {
         <Column field="Type" header={translate('items.view.fields.description')} />
 
         {/* <Column field="stock" sortable header={translate('items.view.fields.inStock')} /> */}
+
+        <Column
+          header={translate('items.view.fields.duplicate')}
+          body={duplicateColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
 
         <Column header={translate('items.view.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />

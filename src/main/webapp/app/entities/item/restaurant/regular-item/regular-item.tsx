@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ITEMS_PER_PAGE, } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { deleteEntities, deleteEntity, exportEntities, filterEntities, updateEntities } from "./regular-item.reducer";
+import { createEntity, deleteEntities, deleteEntity, exportEntities, filterEntities, updateEntities } from "./regular-item.reducer";
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import { Column, ColumnFilterElementTemplateOptions } from "primereact/column";
 import { IRegularItem } from "app/shared/model/ITEM/restaurant/regular-item.model";
@@ -24,6 +24,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
 import { InputText } from 'primereact/inputtext';
 import { FilterMatchMode } from 'primereact/api';
+import { FaCopy } from 'react-icons/fa';
 
 export const RegularItem = () => {
   const dispatch = useAppDispatch();
@@ -275,6 +276,37 @@ export const RegularItem = () => {
     );
   };
 
+  const duplicateColumnTemplate = (rowData) => {
+    console.log(rowData)
+    return (
+      <Button
+        className="d-flex justify-content-center w-100"
+        onClick={() => confirmDialog({
+          message: 'Are you sure you want to duplicate this product?',
+          header: 'Duplicate Product',
+          icon: 'pi pi-exclamation-triangle',
+          accept() {
+            const { id, ...entityWithoutId } = rowData;
+            entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+              ...variantWithoutId,
+            }));
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
+
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/restaurant/regular/${newProductId}/edit`)
+              }
+            });
+          }
+        })}
+        text
+      >
+        <FaCopy style={{ cursor: 'pointer', color: 'black', marginLeft: '0.3rem' }} />
+      </Button>
+    );
+  };
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
@@ -381,6 +413,13 @@ export const RegularItem = () => {
 
 
         {/* <Column field="stock" sortable header={translate('items.view.fields.inStock')} /> */}
+
+        <Column
+          header={translate('items.view.fields.duplicate')}
+          body={duplicateColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
 
         <Column header={translate('items.view.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />

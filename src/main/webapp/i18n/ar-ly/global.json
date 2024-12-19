@@ -108,6 +108,7 @@
       "open": "Open",
       "save": "Save",
       "saveandnew": "Save & create",
+      "saveandclone": "Save & clone",
       "view": "View",
       "show": "Show {{otherEntity}}"
     },

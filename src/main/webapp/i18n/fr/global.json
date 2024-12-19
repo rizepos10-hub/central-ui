@@ -109,6 +109,7 @@
       "save": "Save",
       "apply": "Apply",
       "saveandnew": "Save & create",
+      "saveandclone": "Save & clone",
       "view": "View",
       "show": "Show {{otherEntity}}"
     },

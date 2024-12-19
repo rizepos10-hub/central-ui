@@ -11,7 +11,7 @@ import { Column } from "primereact/column";
 import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
-import { deleteEntities, exportEntities, filterEntities, updateEntities } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
+import { deleteEntities, exportEntities, filterEntities, updateEntities, createEntity } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { IItem } from 'app/shared/model/ITEM/item.model';
@@ -20,6 +20,7 @@ import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { InputText } from 'primereact/inputtext';
 import { FilterMatchMode } from 'primereact/api';
+import { FaCopy } from 'react-icons/fa';
 
 export const ComboItem = () => {
   const dispatch = useAppDispatch();
@@ -230,6 +231,37 @@ export const ComboItem = () => {
     setSelectedActionOption(null);
   }
 
+  const duplicateColumnTemplate = (rowData) => {
+    console.log(rowData)
+    return (
+      <Button
+        className="d-flex justify-content-center w-100"
+        onClick={() => confirmDialog({
+          message: 'Are you sure you want to duplicate this product?',
+          header: 'Duplicate Product',
+          icon: 'pi pi-exclamation-triangle',
+          accept() {
+            const { id, ...entityWithoutId } = rowData;
+            entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+              ...variantWithoutId,
+            }));
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
+
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/restaurant/combo/${newProductId}/edit`)
+              }
+            });
+          }
+        })}
+        text
+      >
+        <FaCopy style={{ cursor: 'pointer', color: 'black', marginLeft: '0.3rem' }} />
+      </Button>
+    );
+  };
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
@@ -337,6 +369,13 @@ export const ComboItem = () => {
         <Column field="description" header={translate('items.view.fields.description')} />
 
         {/* <Column field="stock" sortable header={translate('items.view.fields.inStock')} /> */}
+
+        <Column
+          header={translate('items.view.fields.duplicate')}
+          body={duplicateColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
 
         <Column header={translate('items.view.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
