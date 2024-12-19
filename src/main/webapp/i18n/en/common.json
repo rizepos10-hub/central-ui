@@ -54,6 +54,7 @@
     "back": "Back",
     "save": "Save",
     "saveandnew": "Save and create new",
+    "saveandclone": "Save & clone",
     "deliveryDate": "DeliveryDate",
     "addons": "Addons",
     "variantName": "Variant Name",
@@ -73,6 +74,7 @@
     "buttons": {
       "save": "Save",
       "saveandnew": "Save & create",
+      "saveandclone": "Save & clone",
       "back": "Back",
       "cancel": "Cancel",
       "delete": "Delete",
