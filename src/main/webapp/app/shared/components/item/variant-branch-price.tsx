@@ -73,17 +73,13 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
               </th>
             ) : null}
 
-            {isRetail ? (
-              <th>
-                <Translate contentKey={'items.update.hideItem'}>Hide Item POS</Translate>
-              </th>
-            ) : null}
+            <th>
+              <Translate contentKey={'items.update.hideItem'}>Hide Item POS</Translate>
+            </th>
 
-            {isRetail ? (
-              <th>
-                <Translate contentKey={'items.update.hideOnline'}>Hide Item Online</Translate>
-              </th>
-            ) : null}
+            <th>
+              <Translate contentKey={'items.update.hideOnline'}>Hide Item Online</Translate>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -136,30 +132,26 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   </Button>
                 </td>
               ) : (
-                <td></td>
+                null
               )}
 
-              {isRetail && (
-                <td>
-                  <Checkbox
-                    name={`hideItem_${branch.id}`}
-                    value={branchVariantDetails?.[branch.id]?.hideItem || false}
-                    onChange={() => handleHideItemPerBranch(branch.id, variantIndex, 'hideItem')}
-                    checked={branchVariantDetails?.[branch.id]?.hideItem}
-                  />
-                </td>
-              )}
+              <td>
+                <Checkbox
+                  name={`hideItem_${branch.id}`}
+                  value={branchVariantDetails?.[branch.id]?.hideItem || false}
+                  onChange={() => handleHideItemPerBranch(branch.id, variantIndex, 'hideItem')}
+                  checked={branchVariantDetails?.[branch.id]?.hideItem}
+                />
+              </td>
 
-              {isRetail && (
-                <td>
-                  <Checkbox
-                    name={`hideOnline_${branch.id}`}
-                    value={branchVariantDetails?.[branch.id]?.hideOnline || false}
-                    onChange={() => handleHideItemPerBranch(branch.id, variantIndex, 'hideOnline')}
-                    checked={branchVariantDetails?.[branch.id]?.hideOnline}
-                  />
-                </td>
-              )}
+              <td>
+                <Checkbox
+                  name={`hideOnline_${branch.id}`}
+                  value={branchVariantDetails?.[branch.id]?.hideOnline || false}
+                  onChange={() => handleHideItemPerBranch(branch.id, variantIndex, 'hideOnline')}
+                  checked={branchVariantDetails?.[branch.id]?.hideOnline}
+                />
+              </td>
             </tr>
           ))}
         </tbody>
