@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
-import { getSortState, translate, Translate } from 'react-jhipster';
+import { getSortState, translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { ITEMS_PER_PAGE, } from 'app/shared/util/pagination.constants';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { createEntity, deleteEntities, deleteEntity, exportEntities, filterEntities, updateEntities } from "./regular-item.reducer";
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
-import { Column, ColumnFilterElementTemplateOptions } from "primereact/column";
+import { Column } from "primereact/column";
 import { IRegularItem } from "app/shared/model/ITEM/restaurant/regular-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { ITerm } from "app/shared/model/term.model";
@@ -39,10 +39,10 @@ export const RegularItem = () => {
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
-
-
   const [searchParams, setSearchParams] = useSearchParams();
-  console.log(searchParams.get("query"))
+
+  const [localNameFilter, setLocalNameFilter] = useState("");
+
   const query = JSON.parse(searchParams.get("query")) || {
     first: 0,
     rows: 20,
@@ -56,30 +56,19 @@ export const RegularItem = () => {
       name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     }
   };
-  console.log(initialItemFilterState, 'initialItemFilterState')
-  console.log(query, 'query')
 
   const regularItemsList: IRegularItem[] = useAppSelector(state => state.regularItem.entities);
-
   const importSuccess = useAppSelector(state => state.dataImport.importSuccess);
   const categories: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
   const loading = useAppSelector(state => state.regularItem.loading);
   const totalItems = useAppSelector(state => state.regularItem.totalItems);
 
-
   const getAllEntities = () => {
-    console.log(query, 'query')
     const updatedQuery = applyMatchModeMap(query);
-    console.log(updatedQuery)
-    dispatch(
-      filterEntities({
-        query: updatedQuery,
-      })
-    );
+    dispatch(filterEntities({ query: updatedQuery }));
   };
 
   useEffect(() => {
-    console.log(1)
     getAllEntities();
   }, [searchParams]);
 
@@ -92,22 +81,21 @@ export const RegularItem = () => {
     setSearchParams({ query: queryParams }, { replace: true })
   };
 
-  const onFilter = (event: DataTableFilterEvent) => {
-    const debouncedSearchAction = _.debounce(() => {
-      event['first'] = 0;
-      event['page'] = 0;
-      const queryParams = JSON.stringify(event);
-      setSearchParams({ query: queryParams }, { replace: true })
-    }, 300)
-    debouncedSearchAction();
-  };
+  const debouncedFilter = useRef(_.debounce((event) => {
+    event['first'] = 0;
+    event['page'] = 0;
+    const queryParams = JSON.stringify(event);
+    setSearchParams({ query: queryParams }, { replace: true })
+  }, 300)).current
 
+  const onFilter = (event: DataTableFilterEvent) => {
+    debouncedFilter(event);
+  };
 
   const onPage = (event) => {
     const queryParams = JSON.stringify(event);
     setSearchParams({ query: queryParams }, { replace: true })
   };
-
 
   const handleDropdownChange = (field, value) => {
     const newQuery = JSON.stringify({
@@ -120,7 +108,6 @@ export const RegularItem = () => {
     setSearchParams({ query: newQuery }, { replace: true });
   };
 
-
   const nameColumnTemplate = rowData => {
     const editUrl = `/restaurant/regular/${rowData.id}/edit`;
     return (
@@ -129,6 +116,7 @@ export const RegularItem = () => {
       </Link>
     );
   };
+
   const editColumnTemplate = (rowData) => {
     const editUrl = `/restaurant/regular/${rowData.id}/edit`;
     return (
@@ -138,13 +126,6 @@ export const RegularItem = () => {
     );
   };
 
-  // const deleteColumnTemplate = (rowData) => {
-  //   const deleteUrl = `/restaurant/regular/${rowData.id}/delete`;
-  //   return (
-  //       <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} onClick={() => confirmDelete(rowData.id)} />
-  //   );
-  // };
-
   const deleteColumnTemplate = (rowData) => {
     const deleteUrl = `/restaurant/regular/${rowData.id}/delete`;
     return (
@@ -153,17 +134,6 @@ export const RegularItem = () => {
       </Link>
     );
   };
-
-  // const confirmDelete = (id) => {
-  //   confirmDialog({
-  //     message: 'Are you sure you want to delete this item?',
-  //     header: 'Confirm Delete',
-  //     icon: 'pi pi-exclamation-triangle',
-  //     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  //     accept: () => dispatch(deleteEntity(id)),
-  //     reject: () => null,
-  //   });
-  // };
 
   const MenusTemplate = (rowData) => {
     const menus = []
@@ -182,7 +152,6 @@ export const RegularItem = () => {
     ))}</div>
   };
 
-
   const handleCreate = () => {
     navigate('/restaurant/regular/new')
   }
@@ -193,14 +162,11 @@ export const RegularItem = () => {
     }
   }, [selectedActionOption])
 
-
   const confirm1 = () => {
     confirmDialog({
       message: 'Are you sure you want to proceed?',
       header: 'Confirmation',
       icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       accept: () => handleItemsDelete(),
       reject: () => setSelectedActionOption(null)
     });
@@ -219,65 +185,24 @@ export const RegularItem = () => {
     }
   }, [selectedActionOption])
 
-
   const confirm2 = () => {
     confirmDialog({
       message: 'Are you sure you want to proceed?',
       header: 'Confirmation',
       icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       accept: () => handleExportItems(),
       reject: () => setSelectedActionOption(null)
     });
   };
 
   const handleExportItems = async () => {
-    console.log(1)
     setIsLoadingAction(true);
     await dispatch(exportEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingAction(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
-  }
-
-  const nameFilterTemplate = () => {
-    const [name, setName] = useState('');
-
-    return (
-      <form onSubmit={(e) => {
-        e.preventDefault()
-        const newQuery = {
-          ...query,
-          filters: {
-            ...query.filters,
-            name: {
-              ...query.filters?.name,
-              value: name,
-              matchMode: query.filters?.name?.matchMode || FilterMatchMode.CONTAINS,
-            },
-          }
-        }
-
-        const updatedQuery = applyMatchModeMap(newQuery);
-        console.log(updatedQuery)
-
-        dispatch(filterEntities({
-          query: updatedQuery,
-        }));
-      }}>
-        <InputText
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="p-inputtext-sm"
-          placeholder="Search by Name"
-        />
-      </form>
-    );
   };
 
   const duplicateColumnTemplate = (rowData) => {
-    console.log(rowData)
     return (
       <Button
         className="d-flex justify-content-center w-100"
@@ -305,6 +230,28 @@ export const RegularItem = () => {
       >
         <FaCopy style={{ cursor: 'pointer', color: 'black', marginLeft: '0.3rem' }} />
       </Button>
+    );
+  };
+
+  const nameFilterTemplate = () => {
+    return (
+      <InputText
+        type="text"
+        value={localNameFilter}
+        onChange={(e) => {
+          setLocalNameFilter(e.target.value);
+          const newQuery = {
+            ...query,
+            filters: {
+              ...query.filters,
+              name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
+            }
+          };
+          debouncedFilter(newQuery);
+        }}
+        className="p-inputtext-sm"
+        placeholder="Search by Name"
+      />
     );
   };
 
@@ -379,8 +326,16 @@ export const RegularItem = () => {
         onSelectionChange={(e) => setSelectedProducts(e.value)}
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
-        <Column field="name" header={translate('items.view.fields.name')}
-          filter filterField={"name"} body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} filterElement={nameFilterTemplate} sortable />
+        <Column
+          field="name"
+          header={translate('items.view.fields.name')}
+          filter
+          filterField="name"
+          filterElement={nameFilterTemplate}
+          body={nameColumnTemplate}
+          filterPlaceholder={translate('items.view.filters.name')}
+          sortable
+        />
 
         <Column
           header="Category"
@@ -411,9 +366,6 @@ export const RegularItem = () => {
           <MenusTemplate rowData={rowData} />}
         />
 
-
-        {/* <Column field="stock" sortable header={translate('items.view.fields.inStock')} /> */}
-
         <Column
           header={translate('items.view.fields.duplicate')}
           body={duplicateColumnTemplate}
@@ -421,12 +373,17 @@ export const RegularItem = () => {
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
         />
 
-        <Column header={translate('items.view.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+        <Column
+          header={translate('items.view.fields.edit')}
+          body={editColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-        <Column header={translate('items.view.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
+        <Column
+          header={translate('items.view.fields.delete')}
+          body={deleteColumnTemplate}
+          headerStyle={{ width: '1%', }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
 
       </DataTable>
     </div>
