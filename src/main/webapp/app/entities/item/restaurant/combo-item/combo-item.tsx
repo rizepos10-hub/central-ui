@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
 import { translate, Translate } from 'react-jhipster';
@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { DataTable } from "primereact/datatable";
+import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
@@ -21,6 +21,7 @@ import { confirmDialog } from 'primereact/confirmdialog';
 import { InputText } from 'primereact/inputtext';
 import { FilterMatchMode } from 'primereact/api';
 import { FaCopy } from 'react-icons/fa';
+import _ from 'lodash';
 
 export const ComboItem = () => {
   const dispatch = useAppDispatch();
@@ -30,7 +31,10 @@ export const ComboItem = () => {
   const loading = useAppSelector(state => state.comboItem.loading);
   const totalItems = useAppSelector(state => state.comboItem.totalItems);
   const [searchParams, setSearchParams] = useSearchParams();
-  const query = JSON.parse(searchParams.get("query")) || JSON.parse(searchParams.get("query")) || {
+
+  const [localNameFilter, setLocalNameFilter] = useState("");
+
+  const query = JSON.parse(searchParams.get("query")) || {
     first: 0,
     rows: 20,
     page: 0,
@@ -48,9 +52,11 @@ export const ComboItem = () => {
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
 
-
+  console.log(JSON.parse(searchParams.get("query")))
   const getAllEntities = () => {
+    console.log(query)
     const updatedQuery = applyMatchModeMap(query);
+    console.log(updatedQuery, 'updatedQuery')
     dispatch(
       filterEntities({
         query: updatedQuery,
@@ -71,11 +77,15 @@ export const ComboItem = () => {
     setSearchParams({ query: queryParams }, { replace: true })
   };
 
-  const onFilter = (event: any) => {
+  const debouncedFilter = useRef(_.debounce((event) => {
     event['first'] = 0;
     event['page'] = 0;
     const queryParams = JSON.stringify(event);
     setSearchParams({ query: queryParams }, { replace: true })
+  }, 300)).current
+
+  const onFilter = (event: DataTableFilterEvent) => {
+    debouncedFilter(event);
   };
 
 
@@ -177,38 +187,24 @@ export const ComboItem = () => {
   }, [selectedActionOption])
 
   const nameFilterTemplate = () => {
-    const [name, setName] = useState('');
-
     return (
-      <form onSubmit={(e) => {
-        e.preventDefault()
-        const newQuery = {
-          ...query,
-          filters: {
-            ...query.filters,
-            name: {
-              ...query.filters?.name,
-              value: name,
-              matchMode: query.filters?.name?.matchMode || FilterMatchMode.CONTAINS,
-            },
-          }
-        }
-
-        const updatedQuery = applyMatchModeMap(newQuery);
-
-
-        dispatch(filterEntities({
-          query: updatedQuery,
-        }));
-      }}>
-        <InputText
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="p-inputtext-sm"
-          placeholder="Search by Name"
-        />
-      </form>
+      <InputText
+        type="text"
+        value={localNameFilter}
+        onChange={(e) => {
+          setLocalNameFilter(e.target.value);
+          const newQuery = {
+            ...query,
+            filters: {
+              ...query.filters,
+              name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
+            }
+          };
+          debouncedFilter(newQuery);
+        }}
+        className="p-inputtext-sm"
+        placeholder="Search by Name"
+      />
     );
   };
 

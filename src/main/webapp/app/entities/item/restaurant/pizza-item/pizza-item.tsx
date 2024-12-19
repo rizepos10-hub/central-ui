@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
 import { getSortState, translate, Translate } from 'react-jhipster';
@@ -39,9 +39,10 @@ export const PizzaItem = () => {
   const pizzaItemsList: IPizzaItem[] = useAppSelector(state => state.pizzaItem.entities);
   const loading = useAppSelector(state => state.pizzaItem.loading);
   const totalItems = useAppSelector(state => state.pizzaItem.totalItems);
-
-
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const [localNameFilter, setLocalNameFilter] = useState("");
+
   const query = JSON.parse(searchParams.get("query")) || JSON.parse(searchParams.get("query")) || {
     first: 0,
     rows: 20,
@@ -84,14 +85,15 @@ export const PizzaItem = () => {
     setSearchParams({ query: queryParams }, { replace: true })
   };
 
+  const debouncedFilter = useRef(_.debounce((event) => {
+    event['first'] = 0;
+    event['page'] = 0;
+    const queryParams = JSON.stringify(event);
+    setSearchParams({ query: queryParams }, { replace: true })
+  }, 300)).current
+
   const onFilter = (event: DataTableFilterEvent) => {
-    const debouncedSearchAction = _.debounce(() => {
-      event['first'] = 0;
-      event['page'] = 0;
-      const queryParams = JSON.stringify(event);
-      setSearchParams({ query: queryParams }, { replace: true })
-    }, 300);
-    debouncedSearchAction();
+    debouncedFilter(event);
   };
 
 
@@ -167,38 +169,24 @@ export const PizzaItem = () => {
   }, [selectedActionOption])
 
   const nameFilterTemplate = () => {
-    const [name, setName] = useState('');
-
     return (
-      <form onSubmit={(e) => {
-        e.preventDefault()
-        const newQuery = {
-          ...query,
-          filters: {
-            ...query.filters,
-            name: {
-              ...query.filters?.name,
-              value: name,
-              matchMode: query.filters?.name?.matchMode || FilterMatchMode.CONTAINS,
-            },
-          }
-        }
-
-        const updatedQuery = applyMatchModeMap(newQuery);
-
-
-        dispatch(filterEntities({
-          query: updatedQuery,
-        }));
-      }}>
-        <InputText
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="p-inputtext-sm"
-          placeholder="Search by Name"
-        />
-      </form>
+      <InputText
+        type="text"
+        value={localNameFilter}
+        onChange={(e) => {
+          setLocalNameFilter(e.target.value);
+          const newQuery = {
+            ...query,
+            filters: {
+              ...query.filters,
+              name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
+            }
+          };
+          debouncedFilter(newQuery);
+        }}
+        className="p-inputtext-sm"
+        placeholder="Search by Name"
+      />
     );
   };
 
