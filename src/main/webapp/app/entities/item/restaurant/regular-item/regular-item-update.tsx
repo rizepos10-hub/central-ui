@@ -601,6 +601,26 @@ export const RegularItemUpdate = () => {
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
   };
 
+  const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
+    setRegularItem(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            [field]: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.[field],
+          },
+        },
+      };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
   console.log(regularItem?.addonGroups, 'regularItem?.addonGroups')
 
   if (loading) {
@@ -969,6 +989,7 @@ export const RegularItemUpdate = () => {
                                           variantIndex={variantIndex}
                                           branchVariantDetails={variant.branchVariantDetails}
                                           itemVariantType={'RESTAURANT'}
+                                          handleHideItemPerBranch={handleHideItemPerBranch}
                                         />
                                       </AccordionTab>
                                     </Accordion>

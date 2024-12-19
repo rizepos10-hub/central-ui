@@ -292,6 +292,26 @@ export const ComboItemUpdate = () => {
     }
   }, [comboItemEntity, updateSuccess]);
 
+  const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
+    setComboItem(prev => {
+      const updatedVariants = [...prev.variants];
+      updatedVariants[variantIndex] = {
+        ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
+        branchVariantDetails: {
+          ...(prev.variants[variantIndex]?.branchVariantDetails || {}),
+          [branchId]: {
+            ...prev.variants?.[variantIndex]?.branchVariantDetails?.[branchId],
+            [field]: !prev?.variants?.[variantIndex]?.branchVariantDetails?.[branchId]?.[field],
+          },
+        },
+      };
+      return {
+        ...prev,
+        variants: updatedVariants,
+      };
+    });
+  };
+
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
@@ -455,6 +475,7 @@ export const ComboItemUpdate = () => {
                         handleBranchPriceChange={handleBranchPriceChange}
                         variantIndex={0}
                         itemVariantType={"RESTAURANT"}
+                        handleHideItemPerBranch={handleHideItemPerBranch}
                       />
 
                       <Row>
