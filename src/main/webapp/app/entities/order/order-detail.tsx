@@ -328,7 +328,6 @@ export const OrderDetail = () => {
               </Card>
             </Col>
 
-            {/* Customer Information */}
             <Col md="4" className='overflow-auto'>
               <Card id='orderStatus' className='p-1'>
                 <CardBody>
@@ -491,6 +490,27 @@ export const OrderDetail = () => {
                   )}
                 </CardBody>
               </Card>
+              {filteredOrderEntity?.deliverTo && (
+                <Card id='customer' className={`p-1 ${editMode ? 'opacity-50' : ''}`}>
+                  <CardBody>
+                    <CardTitle tag="h5">Deliver To</CardTitle>
+                    <>
+                      {filteredOrderEntity.deliverTo.address && (
+                        <div>Address: {filteredOrderEntity.deliverTo.address}</div>
+                      )}
+                      {filteredOrderEntity.deliverTo.addressType && (
+                        <div>Address Type: {filteredOrderEntity.deliverTo.addressType}</div>
+                      )}
+                      {filteredOrderEntity.deliverTo.contactPersonName && (
+                        <div>Contact Person Name: {filteredOrderEntity.deliverTo.contactPersonName}</div>
+                      )}
+                      {filteredOrderEntity.deliverTo.phoneNumber && (
+                        <div>Phone Number: {filteredOrderEntity.deliverTo.phoneNumber}</div>
+                      )}
+                    </>
+                  </CardBody>
+                </Card>
+              )}
               {/* 
             {filteredOrderEntity.customer && (
               <Card className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
