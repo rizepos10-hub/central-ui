@@ -132,7 +132,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                   </Button>
                 </td>
               ) : (
-                null
+                (!branch.wholesale && isRetail) ? (<td></td>) : null
               )}
 
               <td>
