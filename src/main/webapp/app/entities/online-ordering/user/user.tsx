@@ -29,9 +29,9 @@ export const User = () => {
   const totalItems = useAppSelector(state => state.onlineOrderingUser.totalItems);
 
   const [filters, setFilters] = useState({
-    firstName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    lastName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    firstname: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    lastname: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     login: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     phone: { value: null, matchMode: FilterMatchMode.STARTS_WITH },

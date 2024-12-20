@@ -29,7 +29,7 @@ export const Tag = () => {
   const totalItems = useAppSelector(state => state.tag.totalItems);
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   const getAllEntities = () => {

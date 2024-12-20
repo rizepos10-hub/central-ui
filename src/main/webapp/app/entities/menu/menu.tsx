@@ -41,7 +41,7 @@ export const Menu = () => {
 
   const totalItems = useAppSelector(state => state.menu.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     'branch.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH }
   });
 

@@ -313,7 +313,7 @@ export const OrderDetail = () => {
                       Discount:
                     </span>
                     <span className='text-danger'>
-                      - {orderEntity?.totalDiscount} %
+                      - {orderEntity?.totalDiscount}
                     </span>
                   </div>
                   <div className="mb-0 w-100 d-flex justify-content-between align-items-center">

@@ -28,7 +28,7 @@ export const SalesLocation = () => {
   const loading = useAppSelector(state => state.salesLocation.loading);
   const totalItems = useAppSelector(state => state.salesLocation.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   const getAllEntities = () => {

@@ -28,7 +28,7 @@ export const FloorPlanTable = () => {
   const loading = useAppSelector(state => state.floorPlanTable.loading);
   const totalItems = useAppSelector(state => state.floorPlanTable.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   console.log(floorPlanTablesList, 'floorPlanTablesList')
