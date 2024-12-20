@@ -7,7 +7,7 @@ import { Link, useParams } from "react-router-dom";
 import TillsTable, { PreviousTill } from "app/entities/settings/branch-registry/till/previous-till";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Translate } from "react-jhipster";
-import { closeEntity as closeTill} from "app/entities/settings/branch-registry/till/till.reducer";
+import { closeEntity as closeTill } from "app/entities/settings/branch-registry/till/till.reducer";
 
 import CurrentTill from "app/entities/settings/branch-registry/till/current-till";
 import ActivateTillModal from "app/entities/settings/branch-registry/till/activate-till-modal";
@@ -34,7 +34,7 @@ const BranchRegistryUpdate = ({ isRegisterClosure }: { isRegisterClosure?: boole
     }
   }, [updateTillSuccess]);
 
-  if(loading){
+  if (loading) {
     return <Spinner />;
   }
 
@@ -64,6 +64,9 @@ const BranchRegistryUpdate = ({ isRegisterClosure }: { isRegisterClosure?: boole
           </p>
           <p>
             <strong>Branch:</strong> {branchRegistry.branch?.name}
+          </p>
+          <p>
+            <strong>Last Online:</strong> {new Date(branchRegistry.lastOnline).toLocaleString()}
           </p>
           <p>
             <strong>Current Till</strong>
