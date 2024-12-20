@@ -48,7 +48,7 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
   const searchParams = new URLSearchParams(location.search);
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     categoryId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
 

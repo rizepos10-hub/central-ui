@@ -31,7 +31,7 @@ export const Printer = () => {
   const loading = useAppSelector(state => state.printer.loading);
   const totalItems = useAppSelector(state => state.printer.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   const getAllEntities = () => {

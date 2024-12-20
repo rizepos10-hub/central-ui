@@ -30,7 +30,7 @@ export const ProfileGroup = () => {
 
   const [filters, setFilters] :any = useState({
     accountingId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     profiles: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 
   });
@@ -69,7 +69,7 @@ export const ProfileGroup = () => {
     if (filterValue === '') {
       setFilters({
         ...filters,
-        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
       });
     } else {
       setFilters({

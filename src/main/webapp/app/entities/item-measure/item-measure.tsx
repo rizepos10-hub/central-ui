@@ -27,7 +27,7 @@ export const ItemMeasure = () => {
   const loading = useAppSelector(state => state.itemMeasure.loading);
   const totalItems = useAppSelector(state => state.itemMeasure.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
 

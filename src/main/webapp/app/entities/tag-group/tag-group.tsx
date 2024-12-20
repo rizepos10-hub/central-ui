@@ -30,7 +30,7 @@ export const TagGroup = () => {
   const totalItems = useAppSelector(state => state.tagGroup.totalItems);
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
 

@@ -36,7 +36,7 @@ export const User = () => {
   const branchList = useAppSelector(state => state.branch.entities);
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     branches: { value: selectedBranchFilter, matchMode: FilterMatchMode.CONTAINS },
   });
@@ -86,7 +86,7 @@ export const User = () => {
     if (filterValue === '') {
       setFilters({
         ...filters,
-        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
       });
     } else {
       setFilters({

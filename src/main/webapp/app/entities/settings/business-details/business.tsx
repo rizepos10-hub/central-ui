@@ -29,11 +29,11 @@ export const Business = () => {
   const totalItems = useAppSelector(state => state.businessDetail.totalItems);
 
   const [filters, setFilters] = useState({
-    firstName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    lastName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    firstname: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    lastname: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    username: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    username: { value: null, matchMode: FilterMatchMode.CONTAINS },
     phone: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
 
@@ -62,7 +62,7 @@ export const Business = () => {
     if (filterValue === '') {
       setFilters({
         ...filters,
-        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
       });
     } else {
       setFilters({

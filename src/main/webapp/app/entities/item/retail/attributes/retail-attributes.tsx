@@ -32,7 +32,7 @@ export const RetailAttributes = () => {
   const loading = useAppSelector(state => state.retailAttribute.loading);
   const totalItems = useAppSelector(state => state.retailAttribute.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   console.log(retailAttributeList, 'retailAttributeList')

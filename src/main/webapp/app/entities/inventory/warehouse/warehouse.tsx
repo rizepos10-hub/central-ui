@@ -31,7 +31,7 @@ export const Warehouse = () => {
   const loading = useAppSelector(state => state.warehouse.loading);
   const totalItems = useAppSelector(state => state.warehouse.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     main: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     location: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
