@@ -22,21 +22,15 @@ export const PizzaDeleteDialog = () => {
   }, []);
 
   const pizzaToppingEntity = useAppSelector(state => state.pizzaTopping.entity);
-  const updateSuccess = useAppSelector(state => state.pizzaTopping.updateSuccess);
 
   const handleClose = () => {
     navigate(-1);
   };
 
-  useEffect(() => {
-    if (updateSuccess && loadModal) {
-      handleClose();
-      setLoadModal(false);
-    }
-  }, [updateSuccess]);
-
   const confirmDelete = () => {
-    dispatch(deleteEntity(pizzaToppingEntity.id));
+    dispatch(deleteEntity(pizzaToppingEntity.id)).then(() => {
+      handleClose()
+    });
   };
 
   return (
