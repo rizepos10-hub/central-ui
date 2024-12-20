@@ -4,9 +4,9 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { ITopping, defaultValue } from 'app/shared/model/PIZZA/topping.model';
-import {ITerm} from "app/shared/model/term.model";
+import { ITerm } from "app/shared/model/term.model";
 
-const initialState  = {
+const initialState = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -18,15 +18,18 @@ const initialState  = {
 };
 
 const apiUrl = 'api/pizza/toppings';
+const apiSearchUrl = 'api/pizza/_search/toppings';
 
 // Actions
+
+export const filterEntities = createAsyncThunk('regular-item/filter_entity_list', async ({ query, }: IQueryParams) => {
+  return axios.post<ITopping[]>(apiSearchUrl, query);
+});
 
 export const getEntities = createAsyncThunk('topping/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
   return axios.get<ITopping[]>(requestUrl);
 });
-
-
 
 export const getEntity = createAsyncThunk(
   'topping/fetch_entity',
@@ -96,7 +99,7 @@ export const ToppingSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, filterEntities), (state, action) => {
         const { data, headers } = action.payload;
 
         return {
@@ -112,7 +115,7 @@ export const ToppingSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity), state => {
+      .addMatcher(isPending(getEntities, filterEntities, getEntity), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
