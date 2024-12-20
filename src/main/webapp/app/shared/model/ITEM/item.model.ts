@@ -11,6 +11,7 @@ import { IDiscount } from "app/shared/model/discount.model";
 import { ITag } from "app/shared/model/TAG/tag.model";
 import { IBrand } from "app/shared/model/brand.model";
 import { IAddonPriceOverride } from '../ADDON/addon-price-override';
+import { IMenu } from '../menu.model';
 
 export interface IItem {
   id?: string;
@@ -34,6 +35,7 @@ export interface IItem {
   terms?: ITerm[] | null;
   accountingGroups?: IProfileGroup[] | null;
   productionCenter?: IProductionCenter | null;
+  menus?: IMenu[];
 }
 
 export const defaultValue: Readonly<IItem> = {};

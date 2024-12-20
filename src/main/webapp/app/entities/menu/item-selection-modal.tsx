@@ -17,12 +17,14 @@ import { getEntities as getRestaurantCategories, searchEntities as searchRestaur
 import { getEntities as getRetailCategories, searchEntities as searchRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import { Dropdown } from 'primereact/dropdown';
 import { TabPanel, TabView } from 'primereact/tabview';
+import { IItem } from 'app/shared/model/ITEM/item.model';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
   toggle: any;
-  selectedItems: any;
-  handleToggleSelect: any;
+  selectedItems: IItem[];
+  handleToggleSelect: (items: IItem[]) => void;
+  setSelectedItems: React.Dispatch<React.SetStateAction<IItem[]>>;
 }
 
 const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
@@ -38,7 +40,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   const dispatch = useAppDispatch();
   const totalItems = useAppSelector((state) => state.allItems.totalItems);
-  const itemList = useAppSelector((state) => state.allItems.entities);
+  const itemList: IItem[] = useAppSelector((state) => state.allItems.entities);
   const loading = useAppSelector((state) => state.allItems.loading);
 
   // const categories = useAppSelector(state => state.category.entities);
@@ -195,21 +197,45 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
               />
             </div>
           </div>
-          <div className='d-flex gap-2 align-items-baseline mt-2'>
-            <Label for="filterByUnassignedItems">
-              <Translate contentKey={'menus.pos.update.modals.item.filterByUnassignedItems'}>Filter By Unassigned Items</Translate>
-            </Label>
-            <Checkbox
-              inputId="filterByUnassignedItems"
-              checked={searchParams.get('unassignedItems') !== null}
-              onChange={(e) => {
-                if (e.checked) {
-                  navigate(createQueryString('unassignedItems', true));
-                } else {
-                  navigate(deleteQueryString('unassignedItems'));
+          <div className='d-flex justify-content-between mt-2'>
+            <div className='d-flex gap-2 align-items-start'>
+              <Label for="filterByUnassignedItems">
+                <Translate contentKey={'menus.pos.update.modals.item.filterByUnassignedItems'}>Filter By Unassigned Items</Translate>
+              </Label>
+              <Checkbox
+                inputId="filterByUnassignedItems"
+                checked={searchParams.get('unassignedItems') !== null}
+                onChange={(e) => {
+                  if (e.checked) {
+                    navigate(createQueryString('unassignedItems', true));
+                  } else {
+                    navigate(deleteQueryString('unassignedItems'));
+                  }
+                }}
+              />
+            </div>
+            <div className='d-flex gap-2 align-items-start'>
+              <Label for="filterByUnassignedItems">
+                <Translate contentKey={'menus.pos.update.modals.item.selectAll'}>Select All</Translate>
+              </Label>
+              <Checkbox
+                inputId="filterByUnassignedItems"
+                checked={
+                  itemList.length > 0 &&
+                  itemList.every(iItem => selectedItems.some(sItem => sItem.id === iItem.id))
                 }
-              }}
-            />
+                onChange={(e) => {
+                  if (e.checked) {
+                    const notSelected = itemList.filter(i => !selectedItems.some(s => s.id === i.id));
+                    console.log(notSelected, 'notSelected');
+                    handleToggleSelect(notSelected);
+                  } else {
+                    const currentlySelectedFromList = selectedItems.filter(s => itemList.some(i => i.id === s.id));
+                    handleToggleSelect(currentlySelectedFromList);
+                  }
+                }}
+              />
+            </div>
           </div>
         </FormGroup>
         <table className="table">
@@ -260,7 +286,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                     </div>
                   </td>
                   <td>
-                    <Button color={isItemSelected(item.id) ? 'danger' : 'primary'} onClick={() => handleToggleSelect(item)}>
+                    <Button color={isItemSelected(item.id) ? 'danger' : 'primary'} onClick={() => handleToggleSelect([item])}>
                       {isItemSelected(item.id)
                         ? translate('menus.pos.update.modals.item.buttons.unselect')
                         : translate('menus.pos.update.modals.item.buttons.select')}
@@ -274,20 +300,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
         <div className="d-flex justify-content-center mt-3">
           <PaginationFilter totalPages={Math.ceil(totalItems / 10)} />
         </div>
-        {/* <div className="d-flex justify-content-center mt-3">
-          <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} color="primary" className="mr-2">
-            <Translate contentKey={'menus.pos.update.modals.item.buttons.previous'}>Previous</Translate>
-          </Button>
-          <span>Page {currentPage}</span>
-          <Button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage * ITEMS_PER_PAGE >= totalItemsInCategory}
-            color="primary"
-            className="ml-2"
-          >
-            <Translate contentKey={'menus.pos.update.modals.item.buttons.next'}>Next</Translate>
-          </Button>
-        </div> */}
       </ModalBody>
       <ModalFooter>
         <Button color="primary" onClick={handleSave}>
