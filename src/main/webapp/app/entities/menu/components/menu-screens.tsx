@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { MdDeleteOutline, MdModeEditOutline } from 'react-icons/md';
 import { Translate } from 'react-jhipster';
 import { Button, Card, Col, FormGroup, Input, Label, ListGroup, Modal, ModalBody, ModalHeader, Row, Spinner } from 'reactstrap';
@@ -11,6 +11,7 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Slider } from 'primereact/slider';
 import { InputText } from 'primereact/inputtext';
 import _, { update } from 'lodash';
+import { IItem } from 'app/shared/model/ITEM/item.model';
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -40,7 +41,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         isPreviewModalOpen: false,
     });
     const [selectedScreenIndex, setSelectedScreenIndex] = useState(null);
-    const [selectedItems, setSelectedItems] = useState([]);
+    const [selectedItems, setSelectedItems] = useState<IItem[]>([]);
     const [editScreenName, setEditScreenName] = useState('');
     const [editScreenColor, setEditScreenColor] = useState('');
     const [editScreenCols, setEditScreenCols] = useState<number | null>(1);
@@ -73,6 +74,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [groupedSubscreens, setGroupedSubscreens] = useState([]);
 
     useEffect(() => {
+        if (mainScreen?.subScreens.length === 0) return
         setGroupedSubscreens(() => {
             const initialGroups = [];
             for (let i = 0; i < currentSubScreens?.length; i += cols) {
@@ -538,12 +540,10 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             }
         };
 
-        console.log(groupedSubscreens, 'groupedSubscreens');
-
         return (
             <div className="d-flex gap-3 mb-3" onDragOver={e => e.preventDefault()}>
                 <Col md={12}>
-                    {groupedSubscreens.map((row, rowIndex) => (
+                    {mainScreenItems.length > 0 && groupedSubscreens.map((row, rowIndex) => (
                         <React.Fragment key={rowIndex}>
                             {/* Add the slider and input text for each row */}
                             <div className="mb-2 d-flex align-items-center">
@@ -728,13 +728,15 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         });
     };
 
-    if (loading) {
-        return (
-            <div>
-                <Spinner />
-            </div>
-        );
-    }
+    const mainScreenItems = useMemo(() => {
+        return mainScreen?.subScreens
+            ?.filter(item => item.componentType === 'ITEM')
+            .map(item => ({ id: item.component.item.id, name: item.component.item.name, desc: item.component.item.desc }));
+    }, [mainScreen])
+
+    useEffect(() => {
+        setSelectedItems(mainScreenItems || []);
+    }, [mainScreenItems])
 
     const handleMainDragStart = index => {
         setSelectedMainScreenIndex(index);
@@ -757,11 +759,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setDraggedIndex(null);
     };
 
+
     const mainScreenClickHandler = (index: number, mainScreen: any) => {
-        const mainScreenItems = mainScreen?.subScreens
-            ?.filter(item => item.componentType === 'ITEM')
-            .map(item => ({ id: item.component.item.id, name: item.component.item.name, desc: item.component.item.desc }));
-        setSelectedItems(mainScreenItems || []);
         setSelectedMainScreenIndex(index);
         setSubScreenStack([mainScreen]);
         setBreadcrumb(() => [mainScreen.name]);
@@ -898,50 +897,69 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewSubScreenCols(null);
     };
 
-    const handleRemoveSelectedItem = itemId => {
-        if (selectedMainScreenIndex !== null) {
-            const updatedData = { ...data };
-            const updatedMenuScreens = [...updatedData.menuScreens];
-            let updatedSubScreenStack;
-
-            if (subScreenStack.length === 1) {
-                updatedMenuScreens[selectedMainScreenIndex] = {
-                    ...updatedMenuScreens[selectedMainScreenIndex],
-                    subScreens: (updatedMenuScreens[selectedMainScreenIndex].subScreens || []).filter(subScreen => {
-                        return subScreen.component?.item?.id !== itemId;
-                    }),
-                };
-            } else {
-                const topSubScreen = subScreenStack[subScreenStack.length - 1];
-                updatedMenuScreens[selectedMainScreenIndex] = {
-                    ...updatedMenuScreens[selectedMainScreenIndex],
-                    subScreens: findAndRemoveItem(updatedMenuScreens[selectedMainScreenIndex].subScreens, topSubScreen, itemId),
-                };
-
-                // Update the subScreenStack to remove the sub-screen with itemId
-                updatedSubScreenStack = subScreenStack.map(subScreen =>
-                    subScreen === topSubScreen
-                        ? {
-                            ...topSubScreen,
-                            subScreens: topSubScreen.subScreens.filter(s => s.component?.item?.id !== itemId),
-                        }
-                        : subScreen
-                );
-            }
-
-            updatedData.menuScreens = updatedMenuScreens;
-            setData(updatedData);
-
-            if (updatedSubScreenStack) {
-                setSubScreenStack(updatedSubScreenStack);
-            }
-        } else {
+    const handleRemoveSelectedItems = (itemIds: string[]) => {
+        if (selectedMainScreenIndex === null) {
             alert('Please select a main screen first.');
+            return;
+        }
+
+        const updatedData = { ...data };
+        const updatedMenuScreens = [...updatedData.menuScreens];
+        let updatedSubScreenStack = subScreenStack.length > 1 ? [...subScreenStack] : undefined;
+
+        if (subScreenStack.length === 1) {
+            // Remove all matching items directly from the main screen
+            updatedMenuScreens[selectedMainScreenIndex] = {
+                ...updatedMenuScreens[selectedMainScreenIndex],
+                subScreens: (updatedMenuScreens[selectedMainScreenIndex].subScreens || []).filter(
+                    subScreen => !itemIds.includes(subScreen.component?.item?.id)
+                ),
+            };
+        } else {
+            // Remove items from the top sub-screen
+            const topSubScreen = subScreenStack[subScreenStack.length - 1];
+            let currentSubScreens = [...(updatedMenuScreens[selectedMainScreenIndex].subScreens || [])];
+
+            itemIds.forEach(itemId => {
+                currentSubScreens = findAndRemoveItem(currentSubScreens, topSubScreen, itemId);
+            });
+
+            updatedMenuScreens[selectedMainScreenIndex] = {
+                ...updatedMenuScreens[selectedMainScreenIndex],
+                subScreens: currentSubScreens,
+            };
+
+            updatedSubScreenStack = updatedSubScreenStack?.map(subScreen =>
+                subScreen === topSubScreen
+                    ? {
+                        ...topSubScreen,
+                        subScreens: (topSubScreen.subScreens || []).filter(
+                            s => !itemIds.includes(s.component?.item?.id)
+                        ),
+                    }
+                    : subScreen
+            );
+        }
+
+        updatedData.menuScreens = updatedMenuScreens;
+        setData(updatedData);
+
+        if (updatedSubScreenStack) {
+            setSubScreenStack(updatedSubScreenStack);
         }
     };
 
-    const handleAddSelectedItem = item => {
-        if (selectedMainScreenIndex !== null) {
+    const handleAddSelectedItems = (items: IItem[]) => {
+        if (selectedMainScreenIndex === null) {
+            alert('Please select a main screen first.');
+            return;
+        }
+
+        const updatedData = { ...data };
+        const updatedMenuScreens = [...updatedData.menuScreens];
+        let updatedSubScreenStack = subScreenStack.length > 1 ? [...subScreenStack] : undefined;
+
+        items.forEach(item => {
             const newId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
             const newItemSubScreen = {
                 id: newId,
@@ -953,13 +971,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     item: { id: item.id },
                 },
             };
-    
-            const updatedData = { ...data };
-            const updatedMenuScreens = [...updatedData.menuScreens];
-    
-            let updatedSubScreenStack;
-    
+
             if (subScreenStack.length === 1) {
+                // Directly add to the main screen
                 updatedMenuScreens[selectedMainScreenIndex] = {
                     ...updatedMenuScreens[selectedMainScreenIndex],
                     subScreens: [
@@ -968,51 +982,64 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     ],
                 };
             } else {
+                // Add inside the current top subScreen
                 const topSubScreen = subScreenStack[subScreenStack.length - 1];
-    
                 updatedMenuScreens[selectedMainScreenIndex] = {
                     ...updatedMenuScreens[selectedMainScreenIndex],
                     subScreens: findAndAddItem(
-                        updatedMenuScreens[selectedMainScreenIndex].subScreens, 
-                        topSubScreen, 
+                        updatedMenuScreens[selectedMainScreenIndex].subScreens,
+                        topSubScreen,
                         newItemSubScreen
                     ),
                 };
-    
-                updatedSubScreenStack = subScreenStack.map(subScreen =>
-                    subScreen === topSubScreen 
-                        ? { 
-                            ...topSubScreen, 
-                            subScreens: [...(topSubScreen.subScreens || []), newItemSubScreen] 
-                          }
+
+                updatedSubScreenStack = updatedSubScreenStack?.map(subScreen =>
+                    subScreen === topSubScreen
+                        ? {
+                            ...topSubScreen,
+                            subScreens: [...(topSubScreen.subScreens || []), newItemSubScreen]
+                        }
                         : subScreen
                 );
             }
-            updatedData.menuScreens = updatedMenuScreens;
-            setData(updatedData);
-    
-            if (updatedSubScreenStack) {
-                setSubScreenStack(updatedSubScreenStack);
-            }
-        } else {
-            alert('Please select a main screen first.');
+        });
+
+        updatedData.menuScreens = updatedMenuScreens;
+        setData(updatedData);
+
+        if (updatedSubScreenStack) {
+            setSubScreenStack(updatedSubScreenStack);
         }
     };
 
-    const handleToggleSelect = item => {
+    const handleToggleSelect = (items: IItem[]) => {
         setSelectedItems(prevSelectedItems => {
-            const isSelected = prevSelectedItems?.some(selected => selected.id === item.id);
-            if (isSelected) {
-                handleRemoveSelectedItem(item.id);
-                const updatedItems = prevSelectedItems?.filter(selected => selected.id !== item.id);
-                return updatedItems;
+            const itemsToAdd: IItem[] = [];
+            const itemsToRemove: IItem[] = [];
+            let updatedItems = [...prevSelectedItems];
+
+            items.forEach(item => {
+                const isSelected = updatedItems.some(selected => selected.id === item.id);
+                if (isSelected) {
+                    itemsToRemove.push(item);
+                } else {
+                    itemsToAdd.push(item);
+                }
+            });
+
+            if (itemsToRemove.length > 0) {
+                handleRemoveSelectedItems(itemsToRemove.map(i => i.id));
+                updatedItems = updatedItems.filter(selected => !itemsToRemove.some(r => r.id === selected.id));
             }
-            handleAddSelectedItem(item);
-            const updatedItems = [...prevSelectedItems, item];
+
+            if (itemsToAdd.length > 0) {
+                handleAddSelectedItems(itemsToAdd);
+                updatedItems = [...updatedItems, ...itemsToAdd];
+            }
+
             return updatedItems;
         });
     };
-
 
     function findScreenById(menuScreens, targetId) {
         for (const screen of menuScreens) {
@@ -1093,6 +1120,16 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         '#856404',
         '#6c757d',
     ];
+
+
+    if (loading) {
+        return (
+            <div>
+                <Spinner />
+            </div>
+        );
+    }
+
 
     return (
         <>
@@ -1225,6 +1262,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     toggle={() => setIsModalOpen({ ...isModalOpen, isItemModalOpen: !isModalOpen.isItemModalOpen })}
                     selectedItems={selectedItems}
                     handleToggleSelect={handleToggleSelect}
+                    setSelectedItems={setSelectedItems}
                 />
             )}
 
