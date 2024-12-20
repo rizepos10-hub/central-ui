@@ -643,7 +643,7 @@ const OrderCreate = () => {
                     <div className="px-2">Edit User
                         <Dropdown
                             options={filteredOptions.map(customer => ({
-                                label: `${customer.firstName} ${customer.lastName}`,
+                                label: `${customer.firstName ? customer.firstName : ''} ${customer.lastName ? customer.lastName : ''}`,
                                 value: customer.id,
                             }))}
                             placeholder="Add a customer"
