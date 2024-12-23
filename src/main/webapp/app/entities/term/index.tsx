@@ -9,6 +9,7 @@ import DeleteItemRestaurantCategoryDialog from "app/entities/term/restaurant-Ite
 import DeleteMenuCategoryDialog from "app/entities/term/Menu-Category/delete-menu-category-dialog";
 import MenuCategories from "app/entities/term/Menu-Category/menu-categories";
 import RestaurantItemCategory from "app/entities/term/restaurant-Item-category/item-restaurant-categories";
+import RestaurantItemCategoryTree from "app/entities/term/restaurant-Item-category/item-restaurant-categories-tree";
 
 import RetailItemCategory from "app/entities/term/retail-item-category/retail-item-categories"
 import UpdateRetailItemCategory from "app/entities/term/retail-item-category/update-retail-item-category";
@@ -17,7 +18,7 @@ import DeleteRetailItemCategoryDialog from "app/entities/term/retail-item-catego
 const TermRoutes = () => (
   <ErrorBoundaryRoutes>
 
-
+    <Route path="restaurant-items/tree" element={<RestaurantItemCategoryTree />} />
     <Route path="restaurant-items" element={<RestaurantItemCategory />} />
     <Route path="restaurant-items/new" element={<UpdateItemRestaurantCategory />} />
 
@@ -32,7 +33,7 @@ const TermRoutes = () => (
     <Route path=":id">
 
       {/* restaurant Item category edit or delete */}
-      <Route path="restaurant-items/edit" element={<UpdateItemRestaurantCategory />} />
+      <Route path="restaurant-items/edit" element={<UpdateItemRestaurantCategory/>} />
       <Route path="restaurant-items/delete" element={<DeleteItemRestaurantCategoryDialog />} />
 
       {/* restaurant Item category edit or delete */}
