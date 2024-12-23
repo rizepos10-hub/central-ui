@@ -104,6 +104,10 @@ export const model: MenuItem[] = [
         to: '/category/restaurant-items',
       },
       {
+        label: 'Categories Tree',
+        to: '/category/restaurant-items/tree',
+      },
+      {
         label: 'Products',
         to: '/restaurant/regular',
         items: [
