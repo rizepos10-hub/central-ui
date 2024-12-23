@@ -941,6 +941,32 @@ export const ProductUpdate = () => {
     </div>
   );
 
+  const confirm3 = (option) => {
+    confirmDialog({
+      message: 'Changing the variant type will reset the variant details.',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleFieldChange('itemVariantType', option.value),
+    });
+  };
+
+  useEffect(() => {
+    handleFieldChange('variants', [])
+  }, [product.itemVariantType])
+
+  const confirm4 = () => {
+    confirmDialog({
+      message: 'This will delete all the variants.',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleFieldChange('variants', []),
+    });
+  };
+
   if (loading) {
     return <Spinner />;
   }
@@ -1007,7 +1033,7 @@ export const ProductUpdate = () => {
                                 optionValue={'value'}
                                 optionLabel={'label'}
                                 onChange={option => {
-                                  handleFieldChange('itemVariantType', option.value);
+                                  confirm3(option);
                                 }}
                               />
                             </div>
@@ -1221,29 +1247,30 @@ export const ProductUpdate = () => {
                               </Col>
 
                               <Col md={'12'} className={'mt-2'}>
-                                <Accordion multiple>
-                                  {product?.attributes?.map((attribute, index) => (
-                                    <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
-                                      <div className={'d-flex gap-3'}>
-                                        <label className={'mt-2'}>
-                                          {translate('items.update.name')}: {attribute?.attributeTax?.name}
-                                        </label>
-                                        <Col md={'9'}>
-                                          <AsyncSelect
-                                            value={attribute?.attributeTerms || []}
-                                            isMulti
-                                            getOptionLabel={option => option.name}
-                                            getOptionValue={option => option.id}
-                                            onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
-                                            isLoading={loadingAttributesValues}
-                                            onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                                            defaultOptions={attributeValuesList}
-                                          />
-                                        </Col>
-                                      </div>
-                                    </AccordionTab>
-                                  ))}
-                                </Accordion>
+                                {product?.attributes?.map((attribute, index) => (
+                                  <div className={'d-flex gap-3 align-items-end'} key={index}>
+                                    <Col md={'9'} >
+                                      <label>
+                                        {translate('items.update.name')}: {attribute?.attributeTax?.name}
+                                      </label>
+                                      <AsyncSelect
+                                        value={attribute?.attributeTerms || []}
+                                        isMulti
+                                        getOptionLabel={option => option.name}
+                                        getOptionValue={option => option.id}
+                                        onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
+                                        isLoading={loadingAttributesValues}
+                                        onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                                        defaultOptions={attributeValuesList}
+                                      />
+                                    </Col>
+                                    <Col md={'3'}>
+                                      <PrimeButton type="button" className={'ml-auto bg-danger p-1'} onClick={() => confirm2(index)}>
+                                        <Translate contentKey={'items.update.removeAttribute'}>Remove</Translate>
+                                      </PrimeButton>
+                                    </Col>
+                                  </div>
+                                ))}
                               </Col>
                             </Row>
 
@@ -1253,7 +1280,7 @@ export const ProductUpdate = () => {
                                   <label htmlFor="price" className={'font-semibold'}>
                                     <Translate contentKey={'items.update.variants'}>Variants</Translate>
                                   </label>
-                                  <Col md="5" className={'d-flex gap-3'}>
+                                  <Col md="12" className={'d-flex gap-3'}>
                                     <Button type="button" color="primary" className={'mt-5'} onClick={generateCombinations}>
                                       <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
                                     </Button>
@@ -1261,6 +1288,12 @@ export const ProductUpdate = () => {
                                     <Button color="primary" type={'button'} className={'mt-5'} onClick={handleAddVariant}>
                                       <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
                                     </Button>
+
+                                    {product.variants?.length > 0 && (
+                                      <Button color="danger" type={'button'} className={'mt-5'} onClick={confirm4}>
+                                        <Translate contentKey={'items.update.removeAllVariants'}>Remove All Variants</Translate>
+                                      </Button>
+                                    )}
                                   </Col>
                                   <Col md={'12'} className={'mt-2'}>
                                     <Row className={'mt-2'}>

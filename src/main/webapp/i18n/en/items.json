@@ -55,6 +55,7 @@
       }
     },
     "update": {
+      "removeAllVariants": "Remove All Variants",
       "tabs": {
         "details": {
           "label": "Details",
@@ -106,7 +107,7 @@
 
         "supplier": {
           "label": "Supplier Association",
-          "selectSuppliers":"Select Suppliers",
+          "selectSuppliers": "Select Suppliers",
           "selectSupplierPlaceHolder": "Select suppliers",
           "supplierCodePlaceHolder": "Enter supplier code",
           "supplierCode": "Supplier Code",
@@ -118,22 +119,22 @@
           "section": "Section",
           "isle": "Isle",
           "shelf": "Shelf",
-          "shelfLocation":"shelf Location",
+          "shelfLocation": "shelf Location",
           "sectionPlaceHolder": "Enter Section",
           "departmentPlaceHolder": "Enter Department",
           "islePlaceHolder": "Enter Isle",
           "shelfPlaceHolder": "Enter Shelf",
-          "shelfLocationPlaceHolder":"Enter shelf Location",
+          "shelfLocationPlaceHolder": "Enter shelf Location",
           "label": "Item Location"
         }
       },
 
       "itemLocation": {
         "department": "Department",
-          "section": "Section",
-          "isle": "Isle",
-          "shelf": "Shelf",
-          "shelfLocation":"shelf Location"
+        "section": "Section",
+        "isle": "Isle",
+        "shelf": "Shelf",
+        "shelfLocation": "shelf Location"
       },
 
       "stockQuantity": {
@@ -159,8 +160,8 @@
         "itemBranchSalePrice": "Enter sale price for {{ branchName }}",
         "variantName": "Variant Name",
         "variantPrice": "Variant Price",
-        "minimumStockLevelPlaceHolder":"Minimum Stock Level",
-        "giftCard":"Choose a Gift Card",
+        "minimumStockLevelPlaceHolder": "Minimum Stock Level",
+        "giftCard": "Choose a Gift Card",
         "quantity": "Quantity",
         "unitCost": "unitCost",
         "length": "Length",
@@ -183,7 +184,7 @@
       "itemType": "Item Type",
       "discounts": "Discounts",
       "mixAndMatchRule": "Mix And Match Rule",
-      "variantPackage" : { 
+      "variantPackage": {
         "title": "Packaging",
         "variant": "Variant",
         "quantity": "Quantity"
@@ -197,7 +198,7 @@
       "isBaseMeasure": "Is Measure Base",
       "exchangeRate": "Exchange Rate",
       "remove": "Remove",
-      "filterByGroup":  "Filter by Group",
+      "filterByGroup": "Filter by Group",
       "tags": "Tags",
       "price": "Price",
       "overridedPrice": "Overrided Price",
@@ -216,7 +217,7 @@
       "addAttribute": "Add Attribute",
       "generateVariants": "Generate Variants",
       "addSingleVariant": "Add Single Variant",
-      "removeAttribute": "Remove Attribute",
+      "removeAttribute": "Remove",
       "deleteVariant": "Delete Variant",
       "deleteVariantMessage": "Are you sure you want to delete this variant?",
       "addons": "Addons",
@@ -230,7 +231,6 @@
         "search": "Update Minimum Stock Level",
         "save": "Save Minimum Stock"
       },
-      
 
       "addonGroups": "Addon Groups",
       "required": "Required",
