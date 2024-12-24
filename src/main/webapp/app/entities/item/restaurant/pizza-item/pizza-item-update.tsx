@@ -711,7 +711,7 @@ export const PizzaItemUpdate = () => {
                                 />
                               </div>
 
-                              {!pizzaItem?.variants?.[0]?.multiple ?
+                              {(!pizzaItem?.variants?.[0]?.multiple && pizzaItem?.variants?.[0]?.pizzaVariantType !== PizzaVariantTypeEnum.MAKE_YOUR_OWN) ?
                                 <Col md="4">
                                   <div className={"d-flex flex-column gap-2"}>
                                     <label className={"font-semibold"}>
@@ -834,8 +834,8 @@ export const PizzaItemUpdate = () => {
                                                 </td> */}
                                                 <td>
                                                   <InputNumber
-                                                    value={baseDetail?.toppingsNumber || null}
-                                                    min={1}
+                                                    value={baseDetail?.toppingsNumber || 0}
+                                                    min={0}
                                                     onChange={(e) =>
                                                       handleBaseDetailChange(index, "toppingsNumber", e.value)
                                                     }
