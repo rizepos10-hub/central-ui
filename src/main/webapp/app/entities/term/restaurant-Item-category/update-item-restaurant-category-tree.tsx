@@ -146,11 +146,15 @@ export const UpdateItemRestaurantCategoryTree: React.FC<UpdateItemRestaurantCate
 
 
   return (
-    <div>
+    <div className='position-fixed w-50'>
       <Row >
         <Col md="8">
-          <h2 data-cy="TermCreateUpdateHeading">
-            {isNew ? <Translate contentKey={'itemCategories.update.restaurant.create.title'} /> : <Translate contentKey={'itemCategories.update.restaurant.edit.title'} />}
+          <h2 data-cy="TermCreateUpdateHeading" key={isNew ? 'create' : 'edit'}>
+            {isNew ? (
+              <Translate contentKey={'itemCategories.update.restaurant.create.title'} />
+            ) : (
+              <Translate contentKey={'itemCategories.update.restaurant.edit.title'} />
+            )}
           </h2>
         </Col>
       </Row>
