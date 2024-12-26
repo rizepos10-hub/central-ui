@@ -2,6 +2,7 @@ import { IAttachment } from "app/shared/model/attachment.model";
 import { IAddress } from "../address.model";
 import { IBranchDetails } from "../business-detail.model";
 import { ILayoutSettings, defaultLayoutValue } from "./layout-settings";
+import { ILayouts } from "./layouts/layouts.module";
 
 export interface IUiSettings {
   address?: string,
@@ -27,6 +28,7 @@ export interface IUiSettings {
   colorSetting?: IColorSetting | null
   fontSetting?: IFontSetting
   canOrder?: boolean
+  layouts?: ILayouts
 }
 
 export type IColorSetting = {
