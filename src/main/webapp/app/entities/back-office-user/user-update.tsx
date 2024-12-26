@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Translate, translate, } from 'react-jhipster';
-
 import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import Select from 'react-select';
 import {
   getEntity,
   updateEntity,
@@ -30,7 +30,7 @@ export const UserUpdate = () => {
   const loading = useAppSelector(state => state.user.loading);
   const updating = useAppSelector(state => state.user.updating);
   const updateSuccess = useAppSelector(state => state.user.updateSuccess);
-
+  const branchList = useAppSelector(state => state.branch.entities);
 
 
   const [user, setUser] = useState({
@@ -42,7 +42,6 @@ export const UserUpdate = () => {
     permissions: [],
     enabled: false,
   });
-
 
 
   const handleClose = () => {
@@ -75,9 +74,9 @@ export const UserUpdate = () => {
     });
   };
 
+  console.log(user)
 
-
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
     const authoritiesWithAssignedTrue = roles.reduce((acc, role) => {
       if (role.assigned) {
@@ -129,6 +128,14 @@ export const UserUpdate = () => {
 
 
   useEffect(() => {
+    dispatch(
+      getBranches({
+        page: 0,
+        size: 1000,
+        sort: `id,asc`,
+      })
+    );
+
     if (isNew) {
       dispatch(reset());
     } else {
@@ -226,6 +233,18 @@ export const UserUpdate = () => {
                 required
               />
             </div>}
+
+            <div className="mb-3">
+              <Translate contentKey={'common.branches'} />
+              <Select
+                value={userEntity.branches}
+                isMulti
+                getOptionLabel={option => option.name}
+                getOptionValue={option => option.id}
+                onChange={e => setUser(prev => ({ ...prev, branches: e }))}
+                options={branchList}
+              />
+            </div>
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="enabled">
                 <Translate contentKey="tempApp.enabled" />
