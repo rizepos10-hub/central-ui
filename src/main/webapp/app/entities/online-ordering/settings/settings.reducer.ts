@@ -41,6 +41,8 @@ export const changeEntityField = createAction<ChangeFieldPayload<IUiSettings>>('
 
 export const changeLayoutField = createAction<ChangeFieldPayload<IUiSettings["homePageSetting"]>>('online-ordering-settings/change-layout-field');
 
+export const changeLayoutsField = createAction<ChangeFieldPayload<IUiSettings["layouts"]>>('online-ordering-settings/change-layout-field'); 
+
 
 
 // slice
