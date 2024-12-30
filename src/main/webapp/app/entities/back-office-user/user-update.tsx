@@ -4,7 +4,7 @@ import { Translate, translate, } from 'react-jhipster';
 import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
-import Select from 'react-select';
+import Select, { MultiValue } from 'react-select';
 import {
   getEntity,
   updateEntity,
@@ -16,6 +16,7 @@ import { InputText } from "primereact/inputtext";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
 import Authorities from "app/entities/back-office-user/Authority";
+import { IBranch } from 'app/shared/model/branch.model';
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
@@ -32,7 +33,7 @@ export const UserUpdate = () => {
   const updateSuccess = useAppSelector(state => state.user.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
 
-
+  const [selectedBranches, setSelectedBranches] = useState<MultiValue<IBranch>>([]);
   const [user, setUser] = useState({
     username: '',
     firstName: '',
@@ -106,6 +107,7 @@ export const UserUpdate = () => {
             temporary: false,
             value: user.password,
           },
+          branches: selectedBranches
         };
 
         dispatch(createEntityAndAssignRole({
@@ -237,11 +239,11 @@ export const UserUpdate = () => {
             <div className="mb-3">
               <Translate contentKey={'common.branches'} />
               <Select
-                value={userEntity.branches}
+                value={selectedBranches}
                 isMulti
                 getOptionLabel={option => option.name}
                 getOptionValue={option => option.id}
-                onChange={e => setUser(prev => ({ ...prev, branches: e }))}
+                onChange={e => setSelectedBranches(e)}
                 options={branchList}
               />
             </div>
