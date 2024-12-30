@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import {  getSortState } from 'react-jhipster';
@@ -34,12 +34,19 @@ const PizzaPricingClass = () => {
   const pizzaPriceClassType :any  = urlSearchParams.get("type");
 
   const [selectedType, setSelectedType] = useState({
-    label: reverseMapping[pizzaPriceClassType],
-    value: pizzaPriceClassType
+    label: 'Crust Type',
+    value: 'CRUST_TYPE'
   });
   const pizzaPricingClassList :IPizzaPricingClass[] = useAppSelector(state => state.pizzaPricingClass.entities);
 
-  const filteredPizzaPricingClassList = pizzaPricingClassList.filter(priceClass =>  priceClass.type === selectedType?.value);
+  const filteredPizzaPricingClassList = useMemo(() => {
+    return pizzaPricingClassList.filter(priceClass =>  priceClass.type === selectedType?.value);
+  }, [pizzaPricingClassList?.length, selectedType?.value]);
+
+  console.log(selectedType)
+  console.log(pizzaPricingClassList, 'pizzaPricingClassList')
+  console.log(filteredPizzaPricingClassList, 'filteredPizzaPricingClassList')
+
   const loading = useAppSelector(state => state.pizzaPricingClass.loading);
   const updateSuccess = useAppSelector(state => state.pizzaPricingClass.updateSuccess);
   const totalItems = useAppSelector(state => state.pizzaPricingClass.totalItems);
