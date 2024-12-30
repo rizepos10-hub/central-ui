@@ -101,8 +101,6 @@ export const PizzaPricingClassTypeUpdate = () => {
       }, {});
       setPizzaPricingClass((prevState) => ({ ...prevState, type: priceType, prices: initialPrices }));
     }
-
-
   }, [pizzaSizesList?.length, pizzaPricingClassEntity]);
 
   const handleChange = e => {
