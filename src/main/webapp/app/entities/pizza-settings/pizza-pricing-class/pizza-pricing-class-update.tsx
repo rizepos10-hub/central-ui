@@ -101,8 +101,6 @@ export const PizzaPricingClassTypeUpdate = () => {
       }, {});
       setPizzaPricingClass((prevState) => ({ ...prevState, type: priceType, prices: initialPrices }));
     }
-
-
   }, [pizzaSizesList?.length, pizzaPricingClassEntity]);
 
   const handleChange = e => {
@@ -134,7 +132,7 @@ export const PizzaPricingClassTypeUpdate = () => {
     } else {
       dispatch(updateEntity(entity)).then(() => {
         if (createNew) {
-          navigate(`/pizza-pricing-class/new`)
+          navigate(`/pizza-pricing-class/new?type=${pizzaPriceClassType}`)
         }
       })
     }
@@ -194,7 +192,7 @@ export const PizzaPricingClassTypeUpdate = () => {
                 </div>
 
               </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
+              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate('/pizza-pricing-class')} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">
