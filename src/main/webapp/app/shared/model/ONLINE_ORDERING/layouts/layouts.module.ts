@@ -1,25 +1,27 @@
+import { IAttachment } from "../../attachment.model";
+
 export enum SelectedLayoutEnum {
     LAYOUT_GABRIEL_PIZZA = "LAYOUT_GABRIEL_PIZZA",
     LAYOUT_PITA_LAND = "LAYOUT_PITA_LAND",
 }
 
 export interface IColorSetting {
-    background: string;
-    foreground: string;
-    primary: string;
-    primaryForeground: string;
-    secondary: string;
-    muted: string;
+    backgroundColor: string;
+    footerColor: string;
+    primaryTextColor: string;
+    primaryForegroundColor: string;
+    secondaryTextColor: string;
+    mutedTextColor: string;
 }
 
 export interface ICarouselItem {
     order: number;
-    src: string;
-    alt: string;
-    title1: string;
-    title2: string;
+    image: IAttachment;
+    altText: string;
+    primaryTitle: string;
+    secondaryTitle: string;
     description: string;
-    cta: string;
+    callToAction: string;
 }
 
 export interface IFeaturedItems {
@@ -27,7 +29,7 @@ export interface IFeaturedItems {
     leftColumn: {
         title: string;
         subtitle: string;
-        image: string;
+        image: IAttachment;
     };
     rightColumn: {
         title: string;
@@ -42,7 +44,7 @@ export interface IFeaturedCategories {
     leftColumn: {
         title: string;
         categories: Record<string, any>[];
-        image: string;
+        image: IAttachment;
     };
     rightColumn: {
         title: string;
@@ -55,7 +57,7 @@ export interface IFeaturedCategories {
 export interface ISections {
     header: {
         title: string;
-        cta: string;
+        callToAction: string;
     };
     body: {
         carousel: ICarouselItem[];
@@ -64,12 +66,12 @@ export interface ISections {
     };
     footer: {
         title: string;
-        cta: string;
+        callToAction: string;
     };
 }
 
 export interface ILayoutGabrielPizza {
-    colorSetting: IColorSetting;
+    colorSettings: IColorSetting;
     sections: ISections;
 }
 
