@@ -1,6 +1,11 @@
 import { IBranch } from "./branch.model";
 import { IPosAuthorityGroup, POSAuthorityEnum } from "./pos-authority-group";
 
+export interface IUserWithBranches {
+  user: IUser;
+  branches: IBranch[];
+}
+
 export interface IUser {
   phone?: string;
   id?: any;
@@ -25,6 +30,7 @@ export interface IUser {
   userName?: string;
   verified?: boolean;
   pinCode?: string;
+  enabled?: boolean;
 }
 
 interface Authority {

@@ -3,7 +3,7 @@ import { createAsyncThunk, createSlice, isFulfilled, isPending, isRejected } fro
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IUser, defaultValue, RolePermissions } from "app/shared/model/user.model";
+import { IUser, defaultValue, RolePermissions, IUserWithBranches } from "app/shared/model/user.model";
 
 interface EntityStateWithRoles<T> extends EntityState<T> {
   roles: RolePermissions;
@@ -42,7 +42,7 @@ export const getEntity = createAsyncThunk(
   'back-office-user/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-    return axios.get<IUser>(requestUrl);
+    return axios.get<IUserWithBranches>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
@@ -90,8 +90,8 @@ export const createEntityAndAssignRole = createAsyncThunk(
 
 export const updateEntity = createAsyncThunk(
   'back-office-user/update_entity',
-  async (entity: any, thunkAPI) => {
-    const result = await axios.put<any>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  async (entity: IUserWithBranches, thunkAPI) => {
+    const result = await axios.put<IUserWithBranches>(`${apiUrl}/${entity.user.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
