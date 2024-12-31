@@ -62,7 +62,17 @@ export const PurchaseOrderUpdate = () => {
   const [searchParam]=  useSearchParams();
 
   const query = JSON.parse(searchLocation.get("query")) ;
+  const items = JSON.parse(decodeURIComponent(searchLocation.get('items')));
+  const enableDeliveryDate = items && items.length > 0 ? 1 : 0;
+  
   const [purchaseOrder, setPurchaseOrder] = useState<IPurchaseOrder>({
+    orderLines: items?.map((orderLine) => ({
+      item: {name: orderLine.itemName, itemId: orderLine.itemId, variantId: orderLine.variantId},
+      price: 0,
+      quantity: 1,
+      received: 0,
+      returnedQuantity: 0
+    })),
     status: "PLACED"
   });
 
@@ -78,7 +88,7 @@ export const PurchaseOrderUpdate = () => {
 
 
 
-  const purchaseOrderEntity = useAppSelector(state => state.purchaseOrder.entity);
+  const purchaseOrderEntity = !items ? useAppSelector(state => state.purchaseOrder.entity) : [];
   const loading = useAppSelector(state => state.purchaseOrder.loading);
   const updating = useAppSelector(state => state.purchaseOrder.updating);
   const updateSuccess = useAppSelector(state => state.purchaseOrder.updateSuccess);
@@ -139,7 +149,7 @@ export const PurchaseOrderUpdate = () => {
     if (updateSuccess) {
       handleClose();
     }
-    if(purchaseOrderEntity){
+    if(purchaseOrderEntity?.id){
       setPurchaseOrder(purchaseOrderEntity)
     }
   }, [updateSuccess, purchaseOrderEntity?.id]);

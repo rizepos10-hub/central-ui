@@ -9,6 +9,7 @@ import PurchaseOrder from "app/entities/inventory/purchase-order";
 import StockConfig from "app/entities/inventory/stock-config";
 import TransferRequest from "app/entities/inventory/transfer-request";
 import SupplierReturn from "app/entities/inventory/supplier-return";
+import ToBeStocked from "app/entities/inventory/to-be-stocked";
 import { AUTHORITIES } from "app/config/constants";
 import PrivateRoute from "app/shared/auth/private-route";
 
@@ -61,6 +62,13 @@ const InventoryRoutes = () => {
         <Route path="supplier-return/*" element={
           <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.INVENTORY_ADMIN]}>
             <SupplierReturn />
+          </PrivateRoute>
+        }
+        />
+
+        <Route path="to-be-stocked/*" element={
+          <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.INVENTORY_ADMIN]}>
+            <ToBeStocked />
           </PrivateRoute>
         }
         />

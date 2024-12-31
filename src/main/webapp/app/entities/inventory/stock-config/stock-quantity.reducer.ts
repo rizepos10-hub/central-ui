@@ -34,6 +34,11 @@ export const getEntities = createAsyncThunk('stock-quantity/fetch_entity_list', 
   return axios.get<IStockQuantity[]>(requestUrl);
 });
 
+export const getToBeStockedEntities = createAsyncThunk('stock-quantity/fetch_entity_list', async ({ page, size, sort, supplierId }: IQueryParams & { supplierId: string }) => {
+  const requestUrl = `${apiUrl}/to-be-stocked${sort ? `?page=${page}&size=${size}&sort=${sort}&supplierId=${supplierId}&` : '?'}cacheBuster=${new Date().getTime()}`;
+  return axios.get<IStockQuantity[]>(requestUrl);
+});
+
 export const getEntity = createAsyncThunk(
   'stock-quantity/fetch_entity',
   async (id: string | number) => {
