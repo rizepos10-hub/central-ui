@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { ICarouselItem, ILayouts, SelectedLayoutEnum } from 'app/shared/model/ONLINE_ORDERING/layouts/layouts.module';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { Checkbox } from 'primereact/checkbox';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Col, Label, Row } from 'reactstrap'
 import { getEntity, updateEntity, reset, changeEntityField } from 'app/entities/online-ordering/settings/settings.reducer';
 import { InputText } from 'primereact/inputtext';
@@ -13,16 +13,18 @@ import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { searchEntities as getRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
+import { getEntities as getRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import { ITerm } from 'app/shared/model/term.model';
+import Select from 'react-select';
 
 const Layouts = () => {
     const dispatch = useAppDispatch();
     const uiSettings: IUiSettings = useAppSelector(state => state.uiSettings.entity);
 
+
     const [layoutToEdit, setLayoutToEdit] = useState<SelectedLayoutEnum>(SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA);
 
-    useEffect(() => {
-        dispatch(getEntity());
-    }, [])
 
     console.log(uiSettings, 'uiSettings')
 
@@ -99,6 +101,27 @@ const LayoutGabrielPizzaForm = ({
     layout: ILayouts;
 }) => {
     const dispatch = useAppDispatch();
+    const retailCategories: ITerm[] = useAppSelector(state => state.retailCategory.entities);
+    const restaurantCategories: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
+
+    useEffect(() => {
+        dispatch(getEntity());
+        dispatch(getRetailCategories({
+            page: 0,
+            size: 1000,
+            sort: `id,desc`,
+        }))
+        dispatch(getRestaurantCategories({
+            page: 0,
+            size: 1000,
+            sort: `id,desc`,
+        }))
+    }, [])
+
+    const combinedCategories = useMemo(() => {
+        return [...retailCategories, ...restaurantCategories]
+    }, [retailCategories, restaurantCategories])
+
     const gabrielPizza: ILayouts["LAYOUT_GABRIEL_PIZZA"] | undefined = layout?.[SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA];
     const selectedItems: IItem[] =
         useAppSelector(state =>
@@ -276,6 +299,7 @@ const LayoutGabrielPizzaForm = ({
                 <FeaturedCategories
                     gabrielPizza={gabrielPizza}
                     handleFieldChange={handleFieldChange}
+                    combinedCategories={combinedCategories}
                 />
             </TabPanel>
 
@@ -483,7 +507,7 @@ export const FeaturedItems = ({
                 </h5>
             </div>
             <Col md={6}>
-                <div className='d-flex flex-column'>
+                {/* <div className='d-flex flex-column'>
                     <Label htmlFor="bodyOrder">Order</Label>
                     <InputNumber
                         value={gabrielPizza?.sections?.body?.featuredItems?.order}
@@ -494,18 +518,16 @@ export const FeaturedItems = ({
                         min={1}
                         max={3}
                     />
-                </div>
+                </div> */}
                 <div className='d-flex flex-column'>
                     <Label htmlFor="bodyLeftTitle">Title</Label>
                     <InputText
                         id='bodyLeftTitle'
                         value={gabrielPizza?.sections?.body?.featuredItems?.leftColumn?.title}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.leftColumn?.title}',
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.leftColumn.title',
                             e.target.value
                         )}
-                        min={1}
-                        max={3}
                     />
                 </div>
                 <div className='d-flex flex-column'>
@@ -514,11 +536,9 @@ export const FeaturedItems = ({
                         id='bodyLeftSubTitle'
                         value={gabrielPizza?.sections?.body?.featuredItems?.leftColumn?.subtitle}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.leftColumn?.subtitle}',
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.leftColumn.subtitle',
                             e.target.value
                         )}
-                        min={1}
-                        max={3}
                     />
                 </div>
                 <div className='d-flex flex-column'>
@@ -539,11 +559,9 @@ export const FeaturedItems = ({
                         id='bodyLeftTitle'
                         value={gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.title}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn?.title}',
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn.title',
                             e.target.value
                         )}
-                        min={1}
-                        max={3}
                     />
                 </div>
                 <div className='d-flex flex-column'>
@@ -552,24 +570,20 @@ export const FeaturedItems = ({
                         id='bodyLeftSubTitle'
                         value={gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.subtitle}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn?.subtitle}',
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn.subtitle',
                             e.target.value
                         )}
-                        min={1}
-                        max={3}
                     />
                 </div>
                 <div className='d-flex flex-column'>
                     <Label htmlFor="bodyLeftCta">Call To Action Label</Label>
                     <InputText
                         id='bodyLeftCta'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.cta}
+                        value={gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.callToAction}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn?.cta}',
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn.callToAction',
                             e.target.value
                         )}
-                        min={1}
-                        max={3}
                     />
                 </div>
                 <div>
@@ -607,19 +621,22 @@ export const FeaturedItems = ({
 export const FeaturedCategories = ({
     gabrielPizza,
     handleFieldChange,
+    combinedCategories,
 }: {
     gabrielPizza: ILayouts["LAYOUT_GABRIEL_PIZZA"],
     handleFieldChange: any,
+    combinedCategories: ITerm[]
 }) => {
+
     return (
         <Row>
             <div>
                 <h5>
-                    Featured Items
+                    Featured Categories
                 </h5>
             </div>
             <Col md={6}>
-                <div className='d-flex flex-column'>
+                {/* <div className='d-flex flex-column'>
                     <Label htmlFor="bodyOrder">Order</Label>
                     <InputNumber
                         value={gabrielPizza?.sections?.body?.featuredItems?.order}
@@ -630,36 +647,32 @@ export const FeaturedCategories = ({
                         min={1}
                         max={3}
                     />
-                </div>
+                </div> */}
                 <div className='d-flex flex-column'>
                     <Label htmlFor="bodyLeftTitle">Title</Label>
                     <InputText
                         id='bodyLeftTitle'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.leftColumn?.title}
+                        value={gabrielPizza?.sections?.body?.featuredCategories?.leftColumn?.title}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.leftColumn?.title}',
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.leftColumn.title',
                             e.target.value
                         )}
-                        min={1}
-                        max={3}
                     />
                 </div>
                 <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftSubTitle">SubTitle</Label>
-                    <InputText
-                        id='bodyLeftSubTitle'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.leftColumn?.subtitle}
+                    <Label htmlFor="bodyLeftCategories">Categories</Label>
+                    <Select
+                        value={gabrielPizza?.sections?.body?.featuredCategories?.leftColumn?.categories}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.leftColumn?.subtitle}',
-                            e.target.value
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.leftColumn.categories',
+                            e
                         )}
-                        min={1}
-                        max={3}
+                        options={combinedCategories}
+                        getOptionLabel={option => option.name}
+                        getOptionValue={option => option.id}
+                        isMulti
+                        isClearable
                     />
-                </div>
-                <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftImage">Image</Label>
-                    {/* <MediaLibrary /> */}
                 </div>
             </Col>
             <Col md={6}>
@@ -667,9 +680,9 @@ export const FeaturedCategories = ({
                     <Label htmlFor="bodyLeftTitle">Title</Label>
                     <InputText
                         id='bodyLeftTitle'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.title}
+                        value={gabrielPizza?.sections?.body?.featuredCategories?.rightColumn?.title}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn?.title}',
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.rightColumn.title',
                             e.target.value
                         )}
                         min={1}
@@ -680,26 +693,32 @@ export const FeaturedCategories = ({
                     <Label htmlFor="bodyLeftSubTitle">SubTitle</Label>
                     <InputText
                         id='bodyLeftSubTitle'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.subtitle}
+                        value={gabrielPizza?.sections?.body?.featuredCategories?.rightColumn?.subtitle}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn?.subtitle}',
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.rightColumn.subtitle',
                             e.target.value
                         )}
-                        min={1}
-                        max={3}
                     />
                 </div>
                 <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftCta">Call To Action Label</Label>
+                    <Label htmlFor="bodyLeftDescription">Description</Label>
                     <InputText
-                        id='bodyLeftCta'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.cta}
+                        id='bodyLeftDescription'
+                        value={gabrielPizza?.sections?.body?.featuredCategories?.rightColumn?.description}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn?.cta}',
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.rightColumn.description',
                             e.target.value
                         )}
-                        min={1}
-                        max={3}
+                    />
+                </div>
+                <div className='d-flex flex-column'>
+                    <Label htmlFor="bodyLeftImage">Image</Label>
+                    <MediaLibrary
+                        handleFilesSelectCallback={files => handleFieldChange(
+                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.rightColumn.image',
+                            transformAttachmentStructure(files, 'toIAttachment')[0]
+                        )}
+                        defaultValues={transformAttachmentStructure(gabrielPizza?.sections?.body?.featuredCategories?.rightColumn?.image ? [gabrielPizza?.sections?.body?.featuredCategories?.rightColumn?.image] : [], 'toFileLibraryListItem')}
                     />
                 </div>
             </Col>

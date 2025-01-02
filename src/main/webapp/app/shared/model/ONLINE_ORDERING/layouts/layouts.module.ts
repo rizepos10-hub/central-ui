@@ -34,8 +34,9 @@ export interface IFeaturedItems {
     rightColumn: {
         title: string;
         subtitle: string;
-        cta: string;
+        callToAction: string;
         items: Record<string, any>[];
+        image: IAttachment;
     };
 }
 
@@ -51,6 +52,7 @@ export interface IFeaturedCategories {
         subtitle: string;
         descriptionTitle: string;
         description: string;
+        image: IAttachment;
     };
 }
 
