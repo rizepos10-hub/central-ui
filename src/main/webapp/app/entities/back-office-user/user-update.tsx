@@ -168,9 +168,6 @@ export const UserUpdate = () => {
   }, [updateSuccess, userEntity]);
 
 
-  if (!user.user?.id) return null
-
-
   return (
     <div className="" >
       <div className="col-8">
@@ -190,7 +187,7 @@ export const UserUpdate = () => {
                 id="username"
                 name="username"
                 readOnly={!isNew}
-                value={user.user.username || ''}
+                value={user?.user?.username || ''}
                 onChange={handleInputChange}
                 required
               />
@@ -203,7 +200,7 @@ export const UserUpdate = () => {
               <InputText
                 id="firstName"
                 name="firstName"
-                value={user.user.firstName || ''}
+                value={user?.user?.firstName || ''}
                 onChange={handleInputChange}
                 required
               />
@@ -215,7 +212,7 @@ export const UserUpdate = () => {
               <InputText
                 id="lastName"
                 name="lastName"
-                value={user.user.lastName || ''}
+                value={user?.user?.lastName || ''}
                 onChange={handleInputChange}
                 required
               />
@@ -228,7 +225,7 @@ export const UserUpdate = () => {
               <InputText
                 id="email"
                 name="email"
-                value={user.user.email}
+                value={user?.user?.email}
                 onChange={handleInputChange}
                 required
               />
@@ -241,7 +238,7 @@ export const UserUpdate = () => {
                 id="password"
                 name="password"
                 type="password"
-                value={user.user.password || ''}
+                value={user?.user?.password || ''}
                 onChange={handleInputChange}
                 required
               />
@@ -263,18 +260,18 @@ export const UserUpdate = () => {
                 <Translate contentKey="tempApp.enabled" />
               </label>
               <Checkbox
-                inputId={`enabled-${user.user.enabled}`}
+                inputId={`enabled-${user?.user?.enabled}`}
                 name="Enabled"
-                value={user.user.enabled}
+                value={user?.user?.enabled}
                 onChange={handleEnabledChange}
-                checked={user.user.enabled}
+                checked={user?.user?.enabled}
               />
             </div>
             <div className="p-field d-flex flex-column gap-3 mb-3">
               <label className="font-bold">
                 <Translate contentKey="tempApp.permissions" />
               </label>
-              <Authorities id={userEntity.user.id} />
+              <Authorities id={userEntity?.user?.id} />
             </div>
             <div className="p-field d-flex gap-2 align-items-center mb-3">
               <Button
