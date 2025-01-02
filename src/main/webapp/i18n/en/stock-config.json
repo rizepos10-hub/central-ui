@@ -60,7 +60,9 @@
       "variant": "Variant",
       "description": "Description",
       "defaultPrice": "Default Price",
-      "minOrderQuantity": "Min Quantity"
+      "minOrderQuantity": "Min Quantity",
+      "minimumStockQuantity": "Minimum Stock Quantity",
+      "toBeStocked": "To Be Stocked"
     }
   }
 }
