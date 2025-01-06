@@ -412,6 +412,7 @@ export const CustomerUpdate = ({
                         value={selectedCardToAssign}
                         onChange={option => {
                           console.log(option);
+                          setSelectedCardToAssign(option);
                         }}
                         placeholder="Select a Card"
                         isClearable
@@ -420,7 +421,7 @@ export const CustomerUpdate = ({
                       <Button
                         label="Assign Card"
                         className="p-button-link"
-                        onClick={() => confirm()}
+                        onClick={() => confirmAssignCard()}
                         disabled={!selectedCardToAssign}
                       >
                         {translate('tempApp.assignCard')}
