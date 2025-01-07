@@ -139,7 +139,7 @@
 
       "stockQuantity": {
         "quantity": "Quantity",
-        "unitCost": "unitCost"
+        "unitCost": "Cost Price"
       },
 
       "shippingDimension": {

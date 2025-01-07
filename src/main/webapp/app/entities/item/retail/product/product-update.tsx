@@ -948,13 +948,16 @@ export const ProductUpdate = () => {
       icon: 'pi pi-exclamation-triangle',
       defaultFocus: 'accept',
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handleFieldChange('itemVariantType', option.value),
+      accept() {
+        handleFieldChange('itemVariantType', option.value)
+        handleFieldChange('variants', [])
+      },
     });
   };
 
-  useEffect(() => {
-    handleFieldChange('variants', [])
-  }, [product.itemVariantType])
+  // useEffect(() => {
+  //   handleFieldChange('variants', [])
+  // }, [product.itemVariantType])
 
   const confirm4 = () => {
     confirmDialog({
@@ -966,6 +969,8 @@ export const ProductUpdate = () => {
       accept: () => handleFieldChange('variants', []),
     });
   };
+
+  console.log(product, 'product')
 
   if (loading) {
     return <Spinner />;
@@ -1520,7 +1525,15 @@ export const ProductUpdate = () => {
                                                   />
                                                 </Col>
                                               </Row>
-                                              <div className="p-3">
+                                              <Row>
+                                                <SupplierAssociationTab
+                                                  onSupplierChange={handleSupplierChange}
+                                                  variants={product?.variants}
+                                                  itemId={product.id}
+                                                  suppliers={supplierList}
+                                                />
+                                              </Row>
+                                              <div>
                                                 <h4>Shipping Details:</h4>
                                                 <Accordion multiple>
                                                   <AccordionTab header="Shipping Details" className="p-3">
@@ -1742,11 +1755,11 @@ export const ProductUpdate = () => {
                       </Row>
                     </TabPanel> */}
 
-                    <TabPanel header={translate('items.update.tabs.supplier.label')}>
+                    {/* <TabPanel header={translate('items.update.tabs.supplier.label')}>
                       <SupplierAssociationTab
                         onSupplierChange={handleSupplierChange} // Pass down the function as a prop
                         variants={product?.variants} itemId={product.id} suppliers={supplierList} />
-                    </TabPanel>
+                    </TabPanel> */}
 
                     <TabPanel header={translate('items.update.tabs.itemLocation.label')}>
                       <ItemLocation
