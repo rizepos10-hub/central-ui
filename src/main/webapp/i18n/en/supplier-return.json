@@ -17,7 +17,11 @@
       "delete": {
         "title": "Confirm Delete Supplier Return",
         "question": "Are you sure you want to delete supplier return {{ id }}"
-      }
+      },
+      "lineTotal": "Line Total",
+      "receivedQuantity": "Received Quantity",
+      "returnedQuantity": "Returned Quantity",
+      "availableQuantity": "Available Quantity"
     }
   }
 }

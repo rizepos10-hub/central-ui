@@ -15,7 +15,9 @@
       "phone": "Phone Number",
       "email": "Email",
       "createNew": "Create New Supplier",
-      "edit": "Edit Supplier"
+      "edit": "Edit Supplier",
+      "orderLines": "Order Lines",
+      "noOrderLines": "No Order Lines found"
     }
   }
 }

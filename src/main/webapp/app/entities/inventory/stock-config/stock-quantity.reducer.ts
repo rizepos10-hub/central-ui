@@ -74,13 +74,6 @@ export const getStockQuantitiesForVariant = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-
-
-
-
-
-
-
 // slice
 
 export const StockQuantitySlice = createEntitySlice({
