@@ -163,6 +163,7 @@ export const UserUpdate = () => {
 
     if (userEntity) {
       setUser(userEntity)
+      setSelectedBranches(userEntity.branches)
     }
 
   }, [updateSuccess, userEntity]);
