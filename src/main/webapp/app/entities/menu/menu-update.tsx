@@ -32,7 +32,7 @@ const MenuUpdate = ({
 }) => {
     const dispatch = useAppDispatch();
     const { id } = useParams<'id'>();
-
+    console.log(selectedBranches, 'selectedBranches')
     const menuEntity = useAppSelector(state => state.menu.entity);
     const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
 
@@ -47,6 +47,10 @@ const MenuUpdate = ({
             }
         });
     }, [id])
+
+    useEffect(() => {
+        setSelectedBranches(menuEntity?.branches)
+    }, [menuEntity?.branches])
 
     return (
         <Modal isOpen={isModalOpen} toggle={() => setIsModalOpen(prev => !prev)} className="modal-lg">
