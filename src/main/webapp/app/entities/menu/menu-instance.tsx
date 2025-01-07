@@ -30,6 +30,7 @@ import MenuUpdate from './menu-update';
 import { Dialog } from "primereact/dialog";
 import Visibility from "app/shared/Visibility/Visibility";
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { IBranch } from 'app/shared/model/branch.model';
 
 const MenuInstance = () => {
     const dispatch = useAppDispatch();
@@ -48,7 +49,7 @@ const MenuInstance = () => {
     // const [totalPages, setTotalPages] = useState<number>(0)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showVisibility, setShowVisibility] = useState(false);
-    const [selectedBranches, setSelectedBranches] = useState<any>();
+    const [selectedBranches, setSelectedBranches] = useState<IBranch[]>([]);
     const [selectedName, setSelectedName] = useState("");
 
     const [data, setData]: any = useState({
@@ -77,7 +78,7 @@ const MenuInstance = () => {
         }
 
         if (menuEntity?.branch) {
-            setSelectedBranches({ label: menuEntity?.branch?.name, value: menuEntity?.branch?.id })
+            setSelectedBranches(menuEntity?.branches)
         }
 
         return () => {
@@ -95,7 +96,7 @@ const MenuInstance = () => {
             type: type || menuEntity.type,
             menuScreens: data.menuScreens,
             name: selectedName,
-            branch: selectedBranches?.value ? { id: selectedBranches.value } : null,
+            branches: selectedBranches,
             visibilities: data.visibilities
         };
 
