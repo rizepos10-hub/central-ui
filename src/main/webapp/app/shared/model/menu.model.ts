@@ -29,7 +29,10 @@ export interface IMenuScreen {
   allowMultiButtonSelect?: boolean;
   numberOfColumns?: number;
   rowHeight?: number[];
-  subscreens?: IMenuScreen[];
+  subScreens?: IMenuScreen[];
+  component?: {
+    item?: IItem;
+  }
 }
 
 export const defaultValue: Readonly<IMenu> = {};

@@ -12,7 +12,7 @@ import { getSortState, TextFormat, Translate, translate, ValidatedField, Validat
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { convertDateTimeFromServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { IMenu } from 'app/shared/model/menu.model';
+import { IMenu, IMenuScreen } from 'app/shared/model/menu.model';
 import { updateEntity, createEntity, reset, sendEvent, duplicateMenu, getEntity } from './menu.reducer';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { getEntities as getTerms } from 'app/entities/term/Menu-Category/menu-category.reducer';
@@ -30,6 +30,17 @@ import MenuUpdate from './menu-update';
 import { Dialog } from "primereact/dialog";
 import Visibility from "app/shared/Visibility/Visibility";
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { IVisibility } from 'app/shared/model/visibility.model';
+import { IBranch } from 'app/shared/model/branch.model';
+
+export interface IMenuData {
+    name: string;
+    branch: IBranch;
+    menuScreens: IMenuScreen[];
+    visibilities: IVisibility[];
+    rowHeight: any[];
+    id: string;
+}
 
 const MenuInstance = () => {
     const dispatch = useAppDispatch();
@@ -51,10 +62,13 @@ const MenuInstance = () => {
     const [selectedBranches, setSelectedBranches] = useState<any>();
     const [selectedName, setSelectedName] = useState("");
 
-    const [data, setData]: any = useState({
+    const [data, setData] = useState<IMenuData>({
         name: '',
-        branch: '',
+        branch: null,
         menuScreens: [],
+        visibilities: [],
+        rowHeight: [],
+        id: ''
     });
 
     useEffect(() => {
