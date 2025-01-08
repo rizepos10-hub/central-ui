@@ -73,9 +73,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
 
     const [groupedSubscreens, setGroupedSubscreens] = useState<IMenuScreen[][]>([]);
-    console.log(currentSubScreens, 'currentSubScreens')
     useEffect(() => {
-        if (mainScreen?.subScreens.length === 0) return
+        if (mainScreen?.subScreens?.length === 0) return
         setGroupedSubscreens(() => {
             const initialGroups = [];
             for (let i = 0; i < currentSubScreens?.length; i += cols) {
@@ -87,12 +86,10 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
 
     useEffect(() => {
-        console.log(mainScreen, 'mainScreen')
         setCurrentSubScreens(mainScreen?.subScreens)
     }, [mainScreen])
 
     useEffect(() => {
-        console.log(data?.menuScreens?.[selectedMainScreenIndex], 'data?.menuScreens?.[selectedMainScreenIndex]')
         setMainScreen(data?.menuScreens?.[selectedMainScreenIndex])
     }, [data])
 
@@ -542,7 +539,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 handleRowHeightChange(value, rowIndex);
             }
         };
-        console.log(groupedSubscreens, 'groupedSubscreens')
         return (
             <div className="d-flex gap-3 mb-3" onDragOver={e => e.preventDefault()}>
                 <Col md={12}>
@@ -647,11 +643,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         });
     };
 
-    const handleSubDragEnd = () => {
-        setDraggedIndex(null);
-    };
-
-    const findSubScreenByName = (subScreens, name) => {
+    const findSubScreenByName = (subScreens: IMenuScreen[], name: string) => {
         for (const subScreen of subScreens) {
             if (subScreen.name === name) {
                 return subScreen;
@@ -676,9 +668,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             if (!nextScreen || !nextScreen.subScreens || nextScreen.subScreens.length === 0) {
                 break;
             }
-            console.log(nextScreen, 'nextScreen')
             setCurrentSubScreens(nextScreen.subScreens);
         }
+
         return <div className="mt-3">{renderSubScreens(currentSubScreens, selectedMainScreenIndex)}</div>;
     };
 
@@ -695,11 +687,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setSelectedItems(subScreenItems || []);
     };
     const navigateToBreadcrumbItem = index => {
-        console.log(subScreenStack, 'subScreenStack')
-        console.log(selectedMainScreenIndex, 'selectedMainScreenIndex')
         if (index >= 0 && index < breadcrumb.length) {
             const newSubScreenStack = subScreenStack.slice(0, index + 1);
-            console.log(newSubScreenStack, 'newSubScreenStack')
             setSubScreenStack(newSubScreenStack);
             const newBreadcrumb = breadcrumb.slice(0, index + 1);
             setBreadcrumb(newBreadcrumb);
@@ -790,13 +779,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             return;
         }
 
-        const newMainScreen = {
+        const newMainScreen: IMenuScreen = {
             name: newMainScreenName,
             backgroundColor: selectedColorTheme,
             numberOfColumns: newMainScreenCols || 1,
-            managerOnlyAccess: '',
+            managerOnlyAccess: false,
             componentType: 'SUB_SCREENS',
-            subscreens: [],
+            subScreens: [],
             rowHeight: [],
             id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
         };
@@ -804,7 +793,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             ...data,
             menuScreens: [...data.menuScreens, newMainScreen],
         });
-        setSubScreenStack([newMainScreen?.subscreens]);
+        setSubScreenStack([newMainScreen?.subScreens]);
         setSelectedMainScreenIndex(data?.menuScreens?.length);
         setBreadcrumb([newMainScreenName]);
         setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: false });
@@ -820,13 +809,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         }
 
         const updatedData = { ...data };
-        console.log(updatedData, 'updatedData')
         const updatedMenuScreens = [...updatedData.menuScreens];
-        console.log(updatedMenuScreens, 'updatedMenuScreens')
-        console.log(selectedMainScreenIndex, 'selectedMainScreenIndex')
 
         let updatedSubScreenStack;
-        console.log(subScreenStack, 'subScreenStack')
         if (subScreenStack.length === 1) {
             const topSubScreens = updatedMenuScreens[selectedMainScreenIndex]?.subScreens;
             const hasDuplicateOnFirstLevel = topSubScreens?.some(subScreen => subScreen.name === newSubScreenName);
@@ -834,8 +819,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             if (hasDuplicateOnFirstLevel) {
                 alert('Sub-screen with the same name already exists on this level.');
             } else {
-                console.log(updatedMenuScreens[selectedMainScreenIndex].subScreens, 'updatedMenuScreens[selectedMainScreenIndex].subScreens')
-                console.log(updatedMenuScreens[selectedMainScreenIndex], 'updatedMenuScreens[selectedMainScreenIndex]')
                 updatedMenuScreens[selectedMainScreenIndex] = {
                     ...updatedMenuScreens[selectedMainScreenIndex],
                     subScreens: [
@@ -894,9 +877,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 );
             }
         }
-        console.log(updatedMenuScreens, 'updatedMenuScreens')
         updatedData.menuScreens = updatedMenuScreens;
-        console.log(updatedData, 'updatedData')
 
         setData(updatedData);
         if (updatedSubScreenStack) {

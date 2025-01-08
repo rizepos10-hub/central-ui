@@ -35,7 +35,7 @@ import { IBranch } from 'app/shared/model/branch.model';
 
 export interface IMenuData {
     name: string;
-    branch: IBranch;
+    branches: IBranch[];
     menuScreens: IMenuScreen[];
     visibilities: IVisibility[];
     rowHeight: any[];
@@ -64,7 +64,7 @@ const MenuInstance = () => {
 
     const [data, setData] = useState<IMenuData>({
         name: '',
-        branch: null,
+        branches: [],
         menuScreens: [],
         visibilities: [],
         rowHeight: [],
@@ -79,9 +79,9 @@ const MenuInstance = () => {
 
     useEffect(() => {
         if (menuEntity) {
-            const newData = {
+            const newData: IMenuData = {
                 name: menuEntity.name,
-                branch: menuEntity.branch,
+                branches: menuEntity.branches,
                 menuScreens: menuEntity.menuScreens,
                 visibilities: menuEntity.visibilities,
                 rowHeight: [],
