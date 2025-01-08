@@ -35,6 +35,7 @@
     "quantity": "Quantity",
     "description": "Description",
     "price": "Price",
+    "costPrice": "Cost Price",
     "tags": "Tags",
     "profileGroup": "Profile Group",
     "discount": "Discount",

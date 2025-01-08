@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Translate, translate, } from 'react-jhipster';
-
 import { mapIdList } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import Select, { MultiValue } from 'react-select';
 import {
   getEntity,
   updateEntity,
@@ -16,6 +16,8 @@ import { InputText } from "primereact/inputtext";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
 import Authorities from "app/entities/back-office-user/Authority";
+import { IBranch } from 'app/shared/model/branch.model';
+import { IUserWithBranches } from 'app/shared/model/user.model';
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
@@ -25,24 +27,27 @@ export const UserUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const userEntity = useAppSelector(state => state.user.entity);
+  const userEntity: IUserWithBranches = useAppSelector(state => state.user.entity);
   const roles = useAppSelector(state => state.user.roles?.['groups']);
   const loading = useAppSelector(state => state.user.loading);
   const updating = useAppSelector(state => state.user.updating);
   const updateSuccess = useAppSelector(state => state.user.updateSuccess);
+  const branchList = useAppSelector(state => state.branch.entities);
 
-
-
-  const [user, setUser] = useState({
-    username: '',
-    firstName: '',
-    lastName: '',
-    password: '',
-    email: '',
-    permissions: [],
-    enabled: false,
+  const [selectedBranches, setSelectedBranches] = useState<MultiValue<IBranch>>([]);
+  const [user, setUser] = useState<IUserWithBranches>({
+    user: {
+      id: null,
+      username: '',
+      firstName: '',
+      lastName: '',
+      password: '',
+      email: '',
+      permissions: [],
+      enabled: false,
+    },
+    branches: []
   });
-
 
 
   const handleClose = () => {
@@ -75,9 +80,9 @@ export const UserUpdate = () => {
     });
   };
 
+  console.log(user)
 
-
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
     const authoritiesWithAssignedTrue = roles.reduce((acc, role) => {
       if (role.assigned) {
@@ -95,18 +100,19 @@ export const UserUpdate = () => {
         const newUser = {
           user: {
             id: null,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
+            firstName: user.user.firstName,
+            lastName: user.user.lastName,
+            email: user.user.email,
             emailVerified: true,
-            enabled: user.enabled,
-            username: user.username,
+            enabled: user.user.enabled,
+            username: user.user.username,
           },
           credential: {
             type: 'password',
             temporary: false,
-            value: user.password,
+            value: user.user.password,
           },
+          branches: selectedBranches
         };
 
         dispatch(createEntityAndAssignRole({
@@ -114,12 +120,17 @@ export const UserUpdate = () => {
           roles: authoritiesWithAssignedTrue
         }));
 
-        dispatch(assignRole({ id: userEntity.id, selectedRoles: authoritiesWithAssignedTrue }));
+        dispatch(assignRole({ id: userEntity.user?.id, selectedRoles: authoritiesWithAssignedTrue }));
         handleClose()
       } else {
+        const updatedUser: IUserWithBranches = {
+          ...user,
+          branches: selectedBranches.map(branch => branch)
+        }
+
         dispatch(assignRole({ id, selectedRoles: authoritiesWithAssignedTrue }))
-        dispatch(updateEntity(user));
-        handleClose()
+        dispatch(updateEntity(updatedUser));
+        // handleClose()
       }
 
     } catch (error) {
@@ -129,6 +140,14 @@ export const UserUpdate = () => {
 
 
   useEffect(() => {
+    dispatch(
+      getBranches({
+        page: 0,
+        size: 1000,
+        sort: `id,asc`,
+      })
+    );
+
     if (isNew) {
       dispatch(reset());
     } else {
@@ -144,11 +163,10 @@ export const UserUpdate = () => {
 
     if (userEntity) {
       setUser(userEntity)
+      setSelectedBranches(userEntity.branches)
     }
 
   }, [updateSuccess, userEntity]);
-
-
 
 
   return (
@@ -170,7 +188,7 @@ export const UserUpdate = () => {
                 id="username"
                 name="username"
                 readOnly={!isNew}
-                value={user.username || ''}
+                value={user?.user?.username || ''}
                 onChange={handleInputChange}
                 required
               />
@@ -183,7 +201,7 @@ export const UserUpdate = () => {
               <InputText
                 id="firstName"
                 name="firstName"
-                value={user.firstName || ''}
+                value={user?.user?.firstName || ''}
                 onChange={handleInputChange}
                 required
               />
@@ -195,7 +213,7 @@ export const UserUpdate = () => {
               <InputText
                 id="lastName"
                 name="lastName"
-                value={user.lastName || ''}
+                value={user?.user?.lastName || ''}
                 onChange={handleInputChange}
                 required
               />
@@ -208,7 +226,7 @@ export const UserUpdate = () => {
               <InputText
                 id="email"
                 name="email"
-                value={user.email}
+                value={user?.user?.email}
                 onChange={handleInputChange}
                 required
               />
@@ -221,28 +239,40 @@ export const UserUpdate = () => {
                 id="password"
                 name="password"
                 type="password"
-                value={user.password || ''}
+                value={user?.user?.password || ''}
                 onChange={handleInputChange}
                 required
               />
             </div>}
+
+            <div className="mb-3">
+              <Translate contentKey={'common.branches'} />
+              <Select
+                value={selectedBranches}
+                isMulti
+                getOptionLabel={option => option.name}
+                getOptionValue={option => option.id}
+                onChange={e => setSelectedBranches(e)}
+                options={branchList}
+              />
+            </div>
             <div className="p-field d-flex flex-column mb-3">
               <label htmlFor="enabled">
                 <Translate contentKey="tempApp.enabled" />
               </label>
               <Checkbox
-                inputId={`enabled-${user.enabled}`}
+                inputId={`enabled-${user?.user?.enabled}`}
                 name="Enabled"
-                value={user.enabled}
+                value={user?.user?.enabled}
                 onChange={handleEnabledChange}
-                checked={user.enabled}
+                checked={user?.user?.enabled}
               />
             </div>
             <div className="p-field d-flex flex-column gap-3 mb-3">
               <label className="font-bold">
                 <Translate contentKey="tempApp.permissions" />
               </label>
-              <Authorities id={userEntity.id} />
+              <Authorities id={userEntity?.user?.id} />
             </div>
             <div className="p-field d-flex gap-2 align-items-center mb-3">
               <Button
