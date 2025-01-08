@@ -78,19 +78,20 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
     }
   };
 
+  console.log(selectedVariants, 'selectedVariants')
 
-
-  const handlePizzaPackageSelection = (item, field, selectedOption) => {
+  const handlePizzaPackageSelection = (item, field, selectedOption, variant) => {
+    console.log(selectedOption, 'selectedOption')
     setSelectedVariants((prevVariants) => {
       const pizzaPackage = {
-        ...prevVariants[item.id]?.pizzaPackage,
+        ...prevVariants[`${item.id}~${variant.id}`]?.pizzaPackage,
         [field]: selectedOption
       };
 
       return {
         ...prevVariants,
-        [item.id]: {
-          ...(prevVariants[item.id] || {}),
+        [`${item.id}~${variant.id}`]: {
+          ...(prevVariants[`${item.id}~${variant.id}`] || {}),
           pizzaPackage,
         },
       };
@@ -267,7 +268,7 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                                             getOptionValue={(option: IPizzaSize) => option.id}
                                             defaultValue={sizesList?.[0]}
                                             onChange={(selectedOption) =>
-                                              handlePizzaPackageSelection(item, 'pizzaSize', selectedOption)
+                                              handlePizzaPackageSelection(item, 'pizzaSize', selectedOption, variant)
                                             }
                                           />
                                         </div>
@@ -280,7 +281,7 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                                             getOptionValue={(option: ICrustType) => option.id}
                                             defaultValue={crustTypeList?.[0]}
                                             onChange={(selectedOption) =>
-                                              handlePizzaPackageSelection(item, 'crustType', selectedOption)
+                                              handlePizzaPackageSelection(item, 'crustType', selectedOption, variant)
                                             }
                                           />
                                         </div>
@@ -293,7 +294,7 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
                                             getOptionValue={(option: ICrustThickness) => option.id}
                                             defaultValue={crustThicknessList?.[0]}
                                             onChange={(selectedOption) =>
-                                              handlePizzaPackageSelection(item, 'crustThickness', selectedOption)
+                                              handlePizzaPackageSelection(item, 'crustThickness', selectedOption, variant)
                                             }
                                           />
                                         </div>
