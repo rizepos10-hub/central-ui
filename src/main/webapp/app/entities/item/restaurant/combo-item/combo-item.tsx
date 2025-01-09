@@ -110,7 +110,12 @@ export const ComboItem = () => {
     const editUrl = `/restaurant/combo/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
-        {rowData.name}
+        {rowData.name} <br/>
+        <span className="text-xs">
+          #{rowData?.variants?.reduce((total, variant) => {
+            return total + (variant?.comboPackages?.length || 0);
+          }, 0)}
+        </span>
       </Link>
     );
   };
