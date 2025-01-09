@@ -9,11 +9,11 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities } from './pricing-point.reducer';
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { IServiceCharge } from 'app/shared/model/service-charge.model';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { FilterMatchMode } from 'primereact/api';
 import _ from 'lodash';
 import { InputText } from 'primereact/inputtext';
+import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 
 export const PricingPoint = () => {
   const dispatch = useAppDispatch();
@@ -26,9 +26,9 @@ export const PricingPoint = () => {
   );
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const serviceCharges: IServiceCharge[] = useAppSelector(state => state.serviceCharge.entities);
-  const loading = useAppSelector(state => state.serviceCharge.loading);
-  const totalItems = useAppSelector(state => state.serviceCharge.totalItems);
+  const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
+  const loading = useAppSelector(state => state.pricingPoint.loading);
+  const totalItems = useAppSelector(state => state.pricingPoint.totalItems);
 
   const [localNameFilter, setLocalNameFilter] = useState("");
 
@@ -172,7 +172,7 @@ export const PricingPoint = () => {
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </PrimeButton>
-        <PrimeButton label="Create new Service Charge" raised onClick={handleCreate} disabled={loading}>
+        <PrimeButton label="Create new Pricing Point" raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </PrimeButton>
       </div>
@@ -183,7 +183,7 @@ export const PricingPoint = () => {
     <>
       <div className="table-responsive">
         <DataTable
-          value={serviceCharges}
+          value={pricingPoints}
           loading={loading}
           editMode="row"
           header={header}

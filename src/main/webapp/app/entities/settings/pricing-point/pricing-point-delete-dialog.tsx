@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './pricing-point.reducer';
+import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 
 export const PricingPointDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -21,8 +22,8 @@ export const PricingPointDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const serviceCharge = useAppSelector(state => state.serviceCharge.entity);
-  const updateSuccess = useAppSelector(state => state.serviceCharge.updateSuccess);
+  const pricingPoint: IPricingPoint = useAppSelector(state => state.pricingPoint.entity);
+  const updateSuccess = useAppSelector(state => state.pricingPoint.updateSuccess);
 
   const handleClose = () => {
     navigate(-1);
@@ -36,17 +37,17 @@ export const PricingPointDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(serviceCharge.id));
+    dispatch(deleteEntity(pricingPoint.id));
   };
 
   return (
     <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="serviceChargeDeleteDialogHeading">
+      <ModalHeader toggle={handleClose}>
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
-      <ModalBody id="tempApp.serviceCharge.delete.question">
-        <Translate contentKey="tempApp.serviceCharge.delete.question" interpolate={{ id: serviceCharge.id }}>
-          Are you sure you want to delete this Service Charge?
+      <ModalBody id="tempApp.pricingPoint.delete.question">
+        <Translate contentKey="tempApp.pricingPoint.delete.question" interpolate={{ id: pricingPoint.id }}>
+          Are you sure you want to delete this Pricing Point?
         </Translate>
       </ModalBody>
       <ModalFooter>
@@ -55,7 +56,7 @@ export const PricingPointDeleteDialog = () => {
           &nbsp;
           <Translate contentKey="entity.action.cancel">Cancel</Translate>
         </Button>
-        <Button id="jhi-confirm-delete-serviceCharge" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+        <Button id="jhi-confirm-delete-pricingPoint" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
           <FontAwesomeIcon icon="trash" />
           &nbsp;
           <Translate contentKey="entity.action.delete">Delete</Translate>

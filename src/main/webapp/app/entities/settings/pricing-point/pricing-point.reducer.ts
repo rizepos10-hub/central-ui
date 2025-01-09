@@ -1,11 +1,11 @@
 import axios from 'axios';
-import {createAction, createAsyncThunk, isFulfilled, isPending, isRejected} from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IServiceCharge, defaultValue } from 'app/shared/model/service-charge.model';
+import { IPricingPoint, defaultValue } from 'app/shared/model/PRICING-POINT/pricing-point';
 
-const initialState: EntityState<IServiceCharge> = {
+const initialState: EntityState<IPricingPoint> = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -15,34 +15,34 @@ const initialState: EntityState<IServiceCharge> = {
   updateSuccess: false,
 };
 
-const apiUrl = 'api/settings/service-charge';
-const apiSearchUrl = 'api/_search/settings/service-charge';
+const apiUrl = 'api/pricing-points';
+const apiSearchUrl = 'api/_search/pricing-points';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('settings/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
+export const searchEntities = createAsyncThunk('pricing-point/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<IServiceCharge[]>(requestUrl);
+  return axios.get<IPricingPoint[]>(requestUrl);
 });
 
-export const getEntities = createAsyncThunk('settings/fetch_entity_list', async ({ page, size, sort, key, whenToApply, branchId }: IQueryParams) => {
+export const getEntities = createAsyncThunk('pricing-point/fetch_entity_list', async ({ page, size, sort, key, whenToApply, branchId }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}${key ? `&key=${key}` : ''}${whenToApply ? `&whenToApply=${whenToApply}` : ''}${branchId ? `&branchId=${branchId}` : ''}`;
-  return axios.get<IServiceCharge[]>(requestUrl);
+  return axios.get<IPricingPoint[]>(requestUrl);
 });
 
 export const getEntity = createAsyncThunk(
-  'settings/fetch_entity',
+  'pricing-point/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-    return axios.get<IServiceCharge>(requestUrl);
+    return axios.get<IPricingPoint>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
 
 export const createEntity = createAsyncThunk(
-  'settings/create_entity',
-  async (entity: IServiceCharge, thunkAPI) => {
-    const result = await axios.post<IServiceCharge>(apiUrl, cleanEntity(entity));
+  'pricing-point/create_entity',
+  async (entity: IPricingPoint, thunkAPI) => {
+    const result = await axios.post<IPricingPoint>(apiUrl, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -50,9 +50,9 @@ export const createEntity = createAsyncThunk(
 );
 
 export const updateEntity = createAsyncThunk(
-  'settings/update_entity',
-  async (entity: IServiceCharge, thunkAPI) => {
-    const result = await axios.put<IServiceCharge>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  'pricing-point/update_entity',
+  async (entity: IPricingPoint, thunkAPI) => {
+    const result = await axios.put<IPricingPoint>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -60,9 +60,9 @@ export const updateEntity = createAsyncThunk(
 );
 
 export const partialUpdateEntity = createAsyncThunk(
-  'settings/partial_update_entity',
-  async (entity: IServiceCharge, thunkAPI) => {
-    const result = await axios.patch<IServiceCharge>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
+  'pricing-point/partial_update_entity',
+  async (entity: IPricingPoint, thunkAPI) => {
+    const result = await axios.patch<IPricingPoint>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -70,10 +70,10 @@ export const partialUpdateEntity = createAsyncThunk(
 );
 
 export const deleteEntity = createAsyncThunk(
-  'settings/delete_entity',
+  'pricing-point/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IServiceCharge>(requestUrl);
+    const result = await axios.delete<IPricingPoint>(requestUrl);
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -81,12 +81,12 @@ export const deleteEntity = createAsyncThunk(
 );
 
 
-export const changeEntityField = createAction<{ name: string; value: any }>('settings/change-entity-field');
+export const changeEntityField = createAction<{ name: string; value: any }>('pricing-point/change-entity-field');
 
 // slice
 
-export const ServiceChargeSlice = createEntitySlice({
-  name: 'settings',
+export const PricingPointSlice = createEntitySlice({
+  name: 'pricing-point',
   initialState,
   extraReducers(builder) {
     builder
@@ -132,7 +132,7 @@ export const ServiceChargeSlice = createEntitySlice({
   },
 });
 
-export const { reset } = ServiceChargeSlice.actions;
+export const { reset } = PricingPointSlice.actions;
 
 // Reducer
-export default ServiceChargeSlice.reducer;
+export default PricingPointSlice.reducer;
