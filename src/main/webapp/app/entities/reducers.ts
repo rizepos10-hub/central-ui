@@ -2,6 +2,7 @@ import menu from 'app/entities/menu/menu.reducer';
 import branch from 'app/entities/branch/branch.reducer';
 import discount from 'app/entities/discount/discount.reducer';
 import serviceCharge from 'app/entities/service-charges/service-charge.reducer';
+import pricingPoint from 'app/entities/settings/pricing-point/pricing-point.reducer';
 import attachment from 'app/entities/attachment/attachment.reducer';
 import customer from 'app/entities/customer/customer.reducer';
 import loyaltycard from 'app/entities/loyalty-card/loyalty-card.reducer';
@@ -101,6 +102,7 @@ const entitiesReducers = {
   branch,
   discount,
   serviceCharge,
+  pricingPoint,
   attachment,
   customer,
   loyaltycard,

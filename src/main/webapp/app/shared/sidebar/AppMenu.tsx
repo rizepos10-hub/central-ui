@@ -622,6 +622,11 @@ export const model: MenuItem[] = [
         to: '/void-reasons',
       },
       {
+        label: 'Pricing Points',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/pricing-point',
+      },
+      {
         label: 'Custom Definitions',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/custom-definitions',
