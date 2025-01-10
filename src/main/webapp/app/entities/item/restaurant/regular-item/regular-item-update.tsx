@@ -1019,6 +1019,8 @@ export const RegularItemUpdate = () => {
                                           branchVariantDetails={variant.branchVariantDetails}
                                           itemVariantType={'RESTAURANT'}
                                           handleHideItemPerBranch={handleHideItemPerBranch}
+                                          variant={variant}
+                                          setItem={setRegularItem}
                                         />
                                       </AccordionTab>
                                     </Accordion>
