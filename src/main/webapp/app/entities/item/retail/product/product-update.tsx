@@ -57,6 +57,7 @@ import { IStockQuantity } from 'app/shared/model/STOCK/stock-quantity.model';
 import { Checkbox } from 'primereact/checkbox';
 import { InputTextarea } from 'primereact/inputtextarea';
 import ItemLocation from 'app/shared/components/item/item-location';
+import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -179,7 +180,6 @@ export const ProductUpdate = () => {
   };
 
   const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
-    console.log('helloooo111o', value, variantIndex);
     setProduct(prev => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -278,36 +278,34 @@ export const ProductUpdate = () => {
   };
 
   const handleBaseMeasureChange = baseMeasure => {
-    console.log(baseMeasure)
     setProduct(prev => ({ ...prev, baseMeasure }));
   };
 
-  const handleSaveWholesalePrices = (variantIndex, branchId, prices) => {
-    setProduct(prev => {
-      const updatedVariants = prev.variants.map((variant, index) => {
-        console.log(variantIndex, 'variantsds');
-        if (index !== variantIndex) return variant;
+  // const handleSaveWholesalePrices = (variantIndex, branchId, prices) => {
+  //   setProduct(prev => {
+  //     const updatedVariants = prev.variants.map((variant, index) => {
+  //       if (index !== variantIndex) return variant;
 
-        const updatedBranchVariantDetails = {
-          ...variant.branchVariantDetails,
-          [branchId]: {
-            ...variant.branchVariantDetails?.[branchId],
-            wholesalePrices: prices,
-          },
-        };
+  //       const updatedBranchVariantDetails = {
+  //         ...variant.branchVariantDetails,
+  //         [branchId]: {
+  //           ...variant.branchVariantDetails?.[branchId],
+  //           wholesalePrices: prices,
+  //         },
+  //       };
 
-        return {
-          ...variant,
-          branchVariantDetails: updatedBranchVariantDetails,
-        };
-      });
+  //       return {
+  //         ...variant,
+  //         branchVariantDetails: updatedBranchVariantDetails,
+  //       };
+  //     });
 
-      return {
-        ...prev,
-        variants: updatedVariants,
-      };
-    });
-  };
+  //     return {
+  //       ...prev,
+  //       variants: updatedVariants,
+  //     };
+  //   });
+  // };
 
   const handleAddMeasure = () => {
     setProduct(prevState => ({
@@ -377,8 +375,6 @@ export const ProductUpdate = () => {
   //         },
   //       },
   //     };
-  //     console.log(prev)
-  //     console.log(updatedVariants)
   //     return {
   //       ...prev,
   //       variants: updatedVariants,
@@ -518,7 +514,6 @@ export const ProductUpdate = () => {
       }
     };
     generate(0, {});
-    console.log(combinations, 'combinationscombinations');
     setProduct(prevState => ({
       ...prevState,
       variants: [...prevState.variants, ...combinations],
@@ -589,7 +584,6 @@ export const ProductUpdate = () => {
     setDragOverIndex(null);
   };
 
-  console.log(product, 'product');
 
   const handleNavigate = productId => {
     navigate(`/product/${productId}/edit` + location.search);
@@ -615,8 +609,6 @@ export const ProductUpdate = () => {
   }
 
   const stockQuantityUpdate = (stockQuantities: IStockQuantity[], variantIndex: number) => {
-    console.log("data " + variantIndex);
-    console.log("data " + stockQuantities);
     setProduct((prevProduct) => ({
       ...prevProduct,
       variants: prevProduct.variants.map((variant, index) => {
@@ -694,6 +686,7 @@ export const ProductUpdate = () => {
       });
     }
   }, [productEntity]);
+
 
   const handleSupplierChange = (index, updatedVariant) => {
     const updatedProduct = {
@@ -872,7 +865,7 @@ export const ProductUpdate = () => {
       };
     });
   };
-
+  console.log(product, 'product');
   const AttributeAccordionHeader = attributeIndex => (
     <div
       onClick={e => {
@@ -891,7 +884,6 @@ export const ProductUpdate = () => {
     </div>
   );
 
-  { console.log(product?.attachments, 'attachments') }
   const VariantAccordionHeader = variantIndex => (
     <div
       onClick={e => {
@@ -952,9 +944,9 @@ export const ProductUpdate = () => {
     });
   };
 
-  useEffect(() => {
-    handleFieldChange('variants', [])
-  }, [product.itemVariantType])
+  // useEffect(() => {
+  //   handleFieldChange('variants', [])
+  // }, [product.itemVariantType])
 
   const confirm4 = () => {
     confirmDialog({
@@ -1188,8 +1180,9 @@ export const ProductUpdate = () => {
                                   variantIndex={0}
                                   branchList={branchList}
                                   handleBranchPriceChange={handleBranchPriceChange}
-                                  handleSaveWholesalePrices={handleSaveWholesalePrices}
                                   handleHideItemPerBranch={handleHideItemPerBranch}
+                                  variant={product?.variants?.[0]}
+                                  setItem={setProduct}
                                 />
 
                                 <Row>
@@ -1290,7 +1283,7 @@ export const ProductUpdate = () => {
                                     </Button>
 
                                     {product.variants?.length > 0 && (
-                                      <Button color="danger" type={'button'} className={'mt-5'} onClick={confirm4}>
+                                      <Button color="danger" type={'button'} className={'mt-5'} onClick={() => confirm4()}>
                                         <Translate contentKey={'items.update.removeAllVariants'}>Remove All Variants</Translate>
                                       </Button>
                                     )}
@@ -1608,7 +1601,8 @@ export const ProductUpdate = () => {
                                                 branchVariantDetails={variant.branchVariantDetails}
                                                 itemVariantType={'RETAIL'}
                                                 handleHideItemPerBranch={handleHideItemPerBranch}
-                                                handleSaveWholesalePrices={handleSaveWholesalePrices}
+                                                variant={variant}
+                                                setItem={setProduct}
                                               />
                                             </AccordionTab>
                                           </Accordion>

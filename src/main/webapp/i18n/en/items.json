@@ -190,6 +190,7 @@
         "quantity": "Quantity"
       },
       "WholesalePrices": "Wholesale Prices",
+      "pricingPoints": "Pricing Points",
       "hideItem": "Hide Item POS",
       "hideOnline": "Hide Item Online",
       "baseMeasure": "Select Base Measure",

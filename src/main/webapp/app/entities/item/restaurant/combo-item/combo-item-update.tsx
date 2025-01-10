@@ -505,6 +505,8 @@ export const ComboItemUpdate = () => {
                         variantIndex={0}
                         itemVariantType={"RESTAURANT"}
                         handleHideItemPerBranch={handleHideItemPerBranch}
+                        variant={comboItem?.variants?.[0]}
+                        setItem={setComboItem}
                       />
 
                       <Row>

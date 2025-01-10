@@ -789,13 +789,13 @@ export const VariableItemUpdate = () => {
                                     </Col>
                                   </Row>
 
-                                  <VariantBranchPrice
+                                  {/* <VariantBranchPrice
                                     branchList={branchList}
                                     handleBranchPriceChange={handleBranchPriceChange}
                                     variantIndex={variantIndex}
                                     branchVariantDetails={variant.branchVariantDetails}
                                     itemVariantType={'RETAIL'}
-                                  />
+                                  /> */}
                                 </AccordionTab>
                               </Accordion>
                             </Col>

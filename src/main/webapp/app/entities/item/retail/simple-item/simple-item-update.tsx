@@ -473,14 +473,14 @@ export const SimpleItemUpdate = () => {
                             </Row>
 
 
-                            <VariantBranchPrice
+                            {/* <VariantBranchPrice
                               itemVariantType={"RETAIL"}
                               branchVariantDetails={simpleItem?.variants?.[0]?.branchVariantDetails}
                               variantIndex={0}
                               branchList={branchList}
                               handleBranchPriceChange={handleBranchPriceChange}
-                              handleSaveWholesalePrices={handleSaveWholesalePrices}
-                            />
+                              handleSavePricingPoint={handleSaveWholesalePrices}
+                            /> */}
 
                             <Row>
                               <Col md="7">

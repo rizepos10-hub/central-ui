@@ -8,6 +8,7 @@ import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 import { IMenu } from "../../menu.model";
 import { IAddonGroup, IAddonGroups } from "../../ADDON/addon-groups.model";
 import { IAddonPriceOverride } from "../../ADDON/addon-price-override";
+import { IPricingPointBranchPrice } from "../retail/variable-item.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -32,6 +33,7 @@ export interface IRegularItemVariant {
   salePrice?: number;
   branchVariantDetails?: IBranchVariantDetails;
   mixAndMatchRule?: IMixAndMatchRule;
+  pricingPointBranchPrices?: IPricingPointBranchPrice[];
 }
 
 export interface IRegularItem extends IItem {

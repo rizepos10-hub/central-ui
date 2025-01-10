@@ -37,7 +37,7 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
   }, [wareHouses]);
 
   useEffect(() => {
-    if (!isNew) {
+    if (!isNew && variant?.id) {
       const query = `itemId=${itemId}&variantId=${variant?.id}`;
       dispatch(getStockQuantitiesForVariant(query));
     }
