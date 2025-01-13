@@ -19,6 +19,7 @@ export interface IItem {
   desc?: string | null;
   categories?: ITerm[];
   discounts?: IDiscount[];
+  byWeight?: Boolean | false;
   itemVariantType?: ItemVariantType;
   itemType?: "RESTAURANT" | "RETAIL" | "VIRTUAL";
   stock?: number;
