@@ -38,6 +38,9 @@ import { Dialog } from 'primereact/dialog';
 import { AddressTypeEnum, IAddress } from 'app/shared/model/address.model';
 import { v4 as uuidv4 } from 'uuid';
 import { COUNTRIES } from './customer-addresses';
+import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-point/pricing-point.reducer';
+import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
+import { IBranch } from 'app/shared/model/branch.model';
 
 export const CustomerUpdate = ({
   firstName,
@@ -52,8 +55,6 @@ export const CustomerUpdate = ({
 
   const navigate = useNavigate();
 
-  const priceLineOptions: (IWholesalePriceLine[keyof IWholesalePriceLine])[] = ['PRICE_1', 'PRICE_2', 'PRICE_3', 'PRICE_4', 'PRICE_5'];
-
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
@@ -62,9 +63,8 @@ export const CustomerUpdate = ({
 
   const customerEntity: ICustomer = useAppSelector(state => state.customer.entity);
   const loyaltyRecord = useAppSelector(state => state.loyalty.entities?.[0]);
-  const branchList = useAppSelector(state => state.branch.entities);
+  const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
   const loyaltyCardsList = useAppSelector(state => state.loyaltycard.entities);
-  const wholeSaleBranches = branchList?.filter(branch => branch.wholesale);
   const loading = useAppSelector(state => state.customer.loading);
   const updating = useAppSelector(state => state.customer.updating);
   const updateSuccess = useAppSelector(state => state.customer.updateSuccess);
@@ -78,6 +78,7 @@ export const CustomerUpdate = ({
     address: null,
   });
   const [currentAddress, setCurrentAddress] = useState<IAddress | null>(null);
+  const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
 
   useEffect(() => {
     if (addressDialogOptions.isOpen) {
@@ -85,13 +86,13 @@ export const CustomerUpdate = ({
     }
   }, [addressDialogOptions.isOpen]);
 
-  const handleBranchPriceChange = (branchId, priceLine) => {
+  const handleBranchPricingPointChange = (branchId, pricingPoint) => {
     dispatch(
       changeEntityField({
-        name: 'wholesalePriceLines',
+        name: 'pricingPoints',
         value: {
-          ...customerEntity.wholesalePriceLines,
-          [branchId]: priceLine,
+          ...customerEntity.pricingPoints,
+          [branchId]: pricingPoint,
         },
       })
     );
@@ -149,6 +150,14 @@ export const CustomerUpdate = ({
 
     dispatch(
       getBranches({
+        page: 0,
+        size: 500,
+        sort: 'asc',
+      })
+    );
+
+    dispatch(
+      getPricingPoints({
         page: 0,
         size: 500,
         sort: 'asc',
@@ -327,6 +336,11 @@ export const CustomerUpdate = ({
       address: null,
     });
   };
+
+  const getPricingPointsPerBranch = (branchId) => {
+    const pricingPointsPerBranch = pricingPoints.filter(pricingPoint => pricingPoint.applicableBranches?.some(b => b.id === branchId));
+    return pricingPointsPerBranch;
+  }
 
   return (
     <div>
@@ -632,30 +646,29 @@ export const CustomerUpdate = ({
               </TabPanel>
 
               <TabPanel header={'Wholesale Price'}>
-                {wholeSaleBranches?.length > 0 ? (
+                {pricingPoints?.length > 0 ? (
                   <>
-                    <h4>Wholesale Price</h4>
                     <Table>
                       <thead>
                         <tr>
                           <th>
                             <Translate contentKey={'common.branch'}>Branch</Translate>
                           </th>
-                          <th>Price Line</th>
+                          <th>Pricing Point</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {wholeSaleBranches.map(branch => {
+                        {branchList.map(branch => {
                           return (
                             <tr key={branch.id}>
                               <td>{branch.name}</td>
                               <td>
                                 <Dropdown
-                                  placeholder={'Enter Price Line'}
-                                  value={customerEntity?.wholesalePriceLines?.[branch.id] || ''}
-                                  options={priceLineOptions}
+                                  placeholder={'Enter Pricing Point'}
+                                  value={customerEntity?.pricingPoints?.[branch.id]?.id || ''}
+                                  options={getPricingPointsPerBranch(branch.id).map(pricingPoint => ({ label: pricingPoint.name, value: pricingPoint.id }))}
                                   style={{ minWidth: '15rem' }}
-                                  onChange={event => handleBranchPriceChange(branch.id, event.target.value)}
+                                  onChange={event => handleBranchPricingPointChange(branch.id, pricingPoints.find(pricingPoint => pricingPoint.id === event.target.value))}
                                 />
                               </td>
                             </tr>
