@@ -32,6 +32,10 @@ import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { initialItemFilterState } from 'app/shared/model/filter-state.model';
 import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
+import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-point/pricing-point.reducer';
+import { IPricingPoint, PricingPointType } from 'app/shared/model/PRICING-POINT/pricing-point';
+import { OrderMethod } from "app/shared/model/ENUMS/order-method.model";
+import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
@@ -43,7 +47,7 @@ const OrderCreate = () => {
     const totalItems: number = useAppSelector(state => state.product.totalItems)
     const branches: IBranch[] = useAppSelector(state => state.branch.entities)
     const customers: ICustomer[] = useAppSelector(state => state.customer.entities)
-
+    const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
     const searchParams = new URLSearchParams(location.search);
 
     const filterInputRef = useRef();
@@ -52,6 +56,7 @@ const OrderCreate = () => {
     const discountOP = useRef(null);
 
     const [filterValue, setFilterValue] = useState('');
+    const [pricingPointId, setPricingPointId] = useState('');
     const [filteredOptions, setFilteredOptions] = useState(customers);
     const [searchTermProduct, setSearchTermProduct] = useState('');
     const [variantDialog, setVariantDialog] = useState<{
@@ -78,6 +83,20 @@ const OrderCreate = () => {
         setFilteredOptions(customers)
     }, [customers])
 
+
+
+    const formatPricingPointOrderType = (orderType: OrderMethod) => {
+    switch (orderType) {
+        case OrderMethod.PickUp:
+        return "Pickup";
+        case OrderMethod.WalkIn:
+        return "Walk In";
+        case OrderMethod.Delivery:
+        return "Delivery";
+        default:
+        return orderType;
+    }
+    };
     const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
     useEffect(() => {
         console.log(query, 'query')
@@ -100,6 +119,13 @@ const OrderCreate = () => {
     }, [searchParams.get("page"), searchParams.get("size"), searchParams.get("name"), searchParams.get("categoryId")])
 
     useEffect(() => {
+        dispatch(
+            getPricingPoints({
+              page: 0,
+              size: 500,
+              sort: 'asc',
+            })
+          );
         dispatch(getBranches({}))
         dispatch(getCustomers({
             query: '',
@@ -155,6 +181,10 @@ const OrderCreate = () => {
                         branchId: orderEntity.branchId,
                         variantItem: products.find(product => product.id === item.itemId)?.variants?.find(variant => variant.id === item.variantId),
                         item: products.find(product => product.id === item.itemId),
+                        customer: customers.find(customer => customer.id === orderEntity.customer?.id),
+                        pricingPointId: pricingPointId,
+                        pricingPoints: pricingPoints,
+                        selectedOrderMethod: orderEntity.orderMethod
                     }),
                 })),
             }
@@ -171,7 +201,7 @@ const OrderCreate = () => {
             return
         }
         recalculatePrice()
-    }, [orderEntity?.branchId]);
+    }, [orderEntity?.branchId, pricingPointId, orderEntity.orderMethod]);
 
     const calculateCustomDiscount = (discountVal: number, originalPrice: number, type?: "PERCENTAGE" | "FLAT") => {
         if (discountVal) {
@@ -270,6 +300,8 @@ const OrderCreate = () => {
             customer: orderEntity?.customer,
             orderCharges: [],
             scheduledAt: null,
+            orderMethod: orderEntity?.orderMethod,
+            processingStatus: OrderStatus.PROCESSING,
         }
 
         dispatch(createEntity(structuredEntity)).then(() => {
@@ -301,6 +333,41 @@ const OrderCreate = () => {
             </>
         )
     };
+
+    const displayUserSelectionPricingPoint = () => {
+
+        const branchId = orderEntity.branchId;
+
+        if (!branchId) return null;
+
+        const userSelectedPricingPoint = pricingPoints.find(
+            (pricingPoint) =>
+            pricingPoint.type === PricingPointType.USER_SELECTED &&
+            pricingPoint.applicableBranches?.some(branch => branch.id === branchId)
+        );
+
+        if (userSelectedPricingPoint) {
+            return (
+                <div className="pt-3 pb-3">
+                    <Dropdown
+                        value={pricingPointId}
+                        options={pricingPoints
+                            .filter(pricingPoint => pricingPoint.type === PricingPointType.USER_SELECTED)
+                            .map(pricingPoint => ({ label: pricingPoint.name, value: pricingPoint.id }))}
+                        onChange={(e) => {
+                            setPricingPointId(e.value);
+                        }}
+                        placeholder="Select a Pricing Point"
+                        className='w-100'
+                        showClear
+                        filter
+                    />
+                </div>
+            );
+        }
+
+        return <></>;
+    }
 
 
     const filterTemplate = (options) => {
@@ -549,6 +616,8 @@ const OrderCreate = () => {
                                                                 branchId: orderEntity.branchId,
                                                                 variantItem: variant,
                                                                 item: variantDialog.product,
+                                                                pricingPointId: pricingPointId,
+                                                                pricingPoints: pricingPoints,
                                                             }),
                                                             amount: 1,
                                                             discount: {},
@@ -640,6 +709,33 @@ const OrderCreate = () => {
                 <Col md={4} className="p-2 flex flex-column justify-content-between gap-2" style={{
                     height: '80vh'
                 }}>
+                    
+                    <div className="px-2">
+                        Order Method
+                        <Dropdown
+                            options={Object.values(OrderMethod)
+                            .filter((type) => type !== OrderMethod.DineIn)
+                            .map(type => ({
+                                label: formatPricingPointOrderType(type),
+                                value: type
+                            }))}
+                            placeholder="Select an order method"
+                            value={orderEntity?.orderMethod} // Replace this with your actual state field
+                            onChange={(e) =>
+                            dispatch(
+                                changeEntityField({
+                                name: 'orderMethod',
+                                value: e.value,
+                                })
+                            )
+                            }
+                            className="w-100"
+                            showClear
+                            filter
+                            filterTemplate={filterTemplate}
+                        />
+                        </div>
+
                     <div className="px-2">Edit User
                         <Dropdown
                             options={filteredOptions.map(customer => ({
@@ -687,6 +783,9 @@ const OrderCreate = () => {
                             showClear
                             filter
                         />
+
+                        {displayUserSelectionPricingPoint()}
+
                         {!orderEntity?.branchId && orderEntity?.items?.length > 0 && (
                             <span className="text-danger">
                                 Please select a branch
