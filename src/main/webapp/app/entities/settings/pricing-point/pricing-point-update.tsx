@@ -28,6 +28,8 @@ export const PricingPointUpdate = () => {
   useEffect(() => {
     if (!isNew) {
       dispatch(getEntity(id));
+    } else {
+      dispatch(reset())
     }
     dispatch(getBranches({
       page: 0,

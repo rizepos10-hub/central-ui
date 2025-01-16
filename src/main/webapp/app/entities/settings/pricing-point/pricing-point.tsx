@@ -185,23 +185,15 @@ export const PricingPoint = () => {
         <DataTable
           value={pricingPoints}
           loading={loading}
-          editMode="row"
           header={header}
-          removableSort
           filters={query.filters}
           filterDisplay="row"
-          paginator
           totalRecords={totalItems}
-          rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
-          rows={query?.rows}
-          lazy
-          first={query.first}
-          onPage={onPage}
           onFilter={onFilter}
-          onSort={onSort}
-          sortField={query.sortField}
-          sortOrder={query.sortOrder}
           showGridlines
+          paginator
+          rows={5}
+          rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
         >
           <Column
             field="name"
@@ -211,7 +203,6 @@ export const PricingPoint = () => {
             filterElement={nameFilterTemplate}
             body={nameColumnTemplate}
             filterPlaceholder="Name"
-            sortable
           />
 
           <Column
