@@ -669,6 +669,7 @@ export const CustomerUpdate = ({
                                   options={getPricingPointsPerBranch(branch.id).map(pricingPoint => ({ label: pricingPoint.name, value: pricingPoint.id }))}
                                   style={{ minWidth: '15rem' }}
                                   onChange={event => handleBranchPricingPointChange(branch.id, pricingPoints.find(pricingPoint => pricingPoint.id === event.target.value))}
+                                  showClear
                                 />
                               </td>
                             </tr>
