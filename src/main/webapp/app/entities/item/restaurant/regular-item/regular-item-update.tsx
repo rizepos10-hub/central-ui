@@ -72,11 +72,7 @@ export const RegularItemUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [regularItem, setRegularItem] = useState<IRegularItem>({
-    itemType: "RESTAURANT",
-    itemVariantType: ItemVariantType.RESTAURANT_VARIABLE,
-    variants: []
-  });
+  const [regularItem, setRegularItem] = useState<IRegularItem>({});
 
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
@@ -160,6 +156,7 @@ export const RegularItemUpdate = () => {
           branchVariantDetails: {},
           attributeValues: {},
           createdDate: new Date().toISOString(),
+          pricingPointBranchPrices: [],
         },
       ],
     }));
@@ -237,14 +234,12 @@ export const RegularItemUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
-    if (!isNew) {
-      setRegularItem({
-        ...regularItemEntity,
-      });
-    }
+    setRegularItem({
+      ...regularItemEntity,
+    });
   }, [regularItemEntity]);
 
-
+  console.log(regularItemEntity, 'regularItemEntity')
   const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
 

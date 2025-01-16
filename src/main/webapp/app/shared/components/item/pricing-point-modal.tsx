@@ -25,53 +25,49 @@ const PricingPointModal = ({
     const handleClose = () => {
         toggle();
     };
+    console.log(variant, 'qdqwdqwvariant')
 
     const handlePriceChange = (pricingPoint: IPricingPoint, value: number) => {
         setItem(prev => ({
-            ...prev,
-            variants: prev.variants.map(v => {
-                if (v.id === variant.id) {
-                    const existingIndex = v.pricingPointBranchPrices.findIndex(
-                        ppbp => ppbp.pricingPoint.id === pricingPoint?.id
-                    );
-
-                    let updatedPricingPointBranchPrices;
-
-                    if (existingIndex !== -1) {
-                        updatedPricingPointBranchPrices = v.pricingPointBranchPrices.map((ppbp, idx) =>
-                            idx === existingIndex
-                                ? {
-                                    ...ppbp,
-                                    price: value,
-                                    branch: {
-                                        id: branchId,
-                                    }
-                                }
-                                : ppbp
-                        );
-                    } else {
-                        updatedPricingPointBranchPrices = [
-                            ...v.pricingPointBranchPrices,
-                            {
-                                branch: {
-                                    id: branchId,
-                                },
-                                pricingPoint,
-                                price: value,
-                            },
-                        ];
-                    }
-
-                    return {
-                        ...v,
-                        pricingPointBranchPrices: updatedPricingPointBranchPrices,
-                    };
-                }
-                return variant;
-            }),
+          ...prev,
+          variants: prev.variants.map(v => {
+            if (v.id === variant.id) {
+              const existingIndex = v.pricingPointBranchPrices.findIndex(
+                ppbp =>
+                  ppbp.pricingPoint.id === pricingPoint.id &&
+                  ppbp.branch?.id === branchId
+              );
+      
+              const updatedPricingPointBranchPrices =
+                existingIndex !== -1
+                  ? v.pricingPointBranchPrices.map((ppbp, idx) =>
+                      idx === existingIndex
+                        ? {
+                            ...ppbp,
+                            price: value,
+                            branch: { id: branchId },
+                          }
+                        : ppbp
+                    )
+                  : [
+                      ...v.pricingPointBranchPrices,
+                      {
+                        branch: { id: branchId },
+                        pricingPoint,
+                        price: value,
+                      },
+                    ];
+      
+              return {
+                ...v,
+                pricingPointBranchPrices: updatedPricingPointBranchPrices,
+              };
+            }
+            return v;
+          }),
         }));
-    };
-
+      };
+      
 
     const handleSave = () => {
         toggle();
@@ -81,10 +77,9 @@ const PricingPointModal = ({
         //     price: variant.pricingPointBranchPrices.find(ppbp => ppbp.pricingPoint.id === pp.id)?.price || 0,
         // }));
 
-        // console.log(result, 'result')
         return
     };
-
+    console.log(variant.pricingPointBranchPrices, 'variant.pricingPointBranchPrices')
     return (
         <Modal size="l" isOpen={isOpen} toggle={toggle}>
             <ModalHeader toggle={toggle}>Pricing Points</ModalHeader>
@@ -100,7 +95,7 @@ const PricingPointModal = ({
                                 <InputNumber
                                     min={0}
                                     maxFractionDigits={2}
-                                    value={variant.pricingPointBranchPrices.find(ppbp => ppbp.pricingPoint.id === pricingPoint.id)?.price || 0}
+                                    value={variant?.pricingPointBranchPrices.find(ppbp => ppbp.pricingPoint.id === pricingPoint.id && ppbp.branch?.id === branchId)?.price || 0}
                                     onChange={e => handlePriceChange(pricingPoint, e.value)}
                                 />
                             </div>
