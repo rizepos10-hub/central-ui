@@ -10,14 +10,15 @@ import {
   updateEntity,
   createEntityAndAssignRole,
   reset,
-  assignRole
+  assignRole,
+  changeEntityField
 } from './user.reducer';
 import { InputText } from "primereact/inputtext";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
 import Authorities from "app/entities/back-office-user/Authority";
 import { IBranch } from 'app/shared/model/branch.model';
-import { IUserWithBranches } from 'app/shared/model/user.model';
+import { IBackOfficeUser } from 'app/shared/model/back-offic-user.model';
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
@@ -27,60 +28,48 @@ export const UserUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const userEntity: IUserWithBranches = useAppSelector(state => state.user.entity);
+  const userEntity: IBackOfficeUser = useAppSelector(state => state.user.entity);
   const roles = useAppSelector(state => state.user.roles?.['groups']);
   const loading = useAppSelector(state => state.user.loading);
   const updating = useAppSelector(state => state.user.updating);
   const updateSuccess = useAppSelector(state => state.user.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
 
-  const [selectedBranches, setSelectedBranches] = useState<MultiValue<IBranch>>([]);
-  const [user, setUser] = useState<IUserWithBranches>({
-    user: {
-      id: null,
-      username: '',
-      firstName: '',
-      lastName: '',
-      password: '',
-      email: '',
-      permissions: [],
-      enabled: false,
-    },
-    branches: []
-  });
-
-
   const handleClose = () => {
     navigate('/back-office-user');
   };
 
 
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setUser((prevUser) => ({
-      ...prevUser,
-      [name]: value,
-    }));
+  const updateUserFieldvalue = (fieldName, value) => {
+    if (fieldName.includes('.')) {
+      const [parentField, childField] = fieldName.split('.');
+      dispatch(changeEntityField({
+        name: parentField, value: {
+          ...userEntity[parentField],
+          [childField]: value
+        }
+      }));
+    } else {
+      dispatch(changeEntityField({ name: fieldName, value }));
+    }
   };
 
-  const handleEnabledChange = (event) => {
-    const { value, checked } = event.target;
-    setUser((prevUser) => {
-      if (checked) {
-        return {
-          ...prevUser,
-          enabled: checked,
-        };
-      } else {
-        return {
-          ...prevUser,
-          enabled: checked,
-        };
-      }
-    });
-  };
-
-  console.log(user)
+  // const handleEnabledChange = (event) => {
+  //   const { value, checked } = event.target;
+  //   setUser((prevUser) => {
+  //     if (checked) {
+  //       return {
+  //         ...prevUser,
+  //         enabled: checked,
+  //       };
+  //     } else {
+  //       return {
+  //         ...prevUser,
+  //         enabled: checked,
+  //       };
+  //     }
+  //   });
+  // };
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -100,19 +89,19 @@ export const UserUpdate = () => {
         const newUser = {
           user: {
             id: null,
-            firstName: user.user.firstName,
-            lastName: user.user.lastName,
-            email: user.user.email,
+            firstName: userEntity?.user?.firstName,
+            lastName: userEntity?.user?.lastName,
+            email: userEntity?.user?.email,
             emailVerified: true,
-            enabled: user.user.enabled,
-            username: user.user.username,
+            enabled: userEntity?.user?.enabled,
+            username: userEntity?.user?.username,
           },
           credential: {
             type: 'password',
             temporary: false,
-            value: user.user.password,
+            value: userEntity?.user?.password,
           },
-          branches: selectedBranches
+          branches: userEntity.branches
         };
 
         dispatch(createEntityAndAssignRole({
@@ -120,12 +109,12 @@ export const UserUpdate = () => {
           roles: authoritiesWithAssignedTrue
         }));
 
-        dispatch(assignRole({ id: userEntity.user?.id, selectedRoles: authoritiesWithAssignedTrue }));
+        dispatch(assignRole({ id: userEntity?.user?.id, selectedRoles: authoritiesWithAssignedTrue }));
         handleClose()
       } else {
-        const updatedUser: IUserWithBranches = {
-          ...user,
-          branches: selectedBranches.map(branch => branch)
+        const updatedUser: IBackOfficeUser = {
+          ...userEntity,
+          branches: userEntity.branches.map(branch => branch)
         }
 
         dispatch(assignRole({ id, selectedRoles: authoritiesWithAssignedTrue }))
@@ -154,20 +143,10 @@ export const UserUpdate = () => {
       dispatch(getEntity(id));
     }
 
-  }, []);
+  }, [updateSuccess]);
 
-  useEffect(() => {
-    // if (updateSuccess) {
-    //   handleClose();
-    // }
 
-    if (userEntity) {
-      setUser(userEntity)
-      setSelectedBranches(userEntity.branches)
-    }
-
-  }, [updateSuccess, userEntity]);
-
+  console.log(userEntity, 'userEntity')
 
   return (
     <div className="" >
@@ -188,8 +167,8 @@ export const UserUpdate = () => {
                 id="username"
                 name="username"
                 readOnly={!isNew}
-                value={user?.user?.username || ''}
-                onChange={handleInputChange}
+                value={userEntity?.user?.username || ''}
+                onChange={e => updateUserFieldvalue('user.username', e.target.value)}
                 required
               />
             </div>
@@ -201,8 +180,8 @@ export const UserUpdate = () => {
               <InputText
                 id="firstName"
                 name="firstName"
-                value={user?.user?.firstName || ''}
-                onChange={handleInputChange}
+                value={userEntity?.user?.firstName || ''}
+                onChange={e => updateUserFieldvalue('user.firstName', e.target.value)}
                 required
               />
             </div>
@@ -213,8 +192,8 @@ export const UserUpdate = () => {
               <InputText
                 id="lastName"
                 name="lastName"
-                value={user?.user?.lastName || ''}
-                onChange={handleInputChange}
+                value={userEntity?.user?.lastName || ''}
+                onChange={e => updateUserFieldvalue('user.lastName', e.target.value)}
                 required
               />
             </div>
@@ -226,8 +205,8 @@ export const UserUpdate = () => {
               <InputText
                 id="email"
                 name="email"
-                value={user?.user?.email}
-                onChange={handleInputChange}
+                value={userEntity?.user?.email}
+                onChange={e => updateUserFieldvalue('user.email', e.target.value)}
                 required
               />
             </div>
@@ -239,8 +218,8 @@ export const UserUpdate = () => {
                 id="password"
                 name="password"
                 type="password"
-                value={user?.user?.password || ''}
-                onChange={handleInputChange}
+                value={userEntity?.user?.password || ''}
+                onChange={e => updateUserFieldvalue('user.password', e.target.value)}
                 required
               />
             </div>}
@@ -248,11 +227,11 @@ export const UserUpdate = () => {
             <div className="mb-3">
               <Translate contentKey={'common.branches'} />
               <Select
-                value={selectedBranches}
+                value={userEntity.branches}
                 isMulti
                 getOptionLabel={option => option.name}
                 getOptionValue={option => option.id}
-                onChange={e => setSelectedBranches(e)}
+                onChange={e => updateUserFieldvalue('branches', e)}
                 options={branchList}
               />
             </div>
@@ -261,11 +240,11 @@ export const UserUpdate = () => {
                 <Translate contentKey="tempApp.enabled" />
               </label>
               <Checkbox
-                inputId={`enabled-${user?.user?.enabled}`}
+                inputId={`enabled-${userEntity?.user?.enabled}`}
                 name="Enabled"
-                value={user?.user?.enabled}
-                onChange={handleEnabledChange}
-                checked={user?.user?.enabled}
+                value={userEntity?.user?.enabled}
+                onChange={e => updateUserFieldvalue('user.enabled', e.target.checked)}
+                checked={userEntity?.user?.enabled}
               />
             </div>
             <div className="p-field d-flex flex-column gap-3 mb-3">
