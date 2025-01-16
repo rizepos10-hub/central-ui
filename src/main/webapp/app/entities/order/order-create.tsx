@@ -33,7 +33,7 @@ import { initialItemFilterState } from 'app/shared/model/filter-state.model';
 import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
 import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-point/pricing-point.reducer';
-import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
+import { IPricingPoint, PricingPointType } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { OrderMethod } from "app/shared/model/ENUMS/order-method.model";
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
 
@@ -342,8 +342,8 @@ const OrderCreate = () => {
 
         const userSelectedPricingPoint = pricingPoints.find(
             (pricingPoint) =>
-                pricingPoint.type === "USER_SELECTED" &&
-                pricingPoint.applicableBranches?.some(branch => branch.id === branchId)
+            pricingPoint.type === PricingPointType.USER_SELECTED &&
+            pricingPoint.applicableBranches?.some(branch => branch.id === branchId)
         );
 
         if (userSelectedPricingPoint) {
@@ -351,7 +351,9 @@ const OrderCreate = () => {
                 <div className="pt-3 pb-3">
                     <Dropdown
                         value={pricingPointId}
-                        options={pricingPoints.map(pricingPoint => ({ label: pricingPoint.name, value: pricingPoint.id }))}
+                        options={pricingPoints
+                            .filter(pricingPoint => pricingPoint.type === PricingPointType.USER_SELECTED)
+                            .map(pricingPoint => ({ label: pricingPoint.name, value: pricingPoint.id }))}
                         onChange={(e) => {
                             setPricingPointId(e.value);
                         }}
