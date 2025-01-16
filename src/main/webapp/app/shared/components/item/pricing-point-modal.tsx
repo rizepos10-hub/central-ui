@@ -33,10 +33,9 @@ const PricingPointModal = ({
                 if (v.id === variant.id) {
                     const existingIndex = v.pricingPointBranchPrices.findIndex(
                         ppbp => ppbp.pricingPoint.id === pricingPoint?.id
+                        && ppbp.branch?.id === branchId
                     );
-
                     let updatedPricingPointBranchPrices;
-
                     if (existingIndex !== -1) {
                         updatedPricingPointBranchPrices = v.pricingPointBranchPrices.map((ppbp, idx) =>
                             idx === existingIndex
@@ -62,6 +61,7 @@ const PricingPointModal = ({
                         ];
                     }
 
+
                     return {
                         ...v,
                         pricingPointBranchPrices: updatedPricingPointBranchPrices,
@@ -81,7 +81,6 @@ const PricingPointModal = ({
         //     price: variant.pricingPointBranchPrices.find(ppbp => ppbp.pricingPoint.id === pp.id)?.price || 0,
         // }));
 
-        // console.log(result, 'result')
         return
     };
 
@@ -100,7 +99,7 @@ const PricingPointModal = ({
                                 <InputNumber
                                     min={0}
                                     maxFractionDigits={2}
-                                    value={variant.pricingPointBranchPrices.find(ppbp => ppbp.pricingPoint.id === pricingPoint.id)?.price || 0}
+                                    value={variant.pricingPointBranchPrices.find(ppbp => ppbp.pricingPoint.id === pricingPoint.id && ppbp.branch?.id === branchId)?.price || 0}
                                     onChange={e => handlePriceChange(pricingPoint, e.value)}
                                 />
                             </div>
