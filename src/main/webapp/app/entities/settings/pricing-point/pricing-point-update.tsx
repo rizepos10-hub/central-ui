@@ -29,7 +29,7 @@ export const PricingPointUpdate = () => {
     if (!isNew) {
       dispatch(getEntity(id));
     } else {
-      dispatch(reset())
+      dispatch(reset());
     }
     dispatch(getBranches({
       page: 0,
