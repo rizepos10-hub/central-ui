@@ -301,7 +301,7 @@ const OrderCreate = () => {
             orderCharges: [],
             scheduledAt: null,
             orderMethod: orderEntity?.orderMethod,
-            processingStatus: OrderStatus.DRAFT,
+            processingStatus: OrderStatus.PROCESSING,
         }
 
         dispatch(createEntity(structuredEntity)).then(() => {
