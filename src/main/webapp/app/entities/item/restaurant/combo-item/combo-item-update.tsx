@@ -41,7 +41,7 @@ export const ComboItemUpdate = () => {
   const location = useLocation();
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
-  const comboItemEntity = useAppSelector(state => state.comboItem.entity);
+  const comboItemEntity: IComboItem = useAppSelector(state => state.comboItem.entity);
   const loading = useAppSelector(state => state.comboItem.loading);
   const updating = useAppSelector(state => state.comboItem.updating);
   const updateSuccess = useAppSelector(state => state.comboItem.updateSuccess);
@@ -54,9 +54,7 @@ export const ComboItemUpdate = () => {
   );
 
 
-  const [comboItem, setComboItem] = useState<IComboItem>({
-    itemType: "RESTAURANT",
-  });
+  const [comboItem, setComboItem] = useState<IComboItem>({});
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -280,16 +278,9 @@ export const ComboItemUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
-    if (!isNew) {
-      setComboItem(comboItemEntity);
-    } else {
-      setComboItem({
-        ...comboItemEntity,
-        itemType: "RESTAURANT",
-        itemVariantType: "RESTAURANT_COMBO",
-
-      })
-    }
+    setComboItem({
+      ...comboItemEntity,
+    })
   }, [comboItemEntity, updateSuccess]);
 
   const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
