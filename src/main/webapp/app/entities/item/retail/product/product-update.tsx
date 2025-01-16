@@ -90,7 +90,7 @@ export const ProductUpdate = () => {
 
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
-  const productEntity = useAppSelector(state => state.product.entity);
+  const productEntity: IProduct = useAppSelector(state => state.product.entity);
   const loading = useAppSelector(state => state.product.loading);
   const updating = useAppSelector(state => state.product.updating);
   const updateSuccess = useAppSelector(state => state.product.updateSuccess);
@@ -110,11 +110,7 @@ export const ProductUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [product, setProduct] = useState<IProduct>({
-    itemType: 'RETAIL',
-    itemVariantType: ItemVariantType.RETAIL_SIMPLE,
-    variants: [],
-  });
+  const [product, setProduct] = useState<IProduct>({});
   const isVariableItem = product?.itemVariantType === ItemVariantType.RETAIL_VARIABLE;
   const isSingleItem = product?.itemVariantType === ItemVariantType.RETAIL_SIMPLE;
 
@@ -679,15 +675,13 @@ export const ProductUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
-    if (!isNew) {
-      setProduct({
-        ...productEntity,
-        variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
-      });
-    }
+    setProduct({
+      ...productEntity,
+      variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
+    });
   }, [productEntity]);
 
-
+  console.log(productEntity, 'productEntity')
   const handleSupplierChange = (index, updatedVariant) => {
     const updatedProduct = {
       ...product,

@@ -3,8 +3,9 @@ import { IItemMeasure } from "app/shared/model/item-measure.model";
 import { IAttributes, IExchangeMeasure, ISimpleItemVariant } from "app/shared/model/ITEM/retail/simple-item.model";
 import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
 import { ItemLocation } from "app/shared/model/ITEM/retail/item-location.model";
+import { ItemVariantType } from "../../ENUMS/item-variant-type.model";
 
-export interface IProduct extends IItem{
+export interface IProduct extends IItem {
   variants?: IVariableItemVariant[];
   attributes?: IAttributes[];
   baseMeasure?: IItemMeasure;
@@ -12,4 +13,17 @@ export interface IProduct extends IItem{
   itemLocation?: ItemLocation;
 }
 
-export const defaultValue: Readonly<IProduct> = {};
+export const defaultValue: Readonly<IProduct> = {
+  variants: [{
+    pricingPointBranchPrices: [],
+    attachments: [],
+    branchVariantDetails: {},
+    accountingGroups: [],
+    description: '',
+    discounts: [],
+    name: '',
+    order: 0,
+  }],
+  itemType: 'RETAIL',
+  itemVariantType: ItemVariantType.RETAIL_SIMPLE,
+};
