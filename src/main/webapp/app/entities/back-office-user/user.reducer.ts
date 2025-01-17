@@ -48,12 +48,10 @@ export const getEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-
 export const getRoles = createAsyncThunk(
   'back-office-user/fetch_assigned_roles', // Corrected action name
-  async (id: string | number) => {
-
-    const requestUrl = `${apiUrl}/${id}/roles`;
+  async () => {
+    const requestUrl = `${apiUrl}/roles`;
     const response = await axios.get<IUser>(requestUrl);
     return response
   },
@@ -71,10 +69,6 @@ export const assignRole = createAsyncThunk(
   },
   { serializeError: serializeAxiosError }
 );
-
-
-
-
 
 export const createEntityAndAssignRole = createAsyncThunk(
   'back-office-user/create_entity',
@@ -138,7 +132,10 @@ export const UserSlice = createSlice({
     builder
       .addCase(changeEntityField, (state, action) => {
         const { name, value } = action.payload;
+        console.log(state.entity[name], 'state.entity[name]')
+        console.log(value, 'value')
         state.entity[name] = value;
+        console.log(state.entity, 'state.entity')
       })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
@@ -150,7 +147,9 @@ export const UserSlice = createSlice({
         state.entity = {};
       })
       .addCase(getRoles.fulfilled, (state, action: any) => {
+        console.log(state, 'state')
         state.roles = action.payload.data;
+        state.entity['userRole']['groups'] = action.payload.data['groups'];
       })
       .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
         const { data, headers } = action.payload;

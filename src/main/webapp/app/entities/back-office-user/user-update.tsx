@@ -54,34 +54,20 @@ export const UserUpdate = () => {
     }
   };
 
-  // const handleEnabledChange = (event) => {
-  //   const { value, checked } = event.target;
-  //   setUser((prevUser) => {
-  //     if (checked) {
-  //       return {
-  //         ...prevUser,
-  //         enabled: checked,
-  //       };
-  //     } else {
-  //       return {
-  //         ...prevUser,
-  //         enabled: checked,
-  //       };
-  //     }
-  //   });
-  // };
-
   const handleSubmit = (event) => {
     event.preventDefault();
-    const authoritiesWithAssignedTrue = roles.reduce((acc, role) => {
+    const authoritiesWithAssignedTrue = userEntity?.userRole?.groups.reduce((acc, role) => {
       if (role.assigned) {
+        // @ts-expect-error -- ignore
         acc.groups.push(role.groupName);
       }
 
       const trueAuthorities = role.authorities.filter(authority => authority.assigned);
+      // @ts-expect-error -- ignore
       acc.authorities = acc.authorities.concat(trueAuthorities.map(authority => authority.authorityName));
 
       return acc;
+      // @ts-expect-error -- ignore
     }, { authorities: [], groups: [] });
 
     try {
@@ -101,7 +87,8 @@ export const UserUpdate = () => {
             temporary: false,
             value: userEntity?.user?.password,
           },
-          branches: userEntity.branches
+          branches: userEntity.branches,
+          roles: authoritiesWithAssignedTrue
         };
 
         dispatch(createEntityAndAssignRole({
@@ -109,24 +96,28 @@ export const UserUpdate = () => {
           roles: authoritiesWithAssignedTrue
         }));
 
-        dispatch(assignRole({ id: userEntity?.user?.id, selectedRoles: authoritiesWithAssignedTrue }));
-        handleClose()
+        // dispatch(assignRole({ id: userEntity?.user?.id, selectedRoles: authoritiesWithAssignedTrue }));
+        // handleClose()
       } else {
-        const updatedUser: IBackOfficeUser = {
-          ...userEntity,
-          branches: userEntity.branches.map(branch => branch)
-        }
+        const { userRole, ...rest } = userEntity;
 
-        dispatch(assignRole({ id, selectedRoles: authoritiesWithAssignedTrue }))
+        const updatedUser: IBackOfficeUser = {
+          ...rest,
+          branches: userEntity.branches.map(branch => branch),
+          // @ts-expect-error -- ignore
+          roles: authoritiesWithAssignedTrue,
+        };
+
+
+        // dispatch(assignRole({ id, selectedRoles: authoritiesWithAssignedTrue }))
         dispatch(updateEntity(updatedUser));
         // handleClose()
       }
 
     } catch (error) {
-      console.error('Error occurred while submitting:', error);
+      console.error(error)
     }
   };
-
 
   useEffect(() => {
     dispatch(
@@ -142,20 +133,18 @@ export const UserUpdate = () => {
     } else {
       dispatch(getEntity(id));
     }
-
   }, [updateSuccess]);
 
 
-  console.log(userEntity, 'userEntity')
 
   return (
     <div className="" >
-      <div className="col-8">
+      <div className="col-12">
         <h2>
           {isNew ? translate("tempApp.createNewUser") : translate("tempApp.editUser")}
         </h2>
       </div>
-      <div className="col-8">
+      <div className="col-12">
 
         <div className=" d-flex flex-column p-3  bg-white">
           <form onSubmit={handleSubmit}>
@@ -251,7 +240,7 @@ export const UserUpdate = () => {
               <label className="font-bold">
                 <Translate contentKey="tempApp.permissions" />
               </label>
-              <Authorities id={userEntity?.user?.id} />
+              <Authorities userEntity={userEntity} />
             </div>
             <div className="p-field d-flex gap-2 align-items-center mb-3">
               <Button
@@ -265,7 +254,7 @@ export const UserUpdate = () => {
               <Button
                 id="save-entity"
                 type="submit"
-                disabled={updating}
+                // disabled={updating}
                 icon="pi pi-save"
               >
                 <Translate contentKey="common.buttons.save" />

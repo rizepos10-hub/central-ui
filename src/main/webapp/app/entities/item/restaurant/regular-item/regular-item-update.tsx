@@ -157,6 +157,7 @@ export const RegularItemUpdate = () => {
           attributeValues: {},
           createdDate: new Date().toISOString(),
           pricingPointBranchPrices: [],
+          id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
         },
       ],
     }));
@@ -276,15 +277,17 @@ export const RegularItemUpdate = () => {
           entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
             ...variantWithoutId,
           }));
-          dispatch(createEntity(entityWithoutId)).then(res => {
-            const payload = res?.payload as any;
-            const newProductId = payload?.data?.id;
+          if (clone) {
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
 
-            // @ts-expect-error -- unknown type
-            if (!res?.error) {
-              navigate(`/restaurant/regular/${newProductId}/edit`)
-            }
-          });
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/restaurant/regular/${newProductId}/edit`)
+              }
+            });
+          }
 
           // @ts-expect-error -- unknown type
           if (!res?.error) {

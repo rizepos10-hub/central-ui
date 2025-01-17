@@ -1,9 +1,11 @@
 import { IBranch } from "./branch.model";
-import { IUser } from "./user.model";
+import { IUser, RolePermissions } from "./user.model";
 
 export interface IBackOfficeUser {
     user: IUser;
     branches: IBranch[];
+    userRole?: RolePermissions;
+    roles?: RolePermissions;
 }
 
 export const defaultValue: Readonly<IBackOfficeUser> = {
@@ -26,5 +28,9 @@ export const defaultValue: Readonly<IBackOfficeUser> = {
             authorities: [],
         },
     },
-    branches: []
+    branches: [],
+    userRole: {
+        authorities: [],
+        groups: [],
+    }
 };
