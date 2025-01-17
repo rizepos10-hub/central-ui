@@ -1,9 +1,10 @@
 import axios from 'axios';
-import { createAsyncThunk, createSlice, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
+import { createAction, createAsyncThunk, createSlice, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
-import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IUser, defaultValue, RolePermissions, IUserWithBranches } from "app/shared/model/user.model";
+import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError, ChangeFieldPayload } from 'app/shared/reducers/reducer.utils';
+import { IUser, defaultValue, RolePermissions } from "app/shared/model/user.model";
+import { IBackOfficeUser } from 'app/shared/model/back-offic-user.model';
 
 interface EntityStateWithRoles<T> extends EntityState<T> {
   roles: RolePermissions;
@@ -42,17 +43,15 @@ export const getEntity = createAsyncThunk(
   'back-office-user/fetch_entity',
   async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-    return axios.get<IUserWithBranches>(requestUrl);
+    return axios.get<IBackOfficeUser>(requestUrl);
   },
   { serializeError: serializeAxiosError }
 );
 
-
 export const getRoles = createAsyncThunk(
   'back-office-user/fetch_assigned_roles', // Corrected action name
-  async (id: string | number) => {
-
-    const requestUrl = `${apiUrl}/${id}/roles`;
+  async () => {
+    const requestUrl = `${apiUrl}/roles`;
     const response = await axios.get<IUser>(requestUrl);
     return response
   },
@@ -61,8 +60,8 @@ export const getRoles = createAsyncThunk(
 
 export const assignRole = createAsyncThunk(
   'back-office-user/assign_role',
-  async ({ id , selectedRoles }: { id: string; selectedRoles: any[] }, ) => {
-    if(id){
+  async ({ id, selectedRoles }: { id: string; selectedRoles: any[] },) => {
+    if (id) {
       const result = await axios.put<IUser>(`${apiUrl}/${id}/roles`, selectedRoles);
       return result.data;
     }
@@ -71,13 +70,9 @@ export const assignRole = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-
-
-
-
 export const createEntityAndAssignRole = createAsyncThunk(
   'back-office-user/create_entity',
-  async ({ entity, roles } : any, thunkAPI) => {
+  async ({ entity, roles }: any, thunkAPI) => {
     const result = await axios.post<any>(apiUrl, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     if (result.data.id) {
@@ -90,8 +85,8 @@ export const createEntityAndAssignRole = createAsyncThunk(
 
 export const updateEntity = createAsyncThunk(
   'back-office-user/update_entity',
-  async (entity: IUserWithBranches, thunkAPI) => {
-    const result = await axios.put<IUserWithBranches>(`${apiUrl}/${entity.user.id}`, cleanEntity(entity));
+  async (entity: IBackOfficeUser, thunkAPI) => {
+    const result = await axios.put<IBackOfficeUser>(`${apiUrl}/${entity.user.id}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -119,8 +114,9 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-// slice
+export const changeEntityField = createAction<ChangeFieldPayload<IUser>>('back-office-user/change_field');
 
+// slice
 export const UserSlice = createSlice({
   name: 'user',
   initialState,
@@ -134,6 +130,13 @@ export const UserSlice = createSlice({
   },
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { name, value } = action.payload;
+        console.log(state.entity[name], 'state.entity[name]')
+        console.log(value, 'value')
+        state.entity[name] = value;
+        console.log(state.entity, 'state.entity')
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
@@ -143,8 +146,10 @@ export const UserSlice = createSlice({
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addCase(getRoles.fulfilled, (state, action :any) => {
+      .addCase(getRoles.fulfilled, (state, action: any) => {
+        console.log(state, 'state')
         state.roles = action.payload.data;
+        state.entity['userRole']['groups'] = action.payload.data['groups'];
       })
       .addMatcher(isFulfilled(getEntities, searchEntities), (state, action) => {
         const { data, headers } = action.payload;
@@ -175,7 +180,7 @@ export const UserSlice = createSlice({
   },
 });
 
-export const { reset,updateRoles } = UserSlice.actions;
+export const { reset, updateRoles } = UserSlice.actions;
 
 // Reducer
 export default UserSlice.reducer;
