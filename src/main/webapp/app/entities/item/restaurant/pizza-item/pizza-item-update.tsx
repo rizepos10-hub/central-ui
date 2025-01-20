@@ -764,6 +764,7 @@ export const PizzaItemUpdate = () => {
                                     <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                   </label>
                                   <Select
+                                    isClearable
                                     value={pizzaItem?.variants?.[0]?.mixAndMatchRule || null}
                                     options={mixAndMatchRuleList}
                                     getOptionLabel={option => option.name}

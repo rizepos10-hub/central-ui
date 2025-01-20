@@ -437,6 +437,7 @@ export const ComboItemUpdate = () => {
                               <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                             </label>
                             <Select
+                              isClearable
                               value={comboItem?.variants?.[0]?.mixAndMatchRule || null}
                               options={mixAndMatchRuleList}
                               getOptionLabel={option => option.name}
