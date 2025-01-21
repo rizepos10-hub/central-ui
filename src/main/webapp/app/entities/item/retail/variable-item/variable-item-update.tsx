@@ -777,6 +777,7 @@ export const VariableItemUpdate = () => {
                                           <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                         </label>
                                         <Select
+                                          isClearable
                                           value={variant?.mixAndMatchRule}
                                           options={mixAndMatchRuleList}
                                           getOptionLabel={option => option.name}
