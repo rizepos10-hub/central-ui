@@ -28,7 +28,7 @@ export const ProductionCenter = () => {
   const loading = useAppSelector(state => state.productionCenter.loading);
   const totalItems = useAppSelector(state => state.productionCenter.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   const getAllEntities = () => {

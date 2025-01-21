@@ -28,7 +28,7 @@ export const Supplier = () => {
   const loading = useAppSelector(state => state.supplier.loading);
   const totalItems = useAppSelector(state => state.supplier.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     address: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     phoneNumber: { value: null, matchMode: FilterMatchMode.STARTS_WITH },

@@ -28,7 +28,7 @@ export const FloorPlanTvDisplay = () => {
   const loading = useAppSelector(state => state.tvDisplay.loading);
   const totalItems = useAppSelector(state => state.tvDisplay.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   console.log(tvDisplaysList, 'tvDisplaysList')

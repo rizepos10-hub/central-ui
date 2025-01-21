@@ -1,5 +1,6 @@
 import { ILoyaltyCard } from "../loyalty-card.model";
 import { IAddress } from "../address.model";
+import { IPricingPoint } from "../PRICING-POINT/pricing-point";
 
 export interface ICustomer {
   id?: string;
@@ -14,10 +15,14 @@ export interface ICustomer {
   loyaltyCard?: ILoyaltyCard | null;
   email?: string;
   image?: string;
-  wholesalePriceLines?: IWholesalePriceLine;
+  pricingPoints?: IPricingPointsMap;
   businessDetails?: {
     businessName: string;
   }
+}
+
+export interface IPricingPointsMap {
+  [key: string]: IPricingPoint;
 }
 
 export interface IWholesalePriceLine {

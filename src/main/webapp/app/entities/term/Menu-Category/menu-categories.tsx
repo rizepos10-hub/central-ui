@@ -30,7 +30,7 @@ const MenuCategories = () => {
   const menuCategoryList = useAppSelector(state => state.menuCategory.entities)
   const loading = useAppSelector(state => state.menuCategory.loading);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
   const totalItems = menuCategoryList.length;
 

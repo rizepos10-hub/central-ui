@@ -7,6 +7,7 @@ export interface IBranchRegistry {
   code?: string;
   branch?: IBranch;
   openTill?: ITill;
+  lastOnline?: Date;
 }
 
 export const defaultValue: Readonly<IBranchRegistry> = {};

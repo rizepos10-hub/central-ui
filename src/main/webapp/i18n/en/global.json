@@ -110,6 +110,8 @@
       "apply": "Apply",
       "save": "Save",
       "saveandnew": "Save & create",
+      "saveandclone": "Save & clone",
+      "reset": "Reset",
       "view": "View",
       "show": "Show {{otherEntity}}"
     },

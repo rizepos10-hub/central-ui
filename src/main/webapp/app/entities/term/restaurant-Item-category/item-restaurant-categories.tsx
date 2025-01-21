@@ -31,7 +31,7 @@ export const ItemRestaurantCategories = () => {
   const totalItems = categoryList.length;
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   const getAllEntities = () => {

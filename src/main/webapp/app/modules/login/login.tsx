@@ -1,28 +1,33 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import store, { useAppDispatch, useAppSelector } from 'app/config/store';
-import { login } from 'app/shared/reducers/authentication';
-import LoginModal from './login-modal';
-import { Checkbox } from 'primereact/checkbox';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { login, loginFromToken } from 'app/shared/reducers/authentication';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { LayoutContext } from 'app/shared/sidebar/context/layoutcontext';
-import { getTenant, tenantReducer } from 'app/shared/tenant/TenantContext';
+import { getTenant } from 'app/shared/tenant/TenantContext';
+
 export const Login = () => {
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
-  const loginError = useAppSelector(state => state.authentication.loginError);
   const showModalLogin = useAppSelector(state => state.authentication.showModalLogin);
-  const [showModal, setShowModal] = useState(showModalLogin);
   const navigate = useNavigate();
   const location = useLocation();
 
   const tenant = useAppSelector(state => state.tenant.tenant);
 
+  console.log(tenant)
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+
+
+  const params = new URLSearchParams(window.location.search);
+  const access_token = params.get('access_token');
+  const refresh_token = params.get('refresh_token');
+
   const handleLogin = () => {
     if (email && password) {
       dispatch(login(email, password, tenant, rememberMe));
@@ -30,22 +35,25 @@ export const Login = () => {
   };
 
   useEffect(() => {
-    setShowModal(true);
     dispatch(getTenant);
   }, []);
 
-  // const handleLogin = (username, password, rememberMe = false) => dispatch(login(username, password, tenant, rememberMe));
-
-  const handleClose = () => {
-    setShowModal(false);
-    navigate('/');
-  };
+  useEffect(() => {
+    if (tenant) {
+      console.log(access_token)
+      if (access_token) {
+        console.log(1)
+        dispatch(loginFromToken(access_token, refresh_token, tenant));
+        navigate('/');
+      }
+    }
+  }, [tenant])
 
   const { layoutConfig } = useContext(LayoutContext);
   const dark = layoutConfig.colorScheme !== 'light';
 
   const { from } = (location.state as any) || { from: { pathname: '/', search: location.search } };
-  console.log(isAuthenticated)
+
   if (isAuthenticated) {
     return <Navigate to={from} replace />;
   }

@@ -128,7 +128,7 @@ export const AddonUpdate = () => {
   return (
     <div>
       <Row>
-        <Col md={isNew ? "12" : "6"}>
+        <Col md={"12"}>
           <Row>
             <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
               {isNew ? (
@@ -243,26 +243,6 @@ export const AddonUpdate = () => {
             </form>
           </PrimeCard>
         </Col>
-        {!isNew && (
-          <Col md="6">
-            <Row>
-              <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
-                <Translate contentKey={'tempApp.addon.assignToItem'}>Assign To Item</Translate>
-              </h2>
-            </Row>
-            <TabView>
-              <TabPanel header="Regular">
-                <RegularItemsTable id={id} />
-              </TabPanel>
-              <TabPanel header="Pizza">
-                <PizzaItemsTable id={id} />
-              </TabPanel>
-              <TabPanel header="Combo">
-                <ComboItemsTable id={id} />
-              </TabPanel>
-            </TabView>
-          </Col>
-        )}
       </Row>
     </div>
   );

@@ -27,7 +27,7 @@ export const PizzaToppingGroup = () => {
   const loading = useAppSelector(state => state.toppingGroup.loading);
   const totalItems = useAppSelector(state => state.toppingGroup.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   console.log(pizzaToppingGroups, 'pizzaToppingGroups')

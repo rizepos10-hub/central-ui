@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
 import { getSortState, translate, Translate } from 'react-jhipster';
@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { deleteEntities, filterEntities, getEntities } from './pizza-item.reducer';
+import { createEntity, deleteEntities, filterEntities, getEntities } from './pizza-item.reducer';
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { IPizzaItem } from "app/shared/model/ITEM/restaurant/pizza-item.model";
@@ -23,6 +23,7 @@ import { updateEntities } from './pizza-item.reducer';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { FilterMatchMode } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
+import { FaCopy } from 'react-icons/fa';
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
@@ -38,9 +39,10 @@ export const PizzaItem = () => {
   const pizzaItemsList: IPizzaItem[] = useAppSelector(state => state.pizzaItem.entities);
   const loading = useAppSelector(state => state.pizzaItem.loading);
   const totalItems = useAppSelector(state => state.pizzaItem.totalItems);
-
-
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const [localNameFilter, setLocalNameFilter] = useState("");
+
   const query = JSON.parse(searchParams.get("query")) || JSON.parse(searchParams.get("query")) || {
     first: 0,
     rows: 20,
@@ -83,14 +85,15 @@ export const PizzaItem = () => {
     setSearchParams({ query: queryParams }, { replace: true })
   };
 
+  const debouncedFilter = useRef(_.debounce((event) => {
+    event['first'] = 0;
+    event['page'] = 0;
+    const queryParams = JSON.stringify(event);
+    setSearchParams({ query: queryParams }, { replace: true })
+  }, 300)).current
+
   const onFilter = (event: DataTableFilterEvent) => {
-    const debouncedSearchAction = _.debounce(() => {
-      event['first'] = 0;
-      event['page'] = 0;
-      const queryParams = JSON.stringify(event);
-      setSearchParams({ query: queryParams }, { replace: true })
-    }, 300);
-    debouncedSearchAction();
+    debouncedFilter(event);
   };
 
 
@@ -166,38 +169,24 @@ export const PizzaItem = () => {
   }, [selectedActionOption])
 
   const nameFilterTemplate = () => {
-    const [name, setName] = useState('');
-
     return (
-      <form onSubmit={(e) => {
-        e.preventDefault()
-        const newQuery = {
-          ...query,
-          filters: {
-            ...query.filters,
-            name: {
-              ...query.filters?.name,
-              value: name,
-              matchMode: query.filters?.name?.matchMode || FilterMatchMode.CONTAINS,
-            },
-          }
-        }
-
-        const updatedQuery = applyMatchModeMap(newQuery);
-
-
-        dispatch(filterEntities({
-          query: updatedQuery,
-        }));
-      }}>
-        <InputText
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="p-inputtext-sm"
-          placeholder="Search by Name"
-        />
-      </form>
+      <InputText
+        type="text"
+        value={localNameFilter}
+        onChange={(e) => {
+          setLocalNameFilter(e.target.value);
+          const newQuery = {
+            ...query,
+            filters: {
+              ...query.filters,
+              name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
+            }
+          };
+          debouncedFilter(newQuery);
+        }}
+        className="p-inputtext-sm"
+        placeholder="Search by Name"
+      />
     );
   };
 
@@ -219,6 +208,38 @@ export const PizzaItem = () => {
     setSelectedProducts([]);
     setSelectedActionOption(null);
   }
+
+  const duplicateColumnTemplate = (rowData) => {
+    console.log(rowData)
+    return (
+      <Button
+        className="d-flex justify-content-center w-100"
+        onClick={() => confirmDialog({
+          message: 'Are you sure you want to duplicate this product?',
+          header: 'Duplicate Product',
+          icon: 'pi pi-exclamation-triangle',
+          accept() {
+            const { id, ...entityWithoutId } = rowData;
+            entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+              ...variantWithoutId,
+            }));
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
+
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/restaurant/pizza/${newProductId}/edit`)
+              }
+            });
+          }
+        })}
+        text
+      >
+        <FaCopy style={{ cursor: 'pointer', color: 'black', marginLeft: '0.3rem' }} />
+      </Button>
+    );
+  };
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
@@ -324,7 +345,14 @@ export const PizzaItem = () => {
 
         <Column field="Type" header={translate('items.view.fields.description')} />
 
-        <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
+        {/* <Column field="stock" sortable header={translate('items.view.fields.inStock')} /> */}
+
+        <Column
+          header={translate('items.view.fields.duplicate')}
+          body={duplicateColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
 
         <Column header={translate('items.view.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />

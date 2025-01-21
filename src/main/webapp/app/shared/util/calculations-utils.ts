@@ -1,9 +1,12 @@
 import React from "react"
 import { IDiscount } from "../model/discount.model"
 import { IItem } from "../model/ITEM/item.model"
-import { IBranchVariantDetails, IVariableItemVariant } from "../model/ITEM/retail/variable-item.model"
+import { IBranchVariantDetails, IPricingPointBranchPrice, IVariableItemVariant } from "../model/ITEM/retail/variable-item.model"
 import { IProfileGroup } from "../model/TAX/profile-group.model"
 import { ITax } from "../model/TAX/tax.model"
+import { ICustomer } from "../model/CUSTOMER/customer.model"
+import { IPricingPoint } from "../model/PRICING-POINT/pricing-point"
+import { OrderMethod } from "app/shared/model/ENUMS/order-method.model";
 
 const calculateDiscount = (discounts: IDiscount[], price: number) => {
     let discountedPrice = price
@@ -83,11 +86,58 @@ export const getPriceForBranch = (
     price: number,
     branchDetails: IBranchVariantDetails | null,
     branchId: string,
-    salePrice: number | null
+    salePrice: number | null,
+    pricingPointBranchPrices: IPricingPointBranchPrice[] | undefined,
+    selectedOrderMethod?: OrderMethod,
+    customer?: ICustomer | null,
+    pricingPointId?: string,
+    pricingPoints?: IPricingPoint[],
 ): number => {
     console.log(branchId, 'branchId')
     console.log(branchDetails, 'branchDetails')
     const branch = branchDetails?.[branchId];
+    const result: IPricingPointBranchPrice[] = (pricingPointBranchPrices || [])
+    .filter(item => {
+      // Check if the branch matches and is applicable
+      return item.pricingPoint.applicableBranches
+        .some(branch => branch.id === branchId);
+    }); 
+
+    if(pricingPointId && pricingPoints) {
+        const resultPricingPoint = result.find((item) => item.pricingPoint.id === pricingPointId);
+        if(resultPricingPoint) {
+            return resultPricingPoint.price;
+        }
+    }
+
+    
+    let resultPricingPoint: number | null = null;
+    let customerPriceAssigned = false;
+    for (const item of result) {
+        if (item.pricingPoint.automaticType === "CUSTOMER") {
+            if (customer?.pricingPoints) {
+                for (const [key, pricingPoint] of Object.entries(customer.pricingPoints)) {
+                    if (pricingPoint.id === item.pricingPoint.id) {
+                        resultPricingPoint = item.price;
+                        customerPriceAssigned = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!customerPriceAssigned && item.pricingPoint.automaticType === "ORDER_TYPE") {
+            const matchingOrderTypePrice = item.pricingPoint.orderTypes?.find(
+                (orderType) => orderType === selectedOrderMethod
+            );
+    
+            if (matchingOrderTypePrice) {
+                resultPricingPoint = item.price;
+            }
+        }
+    }
+
+    if(resultPricingPoint) return resultPricingPoint;
     if (branch?.salePrice != null) return branch.salePrice;
     if (salePrice != null) return salePrice;
     if (branch?.price != null) return branch.price;
@@ -117,12 +167,20 @@ export const getFinalPrice = ({
     variantItem,
     branchId,
     pizzaPrice,
-    item
+    item,
+    customer,
+    pricingPointId,
+    pricingPoints,
+    selectedOrderMethod
 }: {
     branchId?: string
     variantItem?: IVariableItemVariant
     pizzaPrice?: number
     item?: IItem,
+    customer?: ICustomer,
+    pricingPointId?: string,
+    pricingPoints?: IPricingPoint[],
+    selectedOrderMethod?: OrderMethod
 }) => {
     let finalPrice = 0
     console.log(variantItem, 'variantItem')
@@ -131,7 +189,12 @@ export const getFinalPrice = ({
             variantItem.price,
             variantItem.branchVariantDetails,
             branchId,
-            variantItem.salePrice
+            variantItem.salePrice,
+            variantItem.pricingPointBranchPrices,
+            selectedOrderMethod,
+            customer,
+            pricingPointId,
+            pricingPoints
         )
     }
     if (variantItem) {
