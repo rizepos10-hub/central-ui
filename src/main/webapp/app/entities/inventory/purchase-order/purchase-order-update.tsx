@@ -62,7 +62,15 @@ export const PurchaseOrderUpdate = () => {
   const [searchParam]=  useSearchParams();
 
   const query = JSON.parse(searchLocation.get("query")) ;
+  const items = JSON.parse(decodeURIComponent(searchLocation.get('items')));
   const [purchaseOrder, setPurchaseOrder] = useState<IPurchaseOrder>({
+    orderLines: items ? items?.map((orderLine) => ({
+      item: {name: orderLine.itemName, itemId: orderLine.itemId, variantId: orderLine.variantId},
+      price: 0,
+      quantity: 1,
+      received: 0,
+      returnedQuantity: 0
+    })): [],
     status: "PLACED"
   });
 
@@ -78,7 +86,7 @@ export const PurchaseOrderUpdate = () => {
 
 
 
-  const purchaseOrderEntity = useAppSelector(state => state.purchaseOrder.entity);
+  const purchaseOrderEntity = !items ? useAppSelector(state => state.purchaseOrder.entity) : {};
   const loading = useAppSelector(state => state.purchaseOrder.loading);
   const updating = useAppSelector(state => state.purchaseOrder.updating);
   const updateSuccess = useAppSelector(state => state.purchaseOrder.updateSuccess);
@@ -97,10 +105,6 @@ export const PurchaseOrderUpdate = () => {
   const isOrderReceived = purchaseOrderEntity?.status === "RECEIVED";
   const canSplit = !isOrderReceived && purchaseOrderEntity?.id;
   const isDisabled = !purchaseOrder.supplier || !purchaseOrder.warehouse || isOrderReceived;
-
-  console.log(isDisabled, 'isDisabled')
-
-
 
   useEffect(() => {
     if (isNew) {
@@ -139,10 +143,13 @@ export const PurchaseOrderUpdate = () => {
     if (updateSuccess) {
       handleClose();
     }
-    if(purchaseOrderEntity){
-      setPurchaseOrder(purchaseOrderEntity)
+  
+    if (purchaseOrderEntity?.id) {
+      setPurchaseOrder(purchaseOrderEntity);
+    } else if (!items) {
+      setPurchaseOrder({});
     }
-  }, [updateSuccess, purchaseOrderEntity?.id]);
+  }, [updateSuccess, purchaseOrderEntity, items]);
 
 
   const filterItems = (inputValue: string) => {
@@ -341,7 +348,6 @@ export const PurchaseOrderUpdate = () => {
 
 
   const deleteColumnTemplate = (rowData, index, field) => {
-    console.log(rowData, index, field, 'dsds')
     const {rowIndex} = index
     const handleClick = () =>  {
       setPurchaseOrder((prevState) => {

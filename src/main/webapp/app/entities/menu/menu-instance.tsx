@@ -12,7 +12,7 @@ import { getSortState, TextFormat, Translate, translate, ValidatedField, Validat
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { convertDateTimeFromServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { IMenu } from 'app/shared/model/menu.model';
+import { IMenu, IMenuScreen } from 'app/shared/model/menu.model';
 import { updateEntity, createEntity, reset, sendEvent, duplicateMenu, getEntity } from './menu.reducer';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { getEntities as getTerms } from 'app/entities/term/Menu-Category/menu-category.reducer';
@@ -30,6 +30,17 @@ import MenuUpdate from './menu-update';
 import { Dialog } from "primereact/dialog";
 import Visibility from "app/shared/Visibility/Visibility";
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { IVisibility } from 'app/shared/model/visibility.model';
+import { IBranch } from 'app/shared/model/branch.model';
+
+export interface IMenuData {
+    name: string;
+    branches: IBranch[];
+    menuScreens: IMenuScreen[];
+    visibilities: IVisibility[];
+    rowHeight: any[];
+    id: string;
+}
 
 const MenuInstance = () => {
     const dispatch = useAppDispatch();
@@ -48,13 +59,16 @@ const MenuInstance = () => {
     // const [totalPages, setTotalPages] = useState<number>(0)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showVisibility, setShowVisibility] = useState(false);
-    const [selectedBranches, setSelectedBranches] = useState<any>();
+    const [selectedBranches, setSelectedBranches] = useState<IBranch[]>([]);
     const [selectedName, setSelectedName] = useState("");
 
-    const [data, setData]: any = useState({
+    const [data, setData] = useState<IMenuData>({
         name: '',
-        branch: '',
+        branches: [],
         menuScreens: [],
+        visibilities: [],
+        rowHeight: [],
+        id: ''
     });
 
     useEffect(() => {
@@ -65,19 +79,20 @@ const MenuInstance = () => {
 
     useEffect(() => {
         if (menuEntity) {
-            const newData = {
+            const newData: IMenuData = {
                 name: menuEntity.name,
-                branch: menuEntity.branch,
+                branches: menuEntity.branches,
                 menuScreens: menuEntity.menuScreens,
                 visibilities: menuEntity.visibilities,
                 rowHeight: [],
                 id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
             };
+            console.log(newData, 'newData')
             setData(newData);
         }
 
         if (menuEntity?.branch) {
-            setSelectedBranches({ label: menuEntity?.branch?.name, value: menuEntity?.branch?.id })
+            setSelectedBranches(menuEntity?.branches)
         }
 
         return () => {
@@ -95,7 +110,7 @@ const MenuInstance = () => {
             type: type || menuEntity.type,
             menuScreens: data.menuScreens,
             name: selectedName,
-            branch: selectedBranches?.value ? { id: selectedBranches.value } : null,
+            branches: selectedBranches,
             visibilities: data.visibilities
         };
 

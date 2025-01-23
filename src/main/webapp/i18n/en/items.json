@@ -139,7 +139,7 @@
 
       "stockQuantity": {
         "quantity": "Quantity",
-        "unitCost": "unitCost"
+        "unitCost": "Cost Price"
       },
 
       "shippingDimension": {
@@ -176,6 +176,7 @@
       "productionCenter": "Production Center",
       "categories": "Categories",
       "profileGroups": "Profile Groups",
+      "byWeight": "By Weight",
       "excludedFromLoyalty": "Excluded From Loyalty Points",
       "image": "Image",
       "sku": "SKU",
@@ -190,6 +191,7 @@
         "quantity": "Quantity"
       },
       "WholesalePrices": "Wholesale Prices",
+      "pricingPoints": "Pricing Points",
       "hideItem": "Hide Item POS",
       "hideOnline": "Hide Item Online",
       "baseMeasure": "Select Base Measure",

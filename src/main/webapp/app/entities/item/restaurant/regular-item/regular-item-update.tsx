@@ -72,11 +72,7 @@ export const RegularItemUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [regularItem, setRegularItem] = useState<IRegularItem>({
-    itemType: "RESTAURANT",
-    itemVariantType: ItemVariantType.RESTAURANT_VARIABLE,
-    variants: []
-  });
+  const [regularItem, setRegularItem] = useState<IRegularItem>({});
 
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
@@ -160,6 +156,8 @@ export const RegularItemUpdate = () => {
           branchVariantDetails: {},
           attributeValues: {},
           createdDate: new Date().toISOString(),
+          pricingPointBranchPrices: [],
+          id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
         },
       ],
     }));
@@ -237,14 +235,12 @@ export const RegularItemUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
-    if (!isNew) {
-      setRegularItem({
-        ...regularItemEntity,
-      });
-    }
+    setRegularItem({
+      ...regularItemEntity,
+    });
   }, [regularItemEntity]);
 
-
+  console.log(regularItemEntity, 'regularItemEntity')
   const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
 
@@ -281,15 +277,17 @@ export const RegularItemUpdate = () => {
           entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
             ...variantWithoutId,
           }));
-          dispatch(createEntity(entityWithoutId)).then(res => {
-            const payload = res?.payload as any;
-            const newProductId = payload?.data?.id;
+          if (clone) {
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
 
-            // @ts-expect-error -- unknown type
-            if (!res?.error) {
-              navigate(`/restaurant/regular/${newProductId}/edit`)
-            }
-          });
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/restaurant/regular/${newProductId}/edit`)
+              }
+            });
+          }
 
           // @ts-expect-error -- unknown type
           if (!res?.error) {
@@ -980,6 +978,7 @@ export const RegularItemUpdate = () => {
                                                 <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                               </label>
                                               <Select
+                                                isClearable
                                                 value={variant?.mixAndMatchRule || null}
                                                 options={mixAndMatchRuleList}
                                                 getOptionLabel={option => option.name}
@@ -1019,6 +1018,8 @@ export const RegularItemUpdate = () => {
                                           branchVariantDetails={variant.branchVariantDetails}
                                           itemVariantType={'RESTAURANT'}
                                           handleHideItemPerBranch={handleHideItemPerBranch}
+                                          variant={variant}
+                                          setItem={setRegularItem}
                                         />
                                       </AccordionTab>
                                     </Accordion>

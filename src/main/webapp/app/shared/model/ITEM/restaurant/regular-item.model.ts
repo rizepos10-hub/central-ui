@@ -8,6 +8,8 @@ import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 import { IMenu } from "../../menu.model";
 import { IAddonGroup, IAddonGroups } from "../../ADDON/addon-groups.model";
 import { IAddonPriceOverride } from "../../ADDON/addon-price-override";
+import { IPricingPointBranchPrice } from "../retail/variable-item.model";
+import { ItemVariantType } from "../../ENUMS/item-variant-type.model";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -32,6 +34,7 @@ export interface IRegularItemVariant {
   salePrice?: number;
   branchVariantDetails?: IBranchVariantDetails;
   mixAndMatchRule?: IMixAndMatchRule;
+  pricingPointBranchPrices?: IPricingPointBranchPrice[];
 }
 
 export interface IRegularItem extends IItem {
@@ -39,4 +42,20 @@ export interface IRegularItem extends IItem {
   menus?: IMenu[];
 }
 
-export const defaultValue: Readonly<IRegularItem> = {};
+export const defaultValue: Readonly<IRegularItem> = {
+  variants: [{
+    pricingPointBranchPrices: [],
+    attachments: [],
+    branchVariantDetails: {},
+    accountingGroups: [],
+    description: '',
+    discounts: [],
+    name: '',
+    order: 0,
+    addonGroups: [],
+    addonPriceOverrides: [],
+    addons: [],
+  }],
+  itemType: "RESTAURANT",
+  itemVariantType: ItemVariantType.RESTAURANT_VARIABLE,
+};

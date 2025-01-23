@@ -112,7 +112,8 @@ export const RegularItem = () => {
     const editUrl = `/restaurant/regular/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
-        {rowData.name}
+        {rowData.name} <br/>
+        <span className="text-xs">#{rowData?.variants?.length}</span>
       </Link>
     );
   };

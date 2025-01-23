@@ -777,6 +777,7 @@ export const VariableItemUpdate = () => {
                                           <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                         </label>
                                         <Select
+                                          isClearable
                                           value={variant?.mixAndMatchRule}
                                           options={mixAndMatchRuleList}
                                           getOptionLabel={option => option.name}
@@ -789,13 +790,13 @@ export const VariableItemUpdate = () => {
                                     </Col>
                                   </Row>
 
-                                  <VariantBranchPrice
+                                  {/* <VariantBranchPrice
                                     branchList={branchList}
                                     handleBranchPriceChange={handleBranchPriceChange}
                                     variantIndex={variantIndex}
                                     branchVariantDetails={variant.branchVariantDetails}
                                     itemVariantType={'RETAIL'}
-                                  />
+                                  /> */}
                                 </AccordionTab>
                               </Accordion>
                             </Col>

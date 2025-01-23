@@ -301,6 +301,11 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
         to: '/inventory/supplier',
       },
+      {
+        label: 'To Be Stocked',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+        to: '/inventory/to-be-stocked',
+      },
     ],
   },
   {
@@ -620,6 +625,11 @@ export const model: MenuItem[] = [
         label: 'Voids',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/void-reasons',
+      },
+      {
+        label: 'Pricing Points',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/pricing-point',
       },
       {
         label: 'Custom Definitions',

@@ -1,10 +1,8 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, ModalHeader, ModalBody, Input, Label, FormGroup, Button, ModalFooter, Spinner } from 'reactstrap';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { getSortState, translate, Translate } from 'react-jhipster';
-import { ITEMS_PER_PAGE_Summary } from 'app/shared/util/pagination.constants';
-import { getEntities, searchEntities, reset } from 'app/entities/item/all-items.reducer';
+import { Translate } from 'react-jhipster';
+import { getEntities } from 'app/entities/item/all-items.reducer';
 import Select from "react-select";
 import { Tag } from "primereact/tag";
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter';
@@ -13,11 +11,12 @@ import _ from 'lodash';
 import { Checkbox } from 'primereact/checkbox';
 // import { getEntities as getCategories } from 'app/entities/term/Item-category/item-category.reducer';
 import { ITerm } from 'app/shared/model/term.model';
-import { getEntities as getRestaurantCategories, searchEntities as searchRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
-import { getEntities as getRetailCategories, searchEntities as searchRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
+import { getEntities as getRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import { getEntities as getRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import { Dropdown } from 'primereact/dropdown';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { IItem } from 'app/shared/model/ITEM/item.model';
+import PaginationFilterStateVals from 'app/shared/components/pagination/pagination-filter-state-vals';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -28,83 +27,41 @@ interface ItemSelectionModalProps {
 }
 
 const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
-  const searchParams = new URLSearchParams(location.search);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
-  const [itemName, setItemName] = useState<string>(searchParams.get('name') || '');
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const totalItems = useAppSelector((state) => state.allItems.totalItems);
+  const itemList: IItem[] = useAppSelector((state) => state.allItems.entities);
+  const loading = useAppSelector((state) => state.allItems.loading);
+  const restaurantCategories: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
+  const retailCategories: ITerm[] = useAppSelector(state => state.retailCategory.entities);
+
+  const { isOpen, toggle, selectedItems, handleToggleSelect } = props;
+
+  // Local states replacing searchParams
+  const [itemName, setItemName] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>(null);
+  const [unassignedItems, setUnassignedItems] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [size] = useState<number>(10);
+
+  // Category panel filters
   const [retailFilter, setRetailFilter] = useState('');
   const [restaurantFilter, setRestaurantFilter] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
 
-  console.log(selectedCategory)
-
-  const dispatch = useAppDispatch();
-  const totalItems = useAppSelector((state) => state.allItems.totalItems);
-  const itemList: IItem[] = useAppSelector((state) => state.allItems.entities);
-  const loading = useAppSelector((state) => state.allItems.loading);
-
-  // const categories = useAppSelector(state => state.category.entities);
-  const restaurantCategories: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
-  const retailCategories: ITerm[] = useAppSelector(state => state.retailCategory.entities);
-
-  const navigate = useNavigate();
-
-  const { isOpen, toggle, selectedItems, handleToggleSelect } = props;
-
-  const initialRender = useRef(true);
-
   useEffect(() => {
-    dispatch(getEntities({
-      page: parseInt(searchParams.get("page"), 10) - 1 || 0,
-      size: parseInt(searchParams.get("size"), 10) || 10,
-      name: searchParams.get("name") || '',
-      sort: `id,asc`,
-      categoryId: selectedCategory || '',
-      unassignedItems: searchParams.get("unassignedItems") || '',
-    }));
-  }, [
-    searchParams.get("page"),
-    searchParams.get("size"),
-    searchParams.get("name"),
-    selectedCategory,
-    searchParams.get("unassignedItems")
-  ]);
-
-  const createQueryString = useCallback((name, value) => {
-    const sParams = new URLSearchParams(searchParams);
-    sParams.set(name, value);
-    return `?${sParams.toString()}`;
-  }, []);
-
-  const deleteQueryString = useCallback((name) => {
-    const sParams = new URLSearchParams(searchParams);
-    sParams.delete(name);
-    return `?${sParams.toString()}`;
-  }, []);
-
-
-  const debouncedItemNameNavigate = useCallback(
-    _.debounce((newItemName) => {
-      if (searchParams.get('name') !== newItemName) {
-        navigate(createQueryString('name', newItemName));
-      }
-    }, 300),
-    []
-  );
-
-  useEffect(() => {
-    if (initialRender.current) {
-      initialRender.current = false;
-      return;
-    }
-    debouncedItemNameNavigate(itemName);
-  }, [itemName, debouncedItemNameNavigate]);
-
-  const handleSave = () => {
-    toggle();
-  };
-
-  const isItemSelected = (id) => selectedItems?.find((selected) => selected.id === id);
+    dispatch(
+      getEntities({
+        page : page - 1,
+        size,
+        name: itemName,
+        sort: 'id,asc',
+        categoryId: selectedCategory || '',
+        unassignedItems: unassignedItems ? 'true' : '',
+      })
+    );
+  }, [page, size, itemName, selectedCategory, unassignedItems]);
 
   useEffect(() => {
     dispatch(
@@ -114,7 +71,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
         sort: `id,desc`,
       })
     );
-
     dispatch(
       getRetailCategories({
         page: 0,
@@ -122,19 +78,23 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
         sort: `id,desc`,
       })
     );
-  }, [])
+  }, []);
 
   const filteredRetail = retailCategories.filter(c =>
     c.name.toLowerCase().includes(retailFilter.toLowerCase())
-  )
+  );
   const filteredRestaurant = restaurantCategories.filter(c =>
     c.name.toLowerCase().includes(restaurantFilter.toLowerCase())
-  )
+  );
 
   const panelItemTemplate = () => {
     return (
       <div className="w-full">
-        <TabView onClick={e => e.stopPropagation()} activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
+        <TabView
+          onClick={e => e.stopPropagation()}
+          activeIndex={activeIndex}
+          onTabChange={(e) => setActiveIndex(e.index)}
+        >
           <TabPanel header="Retail Categories" >
             <input
               type="text"
@@ -155,8 +115,14 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           </TabPanel>
         </TabView>
       </div>
-    )
-  }
+    );
+  };
+
+  const isItemSelected = (id) => selectedItems?.find((selected) => selected.id === id);
+
+  const handleSave = () => {
+    toggle();
+  };
 
   return (
     <Modal size="lg" isOpen={isOpen} toggle={toggle} backdrop="static">
@@ -204,22 +170,16 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
               </Label>
               <Checkbox
                 inputId="filterByUnassignedItems"
-                checked={searchParams.get('unassignedItems') !== null}
-                onChange={(e) => {
-                  if (e.checked) {
-                    navigate(createQueryString('unassignedItems', true));
-                  } else {
-                    navigate(deleteQueryString('unassignedItems'));
-                  }
-                }}
+                checked={unassignedItems}
+                onChange={(e) => setUnassignedItems(e.checked)}
               />
             </div>
             <div className='d-flex gap-2 align-items-start'>
-              <Label for="filterByUnassignedItems">
+              <Label for="selectAllItems">
                 <Translate contentKey={'menus.pos.update.modals.item.selectAll'}>Select All</Translate>
               </Label>
               <Checkbox
-                inputId="filterByUnassignedItems"
+                inputId="selectAllItems"
                 checked={
                   itemList.length > 0 &&
                   itemList.every(iItem => selectedItems.some(sItem => sItem.id === iItem.id))
@@ -227,7 +187,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                 onChange={(e) => {
                   if (e.checked) {
                     const notSelected = itemList.filter(i => !selectedItems.some(s => s.id === i.id));
-                    console.log(notSelected, 'notSelected');
                     handleToggleSelect(notSelected);
                   } else {
                     const currentlySelectedFromList = selectedItems.filter(s => itemList.some(i => i.id === s.id));
@@ -273,7 +232,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                       ))
                       : 'Uncategorized'}
                   </td>
-
                   <td>{item.menus?.map((menu) => menu.name).join(", ")}</td>
                   <td>
                     <div>
@@ -286,10 +244,13 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                     </div>
                   </td>
                   <td>
-                    <Button color={isItemSelected(item.id) ? 'danger' : 'primary'} onClick={() => handleToggleSelect([item])}>
+                    <Button
+                      color={isItemSelected(item.id) ? 'danger' : 'primary'}
+                      onClick={() => handleToggleSelect([item])}
+                    >
                       {isItemSelected(item.id)
-                        ? translate('menus.pos.update.modals.item.buttons.unselect')
-                        : translate('menus.pos.update.modals.item.buttons.select')}
+                        ? <Translate contentKey='menus.pos.update.modals.item.buttons.unselect'>Unselect</Translate>
+                        : <Translate contentKey='menus.pos.update.modals.item.buttons.select'>Select</Translate>}
                     </Button>
                   </td>
                 </tr>
@@ -298,7 +259,11 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
           </tbody>
         </table>
         <div className="d-flex justify-content-center mt-3">
-          <PaginationFilter totalPages={Math.ceil(totalItems / 10)} />
+          <PaginationFilterStateVals
+            totalPages={Math.ceil(totalItems / size)}
+            currentPage={page}
+            setCurrentPage={(newPage) => setPage(newPage)}
+          />
         </div>
       </ModalBody>
       <ModalFooter>

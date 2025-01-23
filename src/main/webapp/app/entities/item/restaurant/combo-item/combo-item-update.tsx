@@ -41,7 +41,7 @@ export const ComboItemUpdate = () => {
   const location = useLocation();
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
-  const comboItemEntity = useAppSelector(state => state.comboItem.entity);
+  const comboItemEntity: IComboItem = useAppSelector(state => state.comboItem.entity);
   const loading = useAppSelector(state => state.comboItem.loading);
   const updating = useAppSelector(state => state.comboItem.updating);
   const updateSuccess = useAppSelector(state => state.comboItem.updateSuccess);
@@ -54,9 +54,7 @@ export const ComboItemUpdate = () => {
   );
 
 
-  const [comboItem, setComboItem] = useState<IComboItem>({
-    itemType: "RESTAURANT",
-  });
+  const [comboItem, setComboItem] = useState<IComboItem>({});
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -280,16 +278,9 @@ export const ComboItemUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
-    if (!isNew) {
-      setComboItem(comboItemEntity);
-    } else {
-      setComboItem({
-        ...comboItemEntity,
-        itemType: "RESTAURANT",
-        itemVariantType: "RESTAURANT_COMBO",
-
-      })
-    }
+    setComboItem({
+      ...comboItemEntity,
+    })
   }, [comboItemEntity, updateSuccess]);
 
   const handleHideItemPerBranch = (branchId, variantIndex, field: 'hideItem' | 'hideOnline') => {
@@ -339,16 +330,17 @@ export const ComboItemUpdate = () => {
           entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
             ...variantWithoutId,
           }));
-          dispatch(createEntity(entityWithoutId)).then(res => {
-            const payload = res?.payload as any;
-            const newProductId = payload?.data?.id;
+          if (clone) {
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
 
-            // @ts-expect-error -- unknown type
-            if (!res?.error) {
-              navigate(`/restaurant/combo/${newProductId}/edit`)
-            }
-          });
-
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/restaurant/combo/${newProductId}/edit`)
+              }
+            });
+          }
           // @ts-expect-error -- unknown type
           if (!res?.error) {
             handleNavigate(newProductId)
@@ -445,6 +437,7 @@ export const ComboItemUpdate = () => {
                               <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                             </label>
                             <Select
+                              isClearable
                               value={comboItem?.variants?.[0]?.mixAndMatchRule || null}
                               options={mixAndMatchRuleList}
                               getOptionLabel={option => option.name}
@@ -505,6 +498,8 @@ export const ComboItemUpdate = () => {
                         variantIndex={0}
                         itemVariantType={"RESTAURANT"}
                         handleHideItemPerBranch={handleHideItemPerBranch}
+                        variant={comboItem?.variants?.[0]}
+                        setItem={setComboItem}
                       />
 
                       <Row>

@@ -6,16 +6,17 @@ import MenuPosPreview from './menu-pos-preview';
 import { InputNumber } from 'primereact/inputnumber';
 import ItemSelectionModal from '../item-selection-modal';
 
-import { IMenu } from 'app/shared/model/menu.model';
+import { IMenu, IMenuScreen } from 'app/shared/model/menu.model';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Slider } from 'primereact/slider';
 import { InputText } from 'primereact/inputtext';
 import _, { update } from 'lodash';
 import { IItem } from 'app/shared/model/ITEM/item.model';
+import { IMenuData } from '../menu-instance';
 
 interface MenuScreensProps {
     menu: IMenu;
-    data: any;
+    data: IMenuData;
     setData: React.Dispatch<React.SetStateAction<any>>;
     saveEntity: (values?: any) => void
     reset: () => void;
@@ -51,46 +52,49 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [newSubScreenCols, setNewSubScreenCols] = useState<number | null>(1);
     const [newSubScreenColor, setNewSubScreenColor] = useState('');
     const [draggedIndex, setDraggedIndex] = useState(null);
-    const [breadcrumb, setBreadcrumb] = useState([]);
+    const [breadcrumb, setBreadcrumb] = useState<string[]>([]);
     const [subScreenStack, setSubScreenStack] = useState([]);
     const [newMainScreenName, setNewMainScreenName] = useState('');
     const [newMainScreenCols, setNewMainScreenCols] = useState<number>(1);
     const [editingSubScreenId, setEditingSubScreenId] = useState(null);
 
-    const [mainScreen, setMainScreen] = useState({
+    const [mainScreen, setMainScreen] = useState<IMenuScreen>({
         id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
         numberOfColumns: 1,
         subScreens: []
     })
-    const [currentSubScreens, setCurrentSubScreens] = useState([]);
+    // const [currentSubScreens, setCurrentSubScreens] = useState<IMenuScreen[]>([]);
+    const currentSubScreens = useMemo(() => {
+        return subScreenStack?.[subScreenStack.length - 1]?.subScreens || []
+    }, [subScreenStack])
+
     const cols =
         subScreenStack?.length === 1
             ? mainScreen?.numberOfColumns
             : subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns && subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns > 8
                 ? 8
                 : subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns || 1;
+    const [groupedSubscreens, setGroupedSubscreens] = useState<IMenuScreen[][]>([]);
+    // useEffect(() => {
+    //     if (mainScreen?.subScreens?.length === 0) return
+    //     // setGroupedSubscreens(() => {
+    //     //     const initialGroups = [];
+    //     //     for (let i = 0; i < currentSubScreens?.length; i += cols) {
+    //     //         initialGroups.push(currentSubScreens?.slice(i, i + cols));
+    //     //     }
+    //     //     return initialGroups;
+    //     // })
+    // }, [currentSubScreens])
 
 
-    const [groupedSubscreens, setGroupedSubscreens] = useState([]);
-
-    useEffect(() => {
-        if (mainScreen?.subScreens.length === 0) return
-        setGroupedSubscreens(() => {
-            const initialGroups = [];
-            for (let i = 0; i < currentSubScreens?.length; i += cols) {
-                initialGroups.push(currentSubScreens?.slice(i, i + cols));
-            }
-            return initialGroups;
-        })
-    }, [currentSubScreens])
-
-
-    useEffect(() => {
-        setCurrentSubScreens(mainScreen?.subScreens)
-    }, [mainScreen])
+    // useEffect(() => {
+    //     setCurrentSubScreens(mainScreen?.subScreens)
+    // }, [mainScreen])
 
     useEffect(() => {
-        setMainScreen(data?.menuScreens?.[selectedMainScreenIndex])
+        if (data?.menuScreens) {
+            setMainScreen(data?.menuScreens?.[selectedMainScreenIndex])
+        }
     }, [data])
 
 
@@ -276,31 +280,31 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         });
     };
 
-    const findAndRemoveCard = (subScreens, targetSubScreen, subScreenIndex) => {
-        return subScreens.map(subScreen => {
-            if (areObjectsEqual(subScreen, targetSubScreen)) {
-                const cardToRemove = subScreen.subScreens[subScreenIndex];
-                if (cardToRemove.componentType === 'ITEM') {
-                    const itemID = cardToRemove?.component?.item?.id;
-                    const newItemsToDisplay = selectedItems.filter(itm => itm.id !== itemID);
-                    setSelectedItems(newItemsToDisplay);
-                }
-                return {
-                    ...subScreen,
-                    subScreens: subScreen.subScreens.filter((_, index) => index !== subScreenIndex),
-                };
-            } else if (subScreen.subScreens) {
-                const updatedNestedSubScreens = findAndRemoveCard(subScreen.subScreens, targetSubScreen, subScreenIndex);
-                if (updatedNestedSubScreens !== subScreen.subScreens) {
-                    return {
-                        ...subScreen,
-                        subScreens: updatedNestedSubScreens,
-                    };
-                }
-            }
-            return subScreen;
-        });
-    };
+    // const findAndRemoveCard = (subScreens, targetSubScreen, subScreenIndex) => {
+    //     return subScreens.map(subScreen => {
+    //         if (areObjectsEqual(subScreen, targetSubScreen)) {
+    //             const cardToRemove = subScreen.subScreens[subScreenIndex];
+    //             if (cardToRemove.componentType === 'ITEM') {
+    //                 const itemID = cardToRemove?.component?.item?.id;
+    //                 const newItemsToDisplay = selectedItems.filter(itm => itm.id !== itemID);
+    //                 setSelectedItems(newItemsToDisplay);
+    //             }
+    //             return {
+    //                 ...subScreen,
+    //                 subScreens: subScreen.subScreens.filter((_, index) => index !== subScreenIndex),
+    //             };
+    //         } else if (subScreen.subScreens) {
+    //             const updatedNestedSubScreens = findAndRemoveCard(subScreen.subScreens, targetSubScreen, subScreenIndex);
+    //             if (updatedNestedSubScreens !== subScreen.subScreens) {
+    //                 return {
+    //                     ...subScreen,
+    //                     subScreens: updatedNestedSubScreens,
+    //                 };
+    //             }
+    //         }
+    //         return subScreen;
+    //     });
+    // };
 
     const confirm1 = (mainScreenIndex, item) => {
         confirmDialog({
@@ -321,7 +325,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             // reject
         });
     };
-
+    console.log(subScreenStack, 'subScreenStack')
     const handleRemoveCard = (mainScreenIndex, item) => {
         setData(prevData => {
             const updatedMenuScreens = prevData.menuScreens.map((mainScreen, i) => {
@@ -347,7 +351,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 }
                                 : subScreen
                         );
-                        setSubScreenStack(updatedSubScreenStack);
+                        // setSubScreenStack(updatedSubScreenStack);
                         // Update mainScreen.subScreens if necessary
                         const updatedSubScreens = mainScreen.subScreens.map(subScreen => {
                             if (subScreen.id === subScreenStack[subScreenStack.length - 1].id) {
@@ -367,6 +371,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 return mainScreen;
             });
 
+
+            setSubScreenStack([updatedMenuScreens[selectedMainScreenIndex]])
             return {
                 ...prevData,
                 menuScreens: updatedMenuScreens,
@@ -393,7 +399,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         });
     }
 
-    const renderSubScreens = (subscreens, mainScreenIndex) => {
+    const renderSubScreens = (subscreens: IMenuScreen[], mainScreenIndex: number) => {
         const handleDragStart = (e, { rowIndex, itemIndex }) => {
             setDraggedItem({ rowIndex, itemIndex });
             e.dataTransfer.effectAllowed = 'move';
@@ -539,13 +545,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 handleRowHeightChange(value, rowIndex);
             }
         };
-
         return (
             <div className="d-flex gap-3 mb-3" onDragOver={e => e.preventDefault()}>
                 <Col md={12}>
-                    {mainScreenItems.length > 0 && groupedSubscreens.map((row, rowIndex) => (
+                    {groupedSubscreens.map((row, rowIndex) => (
                         <React.Fragment key={rowIndex}>
-                            {/* Add the slider and input text for each row */}
                             <div className="mb-2 d-flex align-items-center">
                                 <Slider
                                     value={findScreenById(data?.menuScreens, subScreenStack?.at(-1)?.id)?.rowHeight?.[rowIndex] || 0.5}
@@ -644,11 +648,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         });
     };
 
-    const handleSubDragEnd = () => {
-        setDraggedIndex(null);
-    };
-
-    const findSubScreenByName = (subScreens, name) => {
+    const findSubScreenByName = (subScreens: IMenuScreen[], name: string) => {
         for (const subScreen of subScreens) {
             if (subScreen.name === name) {
                 return subScreen;
@@ -658,6 +658,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     };
 
     const renderCurrentSubScreen = () => {
+        console.log(data, 'data')
+        console.log(mainScreen, 'mainScreen')
         if (!data.menuScreens || data.menuScreens.length === 0 || selectedMainScreenIndex === null) {
             return null;
         }
@@ -666,21 +668,29 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             return null;
         }
 
-        for (let i = 1; i < subScreenStack.length; i++) {
+        for (let i = 0; i < subScreenStack.length; i++) {
             const nextScreenName = subScreenStack[i].name;
             const nextScreen = findSubScreenByName(currentSubScreens, nextScreenName);
 
-            if (!nextScreen || !nextScreen.subScreens) {
+            if (!nextScreen || !nextScreen.subScreens || nextScreen.subScreens.length === 0) {
                 break;
             }
-            setCurrentSubScreens(nextScreen.subScreens);
+            // setCurrentSubScreens(nextScreen.subScreens);
         }
+        console.log(currentSubScreens, 'currentSubScreens')
+        console.log(selectedMainScreenIndex, 'selectedMainScreenIndex')
         return <div className="mt-3">{renderSubScreens(currentSubScreens, selectedMainScreenIndex)}</div>;
     };
 
-    const handleNavigateToSubScreen = subscreen => {
+    const handleNavigateToSubScreen = (subscreen: IMenuScreen) => {
         setSubScreenStack(prev => [...prev, subscreen]);
-
+        // setGroupedSubscreens(() => {
+        //     const initialGroups = [];
+        //     for (let i = 0; i < subscreen.subScreens?.length; i += cols) {
+        //         initialGroups.push(subscreen.subScreens?.slice(i, i + cols));
+        //     }
+        //     return initialGroups;
+        // })
         const updatedBreadcrumb = [...breadcrumb, subscreen.name];
         setBreadcrumb(updatedBreadcrumb);
 
@@ -734,9 +744,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             .map(item => ({ id: item.component.item.id, name: item.component.item.name, desc: item.component.item.desc }));
     }, [mainScreen])
 
-    useEffect(() => {
-        setSelectedItems(mainScreenItems || []);
-    }, [mainScreenItems])
+    // useEffect(() => {
+    //     setSelectedItems(mainScreenItems || []);
+    // }, [mainScreenItems])
 
     const handleMainDragStart = index => {
         setSelectedMainScreenIndex(index);
@@ -751,9 +761,10 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             newData.splice(index, 0, draggedItem);
             setData({ ...data, menuScreens: newData });
             setDraggedIndex(index);
-            setSelectedMainScreenIndex(index);
+            // setSelectedMainScreenIndex(index);
         }
     };
+
 
     const handleMainDragEnd = () => {
         setDraggedIndex(null);
@@ -762,9 +773,18 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
     const mainScreenClickHandler = (index: number, mainScreen: any) => {
         setSelectedMainScreenIndex(index);
+        // setGroupedSubscreens(() => {
+        //     const initialGroups = [];
+        //     for (let i = 0; i < mainScreen?.subScreens?.length; i += cols) {
+        //         initialGroups.push(mainScreen?.subScreens?.slice(i, i + cols));
+        //     }
+        //     return initialGroups;
+        // })
+        setSelectedItems(mainScreen?.subScreens?.filter(subScreen => subScreen?.componentType === 'ITEM')?.map(subScreen => subScreen?.component?.item))
         setSubScreenStack([mainScreen]);
         setBreadcrumb(() => [mainScreen.name]);
         setMainScreen(mainScreen)
+        // setCurrentSubScreens(mainScreen?.subScreens)
     };
 
 
@@ -783,13 +803,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             return;
         }
 
-        const newMainScreen = {
+        const newMainScreen: IMenuScreen = {
             name: newMainScreenName,
             backgroundColor: selectedColorTheme,
             numberOfColumns: newMainScreenCols || 1,
-            managerOnlyAccess: '',
+            managerOnlyAccess: false,
             componentType: 'SUB_SCREENS',
-            subscreens: [],
+            subScreens: [],
             rowHeight: [],
             id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
         };
@@ -797,7 +817,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             ...data,
             menuScreens: [...data.menuScreens, newMainScreen],
         });
-        setSubScreenStack([newMainScreen?.subscreens]);
+        setSubScreenStack([newMainScreen?.subScreens]);
         setSelectedMainScreenIndex(data?.menuScreens?.length);
         setBreadcrumb([newMainScreenName]);
         setIsModalOpen({ ...isModalOpen, isMainScreenModalOpen: false });
@@ -816,7 +836,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         const updatedMenuScreens = [...updatedData.menuScreens];
 
         let updatedSubScreenStack;
-
         if (subScreenStack.length === 1) {
             const topSubScreens = updatedMenuScreens[selectedMainScreenIndex]?.subScreens;
             const hasDuplicateOnFirstLevel = topSubScreens?.some(subScreen => subScreen.name === newSubScreenName);
@@ -882,12 +901,18 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 );
             }
         }
-
         updatedData.menuScreens = updatedMenuScreens;
 
         setData(updatedData);
         if (updatedSubScreenStack) {
             setSubScreenStack(updatedSubScreenStack);
+            // setGroupedSubscreens(() => {
+            //     const initialGroups = [];
+            //     for (let i = 0; i < updatedSubScreenStack[updatedSubScreenStack.length - 1]?.subScreens?.length; i += cols) {
+            //         initialGroups.push(updatedSubScreenStack[updatedSubScreenStack.length - 1]?.subScreens?.slice(i, i + cols));
+            //     }
+            //     return initialGroups;
+            // })
         }
 
         setIsModalOpen({ ...isModalOpen, isSubScreenModalOpen: false });
@@ -896,6 +921,18 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewSubScreenColor('');
         setNewSubScreenCols(null);
     };
+
+    useEffect(() => {
+        if (subScreenStack) {
+            setGroupedSubscreens(() => {
+                const initialGroups = [];
+                for (let i = 0; i < subScreenStack[subScreenStack.length - 1]?.subScreens?.length; i += cols) {
+                    initialGroups.push(subScreenStack[subScreenStack.length - 1]?.subScreens?.slice(i, i + cols));
+                }
+                return initialGroups;
+            })
+        }
+    }, [subScreenStack])
 
     const handleRemoveSelectedItems = (itemIds: string[]) => {
         if (selectedMainScreenIndex === null) {
@@ -957,11 +994,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
         const updatedData = { ...data };
         const updatedMenuScreens = [...updatedData.menuScreens];
-        let updatedSubScreenStack = subScreenStack.length > 1 ? [...subScreenStack] : undefined;
+        let updatedSubScreenStack: IMenuScreen[] = [...subScreenStack];
 
         items.forEach(item => {
             const newId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
-            const newItemSubScreen = {
+            const newItemSubScreen: IMenuScreen = {
                 id: newId,
                 name: item.name,
                 backgroundColor: selectedColorTheme,
@@ -993,17 +1030,17 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     ),
                 };
 
-                updatedSubScreenStack = updatedSubScreenStack?.map(subScreen =>
-                    subScreen === topSubScreen
-                        ? {
-                            ...topSubScreen,
-                            subScreens: [...(topSubScreen.subScreens || []), newItemSubScreen]
-                        }
-                        : subScreen
-                );
+                // updatedSubScreenStack = updatedSubScreenStack?.map(subScreen =>
+                //     subScreen === topSubScreen
+                //         ? {
+                //             ...topSubScreen,
+                //             subScreens: [...(topSubScreen.subScreens || []), newItemSubScreen]
+                //         }
+                //         : subScreen
+                // );
             }
         });
-
+        updatedSubScreenStack = [updatedMenuScreens[selectedMainScreenIndex]];
         updatedData.menuScreens = updatedMenuScreens;
         setData(updatedData);
 
@@ -1040,6 +1077,12 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             return updatedItems;
         });
     };
+
+    // useEffect(() => {
+    //     if (subScreenStack) {
+    //         setSelectedItems(subScreenStack[subScreenStack.length - 1]?.subScreens?.filter(subScreen => subScreen?.componentType === 'ITEM')?.map(subScreen => subScreen?.component?.item))
+    //     }
+    // }, [subScreenStack])
 
     function findScreenById(menuScreens, targetId) {
         for (const screen of menuScreens) {
@@ -1095,9 +1138,10 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     const updatedSubScreenStack = subScreenStack.map(subScreen =>
                         subScreen.id === editingSubScreenId ? updatedSubScreen : subScreen
                     );
-                    setSubScreenStack(updatedSubScreenStack);
+                    // setSubScreenStack(updatedSubScreenStack);
                 }
             }
+            setSubScreenStack([updatedData?.menuScreens?.[selectedMainScreenIndex]])
 
             return updatedData;
         });
@@ -1120,7 +1164,6 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         '#856404',
         '#6c757d',
     ];
-
 
     if (loading) {
         return (
@@ -1255,11 +1298,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     </Button>
                 </ModalBody>
             </Modal>
-
             {isModalOpen.isItemModalOpen && (
                 <ItemSelectionModal
                     isOpen={isModalOpen.isItemModalOpen}
                     toggle={() => setIsModalOpen({ ...isModalOpen, isItemModalOpen: !isModalOpen.isItemModalOpen })}
+                    // filter selected items by componentType and choose the component item 
                     selectedItems={selectedItems}
                     handleToggleSelect={handleToggleSelect}
                     setSelectedItems={setSelectedItems}
@@ -1337,14 +1380,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                     key={index}
                                     className="mb-3"
                                     draggable
+                                    onClick={() => mainScreenClickHandler(index, mainScreen)}
                                     onDragStart={() => handleMainDragStart(index)}
                                     onDragOver={() => handleMainDragOver(index)}
                                     onDragEnd={handleMainDragEnd}
                                 >
                                     <Card className="d-flex p-3 cursor-pointer">
-                                        <div
-                                            onClick={() => mainScreenClickHandler(index, mainScreen)}
-                                        >
+                                        <div>
                                             <div className="d-flex justify-content-end">
                                                 <MdModeEditOutline size={20} onClick={() => openEditModal(mainScreen, index, 'main')} />
                                                 &nbsp;
@@ -1374,19 +1416,20 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 </h2>
                             </Col>
 
-                            <Button color="primary" onClick={() => handleButtonAdd('Item')} className="ml-2">
+                            <Button disabled={!mainScreen} color="primary" onClick={() => handleButtonAdd('Item')} className="ml-2">
                                 <Translate contentKey={'menus.pos.update.buttons.addItem'}>Add Item</Translate>
                             </Button>
                             {menu.type === "POS" && (
-                                <Button color="primary" onClick={() => handleButtonAdd('Sub-screen')} className="ml-2">
+                                <Button disabled={!mainScreen} color="primary" onClick={() => handleButtonAdd('Sub-screen')} className="ml-2">
                                     <Translate contentKey={'menus.pos.update.buttons.addSubScreen'}>Add SubScreen</Translate>
                                 </Button>
                             )}
 
-                            <Button onClick={togglePreviewModal} className="mx-2 btn btn-info">
+                            <Button disabled={!mainScreen} onClick={togglePreviewModal} className="mx-2 btn btn-info">
                                 <Translate contentKey={'menus.pos.update.buttons.preview'}>Preview</Translate>
                             </Button>
-                            <Button color="primary" disabled={updating} onClick={() => saveEntity()} className="">
+
+                            <Button disabled={!mainScreen || updating} color="primary" onClick={() => saveEntity()} className="">
                                 <Translate contentKey={'entity.action.save'}>Save</Translate>
                             </Button>
                         </div>

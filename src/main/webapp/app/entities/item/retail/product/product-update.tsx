@@ -57,6 +57,7 @@ import { IStockQuantity } from 'app/shared/model/STOCK/stock-quantity.model';
 import { Checkbox } from 'primereact/checkbox';
 import { InputTextarea } from 'primereact/inputtextarea';
 import ItemLocation from 'app/shared/components/item/item-location';
+import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -89,7 +90,7 @@ export const ProductUpdate = () => {
 
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
-  const productEntity = useAppSelector(state => state.product.entity);
+  const productEntity: IProduct = useAppSelector(state => state.product.entity);
   const loading = useAppSelector(state => state.product.loading);
   const updating = useAppSelector(state => state.product.updating);
   const updateSuccess = useAppSelector(state => state.product.updateSuccess);
@@ -109,11 +110,7 @@ export const ProductUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [product, setProduct] = useState<IProduct>({
-    itemType: 'RETAIL',
-    itemVariantType: ItemVariantType.RETAIL_SIMPLE,
-    variants: [],
-  });
+  const [product, setProduct] = useState<IProduct>({});
   const isVariableItem = product?.itemVariantType === ItemVariantType.RETAIL_VARIABLE;
   const isSingleItem = product?.itemVariantType === ItemVariantType.RETAIL_SIMPLE;
 
@@ -179,7 +176,6 @@ export const ProductUpdate = () => {
   };
 
   const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
-    console.log('helloooo111o', value, variantIndex);
     setProduct(prev => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -278,36 +274,34 @@ export const ProductUpdate = () => {
   };
 
   const handleBaseMeasureChange = baseMeasure => {
-    console.log(baseMeasure)
     setProduct(prev => ({ ...prev, baseMeasure }));
   };
 
-  const handleSaveWholesalePrices = (variantIndex, branchId, prices) => {
-    setProduct(prev => {
-      const updatedVariants = prev.variants.map((variant, index) => {
-        console.log(variantIndex, 'variantsds');
-        if (index !== variantIndex) return variant;
+  // const handleSaveWholesalePrices = (variantIndex, branchId, prices) => {
+  //   setProduct(prev => {
+  //     const updatedVariants = prev.variants.map((variant, index) => {
+  //       if (index !== variantIndex) return variant;
 
-        const updatedBranchVariantDetails = {
-          ...variant.branchVariantDetails,
-          [branchId]: {
-            ...variant.branchVariantDetails?.[branchId],
-            wholesalePrices: prices,
-          },
-        };
+  //       const updatedBranchVariantDetails = {
+  //         ...variant.branchVariantDetails,
+  //         [branchId]: {
+  //           ...variant.branchVariantDetails?.[branchId],
+  //           wholesalePrices: prices,
+  //         },
+  //       };
 
-        return {
-          ...variant,
-          branchVariantDetails: updatedBranchVariantDetails,
-        };
-      });
+  //       return {
+  //         ...variant,
+  //         branchVariantDetails: updatedBranchVariantDetails,
+  //       };
+  //     });
 
-      return {
-        ...prev,
-        variants: updatedVariants,
-      };
-    });
-  };
+  //     return {
+  //       ...prev,
+  //       variants: updatedVariants,
+  //     };
+  //   });
+  // };
 
   const handleAddMeasure = () => {
     setProduct(prevState => ({
@@ -377,8 +371,6 @@ export const ProductUpdate = () => {
   //         },
   //       },
   //     };
-  //     console.log(prev)
-  //     console.log(updatedVariants)
   //     return {
   //       ...prev,
   //       variants: updatedVariants,
@@ -518,7 +510,6 @@ export const ProductUpdate = () => {
       }
     };
     generate(0, {});
-    console.log(combinations, 'combinationscombinations');
     setProduct(prevState => ({
       ...prevState,
       variants: [...prevState.variants, ...combinations],
@@ -589,7 +580,6 @@ export const ProductUpdate = () => {
     setDragOverIndex(null);
   };
 
-  console.log(product, 'product');
 
   const handleNavigate = productId => {
     navigate(`/product/${productId}/edit` + location.search);
@@ -615,8 +605,6 @@ export const ProductUpdate = () => {
   }
 
   const stockQuantityUpdate = (stockQuantities: IStockQuantity[], variantIndex: number) => {
-    console.log("data " + variantIndex);
-    console.log("data " + stockQuantities);
     setProduct((prevProduct) => ({
       ...prevProduct,
       variants: prevProduct.variants.map((variant, index) => {
@@ -687,14 +675,13 @@ export const ProductUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
-    if (!isNew) {
-      setProduct({
-        ...productEntity,
-        variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
-      });
-    }
+    setProduct({
+      ...productEntity,
+      variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
+    });
   }, [productEntity]);
 
+  console.log(productEntity, 'productEntity')
   const handleSupplierChange = (index, updatedVariant) => {
     const updatedProduct = {
       ...product,
@@ -872,7 +859,7 @@ export const ProductUpdate = () => {
       };
     });
   };
-
+  console.log(product, 'product');
   const AttributeAccordionHeader = attributeIndex => (
     <div
       onClick={e => {
@@ -891,7 +878,6 @@ export const ProductUpdate = () => {
     </div>
   );
 
-  { console.log(product?.attachments, 'attachments') }
   const VariantAccordionHeader = variantIndex => (
     <div
       onClick={e => {
@@ -948,13 +934,16 @@ export const ProductUpdate = () => {
       icon: 'pi pi-exclamation-triangle',
       defaultFocus: 'accept',
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handleFieldChange('itemVariantType', option.value),
+      accept() {
+        handleFieldChange('itemVariantType', option.value)
+        handleFieldChange('variants', [])
+      },
     });
   };
 
-  useEffect(() => {
-    handleFieldChange('variants', [])
-  }, [product.itemVariantType])
+  // useEffect(() => {
+  //   handleFieldChange('variants', [])
+  // }, [product.itemVariantType])
 
   const confirm4 = () => {
     confirmDialog({
@@ -966,6 +955,8 @@ export const ProductUpdate = () => {
       accept: () => handleFieldChange('variants', []),
     });
   };
+
+  console.log(product, 'product')
 
   if (loading) {
     return <Spinner />;
@@ -1188,8 +1179,9 @@ export const ProductUpdate = () => {
                                   variantIndex={0}
                                   branchList={branchList}
                                   handleBranchPriceChange={handleBranchPriceChange}
-                                  handleSaveWholesalePrices={handleSaveWholesalePrices}
                                   handleHideItemPerBranch={handleHideItemPerBranch}
+                                  variant={product?.variants?.[0]}
+                                  setItem={setProduct}
                                 />
 
                                 <Row>
@@ -1205,6 +1197,7 @@ export const ProductUpdate = () => {
                                         <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                       </label>
                                       <Select
+                                        isClearable
                                         value={product?.variants?.[0]?.mixAndMatchRule || null}
                                         options={mixAndMatchRuleList}
                                         getOptionLabel={option => option.name}
@@ -1290,7 +1283,7 @@ export const ProductUpdate = () => {
                                     </Button>
 
                                     {product.variants?.length > 0 && (
-                                      <Button color="danger" type={'button'} className={'mt-5'} onClick={confirm4}>
+                                      <Button color="danger" type={'button'} className={'mt-5'} onClick={() => confirm4()}>
                                         <Translate contentKey={'items.update.removeAllVariants'}>Remove All Variants</Translate>
                                       </Button>
                                     )}
@@ -1520,7 +1513,15 @@ export const ProductUpdate = () => {
                                                   />
                                                 </Col>
                                               </Row>
-                                              <div className="p-3">
+                                              <Row>
+                                                <SupplierAssociationTab
+                                                  onSupplierChange={handleSupplierChange}
+                                                  variants={product?.variants}
+                                                  itemId={product.id}
+                                                  suppliers={supplierList}
+                                                />
+                                              </Row>
+                                              <div>
                                                 <h4>Shipping Details:</h4>
                                                 <Accordion multiple>
                                                   <AccordionTab header="Shipping Details" className="p-3">
@@ -1608,7 +1609,8 @@ export const ProductUpdate = () => {
                                                 branchVariantDetails={variant.branchVariantDetails}
                                                 itemVariantType={'RETAIL'}
                                                 handleHideItemPerBranch={handleHideItemPerBranch}
-                                                handleSaveWholesalePrices={handleSaveWholesalePrices}
+                                                variant={variant}
+                                                setItem={setProduct}
                                               />
                                             </AccordionTab>
                                           </Accordion>
@@ -1742,11 +1744,11 @@ export const ProductUpdate = () => {
                       </Row>
                     </TabPanel> */}
 
-                    <TabPanel header={translate('items.update.tabs.supplier.label')}>
+                    {/* <TabPanel header={translate('items.update.tabs.supplier.label')}>
                       <SupplierAssociationTab
                         onSupplierChange={handleSupplierChange} // Pass down the function as a prop
                         variants={product?.variants} itemId={product.id} suppliers={supplierList} />
-                    </TabPanel>
+                    </TabPanel> */}
 
                     <TabPanel header={translate('items.update.tabs.itemLocation.label')}>
                       <ItemLocation

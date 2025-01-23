@@ -25,6 +25,8 @@ export interface IUser {
   userName?: string;
   verified?: boolean;
   pinCode?: string;
+  enabled?: boolean;
+  userRole?: RolePermissions;
 }
 
 interface Authority {
@@ -35,6 +37,7 @@ interface Authority {
 interface Group {
   groupName?: string;
   authorities?: Authority[];
+  assigned?: boolean;
 }
 
 export interface RolePermissions {
@@ -50,21 +53,8 @@ export interface AvailableRoles {
 }
 
 export const defaultValue: Readonly<IUser> = {
-  login: '',
-  firstName: '',
-  lastName: '',
-  email: '',
-  activated: true,
-  langKey: '',
-  authorities: [],
-  createdBy: '',
-  createdDate: null,
-  lastModifiedBy: '',
-  lastModifiedDate: null,
-  password: '',
-  username: '',
-  roles: {
+  userRole: {
     groups: [],
-    authorities: [],
-  },
+    authorities: []
+  }
 };

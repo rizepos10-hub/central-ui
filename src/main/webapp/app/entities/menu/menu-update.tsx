@@ -9,6 +9,7 @@ import { IMenu } from 'app/shared/model/menu.model'
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { useParams } from 'react-router-dom'
 import { getEntity } from './menu.reducer';
+import { IBranch } from 'app/shared/model/branch.model'
 
 const MenuUpdate = ({
     setIsModalOpen,
@@ -24,17 +25,16 @@ const MenuUpdate = ({
     isModalOpen: boolean;
     saveEntity: (values?: any) => void;
     updating: any;
-    selectedBranches: any;
-    setSelectedBranches: any;
+    selectedBranches: IBranch[];
+    setSelectedBranches: React.Dispatch<React.SetStateAction<IBranch[]>>;
     selectedName: string;
     setSelectedName: React.Dispatch<React.SetStateAction<string>>;
 }) => {
     const dispatch = useAppDispatch();
     const { id } = useParams<'id'>();
-
+    console.log(selectedBranches, 'selectedBranches')
     const menuEntity = useAppSelector(state => state.menu.entity);
-
-    const branchList = useAppSelector(state => state.branch.entities).map(branch => ({ value: branch.id, label: branch.name }));
+    const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
 
     useEffect(() => {
         dispatch(getBranches({}));
@@ -47,6 +47,10 @@ const MenuUpdate = ({
             }
         });
     }, [id])
+
+    useEffect(() => {
+        setSelectedBranches(menuEntity?.branches)
+    }, [menuEntity?.branches])
 
     return (
         <Modal isOpen={isModalOpen} toggle={() => setIsModalOpen(prev => !prev)} className="modal-lg">
@@ -71,18 +75,23 @@ const MenuUpdate = ({
                     <div className="mb-3">
                         {translate('menus.shared.update.branches')}
                         <Select
-                            onChange={(e) => setSelectedBranches({
-                                label: e.label,
-                                value: e.value
-                            })}
-                            options={branchList}
-                            value={{
-                                label: selectedBranches?.label,
-                                value: selectedBranches?.value
+                            onChange={(selected) => {
+                                setSelectedBranches(
+                                    (selected || []).map((branch) => ({
+                                        id: branch.id,
+                                        name: branch.name,
+                                    }))
+                                );
                             }}
-                            name='branch'
-                            id='branch'
-                            data-cy='branch'
+                            options={branchList}
+                            value={selectedBranches}
+                            getOptionLabel={(branch) => branch.name || ''}
+                            getOptionValue={(branch) => branch.id || ''}
+                            name="branch"
+                            id="branch"
+                            data-cy="branch"
+                            isMulti
+                            isClearable
                         />
                     </div>
                     <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => setIsModalOpen(prev => !prev)} replace='true' color="info">
