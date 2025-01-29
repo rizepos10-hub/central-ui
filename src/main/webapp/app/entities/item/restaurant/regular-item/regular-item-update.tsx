@@ -854,6 +854,7 @@ export const RegularItemUpdate = () => {
                                                                   handleVariantAddonGroupFieldChange(index, 'minQuantity', e.value, variantIndex)
                                                                 }}
                                                                 inputStyle={{ width: '40px' }}
+                                                                max={variant?.addonGroups?.[index]?.addonGroup?.addons?.length}
                                                                 draggable={false}
                                                               />
                                                             </span>
@@ -862,6 +863,7 @@ export const RegularItemUpdate = () => {
                                                               <InputNumber
                                                                 value={variant?.addonGroups[index]?.maxQuantity}
                                                                 onChange={e => handleVariantAddonGroupFieldChange(index, 'maxQuantity', e.value, variantIndex)}
+                                                                max={variant?.addonGroups?.[index]?.addonGroup?.addons?.length}
                                                                 inputStyle={{ width: '40px' }}
                                                                 draggable={false}
                                                               />

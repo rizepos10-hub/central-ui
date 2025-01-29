@@ -376,6 +376,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                           onChange={e => {
                             handleAddonGroupFieldChange(index, 'minQuantity', e.value)
                           }}
+                          max={addonGroups?.[index]?.addonGroup?.addons?.length}
                           inputStyle={{ width: '40px' }}
                         />
                       </span>
@@ -384,6 +385,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                         <InputNumber
                           value={addonGroups[index]?.maxQuantity}
                           onChange={e => handleAddonGroupFieldChange(index, 'maxQuantity', e.value)}
+                          max={addonGroups?.[index]?.addonGroup?.addons?.length}
                           inputStyle={{ width: '40px' }}
                         />
                       </span>
