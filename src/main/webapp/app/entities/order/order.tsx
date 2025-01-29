@@ -13,6 +13,11 @@ import { InputText } from "primereact/inputtext";
 import { translate } from "react-jhipster";
 import { toLocalISOString } from "app/shared/util/date-utils";
 import { Toast } from "primereact/toast";
+import { Checkbox } from 'primereact/checkbox';
+import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
+import { Label } from 'reactstrap';
+import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
+import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
 
 interface LazyTableState {
   first?: number;
@@ -63,6 +68,7 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
   const loading = useAppSelector(state => state.order.loading);
   const branchList = useAppSelector(state => state.branch.entities);
   const orderSources = useAppSelector(state => state.order.orderSources);
+  const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
 
 
   const getBranchName = (branchId) => {
@@ -131,8 +137,8 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
       ) {
         const queryParams = {
           id: lazyState.filters._id?.value || '',
-          orderSource: appSourceProp || lazyState.filters.orderSource?.value || '',
-          orderStatus: lazyState.filters.status?.value || '',
+          client: appSourceProp || lazyState.filters.orderSource?.value || '',
+          orderProcessingStatus: lazyState.filters.status?.value || '',
           first: lazyState.first,
           sequenceId: lazyState.filters.id?.value || '',
           page: lazyState.page,
@@ -171,13 +177,53 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
   useEffect(() => {
     dispatch(getBranches({}))
     dispatch(getOrderSources())
-
+    dispatch(getUiSettings())
     dispatch(getOrderStatuses())
       .then((response: any) => {
         setOrderStatuses(response.payload?.map((status) => ({ label: status, value: status })));
       })
   }, []);
 
+  const header = () => {
+    return (
+      <div className='d-flex justify-content-between'>
+        <span>
+          Order History
+        </span>
+        {UiSettingsEntity.orderConfirmation && (
+          <span className='d-flex gap-2'>
+            <Label>
+              Filter By Awaiting Confirmation
+            </Label>
+            <Checkbox
+              checked={lazyState.filters?.status?.value === OrderStatus.DRAFT && lazyState.filters?.orderSource?.value === 'ONLINE_ORDERING'}
+              onChange={(e) => {
+                if (e.checked) {
+                  setLazyState((prevState) => ({
+                    ...prevState,
+                    filters: {
+                      ...prevState.filters,
+                      orderSource: { value: 'ONLINE_ORDERING', matchMode: 'equals' },
+                      status: { value: OrderStatus.DRAFT, matchMode: 'equals' },
+                    },
+                  }))
+                } else {
+                  setLazyState((prevState) => ({
+                    ...prevState,
+                    filters: {
+                      ...prevState.filters,
+                      orderSource: { value: null, matchMode: 'equals' },
+                      status: { value: null, matchMode: 'equals' },
+                    },
+                  }))
+                }
+              }}
+            />
+          </span>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -202,7 +248,7 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
           sortField={lazyState.sortField}
           filters={lazyState.filters}
           onFilter={onFilter}
-          header={"Order History"}
+          header={header}
           removableSort
           loading={loading}
           tableStyle={{ minWidth: '75rem', alignContent: 'center' }}
@@ -245,6 +291,7 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
               <Dropdown
                 value={lazyState.filters.branchId?.value || ''}
                 options={filteredBranchOptions}
+                showClear
                 onChange={(e) =>
                   setLazyState((prevState) => ({
                     ...prevState,
@@ -281,9 +328,27 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
             }
           />
 
-          <Column field="discount" sortable
-            header={translate('orders.view.table.fields.discount')} body={rowData => rowData.discount ? <p className="text-success text-center ">&#10004;</p> :
-              <p className="text-danger text-center ">&#10006;</p>}
+          <Column
+            field="processingStatus"
+            header={translate('orders.view.table.fields.status')}
+            filter
+            filterElement={
+              <Dropdown
+                value={lazyState.filters.status?.value || ''}
+                options={orderStatuses}
+                onChange={(e) =>
+                  setLazyState((prevState) => ({
+                    ...prevState,
+                    filters: {
+                      ...prevState.filters,
+                      status: { value: e.value, matchMode: 'equals' },
+                    },
+                  }))
+                }
+                showClear
+                placeholder={translate('orders.view.table.filters.status')}
+              />
+            }
           />
 
           <Column
@@ -294,6 +359,7 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
                 value={lazyState.filters.orderSource?.value || ''}
                 placeholder={translate('orders.view.table.filters.source')}
                 options={orderSources?.map((source) => ({ label: source, value: source }))}
+                showClear
                 onChange={(e) =>
                   setLazyState((prevState) => ({
                     ...prevState,
@@ -370,23 +436,10 @@ export const Order = ({ customer = '', appSourceProp }: OrderProps) => {
             }
           /> : null}
 
-          <Column field="status" filter header={translate('orders.view.table.fields.status')}
-            filterElement={
-              <Dropdown
-                value={lazyState.filters.status?.value || ''}
-                options={orderStatuses}
-                onChange={(e) =>
-                  setLazyState((prevState) => ({
-                    ...prevState,
-                    filters: {
-                      ...prevState.filters,
-                      status: { value: e.value, matchMode: 'equals' },
-                    },
-                  }))
-                }
-                placeholder={translate('orders.view.table.filters.status')}
-              />
-            }
+
+          <Column field="discount" sortable
+            header={translate('orders.view.table.fields.discount')} body={rowData => rowData.discount ? <p className="text-success text-center ">&#10004;</p> :
+              <p className="text-danger text-center ">&#10006;</p>}
           />
         </DataTable>
       </div>
