@@ -50,7 +50,17 @@ export const getEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const updateEntity = createAsyncThunk(
+  'brand/update_entity',
+  async (entity: IBranchRegistry, thunkAPI) => {
+    const result = await axios.put<IBranchRegistry['terminalSettings']>(`${apiUrl}/${entity.id}/update-settings`, cleanEntity(entity.terminalSettings));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
 
+export const changeEntityField = createAction<ChangeFieldPayload<IBranchRegistry>>('branch-registry/change-entity-field');
+export const changeTerminalField = createAction<ChangeFieldPayload<IBranchRegistry["terminalSettings"]>>('branch-registry/change-terminal-field');
 
 // slice
 
@@ -59,11 +69,15 @@ export const BranchRegistrySlice = createEntitySlice({
   initialState,
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { name, value } = action.payload;
+        state.entity[name] = value;
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
       })
-      .addMatcher(isFulfilled(getEntities, searchEntities,filterEntities), (state, action) => {
+      .addMatcher(isFulfilled(getEntities, searchEntities, filterEntities), (state, action) => {
         const { data, headers } = action.payload;
         return {
           ...state,
@@ -72,7 +86,7 @@ export const BranchRegistrySlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isPending(getEntities, getEntity, searchEntities,filterEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, searchEntities, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

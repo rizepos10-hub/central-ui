@@ -11,6 +11,8 @@ import { closeEntity as closeTill } from "app/entities/settings/branch-registry/
 
 import CurrentTill from "app/entities/settings/branch-registry/till/current-till";
 import ActivateTillModal from "app/entities/settings/branch-registry/till/activate-till-modal";
+import { TabPanel, TabView } from "primereact/tabview";
+import BranchRegistryTerminalSettings from "./branch-registry-terminal-settings";
 
 const BranchRegistryUpdate = ({ isRegisterClosure }: { isRegisterClosure?: boolean }) => {
   const dispatch = useAppDispatch();
@@ -75,7 +77,14 @@ const BranchRegistryUpdate = ({ isRegisterClosure }: { isRegisterClosure?: boole
         </CardBody>
       </Card>
 
-      <PreviousTill isRegisterClosure={isRegisterClosure} registryId={id} />
+      <TabView>
+        <TabPanel header='Previous Tills'>
+          <PreviousTill isRegisterClosure={isRegisterClosure} registryId={id} />
+        </TabPanel>
+        <TabPanel header='Terminal Settings'>
+          <BranchRegistryTerminalSettings />
+        </TabPanel>
+      </TabView>
 
       {/* {showModal && <ActivateTillModal registryId={id} toggle={toggleModal} isOpen={showModal} />} */}
 
