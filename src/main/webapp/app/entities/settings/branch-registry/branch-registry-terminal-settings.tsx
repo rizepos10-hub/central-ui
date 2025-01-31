@@ -66,6 +66,7 @@ const BranchRegistryTerminalSettings = () => {
                     <activeSection.component />
                 </div>
 
+                {/* Save Button */}
                 <div>
                     <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit">
                         Save
@@ -120,7 +121,7 @@ function GeneralSettings() {
                 >
                     <Checkbox
                         inputId="enableSplitBills"
-                        checked
+                        checked={branchRegistry?.terminalSettings?.enableSplitBill}
                         value={branchRegistry?.terminalSettings?.enableSplitBill}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'enableSplitBill', value: e.checked }))}
                     />
@@ -134,7 +135,7 @@ function GeneralSettings() {
                 >
                     <Checkbox
                         inputId="receiveOnlineOrderPopups"
-                        checked
+                        checked={branchRegistry?.terminalSettings?.receiveOnlineOrderPopups}
                         value={branchRegistry?.terminalSettings?.receiveOnlineOrderPopups}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'receiveOnlineOrderPopups', value: e.checked }))}
                     />
@@ -182,6 +183,10 @@ function GeneralSettings() {
 
 function PersonalizationSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
+
+    console.log(branchRegistry, 'branchRegistry')
+    console.log(branchRegistry?.terminalSettings?.showItemsPic, 'branchRegistry?.terminalSettings?.showItemsPic')
 
     return (
         <div className="grid">
@@ -191,7 +196,12 @@ function PersonalizationSettings() {
                     title="Show Item Pictures"
                     description="Show item pictures in the app"
                 >
-                    <Checkbox inputId="showPics" checked />
+                    <Checkbox
+                        inputId="showPics"
+                        checked={branchRegistry?.terminalSettings?.showItemsPic}
+                        value={branchRegistry?.terminalSettings?.showItemsPic}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'showItemsPic', value: e.checked }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -200,7 +210,12 @@ function PersonalizationSettings() {
                     title="Show Retail Items Only"
                     description="Show Retail Items Only in the app"
                 >
-                    <Checkbox inputId="showRetailItemsOnly" checked />
+                    <Checkbox
+                        inputId="showRetailItemsOnly"
+                        checked={branchRegistry?.terminalSettings?.showRetailItemsOnly}
+                        value={branchRegistry?.terminalSettings?.showRetailItemsOnly}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'showRetailItemsOnly', value: e.checked }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -209,7 +224,10 @@ function PersonalizationSettings() {
                     title="Language Code"
                     description="Choose language code"
                 >
-                    <InputText />
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.languageCode}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'languageCode', value: e.target.value }))}
+                    />
                 </FieldWrapper>
             </div>
         </div>
@@ -218,6 +236,7 @@ function PersonalizationSettings() {
 
 function AdminActionsSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
 
     return (
         <div className="grid">
@@ -227,7 +246,12 @@ function AdminActionsSettings() {
                     title="Select Pricing Point"
                     description="Select Pricing Point"
                 >
-                    <Checkbox inputId="selectPricingPoint" checked />
+                    <Checkbox
+                        inputId="selectPricingPoint"
+                        checked={branchRegistry?.terminalSettings?.selectPricingPoint}
+                        value={branchRegistry?.terminalSettings?.selectPricingPoint}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'selectPricingPoint', value: e.checked }))}
+                    />
                 </FieldWrapper>
             </div>
         </div>
@@ -236,6 +260,7 @@ function AdminActionsSettings() {
 
 function ScaleSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
 
     return (
         <div className="grid">
@@ -308,6 +333,7 @@ function ScaleSettings() {
 
 function EmailLogsSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
 
     return (
         <div className="grid">
@@ -317,7 +343,10 @@ function EmailLogsSettings() {
                     title="Max Email Attachment Size"
                     description="Enter max email attachment size"
                 >
-                    <InputNumber />
+                    <InputNumber
+                        value={branchRegistry?.terminalSettings?.emailLogsSettings?.maxEmailAttachmentSize}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'emailLogsSettings.maxEmailAttachmentSize', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -326,7 +355,10 @@ function EmailLogsSettings() {
                     title="Recipient"
                     description="Enter recipient"
                 >
-                    <InputText />
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.emailLogsSettings?.recipient}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'emailLogsSettings.recipient', value: e.target.value }))}
+                    />
                 </FieldWrapper>
             </div>
         </div>
@@ -335,6 +367,7 @@ function EmailLogsSettings() {
 
 function CustomerAppSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch()
 
     return (
         <div className="grid">
@@ -344,7 +377,12 @@ function CustomerAppSettings() {
                     title="Enable Customer Screen"
                     description="This flag enables the customer screen and allows the pos to connect and send it the required data"
                 >
-                    <Checkbox inputId="sameDevice" checked />
+                    <Checkbox
+                        inputId="sameDevice"
+                        checked={branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
+                        value={branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppIsOnSameDevice', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -353,7 +391,10 @@ function CustomerAppSettings() {
                     title="Customer App IP"
                     description="Enter IP address of the customer app"
                 >
-                    <InputText />
+                    <InputText
+                        value={branchRegistry.terminalSettings?.customerAppIp}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppIp', value: e.target.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -362,7 +403,10 @@ function CustomerAppSettings() {
                     title="Customer App Port"
                     description="Enter port number of the customer app"
                 >
-                    <InputNumber />
+                    <InputNumber
+                        value={branchRegistry.terminalSettings?.customerAppPort}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppPort', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
         </div>
@@ -371,6 +415,7 @@ function CustomerAppSettings() {
 
 const CreditCardSettings = () => {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
 
     const integrationTypeOptions = [
         { label: 'Elavon CWS', value: CreditCardIntegrationTypeEnum.ELAVON_CWS },
@@ -437,44 +482,46 @@ const CreditCardSettings = () => {
     );
 };
 
-function ServerProperties() {
-    const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+// function ServerProperties() {
+//     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+//     const dispatch = useAppDispatch();
 
-    return (
-        <div className="grid">
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-credit-card"
-                    title="Client Id"
-                    description="Enter client id"
-                >
-                    <InputText />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-credit-card"
-                    title="Client Secret"
-                    description="Enter client secret"
-                >
-                    <InputText />
-                </FieldWrapper>
-            </div>
-            <div className="col-12">
-                <FieldWrapper
-                    icon="pi-copy"
-                    title="End Of Day Summary URL"
-                    description="Enter end of day summary url"
-                >
-                    <InputNumber />
-                </FieldWrapper>
-            </div>
-        </div>
-    );
-}
+//     return (
+//         <div className="grid">
+//             <div className="col-12">
+//                 <FieldWrapper
+//                     icon="pi-credit-card"
+//                     title="Client Id"
+//                     description="Enter client id"
+//                 >
+//                     <InputText />
+//                 </FieldWrapper>
+//             </div>
+//             <div className="col-12">
+//                 <FieldWrapper
+//                     icon="pi-credit-card"
+//                     title="Client Secret"
+//                     description="Enter client secret"
+//                 >
+//                     <InputText />
+//                 </FieldWrapper>
+//             </div>
+//             <div className="col-12">
+//                 <FieldWrapper
+//                     icon="pi-copy"
+//                     title="End Of Day Summary URL"
+//                     description="Enter end of day summary url"
+//                 >
+//                     <InputNumber />
+//                 </FieldWrapper>
+//             </div>
+//         </div>
+//     );
+// }
 
 function PrinterProperties() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
 
     return (
         <div className="grid">
@@ -484,7 +531,12 @@ function PrinterProperties() {
                     title="Print Receipt by Default (Walk in)"
                     description="Disabling this will disable printing the receipt on payment and you will be obliged to click the button to print it, only applies to walk in orders"
                 >
-                    <Checkbox inputId="printReceiptByDefault" checked />
+                    <Checkbox
+                        inputId="printReceiptByDefault"
+                        checked={branchRegistry.terminalSettings?.printReceiptByDefault}
+                        value={branchRegistry.terminalSettings?.printReceiptByDefault}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printReceiptByDefault', value: e.target.checked }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -493,7 +545,12 @@ function PrinterProperties() {
                     title="Show order number on receipt"
                     description="Show order number just above the receipt number"
                 >
-                    <Checkbox inputId="showOrderNumber" checked />
+                    <Checkbox
+                        inputId="showOrderNumber"
+                        checked={branchRegistry.terminalSettings?.receiptShowOrderNumber}
+                        value={branchRegistry.terminalSettings?.receiptShowOrderNumber}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'receiptShowOrderNumber', value: e.target.checked }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -502,7 +559,10 @@ function PrinterProperties() {
                     title="Receipt Header"
                     description="Add a header to the receipt"
                 >
-                    <InputText />
+                    <InputText
+                        value={branchRegistry.terminalSettings?.receiptHeader}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'receiptHeader', value: e.target.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12 mt-2">
@@ -590,7 +650,7 @@ const sections: MenuItem[] = [
     { label: 'Email Logs settings', component: EmailLogsSettings },
     { label: 'Customer App', component: CustomerAppSettings },
     { label: 'Credit Card Processing', component: CreditCardSettings },
-    { label: 'Server Properties', component: ServerProperties },
+    // { label: 'Server Properties', component: ServerProperties },
     { label: 'Printer Properties', component: PrinterProperties },
 ];
 

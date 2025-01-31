@@ -60,9 +60,17 @@ export const updateEntity = createAsyncThunk(
 );
 
 export const changeEntityField = createAction<ChangeFieldPayload<IBranchRegistry>>('branch-registry/change-entity-field');
-export const changeTerminalField = createAction<ChangeFieldPayload<IBranchRegistry["terminalSettings"]>>('branch-registry/change-terminal-field');
+export const changeTerminalField = createAction<ChangeFieldPayload<any["terminalSettings"]>>('branch-registry/change-terminal-field');
 
 // slice
+
+const updateNestedState = (obj, path, value) => {
+  const keys = path.split('.');
+  const lastKey = keys.pop();
+  const deepObj = keys.reduce((acc, key) => acc[key] = acc[key] || {}, obj);
+  deepObj[lastKey] = value;
+  return { ...obj };
+};
 
 export const BranchRegistrySlice = createEntitySlice({
   name: 'branch-registry',
@@ -72,6 +80,10 @@ export const BranchRegistrySlice = createEntitySlice({
       .addCase(changeEntityField, (state, action) => {
         const { name, value } = action.payload;
         state.entity[name] = value;
+      })
+      .addCase(changeTerminalField, (state, action) => {
+        const { name, value } = action.payload;
+        state.entity.terminalSettings = updateNestedState(state.entity.terminalSettings, name, value);
       })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
