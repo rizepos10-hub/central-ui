@@ -530,16 +530,17 @@ export const PizzaItemUpdate = () => {
           entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
             ...variantWithoutId,
           }));
-          dispatch(createEntity(entityWithoutId)).then(res => {
-            const payload = res?.payload as any;
-            const newProductId = payload?.data?.id;
+          if (clone) {
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
 
-            // @ts-expect-error -- unknown type
-            if (!res?.error) {
-              navigate(`/restaurant/pizza/${newProductId}/edit`)
-            }
-          });
-
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/restaurant/pizza/${newProductId}/edit`)
+              }
+            });
+          }
           // @ts-expect-error -- unknown type
           if (!res?.error) {
             handleNavigate(newProductId)
