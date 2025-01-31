@@ -24,6 +24,7 @@ interface ItemSelectionModalProps {
   selectedItems: IItem[];
   handleToggleSelect: (items: IItem[]) => void;
   setSelectedItems: React.Dispatch<React.SetStateAction<IItem[]>>;
+  disbaleUnselect?: boolean;
 }
 
 const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
@@ -36,7 +37,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const restaurantCategories: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
   const retailCategories: ITerm[] = useAppSelector(state => state.retailCategory.entities);
 
-  const { isOpen, toggle, selectedItems, handleToggleSelect } = props;
+  const { isOpen, toggle, selectedItems, handleToggleSelect, disbaleUnselect } = props;
 
   // Local states replacing searchParams
   const [itemName, setItemName] = useState<string>('');
@@ -53,7 +54,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   useEffect(() => {
     dispatch(
       getEntities({
-        page : page - 1,
+        page: page - 1,
         size,
         name: itemName,
         sort: 'id,asc',
@@ -123,7 +124,8 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const handleSave = () => {
     toggle();
   };
-
+  console.log(itemList, 'itemList')
+  console.log(selectedItems, 'selectedItems')
   return (
     <Modal size="lg" isOpen={isOpen} toggle={toggle} backdrop="static">
       <ModalHeader toggle={toggle}>
@@ -188,7 +190,9 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                   if (e.checked) {
                     const notSelected = itemList.filter(i => !selectedItems.some(s => s.id === i.id));
                     handleToggleSelect(notSelected);
-                  } else {
+                  }
+                  if (!e.checked && !disbaleUnselect) {
+                    console.log(1)
                     const currentlySelectedFromList = selectedItems.filter(s => itemList.some(i => i.id === s.id));
                     handleToggleSelect(currentlySelectedFromList);
                   }
@@ -245,11 +249,11 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                   </td>
                   <td>
                     <Button
-                      color={isItemSelected(item.id) ? 'danger' : 'primary'}
-                      onClick={() => handleToggleSelect([item])}
+                      color={isItemSelected(item.id) ? disbaleUnselect ? 'success' : 'danger' : 'primary'}
+                      onClick={() => disbaleUnselect ? !isItemSelected(item.id) && handleToggleSelect([item]) : handleToggleSelect([item])}
                     >
                       {isItemSelected(item.id)
-                        ? <Translate contentKey='menus.pos.update.modals.item.buttons.unselect'>Unselect</Translate>
+                        ? disbaleUnselect ? 'Selected' : 'Unselect'
                         : <Translate contentKey='menus.pos.update.modals.item.buttons.select'>Select</Translate>}
                     </Button>
                   </td>

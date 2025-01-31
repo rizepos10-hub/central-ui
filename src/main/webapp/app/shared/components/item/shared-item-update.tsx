@@ -329,6 +329,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                     <Translate contentKey={'items.update.image'}>Image</Translate>
                   </label>
                   <MediaLibrary
+                    multiSelect={true}
                     handleFilesSelectCallback={files => addImage(files)}
                     defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
                   />

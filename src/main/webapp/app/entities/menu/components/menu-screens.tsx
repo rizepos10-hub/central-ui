@@ -744,9 +744,9 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             .map(item => ({ id: item.component.item.id, name: item.component.item.name, desc: item.component.item.desc }));
     }, [mainScreen])
 
-    // useEffect(() => {
-    //     setSelectedItems(mainScreenItems || []);
-    // }, [mainScreenItems])
+    useEffect(() => {
+        setSelectedItems(mainScreenItems || []);
+    }, [mainScreenItems])
 
     const handleMainDragStart = index => {
         setSelectedMainScreenIndex(index);
@@ -923,6 +923,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     };
 
     useEffect(() => {
+        console.log(subScreenStack, 'subScreenStack');
         if (subScreenStack) {
             setGroupedSubscreens(() => {
                 const initialGroups = [];
@@ -980,6 +981,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
 
         updatedData.menuScreens = updatedMenuScreens;
         setData(updatedData);
+
+        updatedSubScreenStack = subScreenStack.map(screen => {
+            const updatedScreen = findScreenById([updatedMenuScreens[selectedMainScreenIndex]], screen.id);
+            return updatedScreen || screen;
+        });
 
         if (updatedSubScreenStack) {
             setSubScreenStack(updatedSubScreenStack);
@@ -1040,7 +1046,11 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 // );
             }
         });
-        updatedSubScreenStack = [updatedMenuScreens[selectedMainScreenIndex]];
+
+        updatedSubScreenStack = subScreenStack.map(screen => {
+            const updatedScreen = findScreenById([updatedMenuScreens[selectedMainScreenIndex]], screen.id);
+            return updatedScreen || screen;
+        });
         updatedData.menuScreens = updatedMenuScreens;
         setData(updatedData);
 
@@ -1050,6 +1060,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     };
 
     const handleToggleSelect = (items: IItem[]) => {
+        console.log(1, 'awdawdawdwa')
         setSelectedItems(prevSelectedItems => {
             const itemsToAdd: IItem[] = [];
             const itemsToRemove: IItem[] = [];
@@ -1306,6 +1317,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                     selectedItems={selectedItems}
                     handleToggleSelect={handleToggleSelect}
                     setSelectedItems={setSelectedItems}
+                    disbaleUnselect
                 />
             )}
 
