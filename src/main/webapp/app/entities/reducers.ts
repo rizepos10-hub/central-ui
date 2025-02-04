@@ -42,6 +42,7 @@ import pizzaGroup from 'app/entities/pizza-settings/pizza-group.reducer';
 import pizzaSize from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
 import pizzaPricingClass from 'app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer';
 import pizzaCrustThickness from 'app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness.reducer';
+import basePizzaSettings from 'app/entities/pizza-settings/base-pizza/base-pizza.reducer';
 import pizzaCrustType from 'app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer';
 import pizzaTopping from 'app/entities/pizza-settings/pizza-topping/pizza-topping.reducer';
 import predefinedPizza from 'app/entities/pizza-settings/pizza-predefined/pizza-predefined.reducer';
@@ -129,6 +130,7 @@ const entitiesReducers = {
   pizzaSize,
   pizzaTopping,
   pizzaCrustThickness,
+  basePizzaSettings,
   pizzaCrustType,
   pizzaPricingClass,
   predefinedPizza,

@@ -28,6 +28,7 @@ import PizzaSize from "app/entities/pizza-settings/pizza-size";
 import PizzaTopping from "app/entities/pizza-settings/pizza-topping";
 import PizzaPricingClass from "app/entities/pizza-settings/pizza-pricing-class";
 import PizzaCrust from "app/entities/pizza-settings/pizza-crust-setting";
+import BasePizzaSettings from "app/entities/pizza-settings/base-pizza";
 import PizzaCrustThickness from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness-routes";
 import PizzaCrustType from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type-routes";
 import PredefinedPizza from "app/entities/pizza-settings/pizza-predefined/";
@@ -108,6 +109,7 @@ export default () => {
         <Route path="pizza-topping/*" element={<PizzaTopping />} />
         <Route path="pizza-topping-group/*" element={<PizzaToppingGroup />} />
         <Route path="pizza-crust/*" element={<PizzaCrust />} />
+        <Route path="base-pizza/*" element={<BasePizzaSettings />} />
         <Route path="pizza-crust-thickness/*" element={<PizzaCrustThickness />} />
         <Route path="pizza-crust-type/*" element={<PizzaCrustType />} />
         <Route path="predefined-pizza/*" element={<PredefinedPizza />} />
