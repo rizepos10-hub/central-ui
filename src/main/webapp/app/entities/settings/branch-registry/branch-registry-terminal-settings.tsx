@@ -5,11 +5,12 @@ import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Dropdown } from 'primereact/dropdown';
 import { Checkbox } from 'primereact/checkbox';
-import { CreditCardIntegrationTypeEnum } from 'app/shared/model/terminal-settings';
+import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DeviceTypesEnum, EncryptionSchemeEnum, ProviderTypesEnum } from 'app/shared/model/terminal-settings';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { changeEntityField, changeTerminalField, updateEntity } from './branch-registry.reducer';
+import { changeTerminalField, updateEntity } from './branch-registry.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
 import { Button } from 'primereact/button';
+import Select from 'react-select';
 
 type MenuItem = {
     label: string;
@@ -102,7 +103,7 @@ function GeneralSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-building"
+                    icon="pi-shopping-bag"
                     title="Order Type"
                     description="Choose Order type"
                 >
@@ -115,7 +116,7 @@ function GeneralSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-building"
+                    icon="pi-wallet"
                     title="Enable Split Bills"
                     description="Enable Split Bills"
                 >
@@ -129,7 +130,7 @@ function GeneralSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-building"
+                    icon="pi-arrow-down-left"
                     title="Receive Online Order Popups"
                     description="Receive Online Order Popups"
                 >
@@ -143,7 +144,7 @@ function GeneralSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-tax"
+                    icon="pi-hashtag"
                     title="HST Number"
                     description="Enter HST number"
                 >
@@ -155,7 +156,7 @@ function GeneralSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-tax"
+                    icon="pi-hashtag"
                     title="GST Number"
                     description="Enter GST number"
                 >
@@ -167,7 +168,7 @@ function GeneralSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-tax"
+                    icon="pi-hashtag"
                     title="PST Number"
                     description="Enter PST number"
                 >
@@ -206,7 +207,7 @@ function PersonalizationSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-image"
+                    icon="pi-filter"
                     title="Show Retail Items Only"
                     description="Show Retail Items Only in the app"
                 >
@@ -220,7 +221,7 @@ function PersonalizationSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-language"
+                    icon="pi-globe"
                     title="Change POS Language"
                     description="Chane display langauge of the terminal"
                 >
@@ -242,7 +243,7 @@ function AdminActionsSettings() {
         <div className="grid">
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-image"
+                    icon="pi-th-large"
                     title="Select Pricing Point"
                     description="Select Pricing Point"
                 >
@@ -266,65 +267,88 @@ function ScaleSettings() {
         <div className="grid">
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-scale"
+                    icon="pi-sliders-v"
                     title="Read Scale Barcodes"
                     description="When enabled, the terminal will read the configuration below and use them to read barcodes scanned from scales"
                 >
-                    <InputNumber />
+                    <Checkbox
+                        value={branchRegistry?.terminalSettings?.scaleSettings?.readScaleBarCodes}
+                        checked={branchRegistry?.terminalSettings?.scaleSettings?.readScaleBarCodes}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'readScaleBarCodes', value: e.checked }))}
+
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-scale"
+                    icon="pi-hashtag"
                     title="Total Number Of Digits"
                     description="Enter total number of digits"
                 >
-                    <InputNumber />
+                    <InputNumber
+                        value={branchRegistry?.terminalSettings?.scaleSettings?.totalNumberOfDigits}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'totalNumberOfDigits', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-scale"
+                    icon="pi-ellipsis-h"
                     title="Prefix"
                     description="Enter Prefix"
                 >
-                    <InputNumber />
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.scaleSettings?.prefix}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'prefix', value: e.target.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-scale"
+                    icon="pi-ellipsis-h"
                     title="Plus Start Position"
                     description="Enter plus start position"
                 >
-                    <InputNumber />
+                    <InputNumber
+                        value={branchRegistry?.terminalSettings?.scaleSettings?.pluStartPosition}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'pluStartPosition', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-scale"
+                    icon="pi-hashtag"
                     title="Plus Total Digit Count"
                     description="Enter plus total digit count"
                 >
-                    <InputNumber />
+                    <InputNumber
+                        value={branchRegistry?.terminalSettings?.scaleSettings?.pluTotalDigitCount}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'pluTotalDigitCount', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-scale"
+                    icon="pi-ellipsis-h"
                     title="Price Start Position"
                     description="Enter price start position"
                 >
-                    <InputNumber />
+                    <InputNumber
+                        value={branchRegistry?.terminalSettings?.scaleSettings?.priceStartPosition}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'priceStartPosition', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-scale"
+                    icon="pi-hashtag"
                     title="Price Total Digit Count"
                     description="Enter price total digit count"
                 >
-                    <InputNumber />
+                    <InputNumber
+                        value={branchRegistry?.terminalSettings?.scaleSettings?.priceTotalDigitCount}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'priceTotalDigitCount', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
         </div>
@@ -339,7 +363,7 @@ function EmailLogsSettings() {
         <div className="grid">
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-scale"
+                    icon="pi-hashtag"
                     title="Max Email Attachment Size"
                     description="Enter max email attachment size"
                 >
@@ -351,7 +375,7 @@ function EmailLogsSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-scale"
+                    icon="pi-link"
                     title="Recipient"
                     description="Enter recipient"
                 >
@@ -368,12 +392,12 @@ function EmailLogsSettings() {
 function CustomerAppSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch()
-
+    console.log(branchRegistry, 'branchRegistry')
     return (
         <div className="grid">
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-mobile"
+                    icon="pi-user"
                     title="Enable Customer Screen"
                     description="This flag enables the customer screen and allows the pos to connect and send it the required data"
                 >
@@ -381,27 +405,28 @@ function CustomerAppSettings() {
                         inputId="enableCusomterScreen"
                         checked={branchRegistry?.terminalSettings?.enableCustomerApp}
                         value={branchRegistry?.terminalSettings?.enableCustomerApp}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'enableCustomerApp', value: e.value }))}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'enableCustomerApp', value: e.checked }))}
                     />
                 </FieldWrapper>
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-mobile"
+                    icon="pi-users"
                     title="Same Device As Customer Screen"
                     description="If checked, it will enable the capabilty to open the app from the pos window (only available on windows)"
                 >
                     <Checkbox
                         inputId="sameDevice"
-                        checked={branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
-                        value={branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
-                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppIsOnSameDevice', value: e.value }))}
+                        disabled={!branchRegistry?.terminalSettings?.enableCustomerApp}
+                        checked={branchRegistry?.terminalSettings?.enableCustomerApp && branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
+                        value={branchRegistry?.terminalSettings?.enableCustomerApp && branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppIsOnSameDevice', value: e.checked }))}
                     />
                 </FieldWrapper>
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-mobile"
+                    icon="pi-wifi"
                     title="Customer App IP"
                     description="Enter IP address of the customer app"
                 >
@@ -413,7 +438,7 @@ function CustomerAppSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-mobile"
+                    icon="pi-angle-double-up"
                     title="Customer App Port"
                     description="Enter port number of the customer app"
                 >
@@ -439,6 +464,30 @@ const CreditCardSettings = () => {
 
     const selectedType = branchRegistry?.terminalSettings?.creditCardIntegrationType;
 
+    const providerTypesValue =
+        branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.providerTypes;
+    const providerTypesOptions = providerTypesValue
+        ? (Array.isArray(providerTypesValue) ? providerTypesValue : [providerTypesValue]).map(
+            type => ({ label: type, value: type })
+        )
+        : null;
+
+    const connectionTypesValue =
+        branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.connectionTypes;
+    const connectionTypesOptions = connectionTypesValue
+        ? (Array.isArray(connectionTypesValue) ? connectionTypesValue : [connectionTypesValue]).map(
+            type => ({ label: type, value: type })
+        )
+        : null;
+
+    const deviceTypesValue =
+        branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.deviceTypes;
+    const deviceTypesOptions = deviceTypesValue
+        ? (Array.isArray(deviceTypesValue) ? deviceTypesValue : [deviceTypesValue]).map(
+            type => ({ label: type, value: type })
+        )
+        : null;
+
     return (
         <div className="grid">
             <div className="col-12">
@@ -450,6 +499,7 @@ const CreditCardSettings = () => {
                     <Dropdown
                         value={selectedType}
                         options={integrationTypeOptions}
+                        onChange={e => dispatch(changeTerminalField({ name: "creditCardIntegrationType", value: e.value }))}
                         placeholder="Select Integration Type"
                         className="w-full"
                     />
@@ -458,14 +508,179 @@ const CreditCardSettings = () => {
 
             {/* Conditionally rendered based on integration type */}
             {selectedType === CreditCardIntegrationTypeEnum.ELAVON_CWS && (
-                <div className="col-12">
-                    {/* Add Elavon CWS specific fields here */}
-                </div>
+                <>
+                    <div className="col-12">
+                        <h4 className='text-decoration-underline'>
+                            CWS Settings
+                        </h4>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-cloud-upload"
+                            title="Auto Configure On Startup"
+                            description="Autoconfigure elavon cws on startup of the application (must complete all configuration steps to be able to do so)"
+                        >
+                            <Checkbox
+                                checked={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.autoconfigure}
+                                value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.autoconfigure}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.autoconfigure', value: e.target.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="CWS Machine Ip"
+                            description="IP of the machine hosting cws"
+                        >
+                            <InputText
+                                value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.cwsIp}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.cwsIp', value: e.target.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-angle-double-up"
+                            title="CWS Machine Port"
+                            description="Port of cws on the machine"
+                        >
+                            <InputNumber
+                                value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.cwsPort}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.cwsPort', value: e.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <h4 className='text-decoration-underline'>
+                            {/* eslint-disable-next-line react/no-unescaped-entities */}
+                            Elavon Account Settings (Same as "Elavon" integration type)
+                        </h4>
+                        <div className="col-12">
+                            <ElavonIntegrationType />
+                        </div>
+                        <h4 className='text-decoration-underline'>
+                            Reader Settings
+                        </h4>
+                        <div className="col-12">
+                            <FieldWrapper
+                                icon="pi-wifi"
+                                title="CWS Reader IP"
+                                description="IP of the credit card reader"
+                            >
+                                <InputText
+                                    value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.inetAddress?.host}
+                                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.readerSettings.inetAddress.host', value: e.target.value }))}
+                                />
+                            </FieldWrapper>
+                        </div>
+                        <div className="col-12">
+                            <FieldWrapper
+                                icon="pi-angle-double-up"
+                                title="CWS Reader Port"
+                                description="Port of the credit card reader"
+                            >
+                                <InputNumber
+                                    value={branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.inetAddress?.port}
+                                    onChange={(e) => dispatch(changeTerminalField({ name: 'elavonCWSConfiguration.readerSettings.inetAddress.port', value: e.value }))}
+                                />
+                            </FieldWrapper>
+                        </div>
+                        <div className="col-12">
+                            <FieldWrapper
+                                icon="pi-lock"
+                                title="CWS Reader Encryption Scheme"
+                                description="Select card reader encryption scheme, could be any of: None, TLS 1.2"
+                            >
+                                <Select
+                                    options={Object.values(EncryptionSchemeEnum).map(type => ({
+                                        label: type,
+                                        value: type
+                                    }))}
+                                    value={{
+                                        value: branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.inetAddress?.encryptionScheme,
+                                        label: branchRegistry?.terminalSettings?.elavonCWSConfiguration?.readerSettings?.inetAddress?.encryptionScheme
+                                    }}
+                                    onChange={(e) => dispatch(changeTerminalField({
+                                        name: 'elavonCWSConfiguration.readerSettings.inetAddress.encryptionScheme',
+                                        value: e.value
+                                    }))}
+                                />
+                            </FieldWrapper>
+                        </div>
+                        <div className="col-12">
+                            <FieldWrapper
+                                icon="pi-id-card"
+                                title="CWS Reader provider Types"
+                                description="IP of the machine hosting cws"
+                            >
+                                <Select
+                                    options={Object.values(ProviderTypesEnum).map(type => ({ label: type, value: type }))}
+                                    value={providerTypesOptions}
+                                    onChange={(selected) =>
+                                        dispatch(
+                                            changeTerminalField({
+                                                name: 'elavonCWSConfiguration.readerSettings.providerTypes',
+                                                value: selected ? selected.map(option => option.value) : []
+                                            })
+                                        )
+                                    }
+                                    isMulti
+                                    isClearable
+                                />
+                            </FieldWrapper>
+                        </div>
+                        <div className="col-12">
+                            <FieldWrapper
+                                icon="pi-sitemap"
+                                title="CWS Reader Connection Types"
+                                description=""
+                            >
+                                <Select
+                                    options={Object.values(ConnectionTypesEnum).map(type => ({ label: type, value: type }))}
+                                    value={connectionTypesOptions}
+                                    onChange={(selected) =>
+                                        dispatch(
+                                            changeTerminalField({
+                                                name: 'elavonCWSConfiguration.readerSettings.connectionTypes',
+                                                value: selected ? selected.map(option => option.value) : []
+                                            })
+                                        )
+                                    }
+                                    isMulti
+                                    isClearable
+                                />
+                            </FieldWrapper>
+                        </div>
+                        <div className="col-12">
+                            <FieldWrapper
+                                icon="pi-desktop"
+                                title="CWS Reader Device Types"
+                                description=""
+                            >
+                                <Select
+                                    options={Object.values(DeviceTypesEnum).map(type => ({ label: type, value: type }))}
+                                    value={deviceTypesOptions}
+                                    onChange={(selected) =>
+                                        dispatch(
+                                            changeTerminalField({
+                                                name: 'elavonCWSConfiguration.readerSettings.deviceTypes',
+                                                value: selected ? selected.map(option => option.value) : []
+                                            })
+                                        )
+                                    }
+                                    isMulti
+                                    isClearable
+                                />
+                            </FieldWrapper>
+                        </div>
+                    </div>
+                </>
             )}
 
             {selectedType === CreditCardIntegrationTypeEnum.ELAVON && (
                 <div className="col-12">
-                    {/* Add Elavon specific fields here */}
+                    <ElavonIntegrationType />
                 </div>
             )}
 
@@ -473,20 +688,26 @@ const CreditCardSettings = () => {
                 <>
                     <div className="col-12">
                         <FieldWrapper
-                            icon="pi-mobile"
+                            icon="pi-wifi"
                             title="Credit Card Machine IP"
                             description=""
                         >
-                            <InputNumber />
+                            <InputText
+                                value={branchRegistry?.terminalSettings?.creditCardMachineIp}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'creditCardMachineIp', value: e.target.value }))}
+                            />
                         </FieldWrapper>
                     </div>
                     <div className="col-12">
                         <FieldWrapper
-                            icon="pi-mobile"
+                            icon="pi-angle-double-up"
                             title="Credit Card Machine PORT"
                             description="Enter port number of the customer app"
                         >
-                            <InputNumber />
+                            <InputText
+                                value={branchRegistry?.terminalSettings?.creditCardMachinePort}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'creditCardMachinePort', value: e.target.value }))}
+                            />
                         </FieldWrapper>
                     </div>
                 </>
@@ -495,6 +716,112 @@ const CreditCardSettings = () => {
         </div>
     );
 };
+
+const ElavonIntegrationType = () => {
+    const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
+
+    return (
+        <>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-book"
+                    title="Merchant Id"
+                    description="Enter the merchant id of the elavon account"
+                >
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.merchantId}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.merchantId', value: e.target.value }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-user"
+                    title="User Id"
+                    description="Enter the user id of the elavon account"
+                >
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.userId}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.userId', value: e.target.value }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-hashtag"
+                    title="Pin"
+                    description="Enter the pin of the elavon account"
+                >
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.pin}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.pin', value: e.target.value }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-server"
+                    title="Vendor Id"
+                    description="Enter the vendor id of the elavon account"
+                >
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.vendorId}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.vendorId', value: e.target.value }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-server"
+                    title="Vendor App Names"
+                    description="Enter the vendor app names of the elavon account"
+                >
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.vendorAppName}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.vendorAppName', value: e.target.value }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-server"
+                    title="Vendor App Version"
+                    description="Enter the vendor app version of the elavon account"
+                >
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.vendorAppVersion}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.vendorAppVersion', value: e.target.value }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-sign-in"
+                    title="BMS Username"
+                    description="Enter the bms username of the elavon account"
+                >
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.bmsUsername}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.bmsUsername', value: e.target.value }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-ellipsis-h"
+                    title="BMP Password"
+                    description="Enter the bms password of the elavon account"
+                >
+                    <InputText
+                        value={branchRegistry?.terminalSettings?.elavonAccountCredentials?.bmsPassword}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'elavonAccountCredentials.bmsPassword', value: e.target.value }))}
+                    />
+                </FieldWrapper>
+            </div>
+        </>
+    )
+}
 
 // function ServerProperties() {
 //     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
@@ -555,7 +882,7 @@ function PrinterProperties() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-print"
+                    icon="pi-hashtag"
                     title="Show order number on receipt"
                     description="Show order number just above the receipt number"
                 >
@@ -569,7 +896,7 @@ function PrinterProperties() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-credit-card"
+                    icon="pi-caret-up"
                     title="Receipt Header"
                     description="Add a header to the receipt"
                 >
@@ -579,9 +906,21 @@ function PrinterProperties() {
                     />
                 </FieldWrapper>
             </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-caret-down"
+                    title="Receipt Footer"
+                    description="Add a Footer to the receipt"
+                >
+                    <InputText
+                        value={branchRegistry.terminalSettings?.receiptFooter}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'receiptFooter', value: e.target.value }))}
+                    />
+                </FieldWrapper>
+            </div>
             <div className="col-12 mt-2">
                 <FieldWrapper
-                    icon="pi-building"
+                    icon="pi-briefcase"
                     title="Open Drawer Type"
                     description="Set drawer to open either before or after printing or set to manually be opened"
                 >
@@ -593,7 +932,7 @@ function PrinterProperties() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-credit-card"
+                    icon="pi-briefcase"
                     title="Open Drawer on Debit/Credit Transactions"
                     description="Option to open drawer on debit/card related transactions"
                 >
@@ -611,7 +950,7 @@ function PrinterProperties() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-print"
+                    icon="pi-arrows-h"
                     title="Reverse"
                     description="Send print commands in reverse (This is a special case for some printers where it prints the data in reverse)"
                 >
@@ -632,7 +971,7 @@ function PrinterProperties() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-credit-card"
+                    icon="pi-file-o"
                     title="Printer Name"
                     description="Printer name from the windows system"
                 >
@@ -641,7 +980,7 @@ function PrinterProperties() {
             </div>
             <div className="col-12">
                 <FieldWrapper
-                    icon="pi-credit-card"
+                    icon="pi-tablet"
                     title="Printer Size"
                     description="Choose one of the supported printer sizes"
                 >

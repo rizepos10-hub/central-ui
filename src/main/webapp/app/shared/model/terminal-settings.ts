@@ -91,16 +91,41 @@ interface ElavonCWSConfiguration {
 }
 
 interface ReaderSettings {
-    providerTypes: string[];
-    connectionTypes: string[];
-    deviceTypes: string[];
+    providerTypes: ProviderTypesEnum[];
+    connectionTypes: ConnectionTypesEnum[];
+    deviceTypes: DeviceTypesEnum[];
     inetAddress: InetAddress;
+}
+
+export enum ProviderTypesEnum {
+    INGENICO_RBA_UPP = "INGENICO_RBA_UPP",
+    STAR = "STAR",
+    RUA = "RAU",
+    Epson = "Epson",
+    Magtek = "Magtek",
+    RDM = "RDM",
+    Opayo = "Opayo"
+}
+
+export enum ConnectionTypesEnum {
+    IP = "IP"
+}
+
+export enum DeviceTypesEnum {
+    CARD_READE = "CARD_READER",
+    PRINTER = "PRINTER"
 }
 
 interface InetAddress {
     host: string | null;
     port: number | null;
-    encryptionScheme: string | null;
+    encryptionScheme: EncryptionSchemeEnum;
+}
+
+
+export enum EncryptionSchemeEnum {
+    NONE = "NONE",
+    TLS_12 = "TLS_12"
 }
 
 interface EmailLogsSettings {
