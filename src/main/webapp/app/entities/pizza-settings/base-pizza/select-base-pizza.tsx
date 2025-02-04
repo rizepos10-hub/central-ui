@@ -36,7 +36,7 @@ export const SelectBasePizza = () => {
             sortOrder: null,
             query: '',
             filters: {
-                'variants[0].predefinedPizza.base': true
+                'variants.pizzaVariantType': { value: 'BASE', matchMode: FilterMatchMode.EQUALS }
             }
         };
 
@@ -58,10 +58,9 @@ export const SelectBasePizza = () => {
 
         const entity = {
             key: "PIZZA_SETTINGS",
-            value: {
-                basePizza: {
-                    id: selectedPizza?.value
-                }
+            basePizza: {
+                id: selectedPizza?.value,
+                itemVariantType: 'RESTAURANT_PIZZA'
             }
         }
 
