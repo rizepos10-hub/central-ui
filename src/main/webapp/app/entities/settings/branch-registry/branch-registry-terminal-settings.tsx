@@ -221,8 +221,8 @@ function PersonalizationSettings() {
             <div className="col-12">
                 <FieldWrapper
                     icon="pi-language"
-                    title="Language Code"
-                    description="Choose language code"
+                    title="Change POS Language"
+                    description="Chane display langauge of the terminal"
                 >
                     <InputText
                         value={branchRegistry?.terminalSettings?.languageCode}
@@ -267,8 +267,8 @@ function ScaleSettings() {
             <div className="col-12">
                 <FieldWrapper
                     icon="pi-scale"
-                    title="PLU Start Position"
-                    description="Enter PLU start position"
+                    title="Read Scale Barcodes"
+                    description="When enabled, the terminal will read the configuration below and use them to read barcodes scanned from scales"
                 >
                     <InputNumber />
                 </FieldWrapper>
@@ -376,6 +376,20 @@ function CustomerAppSettings() {
                     icon="pi-mobile"
                     title="Enable Customer Screen"
                     description="This flag enables the customer screen and allows the pos to connect and send it the required data"
+                >
+                    <Checkbox
+                        inputId="enableCusomterScreen"
+                        checked={branchRegistry?.terminalSettings?.enableCustomerApp}
+                        value={branchRegistry?.terminalSettings?.enableCustomerApp}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'enableCustomerApp', value: e.value }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-mobile"
+                    title="Same Device As Customer Screen"
+                    description="If checked, it will enable the capabilty to open the app from the pos window (only available on windows)"
                 >
                     <Checkbox
                         inputId="sameDevice"
