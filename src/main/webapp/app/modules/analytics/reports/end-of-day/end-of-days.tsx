@@ -102,6 +102,7 @@ export const EndOfDays = () => {
           onChange={e => setCalenderValue(e.value)}
           selectionMode="range"
           placeholder={translate('orders.view.table.filters.date')}
+          showButtonBar
         />
       </div>
 

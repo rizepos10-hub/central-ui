@@ -66,8 +66,8 @@ const EmployeeHoursReport = () => {
 
 
     const handleDateChange = (e: any) => {
-        const startDate = e.value[0];
-        const endDate = e.value[1];
+        const startDate = e?.value?.[0];
+        const endDate = e?.value?.[1];
         setFilterState({
             ...filterState,
             filters: {
@@ -271,6 +271,7 @@ const EmployeeHoursReport = () => {
                         onChange={handleDateChange}
                         selectionMode="range"
                         placeholder={translate('orders.view.table.filters.date')}
+                        showButtonBar
                     />
 
                     <div>
