@@ -715,6 +715,7 @@ export const ProductUpdate = () => {
       variants: updatedVariants.length > 1 ? updatedVariants : [
         {
           ...updatedVariants[0],
+          name: product.name,
           measureValue: product.baseMeasure ? {
             isBase: true,
             measure: 1
