@@ -86,32 +86,30 @@ const OrderCreate = () => {
 
 
     const formatPricingPointOrderType = (orderType: OrderMethod) => {
-    switch (orderType) {
-        case OrderMethod.PickUp:
-        return "Pickup";
-        case OrderMethod.WalkIn:
-        return "Walk In";
-        case OrderMethod.Delivery:
-        return "Delivery";
-        default:
-        return orderType;
-    }
+        switch (orderType) {
+            case OrderMethod.PickUp:
+                return "Pickup";
+            case OrderMethod.WalkIn:
+                return "Walk In";
+            case OrderMethod.Delivery:
+                return "Delivery";
+            default:
+                return orderType;
+        }
     };
     const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
     useEffect(() => {
-        console.log(query, 'query')
         const newQuery = {
             ...query,
             page: parseInt(searchParams.get("page"), 10) - 1 || 0,
-            size: parseInt(searchParams.get("size"), 10) || 24,
-            name: searchParams.get("name") || '',
+            rows: parseInt(searchParams.get("size"), 10) || 24,
             filters: {
                 ...query.filters,
-                'categories.id': { value: searchParams.get("categoryId"), matchMode: 'equals' }
+                'categories.id': { value: searchParams.get("categoryId"), matchMode: 'equals' },
+                'name': { value: searchParams.get("name"), matchMode: 'contains' }
             }
         }
         const updatedQuery = applyMatchModeMap(newQuery);
-        console.log(updatedQuery, 'updatedQuery')
 
         dispatch(getProducts({
             query: updatedQuery,
@@ -121,11 +119,11 @@ const OrderCreate = () => {
     useEffect(() => {
         dispatch(
             getPricingPoints({
-              page: 0,
-              size: 500,
-              sort: 'asc',
+                page: 0,
+                size: 500,
+                sort: 'asc',
             })
-          );
+        );
         dispatch(getBranches({}))
         dispatch(getCustomers({
             query: '',
@@ -142,7 +140,6 @@ const OrderCreate = () => {
         );
         dispatch(reset())
     }, [])
-    console.log(orderEntity, 'orderEntity')
     const createQueryString = useCallback((name, value) => {
         const sParams = new URLSearchParams(searchParams);
         sParams.set(name, value);
@@ -182,8 +179,8 @@ const OrderCreate = () => {
                         variantItem: products.find(product => product.id === item.itemId)?.variants?.find(variant => variant.id === item.variantId),
                         item: products.find(product => product.id === item.itemId),
                         customer: customers.find(customer => customer.id === orderEntity.customer?.id),
-                        pricingPointId: pricingPointId,
-                        pricingPoints: pricingPoints,
+                        pricingPointId,
+                        pricingPoints,
                         selectedOrderMethod: orderEntity.orderMethod
                     }),
                 })),
@@ -342,8 +339,8 @@ const OrderCreate = () => {
 
         const userSelectedPricingPoint = pricingPoints.find(
             (pricingPoint) =>
-            pricingPoint.type === PricingPointType.USER_SELECTED &&
-            pricingPoint.applicableBranches?.some(branch => branch.id === branchId)
+                pricingPoint.type === PricingPointType.USER_SELECTED &&
+                pricingPoint.applicableBranches?.some(branch => branch.id === branchId)
         );
 
         if (userSelectedPricingPoint) {
@@ -616,8 +613,8 @@ const OrderCreate = () => {
                                                                 branchId: orderEntity.branchId,
                                                                 variantItem: variant,
                                                                 item: variantDialog.product,
-                                                                pricingPointId: pricingPointId,
-                                                                pricingPoints: pricingPoints,
+                                                                pricingPointId,
+                                                                pricingPoints,
                                                             }),
                                                             amount: 1,
                                                             discount: {},
@@ -709,32 +706,32 @@ const OrderCreate = () => {
                 <Col md={4} className="p-2 flex flex-column justify-content-between gap-2" style={{
                     height: '80vh'
                 }}>
-                    
+
                     <div className="px-2">
                         Order Method
                         <Dropdown
                             options={Object.values(OrderMethod)
-                            .filter((type) => type !== OrderMethod.DineIn)
-                            .map(type => ({
-                                label: formatPricingPointOrderType(type),
-                                value: type
-                            }))}
+                                .filter((type) => type !== OrderMethod.DineIn)
+                                .map(type => ({
+                                    label: formatPricingPointOrderType(type),
+                                    value: type
+                                }))}
                             placeholder="Select an order method"
                             value={orderEntity?.orderMethod} // Replace this with your actual state field
                             onChange={(e) =>
-                            dispatch(
-                                changeEntityField({
-                                name: 'orderMethod',
-                                value: e.value,
-                                })
-                            )
+                                dispatch(
+                                    changeEntityField({
+                                        name: 'orderMethod',
+                                        value: e.value,
+                                    })
+                                )
                             }
                             className="w-100"
                             showClear
                             filter
                             filterTemplate={filterTemplate}
                         />
-                        </div>
+                    </div>
 
                     <div className="px-2">Edit User
                         <Dropdown
