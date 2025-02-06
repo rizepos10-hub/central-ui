@@ -18,7 +18,7 @@ const initialState: EntityState<IVariableItemVariant> = {
 const apiUrl = 'api/_search/variants';
 
 // Actions
-export const getEntities = createAsyncThunk('variant/fetch_entity_list', async ({ query }: IQueryParams) => {
+export const getEntitiess = createAsyncThunk('variant/fetch_entity_list', async ({ query }: IQueryParams) => {
     const requestUrl = `${apiUrl}${query ? `/by-name?query=${query}&` : '?'}cacheBuster=${new Date().getTime()}`;
     return axios.get<IVariableItemVariant[]>(requestUrl);
 });
