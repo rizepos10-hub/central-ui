@@ -567,29 +567,32 @@ export const RegularItemUpdate = () => {
 
 
 
-  const handleAddonGroupOverridedPriceChange = (addonGroupIndex: number, addonId: string, price: number | null | undefined, variantIndex: number) => {
+  const handleAddonGroupOverridedPriceChange = (
+    addonGroupIndex: number,
+    addonId: string,
+    price: number | null | undefined,
+    variantIndex: number
+  ) => {
     const variant: IRegularItemVariant = regularItem.variants[variantIndex];
 
     const updatedAddonGroups = [...variant.addonGroups];
     const addonGroup = updatedAddonGroups[addonGroupIndex];
-    console.log(addonGroup)
-    const updatedAddonPriceOverrides = [...addonGroup.addonPriceOverrides];
-    console.log(updatedAddonPriceOverrides)
 
-    const index = updatedAddonPriceOverrides?.findIndex(override => override.id === addonId);
-    console.log(index)
-    console.log(updatedAddonPriceOverrides[index])
+    const updatedAddonPriceOverrides = [...addonGroup.addonPriceOverrides];
+    const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
+
     if (price !== null && price !== undefined) {
       if (index >= 0) {
-        // Update existing price override
-        updatedAddonPriceOverrides[index].price = price;
+        // Update existing price override immutably
+        updatedAddonPriceOverrides[index] = {
+          ...updatedAddonPriceOverrides[index],
+          price,
+        };
       } else {
         // Add new price override
         updatedAddonPriceOverrides.push({ id: addonId, price });
-        console.log(updatedAddonPriceOverrides)
       }
     } else {
-      // Remove price override if price is empty or null
       if (index >= 0) {
         updatedAddonPriceOverrides.splice(index, 1);
       }
@@ -602,9 +605,9 @@ export const RegularItemUpdate = () => {
 
     updatedAddonGroups[addonGroupIndex] = newAddonGroup;
 
-    console.log(updatedAddonGroups)
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
   };
+
 
   const handleVariantAddonGroupExcludedChange = (
     e,
@@ -910,8 +913,32 @@ export const RegularItemUpdate = () => {
                                                 (group) => group.addonGroup.id === selectedAddonGroup?.addonGroup.id
                                               ) && (
                                                   <Col md={6}>
-                                                    <label className={'font-semibold'}>
-                                                      <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
+                                                    <label className={'font-semibold d-flex justify-content-between'}>
+                                                      <span>
+                                                        <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
+                                                      </span>
+                                                      <span className='d-flex flex-column gap-2'>
+                                                        <div className='d-flex gap-2 align-items-center'>
+                                                          <div style={{
+                                                            height: '12px',
+                                                            width: '12px',
+                                                            backgroundColor: 'red'
+                                                          }} />
+                                                          <div>
+                                                            Price Modified
+                                                          </div>
+                                                        </div>
+                                                        <div className='d-flex gap-2 align-items-center'>
+                                                          <div style={{
+                                                            height: '12px',
+                                                            width: '12px',
+                                                            backgroundColor: 'black'
+                                                          }} />
+                                                          <div>
+                                                            Default Price
+                                                          </div>
+                                                        </div>
+                                                      </span>
                                                     </label>
                                                     <div className='border'>
                                                       <Table>
@@ -934,14 +961,17 @@ export const RegularItemUpdate = () => {
                                                               <td className='align-content-center'>{addon.name}</td>
                                                               <td className='align-content-center'>
                                                                 <InputNumber
-                                                                  value={variant.addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.addonPriceOverrides?.find(override => override.id === addon.id)?.price}
+                                                                  value={variant.addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.addonPriceOverrides?.find(override => override.id === addon.id)?.price || addon.price}
                                                                   onChange={e => handleAddonGroupOverridedPriceChange(
                                                                     variant?.addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
                                                                     addon.id,
                                                                     e.value,
                                                                     variantIndex
                                                                   )}
-                                                                  inputStyle={{ width: '50px' }}
+                                                                  inputStyle={{
+                                                                    width: '50px',
+                                                                    color: selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price ? 'red' : 'black'
+                                                                  }}
                                                                   mode="decimal"
                                                                   minFractionDigits={2}
                                                                   maxFractionDigits={2}
