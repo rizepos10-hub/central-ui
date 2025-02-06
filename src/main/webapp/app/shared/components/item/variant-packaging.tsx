@@ -1,15 +1,16 @@
 import { IVariableItemVariant } from 'app/shared/model/ITEM/retail/variable-item.model';
 import React, { useState } from 'react'
-import { Translate } from 'react-jhipster'
 import AsyncSelect from "react-select/async";
-import { getEntities as getVariants } from "app/entities/variant/variant.reducer";
 import { useAppDispatch } from 'app/config/store';
-import { InputNumber } from 'primereact/inputnumber';
 import { Container, Row, Col, Input, Button, InputGroup, InputGroupText } from 'reactstrap';
 import { MdDeleteForever } from "react-icons/md";
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
 import { GoPackageDependencies } from "react-icons/go";
 import { TiArrowRightThick } from "react-icons/ti";
+import { filterEntities } from 'app/entities/item/retail/product/product.reducer';
+import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { initialItemFilterState } from "app/shared/model/filter-state.model";
+import { FilterMatchMode } from 'primereact/api';
 
 const VariantPackaging = ({
     product,
@@ -30,15 +31,26 @@ const VariantPackaging = ({
         if (!inputValue) return [];
 
         try {
-            const response = await dispatch(getVariants({
-                query: inputValue,
-            }));
+            const updatedQuery = applyMatchModeMap({
+                ...initialItemFilterState,
+                filters: {
+                    ...initialItemFilterState.filters,
+                    name: { value: inputValue, matchMode: FilterMatchMode.CONTAINS },
+                }
+            });
+            const response = await dispatch(
+                filterEntities({
+                    query: updatedQuery,
+                })
+            );;
             const payload = response.payload as any;
             const data = payload?.data;
-            return data?.map(item => ({
-                variantId: item?.id,
-                name: item?.name
-            }))
+            return data?.flatMap(item => (item?.variants?.map(
+                variant => ({
+                    variantId: variant?.id,
+                    name: `(${item?.name}) ${variant?.name}`
+                })
+            )))
         } catch (error) {
             console.error('Error loading options:', error);
             return [];
@@ -69,10 +81,10 @@ const VariantPackaging = ({
                                 <span>1</span>
                             </div>
                         </Col>
-                        <Col md="4">
+                        <Col md="3">
                             <div className="d-flex align-items-center">
-                                <span className="mr-2">{product.name}</span>
-                                <span className="text-muted">{product.variants?.[0]?.sku}</span>
+                                <span className="mr-2">{variant.name}</span>
+                                <span className="text-muted">{variant.sku}</span>
                             </div>
                         </Col>
                         <Col md="1" className='d-flex justify-content-end'>
@@ -89,7 +101,7 @@ const VariantPackaging = ({
                                 value={variant?.variantPackage?.quantity || null}
                             />
                         </Col>
-                        <Col md="3">
+                        <Col md="4">
                             <InputGroup>
                                 <AsyncSelect
                                     value={variant?.variantPackage || null}
