@@ -248,11 +248,11 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
     const addonGroup = updatedAddonGroups[addonGroupIndex];
 
     const updatedAddonPriceOverrides = [...addonGroup.addonPriceOverrides];
-    const index = updatedAddonPriceOverrides?.findIndex(override => override.id === addonId);
+    const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
     if (price !== null && price !== undefined) {
       if (index >= 0) {
-        // Update existing price override
-        updatedAddonPriceOverrides[index].price = price;
+        // Update existing price override without mutating the original object
+        updatedAddonPriceOverrides[index] = { ...updatedAddonPriceOverrides[index], price };
       } else {
         // Add new price override
         updatedAddonPriceOverrides.push({ id: addonId, price });
@@ -273,7 +273,6 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
 
     onFieldChange('addonGroups', updatedAddonGroups);
   };
-
 
   const reorderHeader = (
     data: {
@@ -435,8 +434,32 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
         </Col>
         {selectedAddonGroup && (
           <Col md={6}>
-            <label className={'font-semibold'}>
-              <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
+            <label className={'font-semibold d-flex justify-content-between'}>
+              <span>
+                <Translate contentKey={'items.update.relatedAddons'}>Related Addons</Translate>
+              </span>
+              <span className='d-flex flex-column gap-2'>
+                <div className='d-flex gap-2 align-items-center'>
+                  <div style={{
+                    height: '12px',
+                    width: '12px',
+                    backgroundColor: 'red'
+                  }} />
+                  <div>
+                    Price Modified
+                  </div>
+                </div>
+                <div className='d-flex gap-2 align-items-center'>
+                  <div style={{
+                    height: '12px',
+                    width: '12px',
+                    backgroundColor: 'black'
+                  }} />
+                  <div>
+                    Default Price
+                  </div>
+                </div>
+              </span>
             </label>
             <div className='border'>
               <Table>
@@ -459,13 +482,16 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
                       <td className='align-content-center'>{addon.name}</td>
                       <td className='align-content-center'>
                         <InputNumber
-                          value={selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price}
+                          value={selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price || addon.price}
                           onChange={e => handleAddonGroupOverridedPriceChange(
                             addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
                             addon.id,
                             e.value
                           )}
-                          inputStyle={{ width: '50px' }}
+                          inputStyle={{
+                            width: '50px',
+                            color: selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price ? 'red' : 'black'
+                          }}
                           mode="decimal"
                           minFractionDigits={2}
                           maxFractionDigits={2}
