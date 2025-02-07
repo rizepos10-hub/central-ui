@@ -91,7 +91,7 @@ export const ProductUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
   const productEntity: IProduct = useAppSelector(state => state.product.entity);
-  const loading = useAppSelector(state => state.product.loading);
+  const loading = false;
   const updating = useAppSelector(state => state.product.updating);
   const updateSuccess = useAppSelector(state => state.product.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
@@ -715,6 +715,7 @@ export const ProductUpdate = () => {
       variants: updatedVariants.length > 1 ? updatedVariants : [
         {
           ...updatedVariants[0],
+          name: product.name,
           measureValue: product.baseMeasure ? {
             isBase: true,
             measure: 1
@@ -1158,13 +1159,16 @@ export const ProductUpdate = () => {
                                     />
                                   </div>
                                 </Col>
-
-                                <VariantPackaging
-                                  product={product}
-                                  variantIndex={0}
-                                  variant={product?.variants?.[0]}
-                                  handleVariantFieldChange={handleVariantFieldChange}
-                                />
+                                {
+                                  !isNew && (
+                                    <VariantPackaging
+                                      product={product}
+                                      variantIndex={0}
+                                      variant={product?.variants?.[0]}
+                                      handleVariantFieldChange={handleVariantFieldChange}
+                                    />
+                                  )
+                                }
                                 <ItemStockAccordion
                                   productPurchaseConfig={productPurchaseConfig}
                                   stockQuantityUpdate={stockQuantityUpdate}
@@ -1492,13 +1496,14 @@ export const ProductUpdate = () => {
                                                     />
                                                   </div>
 
-
-                                                  <VariantPackaging
-                                                    product={product}
-                                                    variantIndex={variantIndex}
-                                                    variant={variant}
-                                                    handleVariantFieldChange={handleVariantFieldChange}
-                                                  />
+                                                  {!isNew && (
+                                                    <VariantPackaging
+                                                      product={product}
+                                                      variantIndex={variantIndex}
+                                                      variant={variant}
+                                                      handleVariantFieldChange={handleVariantFieldChange}
+                                                    />
+                                                  )}
                                                 </Col>
                                               </Row>
 

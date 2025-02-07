@@ -70,14 +70,14 @@ export const PrinterUpdate = () => {
 
           // @ts-expect-error -- unknown type
           if (!res?.error) {
-            navigate(`/inventory/warehouse/${newId}/edit`)
+            navigate(`/printer/${newId}/edit`)
           }
         }
       })
     } else {
       dispatch(updateEntity(entity)).then(() => {
         if (createNew) {
-          navigate(`/inventory/warehouse/new`)
+          navigate(`/printer/new`)
         }
       })
     }

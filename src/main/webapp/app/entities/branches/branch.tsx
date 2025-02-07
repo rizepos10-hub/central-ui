@@ -24,6 +24,26 @@ import { getEntities as getZones } from 'app/entities/settings/zones/zones.reduc
 import { Dropdown } from 'primereact/dropdown';
 import { EndingType } from 'app/shared/model/ENUMS/ending-type.model';
 
+export enum AddressTypesEnum {
+  "premise" = "premise",
+  "plus_code" = "plus_code",
+  "administrative_area_level_1" = "administrative_area_level_1",
+  "administrative_area_level_2" = "administrative_area_level_2",
+  "political" = "political",
+  "country" = "country",
+  "locality" = "locality",
+  "route" = "route",
+}
+
+export enum AddressComponentTypesEnum {
+  "plus_code" = "plus_code",
+  "administrative_area_level_1" = "administrative_area_level_1",
+  "administrative_area_level_2" = "administrative_area_level_2",
+  "political" = "political",
+  "country" = "country",
+  "locality" = "locality",
+}
+
 export const Branches = () => {
   const dispatch = useAppDispatch();
 
@@ -77,10 +97,21 @@ export const Branches = () => {
   const handleGeocode = (e: MapMouseEvent, branchIndex) => {
     geocode(RequestType.LATLNG, `${e.detail.latLng.lat},${e.detail.latLng.lng}`)
       .then(({ results }) => {
+        const country = results.find(r => r.types.includes(AddressTypesEnum.country))?.formatted_address || ''
+        const state = results.find(r => r.types.includes(AddressTypesEnum.administrative_area_level_1))?.formatted_address || ''
+        const city = results.find(r => r.types.includes(AddressTypesEnum.administrative_area_level_2))?.formatted_address || ''
+        const street = results.find(r => r.types.includes(AddressTypesEnum.route))?.formatted_address || ''
+        const address = results[0]?.formatted_address || ''
+
         handleBranchAddressFieldChange(branchIndex, {
           latitude: e.detail.latLng.lat,
           longitude: e.detail.latLng.lng,
-          fullAddress: results[0].formatted_address
+          fullAddress: results[0].formatted_address,
+          country,
+          state,
+          city,
+          street,
+          address
         });
       })
       .catch(err => (

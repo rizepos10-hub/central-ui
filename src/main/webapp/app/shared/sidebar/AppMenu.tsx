@@ -153,6 +153,10 @@ export const model: MenuItem[] = [
             label: 'Predefined Pizza',
             to: '/predefined-pizza',
           },
+          {
+            label: 'Select a base pizza',
+            to: '/base-pizza',
+          },
         ],
       },
       {

@@ -24,7 +24,10 @@ import { Storage } from 'react-jhipster';
 import { Calendar } from 'primereact/calendar';
 import { cancelBooking, createBooking, updateBooking } from './delivery.reducer';
 import { toLocalISOString } from 'app/shared/util/date-utils';
+import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
+import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 
+// eslint-disable-next-line complexity
 export const OrderDetail = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -37,6 +40,7 @@ export const OrderDetail = () => {
   const orderEntity: IOrder = useAppSelector(state => state.order.entity);
   const loading = useAppSelector(state => state.order.loading);
   const billEntity: IBill = useAppSelector(state => state.bill.entity);
+  const UiSettingsEntity: IUiSettings = useAppSelector(state => state.uiSettings.entity);
 
   const filteredOrderEntity = {
     ...orderEntity,
@@ -77,6 +81,7 @@ export const OrderDetail = () => {
 
   useEffect(() => {
     dispatch(getEntity(id));
+    dispatch(getUiSettings())
   }, []);
 
 
@@ -128,7 +133,7 @@ export const OrderDetail = () => {
     }));
   };
 
-  const changeProcessingStatusConfirm = (status) => {
+  const changeProcessingStatusConfirm = (status: OrderStatus) => {
     confirmDialog({
       message: `Are you sure you want to change the status to ${status}?`,
       header: 'Confirmation',
@@ -229,16 +234,7 @@ export const OrderDetail = () => {
           #{orderEntity?.sequenceNumber} - <span className="fw-normal text-muted">{orderEntity?.customer?.firstName} {orderEntity?.customer?.lastName}</span>
           <span className="fw-normal text-muted">on {filteredOrderEntity.createdDate ? new Date(filteredOrderEntity.createdDate).toDateString() : ''}</span>
         </h1>
-        {/* <div className="ms-auto d-flex align-items-center gap-2">
-          <button type="button" className="btn btn-outline-secondary btn-icon">
-            <FaChevronLeft size={16} />
-            <span className="visually-hidden">Previous</span>
-          </button>
-          <button type="button" className="btn btn-outline-secondary btn-icon">
-            <FaChevronRight size={16} />
-            <span className="visually-hidden">Next</span>
-          </button>
-        </div> */}
+
       </div>
       <div ref={pagePrintRef}>
         <style>
@@ -449,7 +445,7 @@ export const OrderDetail = () => {
                           Print
                         </Button>
                       </Link>
-                      {!orderEntity?.refund && (
+                      {!orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED && (
                         <Button
                           color="secondary"
                           onClick={() => setEditMode(prev => !prev)}
@@ -461,6 +457,17 @@ export const OrderDetail = () => {
                   </div>
                 </CardBody>
               </Card>
+              {(UiSettingsEntity.orderConfirmation && orderEntity.processingStatus === OrderStatus.DRAFT) && (
+                <Card id='customer' className={`p-1 ${editMode ? 'opacity-50' : ''}`}>
+                  <CardBody>
+                    <CardTitle tag="h5">Confirm Order</CardTitle>
+                    <div className="d-flex gap-2">
+                      <Button onClick={() => changeProcessingStatusConfirm(OrderStatus.CONFIRMED)}>Confirm</Button>
+                      <Button severity="danger" onClick={() => changeProcessingStatusConfirm(OrderStatus.REJECTED)}>Reject</Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              )}
 
               <Card id='customer' className={`p-1 ${editMode ? 'opacity-50' : ''}`}>
                 <CardBody>
@@ -511,16 +518,6 @@ export const OrderDetail = () => {
                   </CardBody>
                 </Card>
               )}
-              {/* 
-            {filteredOrderEntity.customer && (
-              <Card className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
-                <CardBody>
-                  <CardTitle tag="h6">Contact information</CardTitle>
-
-                </CardBody>
-              </Card>
-            )} */}
-
               {orderEntity.orderDeliveryDetails && (
                 <Card id='deliveryDetails' className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
                   <CardBody>
@@ -574,14 +571,6 @@ export const OrderDetail = () => {
                   </CardBody>
                 </Card>
               )}
-
-              {/*
-            <Card className={`mt-1 p-1 ${editMode ? 'opacity-50' : ''}`}>
-              <CardBody>
-                <CardTitle tag="h6">Billing address</CardTitle>
-                <p>Same as shipping address</p>
-              </CardBody>
-            </Card>*/}
             </Col>
           </Row>
           {!orderEntity?.refund && orderEntity?.bills?.length > 0 && (
