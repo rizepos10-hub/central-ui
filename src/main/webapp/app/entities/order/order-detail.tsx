@@ -445,7 +445,7 @@ export const OrderDetail = () => {
                           Print
                         </Button>
                       </Link>
-                      {!orderEntity?.refund && (
+                      {!orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED && (
                         <Button
                           color="secondary"
                           onClick={() => setEditMode(prev => !prev)}
