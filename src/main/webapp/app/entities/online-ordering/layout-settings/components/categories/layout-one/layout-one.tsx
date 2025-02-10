@@ -7,16 +7,18 @@ const LayoutOne = ({
 }: {
     categories: ITerm[]
 }) => {
+    if (!categories) return null;
+
     return (
         <div className='categories_container'>
             <div className='vertical_layout_container'>
-                <CardVertical category={categories[0]} />
-                <CardVertical category={categories[1]} />
-                <CardVertical category={categories[2]} />
+                <CardVertical category={categories?.[0]} />
+                <CardVertical category={categories?.[1]} />
+                <CardVertical category={categories?.[2]} />
             </div>
             <div className='horizontal_layout_container'>
-                <CardHorizontal category={categories[3]} />
-                <CardHorizontal category={categories[4]} />
+                <CardHorizontal category={categories?.[3]} />
+                <CardHorizontal category={categories?.[4]} />
             </div>
         </div>
     )
