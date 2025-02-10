@@ -1,17 +1,19 @@
 import { IAttachment } from "../../attachment.model";
+import { ILayoutSettings } from "../layout-settings";
 
 export enum SelectedLayoutEnum {
-    LAYOUT_GABRIEL_PIZZA = "LAYOUT_GABRIEL_PIZZA",
-    LAYOUT_PITA_LAND = "LAYOUT_PITA_LAND",
+    LAYOUT_ONE = "LAYOUT_ONE",
+    LAYOUT_TWO = "LAYOUT_TWO",
+    LAYOUT_DEFAULT = "LAYOUT_DEFAULT"
 }
 
 export interface IColorSetting {
-    backgroundColor: string;
-    footerColor: string;
-    primaryTextColor: string;
-    primaryForegroundColor: string;
-    secondaryTextColor: string;
-    mutedTextColor: string;
+    background: string;
+    foreground: string;
+    primary: string;
+    primaryForeground: string;
+    secondary: string;
+    muted: string;
 }
 
 export interface ICarouselItem {
@@ -72,7 +74,7 @@ export interface ISections {
     };
 }
 
-export interface ILayoutGabrielPizza {
+export interface ILayoutOne {
     colorSettings: IColorSetting;
     sections: ISections;
 }
@@ -80,5 +82,6 @@ export interface ILayoutGabrielPizza {
 
 export interface ILayouts {
     selectedLayout: SelectedLayoutEnum;
-    [SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA]: ILayoutGabrielPizza;
+    [SelectedLayoutEnum.LAYOUT_ONE]: ILayoutOne;
+    [SelectedLayoutEnum.LAYOUT_DEFAULT]: ILayoutSettings;
 }

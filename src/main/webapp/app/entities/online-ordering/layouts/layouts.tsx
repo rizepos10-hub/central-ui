@@ -3,7 +3,7 @@ import { ICarouselItem, ILayouts, SelectedLayoutEnum } from 'app/shared/model/ON
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { Checkbox } from 'primereact/checkbox';
 import React, { useEffect, useMemo, useState } from 'react'
-import { Col, Label, Row } from 'reactstrap'
+import { Card, Carousel, CarouselControl, CarouselItem, Col, FormGroup, Input, Label, Row, Spinner } from 'reactstrap'
 import { getEntity, updateEntity, reset, changeEntityField } from 'app/entities/online-ordering/settings/settings.reducer';
 import { InputText } from 'primereact/inputtext';
 import { TabPanel, TabView } from 'primereact/tabview';
@@ -17,24 +17,49 @@ import { searchEntities as getRetailCategories } from 'app/entities/term/retail-
 import { getEntities as getRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
 import { ITerm } from 'app/shared/model/term.model';
 import Select from 'react-select';
+import { translate } from 'react-jhipster';
+import { ILayoutSettings } from 'app/shared/model/ONLINE_ORDERING/layout-settings';
+import { IAttachment } from 'app/shared/model/attachment.model';
+import { ISliderSettings } from 'app/shared/model/ONLINE_ORDERING/slider-settings';
+import { buttonSettingsAlignment } from 'app/shared/model/ENUMS/button-settings-alignment';
+import { FaDesktop, FaMobileAlt } from 'react-icons/fa';
+import { debounce } from 'lodash';
+import { searchEntities } from 'app/entities/item/all-items.reducer';
+import { MultiSelect } from 'primereact/multiselect';
+import CategoriesLayout from '../layout-settings/components/categories/categories';
+import { Layout } from 'app/shared/model/ENUMS/layout.model';
 
 const Layouts = () => {
     const dispatch = useAppDispatch();
     const uiSettings: IUiSettings = useAppSelector(state => state.uiSettings.entity);
 
-
-    const [layoutToEdit, setLayoutToEdit] = useState<SelectedLayoutEnum>(SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA);
-
+    useEffect(() => {
+        dispatch(getEntity())
+    }, [])
 
     console.log(uiSettings, 'uiSettings')
 
     return (
         <div className="container mt-4">
             <Row>
-                <Col md={4}><LayoutsCard layout={uiSettings.layouts} /></Col>
+                <Col md={4}>
+                    <LayoutsCard
+                        layouts={uiSettings.layouts}
+                        layoutKey={SelectedLayoutEnum.LAYOUT_DEFAULT}
+                        imageSrc="/content/images/LAYOUT_DEFAULT.png"
+                    />
+                </Col>
+                <Col md={4}>
+                    <LayoutsCard
+                        layouts={uiSettings.layouts}
+                        layoutKey={SelectedLayoutEnum.LAYOUT_ONE}
+                        imageSrc="/content/images/LAYOUT_ONE.png"
+                    />
+                </Col>
             </Row>
             <Row className='border-top pt-4 mt-2'>
-                {layoutToEdit === SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA && <LayoutGabrielPizzaForm layout={uiSettings.layouts} />}
+                {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_ONE && <LayoutGabrielPizzaForm layouts={uiSettings.layouts} />}
+                {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_DEFAULT && <LayoutDefaultForm layouts={uiSettings.layouts} />}
                 {/* Show Selectedd Form Here */}
             </Row>
             <Row>
@@ -47,9 +72,13 @@ const Layouts = () => {
 }
 
 const LayoutsCard = ({
-    layout
+    layouts,
+    layoutKey,
+    imageSrc
 }: {
-    layout: ILayouts
+    layouts: ILayouts
+    layoutKey: SelectedLayoutEnum
+    imageSrc: string
 }) => {
     const dispatch = useAppDispatch();
 
@@ -59,7 +88,7 @@ const LayoutsCard = ({
                 <div className="row g-0">
                     <div className="col-md-12">
                         <img
-                            src="https://via.placeholder.com/540x200"
+                            src={imageSrc}
                             className="img-fluid"
                             alt="Card background"
                         />
@@ -71,12 +100,12 @@ const LayoutsCard = ({
                     className="form-check-input"
                     type="checkbox"
                     id="checkMe"
-                    value={layout?.selectedLayout}
+                    value={layouts?.selectedLayout}
                     onChange={(e) => {
                         if (e?.checked) {
                             dispatch(changeEntityField({
                                 name: 'layouts.selectedLayout',
-                                value: SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA
+                                value: layoutKey
                             }))
                         } else {
                             dispatch(changeEntityField({
@@ -85,7 +114,7 @@ const LayoutsCard = ({
                             }))
                         }
                     }}
-                    checked={layout?.selectedLayout === SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA}
+                    checked={layouts?.selectedLayout === layoutKey}
                 />
                 <Label className="form-check-label" htmlFor="checkMe">
                     Check me
@@ -96,16 +125,15 @@ const LayoutsCard = ({
 }
 
 const LayoutGabrielPizzaForm = ({
-    layout,
+    layouts,
 }: {
-    layout: ILayouts;
+    layouts: ILayouts;
 }) => {
     const dispatch = useAppDispatch();
     const retailCategories: ITerm[] = useAppSelector(state => state.retailCategory.entities);
     const restaurantCategories: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
 
     useEffect(() => {
-        dispatch(getEntity());
         dispatch(getRetailCategories({
             page: 0,
             size: 1000,
@@ -122,10 +150,10 @@ const LayoutGabrielPizzaForm = ({
         return [...retailCategories, ...restaurantCategories]
     }, [retailCategories, restaurantCategories])
 
-    const gabrielPizza: ILayouts["LAYOUT_GABRIEL_PIZZA"] | undefined = layout?.[SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA];
+    const layoutOne: ILayouts["LAYOUT_ONE"] | undefined = layouts?.[SelectedLayoutEnum.LAYOUT_ONE];
     const selectedItems: IItem[] =
         useAppSelector(state =>
-            state.uiSettings.entity?.layouts?.[SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA]?.sections?.body?.featuredItems?.rightColumn?.items
+            state.uiSettings.entity?.layouts?.[SelectedLayoutEnum.LAYOUT_ONE]?.sections?.body?.featuredItems?.rightColumn?.items
         ) || [];
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -150,7 +178,7 @@ const LayoutGabrielPizzaForm = ({
         });
         // Update the store
         handleFieldChange(
-            `layouts.${SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA}.sections.body.featuredItems.rightColumn.items`,
+            `layouts.${SelectedLayoutEnum.LAYOUT_ONE}.sections.body.featuredItems.rightColumn.items`,
             updatedList
         );
     };
@@ -158,7 +186,7 @@ const LayoutGabrielPizzaForm = ({
     useEffect(() => {
         if (selectedItems.length > 0) {
             handleFieldChange(
-                'layouts.LAYOUT_GABRIEL_PIZZA.sections.featuredItems.rightColumn.items',
+                'layouts.LAYOUT_ONE.sections.featuredItems.rightColumn.items',
                 selectedItems
             )
         }
@@ -172,10 +200,10 @@ const LayoutGabrielPizzaForm = ({
                         <Label htmlFor="background">Background</Label>
                         <InputText
                             id="background"
-                            value={gabrielPizza?.colorSettings?.backgroundColor}
+                            value={layoutOne?.colorSettings?.background}
                             onChange={e =>
                                 handleFieldChange(
-                                    'layouts.LAYOUT_GABRIEL_PIZZA.colorSettings.backgroundColor',
+                                    'layouts.LAYOUT_ONE.colorSettings.background',
                                     (e.target as HTMLInputElement).value
                                 )
                             }
@@ -185,10 +213,10 @@ const LayoutGabrielPizzaForm = ({
                         <Label htmlFor="foreground">Foreground</Label>
                         <InputText
                             id="foreground"
-                            value={gabrielPizza?.colorSettings?.footerColor}
+                            value={layoutOne?.colorSettings?.foreground}
                             onChange={e =>
                                 handleFieldChange(
-                                    'layouts.LAYOUT_GABRIEL_PIZZA.colorSettings.footerColor',
+                                    'layouts.LAYOUT_ONE.colorSettings.foreground',
                                     (e.target as HTMLInputElement).value
                                 )
                             }
@@ -201,10 +229,10 @@ const LayoutGabrielPizzaForm = ({
                         <Label htmlFor="primary">Primary</Label>
                         <InputText
                             id="primary"
-                            value={gabrielPizza?.colorSettings?.primaryTextColor}
+                            value={layoutOne?.colorSettings?.primary}
                             onChange={e =>
                                 handleFieldChange(
-                                    'layouts.LAYOUT_GABRIEL_PIZZA.colorSettings.primaryTextColor',
+                                    'layouts.LAYOUT_ONE.colorSettings.primary',
                                     (e.target as HTMLInputElement).value
                                 )
                             }
@@ -214,10 +242,10 @@ const LayoutGabrielPizzaForm = ({
                         <Label htmlFor="primaryForeground">Primary Foreground</Label>
                         <InputText
                             id="primaryForeground"
-                            value={gabrielPizza?.colorSettings?.primaryForegroundColor}
+                            value={layoutOne?.colorSettings?.primaryForeground}
                             onChange={e =>
                                 handleFieldChange(
-                                    'layouts.LAYOUT_GABRIEL_PIZZA.colorSettings.primaryForegroundColor',
+                                    'layouts.LAYOUT_ONE.colorSettings.primaryForeground',
                                     (e.target as HTMLInputElement).value
                                 )
                             }
@@ -230,10 +258,10 @@ const LayoutGabrielPizzaForm = ({
                         <Label htmlFor="secondary">Secondary</Label>
                         <InputText
                             id="secondary"
-                            value={gabrielPizza?.colorSettings?.secondaryTextColor}
+                            value={layoutOne?.colorSettings?.secondary}
                             onChange={e =>
                                 handleFieldChange(
-                                    'layouts.LAYOUT_GABRIEL_PIZZA.colorSettings.secondaryTextColor',
+                                    'layouts.LAYOUT_ONE.colorSettings.secondary',
                                     (e.target as HTMLInputElement).value
                                 )
                             }
@@ -243,10 +271,10 @@ const LayoutGabrielPizzaForm = ({
                         <Label htmlFor="muted">Muted</Label>
                         <InputText
                             id="muted"
-                            value={gabrielPizza?.colorSettings?.mutedTextColor}
+                            value={layoutOne?.colorSettings?.muted}
                             onChange={e =>
                                 handleFieldChange(
-                                    'layouts.LAYOUT_GABRIEL_PIZZA.colorSettings.mutedTextColor',
+                                    'layouts.LAYOUT_ONE.colorSettings.muted',
                                     (e.target as HTMLInputElement).value
                                 )
                             }
@@ -261,10 +289,10 @@ const LayoutGabrielPizzaForm = ({
                         <Label htmlFor="headerTitle">Header Title</Label>
                         <InputText
                             id="headerTitle"
-                            value={gabrielPizza?.sections?.header?.title}
+                            value={layoutOne?.sections?.header?.title}
                             onChange={e =>
                                 handleFieldChange(
-                                    'layouts.LAYOUT_GABRIEL_PIZZA.sections.header.title',
+                                    'layouts.LAYOUT_ONE.sections.header.title',
                                     (e.target as HTMLInputElement).value
                                 )
                             }
@@ -274,10 +302,10 @@ const LayoutGabrielPizzaForm = ({
                         <Label htmlFor="headerCta">Header CTA</Label>
                         <InputText
                             id="headerCta"
-                            value={gabrielPizza?.sections?.header?.callToAction}
+                            value={layoutOne?.sections?.header?.callToAction}
                             onChange={e =>
                                 handleFieldChange(
-                                    'layouts.LAYOUT_GABRIEL_PIZZA.sections.header.callToAction',
+                                    'layouts.LAYOUT_ONE.sections.header.callToAction',
                                     (e.target as HTMLInputElement).value
                                 )
                             }
@@ -287,17 +315,17 @@ const LayoutGabrielPizzaForm = ({
             </TabPanel>
 
             <TabPanel header="Body">
-                <Carousel carousel={gabrielPizza?.sections?.body?.carousel} />
-                <FeaturedItems
-                    gabrielPizza={gabrielPizza}
+                <LayoutGabrielPizzaCarousel carousel={layoutOne?.sections?.body?.carousel} />
+                <LayoutGabrielPizzaFeaturedItems
+                    layoutOne={layoutOne}
                     handleFieldChange={handleFieldChange}
                     selectedItems={selectedItems}
                     handleToggleSelect={handleToggleSelect}
                     isModalOpen={isModalOpen}
                     setIsModalOpen={setIsModalOpen}
                 />
-                <FeaturedCategories
-                    gabrielPizza={gabrielPizza}
+                <LayoutGabrielPizzaFeaturedCategories
+                    layoutOne={layoutOne}
                     handleFieldChange={handleFieldChange}
                     combinedCategories={combinedCategories}
                 />
@@ -309,10 +337,10 @@ const LayoutGabrielPizzaForm = ({
                         <Label htmlFor="footerTitle">Footer Title</Label>
                         <InputText
                             id="footerTitle"
-                            value={gabrielPizza?.sections?.footer?.title}
+                            value={layoutOne?.sections?.footer?.title}
                             onChange={e =>
                                 handleFieldChange(
-                                    'layouts.LAYOUT_GABRIEL_PIZZA.sections.footer.title',
+                                    'layouts.LAYOUT_ONE.sections.footer.title',
                                     (e.target as HTMLInputElement).value
                                 )
                             }
@@ -322,10 +350,10 @@ const LayoutGabrielPizzaForm = ({
                         <Label htmlFor="footerCta">Footer CTA</Label>
                         <InputText
                             id="footerCta"
-                            value={gabrielPizza?.sections?.footer?.callToAction}
+                            value={layoutOne?.sections?.footer?.callToAction}
                             onChange={e =>
                                 handleFieldChange(
-                                    'layouts.LAYOUT_GABRIEL_PIZZA.sections.footer.callToAction',
+                                    'layouts.LAYOUT_ONE.sections.footer.callToAction',
                                     (e.target as HTMLInputElement).value
                                 )
                             }
@@ -337,7 +365,7 @@ const LayoutGabrielPizzaForm = ({
     );
 };
 
-export const Carousel = ({
+const LayoutGabrielPizzaCarousel = ({
     carousel
 }: {
     carousel: ICarouselItem[]
@@ -352,7 +380,7 @@ export const Carousel = ({
         };
         dispatch(
             changeEntityField({
-                name: `layouts.${SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA}.sections.body.carousel`,
+                name: `layouts.${SelectedLayoutEnum.LAYOUT_ONE}.sections.body.carousel`,
                 value: updatedCarousel,
             })
         );
@@ -360,7 +388,7 @@ export const Carousel = ({
 
     const handleAddItem = () => {
         const newItem: ICarouselItem = {
-            order: carousel.length + 1,
+            order: (carousel?.length || 0) + 1,
             image: null,
             altText: '',
             primaryTitle: '',
@@ -370,8 +398,8 @@ export const Carousel = ({
         };
         dispatch(
             changeEntityField({
-                name: `layouts.${SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA}.sections.body.carousel`,
-                value: [...carousel, newItem],
+                name: `layouts.${SelectedLayoutEnum.LAYOUT_ONE}.sections.body.carousel`,
+                value: [...carousel || [], newItem],
             })
         );
     };
@@ -380,7 +408,7 @@ export const Carousel = ({
         const updatedCarousel = carousel.filter((_, idx) => idx !== index);
         dispatch(
             changeEntityField({
-                name: `layouts.${SelectedLayoutEnum.LAYOUT_GABRIEL_PIZZA}.sections.body.carousel`,
+                name: `layouts.${SelectedLayoutEnum.LAYOUT_ONE}.sections.body.carousel`,
                 value: updatedCarousel,
             })
         );
@@ -484,15 +512,15 @@ export const Carousel = ({
     );
 };
 
-export const FeaturedItems = ({
-    gabrielPizza,
+const LayoutGabrielPizzaFeaturedItems = ({
+    layoutOne,
     handleFieldChange,
     selectedItems,
     handleToggleSelect,
     isModalOpen,
     setIsModalOpen
 }: {
-    gabrielPizza: ILayouts["LAYOUT_GABRIEL_PIZZA"],
+    layoutOne: ILayouts["LAYOUT_ONE"],
     handleFieldChange: any,
     selectedItems: IItem[],
     handleToggleSelect: any,
@@ -510,9 +538,9 @@ export const FeaturedItems = ({
                 {/* <div className='d-flex flex-column'>
                     <Label htmlFor="bodyOrder">Order</Label>
                     <InputNumber
-                        value={gabrielPizza?.sections?.body?.featuredItems?.order}
+                        value={layoutOne?.sections?.body?.featuredItems?.order}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.order',
+                            'layouts.LAYOUT_ONE.sections.body.featuredItems.order',
                             e.value
                         )}
                         min={1}
@@ -523,9 +551,9 @@ export const FeaturedItems = ({
                     <Label htmlFor="bodyLeftTitle">Title</Label>
                     <InputText
                         id='bodyLeftTitle'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.leftColumn?.title}
+                        value={layoutOne?.sections?.body?.featuredItems?.leftColumn?.title}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.leftColumn.title',
+                            'layouts.LAYOUT_ONE.sections.body.featuredItems.leftColumn.title',
                             e.target.value
                         )}
                     />
@@ -534,9 +562,9 @@ export const FeaturedItems = ({
                     <Label htmlFor="bodyLeftSubTitle">SubTitle</Label>
                     <InputText
                         id='bodyLeftSubTitle'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.leftColumn?.subtitle}
+                        value={layoutOne?.sections?.body?.featuredItems?.leftColumn?.subtitle}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.leftColumn.subtitle',
+                            'layouts.LAYOUT_ONE.sections.body.featuredItems.leftColumn.subtitle',
                             e.target.value
                         )}
                     />
@@ -545,10 +573,10 @@ export const FeaturedItems = ({
                     <Label htmlFor="bodyLeftImage">Image</Label>
                     <MediaLibrary
                         handleFilesSelectCallback={files => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.leftColumn.image',
+                            'layouts.LAYOUT_ONE.sections.body.featuredItems.leftColumn.image',
                             transformAttachmentStructure(files, 'toIAttachment')[0]
                         )}
-                        defaultValues={transformAttachmentStructure(gabrielPizza?.sections?.body?.featuredItems?.leftColumn?.image ? [gabrielPizza?.sections?.body?.featuredItems?.leftColumn?.image] : [], 'toFileLibraryListItem')}
+                        defaultValues={transformAttachmentStructure(layoutOne?.sections?.body?.featuredItems?.leftColumn?.image ? [layoutOne?.sections?.body?.featuredItems?.leftColumn?.image] : [], 'toFileLibraryListItem')}
                     />
                 </div>
             </Col>
@@ -557,9 +585,9 @@ export const FeaturedItems = ({
                     <Label htmlFor="bodyLeftTitle">Title</Label>
                     <InputText
                         id='bodyLeftTitle'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.title}
+                        value={layoutOne?.sections?.body?.featuredItems?.rightColumn?.title}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn.title',
+                            'layouts.LAYOUT_ONE.sections.body.featuredItems.rightColumn.title',
                             e.target.value
                         )}
                     />
@@ -568,9 +596,9 @@ export const FeaturedItems = ({
                     <Label htmlFor="bodyLeftSubTitle">SubTitle</Label>
                     <InputText
                         id='bodyLeftSubTitle'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.subtitle}
+                        value={layoutOne?.sections?.body?.featuredItems?.rightColumn?.subtitle}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn.subtitle',
+                            'layouts.LAYOUT_ONE.sections.body.featuredItems.rightColumn.subtitle',
                             e.target.value
                         )}
                     />
@@ -579,9 +607,9 @@ export const FeaturedItems = ({
                     <Label htmlFor="bodyLeftCta">Call To Action Label</Label>
                     <InputText
                         id='bodyLeftCta'
-                        value={gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.callToAction}
+                        value={layoutOne?.sections?.body?.featuredItems?.rightColumn?.callToAction}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.rightColumn.callToAction',
+                            'layouts.LAYOUT_ONE.sections.body.featuredItems.rightColumn.callToAction',
                             e.target.value
                         )}
                     />
@@ -603,7 +631,7 @@ export const FeaturedItems = ({
                         />
                     </div>
                     <div>
-                        {gabrielPizza?.sections?.body?.featuredItems?.rightColumn?.items?.map((item, idx) => (
+                        {layoutOne?.sections?.body?.featuredItems?.rightColumn?.items?.map((item, idx) => (
                             <div key={idx} className="d-flex align-items-center gap-2">
                                 <span>{item.name}</span>
                                 <Button color="danger" onClick={() => handleToggleSelect([item])}>
@@ -618,12 +646,12 @@ export const FeaturedItems = ({
     )
 }
 
-export const FeaturedCategories = ({
-    gabrielPizza,
+const LayoutGabrielPizzaFeaturedCategories = ({
+    layoutOne,
     handleFieldChange,
     combinedCategories,
 }: {
-    gabrielPizza: ILayouts["LAYOUT_GABRIEL_PIZZA"],
+    layoutOne: ILayouts["LAYOUT_ONE"],
     handleFieldChange: any,
     combinedCategories: ITerm[]
 }) => {
@@ -639,9 +667,9 @@ export const FeaturedCategories = ({
                 {/* <div className='d-flex flex-column'>
                     <Label htmlFor="bodyOrder">Order</Label>
                     <InputNumber
-                        value={gabrielPizza?.sections?.body?.featuredItems?.order}
+                        value={layoutOne?.sections?.body?.featuredItems?.order}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredItems.order',
+                            'layouts.LAYOUT_ONE.sections.body.featuredItems.order',
                             e.value
                         )}
                         min={1}
@@ -652,9 +680,9 @@ export const FeaturedCategories = ({
                     <Label htmlFor="bodyLeftTitle">Title</Label>
                     <InputText
                         id='bodyLeftTitle'
-                        value={gabrielPizza?.sections?.body?.featuredCategories?.leftColumn?.title}
+                        value={layoutOne?.sections?.body?.featuredCategories?.leftColumn?.title}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.leftColumn.title',
+                            'layouts.LAYOUT_ONE.sections.body.featuredCategories.leftColumn.title',
                             e.target.value
                         )}
                     />
@@ -662,9 +690,9 @@ export const FeaturedCategories = ({
                 <div className='d-flex flex-column'>
                     <Label htmlFor="bodyLeftCategories">Categories</Label>
                     <Select
-                        value={gabrielPizza?.sections?.body?.featuredCategories?.leftColumn?.categories}
+                        value={layoutOne?.sections?.body?.featuredCategories?.leftColumn?.categories}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.leftColumn.categories',
+                            'layouts.LAYOUT_ONE.sections.body.featuredCategories.leftColumn.categories',
                             e
                         )}
                         options={combinedCategories}
@@ -680,9 +708,9 @@ export const FeaturedCategories = ({
                     <Label htmlFor="bodyLeftTitle">Title</Label>
                     <InputText
                         id='bodyLeftTitle'
-                        value={gabrielPizza?.sections?.body?.featuredCategories?.rightColumn?.title}
+                        value={layoutOne?.sections?.body?.featuredCategories?.rightColumn?.title}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.rightColumn.title',
+                            'layouts.LAYOUT_ONE.sections.body.featuredCategories.rightColumn.title',
                             e.target.value
                         )}
                         min={1}
@@ -693,9 +721,9 @@ export const FeaturedCategories = ({
                     <Label htmlFor="bodyLeftSubTitle">SubTitle</Label>
                     <InputText
                         id='bodyLeftSubTitle'
-                        value={gabrielPizza?.sections?.body?.featuredCategories?.rightColumn?.subtitle}
+                        value={layoutOne?.sections?.body?.featuredCategories?.rightColumn?.subtitle}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.rightColumn.subtitle',
+                            'layouts.LAYOUT_ONE.sections.body.featuredCategories.rightColumn.subtitle',
                             e.target.value
                         )}
                     />
@@ -704,9 +732,9 @@ export const FeaturedCategories = ({
                     <Label htmlFor="bodyLeftDescription">Description</Label>
                     <InputText
                         id='bodyLeftDescription'
-                        value={gabrielPizza?.sections?.body?.featuredCategories?.rightColumn?.description}
+                        value={layoutOne?.sections?.body?.featuredCategories?.rightColumn?.description}
                         onChange={(e) => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.rightColumn.description',
+                            'layouts.LAYOUT_ONE.sections.body.featuredCategories.rightColumn.description',
                             e.target.value
                         )}
                     />
@@ -715,10 +743,10 @@ export const FeaturedCategories = ({
                     <Label htmlFor="bodyLeftImage">Image</Label>
                     <MediaLibrary
                         handleFilesSelectCallback={files => handleFieldChange(
-                            'layouts.LAYOUT_GABRIEL_PIZZA.sections.body.featuredCategories.rightColumn.image',
+                            'layouts.LAYOUT_ONE.sections.body.featuredCategories.rightColumn.image',
                             transformAttachmentStructure(files, 'toIAttachment')[0]
                         )}
-                        defaultValues={transformAttachmentStructure(gabrielPizza?.sections?.body?.featuredCategories?.rightColumn?.image ? [gabrielPizza?.sections?.body?.featuredCategories?.rightColumn?.image] : [], 'toFileLibraryListItem')}
+                        defaultValues={transformAttachmentStructure(layoutOne?.sections?.body?.featuredCategories?.rightColumn?.image ? [layoutOne?.sections?.body?.featuredCategories?.rightColumn?.image] : [], 'toFileLibraryListItem')}
                     />
                 </div>
             </Col>
@@ -726,5 +754,529 @@ export const FeaturedCategories = ({
     )
 }
 
+
+// default layout 
+
+const LayoutDefaultForm = ({
+    layouts,
+}: {
+    layouts: ILayouts;
+}) => {
+    return (
+        <Card>
+            <TabView>
+                <TabPanel header={translate('tempApp.layoutSettings.tabs.slider.label')}>
+                    <LayoutDefaultSlider defaultLayout={layouts.LAYOUT_DEFAULT} />
+                </TabPanel>
+
+                <TabPanel header={translate('tempApp.layoutSettings.tabs.specialProducts.label')}>
+                    <LayoutDefaultProductSetting defaultLayout={layouts.LAYOUT_DEFAULT} />
+                </TabPanel>
+
+                <TabPanel header={translate('tempApp.layoutSettings.tabs.restaurantCategories.label')}>
+                    <LayoutDefaultRestaurantCategories defaultLayout={layouts.LAYOUT_DEFAULT} />
+                </TabPanel>
+
+                <TabPanel header={translate('tempApp.layoutSettings.tabs.retailCategories.label')}>
+                    <LayoutDefaultRetailCategories defaultLayout={layouts.LAYOUT_DEFAULT} />
+                </TabPanel>
+            </TabView>
+        </Card >
+    )
+}
+
+const LayoutDefaultSlider = ({
+    defaultLayout,
+}: {
+    defaultLayout: ILayouts["LAYOUT_DEFAULT"]
+}) => {
+    const dispatch = useAppDispatch();
+    const [activeIndex, setActiveIndex] = useState<number>(0);
+    const [animating, setAnimating] = useState<boolean>(false);
+    const [isMobileView, setIsMobileView] = useState(false);
+
+    const [image, setImage] = useState<IAttachment[] | null>(null);
+    const [text, setText] = useState<string>('');
+
+
+    const next = () => {
+        if (animating) return;
+        const nextIndex = activeIndex === defaultLayout?.sliderSettings.length - 1 ? 0 : activeIndex + 1;
+        setActiveIndex(nextIndex);
+    };
+
+    const previous = () => {
+        if (animating) return;
+        const nextIndex = activeIndex === 0 ? defaultLayout?.sliderSettings.length - 1 : activeIndex - 1;
+        setActiveIndex(nextIndex);
+    };
+
+    useEffect(() => {
+        if (defaultLayout?.sliderSettings.length === 0) {
+            setActiveIndex(0);
+        } else if (activeIndex >= defaultLayout?.sliderSettings.length) {
+            setActiveIndex(defaultLayout?.sliderSettings.length - 1);
+        }
+    }, [defaultLayout?.sliderSettings, activeIndex]);
+
+    const slides = defaultLayout?.sliderSettings?.map((slider, index) => (
+        <CarouselItem
+            key={index + 1}
+            onExiting={() => setAnimating(true)}
+            onExited={() => setAnimating(false)}
+            style={{
+                display: 'flex !important',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}
+        >
+            <img
+                src={slider.image?.url}
+                alt={`Preview ${index}`}
+                style={{
+                    width: '100%',
+                    height: isMobileView ? '70vh' : '50vh',
+                    objectFit: isMobileView ? 'cover' : 'fill',
+                    objectPosition: 'center center'
+                }}
+            />
+            <Button
+                color="danger"
+                onClick={() => dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.sliderSettings`, value: defaultLayout?.sliderSettings.filter((_, i) => i !== index) }))}
+                style={{
+                    marginTop: '10px',
+                    width: '100%',
+                }}
+            >
+                Remove this slide
+            </Button>
+        </CarouselItem>
+    ));
+
+    const handleImageChange = () => {
+        const newSlider: ISliderSettings = {
+            image: image[0],
+            text,
+            buttonSetting: {
+                text: '',
+                color: '',
+                alignment: buttonSettingsAlignment.CENTER
+            }
+        };
+        setActiveIndex(defaultLayout?.sliderSettings.length);
+        dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.sliderSettings`, value: [...defaultLayout.sliderSettings, newSlider] }));
+        setImage(null);
+    };
+
+    const containerStyle: React.CSSProperties = {
+        maxWidth: isMobileView ? '300px' : '100%',
+        width: '100%',
+        margin: '0 auto',
+        transition: 'max-width 0.3s ease',
+    };
+
+    return (
+        <div>
+            <FormGroup style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+            }}>
+                <MediaLibrary
+                    handleFilesSelectCallback={(files) => setImage(transformAttachmentStructure(files, 'toIAttachment'))}
+                    defaultValues={transformAttachmentStructure(image, 'toFileLibraryListItem')}
+                />
+                <InputText
+                    placeholder="Enter text"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                />
+                <Button
+                    color="primary"
+                    onClick={handleImageChange}
+                    disabled={!image}
+                >
+                    Add Slide
+                </Button>
+            </FormGroup>
+
+            {defaultLayout?.sliderSettings && defaultLayout?.sliderSettings.length > 0 && (
+                <>
+                    <div style={{
+                        marginTop: '20px',
+                        marginBottom: "20px",
+                        textAlign: 'center',
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center"
+                    }}>
+                        <h3>
+                            {translate('tempApp.layoutSettings.tabs.slider.preview')}
+                        </h3>
+                        <div style={{
+                            textAlign: 'center',
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "10px"
+                        }}>
+                            <Button color={isMobileView ? "primary" : "secondary"} onClick={() => setIsMobileView(true)}>
+                                <FaMobileAlt />
+                            </Button>
+                            <Button color={isMobileView ? "secondary" : "primary"} onClick={() => setIsMobileView(false)}>
+                                <FaDesktop />
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div style={containerStyle}>
+                        <Carousel activeIndex={activeIndex} next={next} previous={previous}>
+                            {slides}
+                            <CarouselControl direction="prev" directionText="Previous" onClickHandler={previous} />
+                            <CarouselControl direction="next" directionText="Next" onClickHandler={next} />
+                        </Carousel>
+                    </div>
+
+                    <div style={{
+                        marginTop: '20px',
+                        textAlign: 'center',
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: "10px"
+                    }}>
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
+
+const LayoutDefaultProductSetting = ({
+    defaultLayout,
+}: {
+    defaultLayout: ILayouts["LAYOUT_DEFAULT"]
+}) => {
+    const dispatch = useAppDispatch();
+    const items: IItem[] = useAppSelector(state => state.allItems.entities);
+    const loading = useAppSelector((state) => state.allItems.loading);
+
+    const [filterValue, setFilterValue] = useState<string>("");
+
+    useEffect(() => {
+        const handleFilter = debounce(() => {
+            dispatch(searchEntities({
+                query: filterValue,
+                sort: 'id,asc',
+                page: 0,
+                size: 10
+            }))
+        }, 500);
+
+        handleFilter();
+
+        return () => {
+            handleFilter.cancel();
+        };
+    }, [filterValue]);
+
+    return (
+        <div>
+            <Row>
+                <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="UiSettings-domain">
+                        <strong>title</strong>
+                    </Label>
+                    <InputText
+                        id="UiSettings-domain"
+                        value={defaultLayout?.productSetting.FEATURED.title || ''}
+                        onChange={e => dispatch(changeEntityField({
+                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
+                            value: { ...defaultLayout?.productSetting, FEATURED: { ...defaultLayout?.productSetting.FEATURED, title: e.target.value } }
+                        }))}
+                    />
+                </div>
+                <MultiSelect
+                    value={defaultLayout?.productSetting.FEATURED.items}
+                    onChange={(e) => {
+                        dispatch(changeEntityField({
+                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
+                            value: { ...defaultLayout?.productSetting, FEATURED: { ...defaultLayout?.productSetting.FEATURED, items: e.value } }
+                        }))
+                    }}
+                    options={items}
+                    optionLabel="name"
+                    filter
+                    placeholder="Select Products"
+                    maxSelectedLabels={5}
+                    selectionLimit={5}
+                    className="w-full md:w-20rem"
+                    onFilter={(e) => {
+                        setFilterValue(e.filter);
+                    }}
+                />
+            </Row>
+            <Row style={{
+                marginTop: '1rem'
+            }}>
+                <div className="flex align-items-center">
+                    <Checkbox
+                        onChange={e => {
+                            dispatch(changeEntityField({
+                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
+                                value: {
+                                    ...defaultLayout?.productSetting, FEATURED: {
+                                        ...defaultLayout?.productSetting.FEATURED,
+                                        showImages: e.checked
+                                    }
+                                }
+                            }))
+                        }}
+                        checked={defaultLayout?.productSetting.FEATURED.showImages} />
+                    <label htmlFor="ingredient1" className="ml-2">Show Images</label>
+                </div>
+            </Row>
+            {/* <LayoutOne items={items}/> */}
+        </div>
+    )
+}
+
+const LayoutDefaultRestaurantCategories = ({
+    defaultLayout,
+}: {
+    defaultLayout: ILayouts["LAYOUT_DEFAULT"]
+}) => {
+    const dispatch = useAppDispatch();
+
+    const categoryOptions: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
+    const loading = useAppSelector(state => state.restaurantCategory.loading);
+
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [filterValue, setFilterValue] = useState<string>("");
+
+    useEffect(() => {
+        const handleFilter = debounce(() => {
+            dispatch(searchEntities({
+                query: filterValue,
+                sort: 'id,asc',
+                page: 0,
+                size: 10,
+            }))
+        }, 500);
+
+        handleFilter();
+
+        return () => {
+            handleFilter.cancel();
+        };
+    }, [filterValue]);
+
+    const layouts = [
+        {
+            id: 1,
+            name: 'layout 1',
+            value: Layout.layoutOne
+        },
+        {
+            id: 2,
+            name: 'layout 2',
+            value: Layout.layoutTwo
+        }
+    ]
+
+    return (
+        <div>
+            {loading ? <div className="d-flex my-5">
+                <Spinner />
+            </div> : (
+                <div>
+                    <div className={'d-flex flex-column mb-3'}>
+                        <Label htmlFor="UiSettings-domain">
+                            <strong>title</strong>
+                        </Label>
+                        <InputText
+                            id="UiSettings-domain"
+                            value={defaultLayout.restuarantCategorySetting.title || ''}
+                            onChange={e => dispatch(changeEntityField({
+                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
+                                value: { ...defaultLayout.restuarantCategorySetting, title: e.target.value }
+                            }))}
+                        />
+                    </div>
+                    <MultiSelect
+                        value={defaultLayout.restuarantCategorySetting.categories}
+                        onChange={(e) => dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`, value: { ...defaultLayout.restuarantCategorySetting, categories: e.value } }))}
+                        options={categoryOptions}
+                        optionLabel="name"
+                        filter
+                        placeholder="Select Categories"
+                        maxSelectedLabels={5}
+                        selectionLimit={5}
+                        className="w-full md:w-20rem"
+                        onFilter={(e) => {
+                            setFilterValue(e.filter);
+                        }}
+                    />
+                    <Row style={{
+                        marginTop: '1rem'
+                    }}>
+                        <div className="flex align-items-center">
+                            <Checkbox
+                                onChange={e => {
+                                    dispatch(changeEntityField({
+                                        name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
+                                        value: {
+                                            ...defaultLayout.restuarantCategorySetting, showImages: e.checked
+                                        }
+                                    }))
+                                }
+                                }
+                                checked={defaultLayout.restuarantCategorySetting.showImages}
+                            />
+                            <label htmlFor="ingredient1" className="ml-2">Show Images</label>
+                        </div>
+                    </Row>
+                    <div>
+                        <TabView activeIndex={activeIndex} onTabChange={(e) => {
+                            setActiveIndex(e.index)
+                            dispatch(changeEntityField({
+                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
+                                value: {
+                                    ...defaultLayout.restuarantCategorySetting, layout: layouts[e.index].value
+                                }
+                            }))
+                        }}>
+                            {layouts.map((layout, index) => (
+                                <TabPanel key={layout.id} header={layout.name}>
+                                    <CategoriesLayout layout={layout.value} categories={defaultLayout.restuarantCategorySetting.categories} />
+                                </TabPanel>
+                            ))}
+                        </TabView>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+const LayoutDefaultRetailCategories = ({
+    defaultLayout,
+}: {
+    defaultLayout: ILayouts["LAYOUT_DEFAULT"]
+}) => {
+    const dispatch = useAppDispatch();
+
+    const categoriesOptions: ITerm[] = useAppSelector(state => state.retailCategory.entities);
+    const loading = useAppSelector(state => state.retailCategory.loading);
+
+    const [filterValue, setFilterValue] = useState<string>("");
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    useEffect(() => {
+        const handleFilter = debounce(() => {
+            dispatch(searchEntities({
+                query: filterValue,
+                sort: 'id,asc',
+                page: 0,
+                size: 10
+            }))
+        }, 500);
+
+        handleFilter();
+
+        return () => {
+            handleFilter.cancel();
+        };
+    }, [filterValue]);
+
+    const layouts = [
+        {
+            id: 1,
+            name: 'layout 1',
+            value: Layout.layoutOne,
+        },
+        {
+            id: 2,
+            name: 'layout 2',
+            value: Layout.layoutTwo
+        }
+    ]
+
+    return (
+        <div>
+            {loading ? <div className="d-flex my-5">
+                <Spinner />
+            </div> : (
+                <div>
+                    <div className={'d-flex flex-column mb-3'}>
+                        <Label htmlFor="UiSettings-domain">
+                            <strong>title</strong>
+                        </Label>
+                        <InputText
+                            id="UiSettings-domain"
+                            value={defaultLayout.retailCategorySetting.title || ''}
+                            onChange={e => dispatch(changeEntityField({
+                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
+                                value: { ...defaultLayout.retailCategorySetting, title: e.target.value }
+                            }))}
+                        />
+                    </div>
+                    <MultiSelect
+                        value={defaultLayout.retailCategorySetting.categories}
+                        onChange={(e) => dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`, value: { ...defaultLayout.retailCategorySetting, categories: e.value } }))}
+                        options={categoriesOptions}
+                        optionLabel="name"
+                        filter
+                        placeholder="Select Categories"
+                        maxSelectedLabels={5}
+                        selectionLimit={5}
+                        className="w-full md:w-20rem"
+                        onFilter={(e) => {
+                            setFilterValue(e.filter);
+                        }}
+                    />
+                    <Row style={{
+                        marginTop: '1rem'
+                    }}>
+                        <div className="flex align-items-center">
+                            <Checkbox
+                                onChange={e => {
+                                    dispatch(changeEntityField({
+                                        name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
+                                        value: {
+                                            ...defaultLayout.retailCategorySetting, showImages: e.checked
+                                        }
+                                    }))
+                                }
+                                }
+                                checked={defaultLayout.retailCategorySetting.showImages}
+                            />
+                            <label htmlFor="ingredient1" className="ml-2">Show Images</label>
+                        </div>
+                    </Row>
+                    <div>
+                        <TabView activeIndex={activeIndex} onTabChange={(e) => {
+                            setActiveIndex(e.index)
+                            dispatch(changeEntityField({
+                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
+                                value: {
+                                    ...defaultLayout.retailCategorySetting, layout: layouts[e.index].value
+                                }
+                            }))
+                        }}>
+                            {layouts.map((layout, index) => (
+                                <TabPanel key={layout.id} header={layout.name}>
+                                    <CategoriesLayout layout={layout.value} categories={defaultLayout.retailCategorySetting.categories} />
+                                </TabPanel>
+                            ))}
+                        </TabView>
+                    </div>
+                </div>
+            )}
+
+        </div>
+    )
+}
 
 export default Layouts
