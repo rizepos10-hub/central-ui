@@ -1,7 +1,8 @@
 import { IAttachment } from "app/shared/model/attachment.model";
-import { IAddress } from "../address.model";
 import { IBranchDetails } from "../business-detail.model";
 import { ILayoutSettings, defaultLayoutValue } from "./layout-settings";
+import { ILayouts } from "./layouts/layouts.module";
+import { ISocialProfile } from "./social-profile";
 
 export interface IUiSettings {
   address?: string,
@@ -27,6 +28,17 @@ export interface IUiSettings {
   colorSetting?: IColorSetting | null
   fontSetting?: IFontSetting
   canOrder?: boolean
+  layouts?: ILayouts
+  socialProfiles?: ISocialProfiles | null
+}
+
+export interface ISocialProfiles {
+  FACEBOOK: ISocialProfile,
+  INSTAGRAM: ISocialProfile,
+  TWITTER: ISocialProfile,
+  TIKTOK: ISocialProfile,
+  YOUTUBE: ISocialProfile,
+  LINKEDIN: ISocialProfile,
 }
 
 export type IColorSetting = {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
+import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
 import { Translate, translate, ValidatedField } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -11,6 +11,7 @@ import { InputNumber } from "primereact/inputnumber";
 import {
   currencySymbolPositionOptions,
   IFontSetting,
+  ISocialProfiles,
   IUiSettings,
   orderTakingOptions
 } from "app/shared/model/ONLINE_ORDERING/ui-setting.model";
@@ -25,6 +26,7 @@ import { TabPanel, TabView } from 'primereact/tabview';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { ColorPicker } from 'primereact/colorpicker';
 import { hexToHSL, hslToHex } from 'app/shared/util/color-utils';
+import { ISocialProfile } from 'app/shared/model/ONLINE_ORDERING/social-profile';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -201,6 +203,9 @@ export const UiSettingsUpdate = () => {
                         headerTemplate={quillHeader}
                       />
                     </div>
+                  </TabPanel>
+                  <TabPanel header="Social Profiles">
+                    <SocialProfiles socialProfiles={UiSettingsEntity.socialProfiles} />
                   </TabPanel>
                   <TabPanel header="Order">
                     <div className={'d-flex flex-column mb-3'}>
@@ -429,6 +434,58 @@ export const UiSettingsUpdate = () => {
         </Col>
       </Row>
     </div>
+  );
+};
+
+const SocialProfiles = ({
+  socialProfiles
+}: {
+  socialProfiles: ISocialProfiles | null
+}) => {
+  const dispatch = useAppDispatch();
+  const handleChange = (field: keyof ISocialProfiles, value: string) => {
+    // Handle null case by defaulting to an empty object
+    const currentSocialProfiles = socialProfiles || {};
+    const currentField = currentSocialProfiles[field] || {};
+    const newSocialProfilesValues = {
+      ...currentSocialProfiles,
+      [field]: {
+        ...currentField,
+        url: value,
+        name: field
+      }
+    };
+    dispatch(changeEntityField({ name: "socialProfiles", value: newSocialProfilesValues }));
+  };
+
+  const socials = [
+    { key: 'INSTAGRAM', label: 'Instagram' },
+    { key: 'FACEBOOK', label: 'Facebook' },
+    { key: 'TIKTOK', label: 'Tiktok' },
+    { key: 'TWITTER', label: 'Twitter' },
+    { key: 'YOUTUBE', label: 'Youtube' },
+    { key: 'LINKEDIN', label: 'Linkedin' }
+  ];
+
+  return (
+    <>
+      {socials.map((social, idx) => (
+        <FormGroup key={idx}>
+          <Label for={social.key}>
+            {translate(`tempApp.layoutSettings.tabs.contactInfo.socials.${social.key}`)}
+          </Label>
+          <Input
+            type='text'
+            id={social.key}
+            name={social.key}
+            placeholder={`${social.label} URL`}
+            // Safely access url even if socialProfiles or the specific profile is null
+            value={socialProfiles?.[social.key]?.url || ''}
+            onChange={(e) => handleChange(social.key as keyof ISocialProfiles, e.target.value)}
+          />
+        </FormGroup>
+      ))}
+    </>
   );
 };
 

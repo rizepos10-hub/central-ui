@@ -551,10 +551,15 @@ export const model: MenuItem[] = [
         role: ['ROLE_ADMINISTRATOR'],
         to: '/online-ordering/settings',
       },
+      // {
+      //   label: 'Layout Settings',
+      //   role: ['ROLE_ADMINISTRATOR'],
+      //   to: '/online-ordering/layout-settings',
+      // },
       {
-        label: 'Layout Settings',
+        label: 'Pick A Layout',
         role: ['ROLE_ADMINISTRATOR'],
-        to: '/online-ordering/layout-settings',
+        to: '/online-ordering/pick-a-layout',
       },
     ],
   },

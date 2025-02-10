@@ -6,6 +6,7 @@ import UiSettingsUpdate from "app/entities/online-ordering/settings/settings";
 import User from "app/entities/online-ordering/user";
 import OnlineOrder from "app/entities/online-ordering/online-order/online-order";
 import LayoutSettingsUpdate from './layout-settings/layout-settings';
+import Layouts from './layouts/layouts';
 
 
 export default () => {
@@ -17,7 +18,7 @@ export default () => {
           <Route path={"user"} element={<User />} />
           <Route path={"order"} element={<OnlineOrder />} />
           <Route path={"layout-settings"} element={<LayoutSettingsUpdate />} />
-
+          <Route path={"pick-a-layout"} element={<Layouts />} />
         </Route>
       </ErrorBoundaryRoutes>
   </div>
