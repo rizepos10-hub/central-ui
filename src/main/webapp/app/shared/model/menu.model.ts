@@ -15,7 +15,7 @@ export interface IMenu {
   menuScreens?: IMenuScreen[];
   excludedItems?: IItem[];
   itemType?: "RETAIL" | "RESTAURANT" | null;
-  branch?: IBranch;
+  branch?: IBranch[];
   visibilities?: IVisibility[];
   type?: "POS" | "ONLINE_ORDERING";
 }
@@ -29,7 +29,10 @@ export interface IMenuScreen {
   allowMultiButtonSelect?: boolean;
   numberOfColumns?: number;
   rowHeight?: number[];
-  subscreens?: IMenuScreen[];
+  subScreens?: IMenuScreen[];
+  component?: {
+    item?: IItem;
+  }
 }
 
 export const defaultValue: Readonly<IMenu> = {};

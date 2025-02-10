@@ -5,6 +5,8 @@ import { IBill } from 'app/shared/model/ORDER/bill.model';
 import { IOrderAudit } from 'app/shared/model/ORDER/order-audit.model';
 import { PaymentStatus } from '../ENUMS/payment-status.model';
 import { DeliverStatus } from '../ENUMS/delivery-status.model';
+import { IAddress } from '../address.model';
+import { OrderMethod } from '../ENUMS/order-method.model';
 
 export interface IOrder extends IOrderAudit {
   id?: string;
@@ -14,6 +16,7 @@ export interface IOrder extends IOrderAudit {
   sequenceNumber?: number | null;
   branchId?: string | null;
   orderSources?: string | null;
+  orderMethod?: OrderMethod | null;
   tables?: string | null;
   customer?: ICustomer;
   items?: IOrderedItem[];
@@ -21,6 +24,7 @@ export interface IOrder extends IOrderAudit {
   bills?: IBill[];
   scheduledAt?: string | null;
   orderCharges?: IOrderCharge[];
+  deliverTo?: IAddress | null;
   orderDeliveryDetails?: IOrderDeliveryDetails;
   paymentStatus?: PaymentStatus
   processingStatus?: OrderStatus

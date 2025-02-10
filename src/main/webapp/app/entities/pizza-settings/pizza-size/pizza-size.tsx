@@ -29,7 +29,7 @@ export const PizzaSize = () => {
   const loading = useAppSelector(state => state.pizzaSize.loading);
   const totalItems = useAppSelector(state => state.pizzaSize.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   const getAllEntities = () => {

@@ -11,6 +11,7 @@ import { IExchangeMeasure, IItemPriceNumber } from "app/shared/model/ITEM/retail
 import { IMixAndMatchRule } from "app/shared/model/mix-and-match-rule.model";
 import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 import { ShippingDimension } from "app/shared/model/shipping-dimension.model";
+import { IPricingPoint } from "../../PRICING-POINT/pricing-point";
 
 export interface IBranchVariantDetails {
   [key: string]: {
@@ -48,6 +49,13 @@ export interface IVariableItemVariant {
   itemMeasure?: IItemMeasure;
   shippingDimension?: ShippingDimension | null;
   measureValue?: IMeasureValue;
+  pricingPointBranchPrices?: IPricingPointBranchPrice[];
+}
+
+export interface IPricingPointBranchPrice {
+  branch: IBranch;
+  pricingPoint: IPricingPoint;
+  price: number;
 }
 
 export interface IMeasureValue {

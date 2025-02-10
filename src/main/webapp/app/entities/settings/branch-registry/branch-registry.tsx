@@ -6,14 +6,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import {  filterEntities } from './branch-registry.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {FilterMatchMode} from "primereact/api";
+import { filterEntities } from './branch-registry.reducer';
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { FilterMatchMode } from "primereact/api";
 import { IBranchRegistry } from "app/shared/model/branch-registry.model";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import { Dropdown } from "primereact/dropdown";
-import { getEntities as getBranches} from "app/entities/branch/branch.reducer";
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 
 
 const initialState = {
@@ -31,14 +31,14 @@ const initialState = {
 
 
 
-export const BranchRegistry = ({isRegisterClosure} : { isRegisterClosure?: boolean}) => {
+export const BranchRegistry = ({ isRegisterClosure }: { isRegisterClosure?: boolean }) => {
   const dispatch = useAppDispatch();
   const branchList = useAppSelector(state => state.branch.entities);
-  const branchRegistryList :IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
+  const branchRegistryList: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
   const loading = useAppSelector(state => state.branchRegistry.loading);
   const totalItems = useAppSelector(state => state.branchRegistry.totalItems);
 
-  const [searchParam, setSearchParams]=  useSearchParams();
+  const [searchParam, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParam.get("query")) || initialState;
 
 
@@ -75,22 +75,22 @@ export const BranchRegistry = ({isRegisterClosure} : { isRegisterClosure?: boole
 
   const onSort = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true })
   };
 
 
-  const onFilter  = (event) => {
+  const onFilter = (event) => {
     event['first'] = 0;
     event['page'] = 0;
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true});
+    setSearchParams({ query: queryParams }, { replace: true });
   }
 
 
 
   const onPage = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true })
   };
 
   const handleBranchChange = (e) => {
@@ -100,10 +100,10 @@ export const BranchRegistry = ({isRegisterClosure} : { isRegisterClosure?: boole
       first: 0,
       filters: {
         ...query.filters,
-        ["branch.id"] : { value: e.value, matchMode: FilterMatchMode.EQUALS }
+        ["branch.id"]: { value: e.value, matchMode: FilterMatchMode.EQUALS }
       }
     })
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true })
   }
 
 
@@ -123,7 +123,7 @@ export const BranchRegistry = ({isRegisterClosure} : { isRegisterClosure?: boole
 
 
   const nameColumnTemplate = (rowData) => {
-    const editUrl = isRegisterClosure ?  `/analytics/register-closure/${rowData.id}/edit` :  `/branch-register/${rowData.id}/edit`;
+    const editUrl = isRegisterClosure ? `/analytics/register-closure/${rowData.id}/edit` : `/branch-register/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -132,10 +132,10 @@ export const BranchRegistry = ({isRegisterClosure} : { isRegisterClosure?: boole
   };
 
   const editColumnTemplate = (rowData: IBranchRegistry) => {
-    const editUrl = isRegisterClosure ?  `/analytics/register-closure/${rowData.id}/edit` :  `/branch-register/${rowData.id}/edit`;
+    const editUrl = isRegisterClosure ? `/analytics/register-closure/${rowData.id}/edit` : `/branch-register/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
       </Link>
     );
   };
@@ -161,21 +161,22 @@ export const BranchRegistry = ({isRegisterClosure} : { isRegisterClosure?: boole
   return (
     <div>
       <DataTable
-        value={branchRegistryList} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
-        paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
+        value={branchRegistryList} editMode="row" header={header} removableSort filters={query.filters} filterDisplay="row"
+        paginator totalRecords={totalItems} rows={20} lazy first={query.first} onPage={onPage} onFilter={onFilter}
         filterDelay={500} loading={loading}
         onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
       >
-          <Column field="name" header="Name" body={nameColumnTemplate} filter  filterPlaceholder={"Search by name"}  sortable  />
-        <Column field="branch" showFilterMenu={false}  filter filterElement={branchFilterElement} header="Branch"  body={(rowData) => rowData?.branch?.name}   sortable  />
-        <Column field="code" header="Code" sortable  />
+        <Column field="name" header="Name" body={nameColumnTemplate} filter filterPlaceholder={"Search by name"} sortable />
+        <Column field="branch" showFilterMenu={false} filter filterElement={branchFilterElement} header="Branch" body={(rowData) => rowData?.branch?.name} sortable />
+        <Column field="code" header="Code" sortable />
+        <Column field="lastOnline" header="Last Online" sortable body={(rowData) => rowData?.lastOnline ? new Date(rowData?.lastOnline).toLocaleString() : ""} />
 
-          <Column header="Edit"  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+        <Column header="Edit" body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-        </DataTable>
-      </div>
+      </DataTable>
+    </div>
   );
 };
 
-export default BranchRegistry ;
+export default BranchRegistry;

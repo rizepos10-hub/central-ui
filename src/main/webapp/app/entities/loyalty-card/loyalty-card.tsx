@@ -41,9 +41,9 @@ export const GiftCard = () => {
   const totalItems = useAppSelector(state => state.loyaltycard.totalItems);
 
   const [filters, setFilters] = useState({
-    cardHolderName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    referenceNumber: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    cardHolderName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    referenceNumber: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    code: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
 
   const getAllEntities = () => {

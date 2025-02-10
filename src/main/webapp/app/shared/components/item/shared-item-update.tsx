@@ -297,6 +297,13 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
               </div>
             </div>
 
+            <div className={'d-flex flex-column gap-1  col'}>
+              <label className={'text-xl mt-2 font-bold'}>
+                <Translate contentKey={'items.update.byWeight'}>By Weight</Translate>
+              </label>
+              <Checkbox checked={item?.byWeight ? true : false} onChange={e => onFieldChange('byWeight', e.checked)} />
+            </div>
+
             {isRetailItem ? (
               <div className="row">
                 <div className={'d-flex flex-column gap-2 mt-2 col-6'}>
@@ -322,6 +329,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
                     <Translate contentKey={'items.update.image'}>Image</Translate>
                   </label>
                   <MediaLibrary
+                    multiSelect={true}
                     handleFilesSelectCallback={files => addImage(files)}
                     defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
                   />

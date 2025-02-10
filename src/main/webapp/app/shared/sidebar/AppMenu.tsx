@@ -104,6 +104,10 @@ export const model: MenuItem[] = [
         to: '/category/restaurant-items',
       },
       {
+        label: 'Categories Tree',
+        to: '/category/restaurant-items/tree',
+      },
+      {
         label: 'Products',
         to: '/restaurant/regular',
         items: [
@@ -296,6 +300,11 @@ export const model: MenuItem[] = [
         label: 'Suppliers',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
         to: '/inventory/supplier',
+      },
+      {
+        label: 'To Be Stocked',
+        role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
+        to: '/inventory/to-be-stocked',
       },
     ],
   },
@@ -616,6 +625,11 @@ export const model: MenuItem[] = [
         label: 'Voids',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/void-reasons',
+      },
+      {
+        label: 'Pricing Points',
+        role: ['ROLE_ADMINISTRATOR'],
+        to: '/pricing-point',
       },
       {
         label: 'Custom Definitions',

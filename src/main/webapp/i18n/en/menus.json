@@ -77,6 +77,7 @@
             "title": "Add Existing Items",
             "search": "Search Items",
             "filter": "Filter by Category",
+            "selectAll": "Select All",
             "filterByUnassignedItems": "Filter by unselected items in menu",
             "filterMenu": "Filter by unselected items in menu",
             "table": {

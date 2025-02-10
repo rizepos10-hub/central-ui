@@ -126,7 +126,8 @@ export const Product = () => {
     const editUrl = `/product/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
-        {rowData.name}
+        {rowData.name}<br/>
+        <span className="text-xs">#{rowData?.variants?.length}</span>
       </Link>
     );
   };

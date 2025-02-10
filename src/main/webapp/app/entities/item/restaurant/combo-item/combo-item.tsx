@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
 import { translate, Translate } from 'react-jhipster';
@@ -6,12 +6,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { DataTable } from "primereact/datatable";
+import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
-import { deleteEntities, exportEntities, filterEntities, updateEntities } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
+import { deleteEntities, exportEntities, filterEntities, updateEntities, createEntity } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { IItem } from 'app/shared/model/ITEM/item.model';
@@ -20,6 +20,8 @@ import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { InputText } from 'primereact/inputtext';
 import { FilterMatchMode } from 'primereact/api';
+import { FaCopy } from 'react-icons/fa';
+import _ from 'lodash';
 
 export const ComboItem = () => {
   const dispatch = useAppDispatch();
@@ -29,7 +31,10 @@ export const ComboItem = () => {
   const loading = useAppSelector(state => state.comboItem.loading);
   const totalItems = useAppSelector(state => state.comboItem.totalItems);
   const [searchParams, setSearchParams] = useSearchParams();
-  const query = JSON.parse(searchParams.get("query")) || JSON.parse(searchParams.get("query")) || {
+
+  const [localNameFilter, setLocalNameFilter] = useState("");
+
+  const query = JSON.parse(searchParams.get("query")) || {
     first: 0,
     rows: 20,
     page: 0,
@@ -47,9 +52,11 @@ export const ComboItem = () => {
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
 
-
+  console.log(JSON.parse(searchParams.get("query")))
   const getAllEntities = () => {
+    console.log(query)
     const updatedQuery = applyMatchModeMap(query);
+    console.log(updatedQuery, 'updatedQuery')
     dispatch(
       filterEntities({
         query: updatedQuery,
@@ -70,11 +77,15 @@ export const ComboItem = () => {
     setSearchParams({ query: queryParams }, { replace: true })
   };
 
-  const onFilter = (event: any) => {
+  const debouncedFilter = useRef(_.debounce((event) => {
     event['first'] = 0;
     event['page'] = 0;
     const queryParams = JSON.stringify(event);
     setSearchParams({ query: queryParams }, { replace: true })
+  }, 300)).current
+
+  const onFilter = (event: DataTableFilterEvent) => {
+    debouncedFilter(event);
   };
 
 
@@ -99,7 +110,12 @@ export const ComboItem = () => {
     const editUrl = `/restaurant/combo/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
-        {rowData.name}
+        {rowData.name} <br/>
+        <span className="text-xs">
+          #{rowData?.variants?.reduce((total, variant) => {
+            return total + (variant?.comboPackages?.length || 0);
+          }, 0)}
+        </span>
       </Link>
     );
   };
@@ -176,38 +192,24 @@ export const ComboItem = () => {
   }, [selectedActionOption])
 
   const nameFilterTemplate = () => {
-    const [name, setName] = useState('');
-
     return (
-      <form onSubmit={(e) => {
-        e.preventDefault()
-        const newQuery = {
-          ...query,
-          filters: {
-            ...query.filters,
-            name: {
-              ...query.filters?.name,
-              value: name,
-              matchMode: query.filters?.name?.matchMode || FilterMatchMode.CONTAINS,
-            },
-          }
-        }
-
-        const updatedQuery = applyMatchModeMap(newQuery);
-
-
-        dispatch(filterEntities({
-          query: updatedQuery,
-        }));
-      }}>
-        <InputText
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="p-inputtext-sm"
-          placeholder="Search by Name"
-        />
-      </form>
+      <InputText
+        type="text"
+        value={localNameFilter}
+        onChange={(e) => {
+          setLocalNameFilter(e.target.value);
+          const newQuery = {
+            ...query,
+            filters: {
+              ...query.filters,
+              name: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS }
+            }
+          };
+          debouncedFilter(newQuery);
+        }}
+        className="p-inputtext-sm"
+        placeholder="Search by Name"
+      />
     );
   };
 
@@ -230,6 +232,37 @@ export const ComboItem = () => {
     setSelectedActionOption(null);
   }
 
+  const duplicateColumnTemplate = (rowData) => {
+    console.log(rowData)
+    return (
+      <Button
+        className="d-flex justify-content-center w-100"
+        onClick={() => confirmDialog({
+          message: 'Are you sure you want to duplicate this product?',
+          header: 'Duplicate Product',
+          icon: 'pi pi-exclamation-triangle',
+          accept() {
+            const { id, ...entityWithoutId } = rowData;
+            entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+              ...variantWithoutId,
+            }));
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
+
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/restaurant/combo/${newProductId}/edit`)
+              }
+            });
+          }
+        })}
+        text
+      >
+        <FaCopy style={{ cursor: 'pointer', color: 'black', marginLeft: '0.3rem' }} />
+      </Button>
+    );
+  };
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
@@ -336,7 +369,14 @@ export const ComboItem = () => {
 
         <Column field="description" header={translate('items.view.fields.description')} />
 
-        <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
+        {/* <Column field="stock" sortable header={translate('items.view.fields.inStock')} /> */}
+
+        <Column
+          header={translate('items.view.fields.duplicate')}
+          body={duplicateColumnTemplate}
+          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
+        />
 
         <Column header={translate('items.view.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
           bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />

@@ -8,7 +8,7 @@ import { translate, Translate } from 'react-jhipster';
 import { InputNumber } from "primereact/inputnumber";
 import PurchaseConfigUpdateTab from "app/entities/inventory/stock-config/purchase-config-update-tab";
 import { IPurchaseConfig } from "app/shared/model/STOCK/purchase-config.model";
-import { MultiSelect } from "primereact/multiselect";
+import Select from "react-select";
 import { IWarehouse } from "app/shared/model/STOCK/warehouse.model";
 
 const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuantityUpdate, variantIndex }) => {
@@ -19,7 +19,7 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
   const [selectedWarehouses, setSelectedWarehouses] = useState<IWarehouse[]>([]);
   const isNew = itemId === undefined;
 
-  const handleConfigChange = (newConfig: IPurchaseConfig, variantIndex: Number) => {
+  const handleConfigChange = (newConfig: IPurchaseConfig, variantIndex: number) => {
     productPurchaseConfig(newConfig, variantIndex);
   };
 
@@ -37,7 +37,7 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
   }, [wareHouses]);
 
   useEffect(() => {
-    if (!isNew) {
+    if (!isNew && variant?.id) {
       const query = `itemId=${itemId}&variantId=${variant?.id}`;
       dispatch(getStockQuantitiesForVariant(query));
     }
@@ -77,18 +77,19 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
   };
 
   return (
-    <div className="p-3">
+    <div>
       <h4>Stock Management</h4>
       <Accordion multiple>
         <AccordionTab header="Update Stock Quantity" className="p-3">
           <label className="font-semibold pr-3">Select Warehouses</label>
-          <MultiSelect
+          <Select
+            isMulti
             value={selectedWarehouses}
+            onChange={handleWarehouseChange}
             options={wareHouses}
-            optionLabel="name"
+            getOptionLabel={(option) => option.name}
+            getOptionValue={(option) => option.id}
             placeholder="Select Warehouses"
-            filter
-            onChange={(e) => handleWarehouseChange(e.value)}
           />
 
           {updatedStockQuantities.map((stock, index) => (

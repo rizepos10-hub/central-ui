@@ -16,8 +16,8 @@ import {Card as PrimeCard} from 'primereact/card'
 
 interface PurchaseConfigUpdateTabProps {
   id?: string; // Make `id` optional,
-  variantIndex: Number;
-  onConfigChange: (config: IPurchaseConfig, variantIndex: Number) => void;
+  variantIndex: number;
+  onConfigChange: (config: IPurchaseConfig, variantIndex: number) => void;
   purchaseConfigEntity: IPurchaseConfig;
 }
 
@@ -154,7 +154,7 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
                   <thead>
                   <tr>
                   <th>{translate("common.supplier")}</th>
-                  <th>{translate("common.price")}</th>
+                  <th>{translate("common.costPrice")}</th>
                   </tr>
                   </thead>
                   <tbody>

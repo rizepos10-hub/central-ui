@@ -42,7 +42,7 @@ export const PrintingProfiles = () => {
   }));
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     'branch.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     printers: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
@@ -74,7 +74,7 @@ export const PrintingProfiles = () => {
     if (filterValue === '') {
       setFilters({
         ...filters,
-        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
       });
     } else {
       setFilters({

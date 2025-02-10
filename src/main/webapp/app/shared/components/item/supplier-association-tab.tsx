@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MultiSelect } from "primereact/multiselect";
 import { InputText } from "primereact/inputtext";
 import { translate } from 'react-jhipster';
+import Select from "react-select";
 
 const SupplierAssociationTab = ({ variants, itemId, suppliers, onSupplierChange }) => {
   const navigate = useNavigate();
@@ -31,30 +32,27 @@ const SupplierAssociationTab = ({ variants, itemId, suppliers, onSupplierChange 
     onSupplierChange(index, { supplierIds: updatedVariants[index].selectedSupplierIds, supplierCode: code });
   };
 
+
   return (
     <div className="p-3">
       {variants.map((variant, index) => (
         <div key={variant.id} className="variant-supplier-section mb-4">
-          <h3>{`Variant ${variant.name}`}</h3>
-
           {/* MultiSelect for Suppliers */}
           <div className="p-field">
             <label htmlFor={`suppliers-${variant.id}`} className="mr-3">{translate('items.update.tabs.supplier.selectSuppliers')}</label>
-            <MultiSelect
-              id={`suppliers-${variant.id}`}
-              value={variantSuppliers[index]?.selectedSupplierIds || []} // Pre-select based on supplierIds in variantSuppliers
-              options={suppliers.map(s => ({ label: s.name, value: s.id }))} // Map suppliers to MultiSelect format
-              onChange={(e) => handleSupplierChange(index, e.value)}
+            <Select
+              inputId={`suppliers-${variant.id}`}
+              isMulti
+              value={suppliers
+                .filter(s => (variantSuppliers[index]?.selectedSupplierIds || []).includes(s.id))
+                .map(s => ({ label: s.name, value: s.id }))}
+              onChange={(selected) => handleSupplierChange(index, selected.map(opt => opt.value))}
+              options={suppliers.map(s => ({ label: s.name, value: s.id }))}
               placeholder={translate('items.update.tabs.supplier.selectSupplierPlaceHolder')}
-              display="chip"
-              filter
-              filterPlaceholder={translate('items.update.tabs.supplier.searchSuppliers')}
+              isSearchable
               className="w-100"
             />
           </div>
-          
-
-
 
           {/* Input for Supplier Code */}
           <div className="p-field mt-4">

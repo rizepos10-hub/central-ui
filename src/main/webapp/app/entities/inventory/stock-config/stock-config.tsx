@@ -34,7 +34,7 @@ export const StockConfig = () => {
   const totalItems = useAppSelector(state => state.inventoryItem.totalItems);
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     desc: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   });
 

@@ -86,6 +86,15 @@ export const login: (username: string, password: string, tenant: string, remembe
       dispatch(getSession());
     };
 
+export const loginFromToken = (access_token: string, refresh_token: string, tenant: string) =>
+  dispatch => {
+    Storage.local.set(AUTH_TOKEN_KEY, access_token);
+    Storage.local.set(REFRESH_TOKEN_KEY, refresh_token);
+    Storage.local.set(TENANT_KEY, tenant);
+    sessionStorage.setItem(TENANT_KEY, tenant);
+    dispatch(getSession());
+  };
+
 export const clearAuthToken = () => {
   if (Storage.local.get(AUTH_TOKEN_KEY)) {
     Storage.local.remove(AUTH_TOKEN_KEY);

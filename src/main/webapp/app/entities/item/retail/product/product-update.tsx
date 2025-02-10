@@ -57,6 +57,7 @@ import { IStockQuantity } from 'app/shared/model/STOCK/stock-quantity.model';
 import { Checkbox } from 'primereact/checkbox';
 import { InputTextarea } from 'primereact/inputtextarea';
 import ItemLocation from 'app/shared/components/item/item-location';
+import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -89,7 +90,7 @@ export const ProductUpdate = () => {
 
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
-  const productEntity = useAppSelector(state => state.product.entity);
+  const productEntity: IProduct = useAppSelector(state => state.product.entity);
   const loading = useAppSelector(state => state.product.loading);
   const updating = useAppSelector(state => state.product.updating);
   const updateSuccess = useAppSelector(state => state.product.updateSuccess);
@@ -109,11 +110,7 @@ export const ProductUpdate = () => {
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
 
-  const [product, setProduct] = useState<IProduct>({
-    itemType: 'RETAIL',
-    itemVariantType: ItemVariantType.RETAIL_SIMPLE,
-    variants: [],
-  });
+  const [product, setProduct] = useState<IProduct>({});
   const isVariableItem = product?.itemVariantType === ItemVariantType.RETAIL_VARIABLE;
   const isSingleItem = product?.itemVariantType === ItemVariantType.RETAIL_SIMPLE;
 
@@ -177,9 +174,8 @@ export const ProductUpdate = () => {
       }
     }));
   };
-  
+
   const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
-    console.log('helloooo111o', value, variantIndex);
     setProduct(prev => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -278,36 +274,34 @@ export const ProductUpdate = () => {
   };
 
   const handleBaseMeasureChange = baseMeasure => {
-    console.log(baseMeasure)
     setProduct(prev => ({ ...prev, baseMeasure }));
   };
 
-  const handleSaveWholesalePrices = (variantIndex, branchId, prices) => {
-    setProduct(prev => {
-      const updatedVariants = prev.variants.map((variant, index) => {
-        console.log(variantIndex, 'variantsds');
-        if (index !== variantIndex) return variant;
+  // const handleSaveWholesalePrices = (variantIndex, branchId, prices) => {
+  //   setProduct(prev => {
+  //     const updatedVariants = prev.variants.map((variant, index) => {
+  //       if (index !== variantIndex) return variant;
 
-        const updatedBranchVariantDetails = {
-          ...variant.branchVariantDetails,
-          [branchId]: {
-            ...variant.branchVariantDetails?.[branchId],
-            wholesalePrices: prices,
-          },
-        };
+  //       const updatedBranchVariantDetails = {
+  //         ...variant.branchVariantDetails,
+  //         [branchId]: {
+  //           ...variant.branchVariantDetails?.[branchId],
+  //           wholesalePrices: prices,
+  //         },
+  //       };
 
-        return {
-          ...variant,
-          branchVariantDetails: updatedBranchVariantDetails,
-        };
-      });
+  //       return {
+  //         ...variant,
+  //         branchVariantDetails: updatedBranchVariantDetails,
+  //       };
+  //     });
 
-      return {
-        ...prev,
-        variants: updatedVariants,
-      };
-    });
-  };
+  //     return {
+  //       ...prev,
+  //       variants: updatedVariants,
+  //     };
+  //   });
+  // };
 
   const handleAddMeasure = () => {
     setProduct(prevState => ({
@@ -377,8 +371,6 @@ export const ProductUpdate = () => {
   //         },
   //       },
   //     };
-  //     console.log(prev)
-  //     console.log(updatedVariants)
   //     return {
   //       ...prev,
   //       variants: updatedVariants,
@@ -518,7 +510,6 @@ export const ProductUpdate = () => {
       }
     };
     generate(0, {});
-    console.log(combinations, 'combinationscombinations');
     setProduct(prevState => ({
       ...prevState,
       variants: [...prevState.variants, ...combinations],
@@ -589,7 +580,6 @@ export const ProductUpdate = () => {
     setDragOverIndex(null);
   };
 
-  console.log(product, 'product');
 
   const handleNavigate = productId => {
     navigate(`/product/${productId}/edit` + location.search);
@@ -615,8 +605,6 @@ export const ProductUpdate = () => {
   }
 
   const stockQuantityUpdate = (stockQuantities: IStockQuantity[], variantIndex: number) => {
-    console.log("data " + variantIndex);
-    console.log("data " + stockQuantities);
     setProduct((prevProduct) => ({
       ...prevProduct,
       variants: prevProduct.variants.map((variant, index) => {
@@ -687,14 +675,13 @@ export const ProductUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
-    if (!isNew) {
-      setProduct({
-        ...productEntity,
-        variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
-      });
-    }
+    setProduct({
+      ...productEntity,
+      variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
+    });
   }, [productEntity]);
 
+  console.log(productEntity, 'productEntity')
   const handleSupplierChange = (index, updatedVariant) => {
     const updatedProduct = {
       ...product,
@@ -710,7 +697,7 @@ export const ProductUpdate = () => {
     setProduct(updatedProduct);
   };
 
-  const saveEntity = (e, createNew = false) => {
+  const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
 
     const updatedVariants = product?.variants.map((variant, index) => {
@@ -735,6 +722,7 @@ export const ProductUpdate = () => {
         }
       ],
     };
+
     if (isNew) {
       dispatch(createEntity(entity)).then((res) => {
         if (createNew) {
@@ -748,6 +736,24 @@ export const ProductUpdate = () => {
           const payload = res?.payload as any;
           const newProductId = payload?.data?.id;
 
+          const { id, ...entityWithoutId } = entity;
+          entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+            ...variantWithoutId,
+            sku: null,
+          }));
+
+          if (clone) {
+            dispatch(createEntity(entityWithoutId)).then(res => {
+              const payload = res?.payload as any;
+              const newProductId = payload?.data?.id;
+
+              // @ts-expect-error -- unknown type
+              if (!res?.error) {
+                navigate(`/product/${newProductId}/edit`)
+              }
+            });
+          }
+
           // @ts-expect-error -- unknown type
           if (!res?.error) {
             handleNavigate(newProductId)
@@ -756,6 +762,23 @@ export const ProductUpdate = () => {
       })
     } else {
       dispatch(updateEntity(entity)).then(() => {
+        if (clone) {
+          const { id, ...entityWithoutId } = entity;
+          entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+            ...variantWithoutId,
+            sku: null,
+          }));
+          dispatch(createEntity(entityWithoutId)).then(res => {
+            const payload = res?.payload as any;
+            const newProductId = payload?.data?.id;
+
+            // @ts-expect-error -- unknown type
+            if (!res?.error) {
+              navigate(`/product/${newProductId}/edit`)
+            }
+          });
+        }
+
         if (createNew) {
           navigate(`/product/new`)
         }
@@ -836,7 +859,7 @@ export const ProductUpdate = () => {
       };
     });
   };
-
+  console.log(product, 'product');
   const AttributeAccordionHeader = attributeIndex => (
     <div
       onClick={e => {
@@ -855,7 +878,6 @@ export const ProductUpdate = () => {
     </div>
   );
 
-  { console.log(product?.attachments, 'attachments') }
   const VariantAccordionHeader = variantIndex => (
     <div
       onClick={e => {
@@ -904,6 +926,37 @@ export const ProductUpdate = () => {
       </div>
     </div>
   );
+
+  const confirm3 = (option) => {
+    confirmDialog({
+      message: 'Changing the variant type will reset the variant details.',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept() {
+        handleFieldChange('itemVariantType', option.value)
+        handleFieldChange('variants', [])
+      },
+    });
+  };
+
+  // useEffect(() => {
+  //   handleFieldChange('variants', [])
+  // }, [product.itemVariantType])
+
+  const confirm4 = () => {
+    confirmDialog({
+      message: 'This will delete all the variants.',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleFieldChange('variants', []),
+    });
+  };
+
+  console.log(product, 'product')
 
   if (loading) {
     return <Spinner />;
@@ -971,7 +1024,7 @@ export const ProductUpdate = () => {
                                 optionValue={'value'}
                                 optionLabel={'label'}
                                 onChange={option => {
-                                  handleFieldChange('itemVariantType', option.value);
+                                  confirm3(option);
                                 }}
                               />
                             </div>
@@ -1126,8 +1179,9 @@ export const ProductUpdate = () => {
                                   variantIndex={0}
                                   branchList={branchList}
                                   handleBranchPriceChange={handleBranchPriceChange}
-                                  handleSaveWholesalePrices={handleSaveWholesalePrices}
                                   handleHideItemPerBranch={handleHideItemPerBranch}
+                                  variant={product?.variants?.[0]}
+                                  setItem={setProduct}
                                 />
 
                                 <Row>
@@ -1143,6 +1197,7 @@ export const ProductUpdate = () => {
                                         <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
                                       </label>
                                       <Select
+                                        isClearable
                                         value={product?.variants?.[0]?.mixAndMatchRule || null}
                                         options={mixAndMatchRuleList}
                                         getOptionLabel={option => option.name}
@@ -1185,29 +1240,30 @@ export const ProductUpdate = () => {
                               </Col>
 
                               <Col md={'12'} className={'mt-2'}>
-                                <Accordion multiple>
-                                  {product?.attributes?.map((attribute, index) => (
-                                    <AccordionTab key={index} headerTemplate={() => AttributeAccordionHeader(index)}>
-                                      <div className={'d-flex gap-3'}>
-                                        <label className={'mt-2'}>
-                                          {translate('items.update.name')}: {attribute?.attributeTax?.name}
-                                        </label>
-                                        <Col md={'9'}>
-                                          <AsyncSelect
-                                            value={attribute?.attributeTerms || []}
-                                            isMulti
-                                            getOptionLabel={option => option.name}
-                                            getOptionValue={option => option.id}
-                                            onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
-                                            isLoading={loadingAttributesValues}
-                                            onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                                            defaultOptions={attributeValuesList}
-                                          />
-                                        </Col>
-                                      </div>
-                                    </AccordionTab>
-                                  ))}
-                                </Accordion>
+                                {product?.attributes?.map((attribute, index) => (
+                                  <div className={'d-flex gap-3 align-items-end'} key={index}>
+                                    <Col md={'9'} >
+                                      <label>
+                                        {translate('items.update.name')}: {attribute?.attributeTax?.name}
+                                      </label>
+                                      <AsyncSelect
+                                        value={attribute?.attributeTerms || []}
+                                        isMulti
+                                        getOptionLabel={option => option.name}
+                                        getOptionValue={option => option.id}
+                                        onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
+                                        isLoading={loadingAttributesValues}
+                                        onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                                        defaultOptions={attributeValuesList}
+                                      />
+                                    </Col>
+                                    <Col md={'3'}>
+                                      <PrimeButton type="button" className={'ml-auto bg-danger p-1'} onClick={() => confirm2(index)}>
+                                        <Translate contentKey={'items.update.removeAttribute'}>Remove</Translate>
+                                      </PrimeButton>
+                                    </Col>
+                                  </div>
+                                ))}
                               </Col>
                             </Row>
 
@@ -1217,7 +1273,7 @@ export const ProductUpdate = () => {
                                   <label htmlFor="price" className={'font-semibold'}>
                                     <Translate contentKey={'items.update.variants'}>Variants</Translate>
                                   </label>
-                                  <Col md="5" className={'d-flex gap-3'}>
+                                  <Col md="12" className={'d-flex gap-3'}>
                                     <Button type="button" color="primary" className={'mt-5'} onClick={generateCombinations}>
                                       <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
                                     </Button>
@@ -1225,6 +1281,12 @@ export const ProductUpdate = () => {
                                     <Button color="primary" type={'button'} className={'mt-5'} onClick={handleAddVariant}>
                                       <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
                                     </Button>
+
+                                    {product.variants?.length > 0 && (
+                                      <Button color="danger" type={'button'} className={'mt-5'} onClick={() => confirm4()}>
+                                        <Translate contentKey={'items.update.removeAllVariants'}>Remove All Variants</Translate>
+                                      </Button>
+                                    )}
                                   </Col>
                                   <Col md={'12'} className={'mt-2'}>
                                     <Row className={'mt-2'}>
@@ -1451,7 +1513,15 @@ export const ProductUpdate = () => {
                                                   />
                                                 </Col>
                                               </Row>
-                                              <div className="p-3">
+                                              <Row>
+                                                <SupplierAssociationTab
+                                                  onSupplierChange={handleSupplierChange}
+                                                  variants={product?.variants}
+                                                  itemId={product.id}
+                                                  suppliers={supplierList}
+                                                />
+                                              </Row>
+                                              <div>
                                                 <h4>Shipping Details:</h4>
                                                 <Accordion multiple>
                                                   <AccordionTab header="Shipping Details" className="p-3">
@@ -1539,7 +1609,8 @@ export const ProductUpdate = () => {
                                                 branchVariantDetails={variant.branchVariantDetails}
                                                 itemVariantType={'RETAIL'}
                                                 handleHideItemPerBranch={handleHideItemPerBranch}
-                                                handleSaveWholesalePrices={handleSaveWholesalePrices}
+                                                variant={variant}
+                                                setItem={setProduct}
                                               />
                                             </AccordionTab>
                                           </Accordion>
@@ -1673,11 +1744,11 @@ export const ProductUpdate = () => {
                       </Row>
                     </TabPanel> */}
 
-                    <TabPanel header={translate('items.update.tabs.supplier.label')}>
+                    {/* <TabPanel header={translate('items.update.tabs.supplier.label')}>
                       <SupplierAssociationTab
                         onSupplierChange={handleSupplierChange} // Pass down the function as a prop
                         variants={product?.variants} itemId={product.id} suppliers={supplierList} />
-                    </TabPanel>
+                    </TabPanel> */}
 
                     <TabPanel header={translate('items.update.tabs.itemLocation.label')}>
                       <ItemLocation
@@ -1701,26 +1772,41 @@ export const ProductUpdate = () => {
         >
           <Card>
             <CardHeader>Actions</CardHeader>
-            <div className={'d-flex gap-1 mt-2'}>
-              <PrimeButton className='p-1 fs-6' type="button" onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton" severity="secondary">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </PrimeButton>
-              &nbsp;
-              <PrimeButton className='p-1 fs-6' onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </PrimeButton>
-              <PrimeButton className='p-1 fs-6' onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
-              </PrimeButton>
-            </div>
+            <Row>
+              <Row>
+                <Col>
+                  <PrimeButton
+                    className='p-1 fs-6 w-100'
+                    onClick={handleBackClick}
+                    type={'button'}
+                    id="cancel-save"
+                    data-cy="entityCreateCancelButton"
+                    severity="secondary"
+                  >
+                    <span className="d-none d-md-inline">
+                      <Translate contentKey="entity.action.back">Back</Translate>
+                    </span>
+                  </PrimeButton>
+                </Col>
+                <Col>
+                  <PrimeButton className='p-1 fs-6 w-100' onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </PrimeButton>
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <PrimeButton className='p-1 fs-6 w-100' onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
+                  </PrimeButton>
+                </Col>
+                <Col>
+                  <PrimeButton className='p-1 fs-6 w-100' onClick={(e) => saveEntity(e, false, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                    <Translate contentKey="entity.action.saveandclone">Save and create clone</Translate>
+                  </PrimeButton>
+                </Col>
+              </Row>
+            </Row>
           </Card>
           {productEntity?.id && <AuditLogs entityId={productEntity?.id} />}
         </Col>

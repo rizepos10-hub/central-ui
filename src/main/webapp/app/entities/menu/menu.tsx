@@ -18,6 +18,7 @@ import { FilterMatchMode } from "primereact/api";
 import { Dropdown } from "primereact/dropdown";
 import MenuUpdate from './menu-update';
 import { convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
+import { IBranch } from 'app/shared/model/branch.model';
 
 export const Menu = () => {
   const dispatch = useAppDispatch();
@@ -41,14 +42,14 @@ export const Menu = () => {
 
   const totalItems = useAppSelector(state => state.menu.totalItems);
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     'branch.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH }
   });
 
   const params = new URLSearchParams(location.search);
   const menuType = params.get("type");
 
-  const [selectedBranches, setSelectedBranches] = useState<any>();
+  const [selectedBranches, setSelectedBranches] = useState<IBranch[]>([]);
   const [selectedName, setSelectedName] = useState("");
 
   const getAllEntities = () => {
@@ -168,7 +169,7 @@ export const Menu = () => {
 
     const entity = {
       ...values,
-      branch: selectedBranches?.value ? { id: selectedBranches?.value } : null,
+      branches: selectedBranches,
       type: menuType,
     };
 

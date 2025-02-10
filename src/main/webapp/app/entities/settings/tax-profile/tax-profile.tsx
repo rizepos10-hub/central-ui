@@ -44,7 +44,7 @@ export const Tax = () => {
 
 
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     description: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     value: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 
@@ -83,7 +83,7 @@ export const Tax = () => {
     if (filterValue === '') {
       setFilters({
         ...filters,
-        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
       });
     } else {
       setFilters({
