@@ -1,7 +1,7 @@
 import axios from 'axios';
-import {createAction, createAsyncThunk, isFulfilled, isPending, isRejected} from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
 
-import {  ChangeFieldPayload, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
+import { ChangeFieldPayload, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { IUiSettings, defaultValue } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 
 const initialState: EntityState<IUiSettings> = {
@@ -37,10 +37,12 @@ export const updateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-export const changeEntityField = createAction<ChangeFieldPayload<IUiSettings>>('online-ordering-settings/change-entity-field');
+export const changeEntityField = createAction<{
+  name: string
+  value: any
+}>('online-ordering-settings/change-entity-field')
 
 export const changeLayoutField = createAction<ChangeFieldPayload<IUiSettings["homePageSetting"]>>('online-ordering-settings/change-layout-field');
-
 
 
 // slice
@@ -51,8 +53,16 @@ export const UiSettingsSlice = createEntitySlice({
   extraReducers(builder) {
     builder
       .addCase(changeEntityField, (state, action) => {
-        const { name, value } = action.payload;
-        state.entity[name] = value;
+        const { name, value } = action.payload
+        const path = name.split('.') // e.g. ['layouts', 'selectedLayout']
+        let current: any = state.entity
+
+        for (let i = 0; i < path.length - 1; i++) {
+          if (!current[path[i]]) current[path[i]] = {}
+          current = current[path[i]]
+        }
+
+        current[path[path.length - 1]] = value
       })
       .addCase(changeLayoutField, (state, action) => {
         const { name, value } = action.payload;
@@ -61,7 +71,7 @@ export const UiSettingsSlice = createEntitySlice({
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
-        if(action.payload.data.homePageSetting === null) {
+        if (action.payload.data.homePageSetting === null) {
           state.entity.homePageSetting = defaultValue.homePageSetting;
         }
       })
