@@ -11,7 +11,7 @@ const LayoutOne = ({
     const [activeIndex, setActiveIndex] = useState<number>(0);
     const [animating, setAnimating] = useState<boolean>(false);
 
-    const slides = items.map((item, index) => (
+    const slides = items?.map((item, index) => (
         <CarouselItem
             key={index + 1}
             onExiting={() => setAnimating(true)}

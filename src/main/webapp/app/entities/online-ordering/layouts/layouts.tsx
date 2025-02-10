@@ -28,6 +28,7 @@ import { searchEntities } from 'app/entities/item/all-items.reducer';
 import { MultiSelect } from 'primereact/multiselect';
 import CategoriesLayout from '../layout-settings/components/categories/categories';
 import { Layout } from 'app/shared/model/ENUMS/layout.model';
+import { searchEntities as SearchRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
 
 const Layouts = () => {
     const dispatch = useAppDispatch();
@@ -37,7 +38,6 @@ const Layouts = () => {
         dispatch(getEntity())
     }, [])
 
-    console.log(uiSettings, 'uiSettings')
 
     return (
         <div className="container mt-4">
@@ -812,6 +812,8 @@ const LayoutDefaultSlider = ({
     };
 
     useEffect(() => {
+        if (!defaultLayout?.sliderSettings) return;
+
         if (defaultLayout?.sliderSettings.length === 0) {
             setActiveIndex(0);
         } else if (activeIndex >= defaultLayout?.sliderSettings.length) {
@@ -864,8 +866,8 @@ const LayoutDefaultSlider = ({
                 alignment: buttonSettingsAlignment.CENTER
             }
         };
-        setActiveIndex(defaultLayout?.sliderSettings.length);
-        dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.sliderSettings`, value: [...defaultLayout.sliderSettings, newSlider] }));
+        setActiveIndex(defaultLayout?.sliderSettings?.length);
+        dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.sliderSettings`, value: [...defaultLayout.sliderSettings || [], newSlider] }));
         setImage(null);
     };
 
@@ -990,19 +992,19 @@ const LayoutDefaultProductSetting = ({
                     </Label>
                     <InputText
                         id="UiSettings-domain"
-                        value={defaultLayout?.productSetting.FEATURED.title || ''}
+                        value={defaultLayout?.productSetting?.FEATURED?.title || ''}
                         onChange={e => dispatch(changeEntityField({
                             name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
-                            value: { ...defaultLayout?.productSetting, FEATURED: { ...defaultLayout?.productSetting.FEATURED, title: e.target.value } }
+                            value: { ...defaultLayout?.productSetting, FEATURED: { ...defaultLayout?.productSetting?.FEATURED, title: e.target.value } }
                         }))}
                     />
                 </div>
                 <MultiSelect
-                    value={defaultLayout?.productSetting.FEATURED.items}
+                    value={defaultLayout?.productSetting?.FEATURED?.items}
                     onChange={(e) => {
                         dispatch(changeEntityField({
                             name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
-                            value: { ...defaultLayout?.productSetting, FEATURED: { ...defaultLayout?.productSetting.FEATURED, items: e.value } }
+                            value: { ...defaultLayout?.productSetting, FEATURED: { ...defaultLayout?.productSetting?.FEATURED, items: e.value } }
                         }))
                     }}
                     options={items}
@@ -1027,13 +1029,13 @@ const LayoutDefaultProductSetting = ({
                                 name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
                                 value: {
                                     ...defaultLayout?.productSetting, FEATURED: {
-                                        ...defaultLayout?.productSetting.FEATURED,
+                                        ...defaultLayout?.productSetting?.FEATURED,
                                         showImages: e.checked
                                     }
                                 }
                             }))
                         }}
-                        checked={defaultLayout?.productSetting.FEATURED.showImages} />
+                        checked={defaultLayout?.productSetting?.FEATURED?.showImages} />
                     <label htmlFor="ingredient1" className="ml-2">Show Images</label>
                 </div>
             </Row>
@@ -1057,7 +1059,7 @@ const LayoutDefaultRestaurantCategories = ({
 
     useEffect(() => {
         const handleFilter = debounce(() => {
-            dispatch(searchEntities({
+            dispatch(SearchRestaurantCategories({
                 query: filterValue,
                 sort: 'id,asc',
                 page: 0,
@@ -1097,16 +1099,16 @@ const LayoutDefaultRestaurantCategories = ({
                         </Label>
                         <InputText
                             id="UiSettings-domain"
-                            value={defaultLayout.restuarantCategorySetting.title || ''}
+                            value={defaultLayout?.restuarantCategorySetting.title || ''}
                             onChange={e => dispatch(changeEntityField({
                                 name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
-                                value: { ...defaultLayout.restuarantCategorySetting, title: e.target.value }
+                                value: { ...defaultLayout?.restuarantCategorySetting, title: e.target.value }
                             }))}
                         />
                     </div>
                     <MultiSelect
-                        value={defaultLayout.restuarantCategorySetting.categories}
-                        onChange={(e) => dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`, value: { ...defaultLayout.restuarantCategorySetting, categories: e.value } }))}
+                        value={defaultLayout?.restuarantCategorySetting?.categories}
+                        onChange={(e) => dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`, value: { ...defaultLayout?.restuarantCategorySetting, categories: e.value } }))}
                         options={categoryOptions}
                         optionLabel="name"
                         filter
@@ -1127,12 +1129,12 @@ const LayoutDefaultRestaurantCategories = ({
                                     dispatch(changeEntityField({
                                         name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
                                         value: {
-                                            ...defaultLayout.restuarantCategorySetting, showImages: e.checked
+                                            ...defaultLayout?.restuarantCategorySetting, showImages: e.checked
                                         }
                                     }))
                                 }
                                 }
-                                checked={defaultLayout.restuarantCategorySetting.showImages}
+                                checked={defaultLayout?.restuarantCategorySetting.showImages}
                             />
                             <label htmlFor="ingredient1" className="ml-2">Show Images</label>
                         </div>
@@ -1143,13 +1145,13 @@ const LayoutDefaultRestaurantCategories = ({
                             dispatch(changeEntityField({
                                 name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
                                 value: {
-                                    ...defaultLayout.restuarantCategorySetting, layout: layouts[e.index].value
+                                    ...defaultLayout?.restuarantCategorySetting, layout: layouts[e.index].value
                                 }
                             }))
                         }}>
                             {layouts.map((layout, index) => (
                                 <TabPanel key={layout.id} header={layout.name}>
-                                    <CategoriesLayout layout={layout.value} categories={defaultLayout.restuarantCategorySetting.categories} />
+                                    <CategoriesLayout layout={layout.value} categories={defaultLayout?.restuarantCategorySetting.categories || []} />
                                 </TabPanel>
                             ))}
                         </TabView>
@@ -1175,7 +1177,7 @@ const LayoutDefaultRetailCategories = ({
 
     useEffect(() => {
         const handleFilter = debounce(() => {
-            dispatch(searchEntities({
+            dispatch(getRetailCategories({
                 query: filterValue,
                 sort: 'id,asc',
                 page: 0,
@@ -1215,16 +1217,16 @@ const LayoutDefaultRetailCategories = ({
                         </Label>
                         <InputText
                             id="UiSettings-domain"
-                            value={defaultLayout.retailCategorySetting.title || ''}
+                            value={defaultLayout?.retailCategorySetting?.title || ''}
                             onChange={e => dispatch(changeEntityField({
                                 name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
-                                value: { ...defaultLayout.retailCategorySetting, title: e.target.value }
+                                value: { ...defaultLayout?.retailCategorySetting, title: e.target.value }
                             }))}
                         />
                     </div>
                     <MultiSelect
-                        value={defaultLayout.retailCategorySetting.categories}
-                        onChange={(e) => dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`, value: { ...defaultLayout.retailCategorySetting, categories: e.value } }))}
+                        value={defaultLayout?.retailCategorySetting?.categories}
+                        onChange={(e) => dispatch(changeEntityField({ name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`, value: { ...defaultLayout?.retailCategorySetting, categories: e.value } }))}
                         options={categoriesOptions}
                         optionLabel="name"
                         filter
@@ -1245,12 +1247,12 @@ const LayoutDefaultRetailCategories = ({
                                     dispatch(changeEntityField({
                                         name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
                                         value: {
-                                            ...defaultLayout.retailCategorySetting, showImages: e.checked
+                                            ...defaultLayout?.retailCategorySetting, showImages: e.checked
                                         }
                                     }))
                                 }
                                 }
-                                checked={defaultLayout.retailCategorySetting.showImages}
+                                checked={defaultLayout?.retailCategorySetting?.showImages}
                             />
                             <label htmlFor="ingredient1" className="ml-2">Show Images</label>
                         </div>
@@ -1261,13 +1263,13 @@ const LayoutDefaultRetailCategories = ({
                             dispatch(changeEntityField({
                                 name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
                                 value: {
-                                    ...defaultLayout.retailCategorySetting, layout: layouts[e.index].value
+                                    ...defaultLayout?.retailCategorySetting, layout: layouts[e.index].value
                                 }
                             }))
                         }}>
                             {layouts.map((layout, index) => (
                                 <TabPanel key={layout.id} header={layout.name}>
-                                    <CategoriesLayout layout={layout.value} categories={defaultLayout.retailCategorySetting.categories} />
+                                    <CategoriesLayout layout={layout.value} categories={defaultLayout?.retailCategorySetting?.categories} />
                                 </TabPanel>
                             ))}
                         </TabView>
