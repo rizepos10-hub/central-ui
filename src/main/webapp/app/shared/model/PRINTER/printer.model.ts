@@ -1,4 +1,4 @@
-import {IBranch} from "app/shared/model/branch.model";
+import { IBranch } from "app/shared/model/branch.model";
 
 export interface IPrinter {
   id?: string;
@@ -10,12 +10,14 @@ export interface IPrinter {
   colorPrinter?: boolean;
   port?: number;
   serviceName?: string;
-  size?:  "mm58" | "mm72" | "mm80";
+  size?: "mm58" | "mm72" | "mm80";
   ipAddress?: string;
   connectionType?: "NETWORK" | "USB"
+  reverse: boolean | null;
 }
 
 export const defaultValue: Readonly<IPrinter> = {
   connectionType: "NETWORK",
-  size: "mm72"
+  size: "mm72",
+  reverse: false
 };

@@ -219,6 +219,13 @@ export const PrinterUpdate = () => {
                     onChange={(e) => dispatch(changeEntityField({ name: 'colorPrinter', value: e.checked }))} />
                 </div>
 
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="printer-colorPrinter">{translate('tempApp.printer.reverse')}</Label>
+                  <Checkbox
+                    checked={printerEntity?.reverse}
+                    onChange={(e) => dispatch(changeEntityField({ name: 'reverse', value: e.checked }))} />
+                </div>
+
               </FormGroup>
               <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
