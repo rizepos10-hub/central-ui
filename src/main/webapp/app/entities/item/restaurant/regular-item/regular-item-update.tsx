@@ -62,11 +62,11 @@ export const RegularItemUpdate = () => {
 
   const discountList = useAppSelector(state => state.discount.entities);
   const addonList = useAppSelector(state => state.addon.entities);
-  const addonGroupsList = useAppSelector(state => state.addonGroups.entities);
+  const addonGroupsList: IAddonGroup[] = useAppSelector(state => state.addonGroups.entities);
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const [selected, setSelected] = useState(null);
   const [openedAddonModal, setOpenedAddonModal] = useState(false);
-
+  console.log(addonGroupsList, 'addonGroupsList');
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -895,7 +895,20 @@ export const RegularItemUpdate = () => {
                                                     }}
                                                     header={
                                                       reorderHeader(
-                                                        addonGroupsList,
+                                                        // filter out addongroups that are not already selected then map to id and name, also filter out the addongroups that are selected on the item level 
+                                                        addonGroupsList
+                                                          .filter(addonGroup =>
+                                                            !regularItem?.variants?.some(variant =>
+                                                              variant?.addonGroups?.some(group => group.addonGroup.id === addonGroup.id)
+                                                            )
+                                                          )
+                                                          .filter(addonGroup =>
+                                                            !regularItem?.addonGroups?.some(group => group.addonGroup.id === addonGroup.id)
+                                                          )
+                                                          .map(addonGroup => ({
+                                                            id: addonGroup.id,
+                                                            name: addonGroup.name
+                                                          })),
                                                         handleAddonGroupChange,
                                                         variant.addonGroups || [],
                                                         addonGroupsList,
@@ -1073,7 +1086,7 @@ export const RegularItemUpdate = () => {
                     </TabPanel>
 
                     <TabPanel header={translate('items.update.tabs.addons.label')}>
-                      {regularItem ? <SharedAddon onFieldChange={handleFieldChange} addons={regularItem.addons} addonGroups={regularItem.addonGroups || []} addonPriceOverrides={regularItem.addonPriceOverrides} /> : null}
+                      {regularItem ? <SharedAddon onFieldChange={handleFieldChange} addons={regularItem.addons} addonGroups={regularItem.addonGroups || []} item={regularItem} /> : null}
                     </TabPanel>
 
                     <TabPanel header={translate('items.update.tabs.visibility.label')}>
