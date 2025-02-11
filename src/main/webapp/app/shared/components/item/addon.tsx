@@ -26,10 +26,8 @@ type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
   addons: IAddon[];
   addonGroups: IItem['addonGroups'];
-  addonPriceOverrides: IAddonPriceOverride[];
+  item: IItem;
 };
-
-
 
 const initialState = {
   first: 0,
@@ -43,7 +41,7 @@ const initialState = {
   },
 };
 
-const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) => {
+const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonProps) => {
   const currencySettingsEntity = useAppSelector(state => state.currencySettings.entity);
 
   const dispatch = useAppDispatch();
@@ -319,12 +317,14 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups }: SharedAddonProps) =
     )
   }
 
-  const selectedAddonGroupIds = addonGroups?.map(group => group.addonGroup.id);
+  const selectedItemAddonGroupIds = item?.addonGroups?.map(group => group.addonGroup.id) ?? [];
+  const selectedVariantAddonGroupIds = item?.variants?.flatMap(variant => variant.addonGroups?.map(group => group.addonGroup.id) ?? []) ?? [];
+  const allSelectedAddonGroupIds = [...selectedItemAddonGroupIds, ...selectedVariantAddonGroupIds];
 
-  // Filter out selected addon groups from options
   const filteredAddonGroupsOptions = addonGroupsOptions?.filter(
-    option => !selectedAddonGroupIds?.includes(option.id)
+    option => !allSelectedAddonGroupIds.includes(option.id)
   );
+
 
   const handleImportAddonModalSave = (groups: IAddonGroups[]) => {
     const newAddonGroups = [...groups];
