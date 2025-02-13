@@ -183,7 +183,10 @@ export const model: MenuItem[] = [
         label: 'Products',
         to: '/product',
       },
-
+      {
+        label: 'Barcodes',
+        to: '/barcodes',
+      },
       {
         label: 'Attributes',
         to: '/retail/attributes',
