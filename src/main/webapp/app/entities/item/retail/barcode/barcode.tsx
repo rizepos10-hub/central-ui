@@ -43,7 +43,7 @@ const Barcode = () => {
     const getAllEntities = () => {
         const updatedQuery = applyMatchModeMap({
             ...query,
-            page: JSON.parse((parseInt(searchParams.get("page"), 10) - 1).toString() || '0'),
+            page: JSON.parse((parseInt(searchParams.get("page") || '1', 10) - 1).toString() || '0'),
             rows: JSON.parse(searchParams.get("rows") || '20'),
             filters: {
                 "name": { value: searchParams.get("name"), matchMode: FilterMatchMode.CONTAINS },
