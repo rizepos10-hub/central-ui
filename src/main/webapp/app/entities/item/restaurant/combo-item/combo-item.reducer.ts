@@ -60,9 +60,12 @@ export const updateEntity = createAsyncThunk(
 
 export const updateEntities = createAsyncThunk(
   'combo-item/update_entity',
-  async (entity: IComboItem[], thunkAPI) => {
+  async (
+    { entity, query }: { entity: IComboItem[]; query: any },
+    thunkAPI
+  ) => {
     const result = await axios.put<IComboItem[]>(`${apiUrl}`, entity);
-    thunkAPI.dispatch(getEntities({}));
+    thunkAPI.dispatch(filterEntities({ query }));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -91,12 +94,15 @@ export const deleteEntity = createAsyncThunk(
 
 export const deleteEntities = createAsyncThunk(
   'combo-item/delete_entities',
-  async (ids: Array<string | number>, thunkAPI) => {
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
     const requestUrl = `${apiUrl}`;
     const result = await axios.delete<IComboItem>(requestUrl, {
       data: { ids }
     });
-    thunkAPI.dispatch(getEntities({}));
+    thunkAPI.dispatch(filterEntities({ query }));
     return result;
   },
   { serializeError: serializeAxiosError }
