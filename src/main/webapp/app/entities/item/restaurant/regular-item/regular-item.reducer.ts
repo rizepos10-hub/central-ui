@@ -168,7 +168,7 @@ export const RegularItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, filterEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, deleteEntities, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
