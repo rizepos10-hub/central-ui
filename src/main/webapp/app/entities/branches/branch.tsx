@@ -131,6 +131,12 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleTokenExpiredFlag = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].tokenExpired = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleAddressFieldChange = (branchIndex, field, value) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     const branch = newData[branchIndex];
@@ -410,6 +416,12 @@ export const Branches = () => {
                     getOptionValue={option => option.value}
                     onChange={(selectedOption) => handleEndingTypeChange(branchIndex, selectedOption?.value)}
                     placeholder="Select Ending Type.."
+                  />
+
+                  <label className="font-bold mt-3">Should token expire?</label>
+                  <Checkbox
+                    checked={branch.tokenExpired}
+                    onChange={(e) => handleTokenExpiredFlag(branchIndex, e.checked)}
                   />
 
                   <label className="font-bold mt-3">Zones</label>

@@ -42,6 +42,7 @@ export interface IBranchDetails {
   hideRetailShop?: boolean;
   unitCostCalculationMode?: UnitCostCalculationMode;
   endingType?: EndingType;
+  tokenExpired?: boolean;
 }
 
 export enum UnitCostCalculationMode {
