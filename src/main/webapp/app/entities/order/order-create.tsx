@@ -76,6 +76,16 @@ const OrderCreate = () => {
         chosenVariant: null,
         availableVariants: []
     });
+    const [customPriceModalData, setCustomPriceModalData] = useState<{
+        product: IProduct,
+        visible: boolean,
+        price: number
+    }>({
+        visible: false,
+        product: {},
+        price: 0
+    });
+
     const [openPaymentModal, setOpenPaymentModal] = useState(false);
     const [visible, setVisible] = useState(false);
 
@@ -169,12 +179,13 @@ const OrderCreate = () => {
     }, [searchTermProduct, debouncedItemNameNavigate]);
 
     const recalculatePrice = () => {
+        console.log(orderEntity?.items, 'orderEntity?.items')
         if (orderEntity?.items?.length > 0) {
             const newOrderEntity = {
                 ...orderEntity,
                 items: orderEntity.items.map(item => ({
                     ...item,
-                    price: getFinalPrice({
+                    price: item.askForPrice ? item.price : getFinalPrice({
                         branchId: orderEntity.branchId,
                         variantItem: products.find(product => product.id === item.itemId)?.variants?.find(variant => variant.id === item.variantId),
                         item: products.find(product => product.id === item.itemId),
@@ -434,7 +445,7 @@ const OrderCreate = () => {
                                 <Row key={item.id}>
                                     <Col xs="2">{item.amount}</Col>
                                     <Col>{item.variantName}</Col>
-                                    <Col xs="3" className="text-right">{item.price.toFixed(2)}</Col>
+                                    <Col xs="3" className="text-right">{item.price?.toFixed(2)}</Col>
                                 </Row>
                             ))}
                             <hr />
@@ -469,6 +480,71 @@ const OrderCreate = () => {
                     </Col>
                 </Row>
             </Dialog>
+
+            <Dialog
+                header={`Set a price for this item`}
+                visible={customPriceModalData.visible}
+                onHide={() => {
+                    setCustomPriceModalData({
+                        visible: false,
+                        product: {},
+                        price: 0
+                    });
+                }}>
+
+                <div>
+                    <InputNumber
+                        placeholder="Price"
+                        value={customPriceModalData.price}
+                        onChange={(e) => {
+                            setCustomPriceModalData({
+                                ...customPriceModalData,
+                                price: e.value
+                            })
+                        }}
+                        minFractionDigits={2}
+                        maxFractionDigits={2}
+                    />
+                    <Button
+                        color="success"
+                        className="mt-3 mb-0 d-flex justify-content-between align-items-center"
+                        onClick={() => {
+                            dispatch(changeEntityField({
+                                name: 'items',
+                                value: [
+                                    ...orderEntity.items,
+                                    {
+                                        askForPrice: true,
+                                        cartId: customPriceModalData.product.id + new Date().getTime().toString(),
+                                        itemId: customPriceModalData.product.id,
+                                        variantId: customPriceModalData.product.variants[0].id,
+                                        itemName: customPriceModalData.product.name,
+                                        variantName: customPriceModalData.product.variants[0].name,
+                                        price: customPriceModalData.product.askForPrice ? customPriceModalData.price : getFinalPrice({
+                                            branchId: orderEntity.branchId,
+                                            variantItem: customPriceModalData.product.variants?.[0],
+                                            item: customPriceModalData.product,
+                                        }),
+                                        amount: 1,
+                                        discount: {},
+                                        selectedRetailAttributes: [],
+                                        customDiscount: 0,
+                                        accountingGroups: customPriceModalData.product.accountingGroups,
+                                    }
+                                ]
+                            }))
+                            setCustomPriceModalData({
+                                visible: false,
+                                product: {},
+                                price: 0
+                            })
+                        }}
+                    >
+                        Save
+                    </Button>
+                </div>
+            </Dialog>
+
             <Row className="mb-3 h-100">
                 <Col md={8}>
                     <Row>
@@ -586,7 +662,7 @@ const OrderCreate = () => {
                                                                 }}
                                                                 checked={variant.id === variantDialog.selectedRetailAttributes?.find(attrVal => attrVal.taxonomy.id === attr.attributeTax.id)?.id}
                                                             />
-                                                            <label htmlFor={variant.id} className="ml-2">Cheese</label>
+                                                            <label htmlFor={variant.id} className="ml-2">{variant.name}</label>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -652,29 +728,37 @@ const OrderCreate = () => {
                                     }}
                                     onClick={() => {
                                         if (product.itemVariantType === "RETAIL_SIMPLE") {
-                                            dispatch(changeEntityField({
-                                                name: 'items',
-                                                value: [
-                                                    ...orderEntity.items,
-                                                    {
-                                                        cartId: product.id + new Date().getTime().toString(),
-                                                        itemId: product.id,
-                                                        variantId: product.variants[0].id,
-                                                        itemName: product.name,
-                                                        variantName: product.variants[0].name,
-                                                        price: getFinalPrice({
-                                                            branchId: orderEntity.branchId,
-                                                            variantItem: product.variants?.[0],
-                                                            item: product,
-                                                        }),
-                                                        amount: 1,
-                                                        discount: {},
-                                                        selectedRetailAttributes: [],
-                                                        customDiscount: 0,
-                                                        accountingGroups: product.accountingGroups,
-                                                    }
-                                                ]
-                                            }))
+                                            if (product.askForPrice) {
+                                                setCustomPriceModalData({
+                                                    visible: true,
+                                                    product,
+                                                    price: 0
+                                                })
+                                            } else {
+                                                dispatch(changeEntityField({
+                                                    name: 'items',
+                                                    value: [
+                                                        ...orderEntity.items,
+                                                        {
+                                                            cartId: product.id + new Date().getTime().toString(),
+                                                            itemId: product.id,
+                                                            variantId: product.variants[0].id,
+                                                            itemName: product.name,
+                                                            variantName: product.variants[0].name,
+                                                            price: getFinalPrice({
+                                                                branchId: orderEntity.branchId,
+                                                                variantItem: product.variants?.[0],
+                                                                item: product,
+                                                            }),
+                                                            amount: 1,
+                                                            discount: {},
+                                                            selectedRetailAttributes: [],
+                                                            customDiscount: 0,
+                                                            accountingGroups: product.accountingGroups,
+                                                        }
+                                                    ]
+                                                }))
+                                            }
                                         } else {
                                             setVariantDialog({
                                                 visible: true,
@@ -853,7 +937,9 @@ const OrderCreate = () => {
                                                 inputStyle={{
                                                     width: "100px"
                                                 }}
-                                                value={calculateCustomDiscount(product?.discount?.value || 0, product.price, product?.discount?.type || 'PERCENTAGE')}
+                                                minFractionDigits={2}
+                                                maxFractionDigits={2}
+                                                value={calculateCustomDiscount(product?.discount?.value || 0, product.price, product?.discount?.type || 'PERCENTAGE') || 0}
                                                 onChange={e => dispatch((changeEntityField({
                                                     name: 'items',
                                                     value: orderEntity.items.map(item => item.cartId === product.cartId ? {
