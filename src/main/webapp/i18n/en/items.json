@@ -154,6 +154,7 @@
         "itemDescription": "Item Description",
         "shortDescription": "Short Description",
         "itemSku": "Item SKU",
+        "generateSku": "Generate",
         "itemPrice": "Item Price",
         "itemSalePrice": "Item Sale Price",
         "itemBranchPrice": "Enter price for {{ branchName }}",
