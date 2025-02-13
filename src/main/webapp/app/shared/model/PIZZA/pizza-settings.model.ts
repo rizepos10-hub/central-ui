@@ -1,11 +1,11 @@
 import { IPizzaItem } from "../ITEM/restaurant/pizza-item.model";
 
-export interface IBasePizzaSettings {
+export interface IPizzaSettings {
     "key": "PIZZA_SETTINGS"
     basePizza: IPizzaItem
 }
 
-export const defaultValue: Readonly<IBasePizzaSettings> = {
+export const defaultValue: Readonly<IPizzaSettings> = {
     "key": "PIZZA_SETTINGS",
     basePizza: {}
 };
