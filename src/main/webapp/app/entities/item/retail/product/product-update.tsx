@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button, Card, CardBody, CardHeader, Col, FormGroup, Row, Spinner, Table } from 'reactstrap';
-import { getSortState, translate, Translate } from 'react-jhipster';
+import { getSortState, Storage, translate, Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -58,6 +58,7 @@ import { Checkbox } from 'primereact/checkbox';
 import { InputTextarea } from 'primereact/inputtextarea';
 import ItemLocation from 'app/shared/components/item/item-location';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
+import { toast } from 'react-toastify';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -957,7 +958,22 @@ export const ProductUpdate = () => {
     });
   };
 
-  console.log(product, 'product')
+  const generateSku = async () => {
+    const response = await fetch(`${SERVER_API_URL}/api/settings/item/sku`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Storage.local.get('jhi-authenticationToken')}`,
+      },
+    })
+
+    if (!response.ok) {
+      toast.error("An error occurred");
+    } else {
+      const data = await response.json();
+      return data;
+    }
+  }
 
   if (loading) {
     return <Spinner />;
@@ -987,14 +1003,25 @@ export const ProductUpdate = () => {
                                 <label className={'font-semibold'}>
                                   <Translate contentKey={'items.update.sku'}>SKU</Translate>
                                 </label>
-                                <InputText
-                                  name="sku"
-                                  id="sku"
-                                  required={true}
-                                  placeholder={translate('items.update.placeholders.itemSku')}
-                                  value={product?.variants?.[0]?.sku || ''}
-                                  onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
-                                />
+                                <div className='d-flex gap-2'>
+                                  <InputText
+                                    name="sku"
+                                    id="sku"
+                                    required={true}
+                                    placeholder={translate('items.update.placeholders.itemSku')}
+                                    value={product?.variants?.[0]?.sku || ''}
+                                    onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
+                                    className='w-100'
+                                  />
+                                  <Button
+                                    onClick={async () => {
+                                      const generatedSku = await generateSku()
+                                      handleVariantFieldChange(0, 'sku', generatedSku)
+                                    }}
+                                  >
+                                    {translate('items.update.placeholders.generateSku')}
+                                  </Button>
+                                </div>
                               </div>
                             )}
                             <SharedItemUpdate item={product} onFieldChange={handleFieldChange} />
@@ -1310,7 +1337,7 @@ export const ProductUpdate = () => {
                                             <i style={{ fontSize: '2.5rem' }} />
                                             <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)}>
                                               <Row>
-                                                <Col md="4">
+                                                <Col md="6">
                                                   <div className={'d-flex flex-column gap-2 mt-2'}>
                                                     <label className={'font-semibold'}>
                                                       <Translate contentKey={'items.update.name'}>Name</Translate>
@@ -1326,23 +1353,7 @@ export const ProductUpdate = () => {
                                                   </div>
                                                 </Col>
 
-                                                <Col md="4">
-                                                  <div className={'d-flex flex-column gap-2 mt-2'}>
-                                                    <label className={'font-semibold'}>
-                                                      <Translate contentKey={'items.update.sku'}>SKU</Translate>
-                                                    </label>
-                                                    <InputText
-                                                      name="sku"
-                                                      id="sku"
-                                                      required={true}
-                                                      placeholder="Variant Sku"
-                                                      value={variant?.sku || ''}
-                                                      onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
-                                                    />
-                                                  </div>
-                                                </Col>
-
-                                                <Col md="4">
+                                                <Col md="6">
                                                   <div className={'d-flex flex-column gap-2 mt-2'}>
                                                     <label htmlFor="price" className={'font-semibold'}>
                                                       <Translate contentKey={'items.update.price'}>Price</Translate>
@@ -1359,6 +1370,33 @@ export const ProductUpdate = () => {
                                                       maxFractionDigits={2}
                                                       onChange={e => handleVariantFieldChange(variantIndex, 'price', e.value)}
                                                     />
+                                                  </div>
+                                                </Col>
+
+                                                <Col md="12">
+                                                  <div className={'d-flex flex-column gap-2 mt-2'}>
+                                                    <label className={'font-semibold'}>
+                                                      <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                                                    </label>
+                                                    <div className='d-flex gap-2'>
+                                                      <InputText
+                                                        name="sku"
+                                                        id="sku"
+                                                        required={true}
+                                                        placeholder="Variant Sku"
+                                                        value={variant?.sku || ''}
+                                                        onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
+                                                        className='w-100'
+                                                      />
+                                                      <Button
+                                                        onClick={async () => {
+                                                          const generatedSku = await generateSku()
+                                                          handleVariantFieldChange(variantIndex, 'sku', generatedSku)
+                                                        }}
+                                                      >
+                                                        {translate('items.update.placeholders.generateSku')}
+                                                      </Button>
+                                                    </div>
                                                   </div>
                                                 </Col>
 
