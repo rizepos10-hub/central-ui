@@ -99,7 +99,7 @@ const RegisterClosureOrder = () => {
     setLazyState(event);
   };
 
-  useEffect(() => {
+  const getFilteredOrders = () => {
     const queryParams = {
       orderSource: lazyState.filters.orderSource?.value || '',
       orderStatus: lazyState.filters.status?.value || '',
@@ -119,6 +119,10 @@ const RegisterClosureOrder = () => {
     };
 
     dispatch(filterOrders(queryParams));
+  }
+
+  useEffect(() => {
+    getFilteredOrders();
   }, [lazyState]);
 
   useEffect(() => {
@@ -142,6 +146,7 @@ const RegisterClosureOrder = () => {
 
   const handleBulkDelete = async () => {
     await dispatch(deleteEntities(selectedOrders.map(product => product.id)));
+    getFilteredOrders();
     setSelectedOrders([]);
   }
 

@@ -175,9 +175,8 @@ export const deleteEntities = createAsyncThunk(
   async (ids: Array<string | number>, thunkAPI) => {
     const requestUrl = `${apiUrl}`;
     const result = await axios.delete<IOrder>(requestUrl, {
-      data: { ids }
+      data: ids
     });
-    thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
