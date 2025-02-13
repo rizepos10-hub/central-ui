@@ -204,7 +204,11 @@ export const PizzaItem = () => {
 
   const handleItemsDelete = async () => {
     setIsLoadingDelete(true);
-    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingDelete(false));
+    const updatedQuery = applyMatchModeMap(query);
+    await dispatch(deleteEntities({
+      ids: selectedProducts.map(p => p.id),
+      query: updatedQuery,
+    })).finally(() => setIsLoadingDelete(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
   }

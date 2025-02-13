@@ -24,6 +24,9 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { IAddon } from 'app/shared/model/ADDON/addon.model';
 import { SelectButton } from 'primereact/selectbutton';
+import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { FilterMatchMode } from 'primereact/api';
+import { useSearchParams } from 'react-router-dom';
 
 export const actionOptions = [
     { name: 'Edit', code: 'EDIT', disabled: false },
@@ -40,7 +43,7 @@ export const BulkEdit = ({
     refetchEntities,
     loading,
     updateEntities,
-    isRetail = false
+    isRetail = false,
 }: {
     products: IItem[];
     selectedProducts: IItem[];
@@ -52,6 +55,20 @@ export const BulkEdit = ({
     isRetail: boolean;
 }) => {
     const dispatch = useAppDispatch();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const query = JSON.parse(searchParams.get("query")) || {
+        first: 0,
+        rows: 20,
+        page: 0,
+        sortField: null,
+        sortOrder: null,
+        query: '',
+        filters: {
+            "categories.id": { value: null, matchMode: FilterMatchMode.EQUALS },
+            "attributes": { value: null, matchMode: FilterMatchMode.EQUALS },
+            name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        }
+    };
 
     const categories = isRetail
         ? useAppSelector(state => state.retailCategory.entities)
@@ -127,18 +144,21 @@ export const BulkEdit = ({
                 id: selectedDiscount.value
             }] : [],
             addonGroups: addonGroupsActionValue === 'Override'
-            ? addonGroups
-            : [
-                ...sp.addonGroups.map(existing => {
-                  const override = addonGroups.find(newItem => newItem.addonGroup.id === existing.addonGroup.id);
-                  return override || existing;
-                }),
-                ...addonGroups.filter(newItem => !sp.addonGroups.some(existing => existing.addonGroup.id === newItem.addonGroup.id))
-              ],
+                ? addonGroups
+                : [
+                    ...sp.addonGroups?.map(existing => {
+                        const override = addonGroups.find(newItem => newItem.addonGroup.id === existing.addonGroup.id);
+                        return override || existing;
+                    }) || [],
+                    ...addonGroups.filter(newItem => !sp.addonGroups.some(existing => existing.addonGroup.id === newItem.addonGroup.id))
+                ],
         }));
 
-
-        await dispatch(updateEntities(entitiesToUpdate));
+        const updatedQuery = applyMatchModeMap(query);
+        await dispatch(updateEntities({
+            entity: entitiesToUpdate,
+            query: updatedQuery
+        }));
         await refetchEntities();
 
         setIsLoadingUpdate(false);

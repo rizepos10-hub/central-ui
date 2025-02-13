@@ -126,7 +126,7 @@ export const Product = () => {
     const editUrl = `/product/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
-        {rowData.name}<br/>
+        {rowData.name}<br />
         <span className="text-xs">#{rowData?.variants?.length}</span>
       </Link>
     );
@@ -208,7 +208,11 @@ export const Product = () => {
 
   const handleItemsDelete = async () => {
     setIsLoadingAction(true);
-    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingAction(false));
+    const updatedQuery = applyMatchModeMap(query);
+    await dispatch(deleteEntities({
+      ids: selectedProducts.map(p => p.id),
+      query: updatedQuery,
+    })).finally(() => setIsLoadingAction(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
   }

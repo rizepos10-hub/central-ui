@@ -175,7 +175,11 @@ export const RegularItem = () => {
 
   const handleItemsDelete = async () => {
     setIsLoadingAction(true);
-    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingAction(false));
+    const updatedQuery = applyMatchModeMap(query);
+    await dispatch(deleteEntities({
+      ids: selectedProducts.map(p => p.id),
+      query: updatedQuery,
+    })).finally(() => setIsLoadingAction(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
   }
