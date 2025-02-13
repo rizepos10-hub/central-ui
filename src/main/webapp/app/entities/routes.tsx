@@ -59,6 +59,7 @@ import CustomDefinition from './settings/custom-definitions/index';
 import GiftCardsRoutes from './item/virtual/gift-card';
 import CourseDefinitionRoutes from './settings/course-definition';
 import PosAuthorityGroupRoutes from './pos-authority-groups';
+import Barcode from './item/retail/barcode/barcode';
 
 /* jhipster-needle-add-route-import - JHipster will add routes here */
 
@@ -130,6 +131,7 @@ export default () => {
         {/* <Route path="retail/simple/*" element={<SimpleItem />} /> */}
         {/* <Route path="retail/variable/*" element={<VariableItem />} /> */}
         <Route path="product/*" element={<Product />} />
+        <Route path="barcodes/*" element={<Barcode />} />
 
         <Route path="item-measure/*" element={<ItemMeasure />} />
         <Route path="mix-and-match-rule/*" element={<MixAndMatchRule />} />
