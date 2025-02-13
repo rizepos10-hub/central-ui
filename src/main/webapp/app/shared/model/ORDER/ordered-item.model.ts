@@ -29,6 +29,7 @@ export interface IOrderedItem extends IOrderAudit {
   total?: number | null,
   addonsTotal?: number | null,
   totalDiscount?: number | null,
+  askForPrice?: boolean;
 }
 
 interface orderSelectedRetailAttributes {

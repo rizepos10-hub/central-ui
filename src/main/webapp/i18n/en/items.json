@@ -198,6 +198,7 @@
       "baseMeasure": "Select Base Measure",
       "measures": "Measures",
       "measure": "Measure",
+      "askForPrice": "Ask for Price",
       "isBaseMeasure": "Is Measure Base",
       "exchangeRate": "Exchange Rate",
       "remove": "Remove",
