@@ -3,9 +3,9 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
-import { IBasePizzaSettings, defaultValue } from 'app/shared/model/PIZZA/base-pizza-settings.model';
+import { IPizzaSettings, defaultValue } from 'app/shared/model/PIZZA/pizza-settings.model';
 
-const initialState: EntityState<IBasePizzaSettings> = {
+const initialState: EntityState<IPizzaSettings> = {
   loading: false,
   errorMessage: null,
   entities: [],
@@ -19,13 +19,13 @@ const apiUrl = 'api/settings/pizza';
 
 // Actions
 
-export const getEntity = createAsyncThunk('BasePizzaSettings/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
+export const getEntity = createAsyncThunk('PizzaSettings/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;
-  return axios.get<IBasePizzaSettings>(requestUrl);
+  return axios.get<IPizzaSettings>(requestUrl);
 });
 
 export const updateEntity = createAsyncThunk(
-  'BasePizzaSettings/update_entity',
+  'PizzaSettings/update_entity',
   async (entity: any, thunkAPI) => {
     const result = await axios.put<any>(`${apiUrl}`, cleanEntity(entity));
     thunkAPI.dispatch(getEntity({}));
@@ -36,8 +36,8 @@ export const updateEntity = createAsyncThunk(
 
 // slice
 
-export const BasePizzaSettingsSlice = createEntitySlice({
-  name: 'BasePizzaSettings',
+export const PizzaSettingsSlice = createEntitySlice({
+  name: 'PizzaSettings',
   initialState,
   extraReducers(builder) {
     builder
@@ -64,7 +64,7 @@ export const BasePizzaSettingsSlice = createEntitySlice({
   },
 });
 
-export const { reset } = BasePizzaSettingsSlice.actions;
+export const { reset } = PizzaSettingsSlice.actions;
 
 // Reducer
-export default BasePizzaSettingsSlice.reducer;
+export default PizzaSettingsSlice.reducer;

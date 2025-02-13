@@ -5,27 +5,23 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import Select from "react-select";
 import { Translate } from "react-jhipster";
-import { getEntity, updateEntity } from './base-pizza.reducer';
+import { getEntity, updateEntity } from './pizza-settings.reducer';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { FilterMatchMode } from 'primereact/api';
 import { filterEntities } from 'app/entities/item/restaurant/pizza-item/pizza-item.reducer';
 import { IPizzaItem } from 'app/shared/model/ITEM/restaurant/pizza-item.model';
-import { IBasePizzaSettings } from 'app/shared/model/PIZZA/base-pizza-settings.model';
+import { IPizzaSettings } from 'app/shared/model/PIZZA/pizza-settings.model';
 
 
-export const SelectBasePizza = () => {
+export const PizzaSettings = () => {
     const [selectedPizza, setSelectedPizza] = useState(null);
 
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
-    const basePizza: IBasePizzaSettings = useAppSelector(state => state.basePizzaSettings.entity)
+    const pizzaSettings: IPizzaSettings = useAppSelector(state => state.pizzaSettings.entity)
     const pizzaItemsList: IPizzaItem[] = useAppSelector(state => state.pizzaItem.entities);
-    console.log(basePizza, 'basePizza')
-
-    const handleClose = () => {
-        navigate(-1);
-    };
+    console.log(pizzaSettings, 'pizzaSettings')
 
     const getBasePizzas = () => {
         const query = {
@@ -53,6 +49,12 @@ export const SelectBasePizza = () => {
         dispatch(getEntity({}));
     }, []);
 
+    useEffect(() => {
+        if (pizzaSettings) {
+            setSelectedPizza(pizzaItemsList.find(item => item.id === pizzaSettings.basePizza.id))
+        }
+    }, [pizzaSettings]);
+
     const saveEntity = (e) => {
         e.preventDefault()
 
@@ -75,15 +77,15 @@ export const SelectBasePizza = () => {
         <div>
             <Row>
                 <Col md="8">
-                    <h2>Select a base pizza</h2>
+                    <h2>Pizza Settings</h2>
                 </Col>
             </Row>
             <Row>
                 <Col md="8" className="d-flex flex-column p-3 bg-white">
-
                     <form>
                         <FormGroup>
                             <div className={"d-flex flex-column"}>
+                                <Label for="basePizza">Select a base pizza</Label>
                                 <Select
                                     options={pizzaItemsList.filter(p => p.variants[0]?.predefinedPizza?.base).map(pizza => ({
                                         value: pizza.id, // Assuming each pizza has a unique `id`
@@ -91,18 +93,24 @@ export const SelectBasePizza = () => {
                                     }))}
                                     onChange={handleChange}
                                     value={selectedPizza}
-                                    placeholder="Select a pizza"
+                                    placeholder="Select a base pizza"
                                 />
                             </div>
-
                         </FormGroup>
-                        <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                            <FontAwesomeIcon icon="arrow-left" />
-                            &nbsp;
-                            <span className="d-none d-md-inline">
-                                <Translate contentKey="entity.action.back">Back</Translate>
-                            </span>
-                        </Button>
+                        <FormGroup>
+                            <div className={"d-flex flex-column"}>
+                                <Label for="basePizza">Select a Make Your Own pizza</Label>
+                                <Select
+                                    options={pizzaItemsList.filter(p => p.variants[0]?.predefinedPizza?.base).map(pizza => ({
+                                        value: pizza.id, // Assuming each pizza has a unique `id`
+                                        label: pizza.name, // Assuming each pizza has a `name` property
+                                    }))}
+                                    onChange={handleChange}
+                                    value={selectedPizza}
+                                    placeholder="Select a base pizza"
+                                />
+                            </div>
+                        </FormGroup>
                         &nbsp;
                         <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" >
                             <FontAwesomeIcon icon="save" />
@@ -116,4 +124,4 @@ export const SelectBasePizza = () => {
     );
 };
 
-export default SelectBasePizza;
+export default PizzaSettings;
