@@ -94,9 +94,13 @@ const DropDownFilter = ({ selectedOption, handleDropdownChange, dropDownOptionTy
     )
   }
 
+  const sortedOptions = [...dropDownMap[dropDownOptionType].options].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
   return (
     <Dropdown
-      options={dropDownMap[dropDownOptionType].options}
+      options={sortedOptions}
       showFilterClear={true}
       showClear
       filterTemplate={filterElement}
