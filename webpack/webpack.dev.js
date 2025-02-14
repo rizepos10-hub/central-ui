@@ -1,5 +1,6 @@
+// webpack.dev.js
 const webpack = require('webpack');
-const webpackMerge = require('webpack-merge').merge;
+const { merge } = require('webpack-merge');
 const BrowserSyncPlugin = require('browser-sync-webpack-plugin');
 const SimpleProgressWebpackPlugin = require('simple-progress-webpack-plugin');
 const WebpackNotifierPlugin = require('webpack-notifier');
@@ -13,7 +14,7 @@ const commonConfig = require('./webpack.common.js');
 const ENV = 'development';
 
 module.exports = async options =>
-  webpackMerge(await commonConfig({ env: ENV }), {
+  merge(await commonConfig({ env: ENV }), {
     devtool: 'cheap-module-source-map', // https://reactjs.org/docs/cross-origin-errors.html
     mode: ENV,
     entry: ['./src/main/webapp/app/index'],
@@ -89,7 +90,7 @@ module.exports = async options =>
             target: `http${options.tls ? 's' : ''}://localhost:${options.watch ? '8080' : '9060'}`,
             ws: true,
             proxyOptions: {
-              changeOrigin: false, //pass the Host header to the backend unchanged  https://github.com/Browsersync/browser-sync/issues/430
+              changeOrigin: false, // Pass the Host header to the backend unchanged
             },
           },
           socket: {
@@ -97,12 +98,12 @@ module.exports = async options =>
               heartbeatTimeout: 60000,
             },
           },
-          ghostMode: { // uncomment this part to disable BrowserSync ghostMode; https://github.com/jhipster/generator-jhipster/issues/11116
+          ghostMode: {
             clicks: false,
             location: false,
             forms: false,
-            scroll: false
-          }
+            scroll: false,
+          },
         },
         {
           reload: false,
