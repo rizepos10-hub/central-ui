@@ -15,6 +15,7 @@ import { formatPrice } from 'app/shared/util/price-utils';
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
 import { Button } from 'primereact/button';
 import { exportExcelSummaryReport } from 'app/shared/util/excel-utils';
+import { Calendar } from 'primereact/calendar';
 
 const SalesSummaryReport = () => {
   const dispatch = useAppDispatch();
@@ -33,8 +34,8 @@ const SalesSummaryReport = () => {
 
   const [salesData, setSalesData] = useState<ISummaryReport>();
   const [loading, setLoading] = useState(false);
-  const [fromDate, setFromDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [toDate, setToDate] = useState(format((new Date()), "yyyy-MM-dd"));
+  const [fromDate, setFromDate] = useState<Date | null>(new Date());
+  const [toDate, setToDate] = useState<Date | null>(new Date());
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedSource, setSelectedSource] = useState(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -58,46 +59,43 @@ const SalesSummaryReport = () => {
       }))];
 
 
-  const handleFromDateChange = (event) => {
-    setFromDate(event.target.value);
+  const handleFromDateChange = (e: any) => {
+    setFromDate(e.value);
   };
 
-  const handleToDateChange = (event) => {
-    setToDate(event.target.value);
+  const handleToDateChange = (e: any) => {
+    const date = new Date(e.value);
+    date.setHours(23, 59, 59, 999);
+    setToDate(date);
   };
 
   const fetchLastWeekData = () => {
     const today = new Date();
-    const lastWeekStartDate = format(addDays(today, -7), "yyyy-MM-dd");
-    const lastWeekEndDate = format(today, "yyyy-MM-dd");
+    const lastWeekStartDate = addDays(today, -7);
     setFromDate(lastWeekStartDate);
-    setToDate(lastWeekEndDate);
+    setToDate(today);
   };
 
   const fetchLastTwoWeeksData = () => {
     const today = new Date();
-    const lastTwoWeeksStartDate = format(addDays(today, -14), "yyyy-MM-dd");
-    const lastTwoWeeksEndDate = format(today, "yyyy-MM-dd");
+    const lastTwoWeeksStartDate = addDays(today, -14);
     setFromDate(lastTwoWeeksStartDate);
-    setToDate(lastTwoWeeksEndDate);
+    setToDate(today);
   };
 
   const fetchLastMonthData = () => {
     const today = new Date();
-    const lastMonthStartDate = format(addMonths(today, -1), "yyyy-MM-dd");
-    const lastMonthEndDate = format(today, "yyyy-MM-dd");
+    const lastMonthStartDate = addMonths(today, -1);
     setFromDate(lastMonthStartDate);
-    setToDate(lastMonthEndDate);
+    setToDate(today);
   };
 
   const fetchLastThreeMonthsData = () => {
     const today = new Date();
-    const lastThreeMonthsStartDate = format(addMonths(today, -3), "yyyy-MM-dd");
-    const lastThreeMonthsEndDate = format(today, "yyyy-MM-dd");
+    const lastThreeMonthsStartDate = addMonths(today, -3);
     setFromDate(lastThreeMonthsStartDate);
-    setToDate(lastThreeMonthsEndDate);
+    setToDate(today);
   };
-
 
   const handleSubmit = async (event?) => {
     if (event) {
@@ -113,8 +111,8 @@ const SalesSummaryReport = () => {
 
     try {
       setLoading(true);
-      const formattedFromDate = `${fromDate}T00:00:00.000Z`;
-      const formattedToDate = `${toDate}T00:00:00.000Z`;
+      const formattedFromDate = fromDate.toISOString();
+      const formattedToDate = toDate.toISOString();
 
       const formData = new FormData();
 
@@ -208,15 +206,31 @@ const SalesSummaryReport = () => {
         {/* <p><Translate contentKey={'analytics.report.location'} interpolate={{ location: "Random Location" }}>Location: Random Location</Translate></p> */}
         <form onSubmit={handleSubmit}>
           <div className="row mb-3">
-            <div className="col-md-6">
-              <label htmlFor="fromDate" className="form-label fw-bold"><Translate contentKey={'analytics.summary.fromDate'}>From Date</Translate></label>
-              <input type="date" id="fromDate" className="form-control" value={fromDate} onChange={handleFromDateChange} />
+            <div className="col-md-6 d-flex flex-column gap-2">
+              <label htmlFor="fromDate" className="form-label fw-bold">
+                <Translate contentKey={'analytics.summary.fromDate'}>From Date</Translate>
+              </label>
+              <Calendar
+                id="fromDate"
+                value={fromDate}
+                onChange={handleFromDateChange}
+                dateFormat="yy-mm-dd"
+                showIcon
+              />
             </div>
-            <div className="col-md-6">
-              <label htmlFor="fromDate" className="form-label fw-bold"><Translate contentKey={'analytics.summary.toDate'}>To Date</Translate></label>
+            <div className="col-md-6 d-flex flex-column gap-2">
+              <label htmlFor="toDate" className="form-label fw-bold">
+                <Translate contentKey={'analytics.summary.toDate'}>To Date</Translate>
+              </label>
+              <Calendar
+                id="toDate"
+                value={toDate}
+                onChange={handleToDateChange}
+                dateFormat="yy-mm-dd"
+                showIcon
+              />
+            </div>
 
-              <input type="date" id="toDate" className="form-control" value={toDate} onChange={handleToDateChange} />
-            </div>
           </div>
           <div className="text-center">
             <button type="submit" className="btn btn-primary" ><Translate contentKey={'analytics.summary.buttons.getReport'}>Get Report</Translate></button>

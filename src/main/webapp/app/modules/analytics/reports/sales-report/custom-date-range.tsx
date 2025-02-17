@@ -64,7 +64,7 @@ const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
   ];
 
   const handleSlotChange = e => {
-    if(e.value) {
+    if (e.value) {
       setSlotNumber(e.value);
       calculateDates('last-n-period', e.value);
     }
@@ -294,9 +294,11 @@ const DateCustomComponent = ({ onApplyDateRange, dateRange, setDateRange }) => {
                     inline={true}
                     value={new Date(primeDateValue.to)}
                     onChange={(e: any) => {
-                      const formattedDate = toLocalISOString(e.value);
+                      const newDate = new Date(e.value);
+                      newDate.setHours(23, 59, 59);
+                      const formattedDate = toLocalISOString(newDate);
                       setDateRange((prev: any) => ({ ...prev, to: formattedDate }));
-                      setPrimeDateValue((prev: any) => ({ ...prev, to: e.value }));
+                      setPrimeDateValue((prev: any) => ({ ...prev, to: newDate }));
                     }}
                   />
                 </div>
