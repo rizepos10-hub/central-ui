@@ -64,9 +64,12 @@ export const updateEntity = createAsyncThunk(
 
 export const updateEntities = createAsyncThunk(
   'regular-item/update_entity',
-  async (entity: IRegularItem[], thunkAPI) => {
+  async (
+    { entity, query }: { entity: IRegularItem[]; query: any },
+    thunkAPI
+  ) => {
     const result = await axios.put<IRegularItem[]>(`${apiUrl}`, entity);
-    thunkAPI.dispatch(getEntities({}));
+    thunkAPI.dispatch(filterEntities({ query }));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -95,12 +98,16 @@ export const deleteEntity = createAsyncThunk(
 
 export const deleteEntities = createAsyncThunk(
   'regular-item/delete_entities',
-  async (ids: Array<string | number>, thunkAPI) => {
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
     const requestUrl = `${apiUrl}`;
     const result = await axios.delete<IRegularItem>(requestUrl, {
       data: { ids }
     });
-    thunkAPI.dispatch(getEntities({}));
+    console.log(query)
+    thunkAPI.dispatch(filterEntities({ query }));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -168,7 +175,7 @@ export const RegularItemSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, filterEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, deleteEntities, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;

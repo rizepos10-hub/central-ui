@@ -1,3 +1,4 @@
+// webpack.common.js
 const path = require('path');
 const webpack = require('webpack');
 const { merge } = require('webpack-merge');
@@ -79,15 +80,15 @@ module.exports = async options => {
             exclude: [utils.root('node_modules')],
           },
           /*
-       ,
-       Disabled due to https://github.com/jhipster/generator-jhipster/issues/16116
-       Can be enabled with @reduxjs/toolkit@>1.6.1
-      {
-        enforce: 'pre',
-        test: /\.jsx?$/,
-        loader: 'source-map-loader'
-      }
-      */
+           ,
+           Disabled due to https://github.com/jhipster/generator-jhipster/issues/16116
+           Can be enabled with @reduxjs/toolkit@>1.6.1
+          {
+            enforce: 'pre',
+            test: /\.jsx?$/,
+            loader: 'source-map-loader'
+          }
+          */
         ],
       },
       stats: {
@@ -107,7 +108,9 @@ module.exports = async options => {
             development ? JSON.stringify(environmentDev.SERVER_ADMIN_API_URL) : JSON.stringify(environmentProd.SERVER_ADMIN_API_URL)
           }`,
           SERVER_DOMAIN: `${development ? JSON.stringify(environmentDev.SERVER_DOMAIN) : JSON.stringify(environmentProd.SERVER_DOMAIN)}`,
-          GOOGLE_MAPS_API_KEY: `${development ? JSON.stringify(environmentDev.GOOGLE_MAPS_API_KEY) : JSON.stringify(environmentProd.GOOGLE_MAPS_API_KEY)}`
+          GOOGLE_MAPS_API_KEY: `${
+            development ? JSON.stringify(environmentDev.GOOGLE_MAPS_API_KEY) : JSON.stringify(environmentProd.GOOGLE_MAPS_API_KEY)
+          }`,
         }),
         new ESLintPlugin({
           baseConfig: {

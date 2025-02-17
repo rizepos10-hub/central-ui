@@ -28,6 +28,7 @@
       "port": "Port",
       "serviceName": "Service Name",
       "colorPrinter": "Color Printer",
+      "reverse": "Reverse",
       "size": "Size",
       "ipAddress": "Ip Address"
     }

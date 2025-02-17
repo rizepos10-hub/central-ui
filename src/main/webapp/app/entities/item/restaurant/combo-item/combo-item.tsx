@@ -52,11 +52,8 @@ export const ComboItem = () => {
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
 
-  console.log(JSON.parse(searchParams.get("query")))
   const getAllEntities = () => {
-    console.log(query)
     const updatedQuery = applyMatchModeMap(query);
-    console.log(updatedQuery, 'updatedQuery')
     dispatch(
       filterEntities({
         query: updatedQuery,
@@ -110,7 +107,7 @@ export const ComboItem = () => {
     const editUrl = `/restaurant/combo/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
-        {rowData.name} <br/>
+        {rowData.name} <br />
         <span className="text-xs">
           #{rowData?.variants?.reduce((total, variant) => {
             return total + (variant?.comboPackages?.length || 0);
@@ -180,7 +177,11 @@ export const ComboItem = () => {
 
   const handleItemsDelete = async () => {
     setIsLoadingAction(true);
-    await dispatch(deleteEntities(selectedProducts.map(product => product.id))).finally(() => setIsLoadingAction(false));
+    const updatedQuery = applyMatchModeMap(query);
+    await dispatch(deleteEntities({
+      ids: selectedProducts.map(p => p.id),
+      query: updatedQuery,
+    })).finally(() => setIsLoadingAction(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
   }

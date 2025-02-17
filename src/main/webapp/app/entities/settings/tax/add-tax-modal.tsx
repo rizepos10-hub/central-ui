@@ -2,22 +2,22 @@ import React, { useEffect, useReducer, useRef, useState } from "react";
 import { Dialog } from 'primereact/dialog';
 // import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
-import {Modal, Button, ModalBody, ModalFooter, ModalHeader, Alert} from 'reactstrap';
-import {createEntity, getEntity, resetEntity, updateEntity, changeEntityField} from "app/entities/settings/tax/tax.reducer";
-import {useAppDispatch, useAppSelector} from "app/config/store";
+import { Modal, Button, ModalBody, ModalFooter, ModalHeader, Alert } from 'reactstrap';
+import { createEntity, getEntity, resetEntity, updateEntity, changeEntityField } from "app/entities/settings/tax/tax.reducer";
+import { useAppDispatch, useAppSelector } from "app/config/store";
 import { ITax } from "app/shared/model/TAX/tax.model";
 import { InputNumber } from "primereact/inputnumber";
 
 
 
-const AddTaxModal = ({ visible, onHide, taxId= null }) => {
+const AddTaxModal = ({ visible, onHide, taxId = null }) => {
 
   const isNew = taxId === null;
   const dispatch = useAppDispatch()
   const [next, setNext] = useState(false);
 
 
-  const taxEntity :ITax = useAppSelector(state => state.tax.entity);
+  const taxEntity: ITax = useAppSelector(state => state.tax.entity);
   const loading = useAppSelector(state => state.tax.loading);
   const updating = useAppSelector(state => state.tax.updating);
   const updateSuccess = useAppSelector(state => state.tax.updateSuccess);
@@ -27,7 +27,7 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
     dispatch(changeEntityField({ fieldName, value }));
   };
 
- const allFieldsFilled =  taxEntity.code &&  taxEntity.description && taxEntity.value;
+  const allFieldsFilled = taxEntity.code && taxEntity.description && taxEntity.value;
 
   const handleClose = () => {
     setNext(false);
@@ -44,8 +44,8 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
 
 
   const handleSubmit = () => {
-    const entity :ITax = {
-     ...taxEntity
+    const entity: ITax = {
+      ...taxEntity
     }
     if (isNew) {
       dispatch(createEntity(entity));
@@ -78,8 +78,11 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
       </ModalHeader>
       {!next ? (
         <ModalBody>
-
-          <p>Code, description, and value are required. Note that you cannot delete a tax after adding it.</p>
+          {isNew && (
+            <Alert color="warning">
+              Code, description, and value are required. Note that you cannot delete a tax after adding it.
+            </Alert>
+          )}
           <div className="grid">
             <div className="col-12 d-flex flex-column mb-2">
               <span className={"fw-bold"}>Code</span>
@@ -113,9 +116,11 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
         </ModalBody>
       ) : (
         <ModalBody>
-          <Alert color="warning">
-            You cannot delete a tax after adding it.
-          </Alert>
+          {isNew && (
+            <Alert color="warning">
+              You cannot delete a tax after adding it.
+            </Alert>
+          )}
           <>
             <div className="col-6 d-flex mb-2 align-items-center">
               <span className="font-bold text-xl">Code</span>
@@ -140,12 +145,12 @@ const AddTaxModal = ({ visible, onHide, taxId= null }) => {
       )}
       <ModalFooter>
         {next && <div className="d-flex flex-start flex-auto"><Button className="flex-start" color="secondary" onClick={() => setNext(false)}>Back</Button></div>}
-            <Button color="primary" onClick={handleClose}>
-              Close
-            </Button>
-            <Button color="primary" disabled={updating} onClick={!next ? handleNextClick : handleSubmit}>
-              {next ? 'Submit' : "Next"}
-            </Button>
+        <Button color="primary" onClick={handleClose}>
+          Close
+        </Button>
+        <Button color="primary" disabled={updating} onClick={!next ? handleNextClick : handleSubmit}>
+          {next ? 'Submit' : "Next"}
+        </Button>
       </ModalFooter>
 
     </Modal>

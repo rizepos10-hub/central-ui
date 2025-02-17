@@ -70,14 +70,14 @@ export const PrinterUpdate = () => {
 
           // @ts-expect-error -- unknown type
           if (!res?.error) {
-            navigate(`/inventory/warehouse/${newId}/edit`)
+            navigate(`/printer/${newId}/edit`)
           }
         }
       })
     } else {
       dispatch(updateEntity(entity)).then(() => {
         if (createNew) {
-          navigate(`/inventory/warehouse/new`)
+          navigate(`/printer/new`)
         }
       })
     }
@@ -217,6 +217,13 @@ export const PrinterUpdate = () => {
                   <Checkbox
                     checked={printerEntity?.colorPrinter}
                     onChange={(e) => dispatch(changeEntityField({ name: 'colorPrinter', value: e.checked }))} />
+                </div>
+
+                <div className={"d-flex flex-column mb-3"}>
+                  <Label htmlFor="printer-colorPrinter">{translate('tempApp.printer.reverse')}</Label>
+                  <Checkbox
+                    checked={printerEntity?.reverse}
+                    onChange={(e) => dispatch(changeEntityField({ name: 'reverse', value: e.checked }))} />
                 </div>
 
               </FormGroup>

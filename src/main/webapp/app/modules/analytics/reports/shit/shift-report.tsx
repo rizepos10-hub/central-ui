@@ -77,8 +77,8 @@ const ShiftReport = () => {
 
 
   const handleDateChange = (e: any) => {
-    const startDate = e.value[0];
-    const endDate = e.value[1];
+    const startDate = e?.value?.[0];
+    const endDate = e?.value?.[1];
     setFilterState({
       ...filterState,
       filters: {
@@ -99,7 +99,7 @@ const ShiftReport = () => {
         [filterState.filters?.instantClockedIn.value, filterState.filters?.instantClockedOut.value]
         :
         null;
-
+  console.log(calenderValue, 'calenderValue')
   const selectedShiftTemplate = (option, props) => {
     if (option) {
       return (
@@ -204,6 +204,7 @@ const ShiftReport = () => {
               onChange={handleDateChange}
               selectionMode="range"
               placeholder={translate('orders.view.table.filters.date')}
+              showButtonBar
             />
           </div>
         </div>

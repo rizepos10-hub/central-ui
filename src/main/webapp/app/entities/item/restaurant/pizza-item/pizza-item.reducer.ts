@@ -61,9 +61,12 @@ export const updateEntity = createAsyncThunk(
 
 export const updateEntities = createAsyncThunk(
   'pizza-item/update_entity',
-  async (entity: IPizzaItem[], thunkAPI) => {
+  async (
+    { entity, query }: { entity: IPizzaItem[]; query: any },
+    thunkAPI
+  ) => {
     const result = await axios.put<IPizzaItem[]>(`${apiUrl}`, entity);
-    thunkAPI.dispatch(getEntities({}));
+    thunkAPI.dispatch(filterEntities({ query }));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -92,12 +95,15 @@ export const deleteEntity = createAsyncThunk(
 
 export const deleteEntities = createAsyncThunk(
   'pizza-item/delete_entities',
-  async (ids: Array<string | number>, thunkAPI) => {
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
     const requestUrl = `${apiUrl}`;
     const result = await axios.delete<IPizzaItem>(requestUrl, {
       data: { ids }
     });
-    thunkAPI.dispatch(getEntities({}));
+    thunkAPI.dispatch(filterEntities({ query }));
     return result;
   },
   { serializeError: serializeAxiosError }

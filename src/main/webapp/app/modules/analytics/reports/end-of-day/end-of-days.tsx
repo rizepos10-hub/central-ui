@@ -59,8 +59,8 @@ export const EndOfDays = () => {
         lazyState.sortField,
         lazyState.sortOrder,
         selectedBranch,
-        calenderValue?.[0] ? format(calenderValue[0], "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") : null,
-        calenderValue?.[1] ? format(calenderValue[1], "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") : null
+        calenderValue?.[0] ? calenderValue[0].toISOString() : null,
+        calenderValue?.[1] ? calenderValue[1].toISOString() : null
       );
       setTotalRecords(Number(result.headers['x-total-count']))
       setEndOFDaysData(result.data)
@@ -96,12 +96,25 @@ export const EndOfDays = () => {
         />
         <Calendar
           style={{ width: '12rem' }}
-          // disabled={!branches || branches?.length === 0}
           value={calenderValue}
           id={'date'}
-          onChange={e => setCalenderValue(e.value)}
+          onChange={e => {
+            if (Array.isArray(e.value) && e.value.length === 2) {
+              const [start, end] = e.value;
+              if (end) {
+                const newEnd = new Date(end);
+                newEnd.setHours(23, 59, 59);
+                setCalenderValue([start, newEnd]);
+              } else {
+                setCalenderValue(e.value);
+              }
+            } else {
+              setCalenderValue(e.value);
+            }
+          }}
           selectionMode="range"
           placeholder={translate('orders.view.table.filters.date')}
+          showButtonBar
         />
       </div>
 

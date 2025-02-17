@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button, Card, CardBody, CardHeader, Col, FormGroup, Row, Spinner, Table } from 'reactstrap';
-import { getSortState, translate, Translate } from 'react-jhipster';
+import { getSortState, Storage, translate, Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -58,6 +58,7 @@ import { Checkbox } from 'primereact/checkbox';
 import { InputTextarea } from 'primereact/inputtextarea';
 import ItemLocation from 'app/shared/components/item/item-location';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
+import { toast } from 'react-toastify';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -91,7 +92,7 @@ export const ProductUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
   const productEntity: IProduct = useAppSelector(state => state.product.entity);
-  const loading = useAppSelector(state => state.product.loading);
+  const loading = false;
   const updating = useAppSelector(state => state.product.updating);
   const updateSuccess = useAppSelector(state => state.product.updateSuccess);
   const branchList = useAppSelector(state => state.branch.entities);
@@ -707,7 +708,10 @@ export const ProductUpdate = () => {
           order: index,
         };
       }
-      return variant;
+      return {
+        ...variant,
+        price: product.askForPrice ? 0 : variant.price,
+      };
     });
 
     const entity = {
@@ -715,6 +719,7 @@ export const ProductUpdate = () => {
       variants: updatedVariants.length > 1 ? updatedVariants : [
         {
           ...updatedVariants[0],
+          name: product.name,
           measureValue: product.baseMeasure ? {
             isBase: true,
             measure: 1
@@ -956,7 +961,29 @@ export const ProductUpdate = () => {
     });
   };
 
-  console.log(product, 'product')
+  const generateSku = async () => {
+    const response = await fetch(`${SERVER_API_URL}/api/settings/item/sku`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Storage.local.get('jhi-authenticationToken')}`,
+      },
+    })
+
+    if (!response.ok) {
+      toast.error("An error occurred");
+    } else {
+      const data = await response.json();
+      return data;
+    }
+  }
+
+  useEffect(() => {
+    // if the askForPrice field is true, set the itemVariantType to RETAIL_SIMPLE
+    if (product.askForPrice) {
+      setProduct(prev => ({ ...prev, itemVariantType: ItemVariantType.RETAIL_SIMPLE }))
+    }
+  }, [product.askForPrice])
 
   if (loading) {
     return <Spinner />;
@@ -986,14 +1013,25 @@ export const ProductUpdate = () => {
                                 <label className={'font-semibold'}>
                                   <Translate contentKey={'items.update.sku'}>SKU</Translate>
                                 </label>
-                                <InputText
-                                  name="sku"
-                                  id="sku"
-                                  required={true}
-                                  placeholder={translate('items.update.placeholders.itemSku')}
-                                  value={product?.variants?.[0]?.sku || ''}
-                                  onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
-                                />
+                                <div className='d-flex gap-2'>
+                                  <InputText
+                                    name="sku"
+                                    id="sku"
+                                    required={true}
+                                    placeholder={translate('items.update.placeholders.itemSku')}
+                                    value={product?.variants?.[0]?.sku || ''}
+                                    onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
+                                    className='w-100'
+                                  />
+                                  <Button
+                                    onClick={async () => {
+                                      const generatedSku = await generateSku()
+                                      handleVariantFieldChange(0, 'sku', generatedSku)
+                                    }}
+                                  >
+                                    {translate('items.update.placeholders.generateSku')}
+                                  </Button>
+                                </div>
                               </div>
                             )}
                             <SharedItemUpdate item={product} onFieldChange={handleFieldChange} />
@@ -1012,45 +1050,61 @@ export const ProductUpdate = () => {
                                 onChange={handleBaseMeasureChange}
                               />
                             </div>
+
+                            {/* checkbox for askForPrice field */}
                             <div className={'d-flex flex-column gap-2 mb-3'}>
                               <label className={'font-semibold'}>
-                                <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
+                                <Translate contentKey={'items.update.askForPrice'}>Ask for Price</Translate>
                               </label>
-                              <SelectButton
-                                type="button"
-                                value={product?.itemVariantType || null}
-                                options={itemTypes}
-                                allowEmpty={false}
-                                optionValue={'value'}
-                                optionLabel={'label'}
-                                onChange={option => {
-                                  confirm3(option);
-                                }}
+                              <Checkbox
+                                checked={product?.askForPrice || false}
+                                onChange={(e) => setProduct(prev => ({ ...prev, askForPrice: e.checked }))}
                               />
                             </div>
+
+                            {!product.askForPrice && (
+                              <div className={'d-flex flex-column gap-2 mb-3'}>
+                                <label className={'font-semibold'}>
+                                  <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
+                                </label>
+                                <SelectButton
+                                  type="button"
+                                  value={product?.itemVariantType || null}
+                                  options={itemTypes}
+                                  allowEmpty={false}
+                                  optionValue={'value'}
+                                  optionLabel={'label'}
+                                  onChange={option => {
+                                    confirm3(option);
+                                  }}
+                                />
+                              </div>
+                            )}
 
                             {/* Showing the fields based on if the item is variable or single here.*/}
 
                             {isSingleItem && (
                               <Row>
-                                <Col md="6">
-                                  <div className={'d-flex flex-column gap-2'}>
-                                    <label className={'font-semibold'}>
-                                      <Translate contentKey={'items.update.price'}>Price</Translate>
-                                    </label>
-                                    <InputNumber
-                                      name="price"
-                                      id="price"
-                                      required={true}
-                                      min={0}
-                                      maxFractionDigits={2}
-                                      inputClassName={'w-1'}
-                                      placeholder={translate('items.update.placeholders.itemPrice')}
-                                      value={product?.variants?.[0]?.price || null}
-                                      onChange={e => handleVariantFieldChange(0, 'price', e.value)}
-                                    />
-                                  </div>
-                                </Col>
+                                {!product.askForPrice && (
+                                  <Col md="6">
+                                    <div className={'d-flex flex-column gap-2'}>
+                                      <label className={'font-semibold'}>
+                                        <Translate contentKey={'items.update.price'}>Price</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="price"
+                                        id="price"
+                                        required={true}
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        inputClassName={'w-1'}
+                                        placeholder={translate('items.update.placeholders.itemPrice')}
+                                        value={product?.variants?.[0]?.price || null}
+                                        onChange={e => handleVariantFieldChange(0, 'price', e.value)}
+                                      />
+                                    </div>
+                                  </Col>
+                                )}
                                 <Col md="6">
                                   <div className={'d-flex flex-column gap-1'}>
                                     <label className={'font-semibold'}>
@@ -1142,47 +1196,57 @@ export const ProductUpdate = () => {
                                   </div>
                                 </div>
 
-                                <Col md="6">
-                                  <div className={'d-flex flex-column gap-2'}>
-                                    <label className={'font-semibold'}>
-                                      <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                                    </label>
-                                    <InputNumber
-                                      name="sale-price"
-                                      id="sale-price"
-                                      min={0}
-                                      maxFractionDigits={2}
-                                      placeholder={translate('items.update.placeholders.itemSalePrice')}
-                                      value={product?.variants?.[0]?.salePrice || null}
-                                      onChange={e => handleVariantFieldChange(0, 'salePrice', e.value)}
+                                {!product.askForPrice && (
+                                  <Col md="6">
+                                    <div className={'d-flex flex-column gap-2'}>
+                                      <label className={'font-semibold'}>
+                                        <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="sale-price"
+                                        id="sale-price"
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        placeholder={translate('items.update.placeholders.itemSalePrice')}
+                                        value={product?.variants?.[0]?.salePrice || null}
+                                        onChange={e => handleVariantFieldChange(0, 'salePrice', e.value)}
+                                      />
+                                    </div>
+                                  </Col>
+                                )}
+
+                                {
+                                  !isNew && (
+                                    <VariantPackaging
+                                      product={product}
+                                      variantIndex={0}
+                                      variant={product?.variants?.[0]}
+                                      handleVariantFieldChange={handleVariantFieldChange}
                                     />
-                                  </div>
-                                </Col>
+                                  )
+                                }
+                                {!product.askForPrice && (
+                                  <ItemStockAccordion
+                                    productPurchaseConfig={productPurchaseConfig}
+                                    stockQuantityUpdate={stockQuantityUpdate}
+                                    variant={product?.variants?.[0]}
+                                    variantIndex={0}
+                                    itemId={product.id}
+                                  />
+                                )}
 
-                                <VariantPackaging
-                                  product={product}
-                                  variantIndex={0}
-                                  variant={product?.variants?.[0]}
-                                  handleVariantFieldChange={handleVariantFieldChange}
-                                />
-                                <ItemStockAccordion
-                                  productPurchaseConfig={productPurchaseConfig}
-                                  stockQuantityUpdate={stockQuantityUpdate}
-                                  variant={product?.variants?.[0]}
-                                  variantIndex={0}
-                                  itemId={product.id}
-                                />
-
-                                <VariantBranchPrice
-                                  itemVariantType={'RETAIL'}
-                                  branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
-                                  variantIndex={0}
-                                  branchList={branchList}
-                                  handleBranchPriceChange={handleBranchPriceChange}
-                                  handleHideItemPerBranch={handleHideItemPerBranch}
-                                  variant={product?.variants?.[0]}
-                                  setItem={setProduct}
-                                />
+                                {!product.askForPrice && (
+                                  <VariantBranchPrice
+                                    itemVariantType={'RETAIL'}
+                                    branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
+                                    variantIndex={0}
+                                    branchList={branchList}
+                                    handleBranchPriceChange={handleBranchPriceChange}
+                                    handleHideItemPerBranch={handleHideItemPerBranch}
+                                    variant={product?.variants?.[0]}
+                                    setItem={setProduct}
+                                  />
+                                )}
 
                                 <Row>
                                   <Col md="7">
@@ -1306,7 +1370,7 @@ export const ProductUpdate = () => {
                                             <i style={{ fontSize: '2.5rem' }} />
                                             <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)}>
                                               <Row>
-                                                <Col md="4">
+                                                <Col md="6">
                                                   <div className={'d-flex flex-column gap-2 mt-2'}>
                                                     <label className={'font-semibold'}>
                                                       <Translate contentKey={'items.update.name'}>Name</Translate>
@@ -1322,23 +1386,7 @@ export const ProductUpdate = () => {
                                                   </div>
                                                 </Col>
 
-                                                <Col md="4">
-                                                  <div className={'d-flex flex-column gap-2 mt-2'}>
-                                                    <label className={'font-semibold'}>
-                                                      <Translate contentKey={'items.update.sku'}>SKU</Translate>
-                                                    </label>
-                                                    <InputText
-                                                      name="sku"
-                                                      id="sku"
-                                                      required={true}
-                                                      placeholder="Variant Sku"
-                                                      value={variant?.sku || ''}
-                                                      onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
-                                                    />
-                                                  </div>
-                                                </Col>
-
-                                                <Col md="4">
+                                                <Col md="6">
                                                   <div className={'d-flex flex-column gap-2 mt-2'}>
                                                     <label htmlFor="price" className={'font-semibold'}>
                                                       <Translate contentKey={'items.update.price'}>Price</Translate>
@@ -1355,6 +1403,33 @@ export const ProductUpdate = () => {
                                                       maxFractionDigits={2}
                                                       onChange={e => handleVariantFieldChange(variantIndex, 'price', e.value)}
                                                     />
+                                                  </div>
+                                                </Col>
+
+                                                <Col md="12">
+                                                  <div className={'d-flex flex-column gap-2 mt-2'}>
+                                                    <label className={'font-semibold'}>
+                                                      <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                                                    </label>
+                                                    <div className='d-flex gap-2'>
+                                                      <InputText
+                                                        name="sku"
+                                                        id="sku"
+                                                        required={true}
+                                                        placeholder="Variant Sku"
+                                                        value={variant?.sku || ''}
+                                                        onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
+                                                        className='w-100'
+                                                      />
+                                                      <Button
+                                                        onClick={async () => {
+                                                          const generatedSku = await generateSku()
+                                                          handleVariantFieldChange(variantIndex, 'sku', generatedSku)
+                                                        }}
+                                                      >
+                                                        {translate('items.update.placeholders.generateSku')}
+                                                      </Button>
+                                                    </div>
                                                   </div>
                                                 </Col>
 
@@ -1492,13 +1567,14 @@ export const ProductUpdate = () => {
                                                     />
                                                   </div>
 
-
-                                                  <VariantPackaging
-                                                    product={product}
-                                                    variantIndex={variantIndex}
-                                                    variant={variant}
-                                                    handleVariantFieldChange={handleVariantFieldChange}
-                                                  />
+                                                  {!isNew && (
+                                                    <VariantPackaging
+                                                      product={product}
+                                                      variantIndex={variantIndex}
+                                                      variant={variant}
+                                                      handleVariantFieldChange={handleVariantFieldChange}
+                                                    />
+                                                  )}
                                                 </Col>
                                               </Row>
 

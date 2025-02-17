@@ -71,12 +71,19 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
     );
   }, [dispatch]);
 
-  const filteredPricingPoints = React.useMemo(() => {
-    if (!pricesModal.branchId) return [];
+  const getFilteredPricingPoints = (branchId) => {
+    if (!branchId) return [];
     return pricingPoints.filter(pp =>
-      pp.applicableBranches?.some(b => b.id === pricesModal.branchId)
+      pp.applicableBranches?.some(b => b.id === branchId)
     );
-  }, [pricingPoints, pricesModal.branchId]);
+  }
+
+  // const filteredPricingPoints = React.useMemo(() => {
+  //   if (!pricesModal.branchId) return [];
+  //   return pricingPoints.filter(pp =>
+  //     pp.applicableBranches?.some(b => b.id === pricesModal.branchId)
+  //   );
+  // }, [pricingPoints, pricesModal.branchId]);
 
   return (
     <Col md="12" className="mt-3">
@@ -84,7 +91,7 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
         <PricingPointModal
           toggle={handleShowPricesModal}
           isOpen={pricesModal.show}
-          pricingPoints={filteredPricingPoints}
+          pricingPoints={getFilteredPricingPoints(pricesModal.branchId)}
           branchId={pricesModal.branchId}
           variant={variant}
           setItem={setItem}
@@ -157,17 +164,24 @@ const VariantBranchPrice = <T extends IVariableItemVariant | IRegularItemVariant
                 />
               </td>
               <td>
-                <Button
-                  type="button"
-                  raised
-                  onClick={e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    handleShowPricesModal(branch.id);
-                  }}
-                >
-                  Pricing Points
-                </Button>
+                {
+                  getFilteredPricingPoints(branch.id).length > 0 ? (
+                    <Button
+                      type="button"
+                      raised
+                      onClick={e => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleShowPricesModal(branch.id);
+                      }}
+                    >
+                      Pricing Points
+                    </Button>
+                  ) : (
+                    <></>
+                  )
+                }
+
               </td>
               <td>
                 <Checkbox

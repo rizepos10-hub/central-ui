@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from "reac
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
-import { filterOrders, getOrderSources, getOrderStatuses } from './order.reducer';
+import { deleteEntities, filterOrders, getOrderSources, getOrderStatuses } from './order.reducer';
 
 import { getEntities as getBranches } from '../branch/branch.reducer';
 import { format } from 'date-fns';
@@ -14,6 +14,9 @@ import { startOfDay, endOfDay } from 'date-fns';
 import { InputText } from 'primereact/inputtext';
 import { translate } from 'react-jhipster';
 import { convertDateTimeFromServer } from "app/shared/util/date-utils";
+import { IOrder } from 'app/shared/model/ORDER/order.model';
+import { Button } from 'primereact/button';
+import { confirmDialog } from 'primereact/confirmdialog';
 
 interface LazyTableState {
   first: number;
@@ -28,7 +31,7 @@ interface LazyTableState {
 const RegisterClosureOrder = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const {tillId} = useParams();
+  const { tillId } = useParams();
   const [searchParams] = useSearchParams();
   const from = searchParams.get('from');
   const to = searchParams.get('to');
@@ -58,7 +61,8 @@ const RegisterClosureOrder = () => {
     },
   });
 
-  const orderList = useAppSelector(state => state.order.entities);
+  const orderList: IOrder[] = useAppSelector(state => state.order.entities);
+  const [selectedOrders, setSelectedOrders] = useState<IOrder[]>([]);
   const totalOrders = useAppSelector(state => state.order.totalOrders);
 
   const loading = useAppSelector(state => state.order.loading);
@@ -95,7 +99,7 @@ const RegisterClosureOrder = () => {
     setLazyState(event);
   };
 
-  useEffect(() => {
+  const getFilteredOrders = () => {
     const queryParams = {
       orderSource: lazyState.filters.orderSource?.value || '',
       orderStatus: lazyState.filters.status?.value || '',
@@ -111,9 +115,14 @@ const RegisterClosureOrder = () => {
       fromDate: lazyState.filters.createdDate?.from ? new Date(lazyState.filters.createdDate.from).toISOString() : '',
       toDate: lazyState.filters.createdDate?.to ? new Date(lazyState.filters.createdDate.to).toISOString() : '',
       modifiedDate: true,
+      sort: `_id,asc`
     };
 
     dispatch(filterOrders(queryParams));
+  }
+
+  useEffect(() => {
+    getFilteredOrders();
   }, [lazyState]);
 
   useEffect(() => {
@@ -126,13 +135,50 @@ const RegisterClosureOrder = () => {
     });
   }, []);
 
-  const header = `Orders from ${convertDateTimeFromServer(from)} to  ${convertDateTimeFromServer(to)} for ${registry} register`
+  const confirm1 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => handleBulkDelete()
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    await dispatch(deleteEntities(selectedOrders.map(product => product.id)));
+    getFilteredOrders();
+    setSelectedOrders([]);
+  }
+
+  const header = (
+    <div>
+      <div className='d-flex justify-content-between align-items-end'>
+        <span className='fs-5'>
+          {`Orders from ${convertDateTimeFromServer(from)} to  ${convertDateTimeFromServer(to)} for ${registry} register`}
+        </span>
+        <span>
+          {/* danger prime button */}
+          <Button
+            label="Delete"
+            severity="danger"
+            className="p-2"
+            disabled={selectedOrders.length === 0}
+            onClick={() => confirm1()}
+          >
+          </Button>
+        </span>
+      </div>
+    </div>
+  )
 
   return (
     <div className="p-3 mb-2" style={{ background: 'var(--surface-card)', borderRadius: '10px' }}>
       <DataTable
         value={orderList}
         lazy
+        selectionMode='checkbox'
+        selection={selectedOrders}
+        editMode="row"
         filterDisplay="row"
         dataKey="id"
         paginator
@@ -150,9 +196,9 @@ const RegisterClosureOrder = () => {
         removableSort
         emptyMessage={translate('orders.view.table.emptyMessage')}
         tableStyle={{ minWidth: '75rem', alignContent: 'center' }}
-        selectionMode="single"
-        onSelectionChange={(e: any) => navigate(`/order/${e.value.id}`)}
+        onSelectionChange={(e) => setSelectedOrders(e.value)}
       >
+        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
         <Column
           field="id"
           header={translate('orders.view.table.fields.id')}

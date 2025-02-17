@@ -306,6 +306,14 @@ export const OrderDetail = () => {
                   </div>
                   <div className="mb-0 w-100 d-flex justify-content-between align-items-center">
                     <span>
+                      Total Tip:
+                    </span>
+                    <span className='text-success'>
+                      + {orderEntity?.totalTip?.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="mb-0 w-100 d-flex justify-content-between align-items-center">
+                    <span>
                       Discount:
                     </span>
                     <span className='text-danger'>
@@ -445,7 +453,7 @@ export const OrderDetail = () => {
                           Print
                         </Button>
                       </Link>
-                      {!orderEntity?.refund && (
+                      {!orderEntity?.refund && orderEntity?.processingStatus !== OrderStatus.REJECTED && (
                         <Button
                           color="secondary"
                           onClick={() => setEditMode(prev => !prev)}

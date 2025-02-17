@@ -37,6 +37,7 @@ export interface IItem {
   accountingGroups?: IProfileGroup[] | null;
   productionCenter?: IProductionCenter | null;
   menus?: IMenu[];
+  askForPrice?: boolean;
 }
 
 export const defaultValue: Readonly<IItem> = {};
