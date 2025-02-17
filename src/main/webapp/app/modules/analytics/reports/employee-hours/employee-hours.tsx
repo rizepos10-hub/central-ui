@@ -67,7 +67,13 @@ const EmployeeHoursReport = () => {
 
     const handleDateChange = (e: any) => {
         const startDate = e?.value?.[0];
-        const endDate = e?.value?.[1];
+        let endDate = e?.value?.[1];
+
+        if (endDate) {
+            endDate = new Date(endDate);
+            endDate.setHours(23, 59, 59);
+        }
+
         setFilterState({
             ...filterState,
             filters: {
@@ -76,7 +82,7 @@ const EmployeeHoursReport = () => {
                 instantClockedOut: { value: endDate, matchMode: FilterMatchMode.ENDS_WITH },
             }
         });
-    }
+    };
 
     const calenderValue =
         filterState.filters?.instantClockedIn.value && !filterState.filters.instantClockedOut.value
