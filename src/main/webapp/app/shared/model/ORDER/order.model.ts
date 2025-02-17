@@ -40,6 +40,7 @@ export interface IOrder extends IOrderAudit {
   totalDiscount?: number | null,
   addonsTotal?: number | null,
   itemsTotal?: number | null,
+  totalTip?: number | null,
 }
 
 export interface IOrderCharge {

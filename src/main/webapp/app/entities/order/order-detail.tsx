@@ -306,6 +306,14 @@ export const OrderDetail = () => {
                   </div>
                   <div className="mb-0 w-100 d-flex justify-content-between align-items-center">
                     <span>
+                      Total Tip:
+                    </span>
+                    <span className='text-success'>
+                      + {orderEntity?.totalTip?.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="mb-0 w-100 d-flex justify-content-between align-items-center">
+                    <span>
                       Discount:
                     </span>
                     <span className='text-danger'>
