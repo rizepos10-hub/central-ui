@@ -72,7 +72,6 @@ const Barcode = () => {
         )
     }
 
-    // Load selected variants from localStorage on mount
     useEffect(() => {
         const storedSelected = localStorage.getItem('selectedVariants')
         if (storedSelected) {
@@ -80,7 +79,6 @@ const Barcode = () => {
         }
     }, [])
 
-    // Persist selected variants in localStorage when they change
     useEffect(() => {
         localStorage.setItem('selectedVariants', JSON.stringify(variantsSkusToPrint))
     }, [variantsSkusToPrint])
@@ -97,7 +95,6 @@ const Barcode = () => {
         searchParams.get('categoryId'),
     ])
 
-    // Rebuild the variants list when products change
     useEffect(() => {
         const updatedVariants: VariantSkus[] = []
         products.forEach(product => {
@@ -114,7 +111,6 @@ const Barcode = () => {
         setVariantsSkus(updatedVariants)
     }, [products])
 
-    // Render barcodes in the main (selection) container
     useEffect(() => {
         variantsSkus.forEach((vSku, index) => {
             if (barcodeRefs.current[index]) {
@@ -130,7 +126,6 @@ const Barcode = () => {
         })
     }, [variantsSkus])
 
-    // Render barcodes in the print container (selected variants only)
     useEffect(() => {
         variantsSkusToPrint.forEach((vSku, index) => {
             if (printBarcodeRefs.current[index]) {
@@ -139,7 +134,7 @@ const Barcode = () => {
                     displayValue: true,
                     lineColor: '#1a1a1a',
                     background: '#ffffff',
-                    fontSize: 14,
+                    fontSize: 10,
                     margin: 10,
                 })
             }
@@ -173,12 +168,10 @@ const Barcode = () => {
         navigate(path)
     }
 
-    // Check if a variant is selected
     const isVariantSelected = (vSku: VariantSkus) => {
         return variantsSkusToPrint.some(item => item.variantId === vSku.variantId)
     }
 
-    // Toggle variant selection
     const toggleVariantSelection = (vSku: VariantSkus) => {
         if (isVariantSelected(vSku)) {
             setVariantsSkusToPrint(prev => prev.filter(item => item.variantId !== vSku.variantId))
@@ -187,11 +180,9 @@ const Barcode = () => {
         }
     }
 
-    // Check if all variants on the current page are selected
     const isAllSelected =
         variantsSkus.length > 0 && variantsSkus.every(vSku => isVariantSelected(vSku))
 
-    // Toggle all variants on the current page
     const toggleSelectAll = () => {
         if (isAllSelected) {
             setVariantsSkusToPrint(prev =>
@@ -203,11 +194,12 @@ const Barcode = () => {
         }
     }
 
+    // Default settings in mm matching label paper: 50mm x 30mm with 1mm spacing
     const [showPrintModal, setShowPrintModal] = useState(false)
     const [printSettings, setPrintSettings] = useState({
-        cardWidth: '300px',
-        cardHeight: 'auto',
-        spacing: '10px',
+        cardWidth: '50mm',
+        cardHeight: '30mm',
+        spacing: '1mm',
         showSku: true,
         showVariant: true,
     })
@@ -245,7 +237,6 @@ const Barcode = () => {
                 </Col>
             </Row>
 
-            {/* Selection Container */}
             <div className="selection-container w-100">
                 <Row className="mb-2">
                     <Col md={12}>
@@ -280,8 +271,16 @@ const Barcode = () => {
                 </Row>
             </div>
 
-            {/* Print Container */}
-            <div ref={printRef} className="print-container w-100">
+            {/* Print Container with controlled width */}
+            <div
+                ref={printRef}
+                className="print-container"
+                style={{
+                    width: '82mm',
+                    padding: 0,
+                    // marginTop: '6mm',
+                }}
+            >
                 {variantsSkusToPrint.map((vSku, index) => (
                     <div
                         key={vSku.variantId}
@@ -289,22 +288,29 @@ const Barcode = () => {
                         style={{
                             width: printSettings.cardWidth,
                             height: printSettings.cardHeight,
-                            marginBottom: printSettings.spacing,
-                            display: 'inline-block',
+                            marginTop: printSettings.spacing,
+                            // marginBottom: printSettings.spacing,
+                            marginLeft: 'auto',
                         }}
                     >
-                        <Card className="p-2 text-center rounded-3">
-                            <CardBody>
-                                {printSettings.showVariant && <h5 className="mb-2">{vSku.variantName}</h5>}
-                                {printSettings.showSku && <p className="mb-2">SKU: {vSku.sku}</p>}
-                                <canvas ref={el => (printBarcodeRefs.current[index] = el)} className="mt-2" />
-                            </CardBody>
-                        </Card>
+                        <div className="text-center rounded-3" style={{ height: printSettings.cardHeight }}>
+                            <div className="d-flex flex-column justify-content-end align-items-center">
+                                <div style={{
+                                    height: '8mm'
+                                }}>
+                                    {printSettings.showVariant && <h6 className="mb-1">{vSku.variantName}</h6>}
+                                    {printSettings.showSku && <p className="mb-1" style={{ fontSize: '0.8rem' }}>SKU: {vSku.sku}</p>}
+                                </div>
+                                <canvas ref={el => (printBarcodeRefs.current[index] = el)} style={{
+                                    width: printSettings.cardWidth,
+                                    height: `calc(${printSettings.cardHeight} - 8mm)`,
+                                }} />
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>
 
-            {/* Pagination & Rows Per Page */}
             <Row className="w-100">
                 <Col md={12}>
                     <div className="d-flex justify-content-center">
@@ -332,12 +338,11 @@ const Barcode = () => {
                 </Col>
             </Row>
 
-            {/* Print Settings Modal */}
             <Modal isOpen={showPrintModal} toggle={() => setShowPrintModal(!showPrintModal)}>
                 <ModalHeader toggle={() => setShowPrintModal(!showPrintModal)}>Print Settings</ModalHeader>
                 <ModalBody>
                     <FormGroup>
-                        <Label for="cardWidth">Card Width</Label>
+                        <Label for="cardWidth">Label Width</Label>
                         <Input
                             id="cardWidth"
                             type="text"
@@ -346,10 +351,10 @@ const Barcode = () => {
                                 setPrintSettings({ ...printSettings, cardWidth: e.target.value })
                             }
                         />
-                        <small className="text-muted">Example: 300px, 50%</small>
+                        <small className="text-muted">Use mm (e.g., 50mm)</small>
                     </FormGroup>
                     <FormGroup>
-                        <Label for="cardHeight">Card Height</Label>
+                        <Label for="cardHeight">Label Height</Label>
                         <Input
                             id="cardHeight"
                             type="text"
@@ -358,10 +363,10 @@ const Barcode = () => {
                                 setPrintSettings({ ...printSettings, cardHeight: e.target.value })
                             }
                         />
-                        <small className="text-muted">Example: auto, 200px</small>
+                        <small className="text-muted">Use mm (e.g., 30mm)</small>
                     </FormGroup>
                     <FormGroup>
-                        <Label for="spacing">Spacing between elements</Label>
+                        <Label for="spacing">Spacing between labels</Label>
                         <Input
                             id="spacing"
                             type="text"
@@ -370,7 +375,7 @@ const Barcode = () => {
                                 setPrintSettings({ ...printSettings, spacing: e.target.value })
                             }
                         />
-                        <small className="text-muted">Example: 10px, 1em</small>
+                        <small className="text-muted">Use mm (e.g., 1mm)</small>
                     </FormGroup>
                     <FormGroup check>
                         <Label check>
@@ -413,26 +418,36 @@ const Barcode = () => {
                 </ModalFooter>
             </Modal>
 
-            {/* Global Print Styles */}
+
             <style>{`
-                @media screen {
-                    .print-container {
-                        display: none;
-                    }
-                }
-                @media print {
-                    .print-container {
-                        display: block;
-                    }
-                    .selection-container {
-                        display: none;
-                    }
-                    /* Removed forced page break to allow multiple cards per page */
-                    .print-card {
-                        page-break-inside: avoid;
-                    }
-                }
-            `}</style>
+        /* Remove default page margin to fill entire sheet */
+        @page {
+          size: A4;
+        }
+        @media screen {
+          .print-container {
+            display: block;
+          }
+        }
+        @media print {
+          html, body {
+            width: 82mm;
+          }
+          .print-container {
+            display: block;
+          }
+          .selection-container {
+            display: none;
+          }
+          /* Remove all container/card spacing for print */
+          .container, .row, .col, .card, .card-body {
+          }
+          .print-card canvas {
+            width: 100%;
+            height: auto;
+          }
+        }
+      `}</style>
         </Container>
     )
 }
