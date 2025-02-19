@@ -1,27 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
+import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import Select from "react-select";
 import { Translate } from "react-jhipster";
-import { getEntity, updateEntity } from './pizza-settings.reducer';
+import { changeEntityField, getEntity, updateEntity } from './pizza-settings.reducer';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { FilterMatchMode } from 'primereact/api';
 import { filterEntities } from 'app/entities/item/restaurant/pizza-item/pizza-item.reducer';
 import { IPizzaItem } from 'app/shared/model/ITEM/restaurant/pizza-item.model';
 import { IPizzaSettings } from 'app/shared/model/PIZZA/pizza-settings.model';
 
-
 export const PizzaSettings = () => {
-    const [selectedPizza, setSelectedPizza] = useState(null);
-
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
-    const pizzaSettings: IPizzaSettings = useAppSelector(state => state.pizzaSettings.entity)
+    const pizzaSettings: IPizzaSettings = useAppSelector(state => state.pizzaSettings.entity);
     const pizzaItemsList: IPizzaItem[] = useAppSelector(state => state.pizzaItem.entities);
-    console.log(pizzaSettings, 'pizzaSettings')
 
     const getBasePizzas = () => {
         const query = {
@@ -32,16 +28,18 @@ export const PizzaSettings = () => {
             sortOrder: null,
             query: '',
             filters: {
-                'variants.pizzaVariantType': { value: 'BASE', matchMode: FilterMatchMode.EQUALS }
+                'variants.pizzaVariantType': {
+                    operator: 'OR',
+                    constraints: [
+                        { value: 'BASE', matchMode: FilterMatchMode.STARTS_WITH },
+                        { value: 'MAKE_YOUR_OWN', matchMode: FilterMatchMode.STARTS_WITH }
+                    ]
+                },
             }
         };
 
         const updatedQuery = applyMatchModeMap(query);
-        dispatch(
-            filterEntities({
-                query: updatedQuery,
-            })
-        );
+        dispatch(filterEntities({ query: updatedQuery }));
     };
 
     useEffect(() => {
@@ -49,29 +47,45 @@ export const PizzaSettings = () => {
         dispatch(getEntity({}));
     }, []);
 
-    useEffect(() => {
-        if (pizzaSettings) {
-            setSelectedPizza(pizzaItemsList.find(item => item.id === pizzaSettings.basePizza.id))
-        }
-    }, [pizzaSettings]);
-
     const saveEntity = (e) => {
-        e.preventDefault()
+        e.preventDefault();
 
         const entity = {
             key: "PIZZA_SETTINGS",
             basePizza: {
-                id: selectedPizza?.value,
+                id: pizzaSettings.basePizza?.id,
                 itemVariantType: 'RESTAURANT_PIZZA'
-            }
-        }
+            },
+            makeYourOwnPizza: {
+                id: pizzaSettings.makeYourOwnPizza?.id,
+                itemVariantType: 'RESTAURANT_PIZZA'
+            },
+        };
 
         dispatch(updateEntity(entity));
-    }
-
-    const handleChange = (selectedOption: IPizzaItem) => {
-        setSelectedPizza(selectedOption);
     };
+
+    const basePizzaOptions = pizzaItemsList
+        .filter(p => p.variants[0]?.pizzaVariantType === 'BASE')
+        .map(pizza => ({
+            value: pizza.id,
+            label: pizza.name,
+        }));
+
+    const makeYourOwnPizzaOptions = pizzaItemsList
+        .filter(p => p.variants[0]?.pizzaVariantType === 'MAKE_YOUR_OWN')
+        .map(pizza => ({
+            value: pizza.id,
+            label: pizza.name,
+        }));
+
+    const selectedBasePizzaOption = pizzaSettings?.basePizza
+        ? { value: pizzaSettings.basePizza.id, label: pizzaSettings.basePizza.name }
+        : null;
+
+    const selectedMakeYourOwnPizzaOption = pizzaSettings?.makeYourOwnPizza
+        ? { value: pizzaSettings.makeYourOwnPizza.id, label: pizzaSettings.makeYourOwnPizza.name }
+        : null;
 
     return (
         <div>
@@ -84,35 +98,35 @@ export const PizzaSettings = () => {
                 <Col md="8" className="d-flex flex-column p-3 bg-white">
                     <form>
                         <FormGroup>
-                            <div className={"d-flex flex-column"}>
+                            <div className="d-flex flex-column">
                                 <Label for="basePizza">Select a base pizza</Label>
                                 <Select
-                                    options={pizzaItemsList.filter(p => p.variants[0]?.predefinedPizza?.base).map(pizza => ({
-                                        value: pizza.id, // Assuming each pizza has a unique `id`
-                                        label: pizza.name, // Assuming each pizza has a `name` property
-                                    }))}
-                                    onChange={handleChange}
-                                    value={selectedPizza}
+                                    options={basePizzaOptions}
+                                    onChange={option => {
+                                        const selectedPizza = pizzaItemsList.find(p => p.id === option.value);
+                                        dispatch(changeEntityField({ name: 'basePizza', value: selectedPizza }));
+                                    }}
+                                    value={selectedBasePizzaOption}
                                     placeholder="Select a base pizza"
                                 />
                             </div>
                         </FormGroup>
                         <FormGroup>
-                            <div className={"d-flex flex-column"}>
-                                <Label for="basePizza">Select a Make Your Own pizza</Label>
+                            <div className="d-flex flex-column">
+                                <Label for="makeYourOwnPizza">Select a Make Your Own pizza</Label>
                                 <Select
-                                    options={pizzaItemsList.filter(p => p.variants[0]?.predefinedPizza?.base).map(pizza => ({
-                                        value: pizza.id, // Assuming each pizza has a unique `id`
-                                        label: pizza.name, // Assuming each pizza has a `name` property
-                                    }))}
-                                    onChange={handleChange}
-                                    value={selectedPizza}
-                                    placeholder="Select a base pizza"
+                                    options={makeYourOwnPizzaOptions}
+                                    onChange={option => {
+                                        const selectedPizza = pizzaItemsList.find(p => p.id === option.value);
+                                        dispatch(changeEntityField({ name: 'makeYourOwnPizza', value: selectedPizza }));
+                                    }}
+                                    value={selectedMakeYourOwnPizzaOption}
+                                    placeholder="Select a make your own pizza"
                                 />
                             </div>
                         </FormGroup>
                         &nbsp;
-                        <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" >
+                        <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit">
                             <FontAwesomeIcon icon="save" />
                             &nbsp;
                             <Translate contentKey="entity.action.save">Save</Translate>

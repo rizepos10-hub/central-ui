@@ -1,31 +1,46 @@
 export const applyMatchModeMap = (query: any) => {
   const matchModeMap = {
+    startswith: 'STARTS_WITH',
     contains: 'CONTAINS',
-    startsWith: 'STARTS_WITH',
-    endsWith: 'ENDS_WITH',
+    endswith: 'ENDS_WITH',
     equals: 'EQUALS',
-    notEquals: 'NOT_EQUALS',
+    notequals: 'NOT_EQUALS'
   };
 
-  const updatedFilters = { ...query.filters };
+  const updatedFilters: any = {};
 
-  Object.keys(updatedFilters).forEach(key => {
-    if (key !== 'attributes.attributeTerms.id') {
-      const { value, matchMode } = updatedFilters[key];
-      const updatedMatchMode = matchModeMap[matchMode];
-      updatedFilters[key] = { value, matchMode: updatedMatchMode };
+  Object.keys(query.filters).forEach(key => {
+    const filter = query.filters[key];
 
-      if (value == null || value === '' || value === undefined) {
-        delete updatedFilters[key];
+    if (filter.operator && Array.isArray(filter.constraints)) {
+      const updatedConstraints = filter.constraints
+        .map((constraint: any) => {
+          if (constraint.value == null || constraint.value === '') {
+            return null;
+          }
+          const mapKey = constraint.matchMode.toLowerCase().replace(/_/g, '');
+          const updatedMatchMode = matchModeMap[mapKey] || constraint.matchMode;
+          return { ...constraint, matchMode: updatedMatchMode };
+        })
+        .filter(Boolean);
+
+      if (updatedConstraints.length > 0) {
+        updatedFilters[key] = { ...filter, constraints: updatedConstraints };
+      }
+    } else {
+      const { value, matchMode } = filter;
+      if (value != null && value !== '') {
+        const mapKey = matchMode.toLowerCase().replace(/_/g, '');
+        const updatedMatchMode = matchModeMap[mapKey] || matchMode;
+        updatedFilters[key] = { value, matchMode: updatedMatchMode };
       }
     }
   });
 
-  const updatedFiltersFinal = updateTableFilters(updatedFilters);
-
+  // Return the updated filters directly instead of using updateTableFilters
   return {
     ...query,
-    filters: updatedFiltersFinal,
+    filters: updatedFilters,
   };
 };
 

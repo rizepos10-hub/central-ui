@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
+import { createAction, createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/toolkit';
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
@@ -34,6 +34,10 @@ export const updateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const changeEntityField = createAction<{
+  name: string
+  value: any
+}>('online-ordering-settings/change-entity-field')
 // slice
 
 export const PizzaSettingsSlice = createEntitySlice({
@@ -41,6 +45,18 @@ export const PizzaSettingsSlice = createEntitySlice({
   initialState,
   extraReducers(builder) {
     builder
+      .addCase(changeEntityField, (state, action) => {
+        const { name, value } = action.payload
+        const path = name.split('.') // e.g. ['layouts', 'selectedLayout']
+        let current: any = state.entity
+
+        for (let i = 0; i < path.length - 1; i++) {
+          if (!current[path[i]]) current[path[i]] = {}
+          current = current[path[i]]
+        }
+
+        current[path[path.length - 1]] = value
+      })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;
         state.entity = action.payload.data;
