@@ -11,6 +11,9 @@ import { FilterMatchMode } from 'primereact/api';
 import { filterEntities } from 'app/entities/item/restaurant/pizza-item/pizza-item.reducer';
 import { IPizzaItem } from 'app/shared/model/ITEM/restaurant/pizza-item.model';
 import { IPizzaSettings } from 'app/shared/model/PIZZA/pizza-settings.model';
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
+import { IBranch } from 'app/shared/model/branch.model';
+import { TabPanel, TabView } from 'primereact/tabview';
 
 export const PizzaSettings = () => {
     const dispatch = useAppDispatch();
@@ -18,6 +21,7 @@ export const PizzaSettings = () => {
 
     const pizzaSettings: IPizzaSettings = useAppSelector(state => state.pizzaSettings.entity);
     const pizzaItemsList: IPizzaItem[] = useAppSelector(state => state.pizzaItem.entities);
+    const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
 
     const getBasePizzas = () => {
         const query = {
@@ -45,6 +49,13 @@ export const PizzaSettings = () => {
     useEffect(() => {
         getBasePizzas();
         dispatch(getEntity({}));
+        dispatch(
+            getBranches({
+                page: 0,
+                size: 1000,
+                sort: `id,asc`,
+            })
+        );
     }, []);
 
     const saveEntity = (e) => {
@@ -60,6 +71,7 @@ export const PizzaSettings = () => {
                 id: pizzaSettings.makeYourOwnPizza?.id,
                 itemVariantType: 'RESTAURANT_PIZZA'
             },
+            pizzaSettingsByBranch: pizzaSettings.pizzaSettingsByBranch
         };
 
         dispatch(updateEntity(entity));
@@ -86,6 +98,30 @@ export const PizzaSettings = () => {
     const selectedMakeYourOwnPizzaOption = pizzaSettings?.makeYourOwnPizza
         ? { value: pizzaSettings.makeYourOwnPizza.id, label: pizzaSettings.makeYourOwnPizza.name }
         : null;
+
+    const fallbackOptions = [
+        { label: 'Make Your Own', value: 'MAKE_YOUR_OWN' },
+        { label: 'Base', value: 'BASE' }
+    ];
+
+    const handleFallbackChange = (branch, option) => {
+        const currentSettings = pizzaSettings.pizzaSettingsByBranch || [];
+        const branchIndex = currentSettings.findIndex(b => b.branch.id === branch.id);
+        let newSettings;
+        if (branchIndex >= 0) {
+            newSettings = currentSettings.map(item =>
+                item.branch.id === branch.id
+                    ? { ...item, selectedPizzaFallbackOption: option.value }
+                    : item
+            );
+        } else {
+            newSettings = [
+                ...currentSettings,
+                { branch, selectedPizzaFallbackOption: option.value }
+            ];
+        }
+        dispatch(changeEntityField({ name: 'pizzaSettingsByBranch', value: newSettings }));
+    };
 
     return (
         <div>
@@ -123,6 +159,31 @@ export const PizzaSettings = () => {
                                     value={selectedMakeYourOwnPizzaOption}
                                     placeholder="Select a make your own pizza"
                                 />
+                            </div>
+                        </FormGroup>
+                        <FormGroup>
+                            <div className="d-flex flex-column">
+                                <TabView>
+                                    {branchList.map((branch, idx) => {
+                                        const branchSetting = pizzaSettings.pizzaSettingsByBranch
+                                            ? pizzaSettings.pizzaSettingsByBranch.find(b => b.branch.id === branch.id)
+                                            : null;
+                                        const selectedFallback = branchSetting
+                                            ? fallbackOptions.find(opt => opt.value === branchSetting.selectedPizzaFallbackOption)
+                                            : null;
+                                        return (
+                                            <TabPanel header={branch.name} key={idx}>
+                                                <Label for="pizzaSettingsByBranch">Default fallback to</Label>
+                                                <Select
+                                                    options={fallbackOptions}
+                                                    onChange={option => handleFallbackChange(branch, option)}
+                                                    value={selectedFallback}
+                                                    placeholder="Select fallback default"
+                                                />
+                                            </TabPanel>
+                                        );
+                                    })}
+                                </TabView>
                             </div>
                         </FormGroup>
                         &nbsp;
