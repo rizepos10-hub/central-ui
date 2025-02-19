@@ -4,6 +4,13 @@ export interface ISummaryReport {
   totalSalesByOrderOption: {
     [orderOption: string]: ISalesSummary;
   };
+  tipSummary: ITipSummary[]
+}
+
+export interface ITipSummary {
+  username: string,
+  totalTips: number,
+  orderCount: number
 }
 
 export interface ISalesSummary {
@@ -18,7 +25,7 @@ export interface ISalesSummary {
   totalTAX: number;
   grossSales: number;
   totalTip: number;
-  walletCredits? : number;
+  walletCredits?: number;
   taxes: {
     [taxType: string]: number;
   };
