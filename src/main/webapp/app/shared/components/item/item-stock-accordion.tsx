@@ -10,6 +10,7 @@ import PurchaseConfigUpdateTab from "app/entities/inventory/stock-config/purchas
 import { IPurchaseConfig } from "app/shared/model/STOCK/purchase-config.model";
 import Select from "react-select";
 import { IWarehouse } from "app/shared/model/STOCK/warehouse.model";
+import { Col, Row } from "reactstrap";
 
 const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuantityUpdate, variantIndex }) => {
   const dispatch = useAppDispatch();
@@ -79,23 +80,25 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
   return (
     <div>
       <h4>Stock Management</h4>
-      <Accordion multiple>
-        <AccordionTab header="Update Stock Quantity" className="p-3">
-          <label className="font-semibold pr-3">Select Warehouses</label>
-          <Select
-            isMulti
-            value={selectedWarehouses}
-            onChange={handleWarehouseChange}
-            options={wareHouses}
-            getOptionLabel={(option) => option.name}
-            getOptionValue={(option) => option.id}
-            placeholder="Select Warehouses"
-          />
+      <label className="font-semibold pr-3">Select Warehouses</label>
+      <Select
+        isMulti
+        value={selectedWarehouses}
+        onChange={handleWarehouseChange}
+        options={wareHouses}
+        getOptionLabel={(option) => option.name}
+        getOptionValue={(option) => option.id}
+        placeholder="Select Warehouses"
+      />
 
-          {updatedStockQuantities.map((stock, index) => (
-            <div key={stock.id} className="mb-3 mt-3">
-              <p>Location: <span className="font-semibold">{stock?.location?.name}</span></p>
-              <div className='col d-flex flex-column gap-2 mt-3'>
+      {updatedStockQuantities.map((stock, index) => (
+        <div key={stock.id} className="mb-3 mt-3">
+          <Row>
+            <Col md={12}>
+              <h5>Location: {stock?.location?.name}</h5>
+            </Col>
+            <Col md='4'>
+              <div className='col d-flex flex-column gap-2'>
                 <label className="font-semibold">
                   <Translate contentKey='items.update.minimumStockLevel.title'>Minimum Stock Level</Translate>
                 </label>
@@ -111,7 +114,9 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
                   onChange={(e) => handleStockQuantityChange("minimumStockLevel", e.value, index)}
                 />
               </div>
-              <div className='col d-flex flex-column gap-2 mt-3'>
+            </Col>
+            <Col md='4'>
+              <div className='col d-flex flex-column gap-2'>
                 <label className="font-semibold">
                   <Translate contentKey='items.update.stockQuantity.quantity'>Quantity</Translate>
                 </label>
@@ -127,7 +132,9 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
                   onChange={(e) => handleStockQuantityChange("quantity", e.value, index)}
                 />
               </div>
-              <div className='col d-flex flex-column gap-2 mt-3'>
+            </Col>
+            <Col md='4'>
+              <div className='col d-flex flex-column gap-2'>
                 <label className="font-semibold">
                   <Translate contentKey='items.update.stockQuantity.unitCost'>Unit Cost</Translate>
                 </label>
@@ -143,14 +150,12 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
                   onChange={(e) => handleStockQuantityChange("unitCost", e.value, index)}
                 />
               </div>
-            </div>
-          ))}
-        </AccordionTab>
+            </Col>
+          </Row>
+        </div>
+      ))}
 
-        <AccordionTab header="Update Purchase Config" className="p-3">
-          <PurchaseConfigUpdateTab purchaseConfigEntity={variant?.purchaseConfig} onConfigChange={handleConfigChange} variantIndex={variantIndex} id={variant?.id} />
-        </AccordionTab>
-      </Accordion>
+      <PurchaseConfigUpdateTab purchaseConfigEntity={variant?.purchaseConfig} onConfigChange={handleConfigChange} variantIndex={variantIndex} id={variant?.id} />
     </div>
   );
 };
