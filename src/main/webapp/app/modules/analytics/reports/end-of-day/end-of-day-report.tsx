@@ -8,6 +8,7 @@ import { Alert, Spinner } from 'reactstrap';
 import { useParams } from 'react-router-dom';
 import { translate, Translate } from 'react-jhipster';
 import GenericSalesReport from 'app/shared/components/report/generic-sales-report';
+import TipSummary from 'app/shared/components/report/tip-summary';
 import EndOfTillTotalReceived from 'app/shared/components/report/summary-report-total-received';
 import RelatedTills from 'app/modules/analytics/reports/end-of-day/related-tills';
 import ReactToPrint from 'react-to-print';
@@ -174,6 +175,7 @@ const EndOfDayReport = () => {
         <GenericSalesReport title={translate('analytics.report.pickUp')} report={salesData.totalSalesByOrderOption?.PickUp} />
         <GenericSalesReport title={translate('analytics.report.delivery')} report={salesData.totalSalesByOrderOption?.Delivery} />
         <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />
+        <TipSummary report={salesData.tipSummary} />
       </div>
 
       {endOfDay?.fromDate && endOfDay?.toDate && (
