@@ -63,11 +63,8 @@ const VariantPackaging = ({
     }
 
     return (
-        <div className='pt-4'>
-            <h4>
-                Packaging
-            </h4>
-            <Row className="mt-4">
+        <div className=''>
+            <Row className="">
                 <Col className='flex gap-2 align-items-baseline justify-content-center w-100'>
                     <h5>The product that this product breaks into</h5>
                     <h6 className='text-muted'>Products can only break into one other product</h6>
