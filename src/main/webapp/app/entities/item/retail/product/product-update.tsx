@@ -1621,13 +1621,12 @@ export const ProductUpdate = () => {
                                                     <Col md="12">
                                                       <SupplierAssociationTab
                                                         onSupplierChange={handleSupplierChange}
-                                                        variants={product?.variants}
+                                                        variant={variant}
                                                         itemId={product.id}
                                                         suppliers={supplierList}
                                                       />
                                                     </Col>
                                                   </Row>
-
                                                 </TabPanel>
                                                 <TabPanel header='Shipping'>
                                                   <Row>

@@ -1,18 +1,18 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {useLocation, useNavigate} from 'react-router-dom';
-import {Row, Col, FormGroup, Label, Table} from 'reactstrap';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Row, Col, FormGroup, Label, Table } from 'reactstrap';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { reset } from './purchase-config.reducer';
-import {getEntities as getSuppliers} from '../supplier/supplier.reducer';
-import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState, translate, Translate} from "react-jhipster";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {InputNumber} from "primereact/inputnumber";
-import {Dropdown} from "primereact/dropdown";
-import {Card as PrimeCard} from 'primereact/card'
+import { getEntities as getSuppliers } from '../supplier/supplier.reducer';
+import { IPurchaseConfig } from "app/shared/model/STOCK/purchase-config.model";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { getSortState, translate, Translate } from "react-jhipster";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { InputNumber } from "primereact/inputnumber";
+import { Dropdown } from "primereact/dropdown";
+import { Card as PrimeCard } from 'primereact/card'
 
 interface PurchaseConfigUpdateTabProps {
   id?: string; // Make `id` optional,
@@ -21,7 +21,7 @@ interface PurchaseConfigUpdateTabProps {
   purchaseConfigEntity: IPurchaseConfig;
 }
 
-export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = ({variantIndex, id, onConfigChange, purchaseConfigEntity}) => {
+export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = ({ variantIndex, id, onConfigChange, purchaseConfigEntity }) => {
   const dispatch = useAppDispatch();
   const location = useLocation();
   const isNew = id === undefined;
@@ -57,10 +57,10 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
       dispatch(reset())
     }
 
-  }, [ variantIndex, id ]);
+  }, [variantIndex, id]);
 
   useEffect(() => {
-    if(purchaseConfigEntity){
+    if (purchaseConfigEntity) {
       setStockConfig(purchaseConfigEntity)
     }
   }, [purchaseConfigEntity?.id]);
@@ -87,13 +87,13 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
 
 
   const handleSupplierConfigChange = (configIndex, price) => {
-      setStockConfig((prevState) => {
-        const updatedConfigurations = prevState?.supplierConfigurations?.map((supConfig, index) => {
+    setStockConfig((prevState) => {
+      const updatedConfigurations = prevState?.supplierConfigurations?.map((supConfig, index) => {
 
-          return {...supConfig, defaultPrice: configIndex === index ? price : supConfig.defaultPrice}
-        })
-        return {...prevState, supplierConfigurations: updatedConfigurations}
+        return { ...supConfig, defaultPrice: configIndex === index ? price : supConfig.defaultPrice }
       })
+      return { ...prevState, supplierConfigurations: updatedConfigurations }
+    })
   };
 
   return (
@@ -105,9 +105,9 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
       </Row>
       <Row>
         <Col className="d-flex flex-column p-3">
-          <PrimeCard>
-              <FormGroup>
-
+          <FormGroup>
+            <Row>
+              <Col md="6">
                 <div className={"d-flex flex-column mt-2"}>
                   <strong>
                     <Label for="defaultPrice">{translate("tempApp.stockConfig.defaultPrice")}</Label>
@@ -121,10 +121,11 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
                     required
                   />
                 </div>
-
+              </Col>
+              <Col md="6">
                 <div className={"d-flex flex-column mt-2"}>
                   <strong>
-                  <Label for="minOrderQuantity">{translate("tempApp.stockConfig.minOrderQuantity")}</Label>
+                    <Label for="minOrderQuantity">{translate("tempApp.stockConfig.minOrderQuantity")}</Label>
                   </strong>
                   <InputNumber
                     name="minOrderQuantity"
@@ -134,50 +135,50 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
                     className={"w-full md:w-20rem"}
                   />
                 </div>
+              </Col>
+            </Row>
 
-
-                <div className={"d-flex flex-column mt-2 "}>
-                <strong>
-                  <Label>{translate("tempApp.stockConfig.supplierConfig")}</Label>
-                </strong>
-                <div className={"d-flex flex-column border p-3"}>
-                  <Label>{translate("tempApp.stockConfig.selectSupplier")}</Label>
-                  <Dropdown
-                    options={filteredSuppliers}
-                    placeholder={translate("tempApp.stockConfig.selectSupplier")}
-                    className="w-full md:w-14rem"
-                    optionLabel={"name"}
-                    filter
-                    onChange={handleAddSupplier}
-                  />
+            <div className={"d-flex flex-column mt-2 "}>
+              <strong>
+                <Label>{translate("tempApp.stockConfig.supplierConfig")}</Label>
+              </strong>
+              <div className={"d-flex flex-column border p-3"}>
+                <Label>{translate("tempApp.stockConfig.selectSupplier")}</Label>
+                <Dropdown
+                  options={filteredSuppliers}
+                  placeholder={translate("tempApp.stockConfig.selectSupplier")}
+                  className="w-full md:w-14rem"
+                  optionLabel={"name"}
+                  filter
+                  onChange={handleAddSupplier}
+                />
                 <Table bordered className={"mt-2"}>
                   <thead>
-                  <tr>
-                  <th>{translate("common.supplier")}</th>
-                  <th>{translate("common.costPrice")}</th>
-                  </tr>
+                    <tr>
+                      <th>{translate("common.supplier")}</th>
+                      <th>{translate("common.costPrice")}</th>
+                    </tr>
                   </thead>
                   <tbody>
-                  {purchaseConfig?.supplierConfigurations?.map((supConfig, index) => (
-                    <tr key={supConfig.supplier.id}>
-                      <td>{supConfig.supplier.name}</td>
-                      <td>
-                        <InputNumber
-                          required
-                          onWheel={(e: any) => e.target.blur()}
-                          size={60}
-                          value={supConfig?.defaultPrice}
-                          onChange={e => handleSupplierConfigChange(index, e.value)}
-                        />
-                      </td>
-                    </tr>
-                  ))}
+                    {purchaseConfig?.supplierConfigurations?.map((supConfig, index) => (
+                      <tr key={supConfig.supplier.id}>
+                        <td>{supConfig.supplier.name}</td>
+                        <td>
+                          <InputNumber
+                            required
+                            onWheel={(e: any) => e.target.blur()}
+                            size={60}
+                            value={supConfig?.defaultPrice}
+                            onChange={e => handleSupplierConfigChange(index, e.value)}
+                          />
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </Table>
-                </div>
               </div>
-              </FormGroup>
-          </PrimeCard>
+            </div>
+          </FormGroup>
         </Col>
       </Row>
     </div>
