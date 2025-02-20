@@ -14,8 +14,7 @@ import { Col, Row } from "reactstrap";
 
 const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuantityUpdate, variantIndex }) => {
   const dispatch = useAppDispatch();
-  const [updatedStockQuantities, setUpdatedStockQuantities] = useState<IStockQuantity[]>([]);
-  const stockQuantities = variant?.stockQuantities ? variant?.stockQuantities : [];
+  const [updatedStockQuantities, setUpdatedStockQuantities] = useState<IStockQuantity[]>(variant?.stockQuantities || []);
   const wareHouses = useAppSelector(state => state.warehouse.entities);
   const [selectedWarehouses, setSelectedWarehouses] = useState<IWarehouse[]>([]);
   const isNew = itemId === undefined;
@@ -25,15 +24,19 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
   };
 
   useEffect(() => {
-    const locationIds = stockQuantities.map(item => item.location.id);
+    console.log(variant, 'variant')
+    console.log(variant?.stockQuantities, 'variant?.stockQuantities')
+    const locationIds = variant?.stockQuantities?.map(item => item.location.id);
+    console.log(locationIds, 'locationIds');
     const filteredSelectedWarehouses = wareHouses.filter(warehouse => locationIds.includes(warehouse.id));
-
+    console.log(filteredSelectedWarehouses, 'filteredSelectedWarehouses');
+    console.log(wareHouses, 'wareHouses');
     if (isNew) {
       setSelectedWarehouses([]);
       setUpdatedStockQuantities([]);
     } else {
       setSelectedWarehouses(filteredSelectedWarehouses);
-      setUpdatedStockQuantities(stockQuantities);
+      setUpdatedStockQuantities(variant?.stockQuantities);
     }
   }, [wareHouses]);
 
@@ -91,7 +94,7 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
         placeholder="Select Warehouses"
       />
 
-      {updatedStockQuantities.map((stock, index) => (
+      {updatedStockQuantities?.map((stock, index) => (
         <div key={stock.id} className="mb-3 mt-3">
           <Row>
             <Col md={12}>
