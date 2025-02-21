@@ -111,8 +111,8 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
 
 
   return (
-    <div className={"d-flex flex-row gap-3"}>
-      <div className={'d-flex flex-column'}>
+    <div className={"d-flex flex-column gap-3"}>
+      <div className={'d-flex'}>
         <Select
           value={itemAttribute?.attributeTax || null}
           options={availableAttributes}
@@ -129,7 +129,7 @@ const AttributeDropdownFilter = ({ filteredAttributes, availableAttributes, onAt
           onChange={handleItemAttributeSelect}
         />
       </div>
-      <div className={'d-flex flex-column'}>
+      <div className={'d-flex'}>
         <AsyncSelect
           value={itemAttribute?.attributeTerms}
           isDisabled={!itemAttribute?.attributeTax}

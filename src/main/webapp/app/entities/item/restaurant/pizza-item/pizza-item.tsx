@@ -9,7 +9,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { createEntity, deleteEntities, filterEntities, getEntities } from './pizza-item.reducer';
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
-import { Column } from "primereact/column";
+import { Column, ColumnProps } from "primereact/column";
 import { IPizzaItem } from "app/shared/model/ITEM/restaurant/pizza-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
@@ -23,14 +23,26 @@ import { updateEntities } from './pizza-item.reducer';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { FilterMatchMode } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
-import { FaCopy } from 'react-icons/fa';
+import { FaCog, FaCopy } from 'react-icons/fa';
+import { Menu } from 'primereact/menu';
+import { Checkbox } from 'primereact/checkbox';
+import { SummarizeText } from 'app/shared/util/SummarizeText';
+
+interface ColumnConfig extends Partial<ColumnProps> {
+  field: string;
+  header: string;
+  key?: string;
+  seq: number;
+  visible: boolean
+}
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
 
   const location = useLocation();
   const navigate = useNavigate();
-
+  const menu: any = useRef(null);
+  const LOCAL_STORAGE_KEY = 'pizza-item-columns';
   const [search, setSearch] = useState('');
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -118,7 +130,7 @@ export const PizzaItem = () => {
   const nameColumnTemplate = rowData => {
     const editUrl = `/restaurant/pizza/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     return (
-      <Link to={editUrl}>
+      <Link className="font-normal" to={editUrl}>
         {rowData.name}
       </Link>
     );
@@ -141,6 +153,67 @@ export const PizzaItem = () => {
     );
   };
 
+      const AddonLinkTemplate = ({ rowData }) => {
+        if (!rowData) return null; // If addonGroup is empty or undefined, return nothing
+        return (
+          <Link className="font-normal" to={`/addon-groups/${rowData.id}/edit`}>
+            {rowData.name}
+          </Link>
+        );
+      };
+    
+      const AddonGroupsBody =  rowData => {
+        const addonGroups = rowData?.addonGroups;
+      
+        if (!addonGroups || addonGroups.length === 0) {
+          return "No Addons"; // Display when no addons are available
+        }
+      
+        // Map through addonGroups and render them as links separated by "|"
+        return addonGroups.map((addon, index) => (
+          <>
+            <AddonLinkTemplate key={addon?.addonGroup?.id} rowData={addon?.addonGroup} />
+            {index < addonGroups.length - 1 && ' | '}
+          </>
+        ));
+      };
+    
+      const TagsBody =  rowData => {
+        const tags = rowData?.tags;
+      
+        if (!tags || tags.length === 0) {
+          return "No Tags"; // Display when no addons are available
+        }
+      
+        // Map through addonGroups and render them as links separated by "|"
+        return tags.map((tag, index) => (
+          <>
+          <Link className="font-normal" to={`/tag/${tag.id}/edit`}>
+            {tag.name}
+            {index < tags.length - 1 && ' | '}
+          </Link>
+          </>
+        ));
+      };
+      
+  const DiscountBody =  rowData => {
+    const discounts = rowData?.discounts;
+    if (!discounts || discounts.length === 0) {
+      return "No Discounts"; // Display when no addons are available
+    }
+  
+    // Map through addonGroups and render them as links separated by "|"
+    return discounts.map((discount, index) => (
+      <>
+
+      <Link className="font-normal" to={`/discount/${discount.id}/edit`}>
+      {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
+        {index < discounts.length - 1 && ' | '}
+      </Link>
+      </>
+    ));
+  };
+
   const MenusTemplate = (rowData) => {
     const menus = []
     rowData?.rowData?.menus?.forEach(menu => {
@@ -152,7 +225,7 @@ export const PizzaItem = () => {
     })
 
     return <div>{menus.map((menu, idx) => (
-      <Link key={idx} to={`/menu/${menu.id}/${menu.type}/edit?page=1&sort=id,asc`}>
+      <Link className="font-normal" key={idx} to={`/menu/${menu.id}/${menu.type}/edit?page=1&sort=id,asc`}>
         {menu.name} {idx === menus.length - 1 ? '' : ' | '}
       </Link>
     ))}</div>
@@ -245,9 +318,178 @@ export const PizzaItem = () => {
     );
   };
 
+  const columnsConfig: ColumnConfig[] = [
+    {
+      field: "name",
+      header: translate("items.view.fields.name"),
+      body: nameColumnTemplate,
+      filterPlaceholder: translate("items.view.filters.name"),
+      filter: true,
+      filterField: "name",
+      filterElement: nameFilterTemplate,
+      sortable: true,
+      key: "name",
+      seq: 1,
+      visible: true
+    },
+    {
+      field: "categories",
+      header: "Category",
+      body: (rowData) => rowData?.categories?.map((cat) => cat?.name).join(" | "),
+      sortable: true,
+      filter: true,
+      showFilterMatchModes: false,
+      filterElement: (
+        <DropDownFilter
+          dropDownOptionType={"RESTAURANT_CATEGORY"}
+          selectedOption={query?.filters?.["categories.id"]?.value}
+          fieldName={"categories.id"}
+          handleDropdownChange={handleDropdownChange}
+        />
+      ),
+      key: "categories",
+      seq: 2,
+      visible: true
+    },
+    {
+      field: "image",
+      header: translate("items.view.fields.image"),
+      body: (rowData) => (
+        <ImageDisplay
+          imageType={"product"}
+          imageUrl={
+            rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url
+          }
+          height={50}
+          width={50}
+        />
+      ),
+      key: "image",
+      seq: 3,
+      visible: true
+    },
+    {
+      field: "menus",
+      header: translate("items.view.fields.menus"),
+      body: (rowData) => <MenusTemplate rowData={rowData} />,
+      key: "menus",
+      seq: 4,
+      visible: true
+    },
+    {
+      field: "desc",
+      header: translate("items.view.fields.type"),
+      body: (rowData) => rowData?.variants?.[0]?.pizzaVariantType,
+      key: "desc",
+      seq: 5,
+      visible: true
+    },
+    {
+      field: "Type",
+      header: translate("items.view.fields.description"),
+      key: "Type",
+      seq: 6,
+      visible: true
+    },
+
+    {
+      field: "productionCenter",
+      key: "productionCenter",
+      header: translate("items.view.fields.productionCenter"),
+      body: (rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>,
+      headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
+      bodyStyle: { textAlign: "left", overflow: "visible" },
+      seq: 7,
+      visible: true
+    },
+
+    {
+      field: "addonGroups",
+      header: "Addon Groups",
+      body: AddonGroupsBody,
+      key: "addonGroups",
+      seq: 8,
+      visible: true
+    },
+
+    {
+      field: "tags",
+      header: "Tags",
+      body: TagsBody,
+      key: "tags",
+      seq: 9,
+      visible: true
+    },
+
+    {
+      field: "discounts",
+      header: translate("items.view.fields.discount"),
+      body: DiscountBody,
+      sortable: true,
+      key: "discounts",
+      seq: 10,
+      visible: true
+    },
+
+    {
+      field: "actions",
+      key: "actions",
+      header: "Actions",
+      body: (rowData) => (
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          {duplicateColumnTemplate(rowData)}
+          {editColumnTemplate(rowData)}
+          {deleteColumnTemplate(rowData)}
+        </div>
+      ),
+      headerStyle: { width: "5%", textAlign: "center" },
+      bodyStyle: { textAlign: "center", overflow: "visible" },
+      seq: 11,
+      visible: true
+    }
+  ];
+  
+  const [visibleColumns, setVisibleColumns] = useState(() => {
+    const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
+    const storedFields = storedData[LOCAL_STORAGE_KEY];
+  
+    if (storedFields) {
+      return columnsConfig.filter(col => storedFields.includes(col.field) || col.field === "actions");
+    }
+  
+    return columnsConfig; // Default to all columns
+  });
+
+
+  const onColumnToggle = (field) => {
+    let updatedColumns;
+  
+    if (visibleColumns.some((col) => col.field === field && col.field !== "actions")) {
+      updatedColumns = visibleColumns.filter((col) => col.field !== field);
+    } else {
+      const columnToAdd = columnsConfig.find((col) => col.field === field);
+      if (columnToAdd) {
+        updatedColumns = [...visibleColumns, columnToAdd].sort((a, b) => a.seq - b.seq);
+      }
+    }
+  
+    // Ensure "actions" is always included
+    updatedColumns = updatedColumns.filter(col => col.field === "actions" || columnsConfig.some(config => config.field === col.field));
+  
+    // Get existing stored items
+    const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
+    storedData[LOCAL_STORAGE_KEY] = updatedColumns.map(col => col.field); // Store only field names
+  
+    localStorage.setItem("visible_columns", JSON.stringify(storedData));
+  
+    setVisibleColumns(updatedColumns || []);
+  };
+  
+  const columnOptions = columnsConfig.filter(( { field } ) => field !== 'actions').map(({ field, header }) => ({ field, header }));
+
   const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl">
+    <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
+      <span className="text-xl d-flex align-items-center">
         <Dropdown
           value={selectedActionOption}
           onChange={(e) => setSelectedActionOption(e.value)}
@@ -259,15 +501,58 @@ export const PizzaItem = () => {
           optionDisabled={(option) => option.disabled}
         />
       </span>
-      <div className="ms-auto">
-        <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate('items.view.actions.createPizza')} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
+      <div className="flex align-items-center justify-content-end gap-3">
+        <Button 
+          icon="pi pi-sync" 
+          raised severity="info" 
+          onClick={handleSyncList} 
+          disabled={loading} 
+          loading={loading}
+          data-pr-position="top" 
+          tooltip={translate('items.view.actions.refreshList')}
+        />
+
+        <Button 
+          icon="pi pi-plus" 
+          raised 
+          onClick={handleCreate} 
+          disabled={loading} 
+          data-pr-position="top"
+          tooltip={translate('items.view.actions.createPizza')} 
+        />
       </div>
+
+      <div className="flex justify-between items-center">
+          <div className="relative d-flex justify-end mr-auto">
+            <Menu
+              model={[
+                {
+                  label: "Select Columns",
+                  items: columnOptions.map((col) => ({
+                    template: () => (
+                      <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          inputId={col.field}
+                          checked={visibleColumns.some((c) => c.field === col.field)}
+                          onChange={() => onColumnToggle(col.field)}
+                        />
+                        <label className="ml-2" htmlFor={col.field} >{col.header}</label>
+                      </div>
+                    ),
+                  })),
+                },
+              ]}
+              popup
+              ref={menu}
+            />
+            <Button
+              icon={<FaCog className="text-xl" />}
+              className="p-button-text mr-auto"
+              onClick={(event) => menu.current.toggle(event)}
+            />
+          </div>
+      </div>
+
     </div>
   );
 
@@ -310,61 +595,10 @@ export const PizzaItem = () => {
         selection={selectedProducts}
         onSelectionChange={(e) => setSelectedProducts(e.value)}
       >
-        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
-        <Column filterElement={nameFilterTemplate} field="name" header={translate('items.view.fields.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('items.view.filters.name')} sortable />
-
-        <Column
-          header="Category"
-          field="categories"
-          body={rowData => rowData?.categories?.map(cat => cat?.name).join(" | ")}
-          sortable
-          filter
-          showFilterMatchModes={false}
-          filterElement={
-            <DropDownFilter
-              dropDownOptionType={"RESTAURANT_CATEGORY"}
-              selectedOption={query?.filters?.["categories.id"]?.value}
-              fieldName={"categories.id"}
-              handleDropdownChange={handleDropdownChange}
-            />
-          }
-        />
-
-        <Column header={translate('items.view.fields.image')} body={(rowData) =>
-          <ImageDisplay
-            imageType={"product"}
-            imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
-            height={50}
-            width={50}
-          />} />
-
-        <Column header={translate('items.view.fields.menus')} body={(rowData) =>
-          <MenusTemplate rowData={rowData} />}
-        />
-
-        <Column field="desc" header={translate('items.view.fields.type')} body={(rowData) =>
-          rowData?.variants?.[0]?.pizzaVariantType
-        }
-        />
-
-        <Column field="Type" header={translate('items.view.fields.description')} />
-
-        {/* <Column field="stock" sortable header={translate('items.view.fields.inStock')} /> */}
-
-        <Column
-          header={translate('items.view.fields.duplicate')}
-          body={duplicateColumnTemplate}
-          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-
-        <Column header={translate('items.view.fields.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-        <Column header={translate('items.view.fields.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-
+        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+          {visibleColumns.map((col) => (
+          <Column key={col.key} {...col} />
+        ))}
       </DataTable>
     </div>
   );

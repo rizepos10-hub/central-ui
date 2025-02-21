@@ -49,12 +49,12 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
   return (
     <form className='w-100 d-flex flex-column gap-3'>
       <div className={'row'}>
-        <div className={'col-3 d-flex flex-column gap-1'}>
+        <div className={'col-12 d-flex flex-column gap-1'}>
           <Label className={'font-semibold'}>Name</Label>
           <InputTextFilter onKeyDown={handleKeyDown} value={filters?.name?.value} size={30} field={'name'} onChange={onInputChange} />
         </div>
 
-        <div className={'col-3 d-flex flex-column gap-1'}>
+        <div className={'col-12 d-flex flex-column gap-1'}>
           <Label className={'font-semibold'}>SKU</Label>
           <InputTextFilter
             onKeyDown={handleKeyDown}
@@ -64,7 +64,7 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
             onChange={onInputChange}
           />
         </div>
-        <div className={'col-3 d-flex flex-column gap-1'}>
+        <div className={'col-12 d-flex flex-column gap-1'}>
           <Label className={'font-semibold'}>Category</Label>
           <DropDownFilter
             placeholder={'Select Category'}
@@ -74,7 +74,7 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
             handleDropdownChange={handleDropdownChange}
           />
         </div>
-        <div className={'col-3 d-flex flex-column gap-1'}>
+        <div className={'col-12 d-flex flex-column gap-1'}>
           <Label className={'font-semibold'}>Base Measure</Label>
           <DropDownFilter
             dropDownOptionType={'MEASURE'}
@@ -84,7 +84,7 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
             handleDropdownChange={handleDropdownChange}
           />
         </div>
-        <div className={'col-3 d-flex gap-1'}>
+        <div className={'col-12 d-flex gap-1'}>
           <div className={'d-flex gap-2'}>
             <Checkbox
               checked={filters?.['attachments']?.matchMode === FilterMatchMode.NOT_EQUALS}
