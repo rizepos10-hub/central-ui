@@ -1099,7 +1099,7 @@ const LayoutDefaultRestaurantCategories = ({
                         </Label>
                         <InputText
                             id="UiSettings-domain"
-                            value={defaultLayout?.restuarantCategorySetting.title || ''}
+                            value={defaultLayout?.restuarantCategorySetting?.title || ''}
                             onChange={e => dispatch(changeEntityField({
                                 name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
                                 value: { ...defaultLayout?.restuarantCategorySetting, title: e.target.value }
@@ -1134,7 +1134,7 @@ const LayoutDefaultRestaurantCategories = ({
                                     }))
                                 }
                                 }
-                                checked={defaultLayout?.restuarantCategorySetting.showImages}
+                                checked={defaultLayout?.restuarantCategorySetting?.showImages}
                             />
                             <label htmlFor="ingredient1" className="ml-2">Show Images</label>
                         </div>
@@ -1151,7 +1151,7 @@ const LayoutDefaultRestaurantCategories = ({
                         }}>
                             {layouts.map((layout, index) => (
                                 <TabPanel key={layout.id} header={layout.name}>
-                                    <CategoriesLayout layout={layout.value} categories={defaultLayout?.restuarantCategorySetting.categories || []} />
+                                    <CategoriesLayout layout={layout.value} categories={defaultLayout?.restuarantCategorySetting?.categories || []} />
                                 </TabPanel>
                             ))}
                         </TabView>
