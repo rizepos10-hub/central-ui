@@ -5,12 +5,13 @@ import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Dropdown } from 'primereact/dropdown';
 import { Checkbox } from 'primereact/checkbox';
-import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DeviceTypesEnum, EncryptionSchemeEnum, ProviderTypesEnum } from 'app/shared/model/terminal-settings';
+import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, DebitMachineSettingsInterfaceSettingsEnum, DeviceInterfaceEnum, DeviceTypesEnum, EncryptionSchemeEnum, HandShakeEnum, ParityEnum, ProviderTypesEnum, ScaleIntegrationTypeEnum, StopBitsEnum } from 'app/shared/model/terminal-settings';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeTerminalField, updateEntity } from './branch-registry.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
 import { Button } from 'primereact/button';
 import Select from 'react-select';
+import { TabPanel, TabView } from 'primereact/tabview';
 
 type MenuItem = {
     label: string;
@@ -121,7 +122,6 @@ function GeneralSettings() {
                     description="Enable Split Bills"
                 >
                     <Checkbox
-                        inputId="enableSplitBills"
                         checked={branchRegistry?.terminalSettings?.enableSplitBill}
                         value={branchRegistry?.terminalSettings?.enableSplitBill}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'enableSplitBill', value: e.checked }))}
@@ -135,7 +135,6 @@ function GeneralSettings() {
                     description="Receive Online Order Popups"
                 >
                     <Checkbox
-                        inputId="receiveOnlineOrderPopups"
                         checked={branchRegistry?.terminalSettings?.receiveOnlineOrderPopups}
                         value={branchRegistry?.terminalSettings?.receiveOnlineOrderPopups}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'receiveOnlineOrderPopups', value: e.checked }))}
@@ -198,7 +197,6 @@ function PersonalizationSettings() {
                     description="Show item pictures in the app"
                 >
                     <Checkbox
-                        inputId="showPics"
                         checked={branchRegistry?.terminalSettings?.showItemsPic}
                         value={branchRegistry?.terminalSettings?.showItemsPic}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'showItemsPic', value: e.checked }))}
@@ -212,7 +210,6 @@ function PersonalizationSettings() {
                     description="Show Retail Items Only in the app"
                 >
                     <Checkbox
-                        inputId="showRetailItemsOnly"
                         checked={branchRegistry?.terminalSettings?.showRetailItemsOnly}
                         value={branchRegistry?.terminalSettings?.showRetailItemsOnly}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'showRetailItemsOnly', value: e.checked }))}
@@ -248,7 +245,6 @@ function AdminActionsSettings() {
                     description="Select Pricing Point"
                 >
                     <Checkbox
-                        inputId="selectPricingPoint"
                         checked={branchRegistry?.terminalSettings?.selectPricingPoint}
                         value={branchRegistry?.terminalSettings?.selectPricingPoint}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'selectPricingPoint', value: e.checked }))}
@@ -355,6 +351,279 @@ function ScaleSettings() {
     );
 }
 
+function Devices() {
+    const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const dispatch = useAppDispatch();
+
+    const selectedType = branchRegistry.terminalSettings.scaleIntegrationType
+
+    const integrationTypeOptions = [
+        { label: 'Direct', value: ScaleIntegrationTypeEnum.direct },
+        { label: 'Rize Integrator', value: ScaleIntegrationTypeEnum.rizeIntegrator },
+    ];
+
+    return (
+        <TabView>
+            <TabPanel header="Price computing scale">
+                <ScaleSettings />
+            </TabPanel>
+            <TabPanel header="Direct scale">
+                <div className="grid">
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-server"
+                            title="Integration Type"
+                            description="Integration type of the direct scale which can be either direct communication or rize integrator"
+                        >
+                            <Dropdown
+                                value={selectedType}
+                                options={integrationTypeOptions}
+                                onChange={e => dispatch(changeTerminalField({ name: "scaleIntegrationType", value: e.value }))}
+                                placeholder="Select Integration Type"
+                                className="w-full"
+                            />
+                        </FieldWrapper>
+                    </div>
+                    {/* Conditionally rendered based on integration type */}
+                    {selectedType === ScaleIntegrationTypeEnum.direct && (
+                        <>
+                            <div className="col-12">
+                                <FieldWrapper
+                                    icon="pi-pencil"
+                                    title="Serial Port Name"
+                                    description="Serial port name that the scaale is connected to"
+                                >
+                                    <InputText
+                                        value={branchRegistry?.terminalSettings?.serialScaleSettings?.serialPortName}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'serialScaleSettings.serialPortName', value: e.target.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                            <div className="col-12">
+                                <FieldWrapper
+                                    icon="pi-window-minimize"
+                                    title="Get weight message"
+                                    description="The message sent to the scale when getting the weight"
+                                >
+                                    <InputText
+                                        value={branchRegistry?.terminalSettings?.serialScaleSettings?.getWeightMessage}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'serialScaleSettings.getWeightMessage', value: e.target.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                            <div className="col-12">
+                                <FieldWrapper
+                                    icon="pi-cloud"
+                                    title="Expected payload length"
+                                    description="Expected payload length of the scale in the serial port"
+                                >
+                                    <InputText
+                                        value={branchRegistry?.terminalSettings?.serialScaleSettings?.expectedPayloadLength}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'serialScaleSettings.expectedPayloadLength', value: e.target.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                        </>
+                    )}
+
+                    {selectedType === ScaleIntegrationTypeEnum.rizeIntegrator && (
+                        <>
+                            <div className="col-12">
+                                <FieldWrapper
+                                    icon="pi-cloud"
+                                    title="Scale command"
+                                    description="The command that the integrator will use to get the weight from serial scale"
+                                >
+                                    <InputText
+                                        value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.scaleCommand}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.scaleCommand', value: e.target.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                            <div className="col-12">
+                                <FieldWrapper
+                                    icon="pi-cloud"
+                                    title="Weight multiplier"
+                                    description="The weight multiplier of the scale used by rize integrator"
+                                >
+                                    <InputNumber
+                                        value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.weightMultiplier}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.weightMultiplier', value: e.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                            <div className="col-12">
+                                <FieldWrapper
+                                    icon="pi-cloud"
+                                    title="Scale result length"
+                                    description="The scale result length of the scale used by rize integrator"
+                                >
+                                    <InputNumber
+                                        value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.scaleResultLength}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.scaleResultLength', value: e.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                            <div className="col-12">
+                                <FieldWrapper
+                                    icon="pi-shopping-bag"
+                                    title="Interface Type"
+                                    description="Interface Type used to communicate with the direct scale"
+                                >
+                                    <Dropdown
+                                        options={Object.values(DeviceInterfaceEnum).map(method => ({ label: method, value: method }))}
+                                        value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.deviceInterface}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.deviceInterface', value: e.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                            {branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.deviceInterface === DeviceInterfaceEnum.serial && (
+                                <>
+                                    <div className="col-12">
+                                        <FieldWrapper
+                                            icon="pi-sort-numeric-up-alt"
+                                            title="Com Port"
+                                            description="Com Port that the direct scale will use"
+                                        >
+                                            <InputNumber
+                                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.comPort}
+                                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.comPort', value: e.value }))}
+                                            />
+                                        </FieldWrapper>
+                                    </div>
+                                    <div className="col-12">
+                                        <FieldWrapper
+                                            icon="pi-sort-numeric-up-alt"
+                                            title="Baud Rate"
+                                            description="Baud Rate that the direct scale will use"
+                                        >
+                                            <InputNumber
+                                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.baudRate}
+                                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.baudRate', value: e.value }))}
+                                            />
+                                        </FieldWrapper>
+                                    </div>
+                                    <div className="col-12">
+                                        <FieldWrapper
+                                            icon="pi-sort-numeric-up-alt"
+                                            title="Parity"
+                                            description="Parity that the direct scale will use"
+                                        >
+                                            <Dropdown
+                                                options={Object.values(ParityEnum).map(method => ({ label: method, value: method }))}
+                                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.parity}
+                                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.parity', value: e.value }))}
+                                            />
+                                        </FieldWrapper>
+                                    </div>
+                                    <div className="col-12">
+                                        <FieldWrapper
+                                            icon="pi-database"
+                                            title="Data bits"
+                                            description="Data bits that the direct scale will use"
+                                        >
+                                            <Dropdown
+                                                options={Object.values(DataBitsEnum).map(method => ({ label: method, value: method }))}
+                                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.dataBits}
+                                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.dataBits', value: e.value }))}
+                                            />
+                                        </FieldWrapper>
+                                    </div>
+                                    <div className="col-12">
+                                        <FieldWrapper
+                                            icon="pi-stop-circle"
+                                            title="Stop bits"
+                                            description="Stop bits that the direct scale will use"
+                                        >
+                                            <Dropdown
+                                                options={Object.values(StopBitsEnum).map(method => ({ label: method, value: method }))}
+                                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.stopBits}
+                                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.stopBits', value: e.value }))}
+                                            />
+                                        </FieldWrapper>
+                                    </div>
+                                    <div className="col-12">
+                                        <FieldWrapper
+                                            icon="pi-mobile"
+                                            title="Hand shake"
+                                            description="Hand shake that the direct scale will use"
+                                        >
+                                            <Dropdown
+                                                options={Object.values(HandShakeEnum).map(method => ({ label: method, value: method }))}
+                                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.handShake}
+                                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.handShake', value: e.value }))}
+                                            />
+                                        </FieldWrapper>
+                                    </div>
+                                    <div className="col-12">
+                                        <FieldWrapper
+                                            icon="pi-lock-open"
+                                            title="Dtr Enabled"
+                                            description="Dtr Enabled that the direct scale will use"
+                                        >
+                                            <Checkbox
+                                                checked={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings.interfaceSettings?.dtrEnabled}
+                                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings.interfaceSettings?.dtrEnabled}
+                                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.dtrEnabled', value: e.checked }))}
+                                            />
+                                        </FieldWrapper>
+                                    </div>
+                                    <div className="col-12">
+                                        <FieldWrapper
+                                            icon="pi-lock-open"
+                                            title="Rts Enabled"
+                                            description="Rts Enabled that the direct scale will use"
+                                        >
+                                            <Checkbox
+                                                checked={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings.interfaceSettings?.rtsEnabled}
+                                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings.interfaceSettings?.rtsEnabled}
+                                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.rtsEnabled', value: e.checked }))}
+                                            />
+                                        </FieldWrapper>
+                                    </div>
+                                    <div className="col-12">
+                                        <FieldWrapper
+                                            icon="pi-lock-open"
+                                            title="Add Cr"
+                                            description="Add Cr that the direct scale will use"
+                                        >
+                                            <Checkbox
+                                                checked={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings.interfaceSettings?.addCr}
+                                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings.interfaceSettings?.addCr}
+                                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.addCr', value: e.checked }))}
+                                            />
+                                        </FieldWrapper>
+                                    </div>
+                                </>
+                            )}
+                        </>
+                    )}
+                </div>
+            </TabPanel>
+            <TabPanel header="Debit machine">
+                <CreditCardSettings />
+            </TabPanel>
+            <TabPanel header="Rize integrator">
+                <div className="col-12">
+                    <FieldWrapper
+                        icon="pi-cloud"
+                        title="Weight multiplier"
+                        description="The weight multiplier of the scale used by rize integrator"
+                    >
+                        <InputNumber
+                            value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.port}
+                            onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.port', value: e.value }))}
+                        />
+                    </FieldWrapper>
+                </div>
+            </TabPanel>
+            <TabPanel header="Customer screen">
+                <CustomerAppSettings />
+            </TabPanel>
+        </TabView>
+    )
+}
+
 function EmailLogsSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
@@ -402,7 +671,6 @@ function CustomerAppSettings() {
                     description="This flag enables the customer screen and allows the pos to connect and send it the required data"
                 >
                     <Checkbox
-                        inputId="enableCusomterScreen"
                         checked={branchRegistry?.terminalSettings?.enableCustomerApp}
                         value={branchRegistry?.terminalSettings?.enableCustomerApp}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'enableCustomerApp', value: e.checked }))}
@@ -416,7 +684,6 @@ function CustomerAppSettings() {
                     description="If checked, it will enable the capabilty to open the app from the pos window (only available on windows)"
                 >
                     <Checkbox
-                        inputId="sameDevice"
                         disabled={!branchRegistry?.terminalSettings?.enableCustomerApp}
                         checked={branchRegistry?.terminalSettings?.enableCustomerApp && branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
                         value={branchRegistry?.terminalSettings?.enableCustomerApp && branchRegistry?.terminalSettings?.customerAppIsOnSameDevice}
@@ -460,6 +727,7 @@ const CreditCardSettings = () => {
         { label: 'Elavon CWS', value: CreditCardIntegrationTypeEnum.ELAVON_CWS },
         { label: 'Elavon', value: CreditCardIntegrationTypeEnum.ELAVON },
         { label: 'Ingenico', value: CreditCardIntegrationTypeEnum.INGENICO },
+        { label: 'Rize Integrator', value: CreditCardIntegrationTypeEnum.rizeIntegrator },
     ];
 
     const selectedType = branchRegistry?.terminalSettings?.creditCardIntegrationType;
@@ -713,6 +981,120 @@ const CreditCardSettings = () => {
                 </>
             )}
 
+            {selectedType === CreditCardIntegrationTypeEnum.rizeIntegrator && (
+                <>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="Connection Timeout In Seconds"
+                            description="Connection timeout in seconds used by the debit machine"
+                        >
+                            <InputNumber
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.connectionTimeoutInSeconds}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.connectionTimeoutInSeconds', value: e.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="Paymentree Terminal Port"
+                            description="Paymentree terminal port used by the debit machine"
+                        >
+                            <InputNumber
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.paymentreeTerminalPort}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.paymentreeTerminalPort', value: e.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="Paymentree Client Id"
+                            description="Paymentree client id used by the debit machine"
+                        >
+                            <InputText
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.paymentreeClientId}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.paymentreeClientId', value: e.target.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="Paymentree Location"
+                            description="Paymentree location used by the debit machine"
+                        >
+                            <InputText
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.paymentreeLocation}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.paymentreeLocation', value: e.target.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="Paymentree Register Id"
+                            description="Paymentree register id used by the debit machine"
+                        >
+                            <InputText
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.paymentreeRegisterId}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.paymentreeRegisterId', value: e.target.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="Paymentree Terminal IP"
+                            description="Paymentree terminal ip used by the debit machine"
+                        >
+                            <InputText
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.paymentreeTerminalIp}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.paymentreeTerminalIp', value: e.target.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-shopping-bag"
+                            title="Interface Type"
+                            description="Interface type used to communicate with the debit machine"
+                        >
+                            <Dropdown
+                                options={Object.values(DebitMachineSettingsInterfaceSettingsEnum).map(method => ({ label: method, value: method }))}
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.interfaceSettings}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.interfaceSettings', value: e.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="IP"
+                            description="Ip address that the debit machine will use"
+                        >
+                            <InputText
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.ipAddress}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.ipAddress', value: e.target.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="Port"
+                            description="Port that the debit machine will use"
+                        >
+                            <InputNumber
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.port}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.port', value: e.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                </>
+            )}
+
         </div>
     );
 };
@@ -873,7 +1255,6 @@ function PrinterProperties() {
                     description="Disabling this will disable printing the receipt on payment and you will be obliged to click the button to print it, only applies to walk in orders"
                 >
                     <Checkbox
-                        inputId="printReceiptByDefault"
                         checked={branchRegistry.terminalSettings?.printReceiptByDefault}
                         value={branchRegistry.terminalSettings?.printReceiptByDefault}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'printReceiptByDefault', value: e.target.checked }))}
@@ -887,7 +1268,6 @@ function PrinterProperties() {
                     description="Show order number just above the receipt number"
                 >
                     <Checkbox
-                        inputId="showOrderNumber"
                         checked={branchRegistry.terminalSettings?.receiptShowOrderNumber}
                         value={branchRegistry.terminalSettings?.receiptShowOrderNumber}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'receiptShowOrderNumber', value: e.target.checked }))}
@@ -936,7 +1316,6 @@ function PrinterProperties() {
                     title="Open Drawer on Debit/Credit Transactions"
                     description="Option to open drawer on debit/card related transactions"
                 >
-                    <Checkbox inputId='openDrawerOnDebitCreditTransactions' checked />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -954,7 +1333,6 @@ function PrinterProperties() {
                     title="Reverse"
                     description="Send print commands in reverse (This is a special case for some printers where it prints the data in reverse)"
                 >
-                    <Checkbox inputId="printDefault" checked />
                 </FieldWrapper>
             </div>
             <div className="col-12 mt-2">
@@ -999,10 +1377,11 @@ const sections: MenuItem[] = [
     { label: 'General', component: GeneralSettings },
     { label: 'Personalization', component: PersonalizationSettings },
     { label: 'Admin Actions', component: AdminActionsSettings },
-    { label: 'Scale Settings', component: ScaleSettings },
+    { label: 'Devices', component: Devices },
+    // { label: 'Scale Settings', component: ScaleSettings },
     { label: 'Email Logs settings', component: EmailLogsSettings },
-    { label: 'Customer App', component: CustomerAppSettings },
-    { label: 'Credit Card Processing', component: CreditCardSettings },
+    // { label: 'Customer App', component: CustomerAppSettings },
+    // { label: 'Credit Card Processing', component: CreditCardSettings },
     // { label: 'Server Properties', component: ServerProperties },
     { label: 'Printer Properties', component: PrinterProperties },
 ];

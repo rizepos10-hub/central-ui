@@ -437,14 +437,14 @@ const Barcode = () => {
                                     )}
                                     {printSettings.showName && (
                                         <div
-                                            style={{ height: '5mm', width: '100%', textAlign: 'center' }} className="fs-6 text-truncate"
+                                            style={{ height: printSettings.nameHeight, width: '100%', textAlign: 'center' }} className="fs-6 text-truncate"
                                         >
                                             {vSku.variantName}
                                         </div>
                                     )}
                                     {printSettings.showSku && (
                                         <div
-                                            style={{ height: '5mm' }}
+                                            style={{ height: printSettings.skuHeight }}
                                         >
                                             {vSku.sku}
                                         </div>
@@ -547,12 +547,12 @@ const Barcode = () => {
                                 </div>
                             )}
                             {printSettings.showName && (
-                                <div style={{ height: '5mm', width: '100%', textAlign: 'center' }} className="fs-6 text-truncate">
+                                <div style={{ height: printSettings.nameHeight, width: '100%', textAlign: 'center' }} className="fs-6 text-truncate">
                                     {vSku.variantName}
                                 </div>
                             )}
                             {printSettings.showSku && (
-                                <div style={{ height: '5mm' }}>
+                                <div style={{ height: printSettings.skuHeight }}>
                                     {vSku.sku}
                                 </div>
                             )}

@@ -86,7 +86,7 @@ const AttributeFilter = ({
 
 
   return (
-    <div className={"d-flex gap-2"}>
+    <div className={"d-flex gap-2 flex-column"}>
       <div className={"d-flex gap-0 justify-content-center align-items-baseline"}>
         <Label htmlFor="plusBtn" className={'font-semibold'}>Attributes</Label>
         <Button disabled={filteredAvailableAttributes.length <= 0} size={"small"}
