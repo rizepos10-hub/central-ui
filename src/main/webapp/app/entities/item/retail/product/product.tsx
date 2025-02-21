@@ -19,24 +19,35 @@ import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import ImportButton from "app/shared/components/data-import/data-import";
 import { Dropdown } from "primereact/dropdown";
-import { Col, Container, Row, Spinner } from "reactstrap";
+import { Col, Container, Row, Spinner, Tooltip } from "reactstrap";
 import { IoMdCloseCircle } from "react-icons/io";
 import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
-
+import { Sidebar } from 'primereact/sidebar';
 import { IItem } from "app/shared/model/ITEM/item.model";
 import { actionOptions, BulkEdit } from "app/shared/components/item/bulk-edit";
 import { confirmDialog } from "primereact/confirmdialog";
-import { FaCopy } from "react-icons/fa";
+import { FaCog, FaCopy } from "react-icons/fa";
 import { createEntity } from './product.reducer';
-
+import { ColumnProps } from "primereact/column";
+import { MultiSelect } from "primereact/multiselect";
+import { Menu } from "primereact/menu";
+import { Checkbox } from "primereact/checkbox";
+interface ColumnConfig extends Partial<ColumnProps> {
+  field: string;
+  header: string;
+  key?: string;
+  seq: number;
+  visible: boolean;
+}
 export const Product = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
+  const LOCAL_STORAGE_KEY = 'retail-item-columns';
+  const menu: any = useRef(null);
   const products: IProduct[] = useAppSelector(state => state.product.entities)
   const loading = useAppSelector(state => state.product.loading);
   const totalItems = useAppSelector(state => state.product.totalItems);
-
+  const [visibleRight, setVisibleRight] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
   const [localFilters, setLocalFilters] = useState(query?.filters);
@@ -125,7 +136,7 @@ export const Product = () => {
   const nameColumnTemplate = rowData => {
     const editUrl = `/product/${rowData.id}/edit`;
     return (
-      <Link to={editUrl}>
+      <Link className="font-normal" to={editUrl}>
         {rowData.name}<br />
         <span className="text-xs">#{rowData?.variants?.length}</span>
       </Link>
@@ -182,6 +193,44 @@ export const Product = () => {
       </Link>
     );
   };
+
+    
+  const TagsBody =  rowData => {
+    const tags = rowData?.tags;
+  
+    if (!tags || tags.length === 0) {
+      return "No Tags"; // Display when no addons are available
+    }
+  
+    // Map through addonGroups and render them as links separated by "|"
+    return tags.map((tag, index) => (
+      <>
+      <Link className="font-normal" to={`/tag/${tag.id}/edit`}>
+        {tag.name}
+        {index < tags.length - 1 && ' | '}
+      </Link>
+      </>
+    ));
+  };
+  
+  const DiscountBody =  rowData => {
+    const discounts = rowData?.discounts;
+    if (!discounts || discounts.length === 0) {
+      return "No Discounts"; // Display when no addons are available
+    }
+  
+    // Map through addonGroups and render them as links separated by "|"
+    return discounts.map((discount, index) => (
+      <>
+
+      <Link className="font-normal" to={`/discount/${discount.id}/edit`}>
+      {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
+        {index < discounts.length - 1 && ' | '}
+      </Link>
+      </>
+    ));
+  };
+
 
   const handleCreate = () => {
     navigate(`/product/new`)
@@ -243,9 +292,152 @@ export const Product = () => {
     setSelectedActionOption(null);
   }
 
+  const columnsConfig: ColumnConfig[] = [
+    {
+      field: "name",
+      header: translate("items.view.fields.name"),
+      body: nameColumnTemplate,
+      filterPlaceholder: translate("items.view.filters.name"),
+      sortable: true,
+      key: "name",
+      seq: 1,
+      visible: true
+    },
+    {
+      field: "categories",
+      key: "categories",
+      header: "Category",
+      body: (rowData) =>
+        rowData?.categories?.map((cat) => cat?.name).join(" | "),
+      sortable: true,
+      seq: 2,
+      visible: true
+    },
+    {
+      field: "image",
+      key: "image",
+      header: translate("items.view.fields.image"),
+      body: (rowData) => (
+        <ImageDisplay
+          imageType={"product"}
+          imageUrl={
+            rowData?.attachments?.[0]?.url ||
+            rowData?.variants?.[0]?.attachments?.[0]?.url
+          }
+          height={50}
+          width={50}
+        />
+      ),
+      seq: 3,
+      visible: true
+    },
+    {
+      field: "desc",
+      key: "desc",
+      header: translate("items.view.fields.description"),
+      body: (rowData) => <SummarizeText>{rowData.desc}</SummarizeText>,
+      seq: 4,
+      visible: true
+    },
+    {
+      field: "stock",
+      key: "stock",
+      header: translate("items.view.fields.inStock"),
+      sortable: true,
+      seq: 5,
+      visible: true
+    },
+    {
+      field: "productionCenter",
+      key: "productionCenter",
+      header: translate("items.view.fields.productionCenter"),
+      body: (rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>,
+      headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
+      bodyStyle: { textAlign: "left", overflow: "visible" },
+      seq: 7,
+      visible: true
+    },
+
+    {
+      field: "tags",
+      header: "Tags",
+      body: TagsBody,
+      key: "tags",
+      seq: 8,
+      visible: true
+    },
+
+    {
+      field: "discounts",
+      header: translate("items.view.fields.discount"),
+      body: DiscountBody,
+      sortable: true,
+      key: "discounts",
+      seq: 9,
+      visible: true
+    },
+
+    {
+      field: "actions",
+      key: "actions",
+      header: "Actions",
+      body: (rowData) => (
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          {duplicateColumnTemplate(rowData)}
+          {editColumnTemplate(rowData)}
+          {deleteColumnTemplate(rowData)}
+        </div>
+      ),
+      headerStyle: { width: "5%", textAlign: "center" },
+      bodyStyle: { textAlign: "center", overflow: "visible" },
+      seq: 10,
+      visible: true
+    }
+  ];
+  
+  const [visibleColumns, setVisibleColumns] = useState(() => {
+    const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
+    const storedFields = storedData[LOCAL_STORAGE_KEY];
+  
+    if (storedFields) {
+      return columnsConfig.filter(col => storedFields.includes(col.field) || col.field === "actions");
+    }
+  
+    return columnsConfig; // Default to all columns
+  });
+
+
+  const onColumnToggle = (field) => {
+    let updatedColumns;
+  
+    if (visibleColumns.some((col) => col.field === field && col.field !== "actions")) {
+      updatedColumns = visibleColumns.filter((col) => col.field !== field);
+    } else {
+      const columnToAdd = columnsConfig.find((col) => col.field === field);
+      if (columnToAdd) {
+        updatedColumns = [...visibleColumns, columnToAdd].sort((a, b) => a.seq - b.seq);
+      }
+    }
+  
+    // Ensure "actions" is always included
+    updatedColumns = updatedColumns.filter(col => col.field === "actions" || columnsConfig.some(config => config.field === col.field));
+  
+    // Get existing stored items
+    const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
+    storedData[LOCAL_STORAGE_KEY] = updatedColumns.map(col => col.field); // Store only field names
+  
+    localStorage.setItem("visible_columns", JSON.stringify(storedData));
+  
+    setVisibleColumns(updatedColumns || []);
+  };
+
+  //localstorage options
+  const columnOptions = columnsConfig.filter(( { field } ) => field !== 'actions').map(({ field, header }) => ({ field, header }));
+
+
   const header = (
-    <div className="bg-dark bg-opacity-10 mb-3 p-4 d-flex justify-content-between">
-      <span className="text-xl">
+    <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
+      <span className="text-xl d-flex align-items-center">
         <Dropdown
           value={selectedActionOption}
           onChange={(e) => setSelectedActionOption(e.value)}
@@ -258,18 +450,72 @@ export const Product = () => {
         />
       </span>
       <div className="flex align-items-center justify-content-end gap-3">
-        <Button label={translate('items.view.actions.refreshList')} severity="secondary" raised color="info" onClick={handleSyncList} disabled={loading}>
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        &nbsp;
-        <Button onClick={() => confirm2()}>
-          Export All
-        </Button>
-        &nbsp;
-        <ImportButton type={"RETAIL"} />
-        <Button label={translate('items.view.actions.createItem')} raised onClick={handleCreate} disabled={loading}>
-        </Button>
+        <Button 
+          icon="pi pi-sync" 
+          raised severity="info" 
+          onClick={handleSyncList} 
+          disabled={loading} 
+          loading={loading}
+          data-pr-position="top" 
+          tooltip={translate('items.view.actions.refreshList')}
+        />
+        <Button 
+          icon="pi pi-file-export" 
+          raised 
+          onClick={confirm2} 
+          tooltip="Export All"
+          data-pr-position="top"
+        />
+
+        <ImportButton type="RETAIL"  data-pr-position="top" />
+
+        <Button 
+          icon="pi pi-plus" 
+          raised 
+          onClick={handleCreate} 
+          disabled={loading} 
+          data-pr-position="top"
+          tooltip={translate('items.view.actions.createItem')} 
+        />
+
       </div>
+
+      <div className="flex justify-between items-center">
+          <div className="relative d-flex justify-end mr-auto">
+            <Menu
+              model={[
+                {
+                  label: "Select Columns",
+                  items: columnOptions.map((col) => ({
+                    template: () => (
+                      <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          inputId={col.field}
+                          checked={visibleColumns.some((c) => c.field === col.field)}
+                          onChange={() => onColumnToggle(col.field)}
+                        />
+                        <label className="ml-2" htmlFor={col.field} >{col.header}</label>
+                      </div>
+                    ),
+                  })),
+                },
+              ]}
+              popup
+              ref={menu}
+            />
+            <Button
+              tooltip="Select Columns"
+              data-pr-position="top"
+              icon={<FaCog className="text-xl" />}
+              className="p-button-text mr-auto"
+              onClick={(event) => menu.current.toggle(event)}
+            />
+          </div>
+          <Button data-pr-position="top" tooltip="Filter" className="p-button-text mr-auto" icon="pi pi-filter" onClick={() => setVisibleRight(true)} />
+          
+
+      </div>
+
     </div>
   );
 
@@ -287,27 +533,20 @@ export const Product = () => {
           isRetail={true}
         />
       )}
-      {header}
-      <Accordion
-        activeIndex={1}
-      >
-        <AccordionTab header='Filters'>
-          <div className="d-flex flex-column gap-3">
-            <div className="d-flex gap-3">
-              <SharedFilter filteredAttributes={filteredAttributes} onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
-            </div>
-            <div className={'d-flex gap-2 justify-content-center'}>
-              <Button type={'button'} severity={"info"} label={'Clear Filters'} onClick={handleClear} />
-              <Button type={'submit'} label={'Search'} onClick={() => onFilter(localFilters)} />
-            </div>
-          </div>
-        </AccordionTab>
-      </Accordion>
+      <Sidebar visible={visibleRight} position="right" onHide={() => setVisibleRight(false)}>
+        <div className="d-flex gap-3">
+          <SharedFilter filteredAttributes={filteredAttributes} onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
+        </div>
+        <div className={'d-flex gap-2 justify-content-center mt-3'}>
+          <Button type={'button'} severity={"info"} label={'Clear Filters'} onClick={handleClear} />
+          <Button type={'submit'} label={'Search'} onClick={() => onFilter(localFilters)} />
+        </div>
+      </Sidebar>
 
       <DataTable
         value={products}
+        header={header}
         lazy
-        filterDisplay="row"
         dataKey="id"
         paginator
         first={query.first}
@@ -324,71 +563,23 @@ export const Product = () => {
         tableStyle={{ minWidth: '75rem' }}
         removableSort
         showGridlines
-        className={"mt-3"}
-        selectionMode='checkbox'
+        className={"mt-3 header-opacity-0"}
+        selectionMode={'checkbox'}
         selection={selectedProducts}
         onSelectionChange={(e) => setSelectedProducts(e.value)}
-      >
-        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
-        <Column
-          field="name"
-          header={translate('items.view.fields.name')}
-          body={nameColumnTemplate}
-          filterPlaceholder={translate('items.view.filters.name')}
-          sortable
-        />
-
-        <Column
-          header="Category"
-          field="categories"
-          body={rowData => rowData?.categories?.map(cat => cat?.name).join(' | ')}
-          sortable
-          showFilterMatchModes={false}
-        />
-
-        <Column
-          header={translate('items.view.fields.image')}
-          body={rowData => (
-            <ImageDisplay
-              imageType={'product'}
-              imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
-              height={50}
-              width={50}
-            />
-          )}
-        />
-
-        <Column
-          field="desc"
-          header={translate('items.view.fields.description')}
-          body={rowData => <SummarizeText>{rowData.desc}</SummarizeText>}
-        />
-
-        <Column field="stock" sortable header={translate('items.view.fields.inStock')} />
-
-        <Column
-          header={translate('items.view.fields.duplicate')}
-          body={duplicateColumnTemplate}
-          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-
-        <Column
-          header={translate('items.view.fields.edit')}
-          body={editColumnTemplate}
-          headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-
-        <Column
-          header={translate('items.view.fields.delete')}
-          body={deleteColumnTemplate}
-          headerStyle={{ width: '1%' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-        />
-      </DataTable>
+    >
+      <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+        {visibleColumns.map((col) => (
+          <Column key={col.field} field={col.field} header={col.header} body={col.body} />
+        ))}
+    </DataTable>
     </div>
   );
 };
 
 export default Product;
+
+function useRef(initialValue: any) {
+  const ref = React.useRef(initialValue);
+  return ref;
+}

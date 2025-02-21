@@ -2,6 +2,7 @@ import { Button } from "primereact/button";
 import React from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { FileType, importData, importRetailData } from "app/shared/reducers/import-data";
+import { Tooltip } from "reactstrap";
 
 type ItemImportProps = {
   type: FileType
@@ -72,8 +73,25 @@ const ImportButton = ({ type }: ItemImportProps) => {
 
   return (
     <>
-      <Button label="Import Data" severity="help" raised color="help" onClick={handleImportButtonClick} disabled={loading} />
-      <Button label="Download Sample" severity="secondary" raised className={"mr-4"} onClick={handleDownloadSampleClick} />
+
+    <Button 
+      icon="pi pi-upload" 
+      severity="help" 
+      raised 
+      onClick={handleImportButtonClick} 
+      disabled={loading} 
+      tooltip="Import Data"
+      data-pr-position="top"
+    />
+    
+    <Button 
+      icon="pi pi-download" 
+      severity="secondary" 
+      raised 
+      onClick={handleDownloadSampleClick} 
+      tooltip="Download Sample"
+      data-pr-position="top"
+    />
 
     </>
   )
