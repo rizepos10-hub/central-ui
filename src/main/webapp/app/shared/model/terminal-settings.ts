@@ -35,12 +35,104 @@ export interface ITerminalSettings {
     orderType: OrderMethod;
     selectPricingPoint: boolean;
     serialScaleSettings: SerialScaleSettings;
+    scaleIntegrationType: ScaleIntegrationTypeEnum;
+    rizeIntegratorWindowsServiceSettings: RizeIntegratorWindowsServiceSettings;
+}
+
+export interface RizeIntegratorWindowsServiceSettings {
+    port: number | null;
+    debitMachineSettings: DebitMachineSettings;
+    scaleSettings: DebitMachineSettingsScaleSettings;
+}
+
+export interface DebitMachineSettings {
+    id: string | null;
+    enabled: boolean | null;
+    interfaceSettings: DebitMachineSettingsInterfaceSettingsEnum | null;
+    port: number | null;
+    connectionTimeoutInSeconds: number | null;
+    paymentreeTerminalPort: number | null;
+    paymentreeTerminalIp: string | null;
+    ipAddress: string | null;
+    paymentreeClientId: string | null;
+    paymentreeLocation: string | null;
+    paymentreeRegisterId: string | null;
+    connectionType: DebitMachineSettingsConnectionTypeEnum
+}
+
+export enum DebitMachineSettingsInterfaceSettingsEnum {
+    ethernet = 'ethernet',
+}
+
+export interface DebitMachineSettingsScaleSettings {
+    id: string | null;
+    enabled: boolean | null;
+    interfaceSettings: DebitMachineSettingsScaleInterfaceSettings | null;
+    scaleCommand: string | null;
+    scaleResultLength: number | null;
+    weightMultiplier: number | null;
+}
+
+export interface DebitMachineSettingsScaleInterfaceSettings {
+    id: string | null;
+    comPort: number | null;
+    baudRate: number | null;
+    dataBits: DataBitsEnum | null;
+    deviceInterface: DeviceInterfaceEnum | null;
+    parity: ParityEnum | null;
+    stopBits: StopBitsEnum | null;
+    handShake: HandShakeEnum | null;
+    dtrEnabled: boolean | null;
+    rtsEnabled: boolean | null;
+    addCr: boolean | null;
+}
+
+export enum DeviceInterfaceEnum {
+    serial = 'serial',
+    opos = 'opos',
+}
+
+export enum DataBitsEnum {
+    seven = 'seven',
+    eight = 'eight',
+}
+
+export enum ParityEnum {
+    none = 'none',
+    odd = 'odd',
+    even = 'even',
+    mark = 'mark',
+    space = 'space',
+}
+
+export enum StopBitsEnum {
+    none = 'none',
+    one = 'one',
+    onePointFive = 'onePointFive',
+    two = 'two',
+}
+
+export enum HandShakeEnum {
+    none = 'none',
+    xonXoff = 'xonXoff',
+    requestToSend = 'requestToSend',
+    requestToSendXonXoff = 'requestToSendXonXoff',
+}
+
+export enum DebitMachineSettingsConnectionTypeEnum {
+    network = 'network',
+}
+
+export enum ScaleIntegrationTypeEnum {
+    direct = 'direct',
+    rizeIntegrator = 'rizeIntegrator',
 }
 
 export enum CreditCardIntegrationTypeEnum {
     ELAVON_CWS = 'elavonCWS',
     ELAVON = 'elavon',
     INGENICO = 'ingenico',
+    rizeIntegrator = 'rizeIntegrator',
 }
 
 export enum BusinessType {
