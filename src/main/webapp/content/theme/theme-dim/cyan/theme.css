@@ -2830,6 +2830,7 @@
   }
   .p-datatable.p-datatable-gridlines .p-datatable-header {
     border-width: 1px 1px 0 1px;
+    padding: 0;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-footer {
     border-width: 0 1px 1px 1px;

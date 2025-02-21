@@ -28,6 +28,8 @@
         "edit": "Edit",
         "delete": "Delete",
         "type": "Type",
+        "productionCenter": "Production Center",
+        "discount": "Discount",
         "regular": {
           "variant": "Variant",
           "category": "Category",

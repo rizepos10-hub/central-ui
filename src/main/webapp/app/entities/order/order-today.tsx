@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { filterOrders, getOrderSources, getOrderStatuses } from './order.reducer';
@@ -15,6 +15,9 @@ import { Label } from 'reactstrap';
 import { Checkbox } from 'primereact/checkbox';
 import { IUiSettings } from 'app/shared/model/ONLINE_ORDERING/ui-setting.model';
 import { getEntity as getUiSettings } from 'app/entities/online-ordering/settings/settings.reducer';
+import { Button } from 'primereact/button';
+import { FaCog } from 'react-icons/fa';
+import { Menu } from 'primereact/menu';
 
 interface LazyTableState {
   first: number;
@@ -33,8 +36,8 @@ const Order = () => {
 
   const from = startOfDay(today);
   const to = endOfDay(today);
-
-
+  const LOCAL_STORAGE_KEY = "order-today-columns";
+  const menu = useRef(null);
   const [orderStatuses, setOrderStatuses]: any = useState([]);
 
   const [lazyState, setLazyState] = useState<LazyTableState>({
@@ -96,6 +99,60 @@ const Order = () => {
   const onPage = (event) => {
     setLazyState(event);
   };
+  
+  const [visibleColumns, setVisibleColumns] = useState(() => {
+    const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
+    
+    // Check if 'orderToday' exists in the stored data, otherwise initialize it with default visibility
+    const storedFields = storedData[LOCAL_STORAGE_KEY] || {
+      orderId: true,
+      orderBranch: true,
+      OrderDate: true,
+      orderStatus: true,
+      orderSource: true,
+      orderTable: true,
+      customerEmail: true,
+      customerPhone: true,
+      orderDiscount: true,
+    };
+  
+    return storedFields;
+  });
+  
+    const toCamelCaseWithSpace = (str) => {
+      return str
+        .replace(/([A-Z])/g, ' $1')  // Add space before uppercase letters
+        .replace(/^./, (match) => match.toUpperCase()) // Capitalize first letter
+        .replace(/\s+/g, ' ')         // Remove any extra spaces
+        .trim(); // Remove leading and trailing spaces
+    };
+  
+  const onColumnToggle = (columnKey) => {
+    setVisibleColumns((prevState) => {
+      const updatedColumns = {
+        ...prevState,
+        [columnKey]: !prevState[columnKey],
+      };
+  
+      // Retrieve existing visible columns data from localStorage
+      const visibleColumnsData = JSON.parse(localStorage.getItem("visible_columns")) || {};
+  
+      // Update or set the 'orderToday' key with the new column visibility
+      visibleColumnsData[LOCAL_STORAGE_KEY] = updatedColumns;
+      
+      console.log(visibleColumnsData);
+      // Save the updated data back to localStorage
+      localStorage.setItem("visible_columns", JSON.stringify(visibleColumnsData));
+  
+      return updatedColumns;
+    });
+  };
+  
+    const columnOptions = Object.keys(visibleColumns)
+    .map((field) => ({
+      field,
+      header: toCamelCaseWithSpace(field), // Convert the field name to a human-readable header
+    }));
 
   useEffect(() => {
     const queryParams = {
@@ -136,8 +193,8 @@ const Order = () => {
 
   const header = () => {
     return (
-      <div className='d-flex justify-content-between'>
-        <span>
+      <div className='p-2 d-flex justify-content-between align-items-center'>
+        <span className='d-flex align-items-center'>
           Order History
         </span>
         {UiSettingsEntity.orderConfirmation && (
@@ -171,6 +228,38 @@ const Order = () => {
             />
           </span>
         )}
+        <div className="flex justify-between items-center">
+          <div className="relative d-flex justify-end mr-auto">
+            <Menu
+              model={[
+                {
+                  label: "Select Columns",
+                  items: columnOptions.map((col) => ({
+                    template: () => (
+                      <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          inputId={col.field}
+                          checked={visibleColumns[col.field]}
+                          onChange={() => onColumnToggle(col.field)}
+                        />
+                        <label className="ml-2" htmlFor={col.field} >{col.header}</label>
+                      </div>
+                    ),
+                  })),
+                },
+              ]}
+              popup
+              ref={menu}
+            />
+            <Button
+                data-pr-position="top" 
+                icon={<FaCog className="text-xl" />}
+                tooltip='Select Columns'
+                className="border-0 p-button-text mr-auto bg-transparent hover:bg-transparent focus:bg-transparent flex items-center"
+                onClick={(event) => menu.current.toggle(event)}
+              />
+          </div>
+        </div>
       </div>
     )
   }
@@ -201,7 +290,7 @@ const Order = () => {
         selectionMode="single"
         onSelectionChange={(e: any) => navigate(`/order/${e.value.id}`)}
       >
-        <Column
+        { visibleColumns.orderId && <Column
           field="id"
           header={translate('orders.view.table.fields.id')}
           filter
@@ -226,9 +315,9 @@ const Order = () => {
               placeholder={translate('orders.view.table.filters.id')}
             />
           }
-        />
+        /> }
 
-        <Column
+        { visibleColumns.orderBranch && <Column
           field="branchId"
           sortable
           filter
@@ -251,17 +340,17 @@ const Order = () => {
               placeholder={translate('orders.view.table.filters.branch')}
             />
           }
-        />
+        /> }
 
-        <Column
+        {visibleColumns.OrderDate && <Column
           body={(rowData) => format(new Date(rowData.createdDate), 'yyyy-MM-dd HH:mm:ss')}
           field="createdDate"
           header={translate('orders.view.table.fields.date')}
           sortable
 
-        />
+        />}
 
-        <Column
+        { visibleColumns.orderStatus && <Column
           field="processingStatus"
           header={translate('orders.view.table.fields.status')}
           filter
@@ -282,9 +371,9 @@ const Order = () => {
               placeholder={translate('orders.view.table.filters.status')}
             />
           }
-        />
+        /> }
 
-        <Column field="orderSource" body={(rowData) => rowData.sourceApp?.type} sortable filter
+        { visibleColumns.orderSource && <Column field="orderSource" body={(rowData) => rowData.sourceApp?.type} sortable filter
           filterElement={
             <Dropdown
               value={lazyState.filters.orderSource?.value || ''}
@@ -302,9 +391,9 @@ const Order = () => {
               placeholder={translate('orders.view.table.filters.source')}
             />
           }
-          header={translate('orders.view.table.fields.source')} />
+          header={translate('orders.view.table.fields.source')} />}
 
-        <Column field="tables" sortable filter header={translate('orders.view.table.fields.tables')}
+        { visibleColumns.orderTable && <Column field="tables" sortable filter header={translate('orders.view.table.fields.tables')}
           filterElement={
             <InputText
               style={{ width: '6rem' }}
@@ -320,9 +409,9 @@ const Order = () => {
               placeholder={translate('orders.view.table.filters.tables')}
             />
           }
-        />
+        />}
 
-        <Column
+        {visibleColumns.customerEmail && <Column
           field="customer.email"
           filter
           filterField="customer.email"
@@ -343,9 +432,9 @@ const Order = () => {
               placeholder={translate('orders.view.table.filters.customerEmail')}
             />
           }
-        />
+        />}
 
-        <Column
+        {visibleColumns.customerPhone && <Column
           field="customer.phone"
           filter
           sortable
@@ -366,13 +455,12 @@ const Order = () => {
               placeholder={translate('orders.view.table.filters.customerPhone')}
             />
           }
+        />}
 
-        />
-
-        <Column field="discount" sortable header={translate('orders.view.table.fields.discount')} body={rowData => rowData.discount ? <p className="text-success text-center ">&#10004;</p> :
+        {visibleColumns.orderDiscount && <Column field="discount" sortable header={translate('orders.view.table.fields.discount')} body={rowData => rowData.discount ? <p className="text-success text-center ">&#10004;</p> :
           <p className="text-danger text-center ">&#10006;</p>}
 
-        />
+        />}
       </DataTable>
 
     </div>
