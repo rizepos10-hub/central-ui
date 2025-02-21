@@ -24,13 +24,8 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
   };
 
   useEffect(() => {
-    console.log(variant, 'variant')
-    console.log(variant?.stockQuantities, 'variant?.stockQuantities')
-    const locationIds = variant?.stockQuantities?.map(item => item.location.id);
-    console.log(locationIds, 'locationIds');
+    const locationIds = variant?.stockQuantities?.map(item => item.location.id) || [] 
     const filteredSelectedWarehouses = wareHouses.filter(warehouse => locationIds.includes(warehouse.id));
-    console.log(filteredSelectedWarehouses, 'filteredSelectedWarehouses');
-    console.log(wareHouses, 'wareHouses');
     if (isNew) {
       setSelectedWarehouses([]);
       setUpdatedStockQuantities([]);
