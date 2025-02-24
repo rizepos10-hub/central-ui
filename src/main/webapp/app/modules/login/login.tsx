@@ -47,13 +47,13 @@ export const Login = () => {
         navigate('/');
       }
     }
-  }, [tenant])
+  }, [])
 
   const { layoutConfig } = useContext(LayoutContext);
   const dark = layoutConfig.colorScheme !== 'light';
 
   const { from } = (location.state as any) || { from: { pathname: '/', search: location.search } };
-
+  console.log(isAuthenticated)
   if (isAuthenticated) {
     return <Navigate to={from} replace />;
   }
