@@ -27,6 +27,7 @@ import MediaLibrary from '../media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { getEntities as getBrands } from 'app/entities/brand/brand.reducer';
 import SharedAddon from 'app/shared/components/item/addon';
+import { ItemVariantType } from 'app/shared/model/ENUMS/item-variant-type.model';
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
@@ -297,12 +298,14 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
               </div>
             </div>
 
-            <div className={'d-flex flex-column gap-1  col'}>
-              <label className={'text-xl mt-2 font-bold'}>
-                <Translate contentKey={'items.update.byWeight'}>By Weight</Translate>
-              </label>
-              <Checkbox checked={item?.byWeight ? true : false} onChange={e => onFieldChange('byWeight', e.checked)} />
-            </div>
+            {item?.itemVariantType !== ItemVariantType.RESTAURANT_PIZZA && (
+              <div className={'d-flex flex-column gap-1  col'}>
+                <label className={'text-xl mt-2 font-bold'}>
+                  <Translate contentKey={'items.update.byWeight'}>By Weight</Translate>
+                </label>
+                <Checkbox checked={item?.byWeight ? true : false} onChange={e => onFieldChange('byWeight', e.checked)} />
+              </div>
+            )}
 
             {isRetailItem ? (
               <div className="row">
