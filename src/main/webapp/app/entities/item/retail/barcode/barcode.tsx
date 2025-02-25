@@ -15,7 +15,6 @@ import PaginationFilter from 'app/shared/components/pagination/pagination-filter
 import { Dropdown } from 'primereact/dropdown'
 import { FilterMatchMode } from 'primereact/api'
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter'
-import { InputNumber } from 'primereact/inputnumber'
 import { Checkbox } from 'primereact/checkbox'
 import "./barcode.css"
 
@@ -23,6 +22,7 @@ type VariantSkus = {
     variantId: string
     variantName: string
     sku: string
+    price?: number | string
 }
 
 type PrintSettings = {
@@ -36,11 +36,11 @@ type PrintSettings = {
     barcodeHeight: string
     barcodeWidth: string
     barcodePosition: 'TOP' | 'BOTTOM'
-}
-
-type PrintSettingsPreset = {
-    value: string
-    printSettings: PrintSettings
+    nameFontSize: string
+    skuFontSize: string
+    showPrice: boolean
+    priceHeight: string
+    priceFontSize: string
 }
 
 const Barcode = () => {
@@ -61,51 +61,15 @@ const Barcode = () => {
         barcodeHeight: '20mm',
         barcodeWidth: '40mm',
         barcodePosition: 'BOTTOM',
+        nameFontSize: '14px',
+        skuFontSize: '12px',
+        showPrice: true,
+        priceHeight: '5mm',
+        priceFontSize: '12px',
     })
 
-    // const [printSettingsPresets, setPrintSettingsPresets] = useState<PrintSettingsPreset[]>([{
-    //     value: '20x30mm',
-    //     printSettings: {
-    //         showSku: true,
-    //         skuHeight: '5mm',
-    //         showName: true,
-    //         nameHeight: '5mm',
-    //         showBarcodeValue: true,
-    //         labelWidth: '30mm',
-    //         labelHeight: '20mm',
-    //         barcodeHeight: '10mm',
-    //         barcodeWidth: '18mm',
-    //         barcodePosition: 'BOTTOM',
-    //     }
-    // }, {
-    //     value: '30x50mm',
-    //     printSettings: {
-    //         showSku: true,
-    //         skuHeight: '5mm',
-    //         showName: true,
-    //         nameHeight: '5mm',
-    //         showBarcodeValue: true,
-    //         labelWidth: '50mm',
-    //         labelHeight: '30mm',
-    //         barcodeHeight: '20mm',
-    //         barcodeWidth: '40mm',
-    //         barcodePosition: 'BOTTOM',
-    //     }
-    // }, {
-    //     value: '40x60mm',
-    //     printSettings: {
-    //         showSku: true,
-    //         skuHeight: '5mm',
-    //         showName: true,
-    //         nameHeight: '5mm',
-    //         showBarcodeValue: true,
-    //         labelWidth: '60mm',
-    //         labelHeight: '40mm',
-    //         barcodeHeight: '30mm',
-    //         barcodeWidth: '50mm',
-    //         barcodePosition: 'BOTTOM',
-    //     }
-    // }])
+    // For warning color about height sum vs label height
+    const [heightValidationColor, setHeightValidationColor] = useState<'red' | 'green'>('red')
 
     const printRef = useRef<HTMLDivElement>(null)
     const products: IProduct[] = useAppSelector(state => state.product.entities)
@@ -131,15 +95,6 @@ const Barcode = () => {
     }
 
     useEffect(() => {
-        const stored = localStorage.getItem('selectedVariants')
-        if (stored) setVariantsSkusToPrint(JSON.parse(stored))
-    }, [])
-
-    useEffect(() => {
-        localStorage.setItem('selectedVariants', JSON.stringify(variantsSkusToPrint))
-    }, [variantsSkusToPrint])
-
-    useEffect(() => {
         getAllEntities()
     }, [
         searchParams.get('page'),
@@ -157,6 +112,7 @@ const Barcode = () => {
                         variantId: variant.id,
                         variantName: variant.name,
                         sku: variant.sku,
+                        price: variant.price,
                     })
                 }
             })
@@ -222,21 +178,51 @@ const Barcode = () => {
         handlePrint()
     }
 
+    // Reset heights if toggles are false
     useEffect(() => {
         if (!printSettings.showSku) {
-            setPrintSettings({
-                ...printSettings,
-                skuHeight: '0mm'
-            })
+            setPrintSettings(prev => ({ ...prev, skuHeight: '0mm' }))
         }
-
         if (!printSettings.showName) {
-            setPrintSettings({
-                ...printSettings,
-                nameHeight: '0mm'
-            })
+            setPrintSettings(prev => ({ ...prev, nameHeight: '0mm' }))
         }
-    }, [printSettings.showSku, printSettings.showName])
+        if (!printSettings.showPrice) {
+            setPrintSettings(prev => ({ ...prev, priceHeight: '0mm' }))
+        }
+    }, [printSettings.showSku, printSettings.showName, printSettings.showPrice])
+
+    // Simple helper to parse dimension strings like "5mm" or "12.5px"
+    // We'll parse out the numeric part. 
+    // (Assumes user is consistent in units or at least we just compare numeric parts.)
+    const parseDimension = (dim: string) => {
+        const numeric = parseFloat(dim)
+        return isNaN(numeric) ? 0 : numeric
+    }
+
+    // Watch for changes in relevant fields to determine if total height matches label height
+    useEffect(() => {
+        // parse numeric values
+        const labelH = parseDimension(printSettings.labelHeight)
+        const nameH = printSettings.showName ? parseDimension(printSettings.nameHeight) : 0
+        const skuH = printSettings.showSku ? parseDimension(printSettings.skuHeight) : 0
+        const priceH = printSettings.showPrice ? parseDimension(printSettings.priceHeight) : 0
+        // Barcode always shows, so we always parse it
+        const barcodeH = parseDimension(printSettings.barcodeHeight)
+
+        const total = nameH + skuH + priceH + barcodeH
+
+        // If total == labelH, good => green, else red
+        setHeightValidationColor(total === labelH ? 'green' : 'red')
+    }, [
+        printSettings.labelHeight,
+        printSettings.nameHeight,
+        printSettings.skuHeight,
+        printSettings.priceHeight,
+        printSettings.barcodeHeight,
+        printSettings.showName,
+        printSettings.showSku,
+        printSettings.showPrice
+    ])
 
     return (
         <Container className="d-flex flex-column align-items-center p-5">
@@ -279,117 +265,209 @@ const Barcode = () => {
             >
                 <div className="row">
                     <div className="col-md-6 d-flex flex-column gap-3">
-                        <div className="d-flex align-items-center gap-2">
-                            <Checkbox
-                                checked={printSettings.showSku}
-                                onChange={(e) => setPrintSettings({ ...printSettings, showSku: e.checked })}
-                                inputId="showSku"
-                            />
-                            <span>Show SKU</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <InputText
-                                value={printSettings.skuHeight}
-                                onChange={(e) =>
-                                    setPrintSettings({ ...printSettings, skuHeight: e.target.value })
+                        <Row className='d-flex flex-column gap-1'>
+                            <h6 className='m-0 p-0'>Label Settings</h6>
+                            <div className='d-flex gap-2'>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Width (e.g. 50mm)</span>
+                                    <InputText
+                                        value={printSettings.labelWidth}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, labelWidth: e.target.value })
+                                        }
+                                        placeholder="Width"
+                                        className="form-control w-auto"
+                                    />
+                                </div>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Height (e.g. 30mm)</span>
+                                    <InputText
+                                        value={printSettings.labelHeight}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, labelHeight: e.target.value })
+                                        }
+                                        placeholder="Height"
+                                        className="form-control w-auto"
+                                    />
+                                </div>
+                            </div>
+                            {/* Height sum validation message */}
+                            <div style={{ marginTop: '8px', fontWeight: 'bold', color: heightValidationColor }}>
+                                {
+                                    heightValidationColor === 'green'
+                                        ? 'Heights match the label height!'
+                                        : 'Warning: The sum of name, sku, price, and barcode heights does NOT match the label height!'
                                 }
-                                placeholder="SKU Height"
-                                className="form-control w-auto"
-                                disabled={!printSettings.showSku}
-                            />
-                            <span>SKU Height (e.g. 5mm)</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Checkbox
-                                checked={printSettings.showName}
-                                onChange={(e) => setPrintSettings({ ...printSettings, showName: e.checked })}
-                                inputId="showName"
-                            />
-                            <span>Show Name</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <InputText
-                                value={printSettings.nameHeight}
-                                onChange={(e) =>
-                                    setPrintSettings({ ...printSettings, nameHeight: e.target.value })
-                                }
-                                placeholder="Name Height"
-                                className="form-control w-auto"
-                                disabled={!printSettings.showName}
-                            />
-                            <span>Name Height (e.g. 5mm)</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Checkbox
-                                checked={printSettings.showBarcodeValue}
-                                onChange={(e) =>
-                                    setPrintSettings({ ...printSettings, showBarcodeValue: e.checked })
-                                }
-                                inputId="showName"
-                            />
-                            <span>Show Barcode Value</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <InputText
-                                value={printSettings.labelWidth}
-                                onChange={(e) =>
-                                    setPrintSettings({ ...printSettings, labelWidth: e.target.value })
-                                }
-                                placeholder="Label Width"
-                                className="form-control w-auto"
-                            />
-                            <span>Label Width (e.g. 50mm)</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <InputText
-                                value={printSettings.labelHeight}
-                                onChange={(e) =>
-                                    setPrintSettings({ ...printSettings, labelHeight: e.target.value })
-                                }
-                                placeholder="Label Height"
-                                className="form-control w-auto"
-                            />
-                            <span>Label Height (e.g. 30mm)</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <InputText
-                                value={printSettings.barcodeHeight}
-                                onChange={(e) =>
-                                    setPrintSettings({ ...printSettings, barcodeHeight: e.target.value })
-                                }
-                                placeholder="Barcode Height"
-                                className="form-control w-auto"
-                            />
-                            <span>Barcode Height (e.g. 20mm)</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <InputText
-                                value={printSettings.barcodeWidth}
-                                onChange={(e) =>
-                                    setPrintSettings({ ...printSettings, barcodeWidth: e.target.value })
-                                }
-                                placeholder="Barocde Width"
-                                className="form-control w-auto"
-                            />
-                            <span>Barcode Width (e.g. 40mm)</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Dropdown
-                                options={[
-                                    { label: 'TOP', value: 'TOP' },
-                                    { label: 'BOTTOM', value: 'BOTTOM' },
-                                ]}
-                                value={printSettings.barcodePosition}
-                                onChange={(e) => setPrintSettings({ ...printSettings, barcodePosition: e.value })}
-                                placeholder="Barcode Position"
-                            />
-                            <span>Barcode Position</span>
-                        </div>
+                            </div>
+                        </Row>
+
+                        <Row className='d-flex flex-column gap-1'>
+                            <h6 className='m-0 p-0'>Sku Settings</h6>
+                            <div className="d-flex gap-2">
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Show</span>
+                                    <Checkbox
+                                        checked={printSettings.showSku}
+                                        onChange={(e) => setPrintSettings({ ...printSettings, showSku: e.checked })}
+                                        inputId="showSku"
+                                    />
+                                </div>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Height (e.g. 5mm)</span>
+                                    <InputText
+                                        value={printSettings.skuHeight}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, skuHeight: e.target.value })
+                                        }
+                                        placeholder="Height"
+                                        className="form-control w-auto"
+                                        disabled={!printSettings.showSku}
+                                    />
+                                </div>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Font Size (e.g. 12px)</span>
+                                    <InputText
+                                        value={printSettings.skuFontSize}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, skuFontSize: e.target.value })
+                                        }
+                                        placeholder="Font Size"
+                                        className="form-control w-auto"
+                                    />
+                                </div>
+                            </div>
+                        </Row>
+
+                        <Row className='d-flex flex-column gap-1'>
+                            <h6 className='m-0 p-0'>Name Settings</h6>
+                            <div className='d-flex gap-2'>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Show</span>
+                                    <Checkbox
+                                        checked={printSettings.showName}
+                                        onChange={(e) => setPrintSettings({ ...printSettings, showName: e.checked })}
+                                        inputId="showName"
+                                    />
+                                </div>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Height (e.g. 5mm)</span>
+                                    <InputText
+                                        value={printSettings.nameHeight}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, nameHeight: e.target.value })
+                                        }
+                                        placeholder="Height"
+                                        className="form-control w-auto"
+                                        disabled={!printSettings.showName}
+                                    />
+                                </div>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Font Size (e.g. 14px)</span>
+                                    <InputText
+                                        value={printSettings.nameFontSize}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, nameFontSize: e.target.value })
+                                        }
+                                        placeholder="Font Size"
+                                        className="form-control w-auto"
+                                    />
+                                </div>
+                            </div>
+                        </Row>
+
+                        <Row className='d-flex flex-column gap-1'>
+                            <h6 className='m-0 p-0'>Price Settings</h6>
+                            <div className='d-flex gap-2'>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Show</span>
+                                    <Checkbox
+                                        checked={printSettings.showPrice}
+                                        onChange={(e) => setPrintSettings({ ...printSettings, showPrice: e.checked })}
+                                        inputId="showPrice"
+                                    />
+                                </div>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Height (e.g. 5mm)</span>
+                                    <InputText
+                                        value={printSettings.priceHeight}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, priceHeight: e.target.value })
+                                        }
+                                        placeholder="Height"
+                                        className="form-control w-auto"
+                                        disabled={!printSettings.showPrice}
+                                    />
+                                </div>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Font Size (e.g. 12px)</span>
+                                    <InputText
+                                        value={printSettings.priceFontSize}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, priceFontSize: e.target.value })
+                                        }
+                                        placeholder="Font Size"
+                                        className="form-control w-auto"
+                                    />
+                                </div>
+                            </div>
+                        </Row>
+
+                        <Row className='d-flex flex-column gap-1'>
+                            <h6 className='m-0 p-0'>Barcode Settings</h6>
+                            <div className='d-flex gap-2'>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Show Value</span>
+                                    <Checkbox
+                                        checked={printSettings.showBarcodeValue}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, showBarcodeValue: e.checked })
+                                        }
+                                        inputId="showBarcodeValue"
+                                    />
+                                </div>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Height (e.g. 20mm)</span>
+                                    <InputText
+                                        value={printSettings.barcodeHeight}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, barcodeHeight: e.target.value })
+                                        }
+                                        placeholder="Height"
+                                        className="form-control w-auto"
+                                    />
+                                </div>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Width (e.g. 40mm)</span>
+                                    <InputText
+                                        value={printSettings.barcodeWidth}
+                                        onChange={(e) =>
+                                            setPrintSettings({ ...printSettings, barcodeWidth: e.target.value })
+                                        }
+                                        placeholder="Width"
+                                        className="form-control w-auto"
+                                    />
+                                </div>
+                                <div className="d-flex flex-column align-items-center gap-2">
+                                    <span>Position</span>
+                                    <Dropdown
+                                        options={[
+                                            { label: 'TOP', value: 'TOP' },
+                                            { label: 'BOTTOM', value: 'BOTTOM' },
+                                        ]}
+                                        value={printSettings.barcodePosition}
+                                        onChange={(e) => setPrintSettings({ ...printSettings, barcodePosition: e.value })}
+                                        placeholder="Position"
+                                    />
+                                </div>
+                            </div>
+                        </Row>
+
                         <div className="d-flex justify-content-end gap-2 mt-3">
                             <Button label="Cancel" onClick={() => setShowPrintDialog(false)} />
                             <Button label="Print" severity="info" onClick={onDialogPrint} />
                         </div>
                     </div>
+
                     <div className='col-md-6 d-flex justify-content-end'>
                         <div
                             style={{
@@ -409,7 +487,6 @@ const Barcode = () => {
                                         width: printSettings.labelWidth,
                                         border: '1px dashed #ccc',
                                         position: 'relative',
-                                        // overflow: 'hidden',
                                         marginBottom: '10px',
                                         maxHeight: printSettings.labelHeight,
                                         display: 'flex',
@@ -430,23 +507,40 @@ const Barcode = () => {
                                                 lineColor="#1a1a1a"
                                                 background="#ffffff"
                                                 fontSize={10}
-                                                width={1}
-                                            // height={printSettings.barcodeHeight}
+                                                // width={1}
                                             />
                                         </div>
                                     )}
                                     {printSettings.showName && (
                                         <div
-                                            style={{ height: printSettings.nameHeight, width: '100%', textAlign: 'center' }} className="fs-6 text-truncate"
+                                            style={{
+                                                height: printSettings.nameHeight,
+                                                width: '100%',
+                                                textAlign: 'center',
+                                                fontSize: printSettings.nameFontSize
+                                            }}
                                         >
                                             {vSku.variantName}
                                         </div>
                                     )}
                                     {printSettings.showSku && (
                                         <div
-                                            style={{ height: printSettings.skuHeight }}
+                                            style={{
+                                                height: printSettings.skuHeight,
+                                                fontSize: printSettings.skuFontSize
+                                            }}
                                         >
                                             {vSku.sku}
+                                        </div>
+                                    )}
+                                    {printSettings.showPrice && (
+                                        <div
+                                            style={{
+                                                height: printSettings.priceHeight,
+                                                fontSize: printSettings.priceFontSize
+                                            }}
+                                        >
+                                            {vSku.price}
                                         </div>
                                     )}
                                     {printSettings.barcodePosition === 'BOTTOM' && (
@@ -461,8 +555,7 @@ const Barcode = () => {
                                                 lineColor="#1a1a1a"
                                                 background="#ffffff"
                                                 fontSize={10}
-                                                width={1}
-                                            // height={printSettings.barcodeHeight}
+                                                // width={1}
                                             />
                                         </div>
                                     )}
@@ -490,6 +583,7 @@ const Barcode = () => {
                                         <div>
                                             <h5 className="mb-2">{vSku.variantName}</h5>
                                             <p className="mb-2">SKU: {vSku.sku}</p>
+                                            <p className="mb-2">Price: {vSku.price}</p>
                                         </div>
                                         <div>
                                             <input
@@ -521,9 +615,6 @@ const Barcode = () => {
                 {printVariants.map(vSku => (
                     <div key={vSku.variantId}>
                         <div style={{
-                            // width: printSettings.labelWidth,
-                            // maxHeight: printSettings.labelHeight,
-                            // height: printSettings.labelHeight,
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
@@ -533,7 +624,7 @@ const Barcode = () => {
                                 <div style={{
                                     height: printSettings.barcodeHeight,
                                     width: printSettings.barcodeWidth
-                                }} className="barcode-wrapper">
+                                }} className="barcode-wrapper p-1">
                                     <ReactBarcode
                                         value={vSku.sku}
                                         format="CODE128"
@@ -541,26 +632,41 @@ const Barcode = () => {
                                         lineColor="#1a1a1a"
                                         background="#ffffff"
                                         fontSize={10}
-                                        width={1}
-                                    // height={printSettings.barcodeHeight}
+                                        // width={1}
                                     />
                                 </div>
                             )}
                             {printSettings.showName && (
-                                <div style={{ height: printSettings.nameHeight, width: '100%', textAlign: 'center' }} className="fs-6 text-truncate">
+                                <div style={{
+                                    height: printSettings.nameHeight,
+                                    width: '100%',
+                                    textAlign: 'center',
+                                    fontSize: printSettings.nameFontSize
+                                }}>
                                     {vSku.variantName}
                                 </div>
                             )}
                             {printSettings.showSku && (
-                                <div style={{ height: printSettings.skuHeight }}>
+                                <div style={{
+                                    height: printSettings.skuHeight,
+                                    fontSize: printSettings.skuFontSize
+                                }}>
                                     {vSku.sku}
+                                </div>
+                            )}
+                            {printSettings.showPrice && (
+                                <div style={{
+                                    height: printSettings.priceHeight,
+                                    fontSize: printSettings.priceFontSize
+                                }}>
+                                    {vSku.price}
                                 </div>
                             )}
                             {printSettings.barcodePosition === 'BOTTOM' && (
                                 <div style={{
                                     height: printSettings.barcodeHeight,
                                     width: printSettings.barcodeWidth
-                                }} className="barcode-wrapper">
+                                }} className="barcode-wrapper p-1">
                                     <ReactBarcode
                                         value={vSku.sku}
                                         format="CODE128"
@@ -568,8 +674,7 @@ const Barcode = () => {
                                         lineColor="#1a1a1a"
                                         background="#ffffff"
                                         fontSize={10}
-                                        width={1}
-                                    // height={printSettings.barcodeHeight}
+                                        // width={1}
                                     />
                                 </div>
                             )}
@@ -606,20 +711,20 @@ const Barcode = () => {
             </Row>
 
             <style>{`
-                @media screen {
-                    .print-container {
-                        display: none;
-                    }
-                }
-                    @media print {
-                    .print-container {
-                        display: block;
-                    }
-                    .selection-container {
-                        display: none;
-                    }
-                }
-            `}</style>
+        @media screen {
+          .print-container {
+            display: none;
+          }
+        }
+        @media print {
+          .print-container {
+            display: block;
+          }
+          .selection-container {
+            display: none;
+          }
+        }
+      `}</style>
         </Container>
     )
 }
