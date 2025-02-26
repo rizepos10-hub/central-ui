@@ -477,7 +477,7 @@ const Barcode = () => {
                                     />
                                 </div>
                                 <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Width (e.g. 40mm)</span>
+                                    <span>Width (factor)</span>
                                     <InputNumber
                                         value={printSettings.barcodeWidth}
                                         onChange={(e) =>
@@ -548,7 +548,7 @@ const Barcode = () => {
                                     }}
                                 >
                                     {printSettings.barcodePosition === 'TOP' && (
-                                        <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper pr-1">
+                                        <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper">
                                             <ReactBarcode
                                                 value={vSku.sku}
                                                 format={printSettings.barcodeFormat}
@@ -583,7 +583,7 @@ const Barcode = () => {
                                         </div>
                                     )}
                                     {printSettings.barcodePosition === 'BOTTOM' && (
-                                        <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper pr-1">
+                                        <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper">
                                             <ReactBarcode
                                                 value={vSku.sku}
                                                 format={printSettings.barcodeFormat}
@@ -632,7 +632,7 @@ const Barcode = () => {
                                     <div className="mt-2">
                                         <ReactBarcode
                                             value={vSku.sku}
-                                            format={printSettings.barcodeFormat}
+                                            format='CODE128'
                                             displayValue
                                             lineColor="#1a1a1a"
                                             background="#ffffff"
@@ -652,7 +652,7 @@ const Barcode = () => {
                     <div key={vSku.variantId}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                             {printSettings.barcodePosition === 'TOP' && (
-                                <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper pr-1">
+                                <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper">
                                     <ReactBarcode
                                         value={vSku.sku}
                                         format={printSettings.barcodeFormat}
@@ -687,7 +687,7 @@ const Barcode = () => {
                                 </div>
                             )}
                             {printSettings.barcodePosition === 'BOTTOM' && (
-                                <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper pr-1">
+                                <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper">
                                     <ReactBarcode
                                         value={vSku.sku}
                                         format={printSettings.barcodeFormat}
