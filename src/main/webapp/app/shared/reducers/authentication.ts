@@ -28,8 +28,7 @@ export type AuthenticationState = Readonly<typeof initialState>;
 
 // Actions
 
-export const getSession = (s?: any): AppThunk => async (dispatch, getState) => {
-  console.log(s)
+export const getSession = (): AppThunk => async (dispatch, getState) => {
   await dispatch(getAccount());
 
   const { account } = getState().authentication;
@@ -87,13 +86,14 @@ export const login: (username: string, password: string, tenant: string, remembe
       dispatch(getSession());
     };
 
-export const loginFromToken = (access_token: string, refresh_token: string, tenant: string) => async dispatch => {
-  Storage.local.set(AUTH_TOKEN_KEY, access_token);
-  Storage.local.set(TENANT_KEY, tenant);
-  sessionStorage.setItem(TENANT_KEY, tenant);
-  await dispatch(getSession(123));
-  dispatch(setAuthenticated(true));
-};
+export const loginFromToken = (access_token: string, refresh_token: string, tenant: string) =>
+  dispatch => {
+    Storage.local.set(AUTH_TOKEN_KEY, access_token);
+    // Storage.local.set(REFRESH_TOKEN_KEY, refresh_token);
+    Storage.local.set(TENANT_KEY, tenant);
+    sessionStorage.setItem(TENANT_KEY, tenant);
+    dispatch(getSession());
+  };
 
 export const clearAuthToken = () => {
   if (Storage.local.get(AUTH_TOKEN_KEY)) {
@@ -159,9 +159,6 @@ export const AuthenticationSlice = createSlice({
         isAuthenticated: false,
       };
     },
-    setAuthenticated(state, action) {
-      state.isAuthenticated = action.payload;
-    },
   },
   extraReducers(builder) {
     builder
@@ -205,6 +202,7 @@ export const AuthenticationSlice = createSlice({
   },
 });
 
-export const { logoutSession, authError, clearAuth, setAuthenticated } = AuthenticationSlice.actions;
+export const { logoutSession, authError, clearAuth } = AuthenticationSlice.actions;
+
 // Reducer
 export default AuthenticationSlice.reducer;
