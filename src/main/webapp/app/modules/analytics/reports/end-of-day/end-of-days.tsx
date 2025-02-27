@@ -123,7 +123,11 @@ export const EndOfDays = () => {
           first={lazyState.first} rows={20} totalRecords={totalRecords} onPage={onPage}
           onSort={onSort} sortField={lazyState.sortField} sortOrder={lazyState.sortOrder}
           onFilter={onFilter} loading={loading} tableStyle={{ minWidth: '75rem' }}
-          selectionMode="single" onSelectionChange={(e) => navigate(`/analytics/endofday/${e.value.id}`)}
+          selectionMode="single" onSelectionChange={(e) => {
+            const rowData = e.value;
+            const branchId = rowData?.branch?.id ?? "unknown";
+            navigate(`/analytics/endofday/${rowData.id}?branchId=${encodeURIComponent(branchId)}`);
+          }}
         >
 
           {/* <Column field="id" header="ID" body={(rowData) => (<Link to={rowData.id}>{rowData.id} </Link>)}  /> */}
