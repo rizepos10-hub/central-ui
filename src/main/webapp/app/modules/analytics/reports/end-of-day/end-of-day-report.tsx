@@ -79,7 +79,6 @@ const EndOfDayReport = () => {
     const branchIdFromUrl = new URLSearchParams(window.location.search).get('branchId');
     if (branchIdFromUrl) {
       const selectedBranch = businessDetailsState.branchDetails.find(branch => branch?.branchId.toString() === branchIdFromUrl);
-      console.log(selectedBranch, 'selectedBranch')
       setEndOfDayReportSection(selectedBranch?.endOfDayReportSection);
     }
   }, [businessDetailsState]);
@@ -236,7 +235,6 @@ const EndOfDayReport = () => {
           endOfDayReportSection?.includes(EndOfDayReportSection.WALK_IN) &&
           <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />
         }
-
         {
           endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) &&
           <TipSummary report={salesData.tipSummary} />
