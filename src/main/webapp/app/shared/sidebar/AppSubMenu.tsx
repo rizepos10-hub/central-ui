@@ -31,7 +31,6 @@ const AppSubMenu = (props) => {
     const getBreadcrumb = (item: any, labels: string[] = []) => {
       const { label, to, items } = item;
 
-      // console.log(item, 'labelo')
 
       label && labels.push(label);
       items &&
@@ -44,7 +43,6 @@ const AppSubMenu = (props) => {
     model.forEach((item) => {
       getBreadcrumb(item);
     });
-    // console.log(breadcrumbs, 'breadcum')
     setBreadcrumbs(breadcrumbs);
   };
 
@@ -72,11 +70,9 @@ const AppSubMenu = (props) => {
   };
 
   const modelWithShortcuts = enhanceMenuModel(props.model);
-
   return (
     <MenuProvider>
       {<ul className="layout-menu">
-        {console.log(props?.model, 'model')}
         {modelWithShortcuts?.map((item, i) => {
           const hasAccess = item?.role?.some(role => authorities?.includes(role));
           if (!hasAccess) {
