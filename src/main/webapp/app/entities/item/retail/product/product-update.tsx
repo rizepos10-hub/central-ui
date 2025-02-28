@@ -928,9 +928,9 @@ export const ProductUpdate = () => {
       <Row className="gap-2">
         <Row>
           <Col md="4">
-            <div className={'d-flex flex-column gap-2 mt-2'}>
-              <label className={'font-semibold'}>
-                <Translate contentKey={'items.update.name'}>Name</Translate>
+            <div className="d-flex flex-column gap-2 mt-2">
+              <label className="font-semibold">
+                <Translate contentKey="items.update.name">Name</Translate>
               </label>
               <InputText
                 name="variant-name"
@@ -938,13 +938,24 @@ export const ProductUpdate = () => {
                 required={true}
                 placeholder={translate('items.update.placeholders.variantName')}
                 value={product.variants[variantIndex]?.name || ''}
-                onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                onChange={e =>
+                  handleVariantFieldChange(variantIndex, 'name', e.target.value)
+                }
+                onKeyDown={e => {
+                  if (e.key === ' ') {
+                    e.stopPropagation();
+                  }
+                }}
                 style={{
-                  borderColor: showFormErrors && !product.variants[variantIndex]?.name ? 'red' : ''
+                  borderColor:
+                    showFormErrors && !product.variants[variantIndex]?.name
+                      ? 'red'
+                      : ''
                 }}
               />
             </div>
           </Col>
+
 
           <Col md="4">
             <div className={'d-flex flex-column gap-2 mt-2'}>
@@ -965,6 +976,11 @@ export const ProductUpdate = () => {
                 inputStyle={{
                   borderColor: (showFormErrors && !product.variants[variantIndex]?.price) ? 'red' : ''
                 }}
+                onKeyDown={e => {
+                  if (e.key === ' ') {
+                    e.stopPropagation();
+                  }
+                }}
               />
             </div>
           </Col>
@@ -983,6 +999,11 @@ export const ProductUpdate = () => {
                   value={product.variants[variantIndex]?.sku || ''}
                   onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
                   className='w-100'
+                  onKeyDown={e => {
+                    if (e.key === ' ') {
+                      e.stopPropagation();
+                    }
+                  }}
                 />
                 <Button
                   onClick={async () => {
@@ -998,34 +1019,42 @@ export const ProductUpdate = () => {
           </Col>
         </Row>
         <Row>
-          <Col md="12" className='d-flex gap-2'>
-            {/* <label
-            className="mt-2 variant-name-label"
-            style={{ width: '100px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
-          >
-            <strong>{product?.variants?.[variantIndex]?.name}</strong>
-          </label> */}
-            {product?.attributes?.map((attribute, index) => {
-              return (
-                <AsyncSelect
-                  key={index}
-                  value={product?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id]}
-                  getOptionLabel={option => option.name}
-                  getOptionValue={option => option.id}
-                  isLoading={loadingAttributesValues}
-                  styles={{
-                    control: baseStyles => ({
-                      ...baseStyles,
-                      minWidth: '12rem',
-                      borderColor: (showFormErrors && !product.variants[variantIndex]?.attributeValues[attribute?.attributeTax?.id]) ? 'red' : ''
-                    }),
-                  }}
-                  onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                  defaultOptions={attribute?.attributeTerms}
-                  onChange={selectedOption => handleHeaderChange(variantIndex, attribute?.attributeTax?.id, selectedOption)}
-                />
-              );
-            })}
+          <Col md="12" className="d-flex gap-2">
+            {product?.attributes?.map((attribute, index) => (
+              <AsyncSelect
+                key={index}
+                value={
+                  product?.variants?.[variantIndex]?.attributeValues?.[
+                  attribute?.attributeTax?.id
+                  ]
+                }
+                getOptionLabel={option => option.name}
+                getOptionValue={option => option.id}
+                isLoading={loadingAttributesValues}
+                styles={{
+                  control: baseStyles => ({
+                    ...baseStyles,
+                    minWidth: '12rem',
+                    borderColor:
+                      showFormErrors &&
+                        !product.variants[variantIndex]?.attributeValues[
+                        attribute?.attributeTax?.id
+                        ]
+                        ? 'red'
+                        : ''
+                  })
+                }}
+                onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                defaultOptions={attribute?.attributeTerms}
+                onChange={selectedOption =>
+                  handleHeaderChange(
+                    variantIndex,
+                    attribute?.attributeTax?.id,
+                    selectedOption
+                  )
+                }
+              />
+            ))}
           </Col>
         </Row>
       </Row>
@@ -1033,7 +1062,7 @@ export const ProductUpdate = () => {
         <FontAwesomeIcon
           icon="trash"
           onClick={() => confirm1(variantIndex)}
-          className={'my-2 cursor-pointer '}
+          className="my-2 cursor-pointer"
           style={{ color: 'red' }}
         />
       </div>
