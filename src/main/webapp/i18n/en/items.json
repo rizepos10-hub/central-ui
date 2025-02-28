@@ -207,6 +207,7 @@
       "filterByGroup": "Filter by Group",
       "tags": "Tags",
       "price": "Price",
+      "defaultPrice": "Default Price",
       "overridedPrice": "Overrided Price",
       "min": "Min",
       "max": "Max",
