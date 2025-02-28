@@ -18,11 +18,13 @@ import DropDownFilter from 'app/shared/components/filter/drop-down-filter'
 import { Checkbox } from 'primereact/checkbox'
 import "./barcode.css"
 import { InputNumber } from 'primereact/inputnumber'
+import { formatVariant } from 'app/shared/util/variant-utils'
 
 type VariantSkus = {
     variantId: string
     variantName: string
     sku: string
+    attributeValues: any
     price?: number | string
 }
 
@@ -137,6 +139,7 @@ const Barcode = () => {
                         variantName: variant.name,
                         sku: variant.sku,
                         price: variant.price,
+                        attributeValues: variant.attributeValues,
                     })
                 }
             })
@@ -617,7 +620,7 @@ const Barcode = () => {
                                 <CardBody>
                                     <div className="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h5 className="mb-2">{vSku.variantName}</h5>
+                                            <h5 className="mb-2">{formatVariant(vSku.variantName, vSku.attributeValues)}</h5>
                                             <p className="mb-2">SKU: {vSku.sku}</p>
                                             <p className="mb-2">Price: {vSku.price}</p>
                                         </div>

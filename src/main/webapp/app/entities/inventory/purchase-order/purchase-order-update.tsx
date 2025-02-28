@@ -45,6 +45,7 @@ import _ from "lodash";
 import {applyMatchModeMap} from "app/shared/util/filter-match-model-util";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import { format } from 'date-fns';
+import { formatVariant } from 'app/shared/util/variant-utils';
 
 
 const statusOptions = [
@@ -532,7 +533,7 @@ export const PurchaseOrderUpdate = () => {
                             <Select
                               options={selectedItem?.variants}
                               getOptionValue={option => option.id}
-                              getOptionLabel={option => option.name}
+                              getOptionLabel={option => formatVariant(option.name, option.attributeValues)}
                               onChange={handleSelectVariant}
                               isDisabled={isDisabled || !selectedItem}
                               value={selectedVariant}
