@@ -124,6 +124,28 @@ export const ProductUpdate = () => {
 
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [defaultPrice, setDefaultPrice] = useState(0);
+  const [formIsValid, setFormIsValid] = useState(false);
+  const [showFormErrors, setShowFormErrors] = useState(false);
+
+  useEffect(() => {
+    if (isSingleItem && product?.variants[0]?.price && product?.variants[0]?.name && product?.name) {
+      setFormIsValid(true);
+    } else {
+      setFormIsValid(false);
+    }
+
+    if (!isSingleItem) {
+      const allVariantsValid = product?.variants?.every(
+        variant =>
+          variant?.price &&
+          variant?.name &&
+          Object.keys(variant?.attributeValues).length > 0 &&
+          product?.name
+      );
+      setFormIsValid(allVariantsValid);
+    }
+  }, [product, isSingleItem])
 
   const filteredAvailableAttributes = () => {
     const existingAttributeIds = product?.attributes?.map(attr => attr.attributeTax.id);
@@ -177,6 +199,7 @@ export const ProductUpdate = () => {
   };
 
   const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
+    console.log(value)
     setProduct(prev => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -480,7 +503,7 @@ export const ProductUpdate = () => {
           attachments: [],
           discounts: [],
           sku: '',
-          price: null,
+          price: defaultPrice,
           salePrice: null,
           branchVariantDetails: {},
           attributeValues: { ...currentCombination },
@@ -529,7 +552,7 @@ export const ProductUpdate = () => {
           accountingGroups: prev?.accountingGroups || [],
           discounts: [],
           sku: '',
-          price: null,
+          price: defaultPrice,
           salePrice: null,
           branchVariantDetails: {},
           attributeValues: {},
@@ -698,8 +721,18 @@ export const ProductUpdate = () => {
     setProduct(updatedProduct);
   };
 
+  useEffect(() => {
+    setDefaultPrice(product?.variants?.[0]?.price || 0);
+  }, [product?.variants?.[0]?.price])
+
   const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
+    if (!formIsValid) {
+      setShowFormErrors(true);
+      return;
+    } else {
+      setShowFormErrors(false);
+    }
 
     const updatedVariants = product?.variants.map((variant, index) => {
       if (index !== 0 && variant.order === 0) {
@@ -716,10 +749,11 @@ export const ProductUpdate = () => {
 
     const entity = {
       ...product,
-      variants: updatedVariants.length > 1 ? updatedVariants : [
+      variants: !isSingleItem ? updatedVariants : [
         {
           ...updatedVariants[0],
           name: product.name,
+          price: defaultPrice,
           measureValue: product.baseMeasure ? {
             isBase: true,
             measure: 1
@@ -891,36 +925,110 @@ export const ProductUpdate = () => {
       }}
       className="d-flex flex-1 gap-3 ml-2 p-draggable"
     >
-      <div className="d-flex flex-grow-1 justify-content-between align-items-center">
-        <div className="d-flex gap-2">
-          <label
+      <Row className="gap-2">
+        <Row>
+          <Col md="4">
+            <div className={'d-flex flex-column gap-2 mt-2'}>
+              <label className={'font-semibold'}>
+                <Translate contentKey={'items.update.name'}>Name</Translate>
+              </label>
+              <InputText
+                name="variant-name"
+                id="name"
+                required={true}
+                placeholder={translate('items.update.placeholders.variantName')}
+                value={product.variants[variantIndex]?.name || ''}
+                onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                style={{
+                  borderColor: showFormErrors && !product.variants[variantIndex]?.name ? 'red' : ''
+                }}
+              />
+            </div>
+          </Col>
+
+          <Col md="4">
+            <div className={'d-flex flex-column gap-2 mt-2'}>
+              <label htmlFor="price" className={'font-semibold'}>
+                <Translate contentKey={'items.update.price'}>Price</Translate>
+              </label>
+              <InputNumber
+                name="price"
+                id="price"
+                inputId={'price'}
+                inputClassName={'w-1'}
+                required={true}
+                placeholder="Variant Price"
+                value={product.variants[variantIndex]?.price || null}
+                min={0}
+                maxFractionDigits={2}
+                onChange={e => handleVariantFieldChange(variantIndex, 'price', e.value)}
+                inputStyle={{
+                  borderColor: (showFormErrors && !product.variants[variantIndex]?.price) ? 'red' : ''
+                }}
+              />
+            </div>
+          </Col>
+
+          <Col md="4">
+            <div className={'d-flex flex-column gap-2 mt-2'}>
+              <label className={'font-semibold'}>
+                <Translate contentKey={'items.update.sku'}>SKU</Translate>
+              </label>
+              <div className='d-flex gap-2'>
+                <InputText
+                  name="sku"
+                  id="sku"
+                  required={true}
+                  placeholder="Variant Sku"
+                  value={product.variants[variantIndex]?.sku || ''}
+                  onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
+                  className='w-100'
+                />
+                <Button
+                  onClick={async () => {
+                    const generatedSku = await generateSku()
+                    handleVariantFieldChange(variantIndex, 'sku', generatedSku)
+                  }}
+                  className="p-0"
+                >
+                  {translate('items.update.placeholders.generateSku')}
+                </Button>
+              </div>
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col md="12" className='d-flex gap-2'>
+            {/* <label
             className="mt-2 variant-name-label"
             style={{ width: '100px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
           >
             <strong>{product?.variants?.[variantIndex]?.name}</strong>
-          </label>
-          {product?.attributes?.map((attribute, index) => {
-            return (
-              <AsyncSelect
-                key={index}
-                value={product?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id]}
-                getOptionLabel={option => option.name}
-                getOptionValue={option => option.id}
-                isLoading={loadingAttributesValues}
-                styles={{
-                  control: baseStyles => ({
-                    ...baseStyles,
-                    minWidth: '12rem',
-                  }),
-                }}
-                onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                defaultOptions={attribute?.attributeTerms}
-                onChange={selectedOption => handleHeaderChange(variantIndex, attribute?.attributeTax?.id, selectedOption)}
-              />
-            );
-          })}
-        </div>
-      </div>
+          </label> */}
+            {product?.attributes?.map((attribute, index) => {
+              return (
+                <AsyncSelect
+                  key={index}
+                  value={product?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id]}
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                  isLoading={loadingAttributesValues}
+                  styles={{
+                    control: baseStyles => ({
+                      ...baseStyles,
+                      minWidth: '12rem',
+                      borderColor: (showFormErrors && !product.variants[variantIndex]?.attributeValues[attribute?.attributeTax?.id]) ? 'red' : ''
+                    }),
+                  }}
+                  onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                  defaultOptions={attribute?.attributeTerms}
+                  onChange={selectedOption => handleHeaderChange(variantIndex, attribute?.attributeTax?.id, selectedOption)}
+                />
+              );
+            })}
+          </Col>
+        </Row>
+      </Row>
       <div className="d-flex justify-content-end">
         <FontAwesomeIcon
           icon="trash"
@@ -1034,7 +1142,7 @@ export const ProductUpdate = () => {
                                 </div>
                               </div>
                             )}
-                            <SharedItemUpdate item={product} onFieldChange={handleFieldChange} />
+                            <SharedItemUpdate item={product} onFieldChange={handleFieldChange} defaultPrice={defaultPrice} setDefaultPrice={setDefaultPrice} showFormErrors={showFormErrors} />
 
 
                             <div className={'d-flex flex-column gap-2 mb-3'}>
@@ -1048,17 +1156,6 @@ export const ProductUpdate = () => {
                                 getOptionValue={option => option.id}
                                 getOptionLabel={option => option.name}
                                 onChange={handleBaseMeasureChange}
-                              />
-                            </div>
-
-                            {/* checkbox for askForPrice field */}
-                            <div className={'d-flex flex-column gap-2 mb-3'}>
-                              <label className={'font-semibold'}>
-                                <Translate contentKey={'items.update.askForPrice'}>Ask for Price</Translate>
-                              </label>
-                              <Checkbox
-                                checked={product?.askForPrice || false}
-                                onChange={(e) => setProduct(prev => ({ ...prev, askForPrice: e.checked }))}
                               />
                             </div>
 
@@ -1085,26 +1182,6 @@ export const ProductUpdate = () => {
 
                             {isSingleItem && (
                               <Row>
-                                {!product.askForPrice && (
-                                  <Col md="6">
-                                    <div className={'d-flex flex-column gap-2'}>
-                                      <label className={'font-semibold'}>
-                                        <Translate contentKey={'items.update.price'}>Price</Translate>
-                                      </label>
-                                      <InputNumber
-                                        name="price"
-                                        id="price"
-                                        required={true}
-                                        min={0}
-                                        maxFractionDigits={2}
-                                        inputClassName={'w-1'}
-                                        placeholder={translate('items.update.placeholders.itemPrice')}
-                                        value={product?.variants?.[0]?.price || null}
-                                        onChange={e => handleVariantFieldChange(0, 'price', e.value)}
-                                      />
-                                    </div>
-                                  </Col>
-                                )}
                                 <Col md="6">
                                   <div className={'d-flex flex-column gap-1'}>
                                     <label className={'font-semibold'}>
@@ -1371,70 +1448,6 @@ export const ProductUpdate = () => {
                                             <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)}>
                                               <TabView>
                                                 <TabPanel header='General'>
-                                                  <Row>
-                                                    <Col md="4">
-                                                      <div className={'d-flex flex-column gap-2 mt-2'}>
-                                                        <label className={'font-semibold'}>
-                                                          <Translate contentKey={'items.update.name'}>Name</Translate>
-                                                        </label>
-                                                        <InputText
-                                                          name="variant-name"
-                                                          id="name"
-                                                          required={true}
-                                                          placeholder={translate('items.update.placeholders.variantName')}
-                                                          value={variant?.name || ''}
-                                                          onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
-                                                        />
-                                                      </div>
-                                                    </Col>
-
-                                                    <Col md="4">
-                                                      <div className={'d-flex flex-column gap-2 mt-2'}>
-                                                        <label htmlFor="price" className={'font-semibold'}>
-                                                          <Translate contentKey={'items.update.price'}>Price</Translate>
-                                                        </label>
-                                                        <InputNumber
-                                                          name="price"
-                                                          id="price"
-                                                          inputId={'price'}
-                                                          inputClassName={'w-1'}
-                                                          required={true}
-                                                          placeholder="Variant Price"
-                                                          value={variant?.price || null}
-                                                          min={0}
-                                                          maxFractionDigits={2}
-                                                          onChange={e => handleVariantFieldChange(variantIndex, 'price', e.value)}
-                                                        />
-                                                      </div>
-                                                    </Col>
-
-                                                    <Col md="4">
-                                                      <div className={'d-flex flex-column gap-2 mt-2'}>
-                                                        <label className={'font-semibold'}>
-                                                          <Translate contentKey={'items.update.sku'}>SKU</Translate>
-                                                        </label>
-                                                        <div className='d-flex gap-2'>
-                                                          <InputText
-                                                            name="sku"
-                                                            id="sku"
-                                                            required={true}
-                                                            placeholder="Variant Sku"
-                                                            value={variant?.sku || ''}
-                                                            onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
-                                                            className='w-100'
-                                                          />
-                                                          <Button
-                                                            onClick={async () => {
-                                                              const generatedSku = await generateSku()
-                                                              handleVariantFieldChange(variantIndex, 'sku', generatedSku)
-                                                            }}
-                                                          >
-                                                            {translate('items.update.placeholders.generateSku')}
-                                                          </Button>
-                                                        </div>
-                                                      </div>
-                                                    </Col>
-                                                  </Row>
                                                   <Row>
                                                     <Col md="4" className='mt-2 d-flex gap-2'>
                                                       <div className={'d-flex flex-column gap-2'}>
@@ -1903,6 +1916,13 @@ export const ProductUpdate = () => {
                   </PrimeButton>
                 </Col>
               </Row>
+            </Row>
+            <Row>
+              {showFormErrors &&
+                <div className="text-danger fw-bold">
+                  Some Fields are required
+                </div>
+              }
             </Row>
           </Card>
           {productEntity?.id && <AuditLogs entityId={productEntity?.id} />}
