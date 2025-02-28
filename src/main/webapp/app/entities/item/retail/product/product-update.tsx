@@ -957,6 +957,7 @@ export const ProductUpdate = () => {
             </div>
           </Col>
 
+
           <Col md="4">
             <div className={'d-flex flex-column gap-2 mt-2'}>
               <label htmlFor="price" className={'font-semibold'}>
