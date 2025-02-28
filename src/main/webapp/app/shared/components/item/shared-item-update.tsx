@@ -28,15 +28,19 @@ import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 import { getEntities as getBrands } from 'app/entities/brand/brand.reducer';
 import SharedAddon from 'app/shared/components/item/addon';
 import { ItemVariantType } from 'app/shared/model/ENUMS/item-variant-type.model';
+import { InputNumber } from 'primereact/inputnumber';
 
 type OnFieldChangeFunction = (fieldName: string, value: any) => void;
 
 type SharedItemProps = {
   item: IItem;
   onFieldChange: OnFieldChangeFunction;
+  defaultPrice?: number;
+  setDefaultPrice?: (price: number) => void;
+  showFormErrors?: boolean;
 };
 
-export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
+export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefaultPrice, showFormErrors }: SharedItemProps) => {
   const dispatch = useAppDispatch();
   const location = useLocation();
 
@@ -45,7 +49,7 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
   );
   const isRestaurantItem = item?.itemType === 'RESTAURANT';
   const isVariableItem = item?.itemVariantType === 'RESTAURANT_VARIABLE' || item?.itemVariantType === 'RETAIL_VARIABLE';
-
+  const isRetailVariable = item?.itemVariantType === ItemVariantType.RETAIL_VARIABLE;
   const isRetailItem = item?.itemType === 'RETAIL';
   const isSimplePizza = isRestaurantItem && item?.variants?.[0]?.multiple === false;
 
@@ -151,40 +155,88 @@ export const SharedItemUpdate = ({ item, onFieldChange }: SharedItemProps) => {
         <FormGroup className={'d-flex flex-column gap-1'}>
           <Col md="12">
             <div className="row">
-              <div className={'d-flex flex-column gap-1  col'}>
-                <label className={'font-semibold'}>
-                  <Translate contentKey={'items.update.name'}>Name</Translate>
-                </label>
-                <InputText
-                  type="text"
-                  name="name"
-                  id="name"
-                  required={true}
-                  placeholder={translate('items.update.placeholders.itemName')}
-                  value={item.name || ''}
-                  onChange={e => onFieldChange('name', e.target.value)}
-                />
-              </div>
+              <Col md="6">
+                <div className={'d-flex flex-column gap-1  '}>
+                  <label className={'font-semibold'}>
+                    <Translate contentKey={'items.update.name'}>Name</Translate>
+                  </label>
+                  <InputText
+                    type="text"
+                    name="name"
+                    id="name"
+                    required={true}
+                    placeholder={translate('items.update.placeholders.itemName')}
+                    value={item.name || ''}
+                    onChange={e => onFieldChange('name', e.target.value)}
+                    style={{
+                      borderColor: showFormErrors && !item.name ? 'red' : ''
+                    }}
+                  />
+                </div>
+              </Col>
 
-              <div className={'d-flex flex-column gap-1  col'}>
-                <label className={'font-semibold'}>
-                  <Translate contentKey={'items.update.shortDescription'}>Short Description</Translate>
-                </label>
-                <InputTextarea
-                  name="desc"
-                  id="desc"
-                  placeholder={translate('items.update.placeholders.shortDescription')}
-                  value={item.desc || ''}
-                  onChange={e => onFieldChange('desc', e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      e.stopPropagation();
-                    }
-                  }}
-                  rows={5}
-                />
+              {!item.askForPrice && (
+                <Col md="4">
+                  <div className={'d-flex flex-column gap-2'}>
+                    <label className={'font-semibold'}>
+                      {isRetailVariable ? 'Default Price' : 'Price'}
+                    </label>
+                    <InputNumber
+                      name="price"
+                      id="price"
+                      required={true}
+                      min={0}
+                      maxFractionDigits={2}
+                      inputClassName={'w-1'}
+                      placeholder={translate('items.update.placeholders.itemPrice')}
+                      value={defaultPrice || null}
+                      onChange={e => {
+                        setDefaultPrice(e.value || 0);
+                      }}
+                      style={{
+                        borderColor: showFormErrors && !item?.variants?.[0]?.price ? 'red' : ''
+                      }}
+                    />
+                  </div>
+                </Col>
+              )}
 
-              </div>
+
+              {/* checkbox for askForPrice field */}
+              <Col md="2">
+                <div className={'d-flex flex-column gap-2 mb-3'}>
+                  <label className={'font-semibold'}>
+                    <Translate contentKey={'items.update.askForPrice'}>Ask for Price</Translate>
+                  </label>
+                  <Checkbox
+                    checked={item?.askForPrice || false}
+                    onChange={(e) => onFieldChange('askForPrice', e.checked)}
+                  />
+                </div>
+              </Col>
+
+
+              <Col md="12">
+                <div className={'d-flex flex-column gap-1'}>
+                  <label className={'font-semibold'}>
+                    <Translate contentKey={'items.update.shortDescription'}>Short Description</Translate>
+                  </label>
+                  <InputTextarea
+                    name="desc"
+                    id="desc"
+                    placeholder={translate('items.update.placeholders.shortDescription')}
+                    value={item.desc || ''}
+                    onChange={e => onFieldChange('desc', e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.stopPropagation();
+                      }
+                    }}
+                    rows={5}
+                  />
+
+                </div>
+              </Col>
             </div>
 
             <div className="row">
