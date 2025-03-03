@@ -141,7 +141,10 @@
 
       "stockQuantity": {
         "quantity": "Quantity",
-        "unitCost": "Cost Price"
+        "unitCost": "Cost Price",
+        "stockChangeReason": "Stock Change Reason",
+        "addReason": "Add Reason",
+        "stockQuantityUserMessage": "Stock Quantity User Message"
       },
 
       "shippingDimension": {
@@ -164,6 +167,7 @@
         "variantName": "Variant Name",
         "variantPrice": "Variant Price",
         "minimumStockLevelPlaceHolder": "Minimum Stock Level",
+        "stockChangeReason": "Enter Stock Change Reason",
         "giftCard": "Choose a Gift Card",
         "quantity": "Quantity",
         "unitCost": "unitCost",
@@ -238,6 +242,7 @@
         "search": "Update Minimum Stock Level",
         "save": "Save Minimum Stock"
       },
+
       "addonGroups": "Addon Groups",
       "required": "Required",
       "combo": {

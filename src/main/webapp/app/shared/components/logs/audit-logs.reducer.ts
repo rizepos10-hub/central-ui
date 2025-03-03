@@ -21,8 +21,8 @@ const apiUrl = 'api/logs';
 
 
 
-export const getEntityLogs = createAsyncThunk('get-entity-logs/fetch_entity_log_list', async ({ page, size, sort, id }: IQueryParams) => {
-  const requestUrl = `${apiUrl}?${id ? `entityId=${id}` : ''}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+export const getEntityLogs = createAsyncThunk('get-entity-logs/fetch_entity_log_list', async ({ page, size, sort, id, action }: IQueryParams) => {
+  const requestUrl = `${apiUrl}?${id ? `entityId=${id}` : ''}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}&${action ? `action=${action}` : ''}`;
   return axios.get<IAuditLog[]>(requestUrl);
 },
   { serializeError: serializeAxiosError }

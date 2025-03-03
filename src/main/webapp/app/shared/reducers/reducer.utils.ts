@@ -13,7 +13,7 @@ import { IAuditLog } from "app/shared/model/audit-log.model";
 /**
  * Model for redux actions with pagination
  */
-export type IQueryParams = { name?: string; query?: string; page?: number; size?: number; sort?: string; taxonomyName?: string; type?: string; id?: string, itemType?: string, branchId?: string, whenToApply?: string, key?: string, categoryId?: string, unassignedItems?: string, firstName?: string, entityId?: string, entityType?: string };
+export type IQueryParams = { name?: string; query?: string; page?: number; size?: number; sort?: string; taxonomyName?: string; type?: string; id?: string, itemType?: string, branchId?: string, whenToApply?: string, key?: string, categoryId?: string, unassignedItems?: string, firstName?: string, entityId?: string, entityType?: string, action?: string };
 
 /**
  * Useful types for working with actions
