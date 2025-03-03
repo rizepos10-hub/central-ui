@@ -153,6 +153,13 @@ const EndOfDayReport = () => {
     }
   `;
 
+  const firstBillDate = new Date(
+    salesData?.billSummary?.firstBill?.createdDate
+  ).toLocaleDateString();
+  const lastBillDate = new Date(
+    salesData?.billSummary?.lastBill?.createdDate
+  ).toLocaleDateString();
+
   return (
     <div ref={printWrapper}>
       <div className="container my-5">
@@ -192,6 +199,11 @@ const EndOfDayReport = () => {
             </span>
           </span>
         </div>
+        <h5>
+          First bill date:{" "}
+          <span className="text-primary">{firstBillDate}</span>, Last bill date:{" "}
+          <span className="text-primary">{lastBillDate}</span>
+        </h5>
       </div>
       <div className="container mt-5 bg-white">
         {/* <div > */}
@@ -204,14 +216,14 @@ const EndOfDayReport = () => {
 
 
         {
-          endOfDayReportSection?.includes(EndOfDayReportSection.DINE_IN) && 
+          endOfDayReportSection?.includes(EndOfDayReportSection.DINE_IN) &&
           <GenericSalesReport title={translate('analytics.report.dineIn')} report={salesData.totalSalesByOrderOption?.DineIn} />
         }
         {
-          endOfDayReportSection?.includes(EndOfDayReportSection.PICK_UP) && 
+          endOfDayReportSection?.includes(EndOfDayReportSection.PICK_UP) &&
           <GenericSalesReport title={translate('analytics.report.pickUp')} report={salesData.totalSalesByOrderOption?.PickUp} />
         }
-        
+
         {
           endOfDayReportSection?.includes(EndOfDayReportSection.DELIVERY) &&
           <GenericSalesReport title={translate('analytics.report.delivery')} report={salesData.totalSalesByOrderOption?.Delivery} />
@@ -222,7 +234,7 @@ const EndOfDayReport = () => {
           endOfDayReportSection?.includes(EndOfDayReportSection.WALK_IN) &&
           <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />
         }
-        
+
         {
           endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) &&
           <TipSummary report={salesData.tipSummary} />
