@@ -86,10 +86,7 @@ const ItemStock = ({
     value: number | string,
     index: number
   ) => {
-    if(field == "stockChangeReason") {
-      console.log(value)
-      console.log(index)
-    }
+
     const currentStockQuantities = variant?.stockQuantities || [];
     const locationIndex = currentStockQuantities.findIndex((sq) => sq.location.id === location.id);
     let updatedStockQuantities;
@@ -109,8 +106,8 @@ const ItemStock = ({
       <TabView>
         <TabPanel header="Warehouses">
           {wareHouses?.map((warehouse, index) => (
-            <Row key={index}>
-              <Col md="3">
+            <Row className="align-items-center" key={index}>
+              <Col md="3" className="d-flex align-items-center">
                 <div className="col d-flex flex-column gap-2">
                   <label className="font-semibold">
                     <Translate contentKey="items.update.name">Name</Translate>
@@ -118,7 +115,7 @@ const ItemStock = ({
                   <div>{warehouse?.name}</div>
                 </div>
               </Col>
-              <Col md="3">
+              <Col md="3" className="d-flex align-items-center">
                 <div className="col d-flex flex-column gap-2">
                   <label className="font-semibold">
                     <Translate contentKey="items.update.minimumStockLevel.title">
@@ -143,39 +140,43 @@ const ItemStock = ({
                   />
                 </div>
               </Col>
-              <Col md="3">
+              <Col md="3" className="d-flex align-items-center">
                 <div className="col d-flex flex-column gap-2">
                   <label className="font-semibold">
                     <Translate contentKey="items.update.stockQuantity.quantity">
                       Quantity
                     </Translate>
                   </label>
-                  <InputNumber
-                    name="quantity"
-                    id="quantity"
-                    required
-                    min={0}
-                    maxFractionDigits={2}
-                    inputClassName="w-1"
-                    placeholder={translate("items.update.placeholders.quantity")}
-                    value={
-                      variant?.stockQuantities?.find((stock) => stock.location.id === warehouse.id)
-                        ?.quantity ?? null
+                  <div className="d-flex">
+                    <InputNumber
+                      name="quantity"
+                      id="quantity"
+                      required
+                      min={0}
+                      maxFractionDigits={2}
+                      inputClassName="w-1"
+                      placeholder={translate("items.update.placeholders.quantity")}
+                      value={
+                        variant?.stockQuantities?.find((stock) => stock.location.id === warehouse.id)
+                          ?.quantity ?? null
+                      }
+                      disabled={!isNew ? !variant?.stockQuantities?.find(
+                        (stock) => stock.location.id === warehouse.id
+                      )?.stockChangeReason?.trim() : false }
+                      onChange={(e) =>
+                        handleStockQuantityChange(warehouse, "quantity", e.value, index)
+                      }
+                    />
+                    
+                    { !isNew &&
+                      <div className="d-flex justify-content-end align-items-center">
+                        <FontAwesomeIcon onClick={(e) => { e.preventDefault(); handleOpen(index); }} icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
+                      </div>
                     }
-                    disabled={!isNew ? !variant?.stockQuantities?.find(
-                      (stock) => stock.location.id === warehouse.id
-                    )?.stockChangeReason?.trim() : false }
-                    onChange={(e) =>
-                      handleStockQuantityChange(warehouse, "quantity", e.value, index)
-                    }
-                  />
-                  
-                  { !isNew &&
-                    <FontAwesomeIcon onClick={(e) => { e.preventDefault(); handleOpen(index); }} icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-                  }
+                  </div>
                 </div>
               </Col>
-              <Col md="3">
+              <Col md="3" className="d-flex align-items-center">
                 <div className="col d-flex flex-column gap-2">
                   <label className="font-semibold">
                     <Translate contentKey="items.update.stockQuantity.unitCost">
@@ -237,8 +238,8 @@ const ItemStock = ({
         <TabPanel header="Sales Locations">
           <Row>
             {salesLocations?.map((salesLocation, index) => (
-              <Row key={index}>
-                <Col md="3">
+              <Row className="align-items-center" key={index}>
+                <Col md="3" className="d-flex align-items-center">
                   <div className="col d-flex flex-column gap-2">
                     <label className="font-semibold">
                       <Translate contentKey="items.update.name">Name</Translate>
@@ -246,7 +247,7 @@ const ItemStock = ({
                     <div>{salesLocation?.name}</div>
                   </div>
                 </Col>
-                <Col md="3">
+                <Col md="3" className="d-flex align-items-center">
                   <div className="col d-flex flex-column gap-2">
                     <label className="font-semibold">
                       <Translate contentKey="items.update.minimumStockLevel.title">
@@ -272,39 +273,43 @@ const ItemStock = ({
                     />
                   </div>
                 </Col>
-                <Col md="3">
+                <Col md="3" className="d-flex align-items-center">
                   <div className="col d-flex flex-column gap-2">
                     <label className="font-semibold">
                       <Translate contentKey="items.update.stockQuantity.quantity">
                         Quantity
                       </Translate>
                     </label>
-                    <InputNumber
-                      name="quantity"
-                      id="quantity"
-                      required
-                      min={0}
-                      maxFractionDigits={2}
-                      inputClassName="w-1"
-                      placeholder={translate("items.update.placeholders.quantity")}
-                      value={
-                        variant?.stockQuantities?.find(
+                    <div className="d-flex">
+                      <InputNumber
+                        name="quantity"
+                        id="quantity"
+                        required
+                        min={0}
+                        maxFractionDigits={2}
+                        inputClassName="w-1"
+                        placeholder={translate("items.update.placeholders.quantity")}
+                        value={
+                          variant?.stockQuantities?.find(
+                            (stock) => stock.location.id === salesLocation.id
+                          )?.quantity ?? null
+                        }
+                        disabled={!isNew ? !variant?.stockQuantities?.find(
                           (stock) => stock.location.id === salesLocation.id
-                        )?.quantity ?? null
+                        )?.stockChangeReason?.trim() : false }
+                        onChange={(e) =>
+                          handleStockQuantityChange(salesLocation, "quantity", e.value, index)
+                        }
+                      />
+                      { !isNew &&
+                        <div className="d-flex justify-content-end align-items-center">
+                        <FontAwesomeIcon onClick={(e) => { e.preventDefault(); handleOpen(index); }} icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
+                      </div>
                       }
-                      disabled={!isNew ? !variant?.stockQuantities?.find(
-                        (stock) => stock.location.id === salesLocation.id
-                      )?.stockChangeReason?.trim() : false }
-                      onChange={(e) =>
-                        handleStockQuantityChange(salesLocation, "quantity", e.value, index)
-                      }
-                    />
-                    { !isNew &&
-                      <FontAwesomeIcon onClick={(e) => { e.preventDefault(); handleOpen(index); }} icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-                    }
+                    </div>
                   </div>
                 </Col>
-                <Col md="3">
+                <Col md="3" className="d-flex align-items-center">
                   <div className="col d-flex flex-column gap-2">
                     <label className="font-semibold">
                       <Translate contentKey="items.update.stockQuantity.unitCost">
