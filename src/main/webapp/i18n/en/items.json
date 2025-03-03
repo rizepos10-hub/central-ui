@@ -30,6 +30,10 @@
         "type": "Type",
         "productionCenter": "Production Center",
         "discount": "Discount",
+        "addOnGroups": "AddOn Groups",
+        "tags": "Tags",
+        "actions": "Actions",
+        "discounts": "Discounts",
         "regular": {
           "variant": "Variant",
           "category": "Category",
