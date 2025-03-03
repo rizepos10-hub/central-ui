@@ -59,6 +59,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import ItemLocation from 'app/shared/components/item/item-location';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { toast } from 'react-toastify';
+import { ImMagicWand } from "react-icons/im";
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -986,11 +987,11 @@ export const ProductUpdate = () => {
           </Col>
 
           <Col md="4">
-            <div className={'d-flex flex-column gap-2 mt-2'}>
+            <div className={'d-flex flex-column gap-2 mt-2 position-relative'}>
               <label className={'font-semibold'}>
                 <Translate contentKey={'items.update.sku'}>SKU</Translate>
               </label>
-              <div className='d-flex gap-2'>
+              <div className='d-flex gap-2 position-relative'>
                 <InputText
                   name="sku"
                   id="sku"
@@ -998,22 +999,25 @@ export const ProductUpdate = () => {
                   placeholder="Variant Sku"
                   value={product.variants[variantIndex]?.sku || ''}
                   onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
-                  className='w-100'
+                  className='w-100 position-relative'
                   onKeyDown={e => {
                     if (e.key === ' ') {
                       e.stopPropagation();
                     }
                   }}
                 />
-                <Button
+                <PrimeButton
                   onClick={async () => {
                     const generatedSku = await generateSku()
-                    handleVariantFieldChange(variantIndex, 'sku', generatedSku)
+                    handleVariantFieldChange(0, 'sku', generatedSku)
                   }}
-                  className="p-0"
+                  type="button"
+                  className="position-absolute end-0"
+                  rounded
+                  text
                 >
-                  {translate('items.update.placeholders.generateSku')}
-                </Button>
+                  <ImMagicWand size={10} />
+                </PrimeButton>
               </div>
             </div>
           </Col>
@@ -1150,7 +1154,7 @@ export const ProductUpdate = () => {
                                 <label className={'font-semibold'}>
                                   <Translate contentKey={'items.update.sku'}>SKU</Translate>
                                 </label>
-                                <div className='d-flex gap-2'>
+                                <div className='d-flex gap-2 position-relative'>
                                   <InputText
                                     name="sku"
                                     id="sku"
@@ -1158,16 +1162,20 @@ export const ProductUpdate = () => {
                                     placeholder={translate('items.update.placeholders.itemSku')}
                                     value={product?.variants?.[0]?.sku || ''}
                                     onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
-                                    className='w-100'
+                                    className='w-100 position-relative'
                                   />
-                                  <Button
+                                  <PrimeButton
                                     onClick={async () => {
                                       const generatedSku = await generateSku()
                                       handleVariantFieldChange(0, 'sku', generatedSku)
                                     }}
+                                    type="button"
+                                    className="position-absolute end-0"
+                                    rounded
+                                    text
                                   >
-                                    {translate('items.update.placeholders.generateSku')}
-                                  </Button>
+                                    <ImMagicWand size={16} />
+                                  </PrimeButton>
                                 </div>
                               </div>
                             )}
