@@ -139,7 +139,7 @@ const AuditLogs = ({ entityId} :AuditLogsProps) => {
             onClick={() =>  handleSelectLog(index, isChangeLog)}
             >
               <div className="d-flex flex-column flex-grow-1 ms-2 me-auto">
-                <div className="fw-bold text-primary">{log.action}</div>
+                <div className="fw-bold">{log.action}</div>
 
                 <div className="text-end small text-secondary ms-auto">
                 {convertUtcToLocalDate(log.occurredAt)}
@@ -154,9 +154,11 @@ const AuditLogs = ({ entityId} :AuditLogsProps) => {
             </li>
           )})
         )}
-      </ol>
-
-      {loading && <Spinner />}
+      {loading && (
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '100px' }}>
+          <Spinner />
+        </div>
+      )}
       {showModal ? (
         <Modal isOpen={showModal} toggle={toggleModal} className=" modal-xl modal-dialog-scrollable">
           <ModalHeader toggle={toggleModal}>Log Changes</ModalHeader>
