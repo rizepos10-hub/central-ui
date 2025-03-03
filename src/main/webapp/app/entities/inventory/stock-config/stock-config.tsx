@@ -15,6 +15,7 @@ import { FilterMatchMode } from "primereact/api";
 import { Card as PrimeCard } from 'primereact/card'
 import { IQueryParams } from "app/shared/reducers/reducer.utils";
 import _ from "lodash";
+import { formatVariant } from 'app/shared/util/variant-utils';
 
 export const StockConfig = () => {
   const dispatch = useAppDispatch();
@@ -131,7 +132,7 @@ export const StockConfig = () => {
     return <Button icon={icon} onClick={handleClick} />;
   };
 
-  const rowExpansionTemplate = (data) => {
+  const rowExpansionTemplate = (data, idx) => {
     const variantsWithItemId = data.variants.map(variant => ({
       ...variant,
       itemId: data.id
@@ -141,7 +142,7 @@ export const StockConfig = () => {
       <div className="p-3 bg-light">
         <h4>{data.name} Variants</h4>
         <DataTable value={variantsWithItemId} showGridlines>
-          <Column className={'bg-light'} field="name" header={translate("common.variantName")} sortable />
+          <Column className={'bg-light'} body={data => formatVariant(data?.name, data?.attributeValues)} header={translate("common.variantName")} sortable />
           <Column className={'bg-light'} field="price" header={translate("common.price")} sortable />
           <Column className={'bg-light'} field="sku" header={translate("common.sku")} sortable />
           <Column className={'bg-light'} headerStyle={{ width: '9rem' }} header={translate("common.details")} body={quantityConfigBodyTemplate} />

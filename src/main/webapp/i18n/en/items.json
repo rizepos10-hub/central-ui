@@ -141,7 +141,9 @@
 
       "stockQuantity": {
         "quantity": "Quantity",
-        "unitCost": "Cost Price"
+        "unitCost": "Cost Price",
+        "stockChangeReason": "Stock Change Reason",
+        "addReason": "Add Reason"
       },
 
       "shippingDimension": {
@@ -164,6 +166,7 @@
         "variantName": "Variant Name",
         "variantPrice": "Variant Price",
         "minimumStockLevelPlaceHolder": "Minimum Stock Level",
+        "stockChangeReason": "Enter Stock Change Reason",
         "giftCard": "Choose a Gift Card",
         "quantity": "Quantity",
         "unitCost": "unitCost",

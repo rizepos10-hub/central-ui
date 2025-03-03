@@ -29,7 +29,7 @@ import _, { isEqual } from 'lodash';
 import Visibility from 'app/shared/Visibility/Visibility';
 import { TabPanel, TabView } from 'primereact/tabview';
 import ItemStockTab from 'app/shared/components/item/item-stock-tab';
-import ItemStockAccordion from 'app/shared/components/item/item-stock-accordion';
+import ItemStock from 'app/shared/components/item/item-stock';
 import { IExchangeMeasure } from 'app/shared/model/ITEM/retail/simple-item.model';
 import { getEntities as getMeasures } from 'app/entities/item-measure/item-measure.reducer';
 import ItemLoyaltyTab from 'app/shared/components/item/item-loyalty-tab';
@@ -59,6 +59,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import ItemLocation from 'app/shared/components/item/item-location';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { toast } from 'react-toastify';
+import { ImMagicWand } from "react-icons/im";
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -928,9 +929,9 @@ export const ProductUpdate = () => {
       <Row className="gap-2">
         <Row>
           <Col md="4">
-            <div className={'d-flex flex-column gap-2 mt-2'}>
-              <label className={'font-semibold'}>
-                <Translate contentKey={'items.update.name'}>Name</Translate>
+            <div className="d-flex flex-column gap-2 mt-2">
+              <label className="font-semibold">
+                <Translate contentKey="items.update.name">Name</Translate>
               </label>
               <InputText
                 name="variant-name"
@@ -938,13 +939,24 @@ export const ProductUpdate = () => {
                 required={true}
                 placeholder={translate('items.update.placeholders.variantName')}
                 value={product.variants[variantIndex]?.name || ''}
-                onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                onChange={e =>
+                  handleVariantFieldChange(variantIndex, 'name', e.target.value)
+                }
+                onKeyDown={e => {
+                  if (e.key === ' ') {
+                    e.stopPropagation();
+                  }
+                }}
                 style={{
-                  borderColor: showFormErrors && !product.variants[variantIndex]?.name ? 'red' : ''
+                  borderColor:
+                    showFormErrors && !product.variants[variantIndex]?.name
+                      ? 'red'
+                      : ''
                 }}
               />
             </div>
           </Col>
+
 
           <Col md="4">
             <div className={'d-flex flex-column gap-2 mt-2'}>
@@ -965,16 +977,21 @@ export const ProductUpdate = () => {
                 inputStyle={{
                   borderColor: (showFormErrors && !product.variants[variantIndex]?.price) ? 'red' : ''
                 }}
+                onKeyDown={e => {
+                  if (e.key === ' ') {
+                    e.stopPropagation();
+                  }
+                }}
               />
             </div>
           </Col>
 
           <Col md="4">
-            <div className={'d-flex flex-column gap-2 mt-2'}>
+            <div className={'d-flex flex-column gap-2 mt-2 position-relative'}>
               <label className={'font-semibold'}>
                 <Translate contentKey={'items.update.sku'}>SKU</Translate>
               </label>
-              <div className='d-flex gap-2'>
+              <div className='d-flex gap-2 position-relative'>
                 <InputText
                   name="sku"
                   id="sku"
@@ -982,50 +999,66 @@ export const ProductUpdate = () => {
                   placeholder="Variant Sku"
                   value={product.variants[variantIndex]?.sku || ''}
                   onChange={e => handleVariantFieldChange(variantIndex, 'sku', e.target.value)}
-                  className='w-100'
+                  className='w-100 position-relative'
+                  onKeyDown={e => {
+                    if (e.key === ' ') {
+                      e.stopPropagation();
+                    }
+                  }}
                 />
-                <Button
+                <PrimeButton
                   onClick={async () => {
                     const generatedSku = await generateSku()
-                    handleVariantFieldChange(variantIndex, 'sku', generatedSku)
+                    handleVariantFieldChange(0, 'sku', generatedSku)
                   }}
-                  className="p-0"
+                  type="button"
+                  className="position-absolute end-0"
+                  rounded
+                  text
                 >
-                  {translate('items.update.placeholders.generateSku')}
-                </Button>
+                  <ImMagicWand size={10} />
+                </PrimeButton>
               </div>
             </div>
           </Col>
         </Row>
         <Row>
-          <Col md="12" className='d-flex gap-2'>
-            {/* <label
-            className="mt-2 variant-name-label"
-            style={{ width: '100px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
-          >
-            <strong>{product?.variants?.[variantIndex]?.name}</strong>
-          </label> */}
-            {product?.attributes?.map((attribute, index) => {
-              return (
-                <AsyncSelect
-                  key={index}
-                  value={product?.variants?.[variantIndex]?.attributeValues?.[attribute?.attributeTax?.id]}
-                  getOptionLabel={option => option.name}
-                  getOptionValue={option => option.id}
-                  isLoading={loadingAttributesValues}
-                  styles={{
-                    control: baseStyles => ({
-                      ...baseStyles,
-                      minWidth: '12rem',
-                      borderColor: (showFormErrors && !product.variants[variantIndex]?.attributeValues[attribute?.attributeTax?.id]) ? 'red' : ''
-                    }),
-                  }}
-                  onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                  defaultOptions={attribute?.attributeTerms}
-                  onChange={selectedOption => handleHeaderChange(variantIndex, attribute?.attributeTax?.id, selectedOption)}
-                />
-              );
-            })}
+          <Col md="12" className="d-flex gap-2">
+            {product?.attributes?.map((attribute, index) => (
+              <AsyncSelect
+                key={index}
+                value={
+                  product?.variants?.[variantIndex]?.attributeValues?.[
+                  attribute?.attributeTax?.id
+                  ]
+                }
+                getOptionLabel={option => option.name}
+                getOptionValue={option => option.id}
+                isLoading={loadingAttributesValues}
+                styles={{
+                  control: baseStyles => ({
+                    ...baseStyles,
+                    minWidth: '12rem',
+                    borderColor:
+                      showFormErrors &&
+                        !product.variants[variantIndex]?.attributeValues[
+                        attribute?.attributeTax?.id
+                        ]
+                        ? 'red'
+                        : ''
+                  })
+                }}
+                onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                defaultOptions={attribute?.attributeTerms}
+                onChange={selectedOption =>
+                  handleHeaderChange(
+                    variantIndex,
+                    attribute?.attributeTax?.id,
+                    selectedOption
+                  )
+                }
+              />
+            ))}
           </Col>
         </Row>
       </Row>
@@ -1033,7 +1066,7 @@ export const ProductUpdate = () => {
         <FontAwesomeIcon
           icon="trash"
           onClick={() => confirm1(variantIndex)}
-          className={'my-2 cursor-pointer '}
+          className="my-2 cursor-pointer"
           style={{ color: 'red' }}
         />
       </div>
@@ -1121,7 +1154,7 @@ export const ProductUpdate = () => {
                                 <label className={'font-semibold'}>
                                   <Translate contentKey={'items.update.sku'}>SKU</Translate>
                                 </label>
-                                <div className='d-flex gap-2'>
+                                <div className='d-flex gap-2 position-relative'>
                                   <InputText
                                     name="sku"
                                     id="sku"
@@ -1129,16 +1162,20 @@ export const ProductUpdate = () => {
                                     placeholder={translate('items.update.placeholders.itemSku')}
                                     value={product?.variants?.[0]?.sku || ''}
                                     onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
-                                    className='w-100'
+                                    className='w-100 position-relative'
                                   />
-                                  <Button
+                                  <PrimeButton
                                     onClick={async () => {
                                       const generatedSku = await generateSku()
                                       handleVariantFieldChange(0, 'sku', generatedSku)
                                     }}
+                                    type="button"
+                                    className="position-absolute end-0"
+                                    rounded
+                                    text
                                   >
-                                    {translate('items.update.placeholders.generateSku')}
-                                  </Button>
+                                    <ImMagicWand size={16} />
+                                  </PrimeButton>
                                 </div>
                               </div>
                             )}
@@ -1303,9 +1340,9 @@ export const ProductUpdate = () => {
                                   )
                                 }
                                 {!product.askForPrice && (
-                                  <ItemStockAccordion
+                                  <ItemStock
                                     productPurchaseConfig={productPurchaseConfig}
-                                    stockQuantityUpdate={stockQuantityUpdate}
+                                    handleVariantFieldChange={handleVariantFieldChange}
                                     variant={product?.variants?.[0]}
                                     variantIndex={0}
                                     itemId={product.id}
@@ -1621,9 +1658,9 @@ export const ProductUpdate = () => {
                                                 <TabPanel header='Inventory'>
                                                   <Row>
                                                     <Col md="12">
-                                                      <ItemStockAccordion
+                                                      <ItemStock
                                                         productPurchaseConfig={productPurchaseConfig}
-                                                        stockQuantityUpdate={stockQuantityUpdate}
+                                                        handleVariantFieldChange={handleVariantFieldChange}
                                                         variant={variant}
                                                         variantIndex={variantIndex}
                                                         itemId={product.id}
