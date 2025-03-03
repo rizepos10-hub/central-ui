@@ -29,7 +29,7 @@ import _, { isEqual } from 'lodash';
 import Visibility from 'app/shared/Visibility/Visibility';
 import { TabPanel, TabView } from 'primereact/tabview';
 import ItemStockTab from 'app/shared/components/item/item-stock-tab';
-import ItemStockAccordion from 'app/shared/components/item/item-stock-accordion';
+import ItemStock from 'app/shared/components/item/item-stock';
 import { IExchangeMeasure } from 'app/shared/model/ITEM/retail/simple-item.model';
 import { getEntities as getMeasures } from 'app/entities/item-measure/item-measure.reducer';
 import ItemLoyaltyTab from 'app/shared/components/item/item-loyalty-tab';
@@ -1332,9 +1332,9 @@ export const ProductUpdate = () => {
                                   )
                                 }
                                 {!product.askForPrice && (
-                                  <ItemStockAccordion
+                                  <ItemStock
                                     productPurchaseConfig={productPurchaseConfig}
-                                    stockQuantityUpdate={stockQuantityUpdate}
+                                    handleVariantFieldChange={handleVariantFieldChange}
                                     variant={product?.variants?.[0]}
                                     variantIndex={0}
                                     itemId={product.id}
@@ -1650,9 +1650,9 @@ export const ProductUpdate = () => {
                                                 <TabPanel header='Inventory'>
                                                   <Row>
                                                     <Col md="12">
-                                                      <ItemStockAccordion
+                                                      <ItemStock
                                                         productPurchaseConfig={productPurchaseConfig}
-                                                        stockQuantityUpdate={stockQuantityUpdate}
+                                                        handleVariantFieldChange={handleVariantFieldChange}
                                                         variant={variant}
                                                         variantIndex={variantIndex}
                                                         itemId={product.id}
