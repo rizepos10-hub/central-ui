@@ -348,24 +348,23 @@ export const ComboItem = () => {
     return storedFields;
   });
 
-
-  const onColumnToggle = (columnKey) => {
-    setVisibleColumns((prevState) => {
-      const updatedColumns = {
-        ...prevState,
-        [columnKey]: !prevState[columnKey],
-      };
-
-      const visibleColumnsData = JSON.parse(localStorage.getItem("visible_columns")) || {};
-
-      visibleColumnsData[LOCAL_STORAGE_KEY] = updatedColumns;
-
-      console.log(visibleColumnsData);
-      localStorage.setItem("visible_columns", JSON.stringify(visibleColumnsData));
-
-      return updatedColumns;
-    });
-  };
+    const onColumnToggle = (columnKey) => {
+      setVisibleColumns((prevState) => {
+        const updatedColumns = {
+          ...prevState,
+          [columnKey]: !prevState[columnKey],
+        };
+    
+        const visibleColumnsData = JSON.parse(localStorage.getItem("visible_columns")) || {};
+    
+        visibleColumnsData[LOCAL_STORAGE_KEY] = updatedColumns;
+        
+        console.log(visibleColumnsData);
+        localStorage.setItem("visible_columns", JSON.stringify(visibleColumnsData));
+    
+        return updatedColumns;
+      });
+    };
 
   const toCamelCaseWithSpace = (str) => {
     return str
