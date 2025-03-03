@@ -11,6 +11,10 @@ import { IPurchaseConfig } from "app/shared/model/STOCK/purchase-config.model";
 import Select from "react-select";
 import { IWarehouse } from "app/shared/model/STOCK/warehouse.model";
 import { Col, Row } from "reactstrap";
+import { Dialog } from "primereact/dialog";
+import { Button as PrimeButton } from 'primereact/button';
+import { InputTextarea } from "primereact/inputtextarea";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuantityUpdate, variantIndex }) => {
   const dispatch = useAppDispatch();
@@ -18,10 +22,28 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
   const wareHouses = useAppSelector(state => state.warehouse.entities);
   const [selectedWarehouses, setSelectedWarehouses] = useState<IWarehouse[]>([]);
   const isNew = itemId === undefined;
+  const [dialogOpen, setDialogOpen] = useState<boolean[]>([]);
 
   const handleConfigChange = (newConfig: IPurchaseConfig, variantIndex: number) => {
     productPurchaseConfig(newConfig, variantIndex);
   };
+
+  const handleOpen = (index: number) => {
+    setDialogOpen(prev => {
+      const newState = [...prev];
+      newState[index] = true;
+      return newState;
+    });
+  };
+
+  const handleClose = (index: number) => {
+    setDialogOpen(prev => {
+      const newState = [...prev];
+      newState[index] = false;
+      return newState;
+    });
+  };
+
 
   useEffect(() => {
     const locationIds = variant?.stockQuantities?.map(item => item.location.id) || [] 
@@ -118,17 +140,25 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
                 <label className="font-semibold">
                   <Translate contentKey='items.update.stockQuantity.quantity'>Quantity</Translate>
                 </label>
-                <InputNumber
-                  name="quantity"
-                  id="quantity"
-                  required
-                  min={0}
-                  maxFractionDigits={2}
-                  inputClassName='w-1'
-                  placeholder={translate('items.update.placeholders.quantity')}
-                  value={stock?.quantity ?? null}
-                  onChange={(e) => handleStockQuantityChange("quantity", e.value, index)}
-                />
+                <div className="relative w-full">
+                  <InputNumber
+                    name="quantity"
+                    id="quantity"
+                    required
+                    min={0}
+                    maxFractionDigits={2}
+                    inputClassName="pr-10 w-full" // Add padding-right for icon
+                    placeholder={translate('items.update.placeholders.quantity')}
+                    value={stock?.quantity ?? null}
+                    onChange={(e) => handleStockQuantityChange("quantity", e.value, index)}
+                    disabled={!isNew ? !stock?.stockChangeReason?.trim() : false }
+                  />
+                  
+                  { !isNew &&
+                    <FontAwesomeIcon onClick={(e) => { e.preventDefault(); handleOpen(index); }} icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
+                  }
+                </div>
+
               </div>
             </Col>
             <Col md='4'>
@@ -149,6 +179,36 @@ const ItemStockAccordion = ({ variant, itemId, productPurchaseConfig, stockQuant
                 />
               </div>
             </Col>
+
+            <Dialog visible={dialogOpen[index] || false} onHide={() => handleClose(index)}  header="Stock Quantity Information" footer={
+              <div>
+                <PrimeButton color="primary" onClick={() => handleClose(index)} className="p-button-text mr-2">
+                  <Translate contentKey='common.buttons.cancel'>Cancel</Translate>
+                </PrimeButton>
+
+                <PrimeButton onClick={() => handleClose(index)} className="p-button-primary">
+                <Translate contentKey='common.buttons.save'>Save</Translate>
+                </PrimeButton>
+              </div>
+            }>
+              <div className="d-flex flex-column gap-2">
+                <label className="font-semibold">
+                  <Translate contentKey='items.update.stockQuantity.stockChangeReason'>Stock Change Reason</Translate>
+                </label>
+
+                <InputTextarea
+                    name="stockChangeReason"
+                    id={`stockChangeReason-${index}`}
+                    required
+                    placeholder={translate('items.update.placeholders.stockChangeReason')}
+                    value={updatedStockQuantities[index]?.stockChangeReason ?? ""}
+                    onChange={(e) => handleStockQuantityChange("stockChangeReason", e.target.value, index)}
+                    autoResize
+                    rows={3}
+                    cols={30}
+                  />
+              </div>
+            </Dialog>
           </Row>
         </div>
       ))}
