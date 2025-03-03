@@ -28,13 +28,6 @@ import { FaCog, FaCopy } from 'react-icons/fa';
 import { Menu } from 'primereact/menu';
 import { Checkbox } from 'primereact/checkbox';
 import { SummarizeText } from 'app/shared/util/SummarizeText';
-interface ColumnConfig extends Partial<ColumnProps> {
-  field: string;
-  header: string;
-  key?: string;
-  seq: number;
-  visible: boolean;
-}
 
 export const RegularItem = () => {
   const dispatch = useAppDispatch();
@@ -332,170 +325,57 @@ export const RegularItem = () => {
   };
 
   
-  const columnsConfig: ColumnConfig[] = [
-    {
-      field: "name",
-      header: translate("items.view.fields.name"),
-      body: nameColumnTemplate,
-      filterPlaceholder: translate("items.view.filters.name"),
-      filter: true,
-      filterField: "name",
-      filterElement: nameFilterTemplate,
-      sortable: true,
-      key: "name",
-      seq: 1,
-      visible: true
-    },
-    {
-      field: "categories",
-      header: "Category",
-      body: (rowData) => rowData?.categories?.map((cat) => cat?.name).join(" | "),
-      sortable: true,
-      filter: true,
-      showFilterMatchModes: false,
-      filterElement: (
-        <DropDownFilter
-          dropDownOptionType="RESTAURANT_CATEGORY"
-          selectedOption={query?.filters?.["categories.id"]?.value}
-          fieldName="categories.id"
-          handleDropdownChange={handleDropdownChange}
-        />
-      ),
-      key: "categories",
-      seq: 2,
-      visible: true
+    const [visibleColumns, setVisibleColumns] = useState(() => {
+      const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
+      // Check if 'orderToday' exists in the stored data, otherwise initialize it with default visibility
+      const storedFields = storedData[LOCAL_STORAGE_KEY] || {
+        name: true,
+        categories: true,
+        image: true,
+        menus: true,
+        desc: true,
+        productionCenter: true,
+        addonGroups: true,
+        tags: true,
+        discounts: true
+      };
+    
+      return storedFields;
+    });
 
-    },
-    {
-      field: "image",
-      header: translate("items.view.fields.image"),
-      body: (rowData) => (
-        <ImageDisplay
-          imageType="product"
-          imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
-          height={50}
-          width={50}
-        />
-      ),
-      key: "image",
-      seq: 3,
-      visible: true
-
-    },
-    {
-      field: "menus",
-      header: translate("items.view.fields.menus"),
-      body: (rowData) => <MenusTemplate rowData={rowData} />,
-      key: "menus",
-      seq: 4,
-      visible: true
-
-    },
-
-    {
-      field: "desc",
-      header: translate("items.view.fields.description"),
-      key: "desc",
-      seq: 5,
-      visible: true
-    },
-    {
-      field: "productionCenter",
-      key: "productionCenter",
-      header: translate("items.view.fields.productionCenter"),
-      body: (rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>,
-      headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
-      bodyStyle: { textAlign: "left", overflow: "visible" },
-      seq: 6,
-      visible: true
-
-    },
-
-    {
-      field: "addonGroups",
-      header: "Addon Groups",
-      body: AddonGroupsBody,
-      key: "addonGroups",
-      seq: 7,
-      visible: true
-    },
-
-    {
-      field: "tags",
-      header: "Tags",
-      body: TagsBody,
-      key: "tags",
-      seq: 8,
-      visible: true
-    },
-
-    {
-      field: "discounts",
-      header: translate("items.view.fields.discount"),
-      body: DiscountBody,
-      sortable: true,
-      key: "discounts",
-      seq: 9,
-      visible: true
-    },
-
-    {
-      field: "actions",
-      key: "actions",
-      header: "Actions",
-      body: (rowData) => (
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          {duplicateColumnTemplate(rowData)}
-          {editColumnTemplate(rowData)}
-          {deleteColumnTemplate(rowData)}
-        </div>
-      ),
-      headerStyle: { width: "5%", textAlign: "center" },
-      bodyStyle: { textAlign: "center", overflow: "visible" },
-      seq: 10,
-      visible: true
-    }
-  ];
-
-  const [visibleColumns, setVisibleColumns] = useState(() => {
-    const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
-    const storedFields = storedData[LOCAL_STORAGE_KEY];
+  const onColumnToggle = (columnKey) => {
+    setVisibleColumns((prevState) => {
+      const updatedColumns = {
+        ...prevState,
+        [columnKey]: !prevState[columnKey],
+      };
   
-    if (storedFields) {
-      return columnsConfig.filter(col => storedFields.includes(col.field) || col.field === "actions");
-    }
+      const visibleColumnsData = JSON.parse(localStorage.getItem("visible_columns")) || {};
   
-    return columnsConfig; // Default to all columns
-  });
-
-
-  const onColumnToggle = (field) => {
-    let updatedColumns;
+      visibleColumnsData[LOCAL_STORAGE_KEY] = updatedColumns;
+      
+      console.log(visibleColumnsData);
+      localStorage.setItem("visible_columns", JSON.stringify(visibleColumnsData));
   
-    if (visibleColumns.some((col) => col.field === field && col.field !== "actions")) {
-      updatedColumns = visibleColumns.filter((col) => col.field !== field);
-    } else {
-      const columnToAdd = columnsConfig.find((col) => col.field === field);
-      if (columnToAdd) {
-        updatedColumns = [...visibleColumns, columnToAdd].sort((a, b) => a.seq - b.seq);
-      }
-    }
-  
-    // Ensure "actions" is always included
-    updatedColumns = updatedColumns.filter(col => col.field === "actions" || columnsConfig.some(config => config.field === col.field));
-  
-    // Get existing stored items
-    const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
-    storedData[LOCAL_STORAGE_KEY] = updatedColumns.map(col => col.field); // Store only field names
-  
-    localStorage.setItem("visible_columns", JSON.stringify(storedData));
-  
-    setVisibleColumns(updatedColumns || []);
+      return updatedColumns;
+    });
   };
 
     //localstorage options
-  const columnOptions = columnsConfig.filter(( { field } ) => field !== 'actions').map(({ field, header }) => ({ field, header }));
 
+  const toCamelCaseWithSpace = (str) => {
+    return str
+      .replace(/([A-Z])/g, ' $1')  // Add space before uppercase letters
+      .replace(/^./, (match) => match.toUpperCase()) // Capitalize first letter
+      .replace(/\s+/g, ' ')         // Remove any extra spaces
+      .trim(); // Remove leading and trailing spaces
+  };
+
+  const columnOptions = Object.keys(visibleColumns)
+  .map((field) => ({
+    field,
+    header: toCamelCaseWithSpace(field), // Convert the field name to a human-readable header
+  }));
 
   const header = (
     <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
@@ -558,7 +438,7 @@ export const RegularItem = () => {
                       <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           inputId={col.field}
-                          checked={visibleColumns.some((c) => c.field === col.field)}
+                          checked={visibleColumns[col.field]}
                           onChange={() => onColumnToggle(col.field)}
                         />
                         <label className="ml-2" htmlFor={col.field} >{col.header}</label>
@@ -571,8 +451,10 @@ export const RegularItem = () => {
               ref={menu}
             />
             <Button
+              data-pr-position="top" 
               icon={<FaCog className="text-xl" />}
-              className="p-button-text mr-auto"
+              tooltip='Select Columns'
+              className="border-0 p-button-text mr-auto bg-transparent hover:bg-transparent focus:bg-transparent flex items-center"
               onClick={(event) => menu.current.toggle(event)}
             />
           </div>
@@ -619,11 +501,98 @@ export const RegularItem = () => {
         selection={selectedProducts}
         onSelectionChange={(e) => setSelectedProducts(e.value)}
       >
-        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
-          {visibleColumns.map((col) => (
-          <Column key={col.key} {...col} />
-        ))}
+        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
+        
+        {
+          visibleColumns.name && 
+          <Column
+            field="name"
+            header={translate('items.view.fields.name')}
+            filter
+            filterField="name"
+            filterElement={nameFilterTemplate}
+            body={nameColumnTemplate}
+            filterPlaceholder={translate('items.view.filters.name')}
+            sortable
+          />
+        }
 
+
+        {
+          visibleColumns.categories &&
+        <Column
+          header="Category"
+          field="categories"
+          body={rowData => rowData?.categories?.map(cat => cat?.name).join(" | ")}
+          sortable
+          filter
+          showFilterMatchModes={false}
+          filterElement={
+            <DropDownFilter
+              dropDownOptionType={"RESTAURANT_CATEGORY"}
+              selectedOption={query?.filters?.["categories.id"]?.value}
+              fieldName={"categories.id"}
+              handleDropdownChange={handleDropdownChange}
+            />
+          }
+        />
+        }
+
+
+        {
+          visibleColumns.image &&
+        <Column header={translate('items.view.fields.image')} body={(rowData) =>
+          <ImageDisplay
+            imageType={"product"}
+            imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
+            height={50}
+            width={50}
+          />} />
+        }
+
+        {
+          visibleColumns.menus &&
+          <Column header={translate('items.view.fields.menus')} body={(rowData) =>
+            <MenusTemplate rowData={rowData} />}
+          />
+        }
+
+        {
+          visibleColumns.desc &&
+          <Column header={translate("items.view.fields.description")} field='desc'/>
+        }
+
+        {
+          visibleColumns.productionCenter &&
+          <Column header={translate("items.view.fields.productionCenter")} body={(rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>} field='productionCenter' />
+        }
+
+        {
+          visibleColumns.addonGroups &&
+          <Column header={translate("items.view.fields.addOnGroups")} body={AddonGroupsBody} field='addOnGroups' />
+        }
+
+        {
+          visibleColumns.tags &&
+          <Column header={translate("items.view.fields.tags")} body={TagsBody} field='tags' />
+        }
+
+        {
+          visibleColumns.discounts &&
+          <Column sortable={true} header={translate("items.view.fields.discounts")} body={DiscountBody} field='discounts' />
+        }
+        
+          {
+            <Column header={translate('items.view.fields.actions')} body={(rowData) =>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                {duplicateColumnTemplate(rowData)}
+                {editColumnTemplate(rowData)}
+                {deleteColumnTemplate(rowData)}
+              </div>
+
+              }
+            />
+          }
       </DataTable>
     </div>
   );
