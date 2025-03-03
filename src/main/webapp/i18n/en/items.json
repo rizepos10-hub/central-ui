@@ -141,7 +141,10 @@
 
       "stockQuantity": {
         "quantity": "Quantity",
-        "unitCost": "Cost Price"
+        "unitCost": "Cost Price",
+        "stockChangeReason": "Stock Change Reason",
+        "addReason": "Add Reason",
+        "stockQuantityUserMessage": "Stock Quantity User Message"
       },
 
       "shippingDimension": {

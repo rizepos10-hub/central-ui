@@ -11,6 +11,7 @@ import {
 
 import {DataTable} from "primereact/datatable";
 import {Column} from "primereact/column";
+import { Translate } from "react-jhipster";
 
 type AuditLogsProps = {
   // entity: "PURCHASE_ORDER" | "ORDER" | "TRANSFER_REQUEST";
@@ -121,27 +122,35 @@ const AuditLogs = ({ entityId} :AuditLogsProps) => {
         ))}
       </div>
 
-      <ol className="list-group list-group-numbered">
+      <ol className="list-group list-group-numbered shadow-sm rounded overflow-hidden">
         {allLogs.length === 0 ? (
-          <li className="list-group-item">No logs available</li>
+          <li className="list-group-item text-center py-3 text-muted">No logs available</li>
         ) : (
           allLogs.map((log, index) => {
             const isChangeLog = true;
             return (
             <li 
             key={index} 
-            className={`list-group-item d-flex justify-content-between align-items-start ${
-              hoveredIndex === index ? 'border border-primary' : ''
+            className={`list-group-item d-flex justify-content-between align-items-start p-3 ${
+              hoveredIndex === index ? 'border border-primary shadow-sm' : ''
             } ${isChangeLog && "cursor-pointer"}`}
             onMouseEnter={() => handleMouseEnter(index, isChangeLog)}
             onMouseLeave={() => handleMouseLeave(isChangeLog)}
             onClick={() =>  handleSelectLog(index, isChangeLog)}
             >
-              <div className="ms-2 me-auto">
-                <div className="fw-bold">{log.action}</div>
-                {log.actor}
+              <div className="d-flex flex-column flex-grow-1 ms-2 me-auto">
+                <div className="fw-bold text-primary">{log.action}</div>
+
+                <div className="text-end small text-secondary ms-auto">
+                {convertUtcToLocalDate(log.occurredAt)}
+                </div>
+
+                <div className="text-muted small">{log.actor}</div>
+                  {log?.userMessage && (
+                    <div className="text-secondary small mt-1">
+                      <Translate contentKey={'items.update.stockQuantity.stockQuantityUserMessage'}>User Message: </Translate>  {log.userMessage}</div>
+                  )}
               </div>
-              <span>{convertUtcToLocalDate(log.occurredAt)}</span>
             </li>
           )})
         )}
