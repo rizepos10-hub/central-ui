@@ -117,7 +117,10 @@
           "selectSupplierPlaceHolder": "Select suppliers",
           "supplierCodePlaceHolder": "Enter supplier code",
           "supplierCode": "Supplier Code",
-          "searchSuppliers": "Search Suppliers..."
+          "searchSuppliers": "Search Suppliers...",
+          "addSupplier": "Add Supplier",
+          "removeSupplier": "Remove Supplier",
+          "selectSupplier": "Select Supplier"
         },
 
         "itemLocation": {

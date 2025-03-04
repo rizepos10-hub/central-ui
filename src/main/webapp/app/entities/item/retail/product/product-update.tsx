@@ -707,14 +707,14 @@ export const ProductUpdate = () => {
   }, [productEntity]);
 
   console.log(productEntity, 'productEntity')
-  const handleSupplierChange = (index, updatedVariant) => {
+  const handleSupplierChange = (index: number, updatedVariant: IVariableItemVariant) => {
     const updatedProduct = {
       ...product,
       variants: product.variants.map((variant, i) =>
         i === index
           ? {
             ...variant,
-            supplierAssociation: updatedVariant,
+            supplierAssociations: updatedVariant.supplierAssociations,
           }
           : variant
       ),
@@ -1670,7 +1670,7 @@ export const ProductUpdate = () => {
                                                   <Row>
                                                     <Col md="12">
                                                       <SupplierAssociationTab
-                                                        onSupplierChange={handleSupplierChange}
+                                                        onSupplierChange={(updatedVariant) => handleSupplierChange(variantIndex, updatedVariant)}
                                                         variant={variant}
                                                         itemId={product.id}
                                                         suppliers={supplierList}
