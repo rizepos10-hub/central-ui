@@ -50,6 +50,12 @@ export interface IVariableItemVariant {
   shippingDimension?: ShippingDimension | null;
   measureValue?: IMeasureValue;
   pricingPointBranchPrices?: IPricingPointBranchPrice[];
+  supplierAssociations?: ISupplierAssociation[];
+}
+
+export interface ISupplierAssociation {
+  supplierId: string;
+  supplierCode: string;
 }
 
 export interface IPricingPointBranchPrice {
