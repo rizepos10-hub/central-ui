@@ -57,7 +57,8 @@
         "createCombo": "Create New Combo Item",
         "createPizza": "Create New Pizza Item",
         "importData": "Import Data",
-        "createGiftCard": "Creat New Gift Card Item"
+        "createGiftCard": "Creat New Gift Card Item",
+        "triggerAllMenus": "Trigger All Menus"
       }
     },
     "update": {
