@@ -36,6 +36,7 @@
     "description": "Description",
     "price": "Price",
     "costPrice": "Cost Price",
+    "supplierCode": "Supplier Code",
     "tags": "Tags",
     "profileGroup": "Profile Group",
     "discount": "Discount",

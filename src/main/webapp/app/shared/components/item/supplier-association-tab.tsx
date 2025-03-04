@@ -3,64 +3,116 @@ import { useNavigate } from "react-router-dom";
 import { InputText } from "primereact/inputtext";
 import { translate } from "react-jhipster";
 import Select from "react-select";
+import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
+import { ISupplier } from "app/shared/model/STOCK/supplier.model";
+import { Button } from "primereact/button";
 
-const SupplierAssociationTab = ({ variant, itemId, suppliers, onSupplierChange }) => {
+interface SupplierAssociation {
+  supplierId: string;
+  supplierCode: string;
+}
+
+const SupplierAssociationTab = ({
+  variant,
+  itemId,
+  suppliers,
+  onSupplierChange,
+}: {
+  variant: IVariableItemVariant;
+  itemId: string;
+  suppliers: ISupplier[];
+  onSupplierChange: (updated: { supplierAssociations: SupplierAssociation[] }) => void;
+}) => {
   const navigate = useNavigate();
 
-  const [variantSupplier, setVariantSupplier] = useState({
-    selectedSupplierIds: [],
-    supplierCode: "",
-  });
+  const [associations, setAssociations] = useState<SupplierAssociation[]>([]);
+  const [selectedSupplierForAdd, setSelectedSupplierForAdd] = useState<{ label: string; value: string } | null>(null);
 
   useEffect(() => {
-    setVariantSupplier({
-      selectedSupplierIds: variant?.supplierAssociation?.supplierIds || [],
-      supplierCode: variant?.supplierAssociation?.supplierCode || "",
-    });
+    if (variant?.supplierAssociations && variant.supplierAssociations.length > 0) {
+      setAssociations(variant.supplierAssociations);
+    }
   }, [variant]);
 
-  const handleSupplierChange = (selectedIds) => {
-    const updatedVariant = { ...variantSupplier, selectedSupplierIds: selectedIds };
-    setVariantSupplier(updatedVariant);
-    onSupplierChange({ supplierIds: selectedIds, supplierCode: updatedVariant.supplierCode });
+  // Filter out suppliers already added.
+  const availableSuppliers = suppliers
+    .filter((s) => !associations.find((assoc) => assoc.supplierId === s.id))
+    .map((s) => ({ label: s.name, value: s.id }));
+
+  const handleAddSupplier = () => {
+    if (selectedSupplierForAdd) {
+      const newAssociation: SupplierAssociation = { supplierId: selectedSupplierForAdd.value, supplierCode: "" };
+      const updatedAssociations = [...associations, newAssociation];
+      setAssociations(updatedAssociations);
+      onSupplierChange({ supplierAssociations: updatedAssociations });
+      setSelectedSupplierForAdd(null);
+    }
   };
 
-  const handleSupplierCodeChange = (code) => {
-    const updatedVariant = { ...variantSupplier, supplierCode: code };
-    setVariantSupplier(updatedVariant);
-    onSupplierChange({ supplierIds: updatedVariant.selectedSupplierIds, supplierCode: code });
+  const handleSupplierCodeChange = (supplierId: string, code: string) => {
+    const updatedAssociations = associations.map((assoc) =>
+      assoc.supplierId === supplierId ? { ...assoc, supplierCode: code } : assoc
+    );
+    setAssociations(updatedAssociations);
+    onSupplierChange({ supplierAssociations: updatedAssociations });
+  };
+
+  const handleRemoveSupplier = (supplierId: string) => {
+    const updatedAssociations = associations.filter((assoc) => assoc.supplierId !== supplierId);
+    setAssociations(updatedAssociations);
+    onSupplierChange({ supplierAssociations: updatedAssociations });
   };
 
   return (
     <div className="p-3">
       <div className="p-field">
-        <label htmlFor={`suppliers-${variant.id}`} className="mr-3">
-          {translate("items.update.tabs.supplier.selectSuppliers")}
+        <label htmlFor="supplier-add-dropdown" className="mr-3">
+          {translate("items.update.tabs.supplier.selectSupplier")}
         </label>
-        <Select
-          inputId={`suppliers-${variant.id}`}
-          isMulti
-          value={suppliers
-            .filter((s) => (variantSupplier.selectedSupplierIds || []).includes(s.id))
-            .map((s) => ({ label: s.name, value: s.id }))}
-          onChange={(selected) => handleSupplierChange(selected.map((opt) => opt.value))}
-          options={suppliers.map((s) => ({ label: s.name, value: s.id }))}
-          placeholder={translate("items.update.tabs.supplier.selectSupplierPlaceHolder")}
-          isSearchable
-          className="w-100"
-        />
+        <div className="flex items-center">
+          <Select
+            inputId="supplier-add-dropdown"
+            value={selectedSupplierForAdd}
+            onChange={(option) => setSelectedSupplierForAdd(option as any)}
+            options={availableSuppliers}
+            placeholder={translate("items.update.tabs.supplier.selectSupplierPlaceHolder")}
+            isSearchable
+            className="w-64"
+          />
+          <button
+            type="button"
+            onClick={handleAddSupplier}
+            className="ml-3 bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            {translate("items.update.tabs.supplier.addSupplier")}
+          </button>
+        </div>
       </div>
 
-      <div className="p-field mt-4">
-        <label htmlFor={`supplierCode-${variant.id}`} className="mr-3">
-          {translate("items.update.tabs.supplier.supplierCode")}
-        </label>
-        <InputText
-          id={`supplierCode-${variant.id}`}
-          value={variantSupplier.supplierCode}
-          onChange={(e) => handleSupplierCodeChange(e.target.value)}
-          placeholder={translate("items.update.tabs.supplier.supplierCodePlaceHolder")}
-        />
+      <div className="mt-4">
+        {associations.map((assoc) => {
+          const supplier = suppliers.find((s) => s.id === assoc.supplierId);
+          return (
+            <div key={assoc.supplierId} className="p-field flex items-center mb-4 align-items-baseline">
+              <label htmlFor={`supplierCode-${assoc.supplierId}`} className="mr-3 w-40">
+                {supplier ? supplier.name : assoc.supplierId}
+              </label>
+              <InputText
+                id={`supplierCode-${assoc.supplierId}`}
+                value={assoc.supplierCode}
+                onChange={(e) => handleSupplierCodeChange(assoc.supplierId, e.target.value)}
+                placeholder={translate("items.update.tabs.supplier.supplierCodePlaceHolder")}
+              />
+              <Button
+                type="button"
+                onClick={() => handleRemoveSupplier(assoc.supplierId)}
+                severity="danger"
+              >
+                {translate("items.update.tabs.supplier.removeSupplier")}
+              </Button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
