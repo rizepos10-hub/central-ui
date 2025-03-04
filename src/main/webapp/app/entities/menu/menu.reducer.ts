@@ -42,6 +42,15 @@ export const sendEvent = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const sendEvents = createAsyncThunk(
+  'menu/send_event',
+  async () => {
+    const requestUrl = `api/event/menus`;
+    return axios.post<IMenu>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+
 
 export const getEntity = createAsyncThunk(
   'menu/fetch_entity',
