@@ -216,12 +216,15 @@ export const SupplierReturnUpdate = () => {
               <form>
                 <FormGroup>
                   <div className={'d-flex flex-column'}>
-                    <strong>
+                    {/* <strong>
                       <Label for="purchaseOrder">
                         <Translate contentKey={"tempApp.supplierReturn.purchaseOrder"} />
                       </Label>
-                    </strong>
-                    <Select
+                    </strong> */}
+
+                    <PurchaseOrderCard purchaseOrder={supplierReturn?.purchaseOrder} />
+
+                    {/* <Select
                       value={supplierReturn?.purchaseOrder || null}
                       options={purchaseOrderList}
                       getOptionLabel={(option: IPurchaseOrder) => option?.id}
@@ -229,7 +232,8 @@ export const SupplierReturnUpdate = () => {
                       id="purchaseOrder"
                       isDisabled={!isNew}
                       onChange={purchaseOrder => setSupplierReturn(prv => ({ ...prv, purchaseOrder }))}
-                    />
+                    /> */}
+
                   </div>
 
                   <div className={'d-flex flex-column mt-2'}>
@@ -353,6 +357,91 @@ export const SupplierReturnUpdate = () => {
           </Card>
         </Col>
       </Row>
+    </div>
+  );
+};
+
+const PurchaseOrderCard = ({ purchaseOrder }) => {
+  if (!purchaseOrder) return null;
+
+  const {
+    id,
+    supplier,
+    status,
+    datePlaced,
+    dateDelivered,
+    warehouse,
+    // orderLines,
+    // costLines,
+  } = purchaseOrder;
+
+  const formattedDatePlaced = new Date(datePlaced).toLocaleDateString();
+  const formattedDateDelivered = new Date(dateDelivered).toLocaleDateString();
+
+  return (
+    <div className="p-0 card">
+      <div className="card-header bg-primary text-white">
+        Purchase Order #{id}
+      </div>
+      <div className="card-body">
+        <h5 className="card-title">{supplier?.name}</h5>
+        <p className="card-text">
+          <strong>Status:</strong> {status} <br />
+          <strong>Date Placed:</strong> {formattedDatePlaced} <br />
+          <strong>Date Delivered:</strong> {formattedDateDelivered} <br />
+          <strong>Warehouse:</strong> {warehouse?.name}
+        </p>
+        {/* {orderLines && orderLines.length > 0 && (
+          <>
+            <h6>Order Lines</h6>
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orderLines.map((line) => (
+                  <tr key={line.id}>
+                    <td>{line?.item?.name}</td>
+                    <td>{line?.quantity}</td>
+                    <td>${line?.price}</td>
+                    <td>${line?.lineTotal}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+        {costLines && costLines.length > 0 && (
+          <>
+            <h6>Cost Lines</h6>
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>Supplier</th>
+                  <th>Cost</th>
+                  <th>Date</th>
+                  <th>Comment</th>
+                </tr>
+              </thead>
+              <tbody>
+                {costLines.map((line, index) => (
+                  <tr key={index}>
+                    <td>{line?.supplier?.name}</td>
+                    <td>${line?.cost}</td>
+                    <td>{new Date(line?.costDate).toLocaleDateString()}</td>
+                    <td>{line?.comment}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )} */}
+      </div>
     </div>
   );
 };
