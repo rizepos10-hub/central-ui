@@ -10,7 +10,7 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IMenu } from 'app/shared/model/menu.model';
-import { searchEntities, getEntities, createEntity } from './menu.reducer';
+import { searchEntities, getEntities, createEntity, sendEvents } from './menu.reducer';
 import { DataTable } from 'primereact/datatable';
 import { Column } from "primereact/column";
 import { format } from "date-fns";
@@ -108,6 +108,10 @@ export const Menu = () => {
     sortEntities();
   };
 
+  const handleTriggerAllMenus = () => {
+    dispatch(sendEvents())
+  }
+
   const branchNames = new Set(menuList.filter(item => item.branch?.name !== undefined || null).map((menu) => menu.branch?.name));
 
   const branchFilterOptions = Array.from(branchNames).map((branchName) => ({ label: branchName, value: branchName }));
@@ -150,14 +154,37 @@ export const Menu = () => {
       <span className="text-xl text-900 font-bold">{menuType === "ONLINE_ORDERING" ?
         translate('menus.online.view.table.title') :
         translate('menus.pos.view.table.title')}</span>
-      <div className="ms-auto">
-        <Button label={translate("menus.shared.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate("menus.shared.view.table.buttons.createNewMenu")} raised onClick={() => setIsModalOpen(true)} disabled={loading}>
-          &nbsp;
-        </Button>
+      <div className="ms-auto flex align-items-center justify-content-end gap-3">
+        {/* <Button label={translate("menus.shared.view.table.buttons.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}> */}
+
+        <Button
+          icon="pi pi-bolt"
+          raised severity="info"
+          onClick={handleTriggerAllMenus}
+          disabled={loading}
+          loading={loading}
+          data-pr-position="top"
+          tooltip={translate('items.view.actions.triggerAllMenus')}
+        />
+
+        <Button
+          icon="pi pi-sync"
+          raised severity="info"
+          onClick={handleSyncList}
+          disabled={loading}
+          loading={loading}
+          data-pr-position="top"
+          tooltip={translate('items.view.actions.refreshList')}
+        />
+        
+        <Button
+        icon="pi pi-plus"
+        raised
+        onClick={() => setIsModalOpen(true)}
+        disabled={loading}
+        data-pr-position="top"
+        tooltip={translate('menus.shared.view.table.buttons.createNewMenu')}
+      />
       </div>
     </div>
   );
