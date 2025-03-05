@@ -151,7 +151,7 @@ export const SupplierReturn = () => {
     );
   };
   const handleCreate = () => {
-    navigate('/inventory/supplier-return/new')
+    navigate('/inventory/purchase-order?poAction=true')
   }
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
