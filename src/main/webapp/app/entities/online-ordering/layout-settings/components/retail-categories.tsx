@@ -11,7 +11,6 @@ import { Layout } from 'app/shared/model/ENUMS/layout.model';
 import { changeLayoutField } from '../../settings/settings.reducer';
 import { Checkbox } from 'primereact/checkbox';
 import { debounce } from 'lodash';
-import { title } from 'process';
 import { InputText } from 'primereact/inputtext';
 
 export const RetailCategories = ({

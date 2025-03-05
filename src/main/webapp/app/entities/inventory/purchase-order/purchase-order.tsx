@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Link, useLocation, useNavigate, useSearchParams} from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,21 +9,21 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { searchEntities, filterEntities } from './purchase-order.reducer';
 import { searchEntities as searchSuppliers, getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import { searchEntities as searchWarehouses, getEntities as getWarehouses } from '../warehouse/warehouse.reducer';
-import {DataTable, DataTablePageEvent} from "primereact/datatable";
-import {Column} from "primereact/column";
+import { DataTable, DataTablePageEvent } from "primereact/datatable";
+import { Column } from "primereact/column";
 
-import {IPurchaseOrder} from "app/shared/model/STOCK/purchase-order.model";
-import {Tag} from "primereact/tag";
-import {Dropdown} from "primereact/dropdown";
-import {FilterMatchMode} from "primereact/api";
-import {stringify} from "ts-jest";
+import { IPurchaseOrder } from "app/shared/model/STOCK/purchase-order.model";
+import { Tag } from "primereact/tag";
+import { Dropdown } from "primereact/dropdown";
+import { FilterMatchMode } from "primereact/api";
 import _ from "lodash";
-import {InputText} from "primereact/inputtext";
+import { InputText } from "primereact/inputtext";
 import Select from "react-select";
-import {Calendar} from "primereact/calendar";
-import {toLocalISOString} from "app/shared/util/date-utils";
-import {applyMatchModeMap} from "app/shared/util/filter-match-model-util";
+import { Calendar } from "primereact/calendar";
+import { toLocalISOString } from "app/shared/util/date-utils";
+import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
 import { Spinner } from "reactstrap";
+import { FaHandshake } from 'react-icons/fa';
 
 const initialState = {
   first: 0,
@@ -50,18 +50,42 @@ export const PurchaseOrder = () => {
 
   const [searchTermSupplier, setSearchTermSupplier] = useState('');
   const [searchTermWarehouse, setSearchTermWarehouse] = useState('');
-  const [searchParam, setSearchParams]=  useSearchParams();
+  const [searchParam, setSearchParams] = useSearchParams();
 
   const query = JSON.parse(searchParam.get("query")) || initialState;
 
-  const purchaseOrderList :IPurchaseOrder[]= useAppSelector(state => state.purchaseOrder.entities);
+  const purchaseOrderList: IPurchaseOrder[] = useAppSelector(state => state.purchaseOrder.entities);
   const supplierList = useAppSelector(state => state.supplier.entities);
   const warehouseList = useAppSelector(state => state.warehouse.entities);
 
   const loading = useAppSelector(state => state.purchaseOrder.loading);
   const totalItems = useAppSelector(state => state.purchaseOrder.totalItems);
 
+  const searchParams = new URLSearchParams(location.search);
+  const poAction = searchParams.get('poAction');
 
+  // State for flashing effect
+  const [flashReturn, setFlashReturn] = useState(false);
+  const [flashHighlight, setFlashHighlight] = useState(false);
+
+  useEffect(() => {
+    if (poAction === 'true') {
+      setFlashReturn(true);
+      // Start with highlight on.
+      setFlashHighlight(true);
+      let count = 0;
+      const interval = setInterval(() => {
+        setFlashHighlight(prev => !prev);
+        count++;
+        if (count >= 6) {
+          clearInterval(interval);
+          setFlashReturn(false);
+          setFlashHighlight(false);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [poAction]);
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
@@ -82,21 +106,19 @@ export const PurchaseOrder = () => {
 
   const onSort = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true });
   };
 
   const onFilter = (event: any) => {
     event['first'] = 0;
     event['page'] = 0;
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true });
   };
-
-
 
   const onPage = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({query: queryParams}, {replace: true})
+    setSearchParams({ query: queryParams }, { replace: true });
   };
 
   const statusBodyTemplate = (item) => {
@@ -114,17 +136,15 @@ export const PurchaseOrder = () => {
   };
 
   const handleFilterDateChange = (e, field) => {
-    const newQueryWithStatus = JSON.stringify(  {
+    const newQueryWithStatus = JSON.stringify({
       ...query,
       filters: {
         ...query.filters,
-        [field]: {value: toLocalISOString(e.value) , matchMode: 'startsWith'}
+        [field]: { value: toLocalISOString(e.value), matchMode: 'startsWith' }
       }
     });
-    setSearchParams({query: newQueryWithStatus}, {replace: true});
+    setSearchParams({ query: newQueryWithStatus }, { replace: true });
   };
-
-
 
   const filterTemplate = (field) => {
     const statusDropdownItems = [
@@ -141,22 +161,21 @@ export const PurchaseOrder = () => {
 
     useEffect(() => {
       const searchAction = () => {
-          if (searchTermSupplier) {
-            dispatch(searchSuppliers({
-              query: searchTermSupplier
-            }));
-          } else {
-            dispatch(getSuppliers({}));
-          }
+        if (searchTermSupplier) {
+          dispatch(searchSuppliers({
+            query: searchTermSupplier
+          }));
+        } else {
+          dispatch(getSuppliers({}));
+        }
 
-          if (searchTermWarehouse) {
-            dispatch(searchWarehouses({
-              query: searchTermWarehouse
-            }));
-          } else {
-            dispatch(getWarehouses({}));
-          }
-
+        if (searchTermWarehouse) {
+          dispatch(searchWarehouses({
+            query: searchTermWarehouse
+          }));
+        } else {
+          dispatch(getWarehouses({}));
+        }
       };
 
       const debouncedSearchAction = _.debounce(searchAction, 500);
@@ -165,27 +184,25 @@ export const PurchaseOrder = () => {
       return () => {
         debouncedSearchAction.cancel();
       };
-    }, [ searchTermSupplier,searchTermWarehouse]);
+    }, [searchTermSupplier, searchTermWarehouse]);
 
     const handleDropdownChange = (e) => {
-
-      const newQueryWithStatus = JSON.stringify(  {
+      const newQueryWithStatus = JSON.stringify({
         ...query,
         filters: {
           ...query.filters,
-          [field !== 'status' ? `${field}.id` : field]: {value: e.target.value, matchMode: 'equals'}
+          [field !== 'status' ? `${field}.id` : field]: { value: e.target.value, matchMode: 'equals' }
         }
       });
-      setSearchParams({query: newQueryWithStatus}, {replace: true});
+      setSearchParams({ query: newQueryWithStatus }, { replace: true });
     };
-
 
     const filterElement = () => (
       <span className="p-input-icon-right">
-           <InputText
-             placeholder="Search" value={field === 'supplier' ? searchTermSupplier : searchTermWarehouse}
-             onChange={e => field === 'supplier' ? setSearchTermSupplier(e.target.value) : setSearchTermWarehouse(e.target.value)} />
-          <i className="pi pi-search" />
+        <InputText
+          placeholder="Search" value={field === 'supplier' ? searchTermSupplier : searchTermWarehouse}
+          onChange={e => field === 'supplier' ? setSearchTermSupplier(e.target.value) : setSearchTermWarehouse(e.target.value)} />
+        <i className="pi pi-search" />
       </span>
     );
 
@@ -205,8 +222,6 @@ export const PurchaseOrder = () => {
     );
   };
 
-
-
   const idColumnTemplate = rowData => {
     const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${JSON.stringify(query)}`;
     return (
@@ -215,14 +230,15 @@ export const PurchaseOrder = () => {
       </Link>
     );
   };
+
   const actionsColumnTemplate = (rowData) => {
     const editUrl = `/inventory/purchase-order/${rowData.id}/edit?&query=${JSON.stringify(query)}`;
     return (
       rowData?.status === "RECEIVED" ?
-        <i className={"pi pi-eye"} onClick={() => navigate(editUrl)} style={{ cursor: 'pointer' , fontSize: '1.25rem' , marginLeft: '0.3rem'}} />
+        <i className={"pi pi-eye"} onClick={() => navigate(editUrl)} style={{ cursor: 'pointer', fontSize: '1.25rem', marginLeft: '0.3rem' }} />
         :
         <Link to={editUrl}>
-          <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+          <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
         </Link>
     );
   };
@@ -231,20 +247,32 @@ export const PurchaseOrder = () => {
     const deleteUrl = `/inventory/purchase-order/${rowData.id}/delete?&query=${JSON.stringify(query)}`;
     return (
       <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
+      </Link>
+    );
+  };
+
+  const returnColumnTemplate = (rowData) => {
+    const supplierReturnUrl = `/inventory/supplier-return/new?poId=${rowData.id}`;
+    const highlightStyle = flashReturn && flashHighlight
+      ? { backgroundColor: '#ffc107', transition: 'background-color 0.5s ease-in-out', padding: '0.2rem', borderRadius: '0.2rem' }
+      : {};
+    return (
+      <Link to={supplierReturnUrl} style={highlightStyle}>
+        <FaHandshake size={20} />
       </Link>
     );
   };
 
   const handleCreate = () => {
-    navigate(`/inventory/purchase-order/new?query=${JSON.stringify(query)}`)
-  }
+    navigate(`/inventory/purchase-order/new?query=${JSON.stringify(query)}`);
+  };
 
   const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.purchaseOrder.title'}>PurchaseOrders</Translate></span>
-      <div className="ms-auto">
-        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
+    <div className="d-flex flex-wrap align-items-center justify-content-between">
+      <span className="h4 font-weight-bold"><Translate contentKey={'tempApp.purchaseOrder.title'}>PurchaseOrders</Translate></span>
+      <div className="ml-auto">
+        <Button label={translate("common.refreshList")} severity="secondary" raised className="mr-3" color="info" onClick={handleSyncList} disabled={loading}>
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
@@ -255,46 +283,47 @@ export const PurchaseOrder = () => {
     </div>
   );
 
-  if(loading){
-    return <Spinner />
+  if (loading) {
+    return <Spinner />;
   }
-
-
 
   return (
     <div>
       <DataTable
-        value={purchaseOrderList} editMode="row" header={header} removableSort  filters={query.filters} filterDisplay="row"
-        paginator totalRecords={totalItems} rows={20} lazy  first={query.first}  onPage={onPage} onFilter={onFilter}
+        value={purchaseOrderList} editMode="row" header={header} removableSort filters={query.filters} filterDisplay="row"
+        paginator totalRecords={totalItems} rows={20} lazy first={query.first} onPage={onPage} onFilter={onFilter}
         onSort={onSort} sortField={query.sortField} sortOrder={query.sortOrder} showGridlines
       >
         <Column field="id" header={translate('common.id')} body={idColumnTemplate} filter
-                filterPlaceholder={translate('common.search.id')}    />
+          filterPlaceholder={translate('common.search.id')} />
 
         <Column field="datePlaced" header={translate('common.datePlaced')} filter
-                body={(rowData) => rowData?.datePlaced?.split("T")?.[0]}  showFilterMenu={false}
-                filterElement={<Calendar  value={new Date(query?.filters?.datePlaced?.value)} onChange={(e) => handleFilterDateChange(e, 'datePlaced')}  />}
-                filterPlaceholder={translate('common.search.datePlaced')}    />
+          body={(rowData) => rowData?.datePlaced?.split("T")?.[0]} showFilterMenu={false}
+          filterElement={<Calendar value={new Date(query?.filters?.datePlaced?.value)} onChange={(e) => handleFilterDateChange(e, 'datePlaced')} />}
+          filterPlaceholder={translate('common.search.datePlaced')} />
 
         <Column field="dateDelivered" header={translate('common.dateDelivered')}
-                body={(rowData) => rowData?.dateDelivered?.split("T")?.[0]} filter showFilterMenu={false}
-                filterElement={<Calendar  value={query?.filters?.dateDelivered?.value} onChange={(e) => handleFilterDateChange(e, 'dateDelivered')}  />}
-                filterPlaceholder={translate('common.search.dateDelivered')}    />
+          body={(rowData) => rowData?.dateDelivered?.split("T")?.[0]} filter showFilterMenu={false}
+          filterElement={<Calendar value={query?.filters?.dateDelivered?.value} onChange={(e) => handleFilterDateChange(e, 'dateDelivered')} />}
+          filterPlaceholder={translate('common.search.dateDelivered')} />
 
         <Column field="warehouse.name" header={translate('tempApp.purchaseOrder.warehouse')} filter showFilterMenu={false}
-                filterElement={() => filterTemplate("warehouse")}   filterPlaceholder={translate('tempApp.purchaseOrder.search.warehouse')}    />
+          filterElement={() => filterTemplate("warehouse")} filterPlaceholder={translate('tempApp.purchaseOrder.search.warehouse')} />
 
         <Column field="supplier.name" header={translate('tempApp.purchaseOrder.supplier')} filter showFilterMenu={false}
-                filterElement={() => filterTemplate("supplier")}   filterPlaceholder={translate('tempApp.purchaseOrder.search.supplier')}    />
+          filterElement={() => filterTemplate("supplier")} filterPlaceholder={translate('tempApp.purchaseOrder.search.supplier')} />
 
         <Column field="status" header={translate('common.status')} filter showFilterMenu={false}
-                filterElement={() => filterTemplate("status")}  body={statusBodyTemplate}    />
+          filterElement={() => filterTemplate("status")} body={statusBodyTemplate} />
 
-        <Column header={translate('common.actions')}  body={actionsColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+        <Column header={translate('common.return')} body={returnColumnTemplate} headerStyle={{ width: '1%', textAlign: 'center' }}
+          bodyStyle={{ textAlign: 'center', overflow: 'visible' }} />
 
-        <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                 bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+        <Column header={translate('common.view')} body={actionsColumnTemplate} headerStyle={{ width: '1%', textAlign: 'center' }}
+          bodyStyle={{ textAlign: 'center', overflow: 'visible' }} />
+
+        <Column header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', textAlign: 'center' }}
+          bodyStyle={{ textAlign: 'center', overflow: 'visible' }} />
 
       </DataTable>
     </div>
