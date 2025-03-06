@@ -783,14 +783,16 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setMainScreen(mainScreen);
     };
 
-    const groupMainScreens = (
-        screens: IMenuScreen[],
-        columns: number
-    ): IMenuScreen[][] => {
+    const groupMainScreens = (screens: IMenuScreen[], columns: number): IMenuScreen[][] => {
         const grouped: IMenuScreen[][] = [];
         for (let i = 0; i < screens.length; i += columns) {
-            grouped.push(screens.slice(i, i + columns));
+            const row = screens.slice(i, i + columns).map((item, colIndex) => ({
+                ...item,
+                rowIndex: colIndex,
+            }));
+            grouped.push(row);
         }
+        console.log(grouped, 'grouped')
         return grouped;
     };
 
@@ -947,14 +949,32 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     }, [subScreenStack])
 
     useEffect(() => {
-        if (data?.menuScreens) {
-            const grouped = [];
-            for (let i = 0; i < data.menuScreens.length; i += data.numberOfColumns) {
-                grouped.push(data.menuScreens.slice(i, i + data.numberOfColumns));
+        if (data?.menuScreens && data.menuScreens.length > 0) {
+            // Update each screen with the proper rowIndex based on its column position
+            const updatedMenuScreens = data.menuScreens.map((item, index) => ({
+                ...item,
+                rowIndex: index % data.numberOfColumns,
+            }));
+
+            // Group the updated screens into rows based on numberOfColumns
+            const newGroupedMainScreens: IMenuScreen[][] = [];
+            for (let i = 0; i < updatedMenuScreens.length; i += data.numberOfColumns) {
+                newGroupedMainScreens.push(updatedMenuScreens.slice(i, i + data.numberOfColumns));
             }
-            setGroupedMainScreens(grouped);
+
+            // Only update data if any item has an outdated rowIndex
+            const needUpdate = data.menuScreens.some(
+                (item, index) => item.rowIndex !== updatedMenuScreens[index].rowIndex
+            );
+            if (needUpdate) {
+                setData(prevData => ({
+                    ...prevData,
+                    menuScreens: updatedMenuScreens,
+                }));
+            }
+            setGroupedMainScreens(newGroupedMainScreens);
         }
-    }, [data]);
+    }, [data.menuScreens, data.numberOfColumns]);
 
 
     const handleRemoveSelectedItems = (itemIds: string[]) => {
