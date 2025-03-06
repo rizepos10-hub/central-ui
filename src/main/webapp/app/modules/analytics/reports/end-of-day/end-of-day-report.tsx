@@ -164,7 +164,7 @@ const EndOfDayReport = () => {
 
   return (
     <div ref={printWrapper}>
-      <div className="">
+      <div className="bg-white p-1 mb-2">
         <div className='d-flex justify-content-between align-items-center'>
           <span></span>
           <span>
@@ -207,7 +207,7 @@ const EndOfDayReport = () => {
           <span className="text-primary">{lastBillDate}</span>
         </h5>
       </div>
-      <div className="bg-white">
+      <div className="bg-white p-1 mb-2">
         {/* <div > */}
         {/*   <UnclosedOrders openedOrders={salesData.openedOrders} /> */}
         {/* </div> */}
@@ -246,7 +246,7 @@ const EndOfDayReport = () => {
       </div>
 
       {endOfDay?.fromDate && endOfDay?.toDate && endOfDayReportSection?.includes(EndOfDayReportSection.RELATED_TILLS) && (
-        <div className="p-1 mt-3 bg-white">
+        <div className="bg-white p-1 mb-2">
           <h3>Related Tills</h3>
           <RelatedTills fromDate={endOfDay?.fromDate} toDate={endOfDay?.toDate} />
         </div>

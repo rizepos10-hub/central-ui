@@ -4,7 +4,7 @@ import { ISummaryReport } from 'app/shared/model/report-summary.model';
 
 const SummaryReportTotalReceived = ({ totalReceived }: { totalReceived: ISummaryReport['totalReceived'] }) => {
   return (
-    <Table striped bordered size={'lg'}>
+    <Table striped bordered size={'sm'}>
       <thead>
         <tr className="bg-gray-700">
           <th className={'text-white'}>PAYMENT</th>
@@ -18,9 +18,9 @@ const SummaryReportTotalReceived = ({ totalReceived }: { totalReceived: ISummary
         {totalReceived?.map((item, index) => (
           <tr key={index}>
             <td>{item.paymentType}</td>
-            <td className="text-end p-4">{item.tip.toFixed(2)}</td>
-            <td className="text-end p-4">{item.amount?.toFixed(2)}</td>
-            <td className="text-end p-4">{item.refund?.toFixed(2)}</td>
+            <td className="text-end">{item.tip.toFixed(2)}</td>
+            <td className="text-end">{item.amount?.toFixed(2)}</td>
+            <td className="text-end">{item.refund?.toFixed(2)}</td>
             <td className="text-end">{item.received.toFixed(2)}</td>
           </tr>
         ))}
