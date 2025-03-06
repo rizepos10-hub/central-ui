@@ -1,5 +1,5 @@
-import React from 'react';
-import { Route, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Route, useLocation, useNavigate } from 'react-router-dom';
 import Loadable from 'react-loadable';
 
 import Login from 'app/modules/login/login';
@@ -20,6 +20,11 @@ import Instructions from "app/modules/instructions/instructions";
 import BusinessDetailRoutes from "app/entities/settings/business-details";
 import AppConfig from "app/shared/sidebar/AppConfig";
 import InventoryRoutes from "app/entities/inventory/routes";
+import { getTenantFromURL } from './app';
+import { Card } from 'primereact/card';
+import { Label } from 'reactstrap';
+import { InputText } from 'primereact/inputtext';
+import { Button } from 'primereact/button';
 
 const loading = <div>loading ...</div>;
 
@@ -35,9 +40,69 @@ const Admin = Loadable({
 
 const AppRoutes = () => {
   const location = useLocation();
+  const tenant = getTenantFromURL();
+
+  const [tenantName, setTenantName] = useState(tenant);
+
   React.useEffect(() => {
     // sendActivity(location.pathname);
   }, [location]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    window.location.href = `/${tenantName}/`;
+  }
+
+  if (!tenant) return (
+    <div className="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+      <Card className="shadow-lg border-0" style={{ maxWidth: "450px", width: "100%" }}>
+        <div className="text-center mb-4">
+          <i className="pi pi-building text-primary" style={{ fontSize: "2rem" }}></i>
+          <h2 className="mt-3 mb-1">Welcome To Rize POS</h2>
+          {/* <h2 className="mt-3 mb-1">Tenant Access</h2> */}
+          <p className="text-muted">Tenant Access - Enter your tenant name to continue</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
+          <div className="form-group">
+            <label htmlFor="tenantName" className="form-label fw-semibold">
+              Tenant Name
+            </label>
+            <div className="p-inputgroup">
+              <span className="p-inputgroup-addon">
+                <i className="pi pi-building"></i>
+              </span>
+              <InputText
+                id="tenantName"
+                placeholder="Enter your tenant name"
+                value={tenantName}
+                onChange={(e) => setTenantName(e.target.value)}
+                className={"w-100"}
+                aria-describedby="tenant-error"
+              />
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            iconPos="right"
+            className="p-button-primary w-100 mt-2 d-flex gap-2 justify-content-center align-items-center"
+          >
+            <span>Continue</span> <i className="pi pi-arrow-right"></i>
+          </Button>
+
+          {/* <div className="text-center mt-3">
+            <small className="text-muted">
+              Need help?{" "}
+              <a href="#" className="text-decoration-none">
+                Contact your administrator
+              </a>
+            </small>
+          </div> */}
+        </form>
+      </Card>
+    </div>
+  )
 
   return (
     <div className="view-routes">
@@ -102,7 +167,7 @@ const AppRoutes = () => {
         <Route
           path="inventory/*"
           element={
-              <InventoryRoutes />
+            <InventoryRoutes />
           }
         />
 
@@ -129,7 +194,7 @@ const AppRoutes = () => {
           path="theme/*"
           element={
             <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER, AUTHORITIES.BUSINESS_SETTING]}>
-              { <AppConfig />}
+              {<AppConfig />}
             </PrivateRoute>
           }
         />
