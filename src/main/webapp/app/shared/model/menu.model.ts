@@ -32,6 +32,7 @@ export interface IMenuScreen {
   numberOfColumns?: number;
   rowHeight?: number[];
   subScreens?: IMenuScreen[];
+  rowIndex?: number;
   component?: {
     item?: IItem;
   }
