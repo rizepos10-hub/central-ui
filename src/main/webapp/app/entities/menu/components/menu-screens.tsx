@@ -796,8 +796,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         return grouped;
     };
 
-    const handleModalSubmit = () => {
-        if (newMainScreenName.trim() === '') {
+    const handleModalSubmit = ({ empty = false }: { empty?: boolean }) => {
+        if (newMainScreenName.trim() === '' && !empty) {
             alert('Main screen name is required.');
             return;
         }
@@ -806,12 +806,13 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         const updatedMenuScreens = [...updatedData.menuScreens];
         const hasMainScreenDuplicate = updatedMenuScreens.some(subScreen => subScreen.name === newMainScreenName);
 
-        if (hasMainScreenDuplicate) {
+        if (hasMainScreenDuplicate && !empty) {
             alert('Main Screen with the same name already exists.');
             return;
         }
 
         const newMainScreen: IMenuScreen = {
+            id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
             name: newMainScreenName,
             backgroundColor: selectedColorTheme,
             numberOfColumns: newMainScreenCols || 1,
@@ -819,7 +820,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             componentType: 'SUB_SCREENS',
             subScreens: [],
             rowHeight: [],
-            id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
+            empty,
         };
         const newMenuScreens = [...data.menuScreens, newMainScreen];
         const newGroupedMainScreens = groupMainScreens(newMenuScreens, data.numberOfColumns);
@@ -1318,7 +1319,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             ))}
                         </div>
                     </FormGroup>
-                    <Button color="primary" onClick={handleModalSubmit}>
+                    <Button color="primary" onClick={() => handleModalSubmit({ empty: false })}>
                         <Translate contentKey={'menus.pos.update.modals.mainScreen.add'}>Add Main Screen</Translate>
                     </Button>
                 </ModalBody>
@@ -1443,9 +1444,14 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                     </h2>
                                 </div>
                                 <div className='d-flex justify-content-between w-100'>
-                                    <Button color="primary" onClick={handleMainScreenAdd}>
-                                        <Translate contentKey={'menus.pos.update.buttons.add'}>Add</Translate>
-                                    </Button>
+                                    <div className='d-flex gap-2'>
+                                        <Button color="primary" onClick={handleMainScreenAdd}>
+                                            <Translate contentKey={'menus.pos.update.buttons.add'}>Add</Translate>
+                                        </Button>
+                                        <Button color="primary" onClick={() => handleModalSubmit({ empty: true })}>
+                                            <Translate contentKey={'menus.pos.update.buttons.blank'}>Blank</Translate>
+                                        </Button>
+                                    </div>
                                     <div className='d-flex'>
                                         <Button onClick={() => {
                                             setData(prev => {
@@ -1510,22 +1516,41 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                                     key={colIndex}
                                                     className="mb-3"
                                                     draggable
-                                                    onClick={() => mainScreenClickHandler(globalIndex, item)}
+                                                    onClick={() => {
+                                                        if (item?.empty) return
+                                                        mainScreenClickHandler(globalIndex, item)
+                                                    }}
                                                     onDragStart={() => handleMainDragStart(globalIndex)}
                                                     onDragOver={() => handleMainDragOver(globalIndex)}
                                                     onDragEnd={handleMainDragEnd}
                                                 >
-                                                    <Card className="d-flex p-3 cursor-pointer h-100">
+                                                    <Card
+                                                        className="d-flex p-3 cursor-pointer h-100"
+                                                        style={
+                                                            item.empty
+                                                                ? {
+                                                                    background:
+                                                                        "repeating-linear-gradient(45deg, black 0, black 10px, white 10px, white 20px)",
+                                                                }
+                                                                : {}
+                                                        }
+                                                    >
                                                         <div>
                                                             <div className="d-flex justify-content-end">
-                                                                <MdModeEditOutline size={20} onClick={() => openEditModal(item, globalIndex, 'main')} />
+                                                                {!item?.empty && (
+                                                                    <MdModeEditOutline size={20} onClick={() => openEditModal(item, globalIndex, 'main')} />
+                                                                )}
                                                                 &nbsp;
                                                                 <MdDeleteOutline size={20} color={'red'} onClick={() => confirm2(globalIndex, item.name)} />
                                                             </div>
-                                                            <h5 className="m-0 mr-3 mb-2">{item?.name}</h5>
-                                                            <div className="d-flex flex-row justify-content-between">
-                                                                <Button style={{ backgroundColor: item?.backgroundColor, width: '55px', height: '30px' }} />
-                                                            </div>
+                                                            {!item?.empty && (
+                                                                <>
+                                                                    <h5 className="m-0 mr-3 mb-2">{item?.name}</h5>
+                                                                    <div className="d-flex flex-row justify-content-between">
+                                                                        <Button style={{ backgroundColor: item?.backgroundColor, width: '55px', height: '30px' }} />
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </Card>
                                                 </div>

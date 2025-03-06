@@ -33,6 +33,7 @@ export interface IMenuScreen {
   rowHeight?: number[];
   subScreens?: IMenuScreen[];
   rowIndex?: number;
+  empty?: boolean;
   component?: {
     item?: IItem;
   }
