@@ -19,7 +19,7 @@ import { APIProvider } from '@vis.gl/react-google-maps';
 
 // const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
 
-function getTenantFromURL() {
+export function getTenantFromURL() {
   // const subdomain = window.location.hostname.split('.')[0]; // for subdomain
   const pathname = window.location.pathname;
   const pathSegments = pathname.split('/').filter(segment => segment !== '');
@@ -31,7 +31,7 @@ function getTenantFromURL() {
 }
 
 const tenant = getTenantFromURL();
-const baseHref = `/${tenant}/`;
+const baseHref = tenant ? `/${tenant}/` : '/';
 export const App = () => {
   const dispatch = useAppDispatch();
 
@@ -41,8 +41,7 @@ export const App = () => {
     dispatch(setTenant({ tenant }));
   }, []);
 
-
-
+  console.log(tenant)
 
   return (
     <BrowserRouter basename={baseHref}>
