@@ -164,7 +164,7 @@ const EndOfDayReport = () => {
 
   return (
     <div ref={printWrapper}>
-      <div className="container my-5">
+      <div className="bg-white p-1 mb-2">
         <div className='d-flex justify-content-between align-items-center'>
           <span></span>
           <span>
@@ -207,7 +207,7 @@ const EndOfDayReport = () => {
           <span className="text-primary">{lastBillDate}</span>
         </h5>
       </div>
-      <div className="container mt-5 bg-white">
+      <div className="bg-white p-1 mb-2">
         {/* <div > */}
         {/*   <UnclosedOrders openedOrders={salesData.openedOrders} /> */}
         {/* </div> */}
@@ -237,16 +237,16 @@ const EndOfDayReport = () => {
           <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />
         }
 
-        <BillsSummary bills={salesData?.billSummary?.bills} />
-
         {
           endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) &&
           <TipSummary report={salesData.tipSummary} />
         }
+
+        <BillsSummary bills={salesData?.billSummary?.bills} />
       </div>
 
       {endOfDay?.fromDate && endOfDay?.toDate && endOfDayReportSection?.includes(EndOfDayReportSection.RELATED_TILLS) && (
-        <div className="container py-3 mt-3 bg-white">
+        <div className="bg-white p-1 mb-2">
           <h3>Related Tills</h3>
           <RelatedTills fromDate={endOfDay?.fromDate} toDate={endOfDay?.toDate} />
         </div>

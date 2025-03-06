@@ -6,7 +6,7 @@ const TipSummary = ({ report }: { report: ISummaryReport["tipSummary"] }) => {
     if (!report) return
 
     return (
-        <Col>
+        <Col className="p-0">
             <h3>Tip Summary</h3>
             <div className="table-responsive">
                 <table className="table " id="sales_summary">
