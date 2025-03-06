@@ -40,6 +40,7 @@ export interface IMenuData {
     visibilities: IVisibility[];
     rowHeight: any[];
     id: string;
+    numberOfColumns: number;
 }
 
 const MenuInstance = () => {
@@ -68,7 +69,8 @@ const MenuInstance = () => {
         menuScreens: [],
         visibilities: [],
         rowHeight: [],
-        id: ''
+        id: '',
+        numberOfColumns: 1,
     });
 
     useEffect(() => {
@@ -84,7 +86,8 @@ const MenuInstance = () => {
                 branches: menuEntity.branches,
                 menuScreens: menuEntity.menuScreens,
                 visibilities: menuEntity.visibilities,
-                rowHeight: [],
+                numberOfColumns: menuEntity.numberOfColumns,
+                rowHeight: menuEntity.rowHeight,
                 id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
             };
             console.log(newData, 'newData')
@@ -111,7 +114,9 @@ const MenuInstance = () => {
             menuScreens: data.menuScreens,
             name: selectedName,
             branches: selectedBranches,
-            visibilities: data.visibilities
+            visibilities: data.visibilities,
+            rowHeight: data.rowHeight,
+            numberOfColumns: data.numberOfColumns,
         };
 
         if (isNew) {
