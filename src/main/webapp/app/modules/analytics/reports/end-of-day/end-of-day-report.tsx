@@ -237,12 +237,12 @@ const EndOfDayReport = () => {
           <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />
         }
 
-        <BillsSummary bills={salesData?.billSummary?.bills} />
-
         {
           endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) &&
           <TipSummary report={salesData.tipSummary} />
         }
+
+        <BillsSummary bills={salesData?.billSummary?.bills} />
       </div>
 
       {endOfDay?.fromDate && endOfDay?.toDate && endOfDayReportSection?.includes(EndOfDayReportSection.RELATED_TILLS) && (
