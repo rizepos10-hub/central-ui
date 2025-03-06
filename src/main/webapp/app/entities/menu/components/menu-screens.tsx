@@ -13,6 +13,8 @@ import { InputText } from 'primereact/inputtext';
 import _, { update } from 'lodash';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { IMenuData } from '../menu-instance';
+import { CiGrid41 } from "react-icons/ci";
+import { CiGrid2H } from "react-icons/ci";
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -75,6 +77,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                 ? 8
                 : subScreenStack?.[subScreenStack.length - 1]?.numberOfColumns || 1;
     const [groupedSubscreens, setGroupedSubscreens] = useState<IMenuScreen[][]>([]);
+    const [groupedMainScreens, setGroupedMainScreens] = useState<IMenuScreen[][]>([]);
     // useEffect(() => {
     //     if (mainScreen?.subScreens?.length === 0) return
     //     // setGroupedSubscreens(() => {
@@ -748,12 +751,12 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setSelectedItems(mainScreenItems || []);
     }, [mainScreenItems])
 
-    const handleMainDragStart = index => {
+    const handleMainDragStart = (index: number) => {
         setSelectedMainScreenIndex(index);
         setDraggedIndex(index);
     };
 
-    const handleMainDragOver = index => {
+    const handleMainDragOver = (index: number) => {
         if (index !== draggedIndex) {
             const newData = [...data.menuScreens];
             const [draggedItem] = newData.splice(draggedIndex, 1);
@@ -761,32 +764,35 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             newData.splice(index, 0, draggedItem);
             setData({ ...data, menuScreens: newData });
             setDraggedIndex(index);
-            // setSelectedMainScreenIndex(index);
         }
     };
-
 
     const handleMainDragEnd = () => {
         setDraggedIndex(null);
     };
 
-
-    const mainScreenClickHandler = (index: number, mainScreen: any) => {
-        setSelectedMainScreenIndex(index);
-        // setGroupedSubscreens(() => {
-        //     const initialGroups = [];
-        //     for (let i = 0; i < mainScreen?.subScreens?.length; i += cols) {
-        //         initialGroups.push(mainScreen?.subScreens?.slice(i, i + cols));
-        //     }
-        //     return initialGroups;
-        // })
-        setSelectedItems(mainScreen?.subScreens?.filter(subScreen => subScreen?.componentType === 'ITEM')?.map(subScreen => subScreen?.component?.item))
+    const mainScreenClickHandler = (globalIndex: number, mainScreen: IMenuScreen) => {
+        setSelectedMainScreenIndex(globalIndex);
+        setSelectedItems(
+            mainScreen?.subScreens
+                ?.filter(subScreen => subScreen?.componentType === 'ITEM')
+                ?.map(subScreen => subScreen?.component?.item)
+        );
         setSubScreenStack([mainScreen]);
         setBreadcrumb(() => [mainScreen.name]);
-        setMainScreen(mainScreen)
-        // setCurrentSubScreens(mainScreen?.subScreens)
+        setMainScreen(mainScreen);
     };
 
+    const groupMainScreens = (
+        screens: IMenuScreen[],
+        columns: number
+    ): IMenuScreen[][] => {
+        const grouped: IMenuScreen[][] = [];
+        for (let i = 0; i < screens.length; i += columns) {
+            grouped.push(screens.slice(i, i + columns));
+        }
+        return grouped;
+    };
 
     const handleModalSubmit = () => {
         if (newMainScreenName.trim() === '') {
@@ -813,10 +819,14 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             rowHeight: [],
             id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
         };
+        const newMenuScreens = [...data.menuScreens, newMainScreen];
+        const newGroupedMainScreens = groupMainScreens(newMenuScreens, data.numberOfColumns);
+
         setData({
             ...data,
             menuScreens: [...data.menuScreens, newMainScreen],
         });
+
         setSubScreenStack([newMainScreen?.subScreens]);
         setSelectedMainScreenIndex(data?.menuScreens?.length);
         setBreadcrumb([newMainScreenName]);
@@ -824,6 +834,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewMainScreenName('');
         setSelectedColorTheme('');
         setNewMainScreenCols(1);
+        setGroupedMainScreens(newGroupedMainScreens);
     };
 
     const handleSubScreenModalSubmit = () => {
@@ -934,6 +945,17 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             })
         }
     }, [subScreenStack])
+
+    useEffect(() => {
+        if (data?.menuScreens) {
+            const grouped = [];
+            for (let i = 0; i < data.menuScreens.length; i += data.numberOfColumns) {
+                grouped.push(data.menuScreens.slice(i, i + data.numberOfColumns));
+            }
+            setGroupedMainScreens(grouped);
+        }
+    }, [data]);
+
 
     const handleRemoveSelectedItems = (itemIds: string[]) => {
         if (selectedMainScreenIndex === null) {
@@ -1161,6 +1183,24 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setEditingSubScreenId(null);
     };
 
+    const handleMainRowHeightChange = (value: number | [number, number], rowIndex: number) => {
+        const newValue = Array.isArray(value) ? value[0] : value;
+        setData(prevData => {
+            const updatedRowHeights = [...prevData.rowHeight];
+            updatedRowHeights[rowIndex] = newValue;
+            return { ...prevData, rowHeight: updatedRowHeights };
+        });
+    };
+
+    const handleMainInputChange = (e: { value: number | [number, number] }, rowIndex: number) => {
+        const newValue = Array.isArray(e.value) ? e.value[0] : e.value;
+        setData(prevData => {
+            const updatedRowHeights = [...prevData.rowHeight];
+            updatedRowHeights[rowIndex] = newValue;
+            return { ...prevData, rowHeight: updatedRowHeights };
+        });
+    };
+
     const colorThemes = [
         '#007bff',
         '#dc3545',
@@ -1375,19 +1415,106 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             <Card>
                 <Row style={{ minHeight: '55rem' }}>
                     <Col md="3" className="border-right-1">
-                        <div className="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h2 className="border- border-dark pb-3">
-                                    <Translate contentKey={'menus.pos.update.mainScreens'}>Main Screens</Translate>
-                                </h2>
-                                <Button color="primary" onClick={handleMainScreenAdd}>
-                                    <Translate contentKey={'menus.pos.update.buttons.add'}>Add</Translate>
-                                </Button>
+                        <div className="d-flex justify-content-between align-items-center w-100">
+                            <div className='d-flex flex-column gap-2 w-100'>
+                                <div className='w-100'>
+                                    <h2 className="pb-3 w-100">
+                                        <Translate contentKey={'menus.pos.update.mainScreens'}>Main Screens</Translate>
+                                    </h2>
+                                </div>
+                                <div className='d-flex justify-content-between w-100'>
+                                    <Button color="primary" onClick={handleMainScreenAdd}>
+                                        <Translate contentKey={'menus.pos.update.buttons.add'}>Add</Translate>
+                                    </Button>
+                                    <div className='d-flex'>
+                                        <Button onClick={() => {
+                                            setData(prev => {
+                                                return {
+                                                    ...prev,
+                                                    numberOfColumns: 1
+                                                }
+                                            })
+                                        }}>
+                                            <CiGrid2H size={20} />
+                                        </Button>
+                                        <Button onClick={() => {
+                                            setData(prev => {
+                                                return {
+                                                    ...prev,
+                                                    numberOfColumns: 2
+                                                }
+                                            })
+                                        }}>
+                                            <CiGrid41 size={20} />
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
                             <hr />
                         </div>
                         <ListGroup className="mt-3">
-                            {data.menuScreens?.map((mainScreen, index) => (
+                            {groupedMainScreens.map((row, rowIndex) => (
+                                <React.Fragment key={rowIndex}>
+                                    <div className="mb-2 d-flex align-items-center">
+                                        <Slider
+                                            value={data?.rowHeight?.[rowIndex] || 0.5}
+                                            onChange={(e) => handleMainRowHeightChange(e.value, rowIndex)}
+                                            min={0.5}
+                                            max={2}
+                                            step={0.01}
+                                            className="w-full"
+                                        />
+                                        <InputNumber
+                                            value={data?.rowHeight?.[rowIndex] || 0.5}
+                                            onChange={(e) => handleMainInputChange(e, rowIndex)}
+                                            className="w-full ml-2"
+                                            type="number"
+                                            min={0.5}
+                                            max={2}
+                                            step={0.1}
+                                        />
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: `repeat(${data?.numberOfColumns}, 1fr)`,
+                                            gridAutoFlow: 'row',
+                                            height: `${150 * (data?.rowHeight?.[rowIndex] || 1)}px`,
+                                        }}
+                                    >
+                                        {row.map((item, colIndex) => {
+                                            const globalIndex = rowIndex * data.numberOfColumns + colIndex;
+                                            return (
+                                                <div
+                                                    key={colIndex}
+                                                    className="mb-3"
+                                                    draggable
+                                                    onClick={() => mainScreenClickHandler(globalIndex, item)}
+                                                    onDragStart={() => handleMainDragStart(globalIndex)}
+                                                    onDragOver={() => handleMainDragOver(globalIndex)}
+                                                    onDragEnd={handleMainDragEnd}
+                                                >
+                                                    <Card className="d-flex p-3 cursor-pointer h-100">
+                                                        <div>
+                                                            <div className="d-flex justify-content-end">
+                                                                <MdModeEditOutline size={20} onClick={() => openEditModal(item, globalIndex, 'main')} />
+                                                                &nbsp;
+                                                                <MdDeleteOutline size={20} color={'red'} onClick={() => confirm2(globalIndex, item.name)} />
+                                                            </div>
+                                                            <h5 className="m-0 mr-3 mb-2">{item?.name}</h5>
+                                                            <div className="d-flex flex-row justify-content-between">
+                                                                <Button style={{ backgroundColor: item?.backgroundColor, width: '55px', height: '30px' }} />
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </React.Fragment>
+                            ))}
+                            {/* {data.menuScreens?.map((mainScreen, index) => (
                                 <div
                                     key={index}
                                     className="mb-3"
@@ -1411,7 +1538,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                         </div>
                                     </Card>
                                 </div>
-                            ))}
+                            ))} */}
                         </ListGroup>
                     </Col>
                     <Col md="9" className="border-left">
