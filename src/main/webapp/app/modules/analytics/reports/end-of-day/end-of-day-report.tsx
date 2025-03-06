@@ -20,6 +20,7 @@ import { exportExcelSummaryReport, saveAsExcelFile } from 'app/shared/util/excel
 import { getEntities as getBusiness } from 'app/entities/settings/business-details/business-detail.reducer';
 import { IBusinessDetail } from 'app/shared/model/business-detail.model';
 import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
+import BillsSummary from 'app/shared/components/report/bills-summary';
 
 const EndOfDayReport = () => {
   const dispatch = useAppDispatch();
@@ -78,6 +79,7 @@ const EndOfDayReport = () => {
     const branchIdFromUrl = new URLSearchParams(window.location.search).get('branchId');
     if (branchIdFromUrl) {
       const selectedBranch = businessDetailsState.branchDetails.find(branch => branch?.branchId.toString() === branchIdFromUrl);
+      console.log(selectedBranch, 'selectedBranch')
       setEndOfDayReportSection(selectedBranch?.endOfDayReportSection);
     }
   }, [businessDetailsState]);
@@ -234,6 +236,8 @@ const EndOfDayReport = () => {
           endOfDayReportSection?.includes(EndOfDayReportSection.WALK_IN) &&
           <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />
         }
+
+        <BillsSummary bills={salesData?.billSummary?.bills} />
 
         {
           endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) &&
