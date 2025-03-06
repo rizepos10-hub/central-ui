@@ -15,7 +15,7 @@ const BillsSummary = ({ bills }) => {
     const currentBills = bills.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     return (
-        <Col>
+        <Col className='p-0'>
             <h3>Bills Summary</h3>
             <div className="table-responsive">
                 <table className="table" id="sales_summary">

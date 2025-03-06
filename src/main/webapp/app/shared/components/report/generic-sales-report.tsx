@@ -16,10 +16,10 @@ const GenericSalesReport = ({ title, report }: { title: string; report: ISummary
 
   console.log(walletCredits)
   return (
-    <Col>
+    <Col className="p-0">
       <h3>{title}</h3>
       <div className="table-responsive">
-        <table className="table " id="sales_summary">
+        <table className="table table-sm" id="sales_summary">
           <tbody>
             <tr>
               <th colSpan={2}>New sales (orders)</th>
@@ -51,13 +51,16 @@ const GenericSalesReport = ({ title, report }: { title: string; report: ISummary
             </tr>
             <tr>
               <td></td>
-              {
-                <td colSpan={2}>
-                  <span onClick={handleClick} className="text-primary cursor-pointer" title="No Tax ($0.00) + Hst ($5.68)">
-                    Tax ({Object.keys(taxes || {})?.length})<i className="pi pi-angle-up "></i>
-                  </span>
-                </td>
-              }
+              <td colSpan={2}>
+                <span
+                  onClick={handleClick}
+                  className="text-primary cursor-pointer"
+                  title="No Tax ($0.00) + Hst ($5.68)"
+                >
+                  Tax ({Object.keys(taxes || {})?.length})
+                  <i className="pi pi-angle-up"></i>
+                </span>
+              </td>
               <td colSpan={2} className="text-right">
                 {totalTAX}
               </td>
@@ -113,6 +116,7 @@ const GenericSalesReport = ({ title, report }: { title: string; report: ISummary
             </tr>
           </tbody>
         </table>
+
       </div>
     </Col>
   );
