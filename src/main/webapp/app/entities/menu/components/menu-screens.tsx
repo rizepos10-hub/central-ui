@@ -542,12 +542,14 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
             });
         };
 
-        const handleInputChange = (e, rowIndex) => {
-            const value = parseFloat(e.target.value);
+        const handleInputChange = (e: any, rowIndex: number) => {
+            const rawValue = e.value !== undefined ? e.value : e.target.value;
+            const value = parseFloat(rawValue);
             if (!isNaN(value)) {
                 handleRowHeightChange(value, rowIndex);
             }
         };
+
         return (
             <div className="d-flex gap-3 mb-3" onDragOver={e => e.preventDefault()}>
                 <Col md={12}>
@@ -555,21 +557,24 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         <React.Fragment key={rowIndex}>
                             <div className="mb-2 d-flex align-items-center">
                                 <Slider
-                                    value={findScreenById(data?.menuScreens, subScreenStack?.at(-1)?.id)?.rowHeight?.[rowIndex] || 0.5}
+                                    value={findScreenById(data?.menuScreens, subScreenStack?.at(-1)?.id)?.rowHeight?.[rowIndex] || 1}
                                     onChange={(e) => handleRowHeightChange(e.value, rowIndex)}
                                     min={0.5}
                                     max={2}
                                     step={0.01}
                                     className="w-full"
                                 />
-                                <InputText
-                                    value={findScreenById(data?.menuScreens, subScreenStack?.at(-1).id)?.rowHeight?.[rowIndex] || 0.5}
+                                <InputNumber
+                                    value={
+                                        findScreenById(data?.menuScreens, subScreenStack?.at(-1).id)?.rowHeight?.[rowIndex] || 1
+                                    }
                                     onChange={(e) => handleInputChange(e, rowIndex)}
                                     className="w-full ml-2"
-                                    type="number"
                                     min={0.5}
                                     max={2}
                                     step={0.1}
+                                    minFractionDigits={2}
+                                    maxFractionDigits={2}
                                 />
                             </div>
 
@@ -1213,13 +1218,17 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         });
     };
 
-    const handleMainInputChange = (e: { value: number | [number, number] }, rowIndex: number) => {
-        const newValue = Array.isArray(e.value) ? e.value[0] : e.value;
-        setData(prevData => {
-            const updatedRowHeights = [...prevData.rowHeight];
-            updatedRowHeights[rowIndex] = newValue;
-            return { ...prevData, rowHeight: updatedRowHeights };
-        });
+
+    const handleMainInputChange = (e: any, rowIndex: number) => {
+        const rawValue = e.value !== undefined ? e.value : e.target.value;
+        const value = parseFloat(rawValue);
+        if (!isNaN(value)) {
+            setData(prevData => {
+                const updatedRowHeights = [...prevData.rowHeight];
+                updatedRowHeights[rowIndex] = value;
+                return { ...prevData, rowHeight: updatedRowHeights };
+            });
+        }
     };
 
     const colorThemes = [
@@ -1483,7 +1492,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 <React.Fragment key={rowIndex}>
                                     <div className="mb-2 d-flex align-items-center">
                                         <Slider
-                                            value={data?.rowHeight?.[rowIndex] || 0.5}
+                                            value={data?.rowHeight?.[rowIndex] || 1}
                                             onChange={(e) => handleMainRowHeightChange(e.value, rowIndex)}
                                             min={0.5}
                                             max={2}
@@ -1491,13 +1500,14 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                             className="w-full"
                                         />
                                         <InputNumber
-                                            value={data?.rowHeight?.[rowIndex] || 0.5}
+                                            value={data?.rowHeight?.[rowIndex] || 1}
                                             onChange={(e) => handleMainInputChange(e, rowIndex)}
                                             className="w-full ml-2"
-                                            type="number"
                                             min={0.5}
                                             max={2}
                                             step={0.1}
+                                            minFractionDigits={2}
+                                            maxFractionDigits={2}
                                         />
                                     </div>
 
