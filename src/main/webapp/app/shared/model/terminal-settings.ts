@@ -1,3 +1,4 @@
+import { BusinessTypeEnum } from "./business-type";
 import { OrderMethod } from "./ENUMS/order-method.model";
 
 export interface ITerminalSettings {
@@ -5,7 +6,7 @@ export interface ITerminalSettings {
     showCategoriesPic: boolean;
     showRetailItemsOnly: boolean;
     countryCode: string | null;
-    businessType: BusinessType;
+    businessType: BusinessTypeEnum;
     languageCode: string | null;
     creditCardMachineIp: string | null;
     creditCardMachinePort: string | null;
@@ -133,11 +134,6 @@ export enum CreditCardIntegrationTypeEnum {
     ELAVON = 'elavon',
     INGENICO = 'ingenico',
     rizeIntegrator = 'rizeIntegrator',
-}
-
-export enum BusinessType {
-    RETAIL = 'RETAIL',
-    RESTAURANT = 'RESTAURANT',
 }
 
 interface PrinterSettings {

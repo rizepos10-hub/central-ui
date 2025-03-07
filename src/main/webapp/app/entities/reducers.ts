@@ -38,6 +38,7 @@ import brand from "app/entities/brand/brand.reducer";
 
 import taxProfiles from 'app/entities/settings/tax-profile/tax-profile.reducer';
 import businessDetail from 'app/entities/settings/business-details/business-detail.reducer';
+import businessType from 'app/entities/settings/business-type/business-type.reducer';
 import pizzaGroup from 'app/entities/pizza-settings/pizza-group.reducer';
 import pizzaSize from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
 import pizzaPricingClass from 'app/entities/pizza-settings/pizza-pricing-class/pizza-pricing-class.reducer';
@@ -122,6 +123,7 @@ const entitiesReducers = {
   taxProfiles,
   profileGroup,
   businessDetail,
+  businessType,
   voidReason,
   printer,
   printingProfiles,
