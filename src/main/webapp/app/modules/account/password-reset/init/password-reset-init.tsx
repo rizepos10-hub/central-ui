@@ -5,19 +5,23 @@ import { toast } from 'react-toastify';
 
 import { handlePasswordResetInit, reset } from '../password-reset.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { getTenant } from 'app/shared/tenant/TenantContext';
+
 
 export const PasswordResetInit = () => {
   const dispatch = useAppDispatch();
+  const tenant = useAppSelector(state => state.tenant.tenant);
 
   useEffect(
     () => () => {
       dispatch(reset());
+      dispatch(getTenant);
     },
     []
   );
 
   const handleValidSubmit = ({ email }) => {
-    dispatch(handlePasswordResetInit(email));
+    dispatch(handlePasswordResetInit({email, tenant}));
   };
 
   const successMessage = useAppSelector(state => state.passwordReset.successMessage);
