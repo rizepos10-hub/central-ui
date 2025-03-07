@@ -11,6 +11,7 @@ import {
   createEntity,
   reset,
   changeEntityField,
+  getPassword,
 } from './user.reducer';
 import { InputText } from 'primereact/inputtext';
 import { Checkbox } from 'primereact/checkbox';
@@ -19,6 +20,7 @@ import Select from 'react-select';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { IPosAuthorityGroup } from 'app/shared/model/pos-authority-group';
 import { IUser } from 'app/shared/model/user.model';
+import { Password } from 'primereact/password';
 
 export const UserUpdate = () => {
   const dispatch = useAppDispatch();
@@ -55,6 +57,10 @@ export const UserUpdate = () => {
 
     if (!isNew) {
       dispatch(getEntity(id));
+      dispatch(getPassword(id)).then(res => {
+        const response = res.payload as any;
+        updateUserFieldvalue('password', response.data);
+      });
     }
   }, []);
 
@@ -63,7 +69,7 @@ export const UserUpdate = () => {
       navigate('/branch-pos-user');
     }
   }, [updateSuccess]);
-
+  console.log(userEntity, 'userEntity')
   const handleSubmit = async event => {
     event.preventDefault();
 
@@ -170,14 +176,19 @@ export const UserUpdate = () => {
               <label htmlFor="password">
                 <Translate contentKey={'tempApp.password'} />
               </label>
-              <InputText
+              <Password
                 id="password"
                 name="password"
-                type="password"
+                className='w-100'
+                inputStyle={{
+                  width: '100%',
+                }}
                 value={userEntity.password}
-                onChange={e => updateUserFieldvalue('password', e.target.value)}
-                required={isNew ? true : false}
+                onChange={(e) => updateUserFieldvalue('password', e.target.value)}
+                required={isNew}
                 placeholder={translate('tempApp.password')}
+                toggleMask
+                feedback={false}
               />
             </div>
 

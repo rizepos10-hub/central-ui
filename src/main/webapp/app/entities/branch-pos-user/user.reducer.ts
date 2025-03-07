@@ -39,9 +39,14 @@ export const getEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-
-
-
+export const getPassword = createAsyncThunk(
+  'branch-pos-user/change_password_entity',
+  async (id: string | number) => {
+    const requestUrl = `/api/users/branch/${id}/password`;
+    return axios.get<IUser>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
 
 export const assignRole = createAsyncThunk(
   'branch-pos-user/assign_role',
