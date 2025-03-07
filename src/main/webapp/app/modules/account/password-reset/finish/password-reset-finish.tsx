@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Col, Row, Button } from 'reactstrap';
 import { Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { useSearchParams } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { handlePasswordResetFinish, reset } from '../password-reset.reducer';
@@ -11,6 +11,7 @@ import { getTenant } from 'app/shared/tenant/TenantContext';
 
 export const PasswordResetFinishPage = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const tenant = useAppSelector(state => state.tenant.tenant);
   const [searchParams] = useSearchParams();
   const key = searchParams.get('key');
@@ -25,7 +26,9 @@ export const PasswordResetFinishPage = () => {
     []
   );
 
-  const handleValidSubmit = ({ newPassword }) => dispatch(handlePasswordResetFinish({ confirmationCode: key, password: newPassword, tenant }));
+  const handleValidSubmit = ({ newPassword }) => dispatch(handlePasswordResetFinish({ confirmationCode: key, password: newPassword, tenant })).then(() => {
+    navigate('/' + tenant + '/login');
+  });
 
   const updatePassword = event => setPassword(event.target.value);
 
