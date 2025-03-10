@@ -14,6 +14,7 @@ import RestaurantItemCategoryTree from "app/entities/term/restaurant-Item-catego
 import RetailItemCategory from "app/entities/term/retail-item-category/retail-item-categories"
 import UpdateRetailItemCategory from "app/entities/term/retail-item-category/update-retail-item-category";
 import DeleteRetailItemCategoryDialog from "app/entities/term/retail-item-category/delete-retail-item-category-dialog";
+import RetailItemCategoryTree from './retail-item-category/retail-item-categories-tree';
 
 const TermRoutes = () => (
   <ErrorBoundaryRoutes>
@@ -23,6 +24,7 @@ const TermRoutes = () => (
     <Route path="restaurant-items/new" element={<UpdateItemRestaurantCategory />} />
 
 
+    <Route path="retail-items/tree" element={<RetailItemCategoryTree />} />
     <Route path="retail-items" element={<RetailItemCategory />} />
     <Route path="retail-items/new" element={<UpdateRetailItemCategory />} />
 

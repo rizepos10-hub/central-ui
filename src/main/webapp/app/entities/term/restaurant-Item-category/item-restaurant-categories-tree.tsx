@@ -9,7 +9,7 @@ import { TreeNode } from 'primereact/treenode';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import {searchEntities, getEntities} from './item-restaurant-category.reducer';
+import { searchEntities, getEntities } from './item-restaurant-category.reducer';
 import UpdateItemRestaurantCategoryTree from './update-item-restaurant-category-tree';
 
 export const ItemRestaurantCategoriesTree = () => {
@@ -24,7 +24,7 @@ export const ItemRestaurantCategoriesTree = () => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-  const categoryList = useAppSelector(state => state.restaurantCategory.entities)
+  const categoryList = useAppSelector(state => state.restaurantCategory.entities);
   const loading = useAppSelector(state => state.restaurantCategory.loading);
   const isSaved = useRef(false);
 
@@ -51,39 +51,36 @@ export const ItemRestaurantCategoriesTree = () => {
     }
   };
 
-const ensureParentsExist = (categories) => {
-  const allParents = categories.flatMap(category => category.parents);
+  const ensureParentsExist = (categories) => {
+    const allParents = categories.flatMap(category => category.parents);
 
-  const allParentIds = new Set(allParents.map(parent => parent.id));
-  const existingIds = new Set(categories.map(category => category.id));
+    const allParentIds = new Set(allParents.map(parent => parent.id));
+    const existingIds = new Set(categories.map(category => category.id));
 
-  const missingParents = Array.from(allParentIds).filter(id => !existingIds.has(id));
+    const missingParents = Array.from(allParentIds).filter(id => !existingIds.has(id));
 
-  const addedParents = missingParents.map(id => {
-    const parent = allParents.find(parent => parent.id === id);
-    return {
-      id,
-      name: parent ? parent.name : `Parent ${id}`, // Use parent name if available, else placeholder
-      parents: [],
-      attachments: [],
-      accountingGroups: [],
-      visibility: null,
-      itemsCount: null,
-    };
-  });
+    const addedParents = missingParents.map(id => {
+      const parent = allParents.find(parent => parent.id === id);
+      return {
+        id,
+        name: parent ? parent.name : `Parent ${id}`,
+        parents: [],
+        attachments: [],
+        accountingGroups: [],
+        visibility: null,
+        itemsCount: null,
+        imageUrl: parent?.attachments?.[0]?.url, // if available
+      };
+    });
 
-  return [...categories, ...addedParents];
-};
-
+    return [...categories, ...addedParents];
+  };
 
   useEffect(() => {
-
     const completeCategories = ensureParentsExist(categoryList);
-
     const treeNodes = buildTree(completeCategories);
-
     setNodes(treeNodes);
-}, [categoryList]);
+  }, [categoryList]);
 
   const sortEntities = () => {
     getAllEntities();
@@ -94,10 +91,11 @@ const ensureParentsExist = (categories) => {
   };
 
   useEffect(() => {
-    sortEntities();
+    const getData = setTimeout(() => {
+      sortEntities();
+    }, 2000);
+    return () => clearTimeout(getData);
   }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
-
-  console.log(totalItems, 'totalItemCategories')
 
   const buildTree = (categories, parentId = null, level = '') => {
     return categories
@@ -107,37 +105,35 @@ const ensureParentsExist = (categories) => {
       })
       .map((category, index) => {
         const key = level ? `${level}-${index}` : `${index}`;
-  
         return {
           id: category.id,
           key: category.id,
           label: category.name,
+          imageUrl: category.attachments?.[0]?.url, // new property for the category image
           data: `${category.name} Folder`,
           children: buildTree(categories, category.id, key),
         };
       });
   };
 
-  console.log(categoryList, 'categorylist')
+  console.log(categoryList, 'categorylist');
 
   const handleSearchChange = (e) => {
     const term = e.target.value;
     setSearch(term);
   };
 
-  
   const onSelectionChange = (e) => {
     const selectedNode = e.value;
-    // Update the state with the selected categoryId
-    if(selectedNode !== categoryId) {
+    if (selectedNode !== categoryId) {
       setCategoryId(selectedNode);
     }
-    setSelectedNodeKey(selectedNode)
+    setSelectedNodeKey(selectedNode);
   };
 
   const updatedTree = (load = true) => {
-    setCategoryId(undefined)
-    if(load) {
+    setCategoryId(undefined);
+    if (load) {
       dispatch(
         searchEntities({
           query: search,
@@ -147,72 +143,71 @@ const ensureParentsExist = (categories) => {
         })
       );
     }
+  };
 
-    
-  }
-
-  
   const expandAll = () => {
-    let _expandedKeys = {};
-
-      for (let node of nodes) {
-          expandNode(node, _expandedKeys);
-      }
-
-      setExpandedKeys(_expandedKeys);
+    const _expandedKeys = {};
+    for (const node of nodes) {
+      expandNode(node, _expandedKeys);
+    }
+    setExpandedKeys(_expandedKeys);
   };
 
   const collapseAll = () => {
-      setExpandedKeys({});
+    setExpandedKeys({});
   };
 
   const expandNode = (node, _expandedKeys) => {
-      if (node.children && node.children.length) {
-          _expandedKeys[node.key] = true;
-
-          for (let child of node.children) {
-              expandNode(child, _expandedKeys);
-          }
+    if (node.children && node.children.length) {
+      _expandedKeys[node.key] = true;
+      for (const child of node.children) {
+        expandNode(child, _expandedKeys);
       }
+    }
   };
 
+  const nodeTemplate = (node, options) => {
+    return (
+      <div className="d-flex align-items-center gap-2 border-bottom w-100">
+        {node.imageUrl && (
+          <img src={node.imageUrl} alt={node.label} width={50} height={50} />
+        )}
+        <span>{node.label}</span>
+      </div>
+    );
+  };
 
   return (
-      <Row className="justify-content-center">
-        {/* First Column: Search and Tree */}
-        <Col md={'6'} className="p-2">
-          {/* Search Input */}
-          <Input
-            type="text"
-            value={search}
-            onChange={handleSearchChange}
-            placeholder="Search..."
-            className="mb-3"
-          />
-          
+    <Row className="justify-content-center">
+      <Col md={'6'} className="p-2">
+        <Input
+          type="text"
+          value={search}
+          onChange={handleSearchChange}
+          placeholder="Search..."
+          className="mb-3"
+        />
         <div style={{ marginBottom: '1rem' }}>
           <Button label="Expand All" icon="pi pi-plus" onClick={expandAll} className="p-button-success" />
           <Button label="Collapse All" icon="pi pi-minus" onClick={collapseAll} className="p-button-secondary" style={{ marginLeft: '0.5rem' }} />
         </div>
-
-          {/* Tree Component */}
-          <Tree
-            onSelectionChange={onSelectionChange}
-            value={nodes}
-            selectionMode="single"
-            className="w-100"
-            selectionKeys={selectedNodeKey} 
-            dragdropScope="demo"
-            onDragDrop={(e) => setNodes(e.value)}
-            expandedKeys={expandedKeys}
-            onToggle={(e) => setExpandedKeys(e.value)}
-          />
-        </Col>
-
-        <Col md={'6'} className="p-2">
-          <UpdateItemRestaurantCategoryTree  categoryId={categoryId} onSave={updatedTree}/>
-        </Col>
-      </Row>
+        <Tree
+          nodeTemplate={nodeTemplate}
+          onSelectionChange={onSelectionChange}
+          value={nodes}
+          selectionMode="single"
+          className="w-100"
+          selectionKeys={selectedNodeKey}
+          dragdropScope="demo"
+          onDragDrop={(e) => setNodes(e.value)}
+          expandedKeys={expandedKeys}
+          onToggle={(e) => setExpandedKeys(e.value)}
+        />
+      </Col>
+      <Col md={'6'} className="p-2">
+        <UpdateItemRestaurantCategoryTree categoryId={categoryId} onSave={updatedTree} />
+      </Col>
+    </Row>
   );
 };
 
