@@ -70,14 +70,25 @@ const AppSubMenu = (props) => {
   };
 
   const modelWithShortcuts = enhanceMenuModel(props.model);
+  if (!props?.businessTypes?.types) return
   return (
     <MenuProvider>
       {<ul className="layout-menu">
         {modelWithShortcuts?.map((item, i) => {
-          const hasAccess = item?.role?.some(role => authorities?.includes(role));
+          const hasRoleAccess = item?.role?.some(role => authorities?.includes(role));
+          const hasBusinessTypeAccess = item?.type
+            ? item.type.some(type => props?.businessTypes?.types?.includes(type))
+            : true;
+          const hasAccess = hasRoleAccess && hasBusinessTypeAccess;
+
           if (!hasAccess) {
             return null;
           }
+
+          // const hasAccess = item?.role?.some(role => authorities?.includes(role));
+          // if (!hasAccess) {
+          //   return null;
+          // }
 
           return !item?.seperator ? (
             <AppMenuitem item={item} root={true} index={i} key={item?.label} />
