@@ -207,7 +207,8 @@ export const Layout = (props: ChildContainerProps) => {
         {isAuthenticated &&
           <div ref={sidebarRef} className="layout-sidebar" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} style={{
             height: '100%',
-            top: '7vh'
+            top: '7vh',
+            zIndex: 0
           }}>
             {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
             <AppSidebar />

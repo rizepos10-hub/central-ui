@@ -107,15 +107,15 @@ export const model: MenuItem[] = [
     label: 'Restaurant Catalog',
     role: ['ROLE_ADMINISTRATOR'],
     icon: 'pi pi-book',
-    to: '/category/restaurant-items',
+    to: '/category/restaurant-items/tree',
     items: [
+      // {
+      //   label: 'Categories',
+      //   to: '/category/restaurant-items',
+      //   type: [BusinessTypeEnum.RESTAURANT],
+      // },
       {
         label: 'Categories',
-        to: '/category/restaurant-items',
-        type: [BusinessTypeEnum.RESTAURANT],
-      },
-      {
-        label: 'Categories Tree',
         to: '/category/restaurant-items/tree',
         type: [BusinessTypeEnum.RESTAURANT],
       },
@@ -200,11 +200,16 @@ export const model: MenuItem[] = [
     label: 'Retail Catalog',
     icon: 'pi pi-tags',
     role: ['ROLE_ADMINISTRATOR'],
-    to: '/category/retail-items',
+    to: '/category/retail-items/tree',
     items: [
+      // {
+      //   label: 'Categories',
+      //   to: '/category/retail-items',
+      //   type: [BusinessTypeEnum.RETAIL],
+      // },
       {
         label: 'Categories',
-        to: '/category/retail-items',
+        to: '/category/retail-items/tree',
         type: [BusinessTypeEnum.RETAIL],
       },
       {
