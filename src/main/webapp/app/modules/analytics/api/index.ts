@@ -129,12 +129,12 @@ export const fetchOrdersByYear = async (year) => {
 };
 
 
-export const fetchEndOfDaysData = async (page: number, size: number, sort: string, year: string, branchId: string | null = null, fromDate: string | null = null, toDate: string | null = null) => {
+export const fetchEndOfDaysData = async (page: number, size: number, sort: string, sortOrder: string, branchId: string | null = null, fromDate: string | null = null, toDate: string | null = null) => {
   const branchIdParam = branchId ? `branchId=${branchId}` : null
   const fromDateParam = fromDate ? `fromDate=${fromDate}` : null
   const toDateParam = toDate ? `toDate=${toDate}` : null
   try {
-    const response = await axios.get(`/api/end-of-day?page=${page}&size=${size}&sort=${sort}&year=${year}&${branchIdParam}&${fromDateParam}&${toDateParam}`);
+    const response = await axios.get(`/api/end-of-day?page=${page}&size=${size}&sort=${sort}&sortOrder=${sortOrder}&${branchIdParam}&${fromDateParam}&${toDateParam}`);
     return response;
   } catch (error) {
     console.error('Error fetching data:', error);
