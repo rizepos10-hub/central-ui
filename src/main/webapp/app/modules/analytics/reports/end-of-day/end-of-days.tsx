@@ -30,7 +30,7 @@ export const EndOfDays = () => {
     first: 0,
     page: 0,
     rows: 10,
-    sortField: null,
+    sortField: "toDate",
     sortOrder: null,
   });
 
@@ -53,10 +53,12 @@ export const EndOfDays = () => {
   const loadLazyData = async () => {
     setLoading(true);
     try {
+      const sortDirection = lazyState.sortOrder === 1 ? "asc" : "desc";
+      const sortField = lazyState.sortField + ',' + sortDirection
       const result = await fetchEndOfDaysData(
         lazyState.page,
         lazyState.rows,
-        lazyState.sortField,
+        sortField,
         lazyState.sortOrder,
         selectedBranch,
         calenderValue?.[0] ? calenderValue[0].toISOString() : null,
@@ -132,7 +134,7 @@ export const EndOfDays = () => {
 
           {/* <Column field="id" header="ID" body={(rowData) => (<Link to={rowData.id}>{rowData.id} </Link>)}  /> */}
           <Column field="fromDate" body={(rowData) => convertUtcToLocalDate(rowData?.fromDate)} header={translate('analytics.endOfDay.table.fromDate')} />
-          <Column field="toDate" body={(rowData) => convertUtcToLocalDate(rowData?.toDate)} header={translate('analytics.endOfDay.table.toDate')} />
+          <Column field="toDate" sortable body={(rowData) => convertUtcToLocalDate(rowData?.toDate)} header={translate('analytics.endOfDay.table.toDate')} />
           <Column field="actionTakenBy" header={translate('analytics.endOfDay.table.actionBy')} />
           <Column field="createdDate" body={(rowData) => convertUtcToLocalDate(rowData?.createdDate)} header={translate('analytics.endOfDay.table.createdDate')} />
           <Column field="branch.name" header={translate('analytics.endOfDay.table.branchName')} />
