@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Row } from "reactstrap";
 import { fetchEndOfDaysData } from "app/modules/analytics/api";
-import { DataTable } from "primereact/datatable";
+import { DataTable, SortOrder } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Link, useNavigate } from "react-router-dom";
 import { Dropdown } from "primereact/dropdown";
@@ -29,9 +29,9 @@ export const EndOfDays = () => {
   const [lazyState, setLazyState] = useState({
     first: 0,
     page: 0,
-    rows: 10,
-    sortField: "toDate",
-    sortOrder: null,
+    rows: 20,
+    sortField: 'toDate',
+    sortOrder: -1 as SortOrder
   });
 
 
@@ -59,7 +59,7 @@ export const EndOfDays = () => {
         lazyState.page,
         lazyState.rows,
         sortField,
-        lazyState.sortOrder,
+        String(lazyState.sortOrder),
         selectedBranch,
         calenderValue?.[0] ? calenderValue[0].toISOString() : null,
         calenderValue?.[1] ? calenderValue[1].toISOString() : null
