@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Col, Row, Button } from 'reactstrap';
 import { Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { handlePasswordResetFinish, reset } from '../password-reset.reducer';
@@ -17,65 +17,68 @@ export const PasswordResetFinishPage = () => {
   const key = searchParams.get('key');
 
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(true); // Loading state
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    const fetchData = async () => {
+      await dispatch(getTenant);
+      setLoading(false);
+    };
+
+    fetchData();
+
+    return () => {
       dispatch(reset());
-      dispatch(getTenant);
-    },
-    []
-  );
+    };
+  }, [dispatch]);
 
-  const handleValidSubmit = ({ newPassword }) => dispatch(handlePasswordResetFinish({ confirmationCode: key, password: newPassword, tenant })).then(() => {
-    navigate('/' + tenant + '/login');
-  });
+  const handleValidSubmit = ({ newPassword }) => {
+    dispatch(handlePasswordResetFinish({ confirmationCode: key, password: newPassword, tenant })).then(() => {
+      navigate('/' + tenant + '/login');
+    });
+  };
 
   const updatePassword = event => setPassword(event.target.value);
 
-  const getResetForm = () => {
-    return (
-      <ValidatedForm onSubmit={handleValidSubmit}>
-        <ValidatedField
-          name="newPassword"
-          label={translate('global.form.newpassword.label')}
-          placeholder={translate('global.form.newpassword.placeholder')}
-          type="password"
-          validate={{
-            required: { value: true, message: translate('global.messages.validate.newpassword.required') },
-            minLength: { value: 4, message: translate('global.messages.validate.newpassword.minlength') },
-            maxLength: { value: 50, message: translate('global.messages.validate.newpassword.maxlength') },
-          }}
-          onChange={updatePassword}
-          data-cy="resetPassword"
-        />
-        <PasswordStrengthBar password={password} />
-        <ValidatedField
-          name="confirmPassword"
-          label={translate('global.form.confirmpassword.label')}
-          placeholder={translate('global.form.confirmpassword.placeholder')}
-          type="password"
-          validate={{
-            required: { value: true, message: translate('global.messages.validate.confirmpassword.required') },
-            minLength: { value: 4, message: translate('global.messages.validate.confirmpassword.minlength') },
-            maxLength: { value: 50, message: translate('global.messages.validate.confirmpassword.maxlength') },
-            validate: v => v === password || translate('global.messages.error.dontmatch'),
-          }}
-          data-cy="confirmResetPassword"
-        />
-        <Button color="success" type="submit" data-cy="submit">
-          <Translate contentKey="reset.finish.form.button">Validate new password</Translate>
-        </Button>
-      </ValidatedForm>
-    );
-  };
+  const getResetForm = () => (
+    <ValidatedForm onSubmit={handleValidSubmit}>
+      <ValidatedField
+        name="newPassword"
+        label={translate('global.form.newpassword.label')}
+        placeholder={translate('global.form.newpassword.placeholder')}
+        type="password"
+        validate={{
+          required: { value: true, message: translate('global.messages.validate.newpassword.required') },
+          minLength: { value: 4, message: translate('global.messages.validate.newpassword.minlength') },
+          maxLength: { value: 50, message: translate('global.messages.validate.newpassword.maxlength') },
+        }}
+        onChange={updatePassword}
+        data-cy="resetPassword"
+      />
+      <PasswordStrengthBar password={password} />
+      <ValidatedField
+        name="confirmPassword"
+        label={translate('global.form.confirmpassword.label')}
+        placeholder={translate('global.form.confirmpassword.placeholder')}
+        type="password"
+        validate={{
+          required: { value: true, message: translate('global.messages.validate.confirmpassword.required') },
+          minLength: { value: 4, message: translate('global.messages.validate.confirmpassword.minlength') },
+          maxLength: { value: 50, message: translate('global.messages.validate.confirmpassword.maxlength') },
+          validate: v => v === password || translate('global.messages.error.dontmatch'),
+        }}
+        data-cy="confirmResetPassword"
+      />
+      <Button color="success" type="submit" data-cy="submit">
+        <Translate contentKey="reset.finish.form.button">Validate new password</Translate>
+      </Button>
+    </ValidatedForm>
+  );
 
-  const successMessage = useAppSelector(state => state.passwordReset.successMessage);
-
-  useEffect(() => {
-    if (successMessage) {
-      toast.success(translate(successMessage));
-    }
-  }, [successMessage]);
+  // Show a div (or a loading message) until everything is loaded
+  if (loading || !key) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
@@ -84,7 +87,7 @@ export const PasswordResetFinishPage = () => {
           <h1>
             <Translate contentKey="reset.finish.title">Reset password</Translate>
           </h1>
-          <div>{key ? getResetForm() : null}</div>
+          <div>{getResetForm()}</div>
         </Col>
       </Row>
     </div>
