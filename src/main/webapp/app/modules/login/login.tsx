@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { login, loginFromToken } from 'app/shared/reducers/authentication';
@@ -47,13 +47,13 @@ export const Login = () => {
         navigate('/');
       }
     }
-  }, [tenant])
+  }, [])
 
   const { layoutConfig } = useContext(LayoutContext);
   const dark = layoutConfig.colorScheme !== 'light';
 
   const { from } = (location.state as any) || { from: { pathname: '/', search: location.search } };
-
+  console.log(isAuthenticated)
   if (isAuthenticated) {
     return <Navigate to={from} replace />;
   }
@@ -110,9 +110,10 @@ export const Login = () => {
                     Remember Me
                   </label>
                 </div>
-                <a className="text-600 cursor-pointer hover:text-primary cursor-pointer ml-auto transition-colors transition-duration-300">
+                
+                <Link to="/account/reset/request" className="text-600 cursor-pointer hover:text-primary cursor-pointer transition-colors transition-duration-300">
                   Reset password
-                </a>
+                </Link>
               </div>
               <Button label="Log In" className="w-full" onClick={handleLogin}></Button>
             </div>

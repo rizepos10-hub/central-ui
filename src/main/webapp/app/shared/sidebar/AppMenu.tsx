@@ -1,5 +1,8 @@
 import AppSubMenu from './AppSubMenu';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { getEntities as getBusinessTypes } from 'app/entities/settings/business-type/business-type.reducer';
+import { BusinessType, BusinessTypeEnum } from '../model/business-type';
 
 export type MenuItem = {
   label: string;
@@ -7,6 +10,7 @@ export type MenuItem = {
   role?: string[];
   icon?: string;
   items?: MenuItem[];
+  type: BusinessTypeEnum[];
 };
 
 
@@ -20,8 +24,10 @@ export const model: MenuItem[] = [
       {
         label: 'Dashboard',
         to: '/',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'POS',
@@ -33,29 +39,26 @@ export const model: MenuItem[] = [
         label: 'Menus',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/menu?type=POS',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Branch Register',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
         to: '/branch-register',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
-      // {
-      //   label: 'Switch Register',
-      //   to: '/switch-register',
-      // },
-      // {
-      //   label: 'Close Sales',
-      //   to: '/close-sales',
-      // },
       {
         label: 'General Report',
         to: '/analytics/sales',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Sell',
         to: '/order/create',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Users',
@@ -66,16 +69,20 @@ export const model: MenuItem[] = [
       {
         label: 'Back End',
         to: '/back-office-user',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'POS',
         to: '/branch-pos-user',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'POS Authority Groups',
         to: '/pos-authority-group',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Tags',
@@ -86,26 +93,31 @@ export const model: MenuItem[] = [
       {
         label: 'Tags',
         to: '/tag',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Tag Groups',
         to: '/tag-group',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Restaurant Catalog',
     role: ['ROLE_ADMINISTRATOR'],
     icon: 'pi pi-book',
-    to: '/category/restaurant-items',
+    to: '/category/restaurant-items/tree',
     items: [
+      // {
+      //   label: 'Categories',
+      //   to: '/category/restaurant-items',
+      //   type: [BusinessTypeEnum.RESTAURANT],
+      // },
       {
         label: 'Categories',
-        to: '/category/restaurant-items',
-      },
-      {
-        label: 'Categories Tree',
         to: '/category/restaurant-items/tree',
+        type: [BusinessTypeEnum.RESTAURANT],
       },
       {
         label: 'Products',
@@ -114,16 +126,20 @@ export const model: MenuItem[] = [
           {
             label: 'Regular',
             to: '/restaurant/regular',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
           {
             label: 'Combo',
             to: '/restaurant/combo',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
           {
             label: 'Pizza',
             to: '/restaurant/pizza',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
         ],
+        type: [BusinessTypeEnum.RESTAURANT],
       },
       {
         label: 'Pizza Settings',
@@ -132,81 +148,105 @@ export const model: MenuItem[] = [
           {
             label: 'Sizes',
             to: '/pizza-size',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
           {
             label: 'Crust Settings',
             to: '/pizza-crust',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
           {
             label: 'Toppings',
             to: '/pizza-topping',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
           {
             label: 'Topping Groups',
             to: '/pizza-topping-group',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
           {
             label: 'Pricing Class',
             to: '/pizza-pricing-class?type=CRUST_TYPE',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
           {
             label: 'Predefined Pizza',
             to: '/predefined-pizza',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
           {
             label: 'Pizza Settings',
             to: '/base-pizza',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
         ],
+        type: [BusinessTypeEnum.RESTAURANT],
       },
       {
         label: 'Addon Groups',
         to: '/addon-groups',
+        type: [BusinessTypeEnum.RESTAURANT],
       },
       {
         label: 'Addons',
         to: '/addon',
+        type: [BusinessTypeEnum.RESTAURANT],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT],
   },
   {
     label: 'Retail Catalog',
     icon: 'pi pi-tags',
     role: ['ROLE_ADMINISTRATOR'],
-    to: '/category/retail-items',
+    to: '/category/retail-items/tree',
     items: [
+      // {
+      //   label: 'Categories',
+      //   to: '/category/retail-items',
+      //   type: [BusinessTypeEnum.RETAIL],
+      // },
       {
         label: 'Categories',
-        to: '/category/retail-items',
+        to: '/category/retail-items/tree',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Products',
         to: '/product',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Barcodes',
         to: '/barcodes',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Attributes',
         to: '/retail/attributes',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Mix & Match',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/mix-and-match-rule',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Suppliers',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/supplier',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Brands',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/brand',
+        type: [BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Inventory',
@@ -218,102 +258,52 @@ export const model: MenuItem[] = [
         label: 'Warehouses',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
         to: '/inventory/warehouse',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Sales Locations',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
         to: '/inventory/sales-location',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Stock',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
         to: '/inventory/stock',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Purchase Orders',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
         to: '/inventory/purchase-order',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Transfers',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN', 'ROLE_WAREHOUSE_MANAGER'],
         to: '/inventory/transfer-request',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Returns',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
         to: '/inventory/supplier-return',
+        type: [BusinessTypeEnum.RETAIL],
       },
-      // {
-      //   label: 'Inventory Count',
-      //   role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //   to: '/inventory/due',
-      //   items: [
-      //     {
-      //       label: 'Due',
-      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //       to: '/inventory/due',
-      //     },
-      //     {
-      //       label: 'Upcoming',
-      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //       to: '/inventory/upcoming',
-      //     },
-      //     {
-      //       label: 'Completed',
-      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //       to: '/inventory/completed',
-      //     },
-      //     {
-      //       label: 'Canceled',
-      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //       to: '/inventory/canceled',
-      //     },
-      //   ],
-      // },
-      // {
-      //   label: 'Fulfillments',
-      //   role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //   to: '/inventory/all',
-      //   items: [
-      //     {
-      //       label: 'All',
-      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //       to: '/inventory/all',
-      //     },
-      //     {
-      //       label: 'Pack Orders',
-      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //       to: '/inventory/pack-orders',
-      //     },
-      //     {
-      //       label: 'Customer Pickup',
-      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //       to: '/inventory/customer-pickup',
-      //     },
-      //     {
-      //       label: 'Delivery',
-      //       role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //       to: '/inventory/delivery',
-      //     },
-      //   ],
-      // },
-      // {
-      //   label: 'Serial Numbers',
-      //   role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
-      //   to: '/inventory/serial-number',
-      // },
       {
         label: 'Suppliers',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
         to: '/inventory/supplier',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'To Be Stocked',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_INVENTORY_ADMIN'],
         to: '/inventory/to-be-stocked',
+        type: [BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Customers',
@@ -321,17 +311,14 @@ export const model: MenuItem[] = [
     icon: ' pi pi-users',
     to: '/customer',
     items: [
-      // {
-      //   label: 'Groups',
-      //   role: ['ROLE_ADMINISTRATOR'],
-      //   to: '/customer/group',
-      // },
       {
         label: 'Customers',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/customer',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Orders',
@@ -343,23 +330,28 @@ export const model: MenuItem[] = [
         label: 'Today',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/order/today',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'History',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/order',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Scheduled',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/order/scheduled',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Create',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/order/create',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Loyalty',
@@ -371,11 +363,13 @@ export const model: MenuItem[] = [
         label: 'Loyalty Cards',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/loyalty-cards',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Loyalty Points',
         role: ['ROLE_ADMINISTRATOR'],
-        to: '/loyalty'
+        to: '/loyalty',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Gift Cards Catalog',
@@ -386,10 +380,13 @@ export const model: MenuItem[] = [
           {
             label: 'Gift Cards',
             to: '/gift-cards',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           }
         ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Digital Signage',
@@ -404,14 +401,18 @@ export const model: MenuItem[] = [
           {
             label: 'Tvs',
             to: '/tv',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
           {
             label: 'Tv Displays',
             to: '/tv-display',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
         ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Reports',
@@ -422,11 +423,8 @@ export const model: MenuItem[] = [
       {
         label: 'Retail Dashboard',
         to: '/analytics/retail-dashboard',
+        type: [BusinessTypeEnum.RETAIL],
       },
-      // {
-      //   label: 'Restaurant Dashboard',
-      //   to: '/analytics/restaurant-dashboard',
-      // },
       {
         label: 'Sales Reports',
         to: '/analytics/sales',
@@ -434,104 +432,63 @@ export const model: MenuItem[] = [
           {
             label: 'General Report',
             to: '/analytics/sales',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
-          // {
-          //   label: 'Individual Performance',
-          //   to: '/analytics/sales-report/individual-performance',
-          // },
-          // {
-          //   label: 'Sales by Hour',
-          //   to: '/analytics/sales-report/summary',
-          // },
           {
             label: 'Sales by Product',
             to: '/analytics/sales-report/sales-by-product',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
           {
             label: 'Sales by Category',
             to: '/analytics/sales-report/sales-by-category',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
           {
             label: 'Sales by Branch',
             to: '/analytics/sales-report/sales-by-branch',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
           {
             label: 'Sales by User',
             to: '/analytics/sales-report/sales-by-user',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
         ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
-      // {
-      //   label: 'Inventory Reports',
-      //   to: '/analytics/out-of-stock',
-      //   items: [
-      //     {
-      //       label: 'Out of Stock',
-      //       to: '/analytics/out-of-stock',
-      //     },
-      //     {
-      //       label: 'Sell Through',
-      //       to: '/analytics/sell-through',
-      //     },
-      //     {
-      //       label: 'Dusty Inventory',
-      //       to: '/analytics/dusty-inventory',
-      //     },
-      //     {
-      //       label: 'Performance',
-      //       to: '/analytics/performance',
-      //     },
-      //   ],
-      // },
-      // {
-      //   label: 'Payment Reports',
-      //   to: '/analytics/payment-report',
-      // },
       {
         label: 'Register Closures',
         to: '/analytics/register-closure',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Shift Report',
         to: '/analytics/shift-report',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Employee Hours',
         to: '/analytics/employee-hours-report',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
-      // {
-      //   label: 'Shift Closures',
-      //   to: '/analytics/shift-closure',
-      // },
-      // {
-      //   label: 'Gift Cards',
-      //   to: '/analytics/gift-card',
-      // },
-      // {
-      //   label: 'Store Credits',
-      //   to: '/analytics/store-credit',
-      // },
-      // {
-      //   label: 'Tax Reports',
-      //   to: '/analytics/tax-report',
-      // },
-      // {
-      //   label: 'AI Reporting',
-      //   to: '/analytics/ai-reporting',
-      // },
       {
         label: 'Top Items',
         to: '/analytics/topItems',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'End Of Day',
         to: '/analytics/endofday',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Report',
         to: '/analytics/reports',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Online Ordering',
@@ -542,38 +499,40 @@ export const model: MenuItem[] = [
       {
         label: 'Menus',
         to: '/menu?type=ONLINE_ORDERING',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Users',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/online-ordering/user',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Sales',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/online-ordering/order',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'UI Settings',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/online-ordering/settings',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
-      // {
-      //   label: 'Layout Settings',
-      //   role: ['ROLE_ADMINISTRATOR'],
-      //   to: '/online-ordering/layout-settings',
-      // },
       {
         label: 'Pick A Layout',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/online-ordering/pick-a-layout',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Accounting',
     icon: 'pi pi-money-bill',
     to: '/accounting',
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
   {
     label: 'Settings',
@@ -585,12 +544,8 @@ export const model: MenuItem[] = [
         label: 'Business Information',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_BO-BUSINESS-SETTING'],
         to: '/details',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
-      // {
-      //   label: 'Billing',
-      //   role: ['ROLE_ADMINISTRATOR'],
-      //   to: '/billing',
-      // },
       {
         label: 'Branches',
         role: ['ROLE_ADMINISTRATOR'],
@@ -600,54 +555,47 @@ export const model: MenuItem[] = [
             label: 'Branches',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/branches',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
           {
             label: 'Zones Settings',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/zones',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
-        ]
+        ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Service Charge',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/service-charge',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
-      // {
-      //   label: 'Registers',
-      //   role: ['ROLE_ADMINISTRATOR'],
-      //   to: '/register',
-      // },
-      // {
-      //   label: 'Payment Types',
-      //   role: ['ROLE_ADMINISTRATOR'],
-      //   to: '/payment-types',
-      // },
       {
         label: 'Discounts',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/discount',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Voids',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/void-reasons',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Pricing Points',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/pricing-point',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Custom Definitions',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/custom-definitions',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
-      // {
-      //   label: 'On Account',
-      //   role: ['ROLE_ADMINISTRATOR'],
-      //   to: '/on-account',
-      // },
       {
         label: 'Taxes',
         role: ['ROLE_ADMINISTRATOR'],
@@ -657,23 +605,28 @@ export const model: MenuItem[] = [
             label: 'Taxes',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/tax',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
           {
             label: 'Tax profiles ',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/tax-profiles',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
           {
             label: 'Profile Groups ',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/profile-groups',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
         ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Units of Measures',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/item-measure',
+        type: [BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Restaurant',
@@ -684,6 +637,7 @@ export const model: MenuItem[] = [
             label: 'Course Definitions',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/course-definition',
+            type: [BusinessTypeEnum.RESTAURANT],
           },
           {
             label: 'Floor plans',
@@ -693,72 +647,49 @@ export const model: MenuItem[] = [
               {
                 label: 'List',
                 to: '/floor-plan',
+                type: [BusinessTypeEnum.RESTAURANT],
               },
               {
                 label: 'Tables',
                 to: '/floor-plan/table',
+                type: [BusinessTypeEnum.RESTAURANT],
               },
               {
                 label: 'Settings',
                 to: '/floor-plan/settings',
+                type: [BusinessTypeEnum.RESTAURANT],
               },
             ],
+            type: [BusinessTypeEnum.RESTAURANT],
           },
-        ]
+        ],
+        type: [BusinessTypeEnum.RESTAURANT],
       },
-      // {
-      //   label: 'Floor plans',
-      //   role: ['ROLE_ADMINISTRATOR'],
-      //   to: '/floor-plan',
-      //   items: [
-      //     {
-      //       label: 'List',
-      //       to: '/floor-plan',
-      //     },
-      //     {
-      //       label: 'Tables',
-      //       to: '/floor-plan/table',
-      //     },
-      //     {
-      //       label: 'Settings',
-      //       to: '/floor-plan/settings',
-      //     },
-      //   ],
-      // },
       {
         label: 'Themes',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/theme',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Localization Settings',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/currencies',
         items: [
-          // {
-          //   label: 'Language',
-          //   role: ['ROLE_ADMINISTRATOR'],
-          //   to: '/language',
-          // },
           {
             label: 'Currencies',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/currencies',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
-
-        ]
+        ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Instructions',
         to: '/instructions',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
-
-      // {
-      //   label: 'Reporting shifts ',
-      //   role: ['ROLE_ADMINISTRATOR'],
-      //   to: '/reporting-shifts'
-      // },
-
       {
         label: 'Printers',
         role: ['ROLE_ADMINISTRATOR'],
@@ -768,68 +699,51 @@ export const model: MenuItem[] = [
             label: 'Printers',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/printer',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
           {
             label: 'Printing Profiles',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/printing-profiles',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
-        ]
+        ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
         label: 'Production Centers',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/production-center',
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
-      // {
-      //   label: 'Account profiles',
-      //   role: ['ROLE_ADMINISTRATOR'],
-      //   to: '/account-profiles',
-      // },
-      // {
-      //   label: 'Payment methods ',
-      //   role: ['ROLE_ADMINISTRATOR'],
-      //   to: '/payment-methods',
-      // },
       {
         label: 'Data Management Tools',
         role: ['ROLE_ADMINISTRATOR'],
         to: '/import-from-old-system',
         items: [
-          // {
-          //   label: 'Transfer Operations',
-          //   role: ['ROLE_ADMINISTRATOR'],
-          //   to: '/transfer-operations',
-          // },
-          // {
-          //   label: 'Web extensions',
-          //   role: ['ROLE_ADMINISTRATOR'],
-          //   to: '/web-extensions',
-          // },
           {
             label: 'Import From Old System',
             role: ['ROLE_ADMINISTRATOR'],
             to: '/import-from-old-system',
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
-          // {
-          //   label: 'Reporting automations',
-          //   role: ['ROLE_ADMINISTRATOR'],
-          //   to: '/reporting-automations',
-          // },
-          // {
-          //   label: 'App Integrations',
-          //   role: ['ROLE_ADMINISTRATOR'],
-          //   to: '/app-integration',
-          // },
-        ]
+        ],
+        type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
+    type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
   },
 ];
 
 const AppMenu = () => {
+  const dispatch = useAppDispatch();
+  const businessTypes: BusinessType = useAppSelector(state => state.businessType.entities);
+  useEffect(() => {
+    dispatch(getBusinessTypes({}));
+  }, []);
+
   // eslint-disable-next-line react/react-in-jsx-scope
-  return <AppSubMenu model={model} />;
+  return <AppSubMenu model={model} businessTypes={businessTypes} />;
 };
 
 export default AppMenu;

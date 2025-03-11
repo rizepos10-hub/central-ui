@@ -18,6 +18,8 @@ export interface IMenu {
   branch?: IBranch[];
   visibilities?: IVisibility[];
   type?: "POS" | "ONLINE_ORDERING";
+  numberOfColumns?: number;
+  rowHeight?: number[];
 }
 
 export interface IMenuScreen {
@@ -30,6 +32,8 @@ export interface IMenuScreen {
   numberOfColumns?: number;
   rowHeight?: number[];
   subScreens?: IMenuScreen[];
+  rowIndex?: number;
+  empty?: boolean;
   component?: {
     item?: IItem;
   }

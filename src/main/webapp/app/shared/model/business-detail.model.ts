@@ -3,6 +3,7 @@ import { IAddress } from 'app/shared/model/address.model';
 import { DayOfWeek } from "app/shared/model/ENUMS/day-of-week.model";
 import { IZone } from './ZONE/zone.model';
 import { EndingType } from './ENUMS/ending-type.model';
+import { EndOfDayReportSection } from './ENUMS/end-of-day-report-section.model';
 export interface IBusinessDayDetail {
   day: DayOfWeek;
   openingHours: { dayType: dayTypeEnum; from: string; to: string }[];
@@ -37,6 +38,7 @@ export interface IBranchDetails {
   deliveryConfiguration: IDeliveryConfiguration | null
   phone?: string;
   paymentConfigurations?: IPaymentConfigurations[];
+  endOfDayReportSection?: EndOfDayReportSection[];
   activeCOD?: boolean;
   zones: IZone[];
   hideRetailShop?: boolean;

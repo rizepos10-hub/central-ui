@@ -17,6 +17,10 @@ import { ScrollPanel } from 'primereact/scrollpanel';
 import { IEndOfDayReport } from 'app/shared/model/eod-report.model';
 import { ISalesSummary } from 'app/shared/model/report-summary.model';
 import { exportExcelSummaryReport, saveAsExcelFile } from 'app/shared/util/excel-utils';
+import { getEntities as getBusiness } from 'app/entities/settings/business-details/business-detail.reducer';
+import { IBusinessDetail } from 'app/shared/model/business-detail.model';
+import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
+import BillsSummary from 'app/shared/components/report/bills-summary';
 
 const EndOfDayReport = () => {
   const dispatch = useAppDispatch();
@@ -26,6 +30,23 @@ const EndOfDayReport = () => {
   const [endOfDay, setEndOfDay] = useState(null);
   const [salesData, setSalesData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [endOfDayReportSection, setEndOfDayReportSection] = useState<EndOfDayReportSection[]>(null);
+
+
+  const [businessDetailsState, setBusinessDetailsState] = useState<IBusinessDetail>({
+    businessName: '',
+    slogan: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      postalCode: '',
+      fullAddress: '',
+      longitude: 0,
+      latitude: 0,
+    },
+    branchDetails: []
+  });
 
   const handleSubmit = async (event?) => {
     if (event) {
@@ -50,7 +71,18 @@ const EndOfDayReport = () => {
     };
 
     fetchTodayData();
+    dispatch(getBusiness({})).then((res: any) => setBusinessDetailsState(res.payload.data[0]));
   }, [id]);
+
+
+  useEffect(() => {
+    const branchIdFromUrl = new URLSearchParams(window.location.search).get('branchId');
+    if (branchIdFromUrl) {
+      const selectedBranch = businessDetailsState.branchDetails.find(branch => branch?.branchId.toString() === branchIdFromUrl);
+      console.log(selectedBranch, 'selectedBranch')
+      setEndOfDayReportSection(selectedBranch?.endOfDayReportSection);
+    }
+  }, [businessDetailsState]);
 
   if (!salesData) {
     return <div>No data available.</div>;
@@ -123,9 +155,16 @@ const EndOfDayReport = () => {
     }
   `;
 
+  const firstBillDate = new Date(
+    salesData?.billSummary?.firstBill?.createdDate
+  ).toLocaleDateString();
+  const lastBillDate = new Date(
+    salesData?.billSummary?.lastBill?.createdDate
+  ).toLocaleDateString();
+
   return (
     <div ref={printWrapper}>
-      <div className="container my-5">
+      <div className="bg-white p-1 mb-2">
         <div className='d-flex justify-content-between align-items-center'>
           <span></span>
           <span>
@@ -162,8 +201,13 @@ const EndOfDayReport = () => {
             </span>
           </span>
         </div>
+        <h5>
+          First bill date:{" "}
+          <span className="text-primary">{firstBillDate}</span>, Last bill date:{" "}
+          <span className="text-primary">{lastBillDate}</span>
+        </h5>
       </div>
-      <div className="container mt-5 bg-white">
+      <div className="bg-white p-1 mb-2">
         {/* <div > */}
         {/*   <UnclosedOrders openedOrders={salesData.openedOrders} /> */}
         {/* </div> */}
@@ -171,15 +215,37 @@ const EndOfDayReport = () => {
         <GenericSalesReport title={translate('analytics.report.totalSales')} report={salesData?.totalSales} />
 
         <EndOfTillTotalReceived totalReceived={salesData.totalReceived} />
-        <GenericSalesReport title={translate('analytics.report.dineIn')} report={salesData.totalSalesByOrderOption?.DineIn} />
-        <GenericSalesReport title={translate('analytics.report.pickUp')} report={salesData.totalSalesByOrderOption?.PickUp} />
-        <GenericSalesReport title={translate('analytics.report.delivery')} report={salesData.totalSalesByOrderOption?.Delivery} />
-        <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />
-        <TipSummary report={salesData.tipSummary} />
+
+
+        {
+          endOfDayReportSection?.includes(EndOfDayReportSection.DINE_IN) &&
+          <GenericSalesReport title={translate('analytics.report.dineIn')} report={salesData.totalSalesByOrderOption?.DineIn} />
+        }
+        {
+          endOfDayReportSection?.includes(EndOfDayReportSection.PICK_UP) &&
+          <GenericSalesReport title={translate('analytics.report.pickUp')} report={salesData.totalSalesByOrderOption?.PickUp} />
+        }
+
+        {
+          endOfDayReportSection?.includes(EndOfDayReportSection.DELIVERY) &&
+          <GenericSalesReport title={translate('analytics.report.delivery')} report={salesData.totalSalesByOrderOption?.Delivery} />
+        }
+
+
+        {
+          endOfDayReportSection?.includes(EndOfDayReportSection.WALK_IN) &&
+          <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />
+        }
+        {
+          endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) &&
+          <TipSummary report={salesData.tipSummary} />
+        }
+
+        <BillsSummary bills={salesData?.billSummary?.bills} />
       </div>
 
-      {endOfDay?.fromDate && endOfDay?.toDate && (
-        <div className="container py-3 mt-3 bg-white">
+      {endOfDay?.fromDate && endOfDay?.toDate && endOfDayReportSection?.includes(EndOfDayReportSection.RELATED_TILLS) && (
+        <div className="bg-white p-1 mb-2">
           <h3>Related Tills</h3>
           <RelatedTills fromDate={endOfDay?.fromDate} toDate={endOfDay?.toDate} />
         </div>

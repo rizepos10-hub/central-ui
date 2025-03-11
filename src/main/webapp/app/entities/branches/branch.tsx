@@ -23,6 +23,7 @@ import Select from 'react-select'
 import { getEntities as getZones } from 'app/entities/settings/zones/zones.reducer'
 import { Dropdown } from 'primereact/dropdown';
 import { EndingType } from 'app/shared/model/ENUMS/ending-type.model';
+import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
 
 export enum AddressTypesEnum {
   "premise" = "premise",
@@ -81,6 +82,19 @@ export const Branches = () => {
   const hideDialog = () => {
     setEditingBranchPayments(null)
   }
+
+  const handleEndOfDayReportSectionChange = (branchIndex: number, selectedOptions: any) => {
+    const selectedSections = selectedOptions.map((option: any) => option.value as EndOfDayReportSection);
+    const newData = JSON.parse(JSON.stringify(businessDetailsState.branchDetails));
+    newData[branchIndex].endOfDayReportSection = selectedSections;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+};
+
+
+  const endOfDayReportSectionOptions = Object.keys(EndOfDayReportSection).map(section => ({
+    value: EndOfDayReportSection[section as keyof typeof EndOfDayReportSection],
+    label: EndOfDayReportSection[section as keyof typeof EndOfDayReportSection],
+  }));
 
   const metrics = [Metric.KILOMETERS, Metric.MILES, Metric.NEUTRAL];
 
@@ -417,6 +431,15 @@ export const Branches = () => {
                     onChange={(selectedOption) => handleEndingTypeChange(branchIndex, selectedOption?.value)}
                     placeholder="Select Ending Type.."
                   />
+                  
+                  <label className="font-bold mt-3">Show End Of Day Report Section</label>
+
+                  <Select
+                    isMulti
+                    value={branch.endOfDayReportSection?.map(section => ({ value: section, label: section }))}
+                    onChange={(selectedOptions) => handleEndOfDayReportSectionChange(branchIndex, selectedOptions)}
+                    options={endOfDayReportSectionOptions}
+                    />
 
                   <label className="font-bold mt-3">Should token expire?</label>
                   <Checkbox

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Row } from "reactstrap";
 import { fetchEndOfDaysData } from "app/modules/analytics/api";
-import { DataTable } from "primereact/datatable";
+import { DataTable, SortOrder } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Link, useNavigate } from "react-router-dom";
 import { Dropdown } from "primereact/dropdown";
@@ -29,9 +29,9 @@ export const EndOfDays = () => {
   const [lazyState, setLazyState] = useState({
     first: 0,
     page: 0,
-    rows: 10,
-    sortField: null,
-    sortOrder: null,
+    rows: 20,
+    sortField: 'toDate',
+    sortOrder: -1 as SortOrder
   });
 
 
@@ -53,11 +53,13 @@ export const EndOfDays = () => {
   const loadLazyData = async () => {
     setLoading(true);
     try {
+      const sortDirection = lazyState.sortOrder === 1 ? "asc" : "desc";
+      const sortField = lazyState.sortField + ',' + sortDirection
       const result = await fetchEndOfDaysData(
         lazyState.page,
         lazyState.rows,
-        lazyState.sortField,
-        lazyState.sortOrder,
+        sortField,
+        String(lazyState.sortOrder),
         selectedBranch,
         calenderValue?.[0] ? calenderValue[0].toISOString() : null,
         calenderValue?.[1] ? calenderValue[1].toISOString() : null
@@ -123,12 +125,16 @@ export const EndOfDays = () => {
           first={lazyState.first} rows={20} totalRecords={totalRecords} onPage={onPage}
           onSort={onSort} sortField={lazyState.sortField} sortOrder={lazyState.sortOrder}
           onFilter={onFilter} loading={loading} tableStyle={{ minWidth: '75rem' }}
-          selectionMode="single" onSelectionChange={(e) => navigate(`/analytics/endofday/${e.value.id}`)}
+          selectionMode="single" onSelectionChange={(e) => {
+            const rowData = e.value;
+            const branchId = rowData?.branch?.id ?? "unknown";
+            navigate(`/analytics/endofday/${rowData.id}?branchId=${encodeURIComponent(branchId)}`);
+          }}
         >
 
           {/* <Column field="id" header="ID" body={(rowData) => (<Link to={rowData.id}>{rowData.id} </Link>)}  /> */}
           <Column field="fromDate" body={(rowData) => convertUtcToLocalDate(rowData?.fromDate)} header={translate('analytics.endOfDay.table.fromDate')} />
-          <Column field="toDate" body={(rowData) => convertUtcToLocalDate(rowData?.toDate)} header={translate('analytics.endOfDay.table.toDate')} />
+          <Column field="toDate" sortable body={(rowData) => convertUtcToLocalDate(rowData?.toDate)} header={translate('analytics.endOfDay.table.toDate')} />
           <Column field="actionTakenBy" header={translate('analytics.endOfDay.table.actionBy')} />
           <Column field="createdDate" body={(rowData) => convertUtcToLocalDate(rowData?.createdDate)} header={translate('analytics.endOfDay.table.createdDate')} />
           <Column field="branch.name" header={translate('analytics.endOfDay.table.branchName')} />

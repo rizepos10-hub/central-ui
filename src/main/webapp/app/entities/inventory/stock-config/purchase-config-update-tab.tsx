@@ -12,7 +12,8 @@ import { getSortState, translate, Translate } from "react-jhipster";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { InputNumber } from "primereact/inputnumber";
 import { Dropdown } from "primereact/dropdown";
-import { Card as PrimeCard } from 'primereact/card'
+import { Card as PrimeCard } from 'primereact/card';
+import { InputText } from 'primereact/inputtext';
 
 interface PurchaseConfigUpdateTabProps {
   id?: string; // Make `id` optional,
@@ -65,18 +66,15 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
     }
   }, [purchaseConfigEntity?.id]);
 
-
-
-  const handleNumberChange = (filed, num) => {
-    setStockConfig(prevState => ({ ...prevState, [filed]: num }));
-  }
-
-
+  const handleNumberChange = (field, num) => {
+    setStockConfig(prevState => ({ ...prevState, [field]: num }));
+  };
 
   const handleAddSupplier = (selectedSupplier) => {
     const newConfig = {
       supplier: selectedSupplier.value,
-      defaultPrice: null
+      defaultPrice: null,
+      code: ""
     };
 
     setStockConfig((prevState) => ({
@@ -85,15 +83,22 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
     }));
   };
 
-
   const handleSupplierConfigChange = (configIndex, price) => {
     setStockConfig((prevState) => {
       const updatedConfigurations = prevState?.supplierConfigurations?.map((supConfig, index) => {
-
         return { ...supConfig, defaultPrice: configIndex === index ? price : supConfig.defaultPrice }
-      })
+      });
       return { ...prevState, supplierConfigurations: updatedConfigurations }
-    })
+    });
+  };
+
+  const handleSupplierCodeChange = (configIndex, newCode) => {
+    setStockConfig((prevState) => {
+      const updatedConfigurations = prevState?.supplierConfigurations?.map((supConfig, index) => {
+        return index === configIndex ? { ...supConfig, code: newCode } : supConfig;
+      });
+      return { ...prevState, supplierConfigurations: updatedConfigurations }
+    });
   };
 
   return (
@@ -157,6 +162,7 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
                     <tr>
                       <th>{translate("common.supplier")}</th>
                       <th>{translate("common.costPrice")}</th>
+                      <th>{translate("common.supplierCode")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -170,6 +176,12 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
                             size={60}
                             value={supConfig?.defaultPrice}
                             onChange={e => handleSupplierConfigChange(index, e.value)}
+                          />
+                        </td>
+                        <td>
+                          <InputText
+                            value={supConfig.code}
+                            onChange={e => handleSupplierCodeChange(index, e.target.value)}
                           />
                         </td>
                       </tr>

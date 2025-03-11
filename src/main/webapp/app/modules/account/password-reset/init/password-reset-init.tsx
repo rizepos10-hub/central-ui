@@ -1,32 +1,45 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Translate, translate, ValidatedField, ValidatedForm, isEmail } from 'react-jhipster';
 import { Button, Alert, Col, Row } from 'reactstrap';
 import { toast } from 'react-toastify';
 
 import { handlePasswordResetInit, reset } from '../password-reset.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { getTenant } from 'app/shared/tenant/TenantContext';
 
 export const PasswordResetInit = () => {
   const dispatch = useAppDispatch();
-
-  useEffect(
-    () => () => {
-      dispatch(reset());
-    },
-    []
-  );
-
-  const handleValidSubmit = ({ email }) => {
-    dispatch(handlePasswordResetInit(email));
-  };
-
+  const tenant = useAppSelector(state => state.tenant.tenant);
   const successMessage = useAppSelector(state => state.passwordReset.successMessage);
+
+  // Loading state to track when data is ready
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(false);
+    };
+
+    fetchData();
+
+    return () => {
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     if (successMessage) {
       toast.success(translate(successMessage));
     }
   }, [successMessage]);
+
+  const handleValidSubmit = ({ email }) => {
+    dispatch(handlePasswordResetInit({ email, tenant }));
+  };
+
+  // Show a div (or a loader) until everything is loaded
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>

@@ -29,7 +29,7 @@ const apiSearchUrl = 'api/_search/tag-values';
 // Actions
 
 export const searchEntities = createAsyncThunk('tag-value/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
+  const requestUrl = `${apiSearchUrl}?name=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
   return axios.get<ITerm[]>(requestUrl);
 });
 

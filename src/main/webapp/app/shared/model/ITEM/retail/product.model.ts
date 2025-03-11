@@ -23,6 +23,7 @@ export const defaultValue: Readonly<IProduct> = {
     discounts: [],
     name: '',
     order: 0,
+    supplierAssociations: [],
   }],
   itemType: 'RETAIL',
   itemVariantType: ItemVariantType.RETAIL_SIMPLE,
