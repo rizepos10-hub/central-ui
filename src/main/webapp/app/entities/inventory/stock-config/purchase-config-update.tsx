@@ -1,19 +1,20 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
-import {Button, Row, Col, FormGroup, Label, Input, Table, Spinner} from 'reactstrap';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Button, Row, Col, FormGroup, Label, Input, Table, Spinner } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './purchase-config.reducer';
-import {getEntities as getSuppliers} from '../supplier/supplier.reducer';
-import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
-import {overridePaginationStateWithQueryParams} from "app/shared/util/entity-utils";
-import {getSortState, translate, Translate} from "react-jhipster";
-import {ITEMS_PER_PAGE} from "app/shared/util/pagination.constants";
-import {InputNumber} from "primereact/inputnumber";
-import {Dropdown} from "primereact/dropdown";
-import {Card as PrimeCard} from 'primereact/card'
+import { getEntities as getSuppliers } from '../supplier/supplier.reducer';
+import { IPurchaseConfig } from "app/shared/model/STOCK/purchase-config.model";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { getSortState, translate, Translate } from "react-jhipster";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { InputNumber } from "primereact/inputnumber";
+import { Dropdown } from "primereact/dropdown";
+import { InputText } from 'primereact/inputtext';
+import { Card as PrimeCard } from 'primereact/card';
 
 export const PurchaseConfigUpdate = () => {
   const dispatch = useAppDispatch();
@@ -38,13 +39,9 @@ export const PurchaseConfigUpdate = () => {
   const updating = useAppSelector(state => state.purchaseConfig.updating);
   const updateSuccess = useAppSelector(state => state.purchaseConfig.updateSuccess);
 
-
-
   const filteredSuppliers = useMemo(() => {
     return suppliers.filter(supplier => !purchaseConfig.supplierConfigurations?.some(config => config.supplier.id === supplier.id))
   }, [purchaseConfig?.supplierConfigurations?.length, suppliers]);
-
-
 
   const handleClose = () => {
     navigate(-1);
@@ -73,23 +70,20 @@ export const PurchaseConfigUpdate = () => {
     if (updateSuccess) {
       handleClose();
     }
-    if(purchaseConfigEntity){
+    if (purchaseConfigEntity) {
       setStockConfig(purchaseConfigEntity)
     }
   }, [updateSuccess, purchaseConfigEntity?.id]);
 
-
-
   const handleNumberChange = (filed, num) => {
     setStockConfig(prevState => ({ ...prevState, [filed]: num }));
-  }
-
-
+  };
 
   const handleAddSupplier = (selectedSupplier) => {
     const newConfig = {
       supplier: selectedSupplier.value,
-      defaultPrice: null
+      defaultPrice: null,
+      code: ""
     };
 
     setStockConfig((prevState) => ({
@@ -98,22 +92,26 @@ export const PurchaseConfigUpdate = () => {
     }));
   };
 
-
   const handleSupplierConfigChange = (configIndex, price) => {
-      setStockConfig((prevState) => {
-        const updatedConfigurations = prevState?.supplierConfigurations?.map((supConfig, index) => {
-
-          return {...supConfig, defaultPrice: configIndex === index ? price : supConfig.defaultPrice}
-        })
-        return {...prevState, supplierConfigurations: updatedConfigurations}
-      })
+    setStockConfig((prevState) => {
+      const updatedConfigurations = prevState?.supplierConfigurations?.map((supConfig, index) => {
+        return { ...supConfig, defaultPrice: configIndex === index ? price : supConfig.defaultPrice };
+      });
+      return { ...prevState, supplierConfigurations: updatedConfigurations };
+    });
   };
 
-
-
+  const handleSupplierCodeChange = (configIndex, newCode) => {
+    setStockConfig((prevState) => {
+      const updatedConfigurations = prevState?.supplierConfigurations?.map((supConfig, index) => {
+        return index === configIndex ? { ...supConfig, code: newCode } : supConfig;
+      });
+      return { ...prevState, supplierConfigurations: updatedConfigurations };
+    });
+  };
 
   const saveEntity = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     const entity = {
       ...purchaseConfig,
       ...(isNew && { variantId, itemId }),
@@ -138,7 +136,6 @@ export const PurchaseConfigUpdate = () => {
           <PrimeCard>
             <form onSubmit={saveEntity}>
               <FormGroup>
-
                 <div className={"d-flex flex-column mt-2"}>
                   <strong>
                     <Label for="defaultPrice">{translate("tempApp.stockConfig.defaultPrice")}</Label>
@@ -155,7 +152,7 @@ export const PurchaseConfigUpdate = () => {
 
                 <div className={"d-flex flex-column mt-2"}>
                   <strong>
-                  <Label for="minOrderQuantity">{translate("tempApp.stockConfig.minOrderQuantity")}</Label>
+                    <Label for="minOrderQuantity">{translate("tempApp.stockConfig.minOrderQuantity")}</Label>
                   </strong>
                   <InputNumber
                     name="minOrderQuantity"
@@ -166,48 +163,53 @@ export const PurchaseConfigUpdate = () => {
                   />
                 </div>
 
-
                 <div className={"d-flex flex-column mt-2 "}>
-                <strong>
-                  <Label>{translate("tempApp.stockConfig.supplierConfig")}</Label>
-                </strong>
-                <div className={"d-flex flex-column border p-3"}>
-                  <Label>{translate("tempApp.stockConfig.selectSupplier")}</Label>
-                  <Dropdown
-                    options={filteredSuppliers}
-                    placeholder={translate("tempApp.stockConfig.selectSupplier")}
-                    className="w-full md:w-14rem"
-                    optionLabel={"name"}
-                    filter
-                    onChange={handleAddSupplier}
-                  />
-                <Table bordered className={"mt-2"}>
-                  <thead>
-                  <tr>
-                  <th>{translate("common.supplier")}</th>
-                  <th>{translate("common.price")}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {purchaseConfig?.supplierConfigurations?.map((supConfig, index) => (
-                    <tr key={supConfig.supplier.id}>
-                      <td>{supConfig.supplier.name}</td>
-                      <td>
-                        <InputNumber
-                          required
-                          onWheel={(e: any) => e.target.blur()}
-                          size={60}
-                          value={supConfig?.defaultPrice}
-                          onChange={e => handleSupplierConfigChange(index, e.value)}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                  </tbody>
-                </Table>
+                  <strong>
+                    <Label>{translate("tempApp.stockConfig.supplierConfig")}</Label>
+                  </strong>
+                  <div className={"d-flex flex-column border p-3"}>
+                    <Label>{translate("tempApp.stockConfig.selectSupplier")}</Label>
+                    <Dropdown
+                      options={filteredSuppliers}
+                      placeholder={translate("tempApp.stockConfig.selectSupplier")}
+                      className="w-full md:w-14rem"
+                      optionLabel={"name"}
+                      filter
+                      onChange={handleAddSupplier}
+                    />
+                    <Table bordered className={"mt-2"}>
+                      <thead>
+                        <tr>
+                          <th>{translate("common.supplier")}</th>
+                          <th>{translate("common.price")}</th>
+                          <th>{translate("common.supplierCode")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {purchaseConfig?.supplierConfigurations?.map((supConfig, index) => (
+                          <tr key={supConfig.supplier.id}>
+                            <td>{supConfig.supplier.name}</td>
+                            <td>
+                              <InputNumber
+                                required
+                                onWheel={(e: any) => e.target.blur()}
+                                size={60}
+                                value={supConfig?.defaultPrice}
+                                onChange={e => handleSupplierConfigChange(index, e.value)}
+                              />
+                            </td>
+                            <td>
+                              <InputText
+                                value={supConfig.code}
+                                onChange={e => handleSupplierCodeChange(index, e.target.value)}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </div>
                 </div>
-              </div>
-
               </FormGroup>
               <Button tag={Link} to={-1} replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
