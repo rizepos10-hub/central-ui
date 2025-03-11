@@ -181,7 +181,8 @@
         "length": "Length",
         "width": "Width",
         "weight": "Weight",
-        "height": "Height"
+        "height": "Height",
+        "stockChangeReason": "Stock Change Reason"
       },
       "name": "Name",
       "description": "Description",
