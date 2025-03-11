@@ -18,6 +18,7 @@ export interface IPurchaseConfig {
 export interface ISupplierConfiguration {
   supplier: ISupplier;
   defaultPrice: number;
+  code: string;
 }
 
 export interface IStockConfigItem {
