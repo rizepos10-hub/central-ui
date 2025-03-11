@@ -14,7 +14,10 @@ import { TabPanel, TabView } from "primereact/tabview";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item.model";
-
+import { Dialog } from "primereact/dialog";
+import { Button as PrimeButton } from 'primereact/button';
+import { InputTextarea } from "primereact/inputtextarea";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 const ItemStock = ({
   variant,
   itemId,
@@ -36,7 +39,7 @@ const ItemStock = ({
   const dispatch = useAppDispatch();
   const wareHouses = useAppSelector((state) => state.warehouse.entities);
   const salesLocations = useAppSelector((state) => state.salesLocation.entities);
-
+  const [dialogOpen, setDialogOpen] = useState<boolean[]>([]);
   const isNew = itemId === undefined;
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, "id"), location.search)
@@ -44,6 +47,22 @@ const ItemStock = ({
 
   const handleConfigChange = (newConfig: IPurchaseConfig, variantIndex: number) => {
     productPurchaseConfig(newConfig, variantIndex);
+  };
+
+
+  const handleOpen = (index: number) => {
+    setDialogOpen(prev => {
+      const newState = [...prev];
+      newState[index] = true;
+      return newState;
+    });
+  };
+  const handleClose = (index: number) => {
+    setDialogOpen(prev => {
+      const newState = [...prev];
+      newState[index] = false;
+      return newState;
+    });
   };
 
   useEffect(() => {
@@ -63,8 +82,8 @@ const ItemStock = ({
 
   const handleStockQuantityChange = (
     location: IWarehouse,
-    field: "minimumStockLevel" | "quantity" | "unitCost",
-    value: number,
+    field: "minimumStockLevel" | "quantity" | "unitCost" | "stockChangeReason",
+    value: number | string,
     index: number
   ) => {
 
@@ -143,13 +162,13 @@ const ItemStock = ({
                       }
                       disabled={!isNew ? !variant?.stockQuantities?.find(
                         (stock) => stock.location.id === warehouse.id
-                      )?.stockChangeReason?.trim() : false }
+                      )?.stockChangeReason?.trim() : false}
                       onChange={(e) =>
                         handleStockQuantityChange(warehouse, "quantity", e.value, index)
                       }
                     />
-                    
-                    { !isNew &&
+
+                    {!isNew &&
                       <div className="d-flex justify-content-end align-items-center">
                         <FontAwesomeIcon onClick={(e) => { e.preventDefault(); handleOpen(index); }} icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
                       </div>
@@ -182,6 +201,37 @@ const ItemStock = ({
                   />
                 </div>
               </Col>
+
+              <Dialog visible={dialogOpen[index] || false} onHide={() => handleClose(index)} header="Stock Quantity Information" footer={
+                <div>
+                  <PrimeButton color="primary" onClick={() => handleClose(index)} className="p-button-text mr-2">
+                    <Translate contentKey='common.buttons.cancel'>Cancel</Translate>
+                  </PrimeButton>
+                  <PrimeButton onClick={() => handleClose(index)} className="p-button-primary">
+                    <Translate contentKey='common.buttons.save'>Save</Translate>
+                  </PrimeButton>
+                </div>
+              }>
+                <div className="d-flex flex-column gap-2">
+                  <label className="font-semibold">
+                    <Translate contentKey='items.update.stockQuantity.stockChangeReason'>Stock Change Reason</Translate>
+                  </label>
+                  <InputTextarea
+                    name="stockChangeReason"
+                    id={`stockChangeReason-${index}`}
+                    required
+                    placeholder={translate('items.update.placeholders.stockChangeReason')}
+                    value={variant?.stockQuantities?.find(
+                      (stock) => stock.location.id === warehouse.id
+                    )?.stockChangeReason ?? ""}
+                    onChange={(e) => handleStockQuantityChange(warehouse, "stockChangeReason", e.target.value, index)}
+                    autoResize
+                    rows={3}
+                    cols={30}
+                  />
+                </div>
+              </Dialog>
+
             </Row>
           ))}
         </TabPanel>
@@ -246,15 +296,15 @@ const ItemStock = ({
                         }
                         disabled={!isNew ? !variant?.stockQuantities?.find(
                           (stock) => stock.location.id === salesLocation.id
-                        )?.stockChangeReason?.trim() : false }
+                        )?.stockChangeReason?.trim() : false}
                         onChange={(e) =>
                           handleStockQuantityChange(salesLocation, "quantity", e.value, index)
                         }
                       />
-                      { !isNew &&
+                      {!isNew &&
                         <div className="d-flex justify-content-end align-items-center">
-                        <FontAwesomeIcon onClick={(e) => { e.preventDefault(); handleOpen(index); }} icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-                      </div>
+                          <FontAwesomeIcon onClick={(e) => { e.preventDefault(); handleOpen(index); }} icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
+                        </div>
                       }
                     </div>
                   </div>
@@ -285,6 +335,37 @@ const ItemStock = ({
                     />
                   </div>
                 </Col>
+
+                <Dialog visible={dialogOpen[index] || false} onHide={() => handleClose(index)} header="Stock Quantity Information" footer={
+                  <div>
+                    <PrimeButton color="primary" onClick={() => handleClose(index)} className="p-button-text mr-2">
+                      <Translate contentKey='common.buttons.cancel'>Cancel</Translate>
+                    </PrimeButton>
+                    <PrimeButton onClick={() => handleClose(index)} className="p-button-primary">
+                      <Translate contentKey='common.buttons.save'>Save</Translate>
+                    </PrimeButton>
+                  </div>
+                }>
+                  <div className="d-flex flex-column gap-2">
+                    <label className="font-semibold">
+                      <Translate contentKey='items.update.stockQuantity.stockChangeReason'>Stock Change Reason</Translate>
+                    </label>
+                    <InputTextarea
+                      name="stockChangeReason"
+                      id={`stockChangeReason-${index}`}
+                      required
+                      placeholder={translate('items.update.placeholders.stockChangeReason')}
+                      value={variant?.stockQuantities?.find(
+                        (stock) => stock.location.id === salesLocation.id
+                      )?.stockChangeReason ?? ""}
+                      onChange={(e) => handleStockQuantityChange(salesLocation, "stockChangeReason", e.target.value, index)}
+                      autoResize
+                      rows={3}
+                      cols={30}
+                    />
+                  </div>
+                </Dialog>
+
               </Row>
             ))}
           </Row>
