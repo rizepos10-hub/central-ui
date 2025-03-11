@@ -1667,7 +1667,7 @@ export const ProductUpdate = () => {
                                                       />
                                                     </Col>
                                                   </Row>
-                                                  <Row>
+                                                  {/* <Row>
                                                     <Col md="12">
                                                       <SupplierAssociationTab
                                                         onSupplierChange={(updatedVariant) => handleSupplierChange(variantIndex, updatedVariant)}
@@ -1676,7 +1676,7 @@ export const ProductUpdate = () => {
                                                         suppliers={supplierList}
                                                       />
                                                     </Col>
-                                                  </Row>
+                                                  </Row> */}
                                                 </TabPanel>
                                                 <TabPanel header='Shipping'>
                                                   <Row>
