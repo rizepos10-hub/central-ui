@@ -244,6 +244,9 @@ export const PizzaItem = () => {
         }}
         className="p-inputtext-sm"
         placeholder="Search by Name"
+        style={{
+          width: '150px',
+        }}
       />
     );
   };

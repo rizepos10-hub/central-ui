@@ -273,6 +273,7 @@ export const ComboItem = () => {
           };
           debouncedFilter(newQuery);
         }}
+        style={{ width: '150px' }}
         className="p-inputtext-sm"
         placeholder="Search by Name"
       />
