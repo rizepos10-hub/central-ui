@@ -122,7 +122,7 @@ export const RegularItem = () => {
   };
 
   const AddonLinkTemplate = ({ rowData }) => {
-    if (!rowData) return null; // If addonGroup is empty or undefined, return nothing
+    if (!rowData) return null;
     return (
       <Link className="font-normal" to={`/addon-groups/${rowData.id}/edit`}>
         {rowData.name}
@@ -134,10 +134,9 @@ export const RegularItem = () => {
     const addonGroups = rowData?.addonGroups;
 
     if (!addonGroups || addonGroups.length === 0) {
-      return "No Addons"; // Display when no addons are available
+      return "No Addons";
     }
 
-    // Map through addonGroups and render them as links separated by "|"
     return addonGroups.map((addon, index) => (
       <>
         <AddonLinkTemplate key={addon?.addonGroup?.id} rowData={addon?.addonGroup} />
@@ -150,10 +149,9 @@ export const RegularItem = () => {
     const tags = rowData?.tags;
 
     if (!tags || tags.length === 0) {
-      return "No Tags"; // Display when no addons are available
+      return "No Tags";
     }
 
-    // Map through addonGroups and render them as links separated by "|"
     return tags.map((tag, index) => (
       <>
         <Link className="font-normal" to={`/tag/${tag.id}/edit`}>
@@ -167,13 +165,11 @@ export const RegularItem = () => {
   const DiscountBody = rowData => {
     const discounts = rowData?.discounts;
     if (!discounts || discounts.length === 0) {
-      return "No Discounts"; // Display when no addons are available
+      return "No Discounts";
     }
 
-    // Map through addonGroups and render them as links separated by "|"
     return discounts.map((discount, index) => (
       <>
-
         <Link className="font-normal" to={`/discount/${discount.id}/edit`}>
           {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
           {index < discounts.length - 1 && ' | '}
@@ -324,10 +320,8 @@ export const RegularItem = () => {
     );
   };
 
-
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
-    // Check if 'orderToday' exists in the stored data, otherwise initialize it with default visibility
     const storedFields = storedData[LOCAL_STORAGE_KEY] || {
       name: true,
       categories: true,
@@ -351,9 +345,7 @@ export const RegularItem = () => {
       };
 
       const visibleColumnsData = JSON.parse(localStorage.getItem("visible_columns")) || {};
-
       visibleColumnsData[LOCAL_STORAGE_KEY] = updatedColumns;
-
       console.log(visibleColumnsData);
       localStorage.setItem("visible_columns", JSON.stringify(visibleColumnsData));
 
@@ -361,20 +353,18 @@ export const RegularItem = () => {
     });
   };
 
-  //localstorage options
-
   const toCamelCaseWithSpace = (str) => {
     return str
-      .replace(/([A-Z])/g, ' $1')  // Add space before uppercase letters
-      .replace(/^./, (match) => match.toUpperCase()) // Capitalize first letter
-      .replace(/\s+/g, ' ')         // Remove any extra spaces
-      .trim(); // Remove leading and trailing spaces
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (match) => match.toUpperCase())
+      .replace(/\s+/g, ' ')
+      .trim();
   };
 
   const columnOptions = Object.keys(visibleColumns)
     .map((field) => ({
       field,
-      header: toCamelCaseWithSpace(field), // Convert the field name to a human-readable header
+      header: toCamelCaseWithSpace(field),
     }));
 
   const header = (
@@ -392,7 +382,6 @@ export const RegularItem = () => {
         />
       </span>
       <div className="flex align-items-center justify-content-end gap-3">
-
         <Button
           icon="pi pi-sync"
           raised severity="info"
@@ -402,7 +391,6 @@ export const RegularItem = () => {
           data-pr-position="top"
           tooltip={translate('items.view.actions.refreshList')}
         />
-
         <Button
           icon="pi pi-file-export"
           raised
@@ -410,11 +398,7 @@ export const RegularItem = () => {
           tooltip="Export All"
           data-pr-position="top"
         />
-
         <ImportButton type={"REGULAR_RESTAURANT"} />
-
-
-
         <Button
           icon="pi pi-plus"
           raised
@@ -423,10 +407,7 @@ export const RegularItem = () => {
           data-pr-position="top"
           tooltip={translate('items.view.actions.createRegular')}
         />
-
       </div>
-
-
       <div className="flex justify-between items-center">
         <div className="relative d-flex justify-end mr-auto">
           <Menu
@@ -458,7 +439,6 @@ export const RegularItem = () => {
             onClick={(event) => menu.current.toggle(event)}
           />
         </div>
-
       </div>
     </div>
   );
@@ -503,8 +483,7 @@ export const RegularItem = () => {
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
 
-        {
-          visibleColumns.name &&
+        {visibleColumns.name && (
           <Column
             field="name"
             header={translate('items.view.fields.name')}
@@ -514,12 +493,12 @@ export const RegularItem = () => {
             body={nameColumnTemplate}
             filterPlaceholder={translate('items.view.filters.name')}
             sortable
+            headerStyle={{ width: '300px' }}
+            style={{ width: '300px' }}
           />
-        }
+        )}
 
-
-        {
-          visibleColumns.categories &&
+        {visibleColumns.categories && (
           <Column
             header="Category"
             field="categories"
@@ -535,40 +514,50 @@ export const RegularItem = () => {
                 handleDropdownChange={handleDropdownChange}
               />
             }
+            headerStyle={{ width: '150px' }}
+            style={{ width: '150px' }}
           />
-        }
+        )}
 
-
-        {
-          visibleColumns.image &&
-          <Column header={translate('items.view.fields.image')} body={(rowData) =>
-            <ImageDisplay
-              imageType={"product"}
-              imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
-              height={50}
-              width={50}
-            />} />
-        }
-
-        {
-          visibleColumns.menus &&
-          <Column header={translate('items.view.fields.menus')} body={(rowData) =>
-            <MenusTemplate rowData={rowData} />}
+        {visibleColumns.image && (
+          <Column
+            header={translate('items.view.fields.image')}
+            body={(rowData) =>
+              <ImageDisplay
+                imageType={"product"}
+                imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
+                height={50}
+                width={50}
+              />
+            }
           />
-        }
+        )}
 
-        {
-          visibleColumns.desc &&
-          <Column header={translate("items.view.fields.description")} field='desc' />
-        }
+        {visibleColumns.menus && (
+          <Column
+            header={translate('items.view.fields.menus')}
+            body={(rowData) =>
+              <MenusTemplate rowData={rowData} />
+            }
+          />
+        )}
 
-        {
-          visibleColumns.productionCenter &&
-          <Column header={translate("items.view.fields.productionCenter")} body={(rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>} field='productionCenter' />
-        }
+        {visibleColumns.desc && (
+          <Column
+            header={translate("items.view.fields.description")}
+            field='desc'
+          />
+        )}
 
-        {
-          visibleColumns.addonGroups &&
+        {visibleColumns.productionCenter && (
+          <Column
+            header={translate("items.view.fields.productionCenter")}
+            body={(rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>}
+            field='productionCenter'
+          />
+        )}
+
+        {visibleColumns.addonGroups && (
           <Column
             header={translate("items.view.fields.addOnGroups")}
             body={AddonGroupsBody}
@@ -582,11 +571,12 @@ export const RegularItem = () => {
                 handleDropdownChange={handleDropdownChange}
               />
             }
+            headerStyle={{ width: '150px' }}
+            style={{ width: '150px' }}
           />
-        }
+        )}
 
-        {
-          visibleColumns.tags &&
+        {visibleColumns.tags && (
           <Column
             header={translate("items.view.fields.tags")}
             body={TagsBody}
@@ -600,25 +590,30 @@ export const RegularItem = () => {
                 handleDropdownChange={handleDropdownChange}
               />
             }
+            headerStyle={{ width: '150px' }}
+            style={{ width: '150px' }}
           />
-        }
+        )}
 
-        {
-          visibleColumns.discounts &&
-          <Column sortable={true} header={translate("items.view.fields.discounts")} body={DiscountBody} field='discounts' />
-        }
+        {visibleColumns.discounts && (
+          <Column
+            sortable={true}
+            header={translate("items.view.fields.discounts")}
+            body={DiscountBody}
+            field='discounts'
+          />
+        )}
 
-        {
-          <Column header={translate('items.view.fields.actions')} body={(rowData) =>
+        <Column
+          header={translate('items.view.fields.actions')}
+          body={(rowData) =>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               {duplicateColumnTemplate(rowData)}
               {editColumnTemplate(rowData)}
               {deleteColumnTemplate(rowData)}
             </div>
-
           }
-          />
-        }
+        />
       </DataTable>
     </div>
   );
