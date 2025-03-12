@@ -273,6 +273,7 @@ export const ComboItem = () => {
           };
           debouncedFilter(newQuery);
         }}
+        style={{ width: '150px' }}
         className="p-inputtext-sm"
         placeholder="Search by Name"
       />
@@ -508,8 +509,7 @@ export const ComboItem = () => {
 
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
 
-        {
-          visibleColumns.name &&
+        {visibleColumns.name &&
           <Column
             field="name"
             header={translate('items.view.fields.name')}
@@ -519,12 +519,13 @@ export const ComboItem = () => {
             body={nameColumnTemplate}
             filterPlaceholder={translate('items.view.filters.name')}
             sortable
+            headerStyle={{ width: '300px' }}
+            style={{ width: '300px' }}
           />
         }
 
 
-        {
-          visibleColumns.categories &&
+        {visibleColumns.categories &&
           <Column
             header="Category"
             field="categories"
@@ -540,12 +541,13 @@ export const ComboItem = () => {
                 handleDropdownChange={handleDropdownChange}
               />
             }
+            headerStyle={{ width: '150px' }}
+            style={{ width: '150px' }}
           />
         }
 
 
-        {
-          visibleColumns.image &&
+        {visibleColumns.image &&
           <Column header={translate('items.view.fields.image')} body={(rowData) =>
             <ImageDisplay
               imageType={"product"}
@@ -555,25 +557,21 @@ export const ComboItem = () => {
             />} />
         }
 
-        {
-          visibleColumns.menus &&
+        {visibleColumns.menus &&
           <Column header={translate('items.view.fields.menus')} body={(rowData) =>
             <MenusTemplate rowData={rowData} />}
           />
         }
 
-        {
-          visibleColumns.desc &&
+        {visibleColumns.desc &&
           <Column header={translate("items.view.fields.description")} field='description' />
         }
 
-        {
-          visibleColumns.productionCenter &&
+        {visibleColumns.productionCenter &&
           <Column header={translate("items.view.fields.productionCenter")} body={(rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>} field='productionCenter' />
         }
 
-        {
-          visibleColumns.addonGroups &&
+        {visibleColumns.addonGroups &&
           <Column
             header={translate("items.view.fields.addOnGroups")}
             body={AddonGroupsBody}
@@ -587,11 +585,12 @@ export const ComboItem = () => {
                 handleDropdownChange={handleDropdownChange}
               />
             }
+            headerStyle={{ width: '150px' }}
+            style={{ width: '150px' }}
           />
         }
 
-        {
-          visibleColumns.tags &&
+        {visibleColumns.tags &&
           <Column
             header={translate("items.view.fields.tags")}
             body={TagsBody}
@@ -608,8 +607,7 @@ export const ComboItem = () => {
           />
         }
 
-        {
-          visibleColumns.discounts &&
+        {visibleColumns.discounts &&
           <Column sortable={true} header={translate("items.view.fields.discounts")} body={DiscountBody} field='discounts' />
         }
 
