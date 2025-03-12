@@ -61,6 +61,8 @@ export const UserUpdate = () => {
         const response = res.payload as any;
         updateUserFieldvalue('password', response.data);
       });
+    } else {
+      dispatch(reset())
     }
   }, []);
 
@@ -69,7 +71,7 @@ export const UserUpdate = () => {
       navigate('/branch-pos-user');
     }
   }, [updateSuccess]);
-  console.log(userEntity, 'userEntity')
+
   const handleSubmit = async event => {
     event.preventDefault();
 
