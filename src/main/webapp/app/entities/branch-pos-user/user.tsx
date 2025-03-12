@@ -151,8 +151,16 @@ export const User = () => {
         filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
         <Column
           field="name" header={translate("common.name")} filter
-          filterElement={<InputText placeholder={translate("common.search.name")} onChange={handleNameFilterChange} />}
+          filterElement={<InputText placeholder={translate("common.search.name")} onChange={handleNameFilterChange} style={{
+            width: '200px'
+          }} />}
           filterField="name" body={nameColumnTemplate} sortable
+          style={{
+            width: '300px'
+          }}
+          headerStyle={{
+            width: '300px'
+          }}
         />
 
 
