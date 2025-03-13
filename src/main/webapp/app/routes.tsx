@@ -38,11 +38,6 @@ const Admin = Loadable({
   loading: () => loading,
 });
 
-const EntitiesRoutes = Loadable({
-  loader: () => import(/* webpackChunkName: "entities" */ 'app/entities/routes'),
-  loading: () => loading,
-}); 
-
 const AppRoutes = () => {
   const location = useLocation();
   const tenant = getTenantFromURL();
