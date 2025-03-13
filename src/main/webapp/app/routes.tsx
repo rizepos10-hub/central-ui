@@ -1,5 +1,23 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState } from 'react';
 import { Route, useLocation } from 'react-router-dom';
+import Loadable from 'react-loadable';
+
+import Login from 'app/modules/login/login';
+import Register from 'app/modules/account/register/register';
+import Activate from 'app/modules/account/activate/activate';
+import PasswordResetInit from 'app/modules/account/password-reset/init/password-reset-init';
+import PasswordResetFinish from 'app/modules/account/password-reset/finish/password-reset-finish';
+import Logout from 'app/modules/login/logout';
+import Home from 'app/shared/layout/home/home';
+import AnalyticsRoutes from "app/modules/analytics/analyticsRoutes";
+import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
+import PageNotFound from 'app/shared/error/page-not-found';
+import { AUTHORITIES } from 'app/config/constants';
+import { sendActivity } from 'app/config/websocket-middleware';
+import Instructions from "app/modules/instructions/instructions";
+import BusinessDetailRoutes from "app/entities/settings/business-details";
+import AppConfig from "app/shared/sidebar/AppConfig";
+import InventoryRoutes from "app/entities/inventory/routes";
 import { getTenantFromURL } from './app';
 import { Card } from 'primereact/card';
 import { InputText } from 'primereact/inputtext';
@@ -7,23 +25,20 @@ import { Button } from 'primereact/button';
 
 const loading = <div>loading ...</div>;
 
-const Login = React.lazy(() => import('app/modules/login/login'));
-const Register = React.lazy(() => import('app/modules/account/register/register'));
-const Activate = React.lazy(() => import('app/modules/account/activate/activate'));
-const PasswordResetInit = React.lazy(() => import('app/modules/account/password-reset/init/password-reset-init'));
-const PasswordResetFinish = React.lazy(() => import('app/modules/account/password-reset/finish/password-reset-finish'));
-const Logout = React.lazy(() => import('app/modules/login/logout'));
-const Home = React.lazy(() => import('app/shared/layout/home/home'));
-const EntitiesRoutes = React.lazy(() => import('app/entities/routes'));
-const AnalyticsRoutes = React.lazy(() => import('app/modules/analytics/analyticsRoutes'));
-const ErrorBoundaryRoutes = React.lazy(() => import('app/shared/error/error-boundary-routes'));
-const PageNotFound = React.lazy(() => import('app/shared/error/page-not-found'));
-const Instructions = React.lazy(() => import('app/modules/instructions/instructions'));
-const BusinessDetailRoutes = React.lazy(() => import('app/entities/settings/business-details'));
-const AppConfig = React.lazy(() => import('app/shared/sidebar/AppConfig'));
-const InventoryRoutes = React.lazy(() => import('app/entities/inventory/routes'));
-const Account = React.lazy(() => import(/* webpackChunkName: "account" */ 'app/modules/account'));
-const Admin = React.lazy(() => import(/* webpackChunkName: "administration" */ 'app/modules/administration'));
+const Account = Loadable({
+  loader: () => import(/* webpackChunkName: "account" */ 'app/modules/account'),
+  loading: () => loading,
+});
+
+const Admin = Loadable({
+  loader: () => import(/* webpackChunkName: "administration" */ 'app/modules/administration'),
+  loading: () => loading,
+});
+
+const EntitiesRoutes = Loadable({
+  loader: () => import(/* webpackChunkName: "entities" */ 'app/entities/routes'),
+  loading: () => loading,
+}); 
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -40,7 +55,7 @@ const AppRoutes = () => {
     window.location.href = `/${tenantName}/`;
   };
 
-  if (!tenant) {
+  if (!tenant)
     return (
       <div className="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
         <Card className="shadow-lg border-0" style={{ maxWidth: "450px", width: "100%" }}>
@@ -81,35 +96,43 @@ const AppRoutes = () => {
         </Card>
       </div>
     );
-  }
 
   return (
-    <Suspense fallback={loading}>
-      <div className="view-routes">
-        <ErrorBoundaryRoutes>
-          <Route path="instructions" element={<Instructions />} />
-          <Route index element={<Home />} />
-          <Route path="login" element={<Login />} />
-          <Route path="logout" element={<Logout />} />
-          <Route path="account">
-            <Route path="*" element={<Account />} />
-            <Route path="register" element={<Register />} />
-            <Route path="activate" element={<Activate />} />
-            <Route path="reset">
-              <Route path="request" element={<PasswordResetInit />} />
-              <Route path="finish" element={<PasswordResetFinish />} />
-            </Route>
+    <div className="view-routes">
+      <ErrorBoundaryRoutes>
+        <Route path="instructions" element={<Instructions />} />
+
+        <Route index element={<Home />} />
+
+        <Route path="login" element={<Login />} />
+
+        <Route path="logout" element={<Logout />} />
+
+        <Route path="account">
+          <Route path="*" element={<Account />} />
+          <Route path="register" element={<Register />} />
+          <Route path="activate" element={<Activate />} />
+          <Route path="reset">
+            <Route path="request" element={<PasswordResetInit />} />
+            <Route path="finish" element={<PasswordResetFinish />} />
           </Route>
-          <Route path="admin/*" element={<Admin />} />
-          <Route path="analytics/*" element={<AnalyticsRoutes />} />
-          <Route path="inventory/*" element={<InventoryRoutes />} />
-          <Route path="*" element={<EntitiesRoutes />} />
-          <Route path="details/*" element={<BusinessDetailRoutes />} />
-          <Route path="theme/*" element={<AppConfig />} />
-          <Route path="*" element={<PageNotFound />} />
-        </ErrorBoundaryRoutes>
-      </div>
-    </Suspense>
+        </Route>
+
+        <Route path="admin/*" element={<Admin />} />
+
+        <Route path="analytics/*" element={<AnalyticsRoutes />} />
+
+        <Route path="inventory/*" element={<InventoryRoutes />} />
+
+        <Route path="*" element={<EntitiesRoutes />} />
+
+        <Route path="details/*" element={<BusinessDetailRoutes />} />
+
+        <Route path="theme/*" element={<AppConfig />} />
+
+        <Route path="*" element={<PageNotFound />} />
+      </ErrorBoundaryRoutes>
+    </div>
   );
 };
 
