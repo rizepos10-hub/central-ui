@@ -22,7 +22,6 @@ export default () => {
   return (
     <div>
       <ErrorBoundaryRoutes>
-
         <Route path="retail-dashboard" element={<RetialDashboard />} />
         <Route path="topItems" element={<TopItems />} />
         <Route path="endofday" element={<EndOfDays />} />
@@ -35,8 +34,6 @@ export default () => {
         <Route path="/sales-report/sales-by-:reportType" element={<SalesReport />} />
         <Route path="/sales-report/print" element={<SalesReportPrint />} />
         <Route path="*" element={<PageNotFound />} />
-
-
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>
     </div>
