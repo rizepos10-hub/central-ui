@@ -141,7 +141,7 @@ export const ProductUpdate = () => {
         variant =>
           variant?.price &&
           variant?.name &&
-          Object.keys(variant?.attributeValues)?.length > 0 &&
+          variant?.attributeValues && Object.keys(variant?.attributeValues)?.length > 0 &&
           product?.name
       );
       setFormIsValid(allVariantsValid);
@@ -472,7 +472,7 @@ export const ProductUpdate = () => {
         const updatedAttributeValues = { ...variant.attributeValues };
 
         // Remove attribute values that correspond to removed terms
-        Object.keys(updatedAttributeValues)?.forEach(key => {
+        updatedAttributeValues && Object.keys(updatedAttributeValues)?.forEach(key => {
           if (removedTermIds.includes(updatedAttributeValues[key]?.id)) {
             updatedAttributeValues[key] = null; // Remove the attribute value
           }
