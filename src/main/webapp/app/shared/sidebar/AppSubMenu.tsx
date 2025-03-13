@@ -45,7 +45,7 @@ const AppSubMenu = (props) => {
     });
     setBreadcrumbs(breadcrumbs);
   };
-
+  console.log(props.model, 'props.model')
   const enhanceMenuModel = (model) => {
     const shortcuts = useAppSelector(state => state.shortcuts.shortcuts);
 
@@ -70,6 +70,7 @@ const AppSubMenu = (props) => {
   };
 
   const modelWithShortcuts = enhanceMenuModel(props.model);
+  console.log(modelWithShortcuts, 'modelWithShortcuts')
   if (!props?.businessTypes?.types) return
   return (
     <MenuProvider>
