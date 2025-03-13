@@ -40,6 +40,8 @@ const ItemStock = ({
   const wareHouses = useAppSelector((state) => state.warehouse.entities);
   const salesLocations = useAppSelector((state) => state.salesLocation.entities);
   const [dialogOpen, setDialogOpen] = useState<boolean[]>([]);
+  const [salesLocationsindex, setSalesLocationsindex] = useState<boolean[]>([]);
+  const [wareHousesIndex, setWareHousesIndex] = useState<boolean[]>([]);
   const isNew = itemId === undefined;
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, "id"), location.search)
@@ -80,6 +82,67 @@ const ItemStock = ({
     );
   }, [itemId, variant?.id]);
 
+  useEffect(() => {
+    const wareHousesIndex: boolean[] = [];
+    wareHouses?.map((warehouse, index) => {
+
+      const findStock = variant?.stockQuantities?.find(
+        (stock) => stock.location.id === warehouse.id
+      );
+
+      const inputQuantity = !isNew ? findStock?.quantity ? true : false : isNew ? false : !!findStock?.stockChangeReason?.trim();
+          wareHousesIndex.push(inputQuantity);
+    })
+
+    setWareHousesIndex(wareHousesIndex);
+  }, [wareHouses, itemId]);
+
+  useEffect(() => {
+    const salesLocationsindex: boolean[] = [];
+    salesLocations?.map((salesLocation, index) => {
+      const findStock = variant?.stockQuantities?.find(
+        (stock) => stock.location.id === salesLocation.id
+      );
+
+      const inputQuantity = !isNew ? findStock?.quantity ? true : false : isNew ? false : !!findStock?.stockChangeReason?.trim();
+    salesLocationsindex.push(inputQuantity);
+    })
+
+    setSalesLocationsindex(salesLocationsindex);
+  }, [salesLocations, itemId]);
+
+  const enableSaleHouseInput = (index: number, value: string) => {
+    if(value.trim() === '') {
+      setSalesLocationsindex(prev => {
+        const newState = [...prev];
+        newState[index] = true;
+        return newState;
+      });
+    } else {
+      setSalesLocationsindex(prev => {
+        const newState = [...prev];
+        newState[index] = false;
+        return newState;
+      });
+    }
+  }
+
+  const enableWareHouseInput = (index: number, value: string) => {
+    if(value.trim() === '') {
+      setWareHousesIndex(prev => {
+        const newState = [...prev];
+        newState[index] = true;
+        return newState;
+      });
+    } else {
+      setWareHousesIndex(prev => {
+        const newState = [...prev];
+        newState[index] = false;
+        return newState;
+      });
+    }
+
+  }
   const handleStockQuantityChange = (
     location: IWarehouse,
     field: "minimumStockLevel" | "quantity" | "unitCost" | "stockChangeReason",
@@ -160,9 +223,7 @@ const ItemStock = ({
                         variant?.stockQuantities?.find((stock) => stock.location.id === warehouse.id)
                           ?.quantity ?? null
                       }
-                      disabled={!isNew ? !variant?.stockQuantities?.find(
-                        (stock) => stock.location.id === warehouse.id
-                      )?.stockChangeReason?.trim() : false }
+                      disabled={wareHousesIndex[index]}
                       onChange={(e) =>
                         handleStockQuantityChange(warehouse, "quantity", e.value, index)
                       }
@@ -224,7 +285,10 @@ const ItemStock = ({
                         value={variant?.stockQuantities?.find(
                           (stock) => stock.location.id === warehouse.id
                         )?.stockChangeReason ?? ""}
-                        onChange={(e) => handleStockQuantityChange(warehouse, "stockChangeReason", e.target.value, index)}
+                        onChange={(e) => {
+                          handleStockQuantityChange(warehouse, "stockChangeReason", e.target.value, index)
+                          enableWareHouseInput(index, e.target.value);
+                        }}
                         autoResize
                         rows={3}
                         cols={30}
@@ -294,9 +358,7 @@ const ItemStock = ({
                             (stock) => stock.location.id === salesLocation.id
                           )?.quantity ?? null
                         }
-                        disabled={!isNew ? !variant?.stockQuantities?.find(
-                          (stock) => stock.location.id === salesLocation.id
-                        )?.stockChangeReason?.trim() : false }
+                        disabled={salesLocationsindex[index]}
                         onChange={(e) =>
                           handleStockQuantityChange(salesLocation, "quantity", e.value, index)
                         }
@@ -358,7 +420,10 @@ const ItemStock = ({
                         value={variant?.stockQuantities?.find(
                           (stock) => stock.location.id === salesLocation.id
                         )?.stockChangeReason ?? ""}
-                        onChange={(e) => handleStockQuantityChange(salesLocation, "stockChangeReason", e.target.value, index)}
+                        onChange={(e) => {
+                          handleStockQuantityChange(salesLocation, "stockChangeReason", e.target.value, index);
+                          enableSaleHouseInput(index, e.target.value);
+                        }}
                         autoResize
                         rows={3}
                         cols={30}
