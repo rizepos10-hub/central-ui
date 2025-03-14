@@ -211,11 +211,11 @@ export const UserUpdate = () => {
                 <Translate contentKey={'tempApp.activated'} />
               </label>
               <Checkbox
-                inputId={`activated-${userEntity.verified}`}
+                inputId={`activated-${userEntity.activated}`}
                 name="Activated"
-                value={userEntity.verified}
-                onChange={e => updateUserFieldvalue('verified', e.checked)}
-                checked={userEntity.verified}
+                value={userEntity.activated}
+                onChange={e => updateUserFieldvalue('activated', e.checked)}
+                checked={userEntity?.activated}
               />
             </div>
 
