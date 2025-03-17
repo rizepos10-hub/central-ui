@@ -3,7 +3,7 @@ import React from 'react'
 import { Col } from 'reactstrap'
 
 const TipSummary = ({ report }: { report: ISummaryReport["tipSummary"] }) => {
-    if (!report) return
+    if (!report || report.length === 0) return null;
 
     return (
         <Col className="p-0">
