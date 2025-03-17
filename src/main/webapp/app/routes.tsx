@@ -22,6 +22,7 @@ import { getTenantFromURL } from './app';
 import { Card } from 'primereact/card';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
+import PrivateRoute from './shared/auth/private-route';
 
 const loading = <div>loading ...</div>;
 
@@ -102,7 +103,14 @@ const AppRoutes = () => {
       <ErrorBoundaryRoutes>
         <Route path="instructions" element={<Instructions />} />
 
-        <Route index element={<Home />} />
+        <Route
+          index
+          element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          }
+        />
 
         <Route path="login" element={<Login />} />
 
