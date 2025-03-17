@@ -224,30 +224,15 @@ const EndOfDayReport = () => {
 
         <EndOfTillTotalReceived totalReceived={salesData.totalReceived} />
 
+        {salesData.totalSalesByOrderOption?.DineIn?.orders > 0 && <GenericSalesReport title={translate('analytics.report.dineIn')} report={salesData.totalSalesByOrderOption?.DineIn} />}
 
-        {
-          endOfDayReportSection?.includes(EndOfDayReportSection.DINE_IN) &&
-          <GenericSalesReport title={translate('analytics.report.dineIn')} report={salesData.totalSalesByOrderOption?.DineIn} />
-        }
-        {
-          endOfDayReportSection?.includes(EndOfDayReportSection.PICK_UP) &&
-          <GenericSalesReport title={translate('analytics.report.pickUp')} report={salesData.totalSalesByOrderOption?.PickUp} />
-        }
+        {salesData.totalSalesByOrderOption?.PickUp?.orders > 0 && <GenericSalesReport title={translate('analytics.report.pickUp')} report={salesData.totalSalesByOrderOption?.PickUp} />}
 
-        {
-          endOfDayReportSection?.includes(EndOfDayReportSection.DELIVERY) &&
-          <GenericSalesReport title={translate('analytics.report.delivery')} report={salesData.totalSalesByOrderOption?.Delivery} />
-        }
+        {salesData.totalSalesByOrderOption?.Delivery?.orders > 0 && <GenericSalesReport title={translate('analytics.report.delivery')} report={salesData.totalSalesByOrderOption?.Delivery} />}
 
+        {salesData.totalSalesByOrderOption?.WalkIn?.orders > 0 && <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />}
 
-        {
-          endOfDayReportSection?.includes(EndOfDayReportSection.WALK_IN) &&
-          <GenericSalesReport title={translate('analytics.report.walkIn')} report={salesData.totalSalesByOrderOption?.WalkIn} />
-        }
-        {
-          endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) &&
-          <TipSummary report={salesData.tipSummary} />
-        }
+        {endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) && <TipSummary report={salesData.tipSummary} />}
 
         <BillsSummary eodId={id} />
       </div>

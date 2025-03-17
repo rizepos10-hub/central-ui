@@ -11,7 +11,7 @@ const BillsSummary = ({ eodId }) => {
     const [totalRecords, setTotalRecords] = useState(0);
     const [bills, setBills] = useState([])
 
-    if (!bills) return null;
+    if (bills.length === 0) return null;
 
     const totalPages = Math.ceil(totalRecords / ITEMS_PER_PAGE);
 
