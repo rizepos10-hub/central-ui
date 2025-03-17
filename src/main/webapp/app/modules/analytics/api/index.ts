@@ -143,4 +143,22 @@ export const fetchEndOfDaysData = async (page: number, size: number, sort: strin
 };
 
 
+export const fetchRecentBills = async (page: number, size: number, eodId: string | null = null) => {
+  try {
+    const response = await axios.get(`/api/end-of-day/${eodId}/bills?page=${page}&size=${size}`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    throw error;
+  }
+}
 
+export const fetchFirstLastBills = async (eodId: string | null = null) => {
+  try {
+    const response = await axios.get(`/api/end-of-day/${eodId}/bills-summary`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    throw error;
+  }
+}

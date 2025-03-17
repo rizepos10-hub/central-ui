@@ -111,7 +111,7 @@ export const RetailItemCategoryTree = () => {
                 return {
                     id: category.id,
                     key: category.id,
-                    label: category.name,
+                    label: category.name + ` (${category?.itemsCount} items)`,
                     imageUrl: category.attachments?.[0]?.url,
                     data: `${category.name} Folder`,
                     children: buildTree(categories, category.id, key),

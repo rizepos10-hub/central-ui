@@ -48,7 +48,7 @@ export const PizzaItem = () => {
   const [localNameFilter, setLocalNameFilter] = useState("");
   const [pizzaTypeSearchTerm, setPizzaTypeSearchTerm] = useState("");
 
-  const query = JSON.parse(searchParams.get("query")) || JSON.parse(searchParams.get("query")) || {
+  const query = JSON.parse(searchParams.get("query")) || {
     first: 0,
     rows: 20,
     page: 0,
@@ -69,8 +69,6 @@ export const PizzaItem = () => {
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
   const [isLoadingDelete, setIsLoadingDelete] = useState(false);
 
-
-
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
     dispatch(
@@ -90,26 +88,24 @@ export const PizzaItem = () => {
 
   const onSort = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true })
+    setSearchParams({ query: queryParams }, { replace: true });
   };
 
   const debouncedFilter = useRef(_.debounce((event) => {
     event['first'] = 0;
     event['page'] = 0;
     const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true })
-  }, 300)).current
+    setSearchParams({ query: queryParams }, { replace: true });
+  }, 300)).current;
 
   const onFilter = (event: DataTableFilterEvent) => {
     debouncedFilter(event);
   };
 
-
   const onPage = (event) => {
     const queryParams = JSON.stringify(event);
-    setSearchParams({ query: queryParams }, { replace: true })
+    setSearchParams({ query: queryParams }, { replace: true });
   };
-
 
   const handleDropdownChange = (field, value) => {
     const newQuery = JSON.stringify({
@@ -121,7 +117,6 @@ export const PizzaItem = () => {
     });
     setSearchParams({ query: newQuery }, { replace: true });
   };
-
 
   const nameColumnTemplate = rowData => {
     const editUrl = `/restaurant/pizza/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
@@ -150,7 +145,7 @@ export const PizzaItem = () => {
   };
 
   const AddonLinkTemplate = ({ rowData }) => {
-    if (!rowData) return null; // If addonGroup is empty or undefined, return nothing
+    if (!rowData) return null;
     return (
       <Link className="font-normal" to={`/addon-groups/${rowData.id}/edit`}>
         {rowData.name}
@@ -160,12 +155,9 @@ export const PizzaItem = () => {
 
   const AddonGroupsBody = rowData => {
     const addonGroups = rowData?.addonGroups;
-
     if (!addonGroups || addonGroups.length === 0) {
-      return "No Addons"; // Display when no addons are available
+      return "No Addons";
     }
-
-    // Map through addonGroups and render them as links separated by "|"
     return addonGroups.map((addon, index) => (
       <>
         <AddonLinkTemplate key={addon?.addonGroup?.id} rowData={addon?.addonGroup} />
@@ -176,12 +168,9 @@ export const PizzaItem = () => {
 
   const TagsBody = rowData => {
     const tags = rowData?.tags;
-
     if (!tags || tags.length === 0) {
-      return "No Tags"; // Display when no addons are available
+      return "No Tags";
     }
-
-    // Map through addonGroups and render them as links separated by "|"
     return tags.map((tag, index) => (
       <>
         <Link className="font-normal" to={`/tag/${tag.id}/edit`}>
@@ -195,13 +184,10 @@ export const PizzaItem = () => {
   const DiscountBody = rowData => {
     const discounts = rowData?.discounts;
     if (!discounts || discounts.length === 0) {
-      return "No Discounts"; // Display when no addons are available
+      return "No Discounts";
     }
-
-    // Map through addonGroups and render them as links separated by "|"
     return discounts.map((discount, index) => (
       <>
-
         <Link className="font-normal" to={`/discount/${discount.id}/edit`}>
           {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
           {index < discounts.length - 1 && ' | '}
@@ -211,31 +197,34 @@ export const PizzaItem = () => {
   };
 
   const MenusTemplate = (rowData) => {
-    const menus = []
+    const menus = [];
     rowData?.rowData?.menus?.forEach(menu => {
       menus.push({
         name: menu.name,
         id: menu.id,
         type: menu.type,
-      })
-    })
-
-    return <div>{menus.map((menu, idx) => (
-      <Link className="font-normal" key={idx} to={`/menu/${menu.id}/${menu.type}/edit?page=1&sort=id,asc`}>
-        {menu.name} {idx === menus.length - 1 ? '' : ' | '}
-      </Link>
-    ))}</div>
+      });
+    });
+    return (
+      <div>
+        {menus.map((menu, idx) => (
+          <Link className="font-normal" key={idx} to={`/menu/${menu.id}/${menu.type}/edit?page=1&sort=id,asc`}>
+            {menu.name} {idx === menus.length - 1 ? '' : ' | '}
+          </Link>
+        ))}
+      </div>
+    );
   };
 
   const handleCreate = () => {
-    navigate('/restaurant/pizza/new')
-  }
+    navigate('/restaurant/pizza/new');
+  };
 
   useEffect(() => {
     if (selectedActionOption?.code === "MOVE_TO_TRASH") {
-      confirm1()
+      confirm1();
     }
-  }, [selectedActionOption])
+  }, [selectedActionOption]);
 
   const nameFilterTemplate = () => {
     return (
@@ -255,6 +244,9 @@ export const PizzaItem = () => {
         }}
         className="p-inputtext-sm"
         placeholder="Search by Name"
+        style={{
+          width: '150px',
+        }}
       />
     );
   };
@@ -265,7 +257,6 @@ export const PizzaItem = () => {
       header: 'Confirmation',
       icon: 'pi pi-exclamation-triangle',
       defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       accept: () => handleItemsDelete(),
       reject: () => setSelectedActionOption(null)
     });
@@ -280,10 +271,9 @@ export const PizzaItem = () => {
     })).finally(() => setIsLoadingDelete(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
-  }
+  };
 
   const duplicateColumnTemplate = (rowData) => {
-    console.log(rowData)
     return (
       <Button
         className="d-flex justify-content-center w-100"
@@ -302,7 +292,7 @@ export const PizzaItem = () => {
 
               // @ts-expect-error -- unknown type
               if (!res?.error) {
-                navigate(`/restaurant/pizza/${newProductId}/edit`)
+                navigate(`/restaurant/pizza/${newProductId}/edit`);
               }
             });
           }
@@ -316,7 +306,6 @@ export const PizzaItem = () => {
 
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
-    // Check if 'orderToday' exists in the stored data, otherwise initialize it with default visibility
     const storedFields = storedData[LOCAL_STORAGE_KEY] || {
       name: true,
       categories: true,
@@ -329,10 +318,8 @@ export const PizzaItem = () => {
       tags: true,
       discounts: true
     };
-
     return storedFields;
   });
-
 
   const onColumnToggle = (columnKey) => {
     setVisibleColumns((prevState) => {
@@ -340,31 +327,27 @@ export const PizzaItem = () => {
         ...prevState,
         [columnKey]: !prevState[columnKey],
       };
-
       const visibleColumnsData = JSON.parse(localStorage.getItem("visible_columns")) || {};
-
       visibleColumnsData[LOCAL_STORAGE_KEY] = updatedColumns;
-
-      console.log(visibleColumnsData);
       localStorage.setItem("visible_columns", JSON.stringify(visibleColumnsData));
-
       return updatedColumns;
     });
   };
 
   const toCamelCaseWithSpace = (str) => {
     return str
-      .replace(/([A-Z])/g, ' $1')  // Add space before uppercase letters
-      .replace(/^./, (match) => match.toUpperCase()) // Capitalize first letter
-      .replace(/\s+/g, ' ')         // Remove any extra spaces
-      .trim(); // Remove leading and trailing spaces
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (match) => match.toUpperCase())
+      .replace(/\s+/g, ' ')
+      .trim();
   };
 
   const columnOptions = Object.keys(visibleColumns)
     .map((field) => ({
       field,
-      header: toCamelCaseWithSpace(field), // Convert the field name to a human-readable header
+      header: toCamelCaseWithSpace(field),
     }));
+
   const header = (
     <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
       <span className="text-xl d-flex align-items-center">
@@ -389,7 +372,6 @@ export const PizzaItem = () => {
           data-pr-position="top"
           tooltip={translate('items.view.actions.refreshList')}
         />
-
         <Button
           icon="pi pi-plus"
           raised
@@ -399,7 +381,6 @@ export const PizzaItem = () => {
           tooltip={translate('items.view.actions.createPizza')}
         />
       </div>
-
       <div className="flex justify-between items-center">
         <div className="relative d-flex justify-end mr-auto">
           <Menu
@@ -432,10 +413,8 @@ export const PizzaItem = () => {
           />
         </div>
       </div>
-
     </div>
   );
-
 
   return (
     <div>
@@ -477,8 +456,7 @@ export const PizzaItem = () => {
       >
         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
 
-        {
-          visibleColumns.name &&
+        {visibleColumns.name && (
           <Column
             field="name"
             header={translate('items.view.fields.name')}
@@ -488,12 +466,12 @@ export const PizzaItem = () => {
             body={nameColumnTemplate}
             filterPlaceholder={translate('items.view.filters.name')}
             sortable
+            headerStyle={{ width: '300px' }}
+            style={{ width: '300px' }}
           />
-        }
+        )}
 
-
-        {
-          visibleColumns.categories &&
+        {visibleColumns.categories && (
           <Column
             header="Category"
             field="categories"
@@ -509,35 +487,42 @@ export const PizzaItem = () => {
                 handleDropdownChange={handleDropdownChange}
               />
             }
+            headerStyle={{ width: '150px' }}
+            style={{ width: '150px' }}
           />
-        }
+        )}
 
-
-        {
-          visibleColumns.image &&
-          <Column header={translate('items.view.fields.image')} body={(rowData) =>
-            <ImageDisplay
-              imageType={"product"}
-              imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
-              height={50}
-              width={50}
-            />} />
-        }
-
-        {
-          visibleColumns.menus &&
-          <Column header={translate('items.view.fields.menus')} body={(rowData) =>
-            <MenusTemplate rowData={rowData} />}
+        {visibleColumns.image && (
+          <Column
+            header={translate('items.view.fields.image')}
+            body={(rowData) =>
+              <ImageDisplay
+                imageType={"product"}
+                imageUrl={rowData?.attachments?.[0]?.url || rowData?.variants?.[0]?.attachments?.[0]?.url}
+                height={50}
+                width={50}
+              />
+            }
           />
-        }
+        )}
 
-        {
-          visibleColumns.desc &&
-          <Column header={translate("items.view.fields.description")} field='desc' />
-        }
+        {visibleColumns.menus && (
+          <Column
+            header={translate('items.view.fields.menus')}
+            body={(rowData) =>
+              <MenusTemplate rowData={rowData} />
+            }
+          />
+        )}
 
-        {
-          visibleColumns.type &&
+        {visibleColumns.desc && (
+          <Column
+            header={translate("items.view.fields.description")}
+            field='desc'
+          />
+        )}
+
+        {visibleColumns.type && (
           <Column
             body={(rowData) => rowData?.variants?.[0]?.pizzaVariantType}
             field="type"
@@ -551,6 +536,9 @@ export const PizzaItem = () => {
                 }))}
                 showFilterClear={true}
                 showClear
+                style={{
+                  width: '70px'
+                }}
                 placeholder="search pizza type"
                 optionLabel="name"
                 optionValue="id"
@@ -561,15 +549,17 @@ export const PizzaItem = () => {
               />
             }
           />
-        }
+        )}
 
-        {
-          visibleColumns.productionCenter &&
-          <Column header={translate("items.view.fields.productionCenter")} body={(rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>} field='productionCenter' />
-        }
+        {visibleColumns.productionCenter && (
+          <Column
+            header={translate("items.view.fields.productionCenter")}
+            body={(rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>}
+            field='productionCenter'
+          />
+        )}
 
-        {
-          visibleColumns.addonGroups &&
+        {visibleColumns.addonGroups && (
           <Column
             header={translate("items.view.fields.addOnGroups")}
             body={AddonGroupsBody}
@@ -583,11 +573,12 @@ export const PizzaItem = () => {
                 handleDropdownChange={handleDropdownChange}
               />
             }
+            headerStyle={{ width: '150px' }}
+            style={{ width: '150px' }}
           />
-        }
+        )}
 
-        {
-          visibleColumns.tags &&
+        {visibleColumns.tags && (
           <Column
             header={translate("items.view.fields.tags")}
             body={TagsBody}
@@ -601,25 +592,30 @@ export const PizzaItem = () => {
                 handleDropdownChange={handleDropdownChange}
               />
             }
+            headerStyle={{ width: '150px' }}
+            style={{ width: '150px' }}
           />
-        }
+        )}
 
-        {
-          visibleColumns.discounts &&
-          <Column sortable={true} header={translate("items.view.fields.discounts")} body={DiscountBody} field='discounts' />
-        }
+        {visibleColumns.discounts && (
+          <Column
+            sortable={true}
+            header={translate("items.view.fields.discounts")}
+            body={DiscountBody}
+            field='discounts'
+          />
+        )}
 
-        {
-          <Column header={translate('items.view.fields.actions')} body={(rowData) =>
+        <Column
+          header={translate('items.view.fields.actions')}
+          body={(rowData) =>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               {duplicateColumnTemplate(rowData)}
               {editColumnTemplate(rowData)}
               {deleteColumnTemplate(rowData)}
             </div>
-
           }
-          />
-        }
+        />
       </DataTable>
     </div>
   );

@@ -141,7 +141,7 @@ export const ProductUpdate = () => {
         variant =>
           variant?.price &&
           variant?.name &&
-          Object.keys(variant?.attributeValues).length > 0 &&
+          variant?.attributeValues && Object.keys(variant?.attributeValues)?.length > 0 &&
           product?.name
       );
       setFormIsValid(allVariantsValid);
@@ -200,7 +200,6 @@ export const ProductUpdate = () => {
   };
 
   const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
-    console.log(value)
     setProduct(prev => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -473,7 +472,7 @@ export const ProductUpdate = () => {
         const updatedAttributeValues = { ...variant.attributeValues };
 
         // Remove attribute values that correspond to removed terms
-        Object.keys(updatedAttributeValues).forEach(key => {
+        updatedAttributeValues && Object.keys(updatedAttributeValues)?.forEach(key => {
           if (removedTermIds.includes(updatedAttributeValues[key]?.id)) {
             updatedAttributeValues[key] = null; // Remove the attribute value
           }
@@ -706,7 +705,6 @@ export const ProductUpdate = () => {
     });
   }, [productEntity]);
 
-  console.log(productEntity, 'productEntity')
   const handleSupplierChange = (index: number, updatedVariant: IVariableItemVariant) => {
     const updatedProduct = {
       ...product,
@@ -725,6 +723,18 @@ export const ProductUpdate = () => {
   useEffect(() => {
     setDefaultPrice(product?.variants?.[0]?.price || 0);
   }, [product?.variants?.[0]?.price])
+
+  useEffect(() => {
+    if (isSingleItem && defaultPrice) {
+      setProduct(prev => ({
+        ...prev,
+        variants: prev.variants.map(variant => ({
+          ...variant,
+          price: defaultPrice,
+        })),
+      }));
+    }
+  }, [defaultPrice])
 
   const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
@@ -899,7 +909,6 @@ export const ProductUpdate = () => {
       };
     });
   };
-  console.log(product, 'product');
   const AttributeAccordionHeader = attributeIndex => (
     <div
       onClick={e => {

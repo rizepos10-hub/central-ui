@@ -1,73 +1,70 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Route } from 'react-router-dom';
 
-import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
-import OnlineOrderingRoutes from 'app/entities/online-ordering/routes'
-import Menu from './menu/index';
-import Discount from './discount';
-import Customer from './customer';
-import LoyaltyCard from './loyalty-card';
-import RegularItem from 'app/entities/item/restaurant/regular-item';
-import ComboItem from 'app/entities/item/restaurant/combo-item';
-import Addon from './addon';
-import AddonGroups from './addon-groups';
-import PizzaGroup from './pizza-settings';
-import Term from './term';
-import Order from './order';
-import Tax from './settings/tax';
-import TaxesProfile from './settings/tax-profile';
-import ProfileGroups from './settings/profile-group';
-import VoidReasons from './settings/void-reason';
-import BranchPosUser from './branch-pos-user';
-import BackOfficeUser from './back-office-user';
-import Printer from 'app/entities/settings/printing/printer';
-import PrintingProfiles from 'app/entities/settings/printing/printing-profiles';
-import ProductionCenter from 'app/entities/location/production-center';
-import PageNotFound from "app/shared/error/page-not-found";
-import PizzaSize from "app/entities/pizza-settings/pizza-size";
-import PizzaTopping from "app/entities/pizza-settings/pizza-topping";
-import PizzaPricingClass from "app/entities/pizza-settings/pizza-pricing-class";
-import PizzaCrust from "app/entities/pizza-settings/pizza-crust-setting";
-import BasePizzaSettings from "app/entities/pizza-settings/base-pizza";
-import PizzaCrustThickness from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness-routes";
-import PizzaCrustType from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type-routes";
-import PredefinedPizza from "app/entities/pizza-settings/pizza-predefined/";
-import FloorPlanTable from "app/entities/settings/floor-plans/tables";
-import FloorPlanSettings from "app/entities/settings/floor-plans/floor-plan-settings";
-import FloorPlan from "app/entities/settings/floor-plans";
-import PizzaItem from "app/entities/item/restaurant/pizza-item";
-import PizzaToppingGroup from "app/entities/pizza-settings/pizza-topping-group";
-import RetailAttributes from "app/entities/item/retail/attributes";
-import Loyalty from "app/entities/loyalty";
-import CurrencySettings from "app/entities/settings/currency";
-import ZonesSettings from 'app/entities/settings/zones';
-import Tv from "app/entities/settings/tv-config/tv";
-import TvDisplay from "app/entities/settings/tv-config/tv-display";
-import Supplier from "app/entities/inventory/supplier"
-import ItemMeasure from "app/entities/item-measure";
-import MixAndMatchRule from "app/entities/mix-and-match-rule"
-import Product from "app/entities/item/retail/product";
-import Tag from "app/entities/tag";
-import TagGroup from "app/entities/tag-group";
-import BranchRegistry from "app/entities/settings/branch-registry";
-import Brand from "app/entities/brand";
-import Branches from './branches/branch';
-import ServiceCharge from './service-charges/index';
-import PricingPoint from './settings/pricing-point/index';
-import ImportFromOldSystem from './settings/import-from-old-system/import-from-old-system';
-import CustomDefinition from './settings/custom-definitions/index';
-import GiftCardsRoutes from './item/virtual/gift-card';
-import CourseDefinitionRoutes from './settings/course-definition';
-import PosAuthorityGroupRoutes from './pos-authority-groups';
-import Barcode from './item/retail/barcode/barcode';
-
-/* jhipster-needle-add-route-import - JHipster will add routes here */
+const ErrorBoundaryRoutes = React.lazy(() => import('app/shared/error/error-boundary-routes'));
+const OnlineOrderingRoutes = React.lazy(() => import('app/entities/online-ordering/routes'));
+const Menu = React.lazy(() => import('./menu/index'));
+const Discount = React.lazy(() => import('./discount'));
+const Customer = React.lazy(() => import('./customer'));
+const LoyaltyCard = React.lazy(() => import('./loyalty-card'));
+const RegularItem = React.lazy(() => import('app/entities/item/restaurant/regular-item'));
+const ComboItem = React.lazy(() => import('app/entities/item/restaurant/combo-item'));
+const Addon = React.lazy(() => import('./addon'));
+const AddonGroups = React.lazy(() => import('./addon-groups'));
+const PizzaGroup = React.lazy(() => import('./pizza-settings'));
+const Term = React.lazy(() => import('./term'));
+const Order = React.lazy(() => import('./order'));
+const Tax = React.lazy(() => import('./settings/tax'));
+const TaxesProfile = React.lazy(() => import('./settings/tax-profile'));
+const ProfileGroups = React.lazy(() => import('./settings/profile-group'));
+const VoidReasons = React.lazy(() => import('./settings/void-reason'));
+const BranchPosUser = React.lazy(() => import('./branch-pos-user'));
+const BackOfficeUser = React.lazy(() => import('./back-office-user'));
+const Printer = React.lazy(() => import('app/entities/settings/printing/printer'));
+const PrintingProfiles = React.lazy(() => import('app/entities/settings/printing/printing-profiles'));
+const ProductionCenter = React.lazy(() => import('app/entities/location/production-center'));
+const PageNotFound = React.lazy(() => import("app/shared/error/page-not-found"));
+const PizzaSize = React.lazy(() => import("app/entities/pizza-settings/pizza-size"));
+const PizzaTopping = React.lazy(() => import("app/entities/pizza-settings/pizza-topping"));
+const PizzaPricingClass = React.lazy(() => import("app/entities/pizza-settings/pizza-pricing-class"));
+const PizzaCrust = React.lazy(() => import("app/entities/pizza-settings/pizza-crust-setting"));
+const BasePizzaSettings = React.lazy(() => import("app/entities/pizza-settings/base-pizza"));
+const PizzaCrustThickness = React.lazy(() => import("app/entities/pizza-settings/pizza-crust-setting/pizza-crust-thickness-routes"));
+const PizzaCrustType = React.lazy(() => import("app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type-routes"));
+const PredefinedPizza = React.lazy(() => import("app/entities/pizza-settings/pizza-predefined/"));
+const FloorPlanTable = React.lazy(() => import("app/entities/settings/floor-plans/tables"));
+const FloorPlanSettings = React.lazy(() => import("app/entities/settings/floor-plans/floor-plan-settings"));
+const FloorPlan = React.lazy(() => import("app/entities/settings/floor-plans"));
+const PizzaItem = React.lazy(() => import("app/entities/item/restaurant/pizza-item"));
+const PizzaToppingGroup = React.lazy(() => import("app/entities/pizza-settings/pizza-topping-group"));
+const RetailAttributes = React.lazy(() => import("app/entities/item/retail/attributes"));
+const Loyalty = React.lazy(() => import("app/entities/loyalty"));
+const CurrencySettings = React.lazy(() => import("app/entities/settings/currency"));
+const ZonesSettings = React.lazy(() => import("app/entities/settings/zones"));
+const Tv = React.lazy(() => import("app/entities/settings/tv-config/tv"));
+const TvDisplay = React.lazy(() => import("app/entities/settings/tv-config/tv-display"));
+const Supplier = React.lazy(() => import("app/entities/inventory/supplier"));
+const ItemMeasure = React.lazy(() => import("app/entities/item-measure"));
+const MixAndMatchRule = React.lazy(() => import("app/entities/mix-and-match-rule"));
+const Product = React.lazy(() => import("app/entities/item/retail/product"));
+const Tag = React.lazy(() => import("app/entities/tag"));
+const TagGroup = React.lazy(() => import("app/entities/tag-group"));
+const BranchRegistry = React.lazy(() => import("app/entities/settings/branch-registry"));
+const Brand = React.lazy(() => import("app/entities/brand"));
+const Branches = React.lazy(() => import('./branches/branch'));
+const ServiceCharge = React.lazy(() => import('./service-charges/index'));
+const PricingPoint = React.lazy(() => import('./settings/pricing-point/index'));
+const ImportFromOldSystem = React.lazy(() => import('./settings/import-from-old-system/import-from-old-system'));
+const CustomDefinition = React.lazy(() => import('./settings/custom-definitions/index'));
+const GiftCardsRoutes = React.lazy(() => import('./item/virtual/gift-card'));
+const CourseDefinitionRoutes = React.lazy(() => import('./settings/course-definition'));
+const PosAuthorityGroupRoutes = React.lazy(() => import('./pos-authority-groups'));
+const Barcode = React.lazy(() => import('./item/retail/barcode/barcode'));
 
 export default () => {
   return (
-    <div>
+    <Suspense fallback={<div>Loading...</div>}>
       <ErrorBoundaryRoutes>
-        {/* prettier-ignore */}
         <Route path="*" element={<PageNotFound />} />
 
         <Route path="menu/*" element={<Menu />} />
@@ -85,7 +82,6 @@ export default () => {
         <Route path="addon/*" element={<Addon />} />
         <Route path="addon-groups/*" element={<AddonGroups />} />
 
-
         <Route path="category/*" element={<Term />} />
         <Route path="order/*" element={<Order />} />
 
@@ -96,13 +92,11 @@ export default () => {
         <Route path="printer/*" element={<Printer />} />
         <Route path="printing-profiles/*" element={<PrintingProfiles />} />
 
-
         <Route path="production-center/*" element={<ProductionCenter />} />
 
         <Route path="branch-register/*" element={<BranchRegistry />} />
 
         <Route path="void-reasons/*" element={<VoidReasons />} />
-
 
         <Route path="pizza-group/*" element={<PizzaGroup />} />
 
@@ -116,20 +110,16 @@ export default () => {
         <Route path="predefined-pizza/*" element={<PredefinedPizza />} />
         <Route path="pizza-pricing-class/*" element={<PizzaPricingClass />} />
 
-
         <Route path="course-definition*" element={<CourseDefinitionRoutes />} />
         <Route path="floor-plan/table/*" element={<FloorPlanTable />} />
         <Route path="floor-plan/settings/*" element={<FloorPlanSettings />} />
         <Route path="floor-plan/*" element={<FloorPlan />} />
-
 
         <Route path="restaurant/pizza/*" element={<PizzaItem />} />
         <Route path="restaurant/regular/*" element={<RegularItem />} />
         <Route path="restaurant/combo/*" element={<ComboItem />} />
 
         <Route path="retail/attributes/*" element={<RetailAttributes />} />
-        {/* <Route path="retail/simple/*" element={<SimpleItem />} /> */}
-        {/* <Route path="retail/variable/*" element={<VariableItem />} /> */}
         <Route path="product/*" element={<Product />} />
         <Route path="barcodes/*" element={<Barcode />} />
 
@@ -137,7 +127,6 @@ export default () => {
         <Route path="mix-and-match-rule/*" element={<MixAndMatchRule />} />
         <Route path="tag/*" element={<Tag />} />
         <Route path="tag-group/*" element={<TagGroup />} />
-
 
         <Route path="supplier/*" element={<Supplier />} />
         <Route path="brand/*" element={<Brand />} />
@@ -150,15 +139,10 @@ export default () => {
         <Route path="tv/*" element={<Tv />} />
         <Route path="tv-display/*" element={<TvDisplay />} />
 
-
-
-
         <Route path="online-ordering/*" element={<OnlineOrderingRoutes />} />
 
         <Route path="gift-cards/*" element={<GiftCardsRoutes />} />
-
-        {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>
-    </div>
+    </Suspense>
   );
 };
