@@ -21,6 +21,7 @@ import { getEntities as getBusiness } from 'app/entities/settings/business-detai
 import { IBusinessDetail } from 'app/shared/model/business-detail.model';
 import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
 import BillsSummary from 'app/shared/components/report/bills-summary';
+import { fetchFirstLastBills } from '../../api';
 
 const EndOfDayReport = () => {
   const dispatch = useAppDispatch();
@@ -31,6 +32,7 @@ const EndOfDayReport = () => {
   const [salesData, setSalesData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [endOfDayReportSection, setEndOfDayReportSection] = useState<EndOfDayReportSection[]>(null);
+  const [billsSummary, setBillsSummary] = useState(null)
 
 
   const [businessDetailsState, setBusinessDetailsState] = useState<IBusinessDetail>({
@@ -83,6 +85,12 @@ const EndOfDayReport = () => {
       setEndOfDayReportSection(selectedBranch?.endOfDayReportSection);
     }
   }, [businessDetailsState]);
+
+  useEffect(() => {
+    fetchFirstLastBills(id).then(result => {
+      setBillsSummary(result.data)
+    })
+  }, [])
 
   if (!salesData) {
     return <div>No data available.</div>;
@@ -156,10 +164,10 @@ const EndOfDayReport = () => {
   `;
 
   const firstBillDate = new Date(
-    salesData?.billSummary?.firstBill?.createdDate
+    billsSummary?.firstBill?.createdDate
   ).toLocaleDateString();
   const lastBillDate = new Date(
-    salesData?.billSummary?.lastBill?.createdDate
+    billsSummary?.lastBill?.createdDate
   ).toLocaleDateString();
 
   return (
@@ -241,7 +249,7 @@ const EndOfDayReport = () => {
           <TipSummary report={salesData.tipSummary} />
         }
 
-        <BillsSummary bills={salesData?.billSummary?.bills} />
+        <BillsSummary eodId={id} />
       </div>
 
       {endOfDay?.fromDate && endOfDay?.toDate && endOfDayReportSection?.includes(EndOfDayReportSection.RELATED_TILLS) && (
