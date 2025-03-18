@@ -11,8 +11,6 @@ const BillsSummary = ({ eodId }) => {
     const [totalRecords, setTotalRecords] = useState(0);
     const [bills, setBills] = useState([])
 
-    if (bills.length === 0) return null;
-
     const totalPages = Math.ceil(totalRecords / ITEMS_PER_PAGE);
 
     useEffect(() => {
@@ -21,6 +19,8 @@ const BillsSummary = ({ eodId }) => {
             setBills(result.data)
         })
     }, [currentPage])
+
+    if (bills.length === 0) return null;
 
     return (
         <Col className='p-0'>
