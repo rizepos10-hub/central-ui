@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Route, useLocation } from 'react-router-dom';
+import { Route, useLocation, useNavigate } from 'react-router-dom';
 import Loadable from 'react-loadable';
 
 import Login from 'app/modules/login/login';
@@ -9,7 +9,9 @@ import PasswordResetInit from 'app/modules/account/password-reset/init/password-
 import PasswordResetFinish from 'app/modules/account/password-reset/finish/password-reset-finish';
 import Logout from 'app/modules/login/logout';
 import Home from 'app/shared/layout/home/home';
+import EntitiesRoutes from 'app/entities/routes';
 import AnalyticsRoutes from "app/modules/analytics/analyticsRoutes";
+import PrivateRoute from 'app/shared/auth/private-route';
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 import PageNotFound from 'app/shared/error/page-not-found';
 import { AUTHORITIES } from 'app/config/constants';
@@ -20,9 +22,9 @@ import AppConfig from "app/shared/sidebar/AppConfig";
 import InventoryRoutes from "app/entities/inventory/routes";
 import { getTenantFromURL } from './app';
 import { Card } from 'primereact/card';
+import { Label } from 'reactstrap';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import PrivateRoute from './shared/auth/private-route';
 
 const loading = <div>loading ...</div>;
 
@@ -35,11 +37,6 @@ const Admin = Loadable({
   loader: () => import(/* webpackChunkName: "administration" */ 'app/modules/administration'),
   loading: () => loading,
 });
-
-const EntitiesRoutes = Loadable({
-  loader: () => import(/* webpackChunkName: "entities" */ 'app/entities/routes'),
-  loading: () => loading,
-}); 
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -54,54 +51,70 @@ const AppRoutes = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     window.location.href = `/${tenantName}/`;
-  };
+  }
 
-  if (!tenant)
-    return (
-      <div className="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
-        <Card className="shadow-lg border-0" style={{ maxWidth: "450px", width: "100%" }}>
-          <div className="text-center mb-4">
-            <i className="pi pi-building text-primary" style={{ fontSize: "2rem" }}></i>
-            <h2 className="mt-3 mb-1">Welcome To Rize POS</h2>
-            <p className="text-muted">Tenant Access - Enter your tenant name to continue</p>
+  if (!tenant) return (
+    <div className="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+      <Card className="shadow-lg border-0" style={{ maxWidth: "450px", width: "100%" }}>
+        <div className="text-center mb-4">
+          <i className="pi pi-building text-primary" style={{ fontSize: "2rem" }}></i>
+          <h2 className="mt-3 mb-1">Welcome To Rize POS</h2>
+          {/* <h2 className="mt-3 mb-1">Tenant Access</h2> */}
+          <p className="text-muted">Tenant Access - Enter your tenant name to continue</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
+          <div className="form-group">
+            <label htmlFor="tenantName" className="form-label fw-semibold">
+              Tenant Name
+            </label>
+            <div className="p-inputgroup">
+              <span className="p-inputgroup-addon">
+                <i className="pi pi-building"></i>
+              </span>
+              <InputText
+                id="tenantName"
+                placeholder="Enter your tenant name"
+                value={tenantName}
+                onChange={(e) => setTenantName(e.target.value)}
+                className={"w-100"}
+                aria-describedby="tenant-error"
+              />
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
-            <div className="form-group">
-              <label htmlFor="tenantName" className="form-label fw-semibold">
-                Tenant Name
-              </label>
-              <div className="p-inputgroup">
-                <span className="p-inputgroup-addon">
-                  <i className="pi pi-building"></i>
-                </span>
-                <InputText
-                  id="tenantName"
-                  placeholder="Enter your tenant name"
-                  value={tenantName}
-                  onChange={(e) => setTenantName(e.target.value)}
-                  className="w-100"
-                  aria-describedby="tenant-error"
-                />
-              </div>
-            </div>
+          <Button
+            type="submit"
+            iconPos="right"
+            className="p-button-primary w-100 mt-2 d-flex gap-2 justify-content-center align-items-center"
+          >
+            <span>Continue</span> <i className="pi pi-arrow-right"></i>
+          </Button>
 
-            <Button
-              type="submit"
-              iconPos="right"
-              className="p-button-primary w-100 mt-2 d-flex gap-2 justify-content-center align-items-center"
-            >
-              <span>Continue</span> <i className="pi pi-arrow-right"></i>
-            </Button>
-          </form>
-        </Card>
-      </div>
-    );
+          {/* <div className="text-center mt-3">
+            <small className="text-muted">
+              Need help?{" "}
+              <a href="#" className="text-decoration-none">
+                Contact your administrator
+              </a>
+            </small>
+          </div> */}
+        </form>
+      </Card>
+    </div>
+  )
 
   return (
     <div className="view-routes">
       <ErrorBoundaryRoutes>
-        <Route path="instructions" element={<Instructions />} />
+        <Route
+          path="instructions"
+          element={
+            <PrivateRoute>
+              <Instructions />
+            </PrivateRoute>
+          }
+        />
 
         <Route
           index
@@ -117,26 +130,76 @@ const AppRoutes = () => {
         <Route path="logout" element={<Logout />} />
 
         <Route path="account">
-          <Route path="*" element={<Account />} />
+          <Route
+            path="*"
+            element={
+              <PrivateRoute >
+                <Account />
+              </PrivateRoute>
+            }
+          />
           <Route path="register" element={<Register />} />
+
           <Route path="activate" element={<Activate />} />
+
           <Route path="reset">
             <Route path="request" element={<PasswordResetInit />} />
             <Route path="finish" element={<PasswordResetFinish />} />
           </Route>
         </Route>
 
-        <Route path="admin/*" element={<Admin />} />
+        <Route
+          path="admin/*"
+          element={
+            <PrivateRoute >
+              <Admin />
+            </PrivateRoute>
+          }
+        />
 
-        <Route path="analytics/*" element={<AnalyticsRoutes />} />
+        <Route
+          path="analytics/*"
+          element={
+            <PrivateRoute >
+              <AnalyticsRoutes />
+            </PrivateRoute>
+          }
+        />
 
-        <Route path="inventory/*" element={<InventoryRoutes />} />
+        <Route
+          path="inventory/*"
+          element={
+            <InventoryRoutes />
+          }
+        />
 
-        <Route path="*" element={<EntitiesRoutes />} />
+        {/* <Route path="*" element={<EntitiesRoutes />} /> */}
+        <Route
+          path="*"
+          element={
+            <PrivateRoute >
+              <EntitiesRoutes />
+            </PrivateRoute>
+          }
+        />
 
-        <Route path="details/*" element={<BusinessDetailRoutes />} />
+        <Route
+          path="details/*"
+          element={
+            <PrivateRoute >
+              {<BusinessDetailRoutes />}
+            </PrivateRoute>
+          }
+        />
 
-        <Route path="theme/*" element={<AppConfig />} />
+        <Route
+          path="theme/*"
+          element={
+            <PrivateRoute >
+              {<AppConfig />}
+            </PrivateRoute>
+          }
+        />
 
         <Route path="*" element={<PageNotFound />} />
       </ErrorBoundaryRoutes>
