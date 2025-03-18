@@ -9,8 +9,9 @@ import { TreeNode } from 'primereact/treenode';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { searchEntities, getEntities } from './item-restaurant-category.reducer';
+import { searchEntities, getEntities, updateEntity } from './item-restaurant-category.reducer';
 import UpdateItemRestaurantCategoryTree from './update-item-restaurant-category-tree';
+import { ITerm } from 'app/shared/model/term.model';
 
 export const ItemRestaurantCategoriesTree = () => {
   const dispatch = useAppDispatch();
@@ -53,12 +54,9 @@ export const ItemRestaurantCategoriesTree = () => {
 
   const ensureParentsExist = (categories) => {
     const allParents = categories.flatMap(category => category.parents);
-
     const allParentIds = new Set(allParents.map(parent => parent.id));
     const existingIds = new Set(categories.map(category => category.id));
-
     const missingParents = Array.from(allParentIds).filter(id => !existingIds.has(id));
-
     const addedParents = missingParents.map(id => {
       const parent = allParents.find(parent => parent.id === id);
       return {
@@ -69,10 +67,9 @@ export const ItemRestaurantCategoriesTree = () => {
         accountingGroups: [],
         visibility: null,
         itemsCount: null,
-        imageUrl: parent?.attachments?.[0]?.url, // if available
+        imageUrl: parent?.attachments?.[0]?.url,
       };
     });
-
     return [...categories, ...addedParents];
   };
 
@@ -109,14 +106,12 @@ export const ItemRestaurantCategoriesTree = () => {
           id: category.id,
           key: category.id,
           label: category.name + ` (${category?.itemsCount} items)`,
-          imageUrl: category.attachments?.[0]?.url, // new property for the category image
+          imageUrl: category.attachments?.[0]?.url,
           data: `${category.name} Folder`,
           children: buildTree(categories, category.id, key),
         };
       });
   };
-
-  console.log(categoryList, 'categorylist');
 
   const handleSearchChange = (e) => {
     const term = e.target.value;
@@ -177,6 +172,21 @@ export const ItemRestaurantCategoriesTree = () => {
     );
   };
 
+  const handleDragDrop = (e: TreeDragDropEvent) => {
+    setNodes(e.value);
+    console.log(e)
+    if (e.dragNode) {
+      const draggedId = e.dragNode.id;
+      const newParentId = e.dropNode?.id;
+      // update the dragged category with the new parent using the "parents" array
+      const entity: ITerm = {
+        ...categoryList.find(c => c.id === draggedId),
+        parents: newParentId ? [{ id: newParentId }] : [],
+      };
+      dispatch(updateEntity(entity));
+    }
+  };
+
   return (
     <Row className="justify-content-center">
       <Col md={'6'} className="p-2">
@@ -199,7 +209,7 @@ export const ItemRestaurantCategoriesTree = () => {
           className="w-100"
           selectionKeys={selectedNodeKey}
           dragdropScope="demo"
-          onDragDrop={(e) => setNodes(e.value)}
+          onDragDrop={handleDragDrop}
           expandedKeys={expandedKeys}
           onToggle={(e) => setExpandedKeys(e.value)}
         />

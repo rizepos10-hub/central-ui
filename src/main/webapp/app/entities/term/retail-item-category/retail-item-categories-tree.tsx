@@ -9,7 +9,7 @@ import { TreeNode } from 'primereact/treenode';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { searchEntities, getEntities } from './retail-item-category.reducer';
+import { searchEntities, getEntities, updateEntity } from './retail-item-category.reducer';
 import { UpdateItemRetailCategoryTree } from './update-retail-item-category-tree';
 
 export const RetailItemCategoryTree = () => {
@@ -53,12 +53,9 @@ export const RetailItemCategoryTree = () => {
 
     const ensureParentsExist = (categories) => {
         const allParents = categories.flatMap(category => category.parents);
-
         const allParentIds = new Set(allParents.map(parent => parent.id));
         const existingIds = new Set(categories.map(category => category.id));
-
         const missingParents = Array.from(allParentIds).filter(id => !existingIds.has(id));
-
         const addedParents = missingParents.map(id => {
             const parent = allParents.find(parent => parent.id === id);
             return {
@@ -72,7 +69,6 @@ export const RetailItemCategoryTree = () => {
                 imageUrl: parent?.attachments?.[0]?.url,
             };
         });
-
         return [...categories, ...addedParents];
     };
 
@@ -94,7 +90,6 @@ export const RetailItemCategoryTree = () => {
         const getData = setTimeout(() => {
             sortEntities();
         }, 2000);
-
         return () => clearTimeout(getData);
     }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
 
@@ -180,6 +175,20 @@ export const RetailItemCategoryTree = () => {
         );
     };
 
+    const handleDragDrop = (e: TreeDragDropEvent) => {
+        setNodes(e.value);
+        console.log(e);
+        if (e.dragNode) {
+            const draggedId = e.dragNode.id;
+            const newParentId = e.dropNode?.id;
+            const entity = {
+                ...categoryList.find(c => c.id === draggedId),
+                parents: newParentId ? [{ id: newParentId }] : [],
+            };
+            dispatch(updateEntity(entity));
+        }
+    };
+
     return (
         <Row className="justify-content-center">
             <Col md={'6'} className="p-2">
@@ -202,7 +211,7 @@ export const RetailItemCategoryTree = () => {
                     className="w-100"
                     selectionKeys={selectedNodeKey}
                     dragdropScope="demo"
-                    onDragDrop={(e) => setNodes(e.value)}
+                    onDragDrop={handleDragDrop}
                     expandedKeys={expandedKeys}
                     onToggle={(e) => setExpandedKeys(e.value)}
                 />
