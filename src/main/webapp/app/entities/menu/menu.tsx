@@ -19,6 +19,8 @@ import { Dropdown } from "primereact/dropdown";
 import MenuUpdate from './menu-update';
 import { convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 import { IBranch } from 'app/shared/model/branch.model';
+import { IAttachment } from 'app/shared/model/attachment.model';
+import ImageDisplay from 'app/shared/components/image/image-display';
 
 export const Menu = () => {
   const dispatch = useAppDispatch();
@@ -51,6 +53,7 @@ export const Menu = () => {
 
   const [selectedBranches, setSelectedBranches] = useState<IBranch[]>([]);
   const [selectedName, setSelectedName] = useState("");
+  const [selectedAttachment, setSelectedAttachment] = useState<IAttachment>()
 
   const getAllEntities = () => {
 
@@ -176,15 +179,15 @@ export const Menu = () => {
           data-pr-position="top"
           tooltip={translate('items.view.actions.refreshList')}
         />
-        
+
         <Button
-        icon="pi pi-plus"
-        raised
-        onClick={() => setIsModalOpen(true)}
-        disabled={loading}
-        data-pr-position="top"
-        tooltip={translate('menus.shared.view.table.buttons.createNewMenu')}
-      />
+          icon="pi pi-plus"
+          raised
+          onClick={() => setIsModalOpen(true)}
+          disabled={loading}
+          data-pr-position="top"
+          tooltip={translate('menus.shared.view.table.buttons.createNewMenu')}
+        />
       </div>
     </div>
   );
@@ -198,6 +201,7 @@ export const Menu = () => {
       ...values,
       branches: selectedBranches,
       type: menuType,
+      image: selectedAttachment,
     };
 
     dispatch(createEntity(entity)).then((res) => {
@@ -217,6 +221,8 @@ export const Menu = () => {
         setSelectedName={setSelectedName}
         selectedBranches={selectedBranches}
         setSelectedBranches={setSelectedBranches}
+        selectedAttachment={selectedAttachment}
+        setSelectedAttachment={setSelectedAttachment}
       />
       <div>
         <DataTable value={menuList} header={header} editMode="row"
@@ -238,6 +244,17 @@ export const Menu = () => {
             filter
             filterElement={branchFilter}
             filterField={"branch.name"}
+          />
+          <Column
+            header={translate('items.view.fields.image')}
+            body={(rowData) =>
+              <ImageDisplay
+                imageType={"product"}
+                imageUrl={rowData?.image?.url}
+                height={50}
+                width={50}
+              />
+            }
           />
           <Column
             field="lastModifiedDate"
