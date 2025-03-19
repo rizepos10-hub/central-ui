@@ -545,7 +545,7 @@ const OrderCreate = () => {
                     ref={filterInputRef}
                     value={filterValue}
                     onChange={handleFilterChange}
-                    placeholder="Select an order method"
+                    placeholder="Search"
                 />
                 <Button icon="pi pi-times" onClick={handleFilterReset} />
             </div>
