@@ -32,6 +32,7 @@ import Visibility from "app/shared/Visibility/Visibility";
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { IVisibility } from 'app/shared/model/visibility.model';
 import { IBranch } from 'app/shared/model/branch.model';
+import { IAttachment } from 'app/shared/model/attachment.model';
 
 export interface IMenuData {
     name: string;
@@ -41,6 +42,7 @@ export interface IMenuData {
     rowHeight: any[];
     id: string;
     numberOfColumns: number;
+    image: IAttachment;
 }
 
 const MenuInstance = () => {
@@ -62,6 +64,7 @@ const MenuInstance = () => {
     const [showVisibility, setShowVisibility] = useState(false);
     const [selectedBranches, setSelectedBranches] = useState<IBranch[]>([]);
     const [selectedName, setSelectedName] = useState("");
+    const [selectedAttachment, setSelectedAttachment] = useState<IAttachment>()
 
     const [data, setData] = useState<IMenuData>({
         name: '',
@@ -71,6 +74,7 @@ const MenuInstance = () => {
         rowHeight: [],
         id: '',
         numberOfColumns: 1,
+        image: null,
     });
 
     useEffect(() => {
@@ -89,6 +93,7 @@ const MenuInstance = () => {
                 numberOfColumns: menuEntity.numberOfColumns,
                 rowHeight: menuEntity.rowHeight,
                 id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
+                image: menuEntity.image,
             };
             console.log(newData, 'newData')
             setData(newData);
@@ -117,6 +122,7 @@ const MenuInstance = () => {
             visibilities: data.visibilities,
             rowHeight: data.rowHeight,
             numberOfColumns: data.numberOfColumns,
+            image: selectedAttachment,
         };
 
         if (isNew) {
@@ -178,6 +184,8 @@ const MenuInstance = () => {
                     setSelectedBranches={setSelectedBranches}
                     selectedName={selectedName}
                     setSelectedName={setSelectedName}
+                    selectedAttachment={selectedAttachment}
+                    setSelectedAttachment={setSelectedAttachment}
                 />
             )}
 

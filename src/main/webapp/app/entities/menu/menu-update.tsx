@@ -10,6 +10,9 @@ import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { useParams } from 'react-router-dom'
 import { getEntity } from './menu.reducer';
 import { IBranch } from 'app/shared/model/branch.model'
+import MediaLibrary from 'app/shared/components/media-library/media-library'
+import { IAttachment } from 'app/shared/model/attachment.model'
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils'
 
 const MenuUpdate = ({
     setIsModalOpen,
@@ -20,6 +23,8 @@ const MenuUpdate = ({
     setSelectedBranches,
     selectedName,
     setSelectedName,
+    selectedAttachment,
+    setSelectedAttachment,
 }: {
     setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
     isModalOpen: boolean;
@@ -29,6 +34,8 @@ const MenuUpdate = ({
     setSelectedBranches: React.Dispatch<React.SetStateAction<IBranch[]>>;
     selectedName: string;
     setSelectedName: React.Dispatch<React.SetStateAction<string>>;
+    selectedAttachment: IAttachment;
+    setSelectedAttachment: React.Dispatch<React.SetStateAction<IAttachment>>;
 }) => {
     const dispatch = useAppDispatch();
     const { id } = useParams<'id'>();
@@ -50,7 +57,9 @@ const MenuUpdate = ({
 
     useEffect(() => {
         setSelectedBranches(menuEntity?.branches)
-    }, [menuEntity?.branches])
+        setSelectedAttachment(menuEntity?.image)
+        setSelectedName(menuEntity?.name)
+    }, [menuEntity])
 
     return (
         <Modal isOpen={isModalOpen} toggle={() => setIsModalOpen(prev => !prev)} className="modal-lg">
@@ -92,6 +101,14 @@ const MenuUpdate = ({
                             data-cy="branch"
                             isMulti
                             isClearable
+                        />
+                    </div>
+                    <div className="my-3">
+                        <MediaLibrary
+                            handleFilesSelectCallback={(files) => setSelectedAttachment(transformAttachmentStructure(files, 'toIAttachment')[0])}
+                            defaultValues={selectedAttachment ? transformAttachmentStructure([selectedAttachment], 'toFileLibraryListItem') : []}
+                        // handleFilesSelectCallback={(files) => dispatch(changeEntityField({ name: 'logo', value: transformAttachmentStructure(files, 'toIAttachment')[0] }))}
+                        // defaultValues={transformAttachmentStructure(brandEntity.logo ? [brandEntity.logo] : [], 'toFileLibraryListItem')}
                         />
                     </div>
                     <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => setIsModalOpen(prev => !prev)} replace='true' color="info">

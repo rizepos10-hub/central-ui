@@ -3,6 +3,7 @@ import { ITerm } from 'app/shared/model/term.model';
 import { IBranch } from 'app/shared/model/branch.model';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { IVisibility } from "app/shared/model/visibility.model";
+import { IAttachment } from './attachment.model';
 
 export interface IMenu {
   id?: string;
@@ -20,6 +21,7 @@ export interface IMenu {
   type?: "POS" | "ONLINE_ORDERING";
   numberOfColumns?: number;
   rowHeight?: number[];
+  image?: IAttachment;
 }
 
 export interface IMenuScreen {
