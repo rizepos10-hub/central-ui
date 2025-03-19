@@ -4,7 +4,8 @@ export enum SalesReportsTypes {
   Branch = "BRANCH",
   User = "USER",
   Customer = "CUSTOMER",
-  Tag = "TAG"
+  Tag = "TAG",
+  Menu = "MENU",
 }
 
 export enum SalesReportsMeasures {

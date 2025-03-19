@@ -165,10 +165,10 @@ const EndOfDayReport = () => {
 
   const firstBillDate = new Date(
     billsSummary?.firstBill?.createdDate
-  ).toLocaleDateString();
+  ).toLocaleString();
   const lastBillDate = new Date(
     billsSummary?.lastBill?.createdDate
-  ).toLocaleDateString();
+  ).toLocaleString();
 
   return (
     <div ref={printWrapper}>
