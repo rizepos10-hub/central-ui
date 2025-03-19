@@ -44,6 +44,7 @@ import { createEntity as createTill, closeEntity, confirmCloseEntity, getEntitie
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Avatar } from "primereact/avatar";
 import { Badge } from "primereact/badge";
+import { FaArrowLeft } from 'react-icons/fa';
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
@@ -57,6 +58,7 @@ const OrderCreate = () => {
     const customers: ICustomer[] = useAppSelector(state => state.customer.entities)
     const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
     const searchParams = new URLSearchParams(location.search);
+    const selectedRegistryId = searchParams.get("registerId");
     const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
     const filterInputRef = useRef();
     const initialRender = useRef(true);
@@ -123,6 +125,10 @@ const OrderCreate = () => {
         getOpenTills(branchRegistryIds);
     }, [branchRegistry])
 
+    useEffect(() => {
+        checkTillStatus(branchRegistry.find(record => record.id === selectedRegistryId));
+    }, [tillList])
+
     const checkTillStatus = (registry: IBranchRegistry) => {
         dispatch(changeEntityField({
             name: 'branchId',
@@ -137,6 +143,8 @@ const OrderCreate = () => {
             })
         )
 
+        console.log(registry);
+        console.log(tillList);
         if (tillList.length === 0) {
             setTillStatus("CLOSED");
             setTill(null);
@@ -144,6 +152,7 @@ const OrderCreate = () => {
         }
 
         const openedTill = tillList.find((till) => till?.registry?.branch?.id === registry?.branch?.id);
+        console.log(openedTill);
 
         if (openedTill) {
             setTill(openedTill);
@@ -536,7 +545,7 @@ const OrderCreate = () => {
                     ref={filterInputRef}
                     value={filterValue}
                     onChange={handleFilterChange}
-                    placeholder="Search customers"
+                    placeholder="Select an order method"
                 />
                 <Button icon="pi pi-times" onClick={handleFilterReset} />
             </div>
@@ -679,25 +688,37 @@ const OrderCreate = () => {
             </Dialog>
             <Row className="mb-3 h-100">
                 <Col md={4} className="d-flex justify-content-between align-items-center">
-                    {branchRegistry.map((registry) => (
-                        <div style={{
-                            border: orderEntity?.branchId === registry?.branch?.id ? '2px solid green' : 'none',
-                            borderRadius: '50%',
-                            padding: '5px',
-                            cursor: 'pointer'
-                        }} onClick={() => checkTillStatus(registry)}>
-                            <Avatar id={`branch-${registry?.branch?.name?.toLowerCase().replace(/\s+/g, "_")}`} label={registry?.branch?.name.charAt(0).toUpperCase()} className="p-mr-2" size="large" shape="circle" />
-                            <div className="relative inline-block">
-                            <Tooltip target={`branch-${registry?.branch?.name?.toLowerCase().replace(/\s+/g, "_")}`} content={registry?.branch?.name} />
-                            
+                    <button type="button" className="btn btn-outline-secondary btn-icon" onClick={() => navigate(-1)}>
+                        <FaArrowLeft size={16} />
+                        <span className="visually-hidden">Back</span>
+                    </button>
+
+                    {branchRegistry.filter((res) => {
+                        if (selectedRegistryId) {
+                            return res.id === selectedRegistryId;
+                        } else {
+                            return res.type === RegisterType.ONLINE;
+                        }
+                    }).map((registry) => (
+                        <div
+                        key={registry.id}
+                        className={`p-4 ml-5 border rounded-lg cursor-pointer flex flex-col items-center justify-center ${
+                            orderEntity?.branchId === registry?.branch?.id ? 'border-green-500' : 'border-gray-300'
+                        }`}
+                        onClick={() => checkTillStatus(registry)}
+                        >
+                        <div className="text-lg font-semibold">{registry?.branch?.name}</div>
+                        <div className="relative ml-4">
                             <Badge
                                 value=""
                                 className={`absolute bottom-0 right-0 h-5 w-5 border-2 border-white rounded-full p-1 ${
-                                    tillList.find((till) => till?.registry?.branch?.id === registry?.branch?.id)?.status === "OPENED" ? "bg-green-500" : "bg-red-500"
+                                    tillList.find((till) => till?.registry?.branch?.id === registry?.branch?.id)?.status === "OPENED"
+                                        ? "bg-green-500"
+                                        : "bg-red-500"
                                 }`}
                             />
-                            </div>
                         </div>
+                    </div>
                     ))}
 
                 </Col>
@@ -710,18 +731,7 @@ const OrderCreate = () => {
                 </Col>  
                 {orderEntity?.branchId && (
                     <div style={{ marginTop: "20px" }}>
-                        <p>
-                        <strong className='f'>Till Status:</strong>{" "}
-                            <span
-                                className={`font-bold ${
-                                tillStatus === "OPENED" ? "text-green-500" : "text-red-500"
-                                }`}
-                            >
-                                {tillStatus || "Checking..."}
-                            </span>
-                        </p>
-
-                        {tillStatus !== "OPENED" ? (
+                            {tillStatus !== "OPENED" ? (
                         <Button
                             onClick={() => setDialogTillOpen(true)}
                             className="p-button-primary"
@@ -730,9 +740,6 @@ const OrderCreate = () => {
                         </Button>
                         ) : (
                         <>
-                            <Button className="p-button-success" disabled>
-                            Continue Selling
-                            </Button>
                             <Button
                             onClick={() => setCloseTillDialog(true)}
                             className="p-button-danger float-end"
@@ -1057,7 +1064,6 @@ const OrderCreate = () => {
                 }}>
 
                     <div className="px-2">
-                        Order Method
                         <Dropdown
                             options={Object.values(OrderMethod)
                                 .filter((type) => type !== OrderMethod.DineIn)
@@ -1083,7 +1089,7 @@ const OrderCreate = () => {
                         />
                     </div>
 
-                    <div className="px-2">Edit User
+                    <div className="px-2">
                         <Dropdown
                             options={filteredOptions.map(customer => ({
                                 label: `${customer.firstName ? customer.firstName : ''} ${customer.lastName ? customer.lastName : ''}`,

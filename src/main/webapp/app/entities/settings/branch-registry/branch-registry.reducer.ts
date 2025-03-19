@@ -41,6 +41,11 @@ export const getEntities = createAsyncThunk('branch-registry/fetch_entity_list',
   return axios.get<IBranchRegistry[]>(requestUrl);
 });
 
+export const getEntitiesByType = createAsyncThunk('branch-registry/fetch_entity_list', async ({ page, size, sort, type }: IQueryParams) => {
+  const requestUrl = `${apiUrl}/by-type${sort ? `?page=${page}&size=${size}&sort=${sort}&type=${type}&` : '?'}cacheBuster=${new Date().getTime()}&type=${type}`;
+  return axios.get<IBranchRegistry[]>(requestUrl);
+});
+
 export const getEntity = createAsyncThunk(
   'branch-registry/fetch_entity',
   async (id: string | number) => {

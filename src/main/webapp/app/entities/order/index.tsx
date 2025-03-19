@@ -10,10 +10,12 @@ import OrderCreate from './order-create';
 import PrintOrder from './print-order';
 import PrintBill from './print-bill';
 import OrderScheduled from './order-scheduled';
+import ChooseBranch from './choose-branch';
 
 const OrderRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<Order />} />
+    <Route path="choose-branch" element={<ChooseBranch />} />
     <Route path="create" element={<OrderCreate />} />
     <Route path="today" element={<TodayOrder />} />
     <Route path="scheduled" element={<OrderScheduled />} /> 

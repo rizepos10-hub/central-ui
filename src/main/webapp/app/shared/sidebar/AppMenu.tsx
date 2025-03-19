@@ -366,7 +366,7 @@ export const model: MenuItem[] = [
       {
         label: 'Create',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-        to: '/order/create',
+        to: '/order/choose-branch',
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
     ],
