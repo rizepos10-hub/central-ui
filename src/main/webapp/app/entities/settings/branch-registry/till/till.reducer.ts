@@ -73,6 +73,25 @@ export const closeEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+
+export const confirmCloseEntity = createAsyncThunk(
+  'till/fetch_entity',
+  async ({ id, closeAmount }: { id: string | number; closeAmount: number }) => {
+    const requestUrl = `${apiUrl}/${id}/confirm?closeAmount=${closeAmount}`;
+    return axios.post<ITill>(requestUrl);
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const getEntitiesByStatusOpened = createAsyncThunk(
+  'till/fetch_entity',
+  async (ids: string[]) => {
+    const requestUrl = `${apiUrl}/open/by-register-ids?status=OPENED`;
+    return axios.post<ITill>(requestUrl, ids);
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const createEntity = createAsyncThunk(
   'till/create_entity',
   async (entity: ITill, thunkAPI) => {

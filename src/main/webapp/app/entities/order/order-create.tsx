@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { Container, Row, Col, Card, CardImg, CardBody, CardTitle, CardSubtitle, InputGroup, InputGroupText, Input, Label } from 'reactstrap';
+import { Container, Row, Col, Card, CardImg, CardBody, CardTitle, InputGroup, InputGroupText, Input } from 'reactstrap';
 import { Button } from 'primereact/button';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model';
@@ -36,11 +36,20 @@ import { getEntities as getPricingPoints } from 'app/entities/settings/pricing-p
 import { IPricingPoint, PricingPointType } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { OrderMethod } from "app/shared/model/ENUMS/order-method.model";
 import { OrderStatus } from 'app/shared/model/ENUMS/order-status.model';
+import { getEntitiesByType } from '../settings/branch-registry/branch-registry.reducer';
+import { RegisterType } from 'app/shared/model/ENUMS/branch-registry-type';
+import { IBranchRegistry } from 'app/shared/model/branch-registry.model';
+import { ITill, TillStatus } from 'app/shared/model/till.model';
+import { createEntity as createTill, closeEntity, confirmCloseEntity, getEntitiesByStatusOpened } from '../settings/branch-registry/till/till.reducer';
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { Avatar } from "primereact/avatar";
+import { Badge } from "primereact/badge";
+import { FaArrowLeft } from 'react-icons/fa';
 
 const OrderCreate = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-
+    const ORDER_METHOD = 'orderMethod';
     const orderEntity: IOrder = useAppSelector(state => state.order.entity);
     const orderLoading = useAppSelector(state => state.order.loading);
     const products: IProduct[] = useAppSelector(state => state.product.entities)
@@ -49,16 +58,25 @@ const OrderCreate = () => {
     const customers: ICustomer[] = useAppSelector(state => state.customer.entities)
     const pricingPoints: IPricingPoint[] = useAppSelector(state => state.pricingPoint.entities);
     const searchParams = new URLSearchParams(location.search);
-
+    const selectedRegistryId = searchParams.get("registerId");
+    const branchRegistry: IBranchRegistry[] = useAppSelector(state => state.branchRegistry.entities);
     const filterInputRef = useRef();
     const initialRender = useRef(true);
     const moreActionsOP = useRef(null);
     const discountOP = useRef(null);
-
+    const [initialAmount, setInitialAmount] = useState(0);
+    const [dialogTillOpen, setDialogTillOpen] = useState(false);
+    const [closeTillDialog, setCloseTillDialog] = useState(false);
+    
+    const [till, setTill] = useState<ITill | null>(null);
+    const [tillList, setTillList] = useState<ITill[]>([]);
+    const [loading, setLoading] = useState(false);
     const [filterValue, setFilterValue] = useState('');
     const [pricingPointId, setPricingPointId] = useState('');
     const [filteredOptions, setFilteredOptions] = useState(customers);
     const [searchTermProduct, setSearchTermProduct] = useState('');
+    const [tillStatus, setTillStatus] = useState<TillStatus>(null);
+    const [closingAmount, setClosingAmount] = useState<number | null>(null);
     const [variantDialog, setVariantDialog] = useState<{
         product: IProduct,
         visible: boolean,
@@ -93,6 +111,116 @@ const OrderCreate = () => {
         setFilteredOptions(customers)
     }, [customers])
 
+    const getOpenTills = (ids: string[]) => {
+        dispatch(
+            getEntitiesByStatusOpened(ids)
+        ).then((action) => {
+            const tillsList = (action?.payload as { data: ITill[] })?.data;
+            setTillList(tillsList);
+        });
+    }
+
+    useEffect(() => {
+        const branchRegistryIds = branchRegistry.map(record => record.id);
+        getOpenTills(branchRegistryIds);
+    }, [branchRegistry])
+
+    useEffect(() => {
+        checkTillStatus(branchRegistry.find(record => record.id === selectedRegistryId));
+    }, [tillList])
+
+    const checkTillStatus = (registry: IBranchRegistry) => {
+        dispatch(changeEntityField({
+            name: 'branchId',
+            value: registry?.branch?.id,
+        }))
+
+        const orderMethod = localStorage.getItem(ORDER_METHOD) || OrderMethod.PickUp;
+        dispatch(
+            changeEntityField({
+                name: 'orderMethod',
+                value: orderMethod as OrderMethod,
+            })
+        )
+
+        console.log(registry);
+        console.log(tillList);
+        if (tillList.length === 0) {
+            setTillStatus("CLOSED");
+            setTill(null);
+            return;
+        }
+
+        const openedTill = tillList.find((till) => till?.registry?.branch?.id === registry?.branch?.id);
+        console.log(openedTill);
+
+        if (openedTill) {
+            setTill(openedTill);
+            setTillStatus("OPENED");
+        } else {
+            setTill(null);
+            setTillStatus("CLOSED");
+        }
+    }
+
+    const openTill = async () => {
+        setLoading(true);
+        if (tillStatus === "OPENED") return toast.error('Till is already open!');
+        if (!initialAmount) return toast.error('Please enter an initial amount!');
+        const branchRegistryRecord: IBranchRegistry = branchRegistry.find(record => record.branch.id === orderEntity.branchId);
+        if (!branchRegistryRecord) {
+            toast.error('Branch registry record not found');
+            return;
+        }
+        dispatch(
+            createTill({
+                openAmount: initialAmount,
+                name: "Online Till",
+                registry: branchRegistryRecord,
+            })
+        ).then((action)=> {
+            const till = (action?.payload as { data: ITill })?.data
+            setTill(till);
+            setDialogTillOpen(false);
+            setLoading(false);
+            toast.success('Till opened successfully');
+            setTillStatus("OPENED")
+            getOpenTills(branchRegistry.map(record => record.id));
+        }).catch((error) => {
+            setLoading(false);
+        })
+        
+    };
+
+    const closeTill = async () => {
+        if (!closingAmount) return toast.error("Please enter a closing amount!");
+        setLoading(true);
+        try {
+            dispatch(closeEntity(till.id)).then(() => {
+                dispatch(confirmCloseEntity({
+                    id: till.id,
+                    closeAmount: closingAmount,
+                })).then(() => {
+                    toast.success("Till closed successfully");
+                    setTillStatus("CLOSED");
+                    setCloseTillDialog(false);
+                    setTill(null);
+                    setClosingAmount(null);
+                    setLoading(false);
+                    getOpenTills(branchRegistry.map(record => record.id));
+                }).catch((error) => {
+                    setLoading(false);
+                    toast.error("Error closing till:", error);
+                })
+            }).catch((error) => {
+                setLoading(false);
+                toast.error("Error closing till:", error);
+            })
+        } catch (error) {
+            setLoading(false);
+            toast.success("Error closing till:", error);
+        }
+    };
 
 
     const formatPricingPointOrderType = (orderType: OrderMethod) => {
@@ -148,6 +276,12 @@ const OrderCreate = () => {
                 sort: `id,desc`,
             })
         );
+
+        dispatch(
+            getEntitiesByType({
+                type: RegisterType.ONLINE,
+            })
+        )
         dispatch(reset())
     }, [])
     const createQueryString = useCallback((name, value) => {
@@ -310,6 +444,7 @@ const OrderCreate = () => {
             scheduledAt: null,
             orderMethod: orderEntity?.orderMethod,
             processingStatus: OrderStatus.PROCESSING,
+            tillId: till?.id,
         }
 
         dispatch(createEntity(structuredEntity)).then(() => {
@@ -321,7 +456,14 @@ const OrderCreate = () => {
                 availableVariants: []
             })
 
-            dispatch(reset())
+            const branchId = orderEntity.branchId;
+            dispatch(reset());
+            if (branchId) {
+                dispatch(changeEntityField({
+                    name: 'branchId',
+                    value: branchId,
+                }));
+            }
             toast.success('Order Created Successfully!')
         }).finally(() => {
             setOpenPaymentModal(false)
@@ -403,7 +545,7 @@ const OrderCreate = () => {
                     ref={filterInputRef}
                     value={filterValue}
                     onChange={handleFilterChange}
-                    placeholder="Search customers"
+                    placeholder="Search"
                 />
                 <Button icon="pi pi-times" onClick={handleFilterReset} />
             </div>
@@ -544,8 +686,138 @@ const OrderCreate = () => {
                     </Button>
                 </div>
             </Dialog>
-
             <Row className="mb-3 h-100">
+                <Col md={4} className="d-flex justify-content-between align-items-center">
+                    <button type="button" className="btn btn-outline-secondary btn-icon" onClick={() => navigate(-1)}>
+                        <FaArrowLeft size={16} />
+                        <span className="visually-hidden">Back</span>
+                    </button>
+
+                    {branchRegistry.filter((res) => {
+                        if (selectedRegistryId) {
+                            return res.id === selectedRegistryId;
+                        } else {
+                            return res.type === RegisterType.ONLINE;
+                        }
+                    }).map((registry) => (
+                        <div
+                        key={registry.id}
+                        className={`p-4 ml-5 border rounded-lg cursor-pointer flex flex-col items-center justify-center ${
+                            orderEntity?.branchId === registry?.branch?.id ? 'border-green-500' : 'border-gray-300'
+                        }`}
+                        onClick={() => checkTillStatus(registry)}
+                        >
+                        <div className="text-lg font-semibold">{registry?.branch?.name}</div>
+                        <div className="relative ml-4">
+                            <Badge
+                                value=""
+                                className={`absolute bottom-0 right-0 h-5 w-5 border-2 border-white rounded-full p-1 ${
+                                    tillList.find((till) => till?.registry?.branch?.id === registry?.branch?.id)?.status === "OPENED"
+                                        ? "bg-green-500"
+                                        : "bg-red-500"
+                                }`}
+                            />
+                        </div>
+                    </div>
+                    ))}
+
+                </Col>
+                <Col md={12} className="d-flex justify-content-between align-items-center">
+                    {!orderEntity?.branchId && orderEntity?.items?.length > 0 && (
+                        <div className="text-danger">
+                            Please select a branch
+                        </div>
+                    )}
+                </Col>  
+                {orderEntity?.branchId && (
+                    <div style={{ marginTop: "20px" }}>
+                            {tillStatus !== "OPENED" ? (
+                        <Button
+                            onClick={() => setDialogTillOpen(true)}
+                            className="p-button-primary"
+                        >
+                            Open Till
+                        </Button>
+                        ) : (
+                        <>
+                            <Button
+                            onClick={() => setCloseTillDialog(true)}
+                            className="p-button-danger float-end"
+                            style={{ marginLeft: "10px" }}
+                            >
+                            Close Till
+                            </Button>
+                        </>
+                        )}
+                    </div>
+                    )}
+            </Row>
+
+            <Dialog
+                visible={dialogTillOpen}
+                onHide={() => setDialogTillOpen(false)}
+                header="Enter Initial Amount"
+                footer={
+                <>
+                    {!loading && <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={() => setDialogTillOpen(false)} /> &&
+                    <Button label="Open Till" icon="pi pi-check" className="p-button-primary" onClick={openTill} />}
+
+                    {
+                        loading && 
+                        <div className='d-flex justify-content-center'>
+                            <ProgressSpinner style={{width: '50px', height: '50px'}} strokeWidth="4" fill="var(--surface-ground)" animationDuration=".5s" />
+                        </div>
+                    }
+                </>
+                }
+            >
+                <div className="flex flex-column gap-2">
+                <label>Initial Amount</label>
+                <InputNumber
+                    value={initialAmount}
+                    onValueChange={(e) => setInitialAmount(e.value)}
+                    mode="currency"
+                    currency="USD"
+                    className="w-full"
+                />
+                </div>
+            </Dialog>
+
+            <Dialog
+                visible={closeTillDialog}
+                onHide={() => setCloseTillDialog(false)}
+                header="Enter Closing Amount"
+                footer={
+                <>
+                    {!loading && 
+                    <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={() => setCloseTillDialog(false)} /> &&
+                    <Button label="Close Till" icon="pi pi-lock" className="p-button-danger" onClick={closeTill} />}
+
+
+                    {
+                        loading && 
+                        <div className='d-flex justify-content-center'>
+                            <ProgressSpinner style={{width: '50px', height: '50px'}} strokeWidth="4" fill="var(--surface-ground)" animationDuration=".5s" />
+                        </div>
+                    }
+
+                </>
+                }
+            >
+                <div className="flex flex-column gap-2">
+                <label>Closing Amount</label>
+                <InputNumber
+                    value={closingAmount}
+                    onValueChange={(e) => setClosingAmount(e.value)}
+                    mode="currency"
+                    currency="USD"
+                    className="w-full"
+                />
+                </div>
+            </Dialog>
+
+
+            {till && <Row className="mb-3 h-100">
                 <Col md={8}>
                     <Row>
                         <Col md={6}>
@@ -590,7 +862,7 @@ const OrderCreate = () => {
                     </OverlayPanel>
                 </Col>
             </Row>
-
+            &&
             <Row style={{
                 height: '80vh'
             }}>
@@ -792,7 +1064,6 @@ const OrderCreate = () => {
                 }}>
 
                     <div className="px-2">
-                        Order Method
                         <Dropdown
                             options={Object.values(OrderMethod)
                                 .filter((type) => type !== OrderMethod.DineIn)
@@ -802,14 +1073,15 @@ const OrderCreate = () => {
                                 }))}
                             placeholder="Select an order method"
                             value={orderEntity?.orderMethod} // Replace this with your actual state field
-                            onChange={(e) =>
+                            onChange={(e) =>{
                                 dispatch(
                                     changeEntityField({
                                         name: 'orderMethod',
                                         value: e.value,
                                     })
                                 )
-                            }
+                                localStorage.setItem(ORDER_METHOD, e.value)
+                            }}
                             className="w-100"
                             showClear
                             filter
@@ -817,7 +1089,7 @@ const OrderCreate = () => {
                         />
                     </div>
 
-                    <div className="px-2">Edit User
+                    <div className="px-2">
                         <Dropdown
                             options={filteredOptions.map(customer => ({
                                 label: `${customer.firstName ? customer.firstName : ''} ${customer.lastName ? customer.lastName : ''}`,
@@ -852,26 +1124,7 @@ const OrderCreate = () => {
                             maxHeight: '95%',
                         }}
                     >
-                        <Dropdown
-                            value={orderEntity?.branchId}
-                            options={branches.map(branch => ({ label: branch.name, value: branch.id }))}
-                            onChange={(e) => dispatch(changeEntityField({
-                                name: 'branchId',
-                                value: e.value,
-                            }))}
-                            placeholder="Select a Branch"
-                            className='w-100'
-                            showClear
-                            filter
-                        />
-
                         {displayUserSelectionPricingPoint()}
-
-                        {!orderEntity?.branchId && orderEntity?.items?.length > 0 && (
-                            <span className="text-danger">
-                                Please select a branch
-                            </span>
-                        )}
                         <Accordion
                             style={{
                                 overflowX: 'hidden',
@@ -1123,7 +1376,7 @@ const OrderCreate = () => {
                         </div>
                     </div>
                 </Col>
-            </Row>
+            </Row> }
         </Container >
     )
 }
