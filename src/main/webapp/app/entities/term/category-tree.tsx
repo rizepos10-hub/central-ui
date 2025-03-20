@@ -39,6 +39,9 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
     const categoryList = useAppSelector(selector);
     const loading = loadingSelector ? useAppSelector(loadingSelector) : false;
 
+    // Local state for optimistic UI update for visibility changes.
+    const [visibilityOverrides, setVisibilityOverrides] = useState<Record<string, Record<string, boolean>>>({});
+
     const getAllEntities = () => {
         dispatch(
             getEntities({
@@ -156,6 +159,16 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
 
     // Handler to update visibility for a given source type.
     const handleVisibilityChange = (e, nodeId: any, source: SourceType) => {
+        const newValue = e.target.checked;
+        // Optimistically update the local override state.
+        setVisibilityOverrides((prev) => ({
+            ...prev,
+            [nodeId]: {
+                ...(prev[nodeId] || {}),
+                [source]: newValue,
+            },
+        }));
+
         const entity = categoryList.find((c: any) => String(c.id) === String(nodeId));
         if (!entity) return;
         // Clone the array to avoid mutating a read-only object.
@@ -164,27 +177,31 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
         if (existingIndex !== -1) {
             currentVisibility[existingIndex] = {
                 ...currentVisibility[existingIndex],
-                visible: e.target.checked,
+                visible: newValue,
                 schedule: currentVisibility[existingIndex].schedule || {}
             };
         } else {
             currentVisibility.push({
                 application: source,
-                visible: e.target.checked,
+                visible: newValue,
                 schedule: {}
             });
         }
         dispatch(updateEntity({ ...entity, visibility: currentVisibility }));
     };
+
     // Helper to extract the visibility flag for a given source from an array.
     const getVisibilityForSource = (entity: any, source: SourceType): boolean => {
+        // Check for local optimistic override first.
+        if (entity && visibilityOverrides[entity.id] && typeof visibilityOverrides[entity.id][source] === 'boolean') {
+            return visibilityOverrides[entity.id][source];
+        }
         if (entity && Array.isArray(entity.visibility)) {
             const item = entity.visibility.find((v: any) => v.application === source);
             if (item && typeof item.visible === 'boolean') return item.visible;
         }
         return true; // default is true if not defined
     };
-
 
     const nodeTemplate = (node: any, options: any) => {
         const entity = categoryList.find((c: any) => String(c.id) === String(node.id));
@@ -222,7 +239,10 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
         if (e.dragNode) {
             const draggedId = e.dragNode.id;
             const siblings = e.dropNode ? e.dropNode.children : e.value;
-            const newIndex = e.dropIndex !== undefined ? e.dropIndex : siblings.findIndex((node: any) => String(node.id) === String(draggedId));
+            const newIndex =
+                e.dropIndex !== undefined
+                    ? e.dropIndex
+                    : siblings.findIndex((node: any) => String(node.id) === String(draggedId));
             // Helper to get order from categoryList.
             const getOrder = (node: any): number => {
                 const cat = categoryList.find((c: any) => String(c.id) === String(node.id));
@@ -258,7 +278,13 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
                 <Input type="text" value={search} onChange={handleSearchChange} placeholder="Search..." className="mb-3" />
                 <div style={{ marginBottom: '1rem' }}>
                     <Button label="Expand All" icon="pi pi-plus" onClick={expandAll} className="p-button-success" />
-                    <Button label="Collapse All" icon="pi pi-minus" onClick={collapseAll} className="p-button-secondary" style={{ marginLeft: '0.5rem' }} />
+                    <Button
+                        label="Collapse All"
+                        icon="pi pi-minus"
+                        onClick={collapseAll}
+                        className="p-button-secondary"
+                        style={{ marginLeft: '0.5rem' }}
+                    />
                 </div>
                 <Tree
                     nodeTemplate={nodeTemplate}
