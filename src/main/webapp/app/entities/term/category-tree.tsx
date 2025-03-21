@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Row, Col, Input } from 'reactstrap';
 import { getSortState } from 'react-jhipster';
@@ -8,14 +8,13 @@ import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { ITerm } from 'app/shared/model/term.model';
-import { SourceType } from 'app/shared/model/ENUMS/source-type.model';
 
 type DynamicCategoryTreeProps = {
     selector: (state: any) => any[];
     loadingSelector?: (state: any) => boolean;
     getEntities: (params: any) => any;
     updateEntity: (entity: any) => any;
-    UpdateComponent: React.ComponentType<{ categoryId: any; onSave: (load?: boolean) => void }>;
+    UpdateComponent: React.ComponentType<{ onSave: (load?: boolean) => void }>;
 };
 
 const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
@@ -28,7 +27,6 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
     const dispatch = useAppDispatch();
     const [nodes, setNodes] = useState<any[]>([]);
     const [expandedKeys, setExpandedKeys] = useState<any>({});
-    const [categoryId, setCategoryId] = useState<any>(undefined);
     const location = useLocation();
     const navigate = useNavigate();
     const [search, setSearch] = useState('');
@@ -39,9 +37,8 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
     const categoryList = useAppSelector(selector);
     const loading = loadingSelector ? useAppSelector(loadingSelector) : false;
 
-    // Local state for optimistic UI update for visibility changes.
-    const [visibilityOverrides, setVisibilityOverrides] = useState<Record<string, Record<string, boolean>>>({});
-
+    const [searchParam, setSearchParams] = useSearchParams();
+    console.log(categoryList, 'categoryList')
     const getAllEntities = () => {
         dispatch(
             getEntities({
@@ -105,16 +102,9 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
         setNodes(treeNodes);
     }, [categoryList, search]);
 
-    const sortEntities = () => {
-        getAllEntities();
-        const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-        if (location.search !== endURL) {
-            navigate(`${location.pathname}${endURL}`);
-        }
-    };
-
     useEffect(() => {
-        sortEntities();
+        console.log(searchParam)
+        getAllEntities();
     }, []);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,14 +113,13 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
 
     const onSelectionChange = (e: any) => {
         const selectedNode = e.value;
-        if (selectedNode !== categoryId) {
-            setCategoryId(selectedNode);
+        if (selectedNode !== searchParam.get("categoryId")) {
+            setSearchParams({ categoryId: selectedNode });
         }
         setSelectedNodeKey(selectedNode);
     };
 
     const updatedTree = (load = true) => {
-        setCategoryId(undefined);
         if (load) {
             getAllEntities();
         }
@@ -157,79 +146,11 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
         }
     };
 
-    // Handler to update visibility for a given source type.
-    const handleVisibilityChange = (e, nodeId: any, source: SourceType) => {
-        const newValue = e.target.checked;
-        // Optimistically update the local override state.
-        setVisibilityOverrides((prev) => ({
-            ...prev,
-            [nodeId]: {
-                ...(prev[nodeId] || {}),
-                [source]: newValue,
-            },
-        }));
-
-        const entity = categoryList.find((c: any) => String(c.id) === String(nodeId));
-        if (!entity) return;
-        // Clone the array to avoid mutating a read-only object.
-        const currentVisibility = Array.isArray(entity.visibility) ? [...entity.visibility] : [];
-        const existingIndex = currentVisibility.findIndex((v: any) => v.application === source);
-        if (existingIndex !== -1) {
-            currentVisibility[existingIndex] = {
-                ...currentVisibility[existingIndex],
-                visible: newValue,
-                schedule: currentVisibility[existingIndex].schedule || {}
-            };
-        } else {
-            currentVisibility.push({
-                application: source,
-                visible: newValue,
-                schedule: {}
-            });
-        }
-        dispatch(updateEntity({ ...entity, visibility: currentVisibility }));
-    };
-
-    // Helper to extract the visibility flag for a given source from an array.
-    const getVisibilityForSource = (entity: any, source: SourceType): boolean => {
-        // Check for local optimistic override first.
-        if (entity && visibilityOverrides[entity.id] && typeof visibilityOverrides[entity.id][source] === 'boolean') {
-            return visibilityOverrides[entity.id][source];
-        }
-        if (entity && Array.isArray(entity.visibility)) {
-            const item = entity.visibility.find((v: any) => v.application === source);
-            if (item && typeof item.visible === 'boolean') return item.visible;
-        }
-        return true; // default is true if not defined
-    };
-
     const nodeTemplate = (node: any, options: any) => {
-        const entity = categoryList.find((c: any) => String(c.id) === String(node.id));
-        const posVisible = getVisibilityForSource(entity, SourceType.BRANCH_POS);
-        const onlineVisible = getVisibilityForSource(entity, SourceType.ONLINE_ORDERING);
-
         return (
             <div className="d-flex align-items-center gap-2 border-bottom w-100">
                 {node.imageUrl && <img src={node.imageUrl} alt={node.label} width={50} height={50} />}
                 <span>{node.label}</span>
-                <div className="ms-auto d-flex gap-2">
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={posVisible}
-                            onChange={(e) => handleVisibilityChange(e, node.id, SourceType.BRANCH_POS)}
-                        />
-                        POS
-                    </label>
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={onlineVisible}
-                            onChange={(e) => handleVisibilityChange(e, node.id, SourceType.ONLINE_ORDERING)}
-                        />
-                        Online Ordering
-                    </label>
-                </div>
             </div>
         );
     };
@@ -243,7 +164,6 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
                 e.dropIndex !== undefined
                     ? e.dropIndex
                     : siblings.findIndex((node: any) => String(node.id) === String(draggedId));
-            // Helper to get order from categoryList.
             const getOrder = (node: any): number => {
                 const cat = categoryList.find((c: any) => String(c.id) === String(node.id));
                 return cat?.order ?? 0;
@@ -300,7 +220,7 @@ const DynamicCategoryTree: React.FC<DynamicCategoryTreeProps> = ({
                 />
             </Col>
             <Col md="6" className="p-2">
-                <UpdateComponent categoryId={categoryId} onSave={updatedTree} />
+                <UpdateComponent onSave={updatedTree} />
             </Col>
         </Row>
     );

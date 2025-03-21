@@ -437,7 +437,7 @@ const ItemStock = ({
         </TabPanel>
       </TabView>
       <PurchaseConfigUpdateTab
-        purchaseConfigEntity={variant?.purchaseConfig}
+        purchaseConfig={variant?.purchaseConfig}
         onConfigChange={handleConfigChange}
         variantIndex={variantIndex}
         id={variant?.id}
