@@ -29,11 +29,11 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
   const filteredSuppliers = useMemo(() => {
     return suppliers.filter(
       supplier =>
-        !purchaseConfig.supplierConfigurations?.some(
+        !purchaseConfig?.supplierConfigurations?.some(
           config => config.supplier.id === supplier.id
         )
     );
-  }, [purchaseConfig.supplierConfigurations, suppliers]);
+  }, [purchaseConfig?.supplierConfigurations, suppliers]);
 
   const handleNumberChange = (field: string, num: number | null) => {
     const newConfig = { ...purchaseConfig, [field]: num };
@@ -48,13 +48,13 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
     };
     const newConfig = {
       ...purchaseConfig,
-      supplierConfigurations: [...(purchaseConfig.supplierConfigurations || []), newEntry]
+      supplierConfigurations: [...(purchaseConfig?.supplierConfigurations || []), newEntry]
     };
     onConfigChange(newConfig, variantIndex);
   };
 
   const handleSupplierConfigChange = (configIndex: number, price: number | null) => {
-    const updatedConfigurations = purchaseConfig.supplierConfigurations?.map((supConfig, index) =>
+    const updatedConfigurations = purchaseConfig?.supplierConfigurations?.map((supConfig, index) =>
       index === configIndex ? { ...supConfig, defaultPrice: price } : supConfig
     );
     const newConfig = { ...purchaseConfig, supplierConfigurations: updatedConfigurations };
@@ -62,7 +62,7 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
   };
 
   const handleSupplierCodeChange = (configIndex: number, newCode: string) => {
-    const updatedConfigurations = purchaseConfig.supplierConfigurations?.map((supConfig, index) =>
+    const updatedConfigurations = purchaseConfig?.supplierConfigurations?.map((supConfig, index) =>
       index === configIndex ? { ...supConfig, code: newCode } : supConfig
     );
     const newConfig = { ...purchaseConfig, supplierConfigurations: updatedConfigurations };
@@ -70,7 +70,7 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
   };
 
   const handleDeleteSupplier = (configIndex: number) => {
-    const updatedConfigurations = purchaseConfig.supplierConfigurations?.filter((_, index) => index !== configIndex);
+    const updatedConfigurations = purchaseConfig?.supplierConfigurations?.filter((_, index) => index !== configIndex);
     const newConfig = { ...purchaseConfig, supplierConfigurations: updatedConfigurations };
     onConfigChange(newConfig, variantIndex);
   };
@@ -121,7 +121,7 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
                   <InputNumber
                     name="minOrderQuantity"
                     id="minOrderQuantity"
-                    value={purchaseConfig.minOrderQuantity}
+                    value={purchaseConfig?.minOrderQuantity}
                     onChange={(e) => handleNumberChange('minOrderQuantity', e.value)}
                   />
                 </div>

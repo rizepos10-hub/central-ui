@@ -1019,7 +1019,7 @@ export const ProductUpdate = () => {
                 <PrimeButton
                   onClick={async () => {
                     const generatedSku = await generateSku()
-                    handleVariantFieldChange(0, 'sku', generatedSku)
+                    handleVariantFieldChange(variantIndex, 'sku', generatedSku)
                   }}
                   type="button"
                   className="position-absolute end-0"
