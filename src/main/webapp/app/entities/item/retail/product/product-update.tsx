@@ -755,6 +755,7 @@ export const ProductUpdate = () => {
       return {
         ...variant,
         price: product.askForPrice ? 0 : variant.price,
+        purchaseConfig: ((variant?.purchaseConfig?.minOrderQuantity === null || variant?.purchaseConfig?.minOrderQuantity === undefined) && (variant?.purchaseConfig?.defaultPrice === null || variant?.purchaseConfig?.defaultPrice === undefined) && variant?.purchaseConfig?.supplierConfigurations?.length === 0) ? null : variant?.purchaseConfig
       };
     });
 
