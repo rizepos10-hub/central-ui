@@ -490,6 +490,12 @@ export const model: MenuItem[] = [
             role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
             type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
           },
+          {
+            label: 'Sales by Catalog',
+            to: '/analytics/sales-report/sales-by-catalog',
+            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
+            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
+          },
         ],
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },

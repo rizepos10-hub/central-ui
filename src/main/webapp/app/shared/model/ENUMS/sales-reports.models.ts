@@ -6,6 +6,7 @@ export enum SalesReportsTypes {
   Customer = "CUSTOMER",
   Tag = "TAG",
   Menu = "MENU",
+  Catalog = "CATALOG"
 }
 
 export enum SalesReportsMeasures {
