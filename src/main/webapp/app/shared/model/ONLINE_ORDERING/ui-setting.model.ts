@@ -30,6 +30,8 @@ export interface IUiSettings {
   canOrder?: boolean
   layouts?: ILayouts
   socialProfiles?: ISocialProfiles | null
+  retailItemsPerRow?: number
+  restaurantItemsPerRow?: number
 }
 
 export interface ISocialProfiles {

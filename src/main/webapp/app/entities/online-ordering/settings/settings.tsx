@@ -111,12 +111,12 @@ export const UiSettingsUpdate = () => {
   return (
     <div>
       <Row>
-        <Col md="8">
+        <Col>
           <h2>Edit UI Settings</h2>
         </Col>
       </Row>
       <Row>
-        <Col md="8" className="d-flex flex-column p-3  bg-white">
+        <Col className="d-flex flex-column p-3  bg-white">
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -298,6 +298,28 @@ export const UiSettingsUpdate = () => {
                           UiSettingsEntity.logo ? [UiSettingsEntity.logo] : [],
                           'toFileLibraryListItem'
                         )}
+                      />
+                    </div>
+
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-retailItemsPerRow">
+                        <strong>{translate('tempApp.UiSettings.retailItemsPerRow')}</strong>
+                      </Label>
+                      <InputNumber
+                        id="UiSettings-retailItemsPerRow"
+                        value={UiSettingsEntity.retailItemsPerRow || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'retailItemsPerRow', value: e.value }))}
+                      />
+                    </div>
+
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-restaurantItemsPerRow">
+                        <strong>{translate('tempApp.UiSettings.restaurantItemsPerRow')}</strong>
+                      </Label>
+                      <InputNumber
+                        id="UiSettings-restaurantItemsPerRow"
+                        value={UiSettingsEntity.restaurantItemsPerRow || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'restaurantItemsPerRow', value: e.value }))}
                       />
                     </div>
 
