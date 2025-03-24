@@ -59,14 +59,20 @@
 
     const onResponseError = async (err) => {
       const status = err.status || (err.response ? err.response.status : 0);
+      console.log(status)
       if ( status === 401 && !err.config.url.endsWith("/refresh")  && !err.config.url.endsWith("/central-app")) {
+        console.log(status)
         try {
           const newAccessToken = await refreshAccessToken();
+          console.log(status)
           if (newAccessToken) {
             err.config.headers.Authorization = `Bearer ${newAccessToken}`;
             return axios(err.config);
+          } else {
+            onUnauthenticated();
           }
         } catch (error) {
+          console.log(status)
           onUnauthenticated();
         }
       }
