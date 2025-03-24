@@ -27,6 +27,7 @@ import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { ColorPicker } from 'primereact/colorpicker';
 import { hexToHSL, hslToHex } from 'app/shared/util/color-utils';
 import { ISocialProfile } from 'app/shared/model/ONLINE_ORDERING/social-profile';
+import { Dropdown } from 'primereact/dropdown';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -301,25 +302,43 @@ export const UiSettingsUpdate = () => {
                       />
                     </div>
 
-                    <div className={'d-flex flex-column mb-3'}>
+                    <div className="d-flex flex-column mb-3">
                       <Label htmlFor="UiSettings-retailItemsPerRow">
                         <strong>{translate('tempApp.UiSettings.retailItemsPerRow')}</strong>
                       </Label>
-                      <InputNumber
+                      <Dropdown
                         id="UiSettings-retailItemsPerRow"
                         value={UiSettingsEntity.retailItemsPerRow || null}
-                        onChange={e => dispatch(changeEntityField({ name: 'retailItemsPerRow', value: e.value }))}
+                        options={[
+                          { label: '1', value: 1 },
+                          { label: '2', value: 2 },
+                          { label: '3', value: 3 },
+                          { label: '4', value: 4 }
+                        ]}
+                        onChange={(e) =>
+                          dispatch(changeEntityField({ name: 'retailItemsPerRow', value: e.value }))
+                        }
+                        placeholder="Select an option"
                       />
                     </div>
 
-                    <div className={'d-flex flex-column mb-3'}>
+                    <div className="d-flex flex-column mb-3">
                       <Label htmlFor="UiSettings-restaurantItemsPerRow">
                         <strong>{translate('tempApp.UiSettings.restaurantItemsPerRow')}</strong>
                       </Label>
-                      <InputNumber
+                      <Dropdown
                         id="UiSettings-restaurantItemsPerRow"
                         value={UiSettingsEntity.restaurantItemsPerRow || null}
-                        onChange={e => dispatch(changeEntityField({ name: 'restaurantItemsPerRow', value: e.value }))}
+                        options={[
+                          { label: '1', value: 1 },
+                          { label: '2', value: 2 },
+                          { label: '3', value: 3 },
+                          { label: '4', value: 4 }
+                        ]}
+                        onChange={(e) =>
+                          dispatch(changeEntityField({ name: 'restaurantItemsPerRow', value: e.value }))
+                        }
+                        placeholder="Select an option"
                       />
                     </div>
 
