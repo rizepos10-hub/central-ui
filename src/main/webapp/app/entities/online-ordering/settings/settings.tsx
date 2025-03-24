@@ -343,6 +343,28 @@ export const UiSettingsUpdate = () => {
                     </div>
 
                     <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-retailItemsPerRow">
+                        <strong>{translate('tempApp.UiSettings.retailItemsPerRow')}</strong>
+                      </Label>
+                      <InputNumber
+                        id="UiSettings-retailItemsPerRow"
+                        value={UiSettingsEntity.retailItemsPerRow || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'retailItemsPerRow', value: e.value }))}
+                      />
+                    </div>
+
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-restaurantItemsPerRow">
+                        <strong>{translate('tempApp.UiSettings.restaurantItemsPerRow')}</strong>
+                      </Label>
+                      <InputNumber
+                        id="UiSettings-restaurantItemsPerRow"
+                        value={UiSettingsEntity.restaurantItemsPerRow || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'restaurantItemsPerRow', value: e.value }))}
+                      />
+                    </div>
+
+                    <div className={'d-flex flex-column mb-3'}>
                       <h2>
                         <strong>{translate('tempApp.UiSettings.colorSetting.title')}</strong>
                       </h2>
