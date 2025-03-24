@@ -21,6 +21,8 @@
       "id": "ID",
       "applicationName": "Website Title",
       "digitsAfterDecimal": "Digits After Decimal",
+      "retailItemsPerRow": "Retail Items Per Row",
+      "restaurantItemsPerRow": "Restaurant Items Per Row",
       "itemPerRow": "Item Per Row",
       "showDeliveryTips": "Show Delivery Tips",
       "orderConfirmation": "Enable Order Confirmation",
