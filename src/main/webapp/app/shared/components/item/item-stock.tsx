@@ -215,7 +215,6 @@ const ItemStock = ({
                       name="quantity"
                       id="quantity"
                       required
-                      min={0}
                       maxFractionDigits={2}
                       inputClassName="w-1"
                       placeholder={translate("items.update.placeholders.quantity")}
@@ -349,7 +348,6 @@ const ItemStock = ({
                         name="quantity"
                         id="quantity"
                         required
-                        min={0}
                         maxFractionDigits={2}
                         inputClassName="w-1"
                         placeholder={translate("items.update.placeholders.quantity")}
