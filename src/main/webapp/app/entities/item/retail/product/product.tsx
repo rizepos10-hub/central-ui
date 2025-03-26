@@ -26,12 +26,13 @@ import { Sidebar } from 'primereact/sidebar';
 import { IItem } from "app/shared/model/ITEM/item.model";
 import { actionOptions, BulkEdit } from "app/shared/components/item/bulk-edit";
 import { confirmDialog } from "primereact/confirmdialog";
-import { FaCog, FaCopy } from "react-icons/fa";
+import { FaCog, FaCopy, FaTrash } from "react-icons/fa";
 import { createEntity } from './product.reducer';
 import { ColumnProps } from "primereact/column";
 import { MultiSelect } from "primereact/multiselect";
 import { Menu } from "primereact/menu";
 import { Checkbox } from "primereact/checkbox";
+import { FilterMatchMode } from "primereact/api";
 interface ColumnConfig extends Partial<ColumnProps> {
   field: string;
   header: string;
@@ -49,7 +50,8 @@ export const Product = () => {
   const totalItems = useAppSelector(state => state.product.totalItems);
   const [visibleRight, setVisibleRight] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
+  const storedQuery = searchParams.get("query");
+  const query = storedQuery && storedQuery.trim() ? JSON.parse(storedQuery) : initialItemFilterState;
   const [localFilters, setLocalFilters] = useState(query?.filters);
   const filteredAttributes = localFilters?.["attributes.attributeTerms.id"]?.constraints || [];
 
@@ -84,6 +86,10 @@ export const Product = () => {
     }
   }, [query?.first, query?.page, query?.rows]);
 
+  useEffect(() => {
+    onFilter(localFilters)
+  }, [localFilters?.isArchived?.value])
+
   const handleSyncList = () => {
     getAllEntities();
   };
@@ -111,19 +117,17 @@ export const Product = () => {
   };
 
   const handleFilterValueChange = useCallback((field, value) => {
+    console.log(field, value)
     const updatedFilters = {
       ...localFilters,
       [field]: value
     };
 
+    console.log(updatedFilters)
+
     const cleanedFilters = updateTableFilters(updatedFilters);
+    console.log(cleanedFilters)
     setLocalFilters(cleanedFilters)
-    // const newQuery = JSON.stringify({
-    //   ...query,
-    //   filters: cleanedFilters
-    // });
-    //
-    // setSearchParams({ query: newQuery }, { replace: true });
   }, [query.filters, localFilters]);
 
   const handleClear = () => {
@@ -194,39 +198,39 @@ export const Product = () => {
     );
   };
 
-    
-  const TagsBody =  rowData => {
+
+  const TagsBody = rowData => {
     const tags = rowData?.tags;
-  
+
     if (!tags || tags.length === 0) {
       return "No Tags"; // Display when no addons are available
     }
-  
+
     // Map through addonGroups and render them as links separated by "|"
     return tags.map((tag, index) => (
       <>
-      <Link className="font-normal" to={`/tag/${tag.id}/edit`}>
-        {tag.name}
-        {index < tags.length - 1 && ' | '}
-      </Link>
+        <Link className="font-normal" to={`/tag/${tag.id}/edit`}>
+          {tag.name}
+          {index < tags.length - 1 && ' | '}
+        </Link>
       </>
     ));
   };
-  
-  const DiscountBody =  rowData => {
+
+  const DiscountBody = rowData => {
     const discounts = rowData?.discounts;
     if (!discounts || discounts.length === 0) {
       return "No Discounts"; // Display when no addons are available
     }
-  
+
     // Map through addonGroups and render them as links separated by "|"
     return discounts.map((discount, index) => (
       <>
 
-      <Link className="font-normal" to={`/discount/${discount.id}/edit`}>
-      {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
-        {index < discounts.length - 1 && ' | '}
-      </Link>
+        <Link className="font-normal" to={`/discount/${discount.id}/edit`}>
+          {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
+          {index < discounts.length - 1 && ' | '}
+        </Link>
       </>
     ));
   };
@@ -394,22 +398,22 @@ export const Product = () => {
       visible: true
     }
   ];
-  
+
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
     const storedFields = storedData[LOCAL_STORAGE_KEY];
-  
+
     if (storedFields) {
       return columnsConfig.filter(col => storedFields.includes(col.field) || col.field === "actions");
     }
-  
+
     return columnsConfig; // Default to all columns
   });
 
 
   const onColumnToggle = (field) => {
     let updatedColumns;
-  
+
     if (visibleColumns.some((col) => col.field === field && col.field !== "actions")) {
       updatedColumns = visibleColumns.filter((col) => col.field !== field);
     } else {
@@ -418,21 +422,21 @@ export const Product = () => {
         updatedColumns = [...visibleColumns, columnToAdd].sort((a, b) => a.seq - b.seq);
       }
     }
-  
+
     // Ensure "actions" is always included
     updatedColumns = updatedColumns.filter(col => col.field === "actions" || columnsConfig.some(config => config.field === col.field));
-  
+
     // Get existing stored items
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
     storedData[LOCAL_STORAGE_KEY] = updatedColumns.map(col => col.field); // Store only field names
-  
+
     localStorage.setItem("visible_columns", JSON.stringify(storedData));
-  
+
     setVisibleColumns(updatedColumns || []);
   };
 
   //localstorage options
-  const columnOptions = columnsConfig.filter(( { field } ) => field !== 'actions').map(({ field, header }) => ({ field, header }));
+  const columnOptions = columnsConfig.filter(({ field }) => field !== 'actions').map(({ field, header }) => ({ field, header }));
 
 
   const header = (
@@ -450,69 +454,82 @@ export const Product = () => {
         />
       </span>
       <div className="flex align-items-center justify-content-end gap-3">
-        <Button 
-          icon="pi pi-sync" 
-          raised severity="info" 
-          onClick={handleSyncList} 
-          disabled={loading} 
+        <Button
+          icon="pi pi-sync"
+          raised severity="info"
+          onClick={handleSyncList}
+          disabled={loading}
           loading={loading}
-          data-pr-position="top" 
+          data-pr-position="top"
           tooltip={translate('items.view.actions.refreshList')}
         />
-        <Button 
-          icon="pi pi-file-export" 
-          raised 
-          onClick={confirm2} 
+        <Button
+          icon="pi pi-file-export"
+          raised
+          onClick={confirm2}
           tooltip="Export All"
           data-pr-position="top"
         />
 
-        <ImportButton type="RETAIL"  data-pr-position="top" />
+        <ImportButton type="RETAIL" data-pr-position="top" />
 
-        <Button 
-          icon="pi pi-plus" 
-          raised 
-          onClick={handleCreate} 
-          disabled={loading} 
+        <Button
+          icon="pi pi-plus"
+          raised
+          onClick={handleCreate}
+          disabled={loading}
           data-pr-position="top"
-          tooltip={translate('items.view.actions.createItem')} 
+          tooltip={translate('items.view.actions.createItem')}
         />
 
       </div>
 
       <div className="flex justify-between items-center">
-          <div className="relative d-flex justify-end mr-auto">
-            <Menu
-              model={[
-                {
-                  label: "Select Columns",
-                  items: columnOptions.map((col) => ({
-                    template: () => (
-                      <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          inputId={col.field}
-                          checked={visibleColumns.some((c) => c.field === col.field)}
-                          onChange={() => onColumnToggle(col.field)}
-                        />
-                        <label className="ml-2" htmlFor={col.field} >{col.header}</label>
-                      </div>
-                    ),
-                  })),
-                },
-              ]}
-              popup
-              ref={menu}
-            />
-            <Button
-              tooltip="Select Columns"
-              data-pr-position="top"
-              icon={<FaCog className="text-xl" />}
-              className="p-button-text mr-auto"
-              onClick={(event) => menu.current.toggle(event)}
-            />
-          </div>
-          <Button data-pr-position="top" tooltip="Filter" className="p-button-text mr-auto" icon="pi pi-filter" onClick={() => setVisibleRight(true)} />
-          
+        <div className="relative d-flex justify-end mr-auto">
+          <Menu
+            model={[
+              {
+                label: "Select Columns",
+                items: columnOptions.map((col) => ({
+                  template: () => (
+                    <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        inputId={col.field}
+                        checked={visibleColumns.some((c) => c.field === col.field)}
+                        onChange={() => onColumnToggle(col.field)}
+                      />
+                      <label className="ml-2" htmlFor={col.field} >{col.header}</label>
+                    </div>
+                  ),
+                })),
+              },
+            ]}
+            popup
+            ref={menu}
+          />
+          <Button
+            tooltip="Trash Items"
+            data-pr-position="top"
+            icon={<FaTrash className="text-xl" />}
+            className="p-button-text mr-auto"
+            onClick={(e) => {
+              if (localFilters?.isArchived?.value) {
+                handleFilterValueChange('isArchived', { value: false, matchMode: FilterMatchMode.EQUALS })
+              } else {
+                handleFilterValueChange('isArchived', { value: true, matchMode: FilterMatchMode.EQUALS })
+              }
+            }}
+          />
+          <Button
+            tooltip="Select Columns"
+            data-pr-position="top"
+            icon={<FaCog className="text-xl" />}
+            className="p-button-text mr-auto"
+            onClick={(event) => menu.current.toggle(event)}
+          />
+        </div>
+        <Button data-pr-position="top" tooltip="Filter" className="p-button-text mr-auto" icon="pi pi-filter" onClick={() => setVisibleRight(true)} />
+
 
       </div>
 
@@ -567,12 +584,12 @@ export const Product = () => {
         selectionMode={'checkbox'}
         selection={selectedProducts}
         onSelectionChange={(e) => setSelectedProducts(e.value)}
-    >
-      <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+      >
+        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
         {visibleColumns.map((col) => (
           <Column key={col.field} field={col.field} header={col.header} body={col.body} />
         ))}
-    </DataTable>
+      </DataTable>
     </div>
   );
 };
