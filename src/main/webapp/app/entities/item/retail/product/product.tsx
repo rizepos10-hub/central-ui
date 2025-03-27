@@ -33,6 +33,7 @@ import { MultiSelect } from "primereact/multiselect";
 import { Menu } from "primereact/menu";
 import { Checkbox } from "primereact/checkbox";
 import { FilterMatchMode } from "primereact/api";
+import { ToggleButton } from "primereact/togglebutton";
 interface ColumnConfig extends Partial<ColumnProps> {
   field: string;
   header: string;
@@ -453,36 +454,41 @@ export const Product = () => {
           optionDisabled={(option) => option.disabled}
         />
       </span>
-      <div className="flex align-items-center justify-content-end gap-3">
-        <Button
-          icon="pi pi-sync"
-          raised severity="info"
-          onClick={handleSyncList}
-          disabled={loading}
-          loading={loading}
-          data-pr-position="top"
-          tooltip={translate('items.view.actions.refreshList')}
-        />
-        <Button
-          icon="pi pi-file-export"
-          raised
-          onClick={confirm2}
-          tooltip="Export All"
-          data-pr-position="top"
-        />
+      {!localFilters?.isArchived?.value ? (
+        <div className="flex align-items-center justify-content-end gap-3">
+          <Button
+            icon="pi pi-sync"
+            raised severity="info"
+            onClick={handleSyncList}
+            disabled={loading}
+            loading={loading}
+            data-pr-position="top"
+            tooltip={translate('items.view.actions.refreshList')}
+          />
+          <Button
+            icon="pi pi-file-export"
+            raised
+            onClick={confirm2}
+            tooltip="Export All"
+            data-pr-position="top"
+          />
 
-        <ImportButton type="RETAIL" data-pr-position="top" />
+          <ImportButton type="RETAIL" data-pr-position="top" />
 
-        <Button
-          icon="pi pi-plus"
-          raised
-          onClick={handleCreate}
-          disabled={loading}
-          data-pr-position="top"
-          tooltip={translate('items.view.actions.createItem')}
-        />
-
-      </div>
+          <Button
+            icon="pi pi-plus"
+            raised
+            onClick={handleCreate}
+            disabled={loading}
+            data-pr-position="top"
+            tooltip={translate('items.view.actions.createItem')}
+          />
+        </div>
+      ) : (
+        <h4 className="text-center text-danger">
+          Now viewing Recycle Bin
+        </h4>
+      )}
 
       <div className="flex justify-between items-center">
         <div className="relative d-flex justify-end mr-auto">
@@ -507,19 +513,25 @@ export const Product = () => {
             popup
             ref={menu}
           />
-          <Button
-            tooltip="Trash Items"
+          <ToggleButton
+            tooltip="Recycle Bin"
             data-pr-position="top"
-            icon={<FaTrash className="text-xl" />}
-            className="p-button-text mr-auto"
-            onClick={(e) => {
+            checked={localFilters?.isArchived?.value}
+            onChange={(e) => {
               if (localFilters?.isArchived?.value) {
                 handleFilterValueChange('isArchived', { value: false, matchMode: FilterMatchMode.EQUALS })
               } else {
                 handleFilterValueChange('isArchived', { value: true, matchMode: FilterMatchMode.EQUALS })
               }
             }}
+            onIcon={<FaTrash className="text-xl" />}
+            offIcon={<FaTrash className="text-xl" />}
+            onLabel=""
+            offLabel=""
+            className="p-button-text mr-auto"
           />
+
+
           <Button
             tooltip="Select Columns"
             data-pr-position="top"
