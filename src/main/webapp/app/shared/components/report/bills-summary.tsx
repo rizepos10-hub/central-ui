@@ -1,4 +1,4 @@
-import { fetchFirstByDate, fetchRecentBills } from 'app/modules/analytics/api';
+import { fetchRecentByDate, fetchRecentBills } from 'app/modules/analytics/api';
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
 import React, { useEffect, useState } from 'react';
 import { Col } from 'reactstrap';
@@ -20,7 +20,7 @@ const BillsSummary = ({ eodId, fromDate, toDate, branchId, source }) => {
                 setBills(result.data)
             })
         } else {
-            fetchFirstByDate(currentPage - 1, 10, fromDate, toDate, branchId)
+            fetchRecentByDate(currentPage - 1, 10, fromDate, toDate, branchId)
                 .then((result) => {
                     setTotalRecords(Number(result.headers['x-total-count']))
                     setBills(result.data);
