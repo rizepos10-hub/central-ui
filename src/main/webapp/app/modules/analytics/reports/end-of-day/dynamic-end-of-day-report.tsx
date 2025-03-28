@@ -51,6 +51,7 @@ const DynamicEndOfDayReportUI = ({
         retailCatalog: true,
         restaurantCatalog: true,
         billsSummary: true,
+        relatedTills: true
     });
     const [endOfDayReportSection, setEndOfDayReportSection] = useState<any>(null);
     const [businessDetailsState, setBusinessDetailsState] = useState<any>(null);
@@ -152,7 +153,7 @@ const DynamicEndOfDayReportUI = ({
                             checked={visibleSections.retailCatalog}
                             onChange={() => toggleSection('retailCatalog')}
                         />
-                        Retail Catalog 
+                        Retail Catalog
                     </label>
                     <label className="flex items-center">
                         <input
@@ -171,6 +172,15 @@ const DynamicEndOfDayReportUI = ({
                             onChange={() => toggleSection('billsSummary')}
                         />
                         Bills Summary
+                    </label>
+                    <label className="flex items-center">
+                        <input
+                            type="checkbox"
+                            className="mr-1"
+                            checked={visibleSections.relatedTills}
+                            onChange={() => toggleSection('relatedTills')}
+                        />
+                        Related Tills
                     </label>
                 </div>
             </div>
@@ -318,15 +328,14 @@ const DynamicEndOfDayReportUI = ({
                     />
                 </div>
             )}
-            {/* {visibleSections.relatedTills &&
+            {visibleSections.relatedTills &&
                 endOfDay?.fromDate &&
-                endOfDay?.toDate &&
-                endOfDayReportSection?.includes(EndOfDayReportSection.RELATED_TILLS) && (
+                endOfDay?.toDate && (
                     <div className="bg-white p-1 mb-2 section-relatedTills">
                         <h3>Related Tills</h3>
                         <RelatedTills fromDate={endOfDay.fromDate} toDate={endOfDay.toDate} />
                     </div>
-                )} */}
+                )}
         </div>
     );
 };
