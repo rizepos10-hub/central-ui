@@ -12,7 +12,7 @@ import { Button } from 'primereact/button';
 import { exportExcelSummaryReport } from 'app/shared/util/excel-utils';
 import { Calendar } from 'primereact/calendar';
 import DynamicEndOfDayReportUI from './end-of-day/dynamic-end-of-day-report';
-import { fetchFirstByDate } from '../api';
+import { fetchRecentByDate } from '../api';
 
 const SalesSummaryReport = () => {
   const dispatch = useAppDispatch();
@@ -44,8 +44,10 @@ const SalesSummaryReport = () => {
   ];
 
   const handleFromDateChange = (e: any) => {
+    console.log(e.value)
     setFromDate(e.value);
   };
+  console.log(fromDate)
 
   const handleToDateChange = (e: any) => {
     const date = new Date(e.value);
@@ -90,12 +92,10 @@ const SalesSummaryReport = () => {
       alert("From date cannot be later than To date.");
       return;
     }
-
     try {
       setLoading(true);
       const formattedFromDate = (fromDate).toISOString();
       const formattedToDate = (toDate).toISOString();
-
       const formData = new FormData();
       formData.append('fromDate', formattedFromDate);
       formData.append('toDate', formattedToDate);
@@ -129,18 +129,6 @@ const SalesSummaryReport = () => {
     }
   }, [fromDate, toDate, selectedSource, selectedBranch]);
 
-  // useEffect(() => {
-  //   if (fromDate && toDate) {
-  //     // Ensure the dates are valid Date objects before formatting
-  //     const validFromDate = new Date(fromDate).toISOString();
-  //     const validToDate = new Date(toDate).toISOString();
-  //     fetchFirstByDate(validFromDate, validToDate, selectedBranch, selectedSource)
-  //       .then((result) => {
-  //         setBillsSummary(result.data);
-  //       });
-  //   }
-  // }, [fromDate, toDate, selectedBranch, selectedSource]);
-  
   const printWrapperRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -280,8 +268,6 @@ const SalesSummaryReport = () => {
           <DynamicEndOfDayReportUI
             reportData={salesData}
             endOfDay={null}
-            billsSummary={null}
-            endOfDayReportSection={null}
             printWrapperRef={printWrapperRef}
             loading={loading}
             title=""

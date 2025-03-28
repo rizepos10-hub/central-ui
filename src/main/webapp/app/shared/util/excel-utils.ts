@@ -14,7 +14,14 @@ export const saveAsExcelFile = (buffer, fileName) => {
     });
 };
 
-export const exportExcelSummaryReport = async (salesData: ISummaryReport) => {
+export const exportExcelSummaryReport = async (
+    salesData: ISummaryReport,
+    fromDate?: string,
+    toDate?: string,
+    title?: string,
+    visibleSections?: any
+) => {
+    console.log(visibleSections, 'visibleSections')
     const xlsx = await import('xlsx-js-style');
 
     // Helper to safely format numeric values
@@ -24,6 +31,8 @@ export const exportExcelSummaryReport = async (salesData: ISummaryReport) => {
     const sheetData = [];
 
     // --- TOTAL SALES ---
+    title && sheetData.push([title]);
+    fromDate && toDate && sheetData.push([`Date Range`, fromDate, toDate]);
     sheetData.push(['Total Sales']);
     sheetData.push(['New sales (orders)', salesData.totalSales.orders]);
     sheetData.push(['Gross Sales', salesData.totalSales.grossSales.toFixed(2)]);
@@ -39,7 +48,7 @@ export const exportExcelSummaryReport = async (salesData: ISummaryReport) => {
     sheetData.push([]); // blank row
 
     // --- TOTAL RECEIVED ---
-    sheetData.push(['Total Received']);
+    sheetData.push(['Payments']);
     sheetData.push(['PAYMENT', 'TIP', 'AMOUNT', 'REFUND', 'RECEIVED']);
 
     let totalTip = 0;
@@ -70,24 +79,28 @@ export const exportExcelSummaryReport = async (salesData: ISummaryReport) => {
         totalReceived.toFixed(2)
     ]);
 
-    // --- TOTAL SALES BY ORDER OPTION ---
-    Object.entries(salesData.totalSalesByOrderOption || {}).forEach(
-        ([orderOption, summary]: [string, ISalesSummary]) => {
-            sheetData.push([]);
-            sheetData.push([orderOption]);
-            sheetData.push(['New sales (orders)', fmt(summary.orders)]);
-            sheetData.push(['Gross Sales', fmt(summary.grossSales.toFixed(2))]);
-            sheetData.push(['Wallet Credits', fmt(summary.walletCredits ?? 0)]);
-            sheetData.push(['Net Sales', fmt(summary.netSales.toFixed(2))]);
-            sheetData.push(['Tax', fmt(summary.totalTAX.toFixed(2))]);
-            sheetData.push(['Discounts', fmt(summary.discount.toFixed(2))]);
-            sheetData.push(['Payments', fmt(summary.subTotal.toFixed(2))]);
-            sheetData.push(['Subtotal', fmt(summary.subTotal.toFixed(2))]);
-            sheetData.push(['Refunds', fmt(summary.refunds.toFixed(2))]);
-            sheetData.push(['Applied Coupon', fmt(summary.appliedCoupon.toFixed(2))]);
-            sheetData.push(['Tip', fmt(summary.totalTip.toFixed(2))]);
-        }
-    );
+    {
+        visibleSections?.orderMethod !== false && (
+            // --- TOTAL SALES BY ORDER OPTION ---
+            Object.entries(salesData.totalSalesByOrderOption || {}).forEach(
+                ([orderOption, summary]: [string, ISalesSummary]) => {
+                    sheetData.push([]);
+                    sheetData.push([orderOption]);
+                    sheetData.push(['New sales (orders)', fmt(summary.orders)]);
+                    sheetData.push(['Gross Sales', fmt(summary.grossSales.toFixed(2))]);
+                    sheetData.push(['Wallet Credits', fmt(summary.walletCredits ?? 0)]);
+                    sheetData.push(['Net Sales', fmt(summary.netSales.toFixed(2))]);
+                    sheetData.push(['Tax', fmt(summary.totalTAX.toFixed(2))]);
+                    sheetData.push(['Discounts', fmt(summary.discount.toFixed(2))]);
+                    sheetData.push(['Payments', fmt(summary.subTotal.toFixed(2))]);
+                    sheetData.push(['Subtotal', fmt(summary.subTotal.toFixed(2))]);
+                    sheetData.push(['Refunds', fmt(summary.refunds.toFixed(2))]);
+                    sheetData.push(['Applied Coupon', fmt(summary.appliedCoupon.toFixed(2))]);
+                    sheetData.push(['Tip', fmt(summary.totalTip.toFixed(2))]);
+                }
+            )
+        )
+    }
 
     // Convert AOA to a worksheet
     const worksheet = xlsx.utils.aoa_to_sheet(sheetData);

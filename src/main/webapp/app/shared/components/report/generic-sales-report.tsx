@@ -17,7 +17,7 @@ const GenericSalesReport = ({ title, report }: { title: string; report: ISummary
   console.log(walletCredits)
   return (
     <Col className="p-0">
-      <h3>{title}</h3>
+      <h4>{title}</h4>
       <div className="table-responsive">
         <table className="table table-sm" id="sales_summary">
           <tbody>
