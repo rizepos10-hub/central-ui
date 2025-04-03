@@ -148,7 +148,7 @@ export const PrintingProfileUpdate = () => {
             <div className="d-flex flex-column mb-3">
               <label htmlFor="accountingId">Branches</label>
               <Select
-                value={printingProfile.branch}
+                value={printingProfile.branch || null}
                 options={branchList}
                 getOptionLabel={(option: IBranch) => option.name}
                 getOptionValue={(option: IBranch) => option.id}
