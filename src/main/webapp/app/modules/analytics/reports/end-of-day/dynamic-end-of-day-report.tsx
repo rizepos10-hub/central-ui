@@ -15,6 +15,7 @@ import CatalogSection from './catalog-section';
 import { fetchFirstLastBills, fetchFirstLastBillsSummary } from '../../api';
 import { useAppDispatch } from 'app/config/store';
 import { getEntities as getBusiness } from 'app/entities/settings/business-details/business-detail.reducer';
+import { SplitButton } from 'primereact/splitbutton';
 
 interface DynamicEndOfDayReportUIProps {
     reportData: any;
@@ -181,12 +182,28 @@ const DynamicEndOfDayReportUI = ({
                     </span>
                     <span>
                         <div className="hide-on-print d-flex gap-2">
-                            <Button
-                                type="button"
-                                className="rounded-circle"
+                            <SplitButton
+                                label="Export"
                                 icon="pi pi-file-excel"
-                                severity="success"
-                                onClick={() => handleExcelExport()}
+                                model={[
+                                    {
+                                        label: 'Summary Report',
+                                        icon: 'pi pi-file-excel',
+                                        command: () => handleExcelExport()
+                                    },
+                                    {
+                                        label: 'Report',
+                                        icon: 'pi pi-download',
+                                        command: () => exportExcelSummaryReport(
+                                            reportData,
+                                            new Date(fromDate).toLocaleString(),
+                                            new Date(toDate).toLocaleString(),
+                                            'Sales Summary Report',
+                                            visibleSections
+                                        )
+                                    }
+                                ]}
+                                className="rounded-circle p-button-success"
                                 data-pr-tooltip="XLS"
                             />
                             <ReactToPrint
