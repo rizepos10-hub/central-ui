@@ -26,6 +26,7 @@ interface DynamicEndOfDayReportUIProps {
     fromDate?: string;
     toDate?: string;
     source?: string;
+    handleExcelExport: any;
 }
 
 const DynamicEndOfDayReportUI = ({
@@ -37,7 +38,8 @@ const DynamicEndOfDayReportUI = ({
     branchId,
     fromDate,
     toDate,
-    source
+    source,
+    handleExcelExport
 }: DynamicEndOfDayReportUIProps) => {
     const dispatch = useAppDispatch();
 
@@ -184,13 +186,7 @@ const DynamicEndOfDayReportUI = ({
                                 className="rounded-circle"
                                 icon="pi pi-file-excel"
                                 severity="success"
-                                onClick={() => exportExcelSummaryReport(
-                                    reportData,
-                                    new Date(fromDate).toLocaleString(),
-                                    new Date(toDate).toLocaleString(),
-                                    'Sales Summary Report',
-                                    visibleSections
-                                )}
+                                onClick={() => handleExcelExport()}
                                 data-pr-tooltip="XLS"
                             />
                             <ReactToPrint
