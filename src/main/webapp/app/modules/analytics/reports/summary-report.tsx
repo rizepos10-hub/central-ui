@@ -9,7 +9,7 @@ import { SourceType } from "app/shared/model/ENUMS/source-type.model";
 import { translate, Translate } from "react-jhipster";
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
 import { Button } from 'primereact/button';
-import { exportExcelSummaryReport } from 'app/shared/util/excel-utils';
+import { exportExcelEodSummaryReport, exportExcelSummaryReport } from 'app/shared/util/excel-utils';
 import { Calendar } from 'primereact/calendar';
 import DynamicEndOfDayReportUI from './end-of-day/dynamic-end-of-day-report';
 import { fetchRecentByDate } from '../api';
@@ -111,6 +111,34 @@ const SalesSummaryReport = () => {
       console.log(error, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchExcelData = async () => {
+    if (branchList) {
+      const promises = branchList.map(async (branch) => {
+        const formData = new FormData();
+        formData.append('fromDate', fromDate.toISOString());
+        formData.append('toDate', toDate.toISOString());
+        if (selectedSource) formData.append('source', selectedSource);
+        if (selectedDay) formData.append('dayOfWeek', selectedDay);
+        formData.append('branch', branch?.id);
+
+        const { data } = await axios.post(`/api/report/sales-summary`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        return { branch, data };
+      });
+
+      const excelDataArr = await Promise.all(promises);
+
+      exportExcelEodSummaryReport(
+        excelDataArr,
+        fromDate.toLocaleString(),
+        toDate.toLocaleString(),
+        'Sales Summary Report'
+      )
     }
   };
 
@@ -275,6 +303,7 @@ const SalesSummaryReport = () => {
             fromDate={fromDate.toISOString()}
             toDate={toDate.toISOString()}
             source={selectedSource}
+            handleExcelExport={fetchExcelData}
           />
         </>
       ) : (
