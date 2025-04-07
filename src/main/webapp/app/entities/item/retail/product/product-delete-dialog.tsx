@@ -5,8 +5,8 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from '../variable-item/variable-item.reducer';
 import variableRetailItem from "app/entities/item/retail/variable-item/variable-item.reducer";
+import { archiveEntity, getEntity } from './product.reducer';
 
 export const SimpleDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -22,8 +22,8 @@ export const SimpleDeleteDialog = () => {
     setLoadModal(true);
   }, []);
 
-  const variableItemEntity = useAppSelector(state => state.variableRetailItem.entity);
-  const updateSuccess = useAppSelector(state => state.variableRetailItem.updateSuccess);
+  const product = useAppSelector(state => state.product.entity);
+  const updateSuccess = useAppSelector(state => state.product.updateSuccess);
 
   const handleClose = () => {
     navigate(-1);
@@ -37,7 +37,7 @@ export const SimpleDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(variableItemEntity.id));
+    dispatch(archiveEntity(id));
   };
 
   return (
@@ -46,7 +46,7 @@ export const SimpleDeleteDialog = () => {
         <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
       </ModalHeader>
       <ModalBody id="tempApp.restaurant-simple.delete.question">
-        <Translate contentKey="items.delete.question" interpolate={{ id: variableItemEntity.id }}>
+        <Translate contentKey="items.delete.question" interpolate={{ id: product.id }}>
           Are you sure you want to delete this Simple?
         </Translate>
       </ModalBody>

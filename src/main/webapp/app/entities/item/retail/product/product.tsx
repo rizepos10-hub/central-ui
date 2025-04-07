@@ -14,7 +14,7 @@ import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import SharedFilter from "app/shared/components/item/shared-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import AttributeFilter from "app/shared/components/filter/attribute-filter";
-import { deleteEntities, exportEntities, filterEntities, getEntities, updateEntities } from "app/entities/item/retail/product/product.reducer";
+import { exportEntities, filterEntities, getEntities, updateEntities, purgeEntities, archiveEntities, unArchiveEntities } from "app/entities/item/retail/product/product.reducer";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import ImportButton from "app/shared/components/data-import/data-import";
@@ -190,12 +190,28 @@ export const Product = () => {
     );
   };
 
-  const deleteColumnTemplate = (rowData: IProduct) => {
+  const archiveColumnTemplate = (rowData: IProduct) => {
     const deleteUrl = `/product/${rowData.id}/delete`;
     return (
       <Link to={deleteUrl}>
         <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
       </Link>
+    );
+  };
+
+  const unArchiveColumnTemplate = (rowData: IProduct) => {
+    return (
+      <Button outlined text onClick={() => confirmUnArchiveItems([rowData])}>
+        <FontAwesomeIcon icon="trash-restore" style={{ cursor: 'pointer', color: 'green', marginLeft: '1rem' }} />
+      </Button>
+    );
+  };
+
+  const purgeColumnTemplate = (rowData: IProduct) => {
+    return (
+      <Button outlined text onClick={() => confirmPurgeItems([rowData])}>
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
+      </Button>
     );
   };
 
@@ -255,15 +271,15 @@ export const Product = () => {
       icon: 'pi pi-exclamation-triangle',
       defaultFocus: 'accept',
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handleItemsDelete(),
+      accept: () => handleItemsArchive(),
       reject: () => setSelectedActionOption(null)
     });
   };
 
-  const handleItemsDelete = async () => {
+  const handleItemsArchive = async () => {
     setIsLoadingAction(true);
     const updatedQuery = applyMatchModeMap(query);
-    await dispatch(deleteEntities({
+    await dispatch(archiveEntities({
       ids: selectedProducts.map(p => p.id),
       query: updatedQuery,
     })).finally(() => setIsLoadingAction(false));
@@ -297,119 +313,197 @@ export const Product = () => {
     setSelectedActionOption(null);
   }
 
-  const columnsConfig: ColumnConfig[] = [
-    {
-      field: "name",
-      header: translate("items.view.fields.name"),
-      body: nameColumnTemplate,
-      filterPlaceholder: translate("items.view.filters.name"),
-      sortable: true,
-      key: "name",
-      seq: 1,
-      visible: true
-    },
-    {
-      field: "categories",
-      key: "categories",
-      header: "Category",
-      body: (rowData) =>
-        rowData?.categories?.map((cat) => cat?.name).join(" | "),
-      sortable: true,
-      seq: 2,
-      visible: true
-    },
-    {
-      field: "image",
-      key: "image",
-      header: translate("items.view.fields.image"),
-      body: (rowData) => (
-        <ImageDisplay
-          imageType={"product"}
-          imageUrl={
-            rowData?.attachments?.[0]?.url ||
-            rowData?.variants?.[0]?.attachments?.[0]?.url
-          }
-          height={50}
-          width={50}
-        />
-      ),
-      seq: 3,
-      visible: true
-    },
-    {
-      field: "desc",
-      key: "desc",
-      header: translate("items.view.fields.description"),
-      body: (rowData) => <SummarizeText>{rowData.desc}</SummarizeText>,
-      seq: 4,
-      visible: true
-    },
-    {
-      field: "stock",
-      key: "stock",
-      header: translate("items.view.fields.inStock"),
-      sortable: true,
-      seq: 5,
-      visible: true
-    },
-    {
-      field: "productionCenter",
-      key: "productionCenter",
-      header: translate("items.view.fields.productionCenter"),
-      body: (rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>,
-      headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
-      bodyStyle: { textAlign: "left", overflow: "visible" },
-      seq: 7,
-      visible: true
-    },
-
-    {
-      field: "tags",
-      header: "Tags",
-      body: TagsBody,
-      key: "tags",
-      seq: 8,
-      visible: true
-    },
-
-    {
-      field: "discounts",
-      header: translate("items.view.fields.discount"),
-      body: DiscountBody,
-      sortable: true,
-      key: "discounts",
-      seq: 9,
-      visible: true
-    },
-
-    {
-      field: "actions",
-      key: "actions",
-      header: "Actions",
-      body: (rowData) => (
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          {duplicateColumnTemplate(rowData)}
-          {editColumnTemplate(rowData)}
-          {deleteColumnTemplate(rowData)}
-        </div>
-      ),
-      headerStyle: { width: "5%", textAlign: "center" },
-      bodyStyle: { textAlign: "center", overflow: "visible" },
-      seq: 10,
-      visible: true
+  useEffect(() => {
+    if (selectedActionOption?.code === "PURGE") {
+      confirmPurgeItems(selectedProducts);
     }
-  ];
+  }, [selectedActionOption])
+
+  const confirmPurgeItems = (products: IProduct[]) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handlePurgeItems(products),
+      // reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handlePurgeItems = async (products: IProduct[]) => {
+    const updatedQuery = applyMatchModeMap(query)
+    await dispatch(purgeEntities({
+      ids: products.map(product => product.id),
+      query: updatedQuery
+    }))
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+  useEffect(() => {
+    if (selectedActionOption?.code === "RESTORE") {
+      confirmUnArchiveItems(selectedProducts);
+    }
+  }, [selectedActionOption])
+
+  const confirmUnArchiveItems = (products: IProduct[]) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleUnArchiveItems(products),
+      // reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleUnArchiveItems = async (products: IProduct[]) => {
+    const updatedQuery = applyMatchModeMap(query)
+    await dispatch(unArchiveEntities({
+      ids: products.map(product => product.id),
+      query: updatedQuery
+    }))
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+  const columnsConfig = useMemo<ColumnConfig[]>(
+    () => [
+      {
+        field: "name",
+        header: translate("items.view.fields.name"),
+        body: nameColumnTemplate,
+        filterPlaceholder: translate("items.view.filters.name"),
+        sortable: true,
+        key: "name",
+        seq: 1,
+        visible: true,
+      },
+      {
+        field: "categories",
+        key: "categories",
+        header: "Category",
+        body: (rowData) =>
+          rowData?.categories?.map((cat) => cat?.name).join(" | "),
+        sortable: true,
+        seq: 2,
+        visible: true,
+      },
+      {
+        field: "image",
+        key: "image",
+        header: translate("items.view.fields.image"),
+        body: (rowData) => (
+          <ImageDisplay
+            imageType={"product"}
+            imageUrl={
+              rowData?.attachments?.[0]?.url ||
+              rowData?.variants?.[0]?.attachments?.[0]?.url
+            }
+            height={50}
+            width={50}
+          />
+        ),
+        seq: 3,
+        visible: true,
+      },
+      {
+        field: "desc",
+        key: "desc",
+        header: translate("items.view.fields.description"),
+        body: (rowData) => <SummarizeText>{rowData.desc}</SummarizeText>,
+        seq: 4,
+        visible: true,
+      },
+      {
+        field: "stock",
+        key: "stock",
+        header: translate("items.view.fields.inStock"),
+        sortable: true,
+        seq: 5,
+        visible: true,
+      },
+      {
+        field: "productionCenter",
+        key: "productionCenter",
+        header: translate("items.view.fields.productionCenter"),
+        body: (rowData) => (
+          <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>
+        ),
+        headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
+        bodyStyle: { textAlign: "left", overflow: "visible" },
+        seq: 7,
+        visible: true,
+      },
+      {
+        field: "tags",
+        header: "Tags",
+        body: TagsBody,
+        key: "tags",
+        seq: 8,
+        visible: true,
+      },
+      {
+        field: "discounts",
+        header: translate("items.view.fields.discount"),
+        body: DiscountBody,
+        sortable: true,
+        key: "discounts",
+        seq: 9,
+        visible: true,
+      },
+      {
+        field: "actions",
+        key: "actions",
+        header: "Actions",
+        body: (rowData) => (
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            {!localFilters?.isArchived?.value ? (
+              <>
+                {duplicateColumnTemplate(rowData)}
+                {editColumnTemplate(rowData)}
+                {archiveColumnTemplate(rowData)}
+              </>
+            ) : (
+              <>
+                {unArchiveColumnTemplate(rowData)}
+                {purgeColumnTemplate(rowData)}
+              </>
+            )}
+          </div>
+        ),
+        headerStyle: { width: "5%", textAlign: "center" },
+        bodyStyle: { textAlign: "center", overflow: "visible" },
+        seq: 10,
+        visible: true,
+      },
+    ],
+    [localFilters]
+  );
 
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
     const storedFields = storedData[LOCAL_STORAGE_KEY];
-
     if (storedFields) {
-      return columnsConfig.filter(col => storedFields.includes(col.field) || col.field === "actions");
+      return columnsConfig.filter(
+        (col) => storedFields.includes(col.field) || col.field === "actions"
+      );
     }
-
-    return columnsConfig; // Default to all columns
+    return columnsConfig;
   });
+
+  useEffect(() => {
+    // Update visibleColumns when columnsConfig changes to capture updated localFilters
+    setVisibleColumns((prev) =>
+      columnsConfig.filter(
+        (col) =>
+          col.field === "actions" ||
+          prev.some((p) => p.field === col.field)
+      )
+    );
+  }, [columnsConfig]);
 
 
   const onColumnToggle = (field) => {
@@ -440,13 +534,18 @@ export const Product = () => {
   const columnOptions = columnsConfig.filter(({ field }) => field !== 'actions').map(({ field, header }) => ({ field, header }));
 
 
+  const archivedActionOptions = [
+    { name: 'Restore', code: 'RESTORE', disabled: false },
+    { name: 'Permenant Delete', code: 'PURGE', disabled: false },
+  ];
+  console.log(localFilters?.isArchived?.value, 'localFilters?.isArchived?.value')
   const header = (
     <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
       <span className="text-xl d-flex align-items-center">
         <Dropdown
           value={selectedActionOption}
           onChange={(e) => setSelectedActionOption(e.value)}
-          options={actionOptions}
+          options={localFilters?.isArchived?.value ? archivedActionOptions : actionOptions}
           optionLabel="name"
           placeholder="Bulk Actions"
           className="w-full md:w-14rem"
