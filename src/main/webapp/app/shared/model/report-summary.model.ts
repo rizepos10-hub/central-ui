@@ -6,6 +6,17 @@ export interface ISummaryReport {
   };
   tipSummary: ITipSummary[]
   catalogSection: ICatalogSection;
+  categorySaleSummary: ICategorySalesSummary;
+}
+
+export interface ICategorySalesSummary {
+  categories: ICategory[];
+}
+
+export interface ICategory {
+  id: string;
+  name: string;
+  amount: number;
 }
 
 export interface ICatalogSection {
