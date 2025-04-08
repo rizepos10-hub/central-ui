@@ -147,120 +147,241 @@ export const exportExcelSummaryReport = async (
 
 
 export const exportExcelEodSummaryReport = async (
-    excelDataArr,
-    fromDate,
-    toDate,
-    title
-  ) => {
-    const xlsx = await import('xlsx-js-style');
-  
-    // Safely parse numeric values
-    const fmt = (val) => (typeof val === 'number' ? val : val ?? 0);
-  
-    // 1. Sum payment amounts across all branches for each payment type
-    const paymentSums = {};
-    excelDataArr.forEach(({ data }) => {
-      const payments = data?.totalReceived || [];
-      payments.forEach((p) => {
-        if (p.paymentType) {
-          const amount = Number(p.amount) || 0;
-          paymentSums[p.paymentType] = (paymentSums[p.paymentType] || 0) + amount;
-        }
-      });
+  excelDataArr: any[],
+  fromDate?: string,
+  toDate?: string,
+  title?: string
+) => {
+  const xlsx = await import('xlsx-js-style');
+
+  // Safely parse numeric values
+  const fmt = (val: any) => (typeof val === 'number' ? val : val ?? 0);
+
+  // 1. Sum payment amounts across all branches for each payment type
+  const paymentSums: { [key: string]: number } = {};
+  excelDataArr.forEach(({ data }) => {
+    const payments = data?.totalReceived || [];
+    payments.forEach((p: any) => {
+      if (p.paymentType) {
+        const amount = Number(p.amount) || 0;
+        paymentSums[p.paymentType] = (paymentSums[p.paymentType] || 0) + amount;
+      }
     });
-  
-    // 2. Collect payment types that have a total amount > 0
-    const paymentTypes = Object.keys(paymentSums).filter(
-      (ptype) => paymentSums[ptype] > 0
-    );
-  
-    // 3. Build the header row
-    const baseHeader = [
-      'Store',
-      'Date Interval',
-      'New sales (orders)',
-      'Gross Sales',
-      'Wallet Credits',
-      'Net Sales',
-      'Tax',
-      'Discounts',
-      'Payments',
-      'Subtotal',
-      'Refunds',
-      'Applied Coupon',
-      'Tip',
+  });
+
+  // 2. Collect payment types that have a total amount > 0
+  const paymentTypes = Object.keys(paymentSums).filter(
+    (ptype) => paymentSums[ptype] > 0
+  );
+
+  // 3. Build the header row (for branch data)
+  const baseHeader = [
+    'Store',
+    'Date Interval',
+    'New sales (orders)',
+    'Gross Sales',
+    'Wallet Credits',
+    'Net Sales',
+    'Tax',
+    'Discounts',
+    'Payments',
+    'Subtotal',
+    'Refunds',
+    'Applied Coupon',
+    'Tip'
+  ];
+  const headerRow = [...baseHeader, ...paymentTypes];
+
+  // 4. Prepare the sheet data as an array of arrays
+  const sheetData: any[][] = [];
+
+  // Optional title row
+  if (title) sheetData.push([title]);
+
+  // Push the branch data header row
+  sheetData.push(headerRow);
+
+  // 5. Build each row for each branch
+  excelDataArr.forEach(({ branch, data }) => {
+    const storeName = branch?.name || '';
+    const dateAndDay =
+      fromDate && toDate
+        ? `${new Date(fromDate).toLocaleDateString()} - ${new Date(toDate).toLocaleDateString()}`
+        : '';
+
+    const totalSales = data?.totalSales || {};
+
+    const row = [
+      storeName,
+      dateAndDay,
+      totalSales.orders ?? 0,
+      totalSales.grossSales != null
+        ? Number(totalSales.grossSales).toFixed(2)
+        : '0.00',
+      totalSales.walletCredits != null
+        ? Number(totalSales.walletCredits).toFixed(2)
+        : '0.00',
+      totalSales.netSales != null
+        ? Number(totalSales.netSales).toFixed(2)
+        : '0.00',
+      totalSales.totalTAX != null
+        ? Number(totalSales.totalTAX).toFixed(2)
+        : '0.00',
+      totalSales.discount != null
+        ? Number(totalSales.discount).toFixed(2)
+        : '0.00',
+      totalSales.subTotal != null
+        ? Number(totalSales.subTotal).toFixed(2)
+        : '0.00',
+      totalSales.subTotal != null
+        ? Number(totalSales.subTotal).toFixed(2)
+        : '0.00',
+      totalSales.refunds != null
+        ? Number(totalSales.refunds).toFixed(2)
+        : '0.00',
+      totalSales.appliedCoupon != null
+        ? Number(totalSales.appliedCoupon).toFixed(2)
+        : '0.00',
+      totalSales.totalTip != null
+        ? Number(totalSales.totalTip).toFixed(2)
+        : '0.00',
     ];
-    const headerRow = [...baseHeader, ...paymentTypes];
-  
-    // 4. Prepare the sheet data as an array of arrays
-    const sheetData = [];
-  
-    // Optional title row
-    if (title) sheetData.push([title]);
-  
-    // Optional date interval row
-    // if (fromDate && toDate) {
-    //   sheetData.push(['Date Interval', fromDate, toDate]);
-    //   sheetData.push([]); // blank line
-    // }
-  
-    // Push the header row
-    sheetData.push(headerRow);
-  
-    // 5. Build each row for each branch
-    excelDataArr.forEach(({ branch, data }) => {
-      const storeName = branch?.name || '';
-      const dateAndDay =
-        fromDate && toDate
-          ? `${new Date(fromDate).toLocaleDateString()} - ${new Date(toDate).toLocaleDateString()}`
-          : '';
-  
-      const totalSales = data?.totalSales || {};
-  
-      const row = [
-        storeName,
-        dateAndDay,
-        totalSales.orders ?? 0,
-        totalSales.grossSales != null ? Number(totalSales.grossSales).toFixed(2) : '0.00',
-        totalSales.walletCredits != null ? Number(totalSales.walletCredits).toFixed(2) : '0.00',
-        totalSales.netSales != null ? Number(totalSales.netSales).toFixed(2) : '0.00',
-        totalSales.totalTAX != null ? Number(totalSales.totalTAX).toFixed(2) : '0.00',
-        totalSales.discount != null ? Number(totalSales.discount).toFixed(2) : '0.00',
-        totalSales.subTotal != null ? Number(totalSales.subTotal).toFixed(2) : '0.00',
-        totalSales.subTotal != null ? Number(totalSales.subTotal).toFixed(2) : '0.00',
-        totalSales.refunds != null ? Number(totalSales.refunds).toFixed(2) : '0.00',
-        totalSales.appliedCoupon != null ? Number(totalSales.appliedCoupon).toFixed(2) : '0.00',
-        totalSales.totalTip != null ? Number(totalSales.totalTip).toFixed(2) : '0.00',
-      ];
-  
-      // Add dynamic payment columns (using only the filtered payment types)
-      const payments = data?.totalReceived || [];
-      paymentTypes.forEach((ptype) => {
-        const payment = payments.find((p) => p.paymentType === ptype);
-        const amountVal = payment?.amount ? fmt(payment.amount).toFixed(2) : '0.00';
-        row.push(amountVal);
+
+    // Add dynamic payment columns (using only the filtered payment types)
+    const payments = data?.totalReceived || [];
+    paymentTypes.forEach((ptype) => {
+      const payment = payments.find((p: any) => p.paymentType === ptype);
+      const amountVal = payment?.amount ? fmt(payment.amount).toFixed(2) : '0.00';
+      row.push(amountVal);
+    });
+
+    sheetData.push(row);
+  });
+
+  // --- CATALOG SECTION AGGREGATION START ---
+  // Aggregate catalog records (across all branches) for only two groups: "RETAIL" and "RESTAURANT"
+  const aggregateCatalog: { [key: string]: any } = {};
+  // Define the numeric fields we want to sum from the catalog records
+  const numFields = [
+    'orders',
+    'subTotal',
+    'discount',
+    'appliedCoupon',
+    'deliveryCharge',
+    'deliveryTAX',
+    'refunds',
+    'netSales',
+    'totalTAX',
+    'grossSales',
+    'totalTip',
+    'taxes',
+    'walletCredits',
+  ];
+
+  excelDataArr.forEach(({ data }) => {
+    const catalogRecords = data?.catalogSection?.catalogRecords || [];
+    catalogRecords.forEach((record: any) => {
+      const groupName = record.name?.toUpperCase();
+      if (!groupName || (groupName !== 'RETAIL' && groupName !== 'RESTAURANT')) {
+        return;
+      }
+      if (!aggregateCatalog[groupName]) {
+        aggregateCatalog[groupName] = {};
+        numFields.forEach((field) => {
+          aggregateCatalog[groupName][field] = 0;
+        });
+      }
+      numFields.forEach((field) => {
+        aggregateCatalog[groupName][field] += Number(fmt(record[field]));
       });
-  
-      sheetData.push(row);
     });
-  
-    // 6. Convert the array-of-arrays into a worksheet
-    const worksheet = xlsx.utils.aoa_to_sheet(sheetData);
-  
-    // Optional: Set column widths
-    const baseColumns = baseHeader.length;
-    const totalColumns = baseColumns + paymentTypes.length;
-    worksheet['!cols'] = Array.from({ length: totalColumns }, (_, idx) => {
-      if (idx === 0) return { wpx: 150 }; // Store
-      if (idx === 1) return { wpx: 140 }; // Date and day
-      return { wpx: 100 };
-    });
-  
-    // 7. Create the workbook and write to buffer
-    const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
-    const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' });
-  
-    // 8. Save the file
-    saveAsExcelFile(excelBuffer, 'report.xlsx');
-  };
-  
+  });
+
+  // If there is at least one aggregated catalog record, add the Catalog Section
+  if (Object.keys(aggregateCatalog).length > 0) {
+    sheetData.push([]); // blank row
+    // Add the Catalog Section title row (will be styled bold later)
+    sheetData.push(['Catalog Section']);
+
+    // Build aggregated rows using the same columns as the base header.
+    // For catalog rows, "Date Interval" and dynamic payment columns will be empty.
+    // Mapping based on the baseHeader positions:
+    //   0: Store (group name)
+    //   1: Date Interval (empty)
+    //   2: New sales (orders) -> orders
+    //   3: Gross Sales -> grossSales
+    //   4: Wallet Credits -> walletCredits
+    //   5: Net Sales -> netSales
+    //   6: Tax -> totalTAX
+    //   7: Discounts -> discount
+    //   8: Payments -> empty (catalog doesn't have payments)
+    //   9: Subtotal -> subTotal
+    //   10: Refunds -> refunds
+    //   11: Applied Coupon -> appliedCoupon
+    //   12: Tip -> totalTip
+    const buildAggregatedRow = (group: string) => {
+      const agg = aggregateCatalog[group];
+      const row = [
+        group, // Store column
+        '', // Date Interval
+        agg.orders !== undefined ? Number(agg.orders).toFixed(2) : '0.00', // New sales (orders)
+        agg.grossSales !== undefined ? Number(agg.grossSales).toFixed(2) : '0.00', // Gross Sales
+        agg.walletCredits !== undefined ? Number(agg.walletCredits).toFixed(2) : '0.00', // Wallet Credits
+        agg.netSales !== undefined ? Number(agg.netSales).toFixed(2) : '0.00', // Net Sales
+        agg.totalTAX !== undefined ? Number(agg.totalTAX).toFixed(2) : '0.00', // Tax
+        agg.discount !== undefined ? Number(agg.discount).toFixed(2) : '0.00', // Discounts
+        '', // Payments (empty)
+        agg.subTotal !== undefined ? Number(agg.subTotal).toFixed(2) : '0.00', // Subtotal
+        agg.refunds !== undefined ? Number(agg.refunds).toFixed(2) : '0.00', // Refunds
+        agg.appliedCoupon !== undefined ? Number(agg.appliedCoupon).toFixed(2) : '0.00', // Applied Coupon
+        agg.totalTip !== undefined ? Number(agg.totalTip).toFixed(2) : '0.00' // Tip
+      ];
+      // Append empty cells for each dynamic payment column
+      const dynamicEmpty = Array(paymentTypes.length).fill('');
+      return row.concat(dynamicEmpty);
+    };
+
+    // Add aggregated rows for Retail and Restaurant if they exist.
+    if (aggregateCatalog['RETAIL']) {
+      sheetData.push(buildAggregatedRow('RETAIL'));
+    }
+    if (aggregateCatalog['RESTAURANT']) {
+      sheetData.push(buildAggregatedRow('RESTAURANT'));
+    }
+  }
+  // --- CATALOG SECTION AGGREGATION END ---
+
+  // 6. Convert the array-of-arrays into a worksheet
+  const worksheet = xlsx.utils.aoa_to_sheet(sheetData);
+
+  // 7. Set column widths
+  const baseColumns = baseHeader.length;
+  const totalColumns = baseColumns + paymentTypes.length;
+  worksheet['!cols'] = Array.from({ length: totalColumns }, (_, idx) => {
+    if (idx === 0) return { wpx: 150 }; // Store
+    if (idx === 1) return { wpx: 140 }; // Date Interval
+    return { wpx: 100 };
+  });
+
+  // 8. Apply bold + bigger font styling to certain rows
+  // Bold the title row (if exists) and the "Catalog Section" title row.
+  for (let r = 0; r < sheetData.length; r++) {
+    const row = sheetData[r];
+    if (row.length === 1) {
+      const heading = row[0];
+      if (heading === title || heading === 'Catalog Section') {
+        const cellAddress = xlsx.utils.encode_cell({ r, c: 0 });
+        if (worksheet[cellAddress]) {
+          worksheet[cellAddress].s = { font: { bold: true, sz: 14 } };
+        }
+      }
+    }
+  }
+
+  // 9. Create the workbook and write to a buffer
+  const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+  const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+  // 10. Save the file
+  saveAsExcelFile(excelBuffer, 'report.xlsx');
+};

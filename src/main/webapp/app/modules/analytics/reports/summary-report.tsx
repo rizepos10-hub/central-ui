@@ -134,7 +134,7 @@ const SalesSummaryReport = () => {
       const excelDataArr = await Promise.all(promises);
 
       exportExcelEodSummaryReport(
-        excelDataArr,
+        selectedBranch ? excelDataArr.filter(d => d.branch?.id === selectedBranch) : excelDataArr,
         fromDate.toLocaleString(),
         toDate.toLocaleString(),
         'Sales Summary Report'

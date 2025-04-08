@@ -5,6 +5,16 @@ export interface ISummaryReport {
     [orderOption: string]: ISalesSummary;
   };
   tipSummary: ITipSummary[]
+  catalogSection: ICatalogSection;
+}
+
+export interface ICatalogSection {
+  catalogRecords: ISalesSummary[];
+}
+
+export interface ICatalogRecord {
+  name: string;
+  quantity: number;
 }
 
 export interface ITipSummary {
@@ -14,6 +24,7 @@ export interface ITipSummary {
 }
 
 export interface ISalesSummary {
+  name?: string;
   orders: number;
   subTotal: number;
   discount: number;
