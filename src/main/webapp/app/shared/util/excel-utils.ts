@@ -174,7 +174,7 @@ export const exportExcelEodSummaryReport = async (
     (ptype) => paymentSums[ptype] > 0
   );
 
-  // 3. Build the header row for branch data
+  // 3. Build the header row (for branch data)
   const baseHeader = [
     'Store',
     'Date Interval',
@@ -188,7 +188,7 @@ export const exportExcelEodSummaryReport = async (
     'Subtotal',
     'Refunds',
     'Applied Coupon',
-    'Tip',
+    'Tip'
   ];
   const headerRow = [...baseHeader, ...paymentTypes];
 
@@ -198,12 +198,10 @@ export const exportExcelEodSummaryReport = async (
   // Optional title row
   if (title) sheetData.push([title]);
 
-  // Push the header row
+  // Push the branch data header row
   sheetData.push(headerRow);
 
-  // 5. Build each row for each branch (for payment summary)
-  // (The branch-level rows are still added here if needed; remove or comment out this block
-  // if you do not require branch rows and want only the aggregated catalog section.)
+  // 5. Build each row for each branch
   excelDataArr.forEach(({ branch, data }) => {
     const storeName = branch?.name || '';
     const dateAndDay =
@@ -263,7 +261,7 @@ export const exportExcelEodSummaryReport = async (
   // --- CATALOG SECTION AGGREGATION START ---
   // Aggregate catalog records (across all branches) for only two groups: "RETAIL" and "RESTAURANT"
   const aggregateCatalog: { [key: string]: any } = {};
-  // Define the numeric fields we want to sum
+  // Define the numeric fields we want to sum from the catalog records
   const numFields = [
     'orders',
     'subTotal',
@@ -299,102 +297,56 @@ export const exportExcelEodSummaryReport = async (
     });
   });
 
-  // If there is at least one aggregated record, add header and two rows (Retail and Restaurant)
+  // If there is at least one aggregated catalog record, add the Catalog Section
   if (Object.keys(aggregateCatalog).length > 0) {
     sheetData.push([]); // blank row
-    // The Catalog Section header will be styled bold later
+    // Add the Catalog Section title row (will be styled bold later)
     sheetData.push(['Catalog Section']);
-    sheetData.push([
-      'Name',
-      'Orders',
-      'SubTotal',
-      'Discount',
-      'Applied Coupon',
-      'Delivery Charge',
-      'Delivery TAX',
-      'Refunds',
-      'Net Sales',
-      'Tax',
-      'Gross Sales',
-      'Tip',
-      'Taxes',
-      'Wallet Credits'
-    ]);
 
-    // Prepare aggregated row for "RETAIL"
+    // Build aggregated rows using the same columns as the base header.
+    // For catalog rows, "Date Interval" and dynamic payment columns will be empty.
+    // Mapping based on the baseHeader positions:
+    //   0: Store (group name)
+    //   1: Date Interval (empty)
+    //   2: New sales (orders) -> orders
+    //   3: Gross Sales -> grossSales
+    //   4: Wallet Credits -> walletCredits
+    //   5: Net Sales -> netSales
+    //   6: Tax -> totalTAX
+    //   7: Discounts -> discount
+    //   8: Payments -> empty (catalog doesn't have payments)
+    //   9: Subtotal -> subTotal
+    //   10: Refunds -> refunds
+    //   11: Applied Coupon -> appliedCoupon
+    //   12: Tip -> totalTip
+    const buildAggregatedRow = (group: string) => {
+      const agg = aggregateCatalog[group];
+      const row = [
+        group, // Store column
+        '', // Date Interval
+        agg.orders !== undefined ? Number(agg.orders).toFixed(2) : '0.00', // New sales (orders)
+        agg.grossSales !== undefined ? Number(agg.grossSales).toFixed(2) : '0.00', // Gross Sales
+        agg.walletCredits !== undefined ? Number(agg.walletCredits).toFixed(2) : '0.00', // Wallet Credits
+        agg.netSales !== undefined ? Number(agg.netSales).toFixed(2) : '0.00', // Net Sales
+        agg.totalTAX !== undefined ? Number(agg.totalTAX).toFixed(2) : '0.00', // Tax
+        agg.discount !== undefined ? Number(agg.discount).toFixed(2) : '0.00', // Discounts
+        '', // Payments (empty)
+        agg.subTotal !== undefined ? Number(agg.subTotal).toFixed(2) : '0.00', // Subtotal
+        agg.refunds !== undefined ? Number(agg.refunds).toFixed(2) : '0.00', // Refunds
+        agg.appliedCoupon !== undefined ? Number(agg.appliedCoupon).toFixed(2) : '0.00', // Applied Coupon
+        agg.totalTip !== undefined ? Number(agg.totalTip).toFixed(2) : '0.00' // Tip
+      ];
+      // Append empty cells for each dynamic payment column
+      const dynamicEmpty = Array(paymentTypes.length).fill('');
+      return row.concat(dynamicEmpty);
+    };
+
+    // Add aggregated rows for Retail and Restaurant if they exist.
     if (aggregateCatalog['RETAIL']) {
-      sheetData.push([
-        'RETAIL',
-        aggregateCatalog['RETAIL'].orders,
-        aggregateCatalog['RETAIL'].subTotal != null
-          ? aggregateCatalog['RETAIL'].subTotal.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RETAIL'].discount != null
-          ? aggregateCatalog['RETAIL'].discount.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RETAIL'].appliedCoupon != null
-          ? aggregateCatalog['RETAIL'].appliedCoupon.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RETAIL'].deliveryCharge != null
-          ? aggregateCatalog['RETAIL'].deliveryCharge.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RETAIL'].deliveryTAX != null
-          ? aggregateCatalog['RETAIL'].deliveryTAX.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RETAIL'].refunds != null
-          ? aggregateCatalog['RETAIL'].refunds.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RETAIL'].netSales != null
-          ? aggregateCatalog['RETAIL'].netSales.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RETAIL'].totalTAX != null
-          ? aggregateCatalog['RETAIL'].totalTAX.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RETAIL'].grossSales != null
-          ? aggregateCatalog['RETAIL'].grossSales.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RETAIL'].totalTip,
-        aggregateCatalog['RETAIL'].taxes,
-        aggregateCatalog['RETAIL'].walletCredits,
-      ]);
+      sheetData.push(buildAggregatedRow('RETAIL'));
     }
-
-    // Prepare aggregated row for "RESTAURANT"
     if (aggregateCatalog['RESTAURANT']) {
-      sheetData.push([
-        'RESTAURANT',
-        aggregateCatalog['RESTAURANT'].orders,
-        aggregateCatalog['RESTAURANT'].subTotal != null
-          ? aggregateCatalog['RESTAURANT'].subTotal.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RESTAURANT'].discount != null
-          ? aggregateCatalog['RESTAURANT'].discount.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RESTAURANT'].appliedCoupon != null
-          ? aggregateCatalog['RESTAURANT'].appliedCoupon.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RESTAURANT'].deliveryCharge != null
-          ? aggregateCatalog['RESTAURANT'].deliveryCharge.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RESTAURANT'].deliveryTAX != null
-          ? aggregateCatalog['RESTAURANT'].deliveryTAX.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RESTAURANT'].refunds != null
-          ? aggregateCatalog['RESTAURANT'].refunds.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RESTAURANT'].netSales != null
-          ? aggregateCatalog['RESTAURANT'].netSales.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RESTAURANT'].totalTAX != null
-          ? aggregateCatalog['RESTAURANT'].totalTAX.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RESTAURANT'].grossSales != null
-          ? aggregateCatalog['RESTAURANT'].grossSales.toFixed(2)
-          : '0.00',
-        aggregateCatalog['RESTAURANT'].totalTip,
-        aggregateCatalog['RESTAURANT'].taxes,
-        aggregateCatalog['RESTAURANT'].walletCredits,
-      ]);
+      sheetData.push(buildAggregatedRow('RESTAURANT'));
     }
   }
   // --- CATALOG SECTION AGGREGATION END ---
@@ -402,7 +354,7 @@ export const exportExcelEodSummaryReport = async (
   // 6. Convert the array-of-arrays into a worksheet
   const worksheet = xlsx.utils.aoa_to_sheet(sheetData);
 
-  // Optional: Set column widths
+  // 7. Set column widths
   const baseColumns = baseHeader.length;
   const totalColumns = baseColumns + paymentTypes.length;
   worksheet['!cols'] = Array.from({ length: totalColumns }, (_, idx) => {
@@ -411,28 +363,25 @@ export const exportExcelEodSummaryReport = async (
     return { wpx: 100 };
   });
 
-  // 7. Apply bold + bigger font styling to certain rows
-  // Bold the title row (if exists), branch header row and "Catalog Section" header
+  // 8. Apply bold + bigger font styling to certain rows
+  // Bold the title row (if exists) and the "Catalog Section" title row.
   for (let r = 0; r < sheetData.length; r++) {
     const row = sheetData[r];
-    // Single cell rows which are headers we want bolded:
     if (row.length === 1) {
       const heading = row[0];
       if (heading === title || heading === 'Catalog Section') {
         const cellAddress = xlsx.utils.encode_cell({ r, c: 0 });
         if (worksheet[cellAddress]) {
-          worksheet[cellAddress].s = {
-            font: { bold: true, sz: 14 }
-          };
+          worksheet[cellAddress].s = { font: { bold: true, sz: 14 } };
         }
       }
     }
   }
 
-  // 8. Create the workbook and write to a buffer
+  // 9. Create the workbook and write to a buffer
   const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
   const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' });
 
-  // 9. Save the file
+  // 10. Save the file
   saveAsExcelFile(excelBuffer, 'report.xlsx');
 };
