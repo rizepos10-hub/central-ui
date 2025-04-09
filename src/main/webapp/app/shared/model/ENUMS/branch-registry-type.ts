@@ -1,5 +1,5 @@
 export enum RegisterType {
     ONLINE = "ONLINE",
-    OFFLINE = "OFFLINE",
+    POS = "POS",
   }
   
