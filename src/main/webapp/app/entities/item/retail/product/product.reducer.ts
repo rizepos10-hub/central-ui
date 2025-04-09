@@ -84,18 +84,29 @@ export const partialUpdateEntity = createAsyncThunk(
 );
 
 
-export const deleteEntity = createAsyncThunk(
-  'product/delete_entity',
+// export const deleteEntity = createAsyncThunk(
+//   'product/delete_entity',
+//   async (id: string | number, thunkAPI) => {
+//     const requestUrl = `${apiUrl}/${id}`;
+//     const result = await axios.delete<IProduct>(requestUrl);
+//     thunkAPI.dispatch(getEntities({}));
+//     return result;
+//   },
+//   { serializeError: serializeAxiosError }
+// );
+
+export const archiveEntity = createAsyncThunk(
+  'product/archive_entity',
   async (id: string | number, thunkAPI) => {
-    const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IProduct>(requestUrl);
+    const requestUrl = `${apiUrl}/${id}/archive`;
+    const result = await axios.patch<IProduct>(requestUrl);
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
 );
 
-export const deleteEntities = createAsyncThunk(
+export const purgeEntities = createAsyncThunk(
   'product/delete_entities',
   async (
     { ids, query }: { ids: Array<string | number>; query: any },
@@ -104,6 +115,38 @@ export const deleteEntities = createAsyncThunk(
     const requestUrl = `${apiUrl}`;
     const result = await axios.delete<IProduct>(requestUrl, {
       data: { ids }
+    });
+    thunkAPI.dispatch(filterEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const archiveEntities = createAsyncThunk(
+  'product/archive_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}/archive`;
+    const result = await axios.patch<IProduct>(requestUrl, {
+      ids
+    });
+    thunkAPI.dispatch(filterEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const unArchiveEntities = createAsyncThunk(
+  'product/un_archive_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}/unarchive`;
+    const result = await axios.patch<IProduct>(requestUrl, {
+      ids
     });
     thunkAPI.dispatch(filterEntities({ query }));
     return result;
@@ -154,7 +197,7 @@ export const ProductSlice = createEntitySlice({
         state.loading = false;
         state.entity = action.payload.data;
       })
-      .addCase(deleteEntity.fulfilled, state => {
+      .addCase(archiveEntity.fulfilled, state => {
         state.updating = false;
         state.updateSuccess = true;
         state.entity = {};
@@ -169,7 +212,7 @@ export const ProductSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, deleteEntities, exportEntities), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, purgeEntities, archiveEntities, unArchiveEntities, exportEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -180,7 +223,7 @@ export const ProductSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, updateEntities, deleteEntities, exportEntities), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, archiveEntity, updateEntities, purgeEntities, archiveEntities, unArchiveEntities, exportEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

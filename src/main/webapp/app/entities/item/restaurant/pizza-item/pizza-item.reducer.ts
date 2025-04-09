@@ -85,8 +85,8 @@ export const partialUpdateEntity = createAsyncThunk(
 export const deleteEntity = createAsyncThunk(
   'pizza-item/delete_entity',
   async (id: string | number, thunkAPI) => {
-    const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IPizzaItem>(requestUrl);
+    const requestUrl = `${apiUrl}/${id}/archive`;
+    const result = await axios.patch<IPizzaItem>(requestUrl);
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -99,9 +99,9 @@ export const deleteEntities = createAsyncThunk(
     { ids, query }: { ids: Array<string | number>; query: any },
     thunkAPI
   ) => {
-    const requestUrl = `${apiUrl}`;
-    const result = await axios.delete<IPizzaItem>(requestUrl, {
-      data: { ids }
+    const requestUrl = `${apiUrl}/archive`;
+    const result = await axios.patch<IPizzaItem>(requestUrl, {
+      ids
     });
     thunkAPI.dispatch(filterEntities({ query }));
     return result;

@@ -534,6 +534,7 @@ export const BulkEdit = ({
                 {!isRetail && (
                     <Row className='mt-3 border mx-0 p-1'>
                         <Col md={6}>
+                            <div className="fw-bold">Add ons</div>
                             <OrderList
                                 value={addonGroups?.map(group => group.addonGroup) || []}
                                 onChange={handleAddonGroupReorder}

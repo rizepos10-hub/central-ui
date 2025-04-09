@@ -16,6 +16,7 @@ import { fetchFirstLastBills, fetchFirstLastBillsSummary } from '../../api';
 import { useAppDispatch } from 'app/config/store';
 import { getEntities as getBusiness } from 'app/entities/settings/business-details/business-detail.reducer';
 import { SplitButton } from 'primereact/splitbutton';
+import CategoryReport from './category-report';
 
 interface DynamicEndOfDayReportUIProps {
     reportData: any;
@@ -51,6 +52,8 @@ const DynamicEndOfDayReportUI = ({
         retailCatalog: true,
         restaurantCatalog: true,
         billsSummary: true,
+        relatedTills: true,
+        categorySalesSummary: true
     });
     const [endOfDayReportSection, setEndOfDayReportSection] = useState<any>(null);
     const [businessDetailsState, setBusinessDetailsState] = useState<any>(null);
@@ -122,6 +125,8 @@ const DynamicEndOfDayReportUI = ({
         return <div>No data available.</div>;
     }
 
+    const showOrderMethod = reportData?.totalSalesByOrderOption?.DineIn?.orders > 0 || reportData?.totalSalesByOrderOption?.PickUp?.orders > 0 || reportData?.totalSalesByOrderOption?.Delivery?.orders > 0 || reportData?.totalSalesByOrderOption?.WalkIn?.orders > 0;
+
     return (
         <div ref={printWrapperRef} className="mt-2">
             <div className="hide-on-print bg-white p-2 mb-2">
@@ -152,7 +157,7 @@ const DynamicEndOfDayReportUI = ({
                             checked={visibleSections.retailCatalog}
                             onChange={() => toggleSection('retailCatalog')}
                         />
-                        Retail Catalog 
+                        Retail Catalog
                     </label>
                     <label className="flex items-center">
                         <input
@@ -171,6 +176,24 @@ const DynamicEndOfDayReportUI = ({
                             onChange={() => toggleSection('billsSummary')}
                         />
                         Bills Summary
+                    </label>
+                    <label className="flex items-center">
+                        <input
+                            type="checkbox"
+                            className="mr-1"
+                            checked={visibleSections.relatedTills}
+                            onChange={() => toggleSection('relatedTills')}
+                        />
+                        Related Tills
+                    </label>
+                    <label className="flex items-center">
+                        <input
+                            type="checkbox"
+                            className="mr-1"
+                            checked={visibleSections.categorySalesSummary}
+                            onChange={() => toggleSection('categorySalesSummary')}
+                        />
+                        Category Sales Summary
                     </label>
                 </div>
             </div>
@@ -238,7 +261,7 @@ const DynamicEndOfDayReportUI = ({
                 <EndOfTillTotalReceived totalReceived={reportData.totalReceived} />
             </div>
 
-            {visibleSections.orderMethod && (
+            {visibleSections.orderMethod && showOrderMethod && (
                 <div className="bg-white p-1 mb-2 section-orderMethod">
                     <h3>Order Method</h3>
                     <div className="ps-3">
@@ -300,6 +323,12 @@ const DynamicEndOfDayReportUI = ({
                 )}
             </div>
 
+            {visibleSections.categorySalesSummary && reportData?.categorySaleSummary?.categories?.length > 0 && (
+                <div className="bg-white p-1 mb-2 section-catalogRecords">
+                    <CategoryReport categorySaleSummary={reportData?.categorySaleSummary} />
+                </div>
+            )}
+
             {visibleSections.tipSummary &&
                 endOfDayReportSection?.includes(EndOfDayReportSection.TIP_SUMMARY) && (
                     <div className="bg-white p-1 mb-2 section-tipSummary">
@@ -318,15 +347,14 @@ const DynamicEndOfDayReportUI = ({
                     />
                 </div>
             )}
-            {/* {visibleSections.relatedTills &&
+            {visibleSections.relatedTills &&
                 endOfDay?.fromDate &&
-                endOfDay?.toDate &&
-                endOfDayReportSection?.includes(EndOfDayReportSection.RELATED_TILLS) && (
+                endOfDay?.toDate && (
                     <div className="bg-white p-1 mb-2 section-relatedTills">
                         <h3>Related Tills</h3>
                         <RelatedTills fromDate={endOfDay.fromDate} toDate={endOfDay.toDate} />
                     </div>
-                )} */}
+                )}
         </div>
     );
 };

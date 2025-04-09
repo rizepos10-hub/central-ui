@@ -45,6 +45,7 @@ export interface IBranchDetails {
   unitCostCalculationMode?: UnitCostCalculationMode;
   endingType?: EndingType;
   tokenExpired?: boolean;
+  logo?: IAttachment;
 }
 
 export enum UnitCostCalculationMode {

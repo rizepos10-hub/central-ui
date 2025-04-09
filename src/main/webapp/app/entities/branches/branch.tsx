@@ -24,6 +24,8 @@ import { getEntities as getZones } from 'app/entities/settings/zones/zones.reduc
 import { Dropdown } from 'primereact/dropdown';
 import { EndingType } from 'app/shared/model/ENUMS/ending-type.model';
 import { EndOfDayReportSection } from 'app/shared/model/ENUMS/end-of-day-report-section.model';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
 
 export enum AddressTypesEnum {
   "premise" = "premise",
@@ -88,7 +90,7 @@ export const Branches = () => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState.branchDetails));
     newData[branchIndex].endOfDayReportSection = selectedSections;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
-};
+  };
 
 
   const endOfDayReportSectionOptions = Object.keys(EndOfDayReportSection).map(section => ({
@@ -136,6 +138,13 @@ export const Branches = () => {
   const handleBranchNameChange = (branchIndex, newName) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].name = newName;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleImageChange = (branchIndex, value) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    console.log(value, 'value')
+    newData[branchIndex].logo = value?.[0];
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -395,6 +404,16 @@ export const Branches = () => {
                     value={branch.name}
                     onChange={(e) => handleBranchNameChange(branchIndex, e.target.value)}
                   />
+                  <label className="font-bold mt-3">Image</label>
+                  <MediaLibrary
+                    handleFilesSelectCallback={files =>
+                      handleImageChange(
+                        branchIndex,
+                        transformAttachmentStructure(files, 'toIAttachment')
+                      )
+                    }
+                    defaultValues={transformAttachmentStructure(branch.logo ? [branch.logo] : [], 'toFileLibraryListItem')}
+                  />
                   <label className="font-bold mt-3">Is Wholesale</label>
                   <Checkbox
                     checked={branch.wholesale}
@@ -431,7 +450,7 @@ export const Branches = () => {
                     onChange={(selectedOption) => handleEndingTypeChange(branchIndex, selectedOption?.value)}
                     placeholder="Select Ending Type.."
                   />
-                  
+
                   <label className="font-bold mt-3">Show End Of Day Report Section</label>
 
                   <Select
@@ -439,7 +458,7 @@ export const Branches = () => {
                     value={branch.endOfDayReportSection?.map(section => ({ value: section, label: section }))}
                     onChange={(selectedOptions) => handleEndOfDayReportSectionChange(branchIndex, selectedOptions)}
                     options={endOfDayReportSectionOptions}
-                    />
+                  />
 
                   <label className="font-bold mt-3">Should token expire?</label>
                   <Checkbox

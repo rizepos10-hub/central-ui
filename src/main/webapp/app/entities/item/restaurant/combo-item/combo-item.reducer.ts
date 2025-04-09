@@ -84,8 +84,8 @@ export const partialUpdateEntity = createAsyncThunk(
 export const deleteEntity = createAsyncThunk(
   'combo-item/delete_entity',
   async (id: string | number, thunkAPI) => {
-    const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IComboItem>(requestUrl);
+    const requestUrl = `${apiUrl}/${id}/archive`;
+    const result = await axios.patch<IComboItem>(requestUrl);
     thunkAPI.dispatch(getEntities({}));
     return result;
   },
@@ -98,9 +98,9 @@ export const deleteEntities = createAsyncThunk(
     { ids, query }: { ids: Array<string | number>; query: any },
     thunkAPI
   ) => {
-    const requestUrl = `${apiUrl}`;
-    const result = await axios.delete<IComboItem>(requestUrl, {
-      data: { ids }
+    const requestUrl = `${apiUrl}/archive`;
+    const result = await axios.patch<IComboItem>(requestUrl, {
+      ids
     });
     thunkAPI.dispatch(filterEntities({ query }));
     return result;
