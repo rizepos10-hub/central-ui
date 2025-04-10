@@ -28,6 +28,8 @@ export const DiscountUpdate = () => {
   useEffect(() => {
     if (!isNew) {
       dispatch(getEntity(id));
+    } else {
+      dispatch(reset());
     }
   }, []);
 
@@ -39,7 +41,7 @@ export const DiscountUpdate = () => {
     e.preventDefault();
     if (isNew) {
       dispatch(createEntity(discountEntity)).then((res) => {
-        if (createNew) {
+         if (createNew) {
           dispatch(reset());
         } else {
           const payload = res?.payload as any;
