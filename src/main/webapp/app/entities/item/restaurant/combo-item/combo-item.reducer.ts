@@ -4,7 +4,7 @@ import { createAsyncThunk, isFulfilled, isPending, isRejected } from '@reduxjs/t
 import { cleanEntity } from 'app/shared/util/entity-utils';
 import { IQueryParams, createEntitySlice, EntityState, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { IComboItem, defaultValue } from 'app/shared/model/ITEM/restaurant/combo-item.model';
-import { IRegularItem } from "app/shared/model/ITEM/restaurant/regular-item.model";
+
 const initialState: EntityState<IComboItem> = {
   loading: false,
   errorMessage: null,
@@ -81,7 +81,7 @@ export const partialUpdateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-export const deleteEntity = createAsyncThunk(
+export const archiveEntity = createAsyncThunk(
   'combo-item/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}/archive`;
@@ -92,7 +92,7 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-export const deleteEntities = createAsyncThunk(
+export const archiveEntities = createAsyncThunk(
   'combo-item/delete_entities',
   async (
     { ids, query }: { ids: Array<string | number>; query: any },
@@ -107,6 +107,41 @@ export const deleteEntities = createAsyncThunk(
   },
   { serializeError: serializeAxiosError }
 );
+
+
+export const unArchiveEntities = createAsyncThunk(
+  'product/un_archive_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}/unarchive`;
+    const result = await axios.patch<IComboItem>(requestUrl, {
+      ids
+    });
+    thunkAPI.dispatch(filterEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+
+export const purgeEntities = createAsyncThunk(
+  'product/delete_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}`;
+    const result = await axios.delete<IComboItem>(requestUrl, {
+      data: { ids }
+    });
+    thunkAPI.dispatch(filterEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 
 export const exportEntities = createAsyncThunk(
   'combo-item/export_entities',
@@ -149,7 +184,7 @@ export const ComboItemSlice = createEntitySlice({
         state.loading = false;
         state.entity = action.payload.data;
       })
-      .addCase(deleteEntity.fulfilled, state => {
+      .addCase(archiveEntity.fulfilled, state => {
         state.updating = false;
         state.updateSuccess = true;
         state.entity = {};
@@ -164,18 +199,18 @@ export const ComboItemSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, deleteEntities, exportEntities), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, archiveEntities, unArchiveEntities, purgeEntities, exportEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, filterEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, filterEntities, unArchiveEntities, purgeEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, updateEntities, deleteEntities, exportEntities), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, archiveEntity, updateEntities, archiveEntities, unArchiveEntities, purgeEntities, exportEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
