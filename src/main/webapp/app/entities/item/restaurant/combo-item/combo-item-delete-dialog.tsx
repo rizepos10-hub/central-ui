@@ -5,7 +5,7 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './combo-item.reducer';
+import { getEntity, archiveEntity } from './combo-item.reducer';
 
 export const ComboDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -36,7 +36,7 @@ export const ComboDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(comboItemEntity.id));
+    dispatch(archiveEntity(comboItemEntity.id));
   };
 
   return (

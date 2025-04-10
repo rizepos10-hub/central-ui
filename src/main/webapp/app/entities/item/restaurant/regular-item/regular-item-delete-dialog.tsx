@@ -5,7 +5,7 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './regular-item.reducer';
+import { getEntity, archiveEntity } from './regular-item.reducer';
 
 export const ItemDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -36,7 +36,7 @@ export const ItemDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(itemEntity.id));
+    dispatch(archiveEntity(itemEntity.id));
   };
 
   return (
