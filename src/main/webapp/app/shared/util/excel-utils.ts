@@ -154,8 +154,12 @@ export const exportExcelEodSummaryReport = async (
 ) => {
   const xlsx = await import('xlsx-js-style');
 
-  // Safely parse numeric values
-  const fmt = (val: any) => (typeof val === 'number' ? val : val ?? 0);
+  // Helper to safely parse and format numeric values.
+  // Returns an empty string if the numeric value is 0.
+  const cellVal = (val: any, decimals = 2) => {
+    const num = typeof val === 'number' ? val : Number(val) || 0;
+    return num === 0 ? '' : num.toFixed(decimals);
+  };
 
   // 1. Sum payment amounts across all branches for each payment type
   const paymentSums: { [key: string]: number } = {};
@@ -214,44 +218,24 @@ export const exportExcelEodSummaryReport = async (
     const row = [
       storeName,
       dateAndDay,
-      totalSales.orders ?? 0,
-      totalSales.grossSales != null
-        ? Number(totalSales.grossSales).toFixed(2)
-        : '0.00',
-      totalSales.walletCredits != null
-        ? Number(totalSales.walletCredits).toFixed(2)
-        : '0.00',
-      totalSales.netSales != null
-        ? Number(totalSales.netSales).toFixed(2)
-        : '0.00',
-      totalSales.totalTAX != null
-        ? Number(totalSales.totalTAX).toFixed(2)
-        : '0.00',
-      totalSales.discount != null
-        ? Number(totalSales.discount).toFixed(2)
-        : '0.00',
-      totalSales.subTotal != null
-        ? Number(totalSales.subTotal).toFixed(2)
-        : '0.00',
-      totalSales.subTotal != null
-        ? Number(totalSales.subTotal).toFixed(2)
-        : '0.00',
-      totalSales.refunds != null
-        ? Number(totalSales.refunds).toFixed(2)
-        : '0.00',
-      totalSales.appliedCoupon != null
-        ? Number(totalSales.appliedCoupon).toFixed(2)
-        : '0.00',
-      totalSales.totalTip != null
-        ? Number(totalSales.totalTip).toFixed(2)
-        : '0.00',
+      cellVal(totalSales.orders, 0),
+      cellVal(totalSales.grossSales),
+      cellVal(totalSales.walletCredits),
+      cellVal(totalSales.netSales),
+      cellVal(totalSales.totalTAX),
+      cellVal(totalSales.discount),
+      cellVal(totalSales.subTotal), // Payments column (if applicable)
+      cellVal(totalSales.subTotal), // Subtotal column
+      cellVal(totalSales.refunds),
+      cellVal(totalSales.appliedCoupon),
+      cellVal(totalSales.totalTip)
     ];
 
     // Add dynamic payment columns (using only the filtered payment types)
     const payments = data?.totalReceived || [];
     paymentTypes.forEach((ptype) => {
       const payment = payments.find((p: any) => p.paymentType === ptype);
-      const amountVal = payment?.amount ? fmt(payment.amount).toFixed(2) : '0.00';
+      const amountVal = payment?.amount ? cellVal(payment.amount) : '';
       row.push(amountVal);
     });
 
@@ -275,16 +259,14 @@ export const exportExcelEodSummaryReport = async (
     'grossSales',
     'totalTip',
     'taxes',
-    'walletCredits',
+    'walletCredits'
   ];
 
   excelDataArr.forEach(({ data }) => {
     const catalogRecords = data?.catalogSection?.catalogRecords || [];
     catalogRecords.forEach((record: any) => {
       const groupName = record.name?.toUpperCase();
-      if (!groupName || (groupName !== 'RETAIL' && groupName !== 'RESTAURANT')) {
-        return;
-      }
+      if (!groupName || (groupName !== 'RETAIL' && groupName !== 'RESTAURANT')) return;
       if (!aggregateCatalog[groupName]) {
         aggregateCatalog[groupName] = {};
         numFields.forEach((field) => {
@@ -292,7 +274,7 @@ export const exportExcelEodSummaryReport = async (
         });
       }
       numFields.forEach((field) => {
-        aggregateCatalog[groupName][field] += Number(fmt(record[field]));
+        aggregateCatalog[groupName][field] += Number(record[field]) || 0;
       });
     });
   });
@@ -324,17 +306,17 @@ export const exportExcelEodSummaryReport = async (
       const row = [
         group, // Store column
         '', // Date Interval
-        agg.orders !== undefined ? Number(agg.orders).toFixed(2) : '0.00', // New sales (orders)
-        agg.grossSales !== undefined ? Number(agg.grossSales).toFixed(2) : '0.00', // Gross Sales
-        agg.walletCredits !== undefined ? Number(agg.walletCredits).toFixed(2) : '0.00', // Wallet Credits
-        agg.netSales !== undefined ? Number(agg.netSales).toFixed(2) : '0.00', // Net Sales
-        agg.totalTAX !== undefined ? Number(agg.totalTAX).toFixed(2) : '0.00', // Tax
-        agg.discount !== undefined ? Number(agg.discount).toFixed(2) : '0.00', // Discounts
+        cellVal(agg.orders, 0),
+        cellVal(agg.grossSales),
+        cellVal(agg.walletCredits),
+        cellVal(agg.netSales),
+        cellVal(agg.totalTAX),
+        cellVal(agg.discount),
         '', // Payments (empty)
-        agg.subTotal !== undefined ? Number(agg.subTotal).toFixed(2) : '0.00', // Subtotal
-        agg.refunds !== undefined ? Number(agg.refunds).toFixed(2) : '0.00', // Refunds
-        agg.appliedCoupon !== undefined ? Number(agg.appliedCoupon).toFixed(2) : '0.00', // Applied Coupon
-        agg.totalTip !== undefined ? Number(agg.totalTip).toFixed(2) : '0.00' // Tip
+        cellVal(agg.subTotal),
+        cellVal(agg.refunds),
+        cellVal(agg.appliedCoupon),
+        cellVal(agg.totalTip)
       ];
       // Append empty cells for each dynamic payment column
       const dynamicEmpty = Array(paymentTypes.length).fill('');
@@ -385,3 +367,4 @@ export const exportExcelEodSummaryReport = async (
   // 10. Save the file
   saveAsExcelFile(excelBuffer, 'report.xlsx');
 };
+
