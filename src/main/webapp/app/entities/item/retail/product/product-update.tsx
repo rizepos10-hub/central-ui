@@ -130,7 +130,7 @@ export const ProductUpdate = () => {
   const [showFormErrors, setShowFormErrors] = useState(false);
 
   useEffect(() => {
-    if (isSingleItem && product?.variants[0]?.price && product?.variants[0]?.name && product?.name) {
+    if (isSingleItem && product?.variants[0]?.name && product?.name) {
       setFormIsValid(true);
     } else {
       setFormIsValid(false);
@@ -139,7 +139,6 @@ export const ProductUpdate = () => {
     if (!isSingleItem) {
       const allVariantsValid = product?.variants?.every(
         variant =>
-          variant?.price &&
           variant?.name &&
           variant?.attributeValues && Object.keys(variant?.attributeValues)?.length > 0 &&
           product?.name
@@ -721,7 +720,9 @@ export const ProductUpdate = () => {
   };
 
   useEffect(() => {
-    setDefaultPrice(product?.variants?.[0]?.price || 0);
+    if(!defaultPrice) {
+      setDefaultPrice(product?.variants?.[0]?.price || 0);
+    }
   }, [product?.variants?.[0]?.price])
 
   useEffect(() => {
@@ -754,7 +755,7 @@ export const ProductUpdate = () => {
       }
       return {
         ...variant,
-        price: product.askForPrice ? 0 : variant.price,
+        price: product.askForPrice ? 0 : variant.price ? variant.price : 0,
         purchaseConfig: ((variant?.purchaseConfig?.minOrderQuantity === null || variant?.purchaseConfig?.minOrderQuantity === undefined) && (variant?.purchaseConfig?.defaultPrice === null || variant?.purchaseConfig?.defaultPrice === undefined) && variant?.purchaseConfig?.supplierConfigurations?.length === 0) ? null : variant?.purchaseConfig
       };
     });
