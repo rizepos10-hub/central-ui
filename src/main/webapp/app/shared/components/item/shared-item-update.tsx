@@ -191,6 +191,7 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
                       placeholder={translate('items.update.placeholders.itemPrice')}
                       value={defaultPrice || null}
                       onChange={e => {
+                        console.log(e.value)
                         setDefaultPrice(e.value || 0);
                       }}
                       style={{
