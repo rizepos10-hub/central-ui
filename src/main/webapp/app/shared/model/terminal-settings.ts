@@ -25,7 +25,7 @@ export interface ITerminalSettings {
     receiveOnlineOrderPopups: boolean;
     pathToCustomerApp: string | null;
     customerAppIsOnSameDevice: boolean;
-    openDrawerType: string | null;
+    openDrawerType: openDrawerTypeEnum | null;
     openDrawerOnDebitCreditTransactions: boolean;
     receiptCopies: number | null;
     scaleSettings: ScaleSettings;
@@ -38,6 +38,12 @@ export interface ITerminalSettings {
     serialScaleSettings: SerialScaleSettings;
     scaleIntegrationType: ScaleIntegrationTypeEnum;
     rizeIntegratorWindowsServiceSettings: RizeIntegratorWindowsServiceSettings;
+}
+
+export enum openDrawerTypeEnum {
+    beforePrinting = "beforePrinting",
+    afterPrinting = "afterPrinting",
+    manual = "manual"
 }
 
 export interface RizeIntegratorWindowsServiceSettings {
@@ -141,12 +147,25 @@ interface PrinterSettings {
 }
 
 interface Receipt {
-    type: string | null;
+    type: PrinterConnectionTypeEnum | null;
     name: string | null;
     ip: string | null;
     port: number | null;
-    size: string | null;
+    size: PrinterSizeEnum | null;
     reverse: boolean;
+    printByPdf: boolean;
+}
+
+export enum PrinterConnectionTypeEnum {
+    NETWORK = 'NETWORK',
+    USB = 'USB'
+}
+
+
+export enum PrinterSizeEnum {
+    mm58 = 'mm58',
+    mm72 = 'mm72',
+    mm80 = 'mm80'
 }
 
 interface ScaleSettings {

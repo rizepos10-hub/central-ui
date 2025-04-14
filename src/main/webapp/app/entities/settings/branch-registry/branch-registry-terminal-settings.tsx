@@ -5,13 +5,14 @@ import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Dropdown } from 'primereact/dropdown';
 import { Checkbox } from 'primereact/checkbox';
-import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, DebitMachineSettingsInterfaceSettingsEnum, DeviceInterfaceEnum, DeviceTypesEnum, EncryptionSchemeEnum, HandShakeEnum, ParityEnum, ProviderTypesEnum, ScaleIntegrationTypeEnum, StopBitsEnum } from 'app/shared/model/terminal-settings';
+import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, DebitMachineSettingsInterfaceSettingsEnum, DeviceInterfaceEnum, DeviceTypesEnum, EncryptionSchemeEnum, HandShakeEnum, openDrawerTypeEnum, ParityEnum, PrinterConnectionTypeEnum, PrinterSizeEnum, ProviderTypesEnum, ScaleIntegrationTypeEnum, StopBitsEnum } from 'app/shared/model/terminal-settings';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { changeTerminalField, updateEntity } from './branch-registry.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
 import { Button } from 'primereact/button';
 import Select from 'react-select';
 import { TabPanel, TabView } from 'primereact/tabview';
+import Printer from '../printing/printer/printer';
 
 type MenuItem = {
     label: string;
@@ -1304,10 +1305,10 @@ function PrinterProperties() {
                     title="Open Drawer Type"
                     description="Set drawer to open either before or after printing or set to manually be opened"
                 >
-                    <Dropdown options={[
-                        { label: 'Retail', value: 'RETAIL' },
-                        { label: 'Restaurant', value: 'RESTAURANT' }
-                    ]} />
+                    <Dropdown options={Object.values(openDrawerTypeEnum).map(type => ({ label: type, value: type }))}
+                        value={branchRegistry.terminalSettings?.openDrawerType}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'openDrawerType', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -1316,6 +1317,11 @@ function PrinterProperties() {
                     title="Open Drawer on Debit/Credit Transactions"
                     description="Option to open drawer on debit/card related transactions"
                 >
+                    <Checkbox
+                        checked={branchRegistry.terminalSettings?.openDrawerOnDebitCreditTransactions}
+                        value={branchRegistry.terminalSettings?.openDrawerOnDebitCreditTransactions}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'openDrawerOnDebitCreditTransactions', value: e.checked }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -1324,7 +1330,10 @@ function PrinterProperties() {
                     title="Receipt Copies"
                     description="This specifies the number of copies of the receipt printed ny default on payment"
                 >
-                    <InputNumber />
+                    <InputNumber
+                        value={branchRegistry.terminalSettings?.receiptCopies}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'receiptCopies', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -1333,6 +1342,24 @@ function PrinterProperties() {
                     title="Reverse"
                     description="Send print commands in reverse (This is a special case for some printers where it prints the data in reverse)"
                 >
+                    <Checkbox
+                        checked={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.reverse}
+                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.reverse}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.reverse', value: e.checked }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-file-pdf"
+                    title="Print By PDF"
+                    description="Print receipt by PDF"
+                >
+                    <Checkbox
+                        checked={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.printByPdf}
+                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.printByPdf}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.printByPdf', value: e.checked }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12 mt-2">
@@ -1341,10 +1368,10 @@ function PrinterProperties() {
                     title="Printer Type"
                     description="Connection type to the printer (Network/USB)"
                 >
-                    <Dropdown options={[
-                        { label: 'Retail', value: 'RETAIL' },
-                        { label: 'Restaurant', value: 'RESTAURANT' }
-                    ]} />
+                    <Dropdown options={Object.values(PrinterConnectionTypeEnum).map(type => ({ label: type, value: type }))}
+                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.type}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.type', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -1353,7 +1380,10 @@ function PrinterProperties() {
                     title="Printer Name"
                     description="Printer name from the windows system"
                 >
-                    <InputText />
+                    <InputText
+                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.name}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.name', value: e.target.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -1362,10 +1392,10 @@ function PrinterProperties() {
                     title="Printer Size"
                     description="Choose one of the supported printer sizes"
                 >
-                    <Dropdown options={[
-                        { label: 'Retail', value: 'RETAIL' },
-                        { label: 'Restaurant', value: 'RESTAURANT' }
-                    ]} />
+                    <Dropdown options={Object.values(PrinterSizeEnum).map(type => ({ label: type, value: type }))}
+                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.size}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.size', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
         </div>
