@@ -1,5 +1,6 @@
 import { BusinessTypeEnum } from "./business-type";
 import { OrderMethod } from "./ENUMS/order-method.model";
+import { ITv } from "./TV/tv.model";
 
 export interface ITerminalSettings {
     showItemsPic: boolean;
@@ -8,6 +9,7 @@ export interface ITerminalSettings {
     countryCode: string | null;
     businessType: BusinessTypeEnum;
     languageCode: string | null;
+    customerScreenTV: ITv | null;
     creditCardMachineIp: string | null;
     creditCardMachinePort: string | null;
     enableSplitBill: boolean;
