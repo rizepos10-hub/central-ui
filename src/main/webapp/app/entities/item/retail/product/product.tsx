@@ -14,7 +14,7 @@ import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import SharedFilter from "app/shared/components/item/shared-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import AttributeFilter from "app/shared/components/filter/attribute-filter";
-import { deleteEntities, exportEntities, filterEntities, getEntities, updateEntities } from "app/entities/item/retail/product/product.reducer";
+import { exportEntities, filterEntities, getEntities, updateEntities, purgeEntities, archiveEntities, unArchiveEntities } from "app/entities/item/retail/product/product.reducer";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import ImportButton from "app/shared/components/data-import/data-import";
@@ -26,12 +26,14 @@ import { Sidebar } from 'primereact/sidebar';
 import { IItem } from "app/shared/model/ITEM/item.model";
 import { actionOptions, BulkEdit } from "app/shared/components/item/bulk-edit";
 import { confirmDialog } from "primereact/confirmdialog";
-import { FaCog, FaCopy } from "react-icons/fa";
+import { FaCog, FaCopy, FaTrash } from "react-icons/fa";
 import { createEntity } from './product.reducer';
 import { ColumnProps } from "primereact/column";
 import { MultiSelect } from "primereact/multiselect";
 import { Menu } from "primereact/menu";
 import { Checkbox } from "primereact/checkbox";
+import { FilterMatchMode } from "primereact/api";
+import { ToggleButton } from "primereact/togglebutton";
 interface ColumnConfig extends Partial<ColumnProps> {
   field: string;
   header: string;
@@ -49,7 +51,8 @@ export const Product = () => {
   const totalItems = useAppSelector(state => state.product.totalItems);
   const [visibleRight, setVisibleRight] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const query = JSON.parse(searchParams.get("query")) || initialItemFilterState;
+  const storedQuery = searchParams.get("query");
+  const query = storedQuery && storedQuery.trim() ? JSON.parse(storedQuery) : initialItemFilterState;
   const [localFilters, setLocalFilters] = useState(query?.filters);
   const filteredAttributes = localFilters?.["attributes.attributeTerms.id"]?.constraints || [];
 
@@ -84,6 +87,10 @@ export const Product = () => {
     }
   }, [query?.first, query?.page, query?.rows]);
 
+  useEffect(() => {
+    onFilter(localFilters)
+  }, [localFilters?.isArchived?.value])
+
   const handleSyncList = () => {
     getAllEntities();
   };
@@ -111,19 +118,17 @@ export const Product = () => {
   };
 
   const handleFilterValueChange = useCallback((field, value) => {
+    console.log(field, value)
     const updatedFilters = {
       ...localFilters,
       [field]: value
     };
 
+    console.log(updatedFilters)
+
     const cleanedFilters = updateTableFilters(updatedFilters);
+    console.log(cleanedFilters)
     setLocalFilters(cleanedFilters)
-    // const newQuery = JSON.stringify({
-    //   ...query,
-    //   filters: cleanedFilters
-    // });
-    //
-    // setSearchParams({ query: newQuery }, { replace: true });
   }, [query.filters, localFilters]);
 
   const handleClear = () => {
@@ -185,7 +190,7 @@ export const Product = () => {
     );
   };
 
-  const deleteColumnTemplate = (rowData: IProduct) => {
+  const archiveColumnTemplate = (rowData: IProduct) => {
     const deleteUrl = `/product/${rowData.id}/delete`;
     return (
       <Link to={deleteUrl}>
@@ -194,39 +199,55 @@ export const Product = () => {
     );
   };
 
-    
-  const TagsBody =  rowData => {
+  const unArchiveColumnTemplate = (rowData: IProduct) => {
+    return (
+      <Button outlined text onClick={() => confirmUnArchiveItems([rowData])}>
+        <FontAwesomeIcon icon="trash-restore" style={{ cursor: 'pointer', color: 'green', marginLeft: '1rem' }} />
+      </Button>
+    );
+  };
+
+  const purgeColumnTemplate = (rowData: IProduct) => {
+    return (
+      <Button outlined text onClick={() => confirmPurgeItems([rowData])}>
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
+      </Button>
+    );
+  };
+
+
+  const TagsBody = rowData => {
     const tags = rowData?.tags;
-  
+
     if (!tags || tags.length === 0) {
       return "No Tags"; // Display when no addons are available
     }
-  
+
     // Map through addonGroups and render them as links separated by "|"
     return tags.map((tag, index) => (
       <>
-      <Link className="font-normal" to={`/tag/${tag.id}/edit`}>
-        {tag.name}
-        {index < tags.length - 1 && ' | '}
-      </Link>
+        <Link className="font-normal" to={`/tag/${tag.id}/edit`}>
+          {tag.name}
+          {index < tags.length - 1 && ' | '}
+        </Link>
       </>
     ));
   };
-  
-  const DiscountBody =  rowData => {
+
+  const DiscountBody = rowData => {
     const discounts = rowData?.discounts;
     if (!discounts || discounts.length === 0) {
       return "No Discounts"; // Display when no addons are available
     }
-  
+
     // Map through addonGroups and render them as links separated by "|"
     return discounts.map((discount, index) => (
       <>
 
-      <Link className="font-normal" to={`/discount/${discount.id}/edit`}>
-      {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
-        {index < discounts.length - 1 && ' | '}
-      </Link>
+        <Link className="font-normal" to={`/discount/${discount.id}/edit`}>
+          {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
+          {index < discounts.length - 1 && ' | '}
+        </Link>
       </>
     ));
   };
@@ -250,15 +271,15 @@ export const Product = () => {
       icon: 'pi pi-exclamation-triangle',
       defaultFocus: 'accept',
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handleItemsDelete(),
+      accept: () => handleItemsArchive(),
       reject: () => setSelectedActionOption(null)
     });
   };
 
-  const handleItemsDelete = async () => {
+  const handleItemsArchive = async () => {
     setIsLoadingAction(true);
     const updatedQuery = applyMatchModeMap(query);
-    await dispatch(deleteEntities({
+    await dispatch(archiveEntities({
       ids: selectedProducts.map(p => p.id),
       query: updatedQuery,
     })).finally(() => setIsLoadingAction(false));
@@ -292,124 +313,202 @@ export const Product = () => {
     setSelectedActionOption(null);
   }
 
-  const columnsConfig: ColumnConfig[] = [
-    {
-      field: "name",
-      header: translate("items.view.fields.name"),
-      body: nameColumnTemplate,
-      filterPlaceholder: translate("items.view.filters.name"),
-      sortable: true,
-      key: "name",
-      seq: 1,
-      visible: true
-    },
-    {
-      field: "categories",
-      key: "categories",
-      header: "Category",
-      body: (rowData) =>
-        rowData?.categories?.map((cat) => cat?.name).join(" | "),
-      sortable: true,
-      seq: 2,
-      visible: true
-    },
-    {
-      field: "image",
-      key: "image",
-      header: translate("items.view.fields.image"),
-      body: (rowData) => (
-        <ImageDisplay
-          imageType={"product"}
-          imageUrl={
-            rowData?.attachments?.[0]?.url ||
-            rowData?.variants?.[0]?.attachments?.[0]?.url
-          }
-          height={50}
-          width={50}
-        />
-      ),
-      seq: 3,
-      visible: true
-    },
-    {
-      field: "desc",
-      key: "desc",
-      header: translate("items.view.fields.description"),
-      body: (rowData) => <SummarizeText>{rowData.desc}</SummarizeText>,
-      seq: 4,
-      visible: true
-    },
-    {
-      field: "stock",
-      key: "stock",
-      header: translate("items.view.fields.inStock"),
-      sortable: true,
-      seq: 5,
-      visible: true
-    },
-    {
-      field: "productionCenter",
-      key: "productionCenter",
-      header: translate("items.view.fields.productionCenter"),
-      body: (rowData) => <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>,
-      headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
-      bodyStyle: { textAlign: "left", overflow: "visible" },
-      seq: 7,
-      visible: true
-    },
-
-    {
-      field: "tags",
-      header: "Tags",
-      body: TagsBody,
-      key: "tags",
-      seq: 8,
-      visible: true
-    },
-
-    {
-      field: "discounts",
-      header: translate("items.view.fields.discount"),
-      body: DiscountBody,
-      sortable: true,
-      key: "discounts",
-      seq: 9,
-      visible: true
-    },
-
-    {
-      field: "actions",
-      key: "actions",
-      header: "Actions",
-      body: (rowData) => (
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          {duplicateColumnTemplate(rowData)}
-          {editColumnTemplate(rowData)}
-          {deleteColumnTemplate(rowData)}
-        </div>
-      ),
-      headerStyle: { width: "5%", textAlign: "center" },
-      bodyStyle: { textAlign: "center", overflow: "visible" },
-      seq: 10,
-      visible: true
+  useEffect(() => {
+    if (selectedActionOption?.code === "PURGE") {
+      confirmPurgeItems(selectedProducts);
     }
-  ];
-  
+  }, [selectedActionOption])
+
+  const confirmPurgeItems = (products: IProduct[]) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handlePurgeItems(products),
+      // reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handlePurgeItems = async (products: IProduct[]) => {
+    const updatedQuery = applyMatchModeMap(query)
+    await dispatch(purgeEntities({
+      ids: products.map(product => product.id),
+      query: updatedQuery
+    }))
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+  useEffect(() => {
+    if (selectedActionOption?.code === "RESTORE") {
+      confirmUnArchiveItems(selectedProducts);
+    }
+  }, [selectedActionOption])
+
+  const confirmUnArchiveItems = (products: IProduct[]) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleUnArchiveItems(products),
+      // reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleUnArchiveItems = async (products: IProduct[]) => {
+    const updatedQuery = applyMatchModeMap(query)
+    await dispatch(unArchiveEntities({
+      ids: products.map(product => product.id),
+      query: updatedQuery
+    }))
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+  const columnsConfig = useMemo<ColumnConfig[]>(
+    () => [
+      {
+        field: "name",
+        header: translate("items.view.fields.name"),
+        body: nameColumnTemplate,
+        filterPlaceholder: translate("items.view.filters.name"),
+        sortable: true,
+        key: "name",
+        seq: 1,
+        visible: true,
+      },
+      {
+        field: "categories",
+        key: "categories",
+        header: "Category",
+        body: (rowData) =>
+          rowData?.categories?.map((cat) => cat?.name).join(" | "),
+        sortable: true,
+        seq: 2,
+        visible: true,
+      },
+      {
+        field: "image",
+        key: "image",
+        header: translate("items.view.fields.image"),
+        body: (rowData) => (
+          <ImageDisplay
+            imageType={"product"}
+            imageUrl={
+              rowData?.attachments?.[0]?.url ||
+              rowData?.variants?.[0]?.attachments?.[0]?.url
+            }
+            height={50}
+            width={50}
+          />
+        ),
+        seq: 3,
+        visible: true,
+      },
+      {
+        field: "desc",
+        key: "desc",
+        header: translate("items.view.fields.description"),
+        body: (rowData) => <SummarizeText>{rowData.desc}</SummarizeText>,
+        seq: 4,
+        visible: true,
+      },
+      {
+        field: "stock",
+        key: "stock",
+        header: translate("items.view.fields.inStock"),
+        sortable: true,
+        seq: 5,
+        visible: true,
+      },
+      {
+        field: "productionCenter",
+        key: "productionCenter",
+        header: translate("items.view.fields.productionCenter"),
+        body: (rowData) => (
+          <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>
+        ),
+        headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
+        bodyStyle: { textAlign: "left", overflow: "visible" },
+        seq: 7,
+        visible: true,
+      },
+      {
+        field: "tags",
+        header: "Tags",
+        body: TagsBody,
+        key: "tags",
+        seq: 8,
+        visible: true,
+      },
+      {
+        field: "discounts",
+        header: translate("items.view.fields.discount"),
+        body: DiscountBody,
+        sortable: true,
+        key: "discounts",
+        seq: 9,
+        visible: true,
+      },
+      {
+        field: "actions",
+        key: "actions",
+        header: "Actions",
+        body: (rowData) => (
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            {!localFilters?.isArchived?.value ? (
+              <>
+                {duplicateColumnTemplate(rowData)}
+                {editColumnTemplate(rowData)}
+                {archiveColumnTemplate(rowData)}
+              </>
+            ) : (
+              <>
+                {unArchiveColumnTemplate(rowData)}
+                {purgeColumnTemplate(rowData)}
+              </>
+            )}
+          </div>
+        ),
+        headerStyle: { width: "5%", textAlign: "center" },
+        bodyStyle: { textAlign: "center", overflow: "visible" },
+        seq: 10,
+        visible: true,
+      },
+    ],
+    [localFilters]
+  );
+
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
     const storedFields = storedData[LOCAL_STORAGE_KEY];
-  
     if (storedFields) {
-      return columnsConfig.filter(col => storedFields.includes(col.field) || col.field === "actions");
+      return columnsConfig.filter(
+        (col) => storedFields.includes(col.field) || col.field === "actions"
+      );
     }
-  
-    return columnsConfig; // Default to all columns
+    return columnsConfig;
   });
+
+  useEffect(() => {
+    // Update visibleColumns when columnsConfig changes to capture updated localFilters
+    setVisibleColumns((prev) =>
+      columnsConfig.filter(
+        (col) =>
+          col.field === "actions" ||
+          prev.some((p) => p.field === col.field)
+      )
+    );
+  }, [columnsConfig]);
 
 
   const onColumnToggle = (field) => {
     let updatedColumns;
-  
+
     if (visibleColumns.some((col) => col.field === field && col.field !== "actions")) {
       updatedColumns = visibleColumns.filter((col) => col.field !== field);
     } else {
@@ -418,30 +517,35 @@ export const Product = () => {
         updatedColumns = [...visibleColumns, columnToAdd].sort((a, b) => a.seq - b.seq);
       }
     }
-  
+
     // Ensure "actions" is always included
     updatedColumns = updatedColumns.filter(col => col.field === "actions" || columnsConfig.some(config => config.field === col.field));
-  
+
     // Get existing stored items
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
     storedData[LOCAL_STORAGE_KEY] = updatedColumns.map(col => col.field); // Store only field names
-  
+
     localStorage.setItem("visible_columns", JSON.stringify(storedData));
-  
+
     setVisibleColumns(updatedColumns || []);
   };
 
   //localstorage options
-  const columnOptions = columnsConfig.filter(( { field } ) => field !== 'actions').map(({ field, header }) => ({ field, header }));
+  const columnOptions = columnsConfig.filter(({ field }) => field !== 'actions').map(({ field, header }) => ({ field, header }));
 
 
+  const archivedActionOptions = [
+    { name: 'Restore', code: 'RESTORE', disabled: false },
+    { name: 'Permenant Delete', code: 'PURGE', disabled: false },
+  ];
+  console.log(localFilters?.isArchived?.value, 'localFilters?.isArchived?.value')
   const header = (
     <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
       <span className="text-xl d-flex align-items-center">
         <Dropdown
           value={selectedActionOption}
           onChange={(e) => setSelectedActionOption(e.value)}
-          options={actionOptions}
+          options={localFilters?.isArchived?.value ? archivedActionOptions : actionOptions}
           optionLabel="name"
           placeholder="Bulk Actions"
           className="w-full md:w-14rem"
@@ -449,70 +553,94 @@ export const Product = () => {
           optionDisabled={(option) => option.disabled}
         />
       </span>
-      <div className="flex align-items-center justify-content-end gap-3">
-        <Button 
-          icon="pi pi-sync" 
-          raised severity="info" 
-          onClick={handleSyncList} 
-          disabled={loading} 
-          loading={loading}
-          data-pr-position="top" 
-          tooltip={translate('items.view.actions.refreshList')}
-        />
-        <Button 
-          icon="pi pi-file-export" 
-          raised 
-          onClick={confirm2} 
-          tooltip="Export All"
-          data-pr-position="top"
-        />
+      {!localFilters?.isArchived?.value ? (
+        <div className="flex align-items-center justify-content-end gap-3">
+          <Button
+            icon="pi pi-sync"
+            raised severity="info"
+            onClick={handleSyncList}
+            disabled={loading}
+            loading={loading}
+            data-pr-position="top"
+            tooltip={translate('items.view.actions.refreshList')}
+          />
+          <Button
+            icon="pi pi-file-export"
+            raised
+            onClick={confirm2}
+            tooltip="Export All"
+            data-pr-position="top"
+          />
 
-        <ImportButton type="RETAIL"  data-pr-position="top" />
+          <ImportButton type="RETAIL" data-pr-position="top" />
 
-        <Button 
-          icon="pi pi-plus" 
-          raised 
-          onClick={handleCreate} 
-          disabled={loading} 
-          data-pr-position="top"
-          tooltip={translate('items.view.actions.createItem')} 
-        />
-
-      </div>
+          <Button
+            icon="pi pi-plus"
+            raised
+            onClick={handleCreate}
+            disabled={loading}
+            data-pr-position="top"
+            tooltip={translate('items.view.actions.createItem')}
+          />
+        </div>
+      ) : (
+        <h4 className="text-center text-danger">
+          Now viewing Recycle Bin
+        </h4>
+      )}
 
       <div className="flex justify-between items-center">
-          <div className="relative d-flex justify-end mr-auto">
-            <Menu
-              model={[
-                {
-                  label: "Select Columns",
-                  items: columnOptions.map((col) => ({
-                    template: () => (
-                      <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          inputId={col.field}
-                          checked={visibleColumns.some((c) => c.field === col.field)}
-                          onChange={() => onColumnToggle(col.field)}
-                        />
-                        <label className="ml-2" htmlFor={col.field} >{col.header}</label>
-                      </div>
-                    ),
-                  })),
-                },
-              ]}
-              popup
-              ref={menu}
-            />
-            <Button
-              tooltip="Select Columns"
-              data-pr-position="top"
-              icon={<FaCog className="text-xl" />}
-              className="p-button-text mr-auto"
-              onClick={(event) => menu.current.toggle(event)}
-            />
-          </div>
-          <Button data-pr-position="top" tooltip="Filter" className="p-button-text mr-auto" icon="pi pi-filter" onClick={() => setVisibleRight(true)} />
-          
+        <div className="relative d-flex justify-end mr-auto">
+          <Menu
+            model={[
+              {
+                label: "Select Columns",
+                items: columnOptions.map((col) => ({
+                  template: () => (
+                    <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        inputId={col.field}
+                        checked={visibleColumns.some((c) => c.field === col.field)}
+                        onChange={() => onColumnToggle(col.field)}
+                      />
+                      <label className="ml-2" htmlFor={col.field} >{col.header}</label>
+                    </div>
+                  ),
+                })),
+              },
+            ]}
+            popup
+            ref={menu}
+          />
+          <ToggleButton
+            tooltip="Recycle Bin"
+            data-pr-position="top"
+            checked={localFilters?.isArchived?.value}
+            onChange={(e) => {
+              if (localFilters?.isArchived?.value) {
+                handleFilterValueChange('isArchived', { value: false, matchMode: FilterMatchMode.EQUALS })
+              } else {
+                handleFilterValueChange('isArchived', { value: true, matchMode: FilterMatchMode.EQUALS })
+              }
+            }}
+            onIcon={<FaTrash className="text-xl" />}
+            offIcon={<FaTrash className="text-xl" />}
+            onLabel=""
+            offLabel=""
+            className="p-button-text mr-auto"
+          />
+
+
+          <Button
+            tooltip="Select Columns"
+            data-pr-position="top"
+            icon={<FaCog className="text-xl" />}
+            className="p-button-text mr-auto"
+            onClick={(event) => menu.current.toggle(event)}
+          />
+        </div>
+        <Button data-pr-position="top" tooltip="Filter" className="p-button-text mr-auto" icon="pi pi-filter" onClick={() => setVisibleRight(true)} />
+
 
       </div>
 
@@ -567,12 +695,12 @@ export const Product = () => {
         selectionMode={'checkbox'}
         selection={selectedProducts}
         onSelectionChange={(e) => setSelectedProducts(e.value)}
-    >
-      <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+      >
+        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
         {visibleColumns.map((col) => (
           <Column key={col.field} field={col.field} header={col.header} body={col.body} />
         ))}
-    </DataTable>
+      </DataTable>
     </div>
   );
 };

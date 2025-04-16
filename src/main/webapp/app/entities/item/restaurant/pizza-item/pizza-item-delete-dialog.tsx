@@ -5,7 +5,7 @@ import { Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntity, deleteEntity } from './pizza-item.reducer';
+import { getEntity, archiveEntity } from './pizza-item.reducer';
 
 export const PizzaDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -36,7 +36,7 @@ export const PizzaDeleteDialog = () => {
   }, [updateSuccess]);
 
   const confirmDelete = () => {
-    dispatch(deleteEntity(pizzaItemEntity.id));
+    dispatch(archiveEntity(pizzaItemEntity.id));
   };
 
   return (

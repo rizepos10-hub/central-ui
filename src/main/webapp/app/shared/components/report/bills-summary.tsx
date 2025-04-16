@@ -1,4 +1,4 @@
-import { fetchRecentBills } from 'app/modules/analytics/api';
+import { fetchRecentByDate, fetchRecentBills } from 'app/modules/analytics/api';
 import { ISummaryReport } from 'app/shared/model/report-summary.model';
 import React, { useEffect, useState } from 'react';
 import { Col } from 'reactstrap';
@@ -6,7 +6,7 @@ import PaginationFilterStateVals from '../pagination/pagination-filter-state-val
 
 const ITEMS_PER_PAGE = 10;
 
-const BillsSummary = ({ eodId }) => {
+const BillsSummary = ({ eodId, fromDate, toDate, branchId, source }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
     const [bills, setBills] = useState([])
@@ -14,10 +14,18 @@ const BillsSummary = ({ eodId }) => {
     const totalPages = Math.ceil(totalRecords / ITEMS_PER_PAGE);
 
     useEffect(() => {
-        fetchRecentBills(currentPage - 1, 10, eodId).then(result => {
-            setTotalRecords(Number(result.headers['x-total-count']))
-            setBills(result.data)
-        })
+        if (eodId) {
+            fetchRecentBills(currentPage - 1, 10, eodId).then(result => {
+                setTotalRecords(Number(result.headers['x-total-count']))
+                setBills(result.data)
+            })
+        } else {
+            fetchRecentByDate(currentPage - 1, 10, fromDate, toDate, branchId)
+                .then((result) => {
+                    setTotalRecords(Number(result.headers['x-total-count']))
+                    setBills(result.data);
+                });
+        }
     }, [currentPage])
 
     if (bills.length === 0) return null;

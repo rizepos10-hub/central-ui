@@ -11,7 +11,7 @@ import { Column, ColumnProps } from "primereact/column";
 import { IComboItem } from "app/shared/model/ITEM/restaurant/combo-item.model";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap } from "app/shared/util/filter-match-model-util";
-import { deleteEntities, exportEntities, filterEntities, updateEntities, createEntity } from "app/entities/item/restaurant/combo-item/combo-item.reducer";
+import { archiveEntities, exportEntities, filterEntities, updateEntities, createEntity, purgeEntities, unArchiveEntities } from "./combo-item.reducer";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { IItem } from 'app/shared/model/ITEM/item.model';
@@ -20,11 +20,12 @@ import { actionOptions, BulkEdit } from 'app/shared/components/item/bulk-edit';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { InputText } from 'primereact/inputtext';
 import { FilterMatchMode } from 'primereact/api';
-import { FaCog, FaCopy } from 'react-icons/fa';
+import { FaCog, FaCopy, FaTrash } from 'react-icons/fa';
 import _ from 'lodash';
 import { Menu } from 'primereact/menu';
 import { Checkbox } from 'primereact/checkbox';
 import { SummarizeText } from 'app/shared/util/SummarizeText';
+import { ToggleButton } from 'primereact/togglebutton';
 
 export const ComboItem = () => {
   const dispatch = useAppDispatch();
@@ -49,6 +50,7 @@ export const ComboItem = () => {
       "categories.id": { value: null, matchMode: FilterMatchMode.EQUALS },
       "attributes": { value: null, matchMode: FilterMatchMode.EQUALS },
       name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+      "isArchived": { value: false, matchMode: FilterMatchMode.EQUALS },
     }
   };
 
@@ -106,6 +108,25 @@ export const ComboItem = () => {
     });
     setSearchParams({ query: newQuery }, { replace: true });
   };
+
+  const handleIsArchivedChange = (value) => {
+    const queryParams = JSON.stringify({
+      ...query,
+      page: 0,
+      first: 0,
+      filters: {
+        ...query.filters,
+        ["isArchived"]: { value, matchMode: FilterMatchMode.EQUALS }
+      }
+    })
+    setSearchParams({ query: queryParams }, { replace: true })
+  }
+
+  useEffect(() => {
+    if (query?.filters?.name?.value) {
+      setLocalNameFilter(query?.filters?.name?.value)
+    }
+  }, [])
 
   const nameColumnTemplate = rowData => {
     const editUrl = `/restaurant/combo/${rowData.id}/edit`;
@@ -190,7 +211,7 @@ export const ComboItem = () => {
     ));
   };
 
-  const deleteColumnTemplate = (rowData) => {
+  const archiveColumnTemplate = (rowData) => {
     const deleteUrl = `/restaurant/combo/${rowData.id}/delete`;
     return (
       <Link to={deleteUrl}>
@@ -198,6 +219,81 @@ export const ComboItem = () => {
       </Link>
     );
   };
+
+
+  const unArchiveColumnTemplate = (rowData) => {
+    return (
+      <Button outlined text onClick={() => confirmUnArchiveItems([rowData])}>
+        <FontAwesomeIcon icon="trash-restore" style={{ cursor: 'pointer', color: 'green', marginLeft: '1rem' }} />
+      </Button>
+    );
+  };
+
+  const purgeColumnTemplate = (rowData) => {
+    return (
+      <Button outlined text onClick={() => confirmPurgeItems([rowData])}>
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
+      </Button>
+    );
+  };
+
+  useEffect(() => {
+    if (selectedActionOption?.code === "PURGE") {
+      confirmPurgeItems(selectedProducts);
+    }
+  }, [selectedActionOption])
+
+  const confirmPurgeItems = (products: IComboItem[]) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handlePurgeItems(products),
+      // reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handlePurgeItems = async (products: IComboItem[]) => {
+    const updatedQuery = applyMatchModeMap(query)
+    await dispatch(purgeEntities({
+      ids: products.map(product => product.id),
+      query: updatedQuery
+    }))
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+  useEffect(() => {
+    if (selectedActionOption?.code === "RESTORE") {
+      confirmUnArchiveItems(selectedProducts);
+    }
+  }, [selectedActionOption])
+
+  const confirmUnArchiveItems = (products: IComboItem[]) => {
+    confirmDialog({
+      message: 'Are you sure you want to proceed?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      defaultFocus: 'accept',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      accept: () => handleUnArchiveItems(products),
+      // reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleUnArchiveItems = async (products: IComboItem[]) => {
+    const updatedQuery = applyMatchModeMap(query)
+    await dispatch(unArchiveEntities({
+      ids: products.map(product => product.id),
+      query: updatedQuery
+    }))
+    setSelectedProducts([]);
+    setSelectedActionOption(null);
+  }
+
+
 
   const MenusTemplate = (rowData) => {
     const menus = []
@@ -243,7 +339,7 @@ export const ComboItem = () => {
   const handleItemsDelete = async () => {
     setIsLoadingAction(true);
     const updatedQuery = applyMatchModeMap(query);
-    await dispatch(deleteEntities({
+    await dispatch(archiveEntities({
       ids: selectedProducts.map(p => p.id),
       query: updatedQuery,
     })).finally(() => setIsLoadingAction(false));
@@ -382,14 +478,17 @@ export const ComboItem = () => {
       header: toCamelCaseWithSpace(field), // Convert the field name to a human-readable header
     }));
 
-
+  const archivedActionOptions = [
+    { name: 'Restore', code: 'RESTORE', disabled: false },
+    { name: 'Permenant Delete', code: 'PURGE', disabled: false },
+  ];
   const header = (
     <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
       <span className="text-xl d-flex align-items-center">
         <Dropdown
           value={selectedActionOption}
           onChange={(e) => setSelectedActionOption(e.value)}
-          options={actionOptions}
+          options={query?.filters?.isArchived?.value ? archivedActionOptions : actionOptions}
           optionLabel="name"
           placeholder="Bulk Actions"
           className="w-full md:w-14rem"
@@ -451,6 +550,26 @@ export const ComboItem = () => {
             popup
             ref={menu}
           />
+
+
+          <ToggleButton
+            tooltip="Recycle Bin"
+            data-pr-position="top"
+            checked={query?.filters?.isArchived?.value}
+            onChange={(e) => {
+              if (query?.filters?.isArchived?.value) {
+                handleIsArchivedChange(false)
+              } else {
+                handleIsArchivedChange(true)
+              }
+            }}
+            onIcon={<FaTrash className="text-xl" />}
+            offIcon={<FaTrash className="text-xl" />}
+            onLabel=""
+            offLabel=""
+            className="p-button-text mr-auto"
+          />
+
           <Button
             data-pr-position="top"
             icon={<FaCog className="text-xl" />}
@@ -614,9 +733,18 @@ export const ComboItem = () => {
         {
           <Column header={translate('items.view.fields.actions')} body={(rowData) =>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              {duplicateColumnTemplate(rowData)}
-              {editColumnTemplate(rowData)}
-              {deleteColumnTemplate(rowData)}
+              {!query?.filters?.isArchived?.value ? (
+                <>
+                  {duplicateColumnTemplate(rowData)}
+                  {editColumnTemplate(rowData)}
+                  {archiveColumnTemplate(rowData)}
+                </>
+              ) : (
+                <>
+                  {unArchiveColumnTemplate(rowData)}
+                  {purgeColumnTemplate(rowData)}
+                </>
+              )}
             </div>
 
           }
