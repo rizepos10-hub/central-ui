@@ -137,14 +137,14 @@ export const ProductUpdate = () => {
     }
 
     if (!isSingleItem) {
-      console.log(product?.attributes, 'product?.attributes')
-      console.log(product?.variants, 'product?.variants')
       const allVariantsValid = product?.variants?.every(
         variant =>
           variant?.name &&
-          (!product?.attributes || Object.keys(variant?.attributeValues)?.length > 0) &&
+          ((!product?.attributes || product?.attributes.length === 0) ||
+            Object.keys(variant?.attributeValues || {})?.length > 0) &&
           product?.name
       );
+
       setFormIsValid(allVariantsValid);
     }
   }, [product, isSingleItem])
