@@ -1,5 +1,5 @@
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Menu } from 'primereact/menu';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
@@ -13,6 +13,8 @@ import { Button } from 'primereact/button';
 import Select from 'react-select';
 import { TabPanel, TabView } from 'primereact/tabview';
 import Printer from '../printing/printer/printer';
+import { getEntities } from '../tv-config/tv/tv.reducer';
+import { ITv } from 'app/shared/model/TV/tv.model';
 
 type MenuItem = {
     label: string;
@@ -48,6 +50,10 @@ const BranchRegistryTerminalSettings = () => {
             dispatch(updateEntity({}));
         });
     };
+
+    useEffect(() => {
+        dispatch(getEntities({}))
+    }, [])
 
     return (
         <div className="container-fluid h-100">
@@ -661,8 +667,9 @@ function EmailLogsSettings() {
 
 function CustomerAppSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const tvsList: ITv[] = useAppSelector(state => state.tv.entities);
     const dispatch = useAppDispatch()
-    console.log(branchRegistry, 'branchRegistry')
+
     return (
         <div className="grid">
             <div className="col-12">
@@ -713,6 +720,19 @@ function CustomerAppSettings() {
                     <InputNumber
                         value={branchRegistry.terminalSettings?.customerAppPort}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'customerAppPort', value: e.value }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-eye"
+                    title="Customer Screen TV"
+                    description="Enter TV to show on customer screen"
+                >
+                    <Dropdown 
+                        options={tvsList.map(tv => ({ label: tv.name, value: tv.id }))}
+                        value={branchRegistry.terminalSettings?.customerScreenTV?.id}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerScreenTV.id', value: e.value }))}
                     />
                 </FieldWrapper>
             </div>
