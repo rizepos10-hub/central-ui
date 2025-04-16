@@ -58,7 +58,7 @@ export const Addon = () => {
 
   useEffect(() => {
     getAllEntities();
-  }, [searchParam]);
+  }, [searchParam, query?.rows]);
 
   useEffect(() => {
     dispatch(
@@ -204,7 +204,8 @@ export const Addon = () => {
         filterDisplay="row"
         paginator
         totalRecords={totalItems}
-        rows={20}
+        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
+        rows={query?.rows}
         lazy
         first={query.first}
         onPage={onPage}
