@@ -193,7 +193,7 @@ export const InventoryReport = () => {
 
   const handleExportItems = async () => {
     setIsLoadingAction(true);
-    await dispatch(exportEntities(inventoryItemList.map(product => product.id))).finally(() => setIsLoadingAction(false));
+    await dispatch(exportEntities([])).finally(() => setIsLoadingAction(false));
   };
   const header = (
         <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
