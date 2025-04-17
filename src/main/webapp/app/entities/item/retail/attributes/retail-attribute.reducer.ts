@@ -20,10 +20,10 @@ const apiSearchUrl = 'api/_search/retail-attributes';
 
 // Actions
 
-export const searchEntities = createAsyncThunk('retail-attribute/search_entity', async ({ query, page, size, sort }: IQueryParams) => {
-  const requestUrl = `${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`;
-  return axios.get<ITaxonomy[]>(requestUrl);
+export const searchEntities = createAsyncThunk('retail-attribute/filter_entity_list', async ({ query }: IQueryParams) => {
+  return axios.post<ITaxonomy[]>(apiSearchUrl, query);
 });
+
 
 export const getEntities = createAsyncThunk('retail-attribute/fetch_entity_list', async ({ page, size, sort }: IQueryParams) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}&` : '?'}cacheBuster=${new Date().getTime()}`;

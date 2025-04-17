@@ -15,6 +15,7 @@ import ShiftReport from "app/modules/analytics/reports/shit/shift-report";
 import EmployeeHoursReport from './reports/employee-hours/employee-hours';
 import RetialDashboard from './reports/retail-dashboard/retail-dashboard';
 import SalesReportPrint from './reports/sales-report/sales-report-print';
+import InventoryReport from './reports/inventory-report/inventory-report';
 
 
 
@@ -33,6 +34,7 @@ export default () => {
         <Route path="sales" element={<SalesReport />} />
         <Route path="/sales-report/sales-by-:reportType" element={<SalesReport />} />
         <Route path="/sales-report/print" element={<SalesReportPrint />} />
+        <Route path="/inventory-report" element={<InventoryReport />} />
         <Route path="*" element={<PageNotFound />} />
         {/* jhipster-needle-add-route-path - JHipster will add routes here */}
       </ErrorBoundaryRoutes>

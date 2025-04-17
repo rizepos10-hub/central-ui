@@ -423,6 +423,46 @@ export const UiSettingsUpdate = () => {
                     </div>
 
                     <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-retailItemsPerRow">
+                        <strong>{translate('tempApp.UiSettings.retailItemsPerRow')}</strong>
+                      </Label>
+                      <Dropdown
+                        id="UiSettings-retailItemsPerRow"
+                        value={UiSettingsEntity.retailItemsPerRow || null}
+                        options={[
+                          { label: '1', value: 1 },
+                          { label: '2', value: 2 },
+                          { label: '3', value: 3 },
+                          { label: '4', value: 4 }
+                        ]}
+                        onChange={(e) =>
+                          dispatch(changeEntityField({ name: 'retailItemsPerRow', value: e.value }))
+                        }
+                        placeholder="Select an option"
+                      />
+                    </div>
+
+                    <div className="d-flex flex-column mb-3">
+                      <Label htmlFor="UiSettings-restaurantItemsPerRow">
+                        <strong>{translate('tempApp.UiSettings.restaurantItemsPerRow')}</strong>
+                      </Label>
+                      <Dropdown
+                        id="UiSettings-restaurantItemsPerRow"
+                        value={UiSettingsEntity.restaurantItemsPerRow || null}
+                        options={[
+                          { label: '1', value: 1 },
+                          { label: '2', value: 2 },
+                          { label: '3', value: 3 },
+                          { label: '4', value: 4 }
+                        ]}
+                        onChange={(e) =>
+                          dispatch(changeEntityField({ name: 'restaurantItemsPerRow', value: e.value }))
+                        }
+                        placeholder="Select an option"
+                      />
+                    </div>
+
+                    <div className={'d-flex flex-column mb-3'}>
                       <h2>
                         <strong>{translate('tempApp.UiSettings.colorSetting.title')}</strong>
                       </h2>

@@ -1,87 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
+import { Translate, translate, getSortState } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { searchEntities } from './supplier.reducer';
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import { FilterMatchMode } from 'primereact/api';
 
-import { searchEntities, getEntities } from './supplier.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {Chip} from "primereact/chip";
-import {FilterMatchMode} from "primereact/api";
+const initialState = {
+  first: 0,
+  rows: 20,
+  page: 0,
+  sortField: null,
+  sortOrder: null,
+  query: '',
+  filters: {
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    email: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    address: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    phoneNumber: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  },
+};
 
 export const Supplier = () => {
   const dispatch = useAppDispatch();
 
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const [search, setSearch] = useState('');
-  const [paginationState, setPaginationState] = useState(
-    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
-  );
 
   const supplierList = useAppSelector(state => state.supplier.entities);
   const loading = useAppSelector(state => state.supplier.loading);
   const totalItems = useAppSelector(state => state.supplier.totalItems);
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    address: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    phoneNumber: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  });
+  const [searchParam, setSearchParams] = useSearchParams();
+  const query = JSON.parse(searchParam.get('query')) || initialState;
 
   const getAllEntities = () => {
-    if (search) {
-      dispatch(
-        searchEntities({
-          query: search,
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    } else {
-      dispatch(
-        getEntities({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-        })
-      );
-    }
-  };
-
-
-
-
-
-  const sortEntities = () => {
-    getAllEntities();
-    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    if (location.search !== endURL) {
-      navigate(`${location.pathname}${endURL}`);
-    }
+    const updatedQuery = applyMatchModeMap(query);
+    dispatch(
+      searchEntities({
+        query: updatedQuery,
+      })
+    );
   };
 
   useEffect(() => {
-    sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort, search]);
-
-
-
-
+    getAllEntities();
+  }, [searchParam]);
 
   const handleSyncList = () => {
-    sortEntities();
+    getAllEntities();
   };
 
-
   const nameColumnTemplate = rowData => {
-    const editUrl = `/inventory/supplier/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/inventory/supplier/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
         {rowData.name}
@@ -89,19 +62,19 @@ export const Supplier = () => {
     );
   };
   const editColumnTemplate = (rowData) => {
-    const editUrl = `/inventory/supplier/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const editUrl = `/inventory/supplier/${rowData.id}/edit`;
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
+        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
       </Link>
     );
   };
 
   const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/inventory/supplier/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+    const deleteUrl = `/inventory/supplier/${rowData.id}/delete`;
     return (
       <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
       </Link>
     );
   };
@@ -124,42 +97,65 @@ export const Supplier = () => {
     </div>
   );
 
+  const onSort = event => {
+    const queryParams = JSON.stringify(event);
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
 
+  const onFilter = event => {
+    event['first'] = 0;
+    event['page'] = 0;
+    const queryParams = JSON.stringify(event);
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
 
+  const onPage = event => {
+    const queryParams = JSON.stringify(event);
+    setSearchParams({ query: queryParams }, { replace: true });
+  };
 
   return (
-      <div >
-        <DataTable
-          showGridlines
-          value={supplierList}
-          editMode="row"
-          header={header}
-          removableSort
-          filters={filters}
-          filterDisplay="row"
-          paginator
-          loading={loading}
-          totalRecords={totalItems}
-          rows={20}
-        >
-          <Column field="name" header={translate('common.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('common.search.name')}  sortable  />
-          <Column field="address" header={translate('common.address')}
-                  filter filterPlaceholder={translate('common.search.address')} sortable />
+    <div >
+      <DataTable
+        value={supplierList}
+        editMode="row"
+        header={header}
+        removableSort
+        filters={query.filters}
+        filterDisplay="row"
+        paginator
+        totalRecords={totalItems}
+        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
+        rows={query?.rows}
+        lazy
+        first={query.first}
+        onPage={onPage}
+        onFilter={onFilter}
+        filterDelay={500}
+        loading={loading}
+        onSort={onSort}
+        sortField={query.sortField}
+        sortOrder={query.sortOrder}
+        showGridlines
+      >
+        <Column field="name" header={translate('common.name')} filter body={nameColumnTemplate} filterPlaceholder={translate('common.search.name')} sortable />
+        <Column field="address" header={translate('common.address')}
+          filter filterPlaceholder={translate('common.search.address')} sortable />
 
-          <Column field="email" header={translate('common.email')}
-                  filter filterPlaceholder={translate('common.search.email')}  sortable   />
+        <Column field="email" header={translate('common.email')}
+          filter filterPlaceholder={translate('common.search.email')} sortable />
 
-          <Column field="phoneNumber" header={translate('common.phone')}
-                  filter filterPlaceholder={translate('common.search.phone')}  sortable  />
+        <Column field="phoneNumber" header={translate('common.phone')}
+          filter filterPlaceholder={translate('common.search.phone')} sortable />
 
-          <Column header={translate('common.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+        <Column header={translate('common.edit')} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
-          <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+        <Column header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%', }}
+          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
 
-        </DataTable>
+      </DataTable>
     </div>
   );
 };

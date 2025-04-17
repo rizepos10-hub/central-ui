@@ -140,9 +140,11 @@ export const ProductUpdate = () => {
       const allVariantsValid = product?.variants?.every(
         variant =>
           variant?.name &&
-          variant?.attributeValues && Object.keys(variant?.attributeValues)?.length > 0 &&
+          ((!product?.attributes || product?.attributes.length === 0) ||
+            Object.keys(variant?.attributeValues || {})?.length > 0) &&
           product?.name
       );
+
       setFormIsValid(allVariantsValid);
     }
   }, [product, isSingleItem])
@@ -720,7 +722,7 @@ export const ProductUpdate = () => {
   };
 
   useEffect(() => {
-    if(!defaultPrice) {
+    if (!defaultPrice) {
       setDefaultPrice(product?.variants?.[0]?.price || 0);
     }
   }, [product?.variants?.[0]?.price])
