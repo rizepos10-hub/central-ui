@@ -599,7 +599,7 @@ export const Product = () => {
           variants.forEach((variant) => {
             const stockMap = variant.stockQuantities || {};
             Object.values(stockMap).forEach((stock: IStockQuantity) => {
-              if (stock.quantity < stock.minimumStockLevel) totalBelowMin++;
+              if (stock.quantity <= stock.minimumStockLevel) totalBelowMin++;
               totalVariants++;
             });
           });
