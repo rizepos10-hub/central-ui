@@ -60,13 +60,13 @@ const AppRoutes = () => {
           <i className="pi pi-building text-primary" style={{ fontSize: "2rem" }}></i>
           <h2 className="mt-3 mb-1">Welcome To Rize POS</h2>
           {/* <h2 className="mt-3 mb-1">Tenant Access</h2> */}
-          <p className="text-muted">Tenant Access - Enter your tenant name to continue</p>
+          <p className="text-muted">Account Access - Enter your account name to continue</p>
         </div>
 
         <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
           <div className="form-group">
             <label htmlFor="tenantName" className="form-label fw-semibold">
-              Tenant Name
+              Account Name
             </label>
             <div className="p-inputgroup">
               <span className="p-inputgroup-addon">
@@ -74,7 +74,7 @@ const AppRoutes = () => {
               </span>
               <InputText
                 id="tenantName"
-                placeholder="Enter your tenant name"
+                placeholder="Enter your account name"
                 value={tenantName}
                 onChange={(e) => setTenantName(e.target.value)}
                 className={"w-100"}
