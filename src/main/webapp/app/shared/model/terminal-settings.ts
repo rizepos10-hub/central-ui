@@ -135,6 +135,7 @@ export enum DebitMachineSettingsConnectionTypeEnum {
 export enum ScaleIntegrationTypeEnum {
     direct = 'direct',
     rizeIntegrator = 'rizeIntegrator',
+    none = 'none'
 }
 
 export enum CreditCardIntegrationTypeEnum {

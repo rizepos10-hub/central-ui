@@ -362,11 +362,12 @@ function Devices() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
 
-    const selectedType = branchRegistry.terminalSettings.scaleIntegrationType
+    const selectedType = branchRegistry.terminalSettings?.scaleIntegrationType
 
     const integrationTypeOptions = [
         { label: 'Direct', value: ScaleIntegrationTypeEnum.direct },
         { label: 'Rize Integrator', value: ScaleIntegrationTypeEnum.rizeIntegrator },
+        { label: 'None', value: ScaleIntegrationTypeEnum.none },
     ];
 
     return (
