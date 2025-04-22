@@ -704,6 +704,8 @@ export const ProductUpdate = () => {
       ...productEntity,
       variants: productEntity?.variants?.slice()?.sort((a, b) => a.order - b.order),
     });
+
+    setDefaultPrice(productEntity?.variants?.[0]?.price || 0)
   }, [productEntity]);
 
   const handleSupplierChange = (index: number, updatedVariant: IVariableItemVariant) => {
