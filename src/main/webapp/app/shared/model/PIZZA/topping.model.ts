@@ -9,6 +9,7 @@ export interface ITopping {
   image?: IAttachment;
   icon?:IAttachment;
   pricingClass?: IPizzaPricingClass;
+  weight?: number;
 }
 
 export const defaultValue: Readonly<ITopping> = {};
