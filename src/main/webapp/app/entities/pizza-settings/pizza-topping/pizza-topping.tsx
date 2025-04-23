@@ -226,6 +226,11 @@ export const PizzaTopping = () => {
         />
 
         <Column
+          header="Weight"
+          body={(rowData) => rowData.weight}
+        />
+
+        <Column
           header="Group"
           body={(rowData) => rowData.group?.name}
           filter

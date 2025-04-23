@@ -20,6 +20,7 @@ import { getEntities as getPricingClasses } from "app/entities/pizza-settings/pi
 import Select from "react-select";
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { InputNumber } from 'primereact/inputnumber';
 
 export const PizzaToppingUpdate = () => {
   const dispatch = useAppDispatch();
@@ -81,8 +82,7 @@ export const PizzaToppingUpdate = () => {
     }
   }, [pizzaToppingEntity?.name]);
 
-  const handleChange = e => {
-    const { name, value } = e.target;
+  const handleChange = (name, value) => {
     setPizzaTopping(prevState => ({ ...prevState, [name]: value }));
   };
 
@@ -161,7 +161,7 @@ export const PizzaToppingUpdate = () => {
                       required={true}
                       id="pizza-topping-name"
                       value={pizzaTopping.name || ''}
-                      onChange={handleChange}
+                      onChange={(e) => handleChange('name', e.target.value)}
                     />
                   </div>
                   <div className={"d-flex flex-column my-2"}>
@@ -175,6 +175,17 @@ export const PizzaToppingUpdate = () => {
                       onChange={handleGroupChange}
                       isClearable={true}
 
+                    />
+                  </div>
+
+                  <div className={"d-flex flex-column"}>
+                    <Label for="pizza-topping-weight">Weight</Label>
+                    <InputNumber
+                      name="weight"
+                      required={true}
+                      id="pizza-topping-weight"
+                      value={pizzaTopping.weight}
+                      onChange={(e) => handleChange('weight', e.value)}
                     />
                   </div>
 
