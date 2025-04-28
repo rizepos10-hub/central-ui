@@ -56,17 +56,8 @@ export interface RizeIntegratorWindowsServiceSettings {
 
 export interface DebitMachineSettings {
     id: string | null;
-    enabled: boolean | null;
-    interfaceSettings: DebitMachineSettingsInterfaceSettingsEnum | null;
-    port: number | null;
-    connectionTimeoutInSeconds: number | null;
-    paymentreeTerminalPort: number | null;
-    paymentreeTerminalIp: string | null;
-    ipAddress: string | null;
-    paymentreeClientId: string | null;
-    paymentreeLocation: string | null;
-    paymentreeRegisterId: string | null;
-    connectionType: DebitMachineSettingsConnectionTypeEnum
+    deviceType: string | null;
+    timeoutInSeconds: number | null;
 }
 
 export enum DebitMachineSettingsInterfaceSettingsEnum {
@@ -75,11 +66,14 @@ export enum DebitMachineSettingsInterfaceSettingsEnum {
 
 export interface DebitMachineSettingsScaleSettings {
     id: string | null;
-    enabled: boolean | null;
-    interfaceSettings: DebitMachineSettingsScaleInterfaceSettings | null;
-    scaleCommand: string | null;
-    scaleResultLength: number | null;
-    weightMultiplier: number | null;
+    deviceType: string | null;
+    interfaceType: DeviceInterfaceEnum | null;
+    timeoutInSeconds: number | null;
+    // enabled: boolean | null;
+    // interfaceSettings: DebitMachineSettingsScaleInterfaceSettings | null;
+    // scaleCommand: string | null;
+    // scaleResultLength: number | null;
+    // weightMultiplier: number | null;
 }
 
 export interface DebitMachineSettingsScaleInterfaceSettings {
