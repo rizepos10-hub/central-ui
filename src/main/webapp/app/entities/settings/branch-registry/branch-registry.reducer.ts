@@ -88,7 +88,8 @@ export const BranchRegistrySlice = createEntitySlice({
       })
       .addCase(changeTerminalField, (state, action) => {
         const { name, value } = action.payload;
-        state.entity.terminalSettings = updateNestedState(state.entity.terminalSettings, name, value);
+        const settings = state.entity.terminalSettings ?? {};
+        state.entity.terminalSettings = updateNestedState(settings, name, value);
       })
       .addCase(getEntity.fulfilled, (state, action) => {
         state.loading = false;

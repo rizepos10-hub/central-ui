@@ -7,7 +7,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { Checkbox } from 'primereact/checkbox';
 import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, DebitMachineSettingsInterfaceSettingsEnum, DeviceInterfaceEnum, DeviceTypesEnum, EncryptionSchemeEnum, HandShakeEnum, openDrawerTypeEnum, ParityEnum, PrinterConnectionTypeEnum, PrinterSizeEnum, ProviderTypesEnum, ScaleIntegrationTypeEnum, StopBitsEnum } from 'app/shared/model/terminal-settings';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { changeTerminalField, updateEntity } from './branch-registry.reducer';
+import { changeTerminalField, updateEntity, getEntity} from './branch-registry.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
 import { Button } from 'primereact/button';
 import Select from 'react-select';
@@ -47,7 +47,7 @@ const BranchRegistryTerminalSettings = () => {
 
     const saveEntity = () => {
         dispatch(updateEntity(branchRegistry)).then(() => {
-            dispatch(updateEntity({}));
+            // dispatch(getEntity(branchRegistry.id))
         });
     };
 
@@ -362,11 +362,12 @@ function Devices() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
 
-    const selectedType = branchRegistry.terminalSettings.scaleIntegrationType
+    const selectedType = branchRegistry.terminalSettings?.scaleIntegrationType
 
     const integrationTypeOptions = [
         { label: 'Direct', value: ScaleIntegrationTypeEnum.direct },
         { label: 'Rize Integrator', value: ScaleIntegrationTypeEnum.rizeIntegrator },
+        { label: 'None', value: ScaleIntegrationTypeEnum.none },
     ];
 
     return (
@@ -437,6 +438,31 @@ function Devices() {
                         <>
                             <div className="col-12">
                                 <FieldWrapper
+                                    icon="pi-wifi"
+                                    title="Timeout In Seconds"
+                                    description="Timeout in seconds used by the debit machine"
+                                >
+                                    <InputNumber
+                                        value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.timeoutInSeconds}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.timeoutInSeconds', value: e.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                            <div className="col-12">
+                                <FieldWrapper
+                                    icon="pi-shopping-bag"
+                                    title="Interface Type"
+                                    description="Interface Type used to communicate with the direct scale"
+                                >
+                                    <Dropdown
+                                        options={Object.values(DeviceInterfaceEnum).map(method => ({ label: method, value: method }))}
+                                        value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceType}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceType', value: e.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                            {/* <div className="col-12">
+                                <FieldWrapper
                                     icon="pi-cloud"
                                     title="Scale command"
                                     description="The command that the integrator will use to get the weight from serial scale"
@@ -470,8 +496,8 @@ function Devices() {
                                         onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.scaleResultLength', value: e.value }))}
                                     />
                                 </FieldWrapper>
-                            </div>
-                            <div className="col-12">
+                            </div> */}
+                            {/* <div className="col-12">
                                 <FieldWrapper
                                     icon="pi-shopping-bag"
                                     title="Interface Type"
@@ -483,8 +509,8 @@ function Devices() {
                                         onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.deviceInterface', value: e.value }))}
                                     />
                                 </FieldWrapper>
-                            </div>
-                            {branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.deviceInterface === DeviceInterfaceEnum.serial && (
+                            </div> */}
+                            {/* {branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.deviceInterface === DeviceInterfaceEnum.serial && (
                                 <>
                                     <div className="col-12">
                                         <FieldWrapper
@@ -602,7 +628,7 @@ function Devices() {
                                         </FieldWrapper>
                                     </div>
                                 </>
-                            )}
+                            )} */}
                         </>
                     )}
                 </div>
@@ -614,8 +640,8 @@ function Devices() {
                 <div className="col-12">
                     <FieldWrapper
                         icon="pi-cloud"
-                        title="Weight multiplier"
-                        description="The weight multiplier of the scale used by rize integrator"
+                        title="Service Port"
+                        description="Specify the port which the service must listen to"
                     >
                         <InputNumber
                             value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.port}
@@ -726,10 +752,10 @@ function CustomerAppSettings() {
             <div className="col-12">
                 <FieldWrapper
                     icon="pi-eye"
-                    title="Customer Screen TV"
-                    description="Enter TV to show on customer screen"
+                    title="TV"
+                    description="Choose tv to take the pics from, to display them on the side"
                 >
-                    <Dropdown 
+                    <Dropdown
                         options={tvsList.map(tv => ({ label: tv.name, value: tv.id }))}
                         value={branchRegistry.terminalSettings?.customerScreenTV?.id}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'customerScreenTV.id', value: e.value }))}
@@ -746,8 +772,8 @@ const CreditCardSettings = () => {
 
     const integrationTypeOptions = [
         { label: 'Elavon CWS', value: CreditCardIntegrationTypeEnum.ELAVON_CWS },
-        { label: 'Elavon', value: CreditCardIntegrationTypeEnum.ELAVON },
-        { label: 'Ingenico', value: CreditCardIntegrationTypeEnum.INGENICO },
+        { label: 'None', value: null },
+        { label: 'Direct', value: CreditCardIntegrationTypeEnum.INGENICO },
         { label: 'Rize Integrator', value: CreditCardIntegrationTypeEnum.rizeIntegrator },
     ];
 
@@ -788,7 +814,7 @@ const CreditCardSettings = () => {
                     <Dropdown
                         value={selectedType}
                         options={integrationTypeOptions}
-                        onChange={e => dispatch(changeTerminalField({ name: "creditCardIntegrationType", value: e.value }))}
+                        onChange={e => dispatch(changeTerminalField({ name: "creditCardIntegrationType", value: e.value || null }))}
                         placeholder="Select Integration Type"
                         className="w-full"
                     />
@@ -967,9 +993,9 @@ const CreditCardSettings = () => {
                 </>
             )}
 
-            {selectedType === CreditCardIntegrationTypeEnum.ELAVON && (
+            {!selectedType && (
                 <div className="col-12">
-                    <ElavonIntegrationType />
+                    {/* <ElavonIntegrationType /> */}
                 </div>
             )}
 
@@ -1005,6 +1031,18 @@ const CreditCardSettings = () => {
             {selectedType === CreditCardIntegrationTypeEnum.rizeIntegrator && (
                 <>
                     <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="Timeout In Seconds"
+                            description="Timeout in seconds used by the debit machine"
+                        >
+                            <InputNumber
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.timeoutInSeconds}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.timeoutInSeconds', value: e.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    {/* <div className="col-12">
                         <FieldWrapper
                             icon="pi-wifi"
                             title="Connection Timeout In Seconds"
@@ -1112,7 +1150,7 @@ const CreditCardSettings = () => {
                                 onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.port', value: e.value }))}
                             />
                         </FieldWrapper>
-                    </div>
+                    </div> */}
                 </>
             )}
 

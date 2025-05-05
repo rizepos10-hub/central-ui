@@ -1,26 +1,20 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link,  useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
-import { getSortState, translate, Translate } from 'react-jhipster';
+import { getSortState, translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { DataTable, DataTableFilterEvent } from "primereact/datatable";
+import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { ISimpleItem } from "app/shared/model/ITEM/retail/simple-item.model";
 import { SummarizeText } from "app/shared/util/SummarizeText";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap, updateTableFilters } from "app/shared/util/filter-match-model-util";
-import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import SharedFilter from "app/shared/components/item/shared-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
-import AttributeFilter from "app/shared/components/filter/attribute-filter";
 import { exportEntities, filterEntities, getEntities, updateEntities, purgeEntities, archiveEntities, unArchiveEntities } from "app/entities/item/retail/product/product.reducer";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
-import { Accordion, AccordionTab } from "primereact/accordion";
 import ImportButton from "app/shared/components/data-import/data-import";
 import { Dropdown } from "primereact/dropdown";
-import { Col, Container, Row, Spinner, Tooltip } from "reactstrap";
-import { IoMdCloseCircle } from "react-icons/io";
 import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import { Sidebar } from 'primereact/sidebar';
 import { IItem } from "app/shared/model/ITEM/item.model";
@@ -29,11 +23,18 @@ import { confirmDialog } from "primereact/confirmdialog";
 import { FaCog, FaCopy, FaTrash } from "react-icons/fa";
 import { createEntity } from './product.reducer';
 import { ColumnProps } from "primereact/column";
-import { MultiSelect } from "primereact/multiselect";
 import { Menu } from "primereact/menu";
 import { Checkbox } from "primereact/checkbox";
 import { FilterMatchMode } from "primereact/api";
 import { ToggleButton } from "primereact/togglebutton";
+import { Dialog } from "primereact/dialog";
+import { IStockQuantity } from "app/shared/model/STOCK/stock-quantity.model";
+import { formatVariant } from "app/shared/util/variant-utils";
+import { getEntities as getWarehouses } from "app/entities/inventory/warehouse/warehouse.reducer";
+import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
+import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
+import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
+import { TabView, TabPanel } from 'primereact/tabview';
 interface ColumnConfig extends Partial<ColumnProps> {
   field: string;
   header: string;
@@ -59,7 +60,12 @@ export const Product = () => {
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
-
+  const wareHouses = useAppSelector((state) => state.warehouse.entities);
+  const salesLocations = useAppSelector((state) => state.salesLocation.entities);
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, "id"), location.search)
+  );
+    
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
     console.log(updatedQuery, 'updatedQuery')
@@ -78,6 +84,16 @@ export const Product = () => {
         sort: `id,desc`,
       })
     );
+
+    dispatch(getWarehouses({}));
+    dispatch(
+      getSalesLocations({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
+    
   }, [])
 
   useEffect(() => {
@@ -369,6 +385,158 @@ export const Product = () => {
     setSelectedActionOption(null);
   }
 
+  const StockStatusDialog = ({
+    dialogVisible,
+    onHide,
+    variants,
+    wareHouses,
+    salesLocations,
+  }: {
+    dialogVisible: boolean;
+    onHide: () => void;
+    variants: any[];
+    wareHouses: any[];
+    salesLocations: any[];
+  }) => {
+    const [expandedRows, setExpandedRows] = useState({});
+    const [tabStateMap, setTabStateMap] = useState<Record<string, "WAREHOUSE" | "SALES_LOCATION">>({});
+  
+    useEffect(() => {
+      const defaultTabs = variants.reduce((acc, v) => {
+        acc[v.id] = "WAREHOUSE";
+        return acc;
+      }, {});
+      setTabStateMap(defaultTabs);
+    }, [variants]);
+  
+    return (
+      <Dialog
+        header="Stock Details"
+        visible={dialogVisible}
+        style={{ width: "60vw" }}
+        onHide={onHide}
+      >
+        <DataTable
+          value={variants}
+          responsiveLayout="scroll"
+          rowExpansionTemplate={(rowData) => (
+            <VariantStockTabs
+              variant={rowData}
+              tabState={tabStateMap}
+              setTabState={setTabStateMap}
+              wareHouses={wareHouses}
+              salesLocations={salesLocations}
+            />
+          )}
+          expandedRows={expandedRows}
+          onRowToggle={(e) => setExpandedRows(e.data)}
+          dataKey="id"
+        >
+          <Column expander style={{ width: "3em" }} />
+          <Column
+            field="variants"
+            header="Variant Name"
+            body={(data) => formatVariant(data?.name, data?.attributeValues)}
+          />
+        </DataTable>
+      </Dialog>
+    );
+  };
+
+  const VariantStockTabs = ({
+    variant,
+    tabState,
+    setTabState,
+    wareHouses,
+    salesLocations,
+  }: {
+    variant: any;
+    tabState: Record<string, "WAREHOUSE" | "SALES_LOCATION">;
+    setTabState: React.Dispatch<React.SetStateAction<Record<string, "WAREHOUSE" | "SALES_LOCATION">>>;
+    wareHouses: any[];
+    salesLocations: any[];
+  }) => {
+    const renderStockByType = (type: "WAREHOUSE" | "SALES_LOCATION") => {
+      const relevantLocations = type === "WAREHOUSE" ? wareHouses : salesLocations;
+      const locationSet = new Set(relevantLocations.map((l) => l.name));
+  
+      const filteredStocks = Object.entries(variant.stockQuantities || {})
+        .filter(([_, stock]: [string, IStockQuantity]) => locationSet.has(stock?.location?.name))
+        .map(([key, stock]) => ({ key, stock }));
+  
+      return (
+        <div className="p-3">
+          <StockRowTable stockEntries={filteredStocks} />
+        </div>
+      );
+    };
+  
+    return (
+      <TabView
+        activeIndex={tabState[variant.id] === "SALES_LOCATION" ? 1 : 0}
+        onTabChange={(e) =>
+          setTabState((prev) => ({
+            ...prev,
+            [variant.id]: e.index === 0 ? "WAREHOUSE" : "SALES_LOCATION",
+          }))
+        }
+      >
+        <TabPanel header="Warehouses">{renderStockByType("WAREHOUSE")}</TabPanel>
+        <TabPanel header="Sales Locations">{renderStockByType("SALES_LOCATION")}</TabPanel>
+      </TabView>
+    );
+  };
+  
+
+  const StockRowTable = ({
+    stockEntries,
+  }: {
+    stockEntries: { key: string; stock: IStockQuantity }[];
+  }) => {
+    return (
+      <DataTable
+        value={stockEntries}
+        responsiveLayout="scroll"
+        style={{ tableLayout: "fixed", width: "100%" }}
+      >
+        <Column
+          field="stock.location.name"
+          header={translate("common.location")}
+          body={(data) => (
+            <span className="font-bold">{data.stock?.location?.name || "Unknown"}</span>
+          )}
+          style={{ width: "25%" }}
+        />
+        <Column
+          field="stock.quantity"
+          header={translate("common.quantity")}
+          body={(data) => <span className="font-medium">{data.stock.quantity}</span>}
+          style={{ width: "25%" }}
+        />
+        <Column
+          field="stock.minimumStockLevel"
+          header={translate("common.minimumStockLevel")}
+          body={(data) => <span className="font-medium">{data.stock.minimumStockLevel}</span>}
+          style={{ width: "25%" }}
+        />
+        <Column
+          field="status"
+          header={translate("common.status")}
+          body={(data) => (
+            <span>
+              {data.stock.quantity > data.stock.minimumStockLevel ? (
+                <i className="pi pi-check-circle" style={{ color: "green", fontSize: "1.2rem" }}></i>
+              ) : (
+                <i className="pi pi-times-circle" style={{ color: "red", fontSize: "1.2rem" }}></i>
+              )}
+            </span>
+          )}
+          style={{ width: "25%" }}
+        />
+      </DataTable>
+    );
+  };
+
   const columnsConfig = useMemo<ColumnConfig[]>(
     () => [
       {
@@ -418,9 +586,61 @@ export const Product = () => {
         visible: true,
       },
       {
-        field: "stock",
+        field: "stockQuantities",
         key: "stock",
         header: translate("items.view.fields.inStock"),
+        body: (rowData) => {
+          const variants = rowData.variants || [];
+          const [dialogVisible, setDialogVisible] = useState(false);
+        
+          let totalBelowMin = 0;
+          let totalVariants = 0;
+        
+          variants.forEach((variant) => {
+            const stockMap = variant.stockQuantities || {};
+            Object.values(stockMap).forEach((stock: IStockQuantity) => {
+              if (stock.quantity <= stock.minimumStockLevel) totalBelowMin++;
+              totalVariants++;
+            });
+          });
+        
+          const color =
+            totalVariants === 0
+              ? "red"
+              : totalBelowMin === totalVariants
+              ? "red"
+              : totalBelowMin > 0
+              ? "orange"
+              : "green";
+        
+          return (
+            <>
+              <div
+                style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
+                onClick={() => setDialogVisible(true)}
+              >
+                <div className="p-d-flex p-ai-center p-jc-center" style={{ marginRight: "8px" }}>
+                  <i
+                    className="pi pi-circle-fill"
+                    style={{
+                      fontSize: "10px",
+                      color,
+                      fill: color,
+                    }}
+                  ></i>
+                </div>
+              </div>
+        
+              <StockStatusDialog
+                dialogVisible={dialogVisible}
+                onHide={() => setDialogVisible(false)}
+                variants={variants}
+                wareHouses={wareHouses}
+                salesLocations={salesLocations}
+              />
+            </>
+          );
+        },
         sortable: true,
         seq: 5,
         visible: true,
@@ -480,7 +700,7 @@ export const Product = () => {
         visible: true,
       },
     ],
-    [localFilters]
+    [localFilters, wareHouses, salesLocations]
   );
 
   const [visibleColumns, setVisibleColumns] = useState(() => {
