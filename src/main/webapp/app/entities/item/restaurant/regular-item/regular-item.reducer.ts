@@ -85,7 +85,7 @@ export const partialUpdateEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-export const deleteEntity = createAsyncThunk(
+export const archiveEntity = createAsyncThunk(
   'regular-item/delete_entity',
   async (id: string | number, thunkAPI) => {
     const requestUrl = `${apiUrl}/${id}/archive`;
@@ -96,7 +96,7 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
-export const deleteEntities = createAsyncThunk(
+export const archiveEntities = createAsyncThunk(
   'regular-item/delete_entities',
   async (
     { ids, query }: { ids: Array<string | number>; query: any },
@@ -107,6 +107,39 @@ export const deleteEntities = createAsyncThunk(
       ids
     });
     console.log(query)
+    thunkAPI.dispatch(filterEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+export const unArchiveEntities = createAsyncThunk(
+  'product/un_archive_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}/unarchive`;
+    const result = await axios.patch<IRegularItem>(requestUrl, {
+      ids
+    });
+    thunkAPI.dispatch(filterEntities({ query }));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
+
+export const purgeEntities = createAsyncThunk(
+  'product/delete_entities',
+  async (
+    { ids, query }: { ids: Array<string | number>; query: any },
+    thunkAPI
+  ) => {
+    const requestUrl = `${apiUrl}`;
+    const result = await axios.delete<IRegularItem>(requestUrl, {
+      data: { ids }
+    });
     thunkAPI.dispatch(filterEntities({ query }));
     return result;
   },
@@ -154,7 +187,7 @@ export const RegularItemSlice = createEntitySlice({
         state.loading = false;
         state.entity = action.payload.data;
       })
-      .addCase(deleteEntity.fulfilled, state => {
+      .addCase(archiveEntity.fulfilled, state => {
         state.updating = false;
         state.updateSuccess = true;
         state.entity = {};
@@ -169,18 +202,18 @@ export const RegularItemSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, deleteEntities, exportEntities), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, archiveEntities, unArchiveEntities, purgeEntities, exportEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity, deleteEntities, filterEntities), state => {
+      .addMatcher(isPending(getEntities, getEntity, archiveEntity, archiveEntities, unArchiveEntities, purgeEntities, filterEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, updateEntities, deleteEntities, exportEntities), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, archiveEntity, updateEntities, archiveEntities, unArchiveEntities, purgeEntities, exportEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

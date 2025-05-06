@@ -1,5 +1,6 @@
 import { BusinessTypeEnum } from "./business-type";
 import { OrderMethod } from "./ENUMS/order-method.model";
+import { ITv } from "./TV/tv.model";
 
 export interface ITerminalSettings {
     showItemsPic: boolean;
@@ -8,6 +9,7 @@ export interface ITerminalSettings {
     countryCode: string | null;
     businessType: BusinessTypeEnum;
     languageCode: string | null;
+    customerScreenTV: ITv | null;
     creditCardMachineIp: string | null;
     creditCardMachinePort: string | null;
     enableSplitBill: boolean;
@@ -25,7 +27,7 @@ export interface ITerminalSettings {
     receiveOnlineOrderPopups: boolean;
     pathToCustomerApp: string | null;
     customerAppIsOnSameDevice: boolean;
-    openDrawerType: string | null;
+    openDrawerType: openDrawerTypeEnum | null;
     openDrawerOnDebitCreditTransactions: boolean;
     receiptCopies: number | null;
     scaleSettings: ScaleSettings;
@@ -40,6 +42,12 @@ export interface ITerminalSettings {
     rizeIntegratorWindowsServiceSettings: RizeIntegratorWindowsServiceSettings;
 }
 
+export enum openDrawerTypeEnum {
+    beforePrinting = "beforePrinting",
+    afterPrinting = "afterPrinting",
+    manual = "manual"
+}
+
 export interface RizeIntegratorWindowsServiceSettings {
     port: number | null;
     debitMachineSettings: DebitMachineSettings;
@@ -48,17 +56,8 @@ export interface RizeIntegratorWindowsServiceSettings {
 
 export interface DebitMachineSettings {
     id: string | null;
-    enabled: boolean | null;
-    interfaceSettings: DebitMachineSettingsInterfaceSettingsEnum | null;
-    port: number | null;
-    connectionTimeoutInSeconds: number | null;
-    paymentreeTerminalPort: number | null;
-    paymentreeTerminalIp: string | null;
-    ipAddress: string | null;
-    paymentreeClientId: string | null;
-    paymentreeLocation: string | null;
-    paymentreeRegisterId: string | null;
-    connectionType: DebitMachineSettingsConnectionTypeEnum
+    deviceType: string | null;
+    timeoutInSeconds: number | null;
 }
 
 export enum DebitMachineSettingsInterfaceSettingsEnum {
@@ -67,11 +66,14 @@ export enum DebitMachineSettingsInterfaceSettingsEnum {
 
 export interface DebitMachineSettingsScaleSettings {
     id: string | null;
-    enabled: boolean | null;
-    interfaceSettings: DebitMachineSettingsScaleInterfaceSettings | null;
-    scaleCommand: string | null;
-    scaleResultLength: number | null;
-    weightMultiplier: number | null;
+    deviceType: string | null;
+    interfaceType: DeviceInterfaceEnum | null;
+    timeoutInSeconds: number | null;
+    // enabled: boolean | null;
+    // interfaceSettings: DebitMachineSettingsScaleInterfaceSettings | null;
+    // scaleCommand: string | null;
+    // scaleResultLength: number | null;
+    // weightMultiplier: number | null;
 }
 
 export interface DebitMachineSettingsScaleInterfaceSettings {
@@ -127,6 +129,7 @@ export enum DebitMachineSettingsConnectionTypeEnum {
 export enum ScaleIntegrationTypeEnum {
     direct = 'direct',
     rizeIntegrator = 'rizeIntegrator',
+    none = 'none'
 }
 
 export enum CreditCardIntegrationTypeEnum {
@@ -141,12 +144,25 @@ interface PrinterSettings {
 }
 
 interface Receipt {
-    type: string | null;
+    type: PrinterConnectionTypeEnum | null;
     name: string | null;
     ip: string | null;
     port: number | null;
-    size: string | null;
+    size: PrinterSizeEnum | null;
     reverse: boolean;
+    printByPdf: boolean;
+}
+
+export enum PrinterConnectionTypeEnum {
+    NETWORK = 'NETWORK',
+    USB = 'USB'
+}
+
+
+export enum PrinterSizeEnum {
+    mm58 = 'mm58',
+    mm72 = 'mm72',
+    mm80 = 'mm80'
 }
 
 interface ScaleSettings {

@@ -67,6 +67,7 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
         <div className={'col-12 d-flex flex-column gap-1'}>
           <Label className={'font-semibold'}>Category</Label>
           <DropDownFilter
+            classname={'w-100'}
             placeholder={'Select Category'}
             dropDownOptionType={isRetailITem ? 'RETAIL_CATEGORY' : 'RESTAURANT_CATEGORY'}
             selectedOption={filters?.['categories.id']?.value}
@@ -77,6 +78,7 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
         <div className={'col-12 d-flex flex-column gap-1'}>
           <Label className={'font-semibold'}>Base Measure</Label>
           <DropDownFilter
+            classname={'w-100'}
             dropDownOptionType={'MEASURE'}
             placeholder={'Select Measure'}
             selectedOption={filters?.['baseMeasure.id']?.value}

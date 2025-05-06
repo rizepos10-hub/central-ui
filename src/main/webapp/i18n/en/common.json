@@ -33,6 +33,7 @@
     "comment": "Comment",
     "item": "Item",
     "quantity": "Quantity",
+    "minimumStockLevel": "Min Stock Level",
     "description": "Description",
     "price": "Price",
     "costPrice": "Cost Price",

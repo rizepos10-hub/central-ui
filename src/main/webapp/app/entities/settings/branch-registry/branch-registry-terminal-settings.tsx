@@ -1,17 +1,20 @@
 import { IBranchRegistry } from 'app/shared/model/branch-registry.model'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Menu } from 'primereact/menu';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Dropdown } from 'primereact/dropdown';
 import { Checkbox } from 'primereact/checkbox';
-import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, DebitMachineSettingsInterfaceSettingsEnum, DeviceInterfaceEnum, DeviceTypesEnum, EncryptionSchemeEnum, HandShakeEnum, ParityEnum, ProviderTypesEnum, ScaleIntegrationTypeEnum, StopBitsEnum } from 'app/shared/model/terminal-settings';
+import { ConnectionTypesEnum, CreditCardIntegrationTypeEnum, DataBitsEnum, DebitMachineSettingsInterfaceSettingsEnum, DeviceInterfaceEnum, DeviceTypesEnum, EncryptionSchemeEnum, HandShakeEnum, openDrawerTypeEnum, ParityEnum, PrinterConnectionTypeEnum, PrinterSizeEnum, ProviderTypesEnum, ScaleIntegrationTypeEnum, StopBitsEnum } from 'app/shared/model/terminal-settings';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { changeTerminalField, updateEntity } from './branch-registry.reducer';
+import { changeTerminalField, updateEntity, getEntity} from './branch-registry.reducer';
 import { OrderMethod } from 'app/shared/model/ENUMS/order-method.model';
 import { Button } from 'primereact/button';
 import Select from 'react-select';
 import { TabPanel, TabView } from 'primereact/tabview';
+import Printer from '../printing/printer/printer';
+import { getEntities } from '../tv-config/tv/tv.reducer';
+import { ITv } from 'app/shared/model/TV/tv.model';
 
 type MenuItem = {
     label: string;
@@ -44,9 +47,13 @@ const BranchRegistryTerminalSettings = () => {
 
     const saveEntity = () => {
         dispatch(updateEntity(branchRegistry)).then(() => {
-            dispatch(updateEntity({}));
+            // dispatch(getEntity(branchRegistry.id))
         });
     };
+
+    useEffect(() => {
+        dispatch(getEntities({}))
+    }, [])
 
     return (
         <div className="container-fluid h-100">
@@ -355,11 +362,12 @@ function Devices() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
 
-    const selectedType = branchRegistry.terminalSettings.scaleIntegrationType
+    const selectedType = branchRegistry.terminalSettings?.scaleIntegrationType
 
     const integrationTypeOptions = [
         { label: 'Direct', value: ScaleIntegrationTypeEnum.direct },
         { label: 'Rize Integrator', value: ScaleIntegrationTypeEnum.rizeIntegrator },
+        { label: 'None', value: ScaleIntegrationTypeEnum.none },
     ];
 
     return (
@@ -430,6 +438,31 @@ function Devices() {
                         <>
                             <div className="col-12">
                                 <FieldWrapper
+                                    icon="pi-wifi"
+                                    title="Timeout In Seconds"
+                                    description="Timeout in seconds used by the debit machine"
+                                >
+                                    <InputNumber
+                                        value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.timeoutInSeconds}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.timeoutInSeconds', value: e.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                            <div className="col-12">
+                                <FieldWrapper
+                                    icon="pi-shopping-bag"
+                                    title="Interface Type"
+                                    description="Interface Type used to communicate with the direct scale"
+                                >
+                                    <Dropdown
+                                        options={Object.values(DeviceInterfaceEnum).map(method => ({ label: method, value: method }))}
+                                        value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceType}
+                                        onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceType', value: e.value }))}
+                                    />
+                                </FieldWrapper>
+                            </div>
+                            {/* <div className="col-12">
+                                <FieldWrapper
                                     icon="pi-cloud"
                                     title="Scale command"
                                     description="The command that the integrator will use to get the weight from serial scale"
@@ -463,8 +496,8 @@ function Devices() {
                                         onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.scaleResultLength', value: e.value }))}
                                     />
                                 </FieldWrapper>
-                            </div>
-                            <div className="col-12">
+                            </div> */}
+                            {/* <div className="col-12">
                                 <FieldWrapper
                                     icon="pi-shopping-bag"
                                     title="Interface Type"
@@ -476,8 +509,8 @@ function Devices() {
                                         onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.scaleSettings.interfaceSettings.deviceInterface', value: e.value }))}
                                     />
                                 </FieldWrapper>
-                            </div>
-                            {branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.deviceInterface === DeviceInterfaceEnum.serial && (
+                            </div> */}
+                            {/* {branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.scaleSettings?.interfaceSettings?.deviceInterface === DeviceInterfaceEnum.serial && (
                                 <>
                                     <div className="col-12">
                                         <FieldWrapper
@@ -595,7 +628,7 @@ function Devices() {
                                         </FieldWrapper>
                                     </div>
                                 </>
-                            )}
+                            )} */}
                         </>
                     )}
                 </div>
@@ -607,8 +640,8 @@ function Devices() {
                 <div className="col-12">
                     <FieldWrapper
                         icon="pi-cloud"
-                        title="Weight multiplier"
-                        description="The weight multiplier of the scale used by rize integrator"
+                        title="Service Port"
+                        description="Specify the port which the service must listen to"
                     >
                         <InputNumber
                             value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.port}
@@ -660,8 +693,9 @@ function EmailLogsSettings() {
 
 function CustomerAppSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
+    const tvsList: ITv[] = useAppSelector(state => state.tv.entities);
     const dispatch = useAppDispatch()
-    console.log(branchRegistry, 'branchRegistry')
+
     return (
         <div className="grid">
             <div className="col-12">
@@ -715,6 +749,19 @@ function CustomerAppSettings() {
                     />
                 </FieldWrapper>
             </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-eye"
+                    title="TV"
+                    description="Choose tv to take the pics from, to display them on the side"
+                >
+                    <Dropdown
+                        options={tvsList.map(tv => ({ label: tv.name, value: tv.id }))}
+                        value={branchRegistry.terminalSettings?.customerScreenTV?.id}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'customerScreenTV.id', value: e.value }))}
+                    />
+                </FieldWrapper>
+            </div>
         </div>
     );
 }
@@ -725,8 +772,8 @@ const CreditCardSettings = () => {
 
     const integrationTypeOptions = [
         { label: 'Elavon CWS', value: CreditCardIntegrationTypeEnum.ELAVON_CWS },
-        { label: 'Elavon', value: CreditCardIntegrationTypeEnum.ELAVON },
-        { label: 'Ingenico', value: CreditCardIntegrationTypeEnum.INGENICO },
+        { label: 'None', value: null },
+        { label: 'Direct', value: CreditCardIntegrationTypeEnum.INGENICO },
         { label: 'Rize Integrator', value: CreditCardIntegrationTypeEnum.rizeIntegrator },
     ];
 
@@ -767,7 +814,7 @@ const CreditCardSettings = () => {
                     <Dropdown
                         value={selectedType}
                         options={integrationTypeOptions}
-                        onChange={e => dispatch(changeTerminalField({ name: "creditCardIntegrationType", value: e.value }))}
+                        onChange={e => dispatch(changeTerminalField({ name: "creditCardIntegrationType", value: e.value || null }))}
                         placeholder="Select Integration Type"
                         className="w-full"
                     />
@@ -946,9 +993,9 @@ const CreditCardSettings = () => {
                 </>
             )}
 
-            {selectedType === CreditCardIntegrationTypeEnum.ELAVON && (
+            {!selectedType && (
                 <div className="col-12">
-                    <ElavonIntegrationType />
+                    {/* <ElavonIntegrationType /> */}
                 </div>
             )}
 
@@ -984,6 +1031,18 @@ const CreditCardSettings = () => {
             {selectedType === CreditCardIntegrationTypeEnum.rizeIntegrator && (
                 <>
                     <div className="col-12">
+                        <FieldWrapper
+                            icon="pi-wifi"
+                            title="Timeout In Seconds"
+                            description="Timeout in seconds used by the debit machine"
+                        >
+                            <InputNumber
+                                value={branchRegistry?.terminalSettings?.rizeIntegratorWindowsServiceSettings?.debitMachineSettings?.timeoutInSeconds}
+                                onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.timeoutInSeconds', value: e.value }))}
+                            />
+                        </FieldWrapper>
+                    </div>
+                    {/* <div className="col-12">
                         <FieldWrapper
                             icon="pi-wifi"
                             title="Connection Timeout In Seconds"
@@ -1091,7 +1150,7 @@ const CreditCardSettings = () => {
                                 onChange={(e) => dispatch(changeTerminalField({ name: 'rizeIntegratorWindowsServiceSettings.debitMachineSettings.port', value: e.value }))}
                             />
                         </FieldWrapper>
-                    </div>
+                    </div> */}
                 </>
             )}
 
@@ -1304,10 +1363,10 @@ function PrinterProperties() {
                     title="Open Drawer Type"
                     description="Set drawer to open either before or after printing or set to manually be opened"
                 >
-                    <Dropdown options={[
-                        { label: 'Retail', value: 'RETAIL' },
-                        { label: 'Restaurant', value: 'RESTAURANT' }
-                    ]} />
+                    <Dropdown options={Object.values(openDrawerTypeEnum).map(type => ({ label: type, value: type }))}
+                        value={branchRegistry.terminalSettings?.openDrawerType}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'openDrawerType', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -1316,6 +1375,11 @@ function PrinterProperties() {
                     title="Open Drawer on Debit/Credit Transactions"
                     description="Option to open drawer on debit/card related transactions"
                 >
+                    <Checkbox
+                        checked={branchRegistry.terminalSettings?.openDrawerOnDebitCreditTransactions}
+                        value={branchRegistry.terminalSettings?.openDrawerOnDebitCreditTransactions}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'openDrawerOnDebitCreditTransactions', value: e.checked }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -1324,7 +1388,10 @@ function PrinterProperties() {
                     title="Receipt Copies"
                     description="This specifies the number of copies of the receipt printed ny default on payment"
                 >
-                    <InputNumber />
+                    <InputNumber
+                        value={branchRegistry.terminalSettings?.receiptCopies}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'receiptCopies', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -1333,6 +1400,24 @@ function PrinterProperties() {
                     title="Reverse"
                     description="Send print commands in reverse (This is a special case for some printers where it prints the data in reverse)"
                 >
+                    <Checkbox
+                        checked={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.reverse}
+                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.reverse}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.reverse', value: e.checked }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-file-pdf"
+                    title="Print By PDF"
+                    description="Print receipt by PDF"
+                >
+                    <Checkbox
+                        checked={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.printByPdf}
+                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.printByPdf}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.printByPdf', value: e.checked }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12 mt-2">
@@ -1341,10 +1426,10 @@ function PrinterProperties() {
                     title="Printer Type"
                     description="Connection type to the printer (Network/USB)"
                 >
-                    <Dropdown options={[
-                        { label: 'Retail', value: 'RETAIL' },
-                        { label: 'Restaurant', value: 'RESTAURANT' }
-                    ]} />
+                    <Dropdown options={Object.values(PrinterConnectionTypeEnum).map(type => ({ label: type, value: type }))}
+                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.type}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.type', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -1353,7 +1438,10 @@ function PrinterProperties() {
                     title="Printer Name"
                     description="Printer name from the windows system"
                 >
-                    <InputText />
+                    <InputText
+                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.name}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.name', value: e.target.value }))}
+                    />
                 </FieldWrapper>
             </div>
             <div className="col-12">
@@ -1362,10 +1450,10 @@ function PrinterProperties() {
                     title="Printer Size"
                     description="Choose one of the supported printer sizes"
                 >
-                    <Dropdown options={[
-                        { label: 'Retail', value: 'RETAIL' },
-                        { label: 'Restaurant', value: 'RESTAURANT' }
-                    ]} />
+                    <Dropdown options={Object.values(PrinterSizeEnum).map(type => ({ label: type, value: type }))}
+                        value={branchRegistry.terminalSettings?.printerSettings?.receipt?.[0]?.size}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'printerSettings.receipt.0.size', value: e.value }))}
+                    />
                 </FieldWrapper>
             </div>
         </div>
