@@ -34,6 +34,8 @@
         "tags": "Tags",
         "actions": "Actions",
         "discounts": "Discounts",
+        "pos_visibility": "POS Visibility",
+        "website_visibility": "Website Visibility",
         "regular": {
           "variant": "Variant",
           "category": "Category",

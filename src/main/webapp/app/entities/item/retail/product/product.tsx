@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link,  useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from 'primereact/button';
-import { getSortState, translate} from 'react-jhipster';
+import { getSortState, Translate, translate} from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { DataTable } from "primereact/datatable";
@@ -11,7 +11,7 @@ import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap, updateTableFilters } from "app/shared/util/filter-match-model-util";
 import SharedFilter from "app/shared/components/item/shared-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
-import { exportEntities, filterEntities, getEntities, updateEntities, purgeEntities, archiveEntities, unArchiveEntities } from "app/entities/item/retail/product/product.reducer";
+import { exportEntities, filterEntities, getEntities, updateEntities, purgeEntities, archiveEntities, unArchiveEntities, updateEntity } from "app/entities/item/retail/product/product.reducer";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import ImportButton from "app/shared/components/data-import/data-import";
 import { Dropdown } from "primereact/dropdown";
@@ -35,6 +35,7 @@ import { getEntities as getSalesLocations } from "app/entities/inventory/sales-l
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { TabView, TabPanel } from 'primereact/tabview';
+import { SourceType } from "app/shared/model/ENUMS/source-type.model";
 interface ColumnConfig extends Partial<ColumnProps> {
   field: string;
   header: string;
@@ -486,6 +487,32 @@ export const Product = () => {
       </TabView>
     );
   };
+
+  const handleChangeIsVisible = (rowData, application: SourceType, value: boolean) => {
+    const visibility = rowData.visibility ?? [];
+
+    const hasApplication = visibility.some(v => v.application === application);
+
+    const updatedVisibility = hasApplication
+      ? visibility.map(v =>
+        v.application === application ? { ...v, visible: value } : v
+      )
+      : [
+        ...visibility,
+        {
+        application: application,
+        visible: value,
+        schedule: {},
+        },
+      ];
+
+    const newRowData = { ...rowData, visibility: updatedVisibility };
+
+    dispatch(updateEntity(newRowData as IProduct)).then(() => {
+      getAllEntities();
+    });
+  };
+    
   
 
   const StockRowTable = ({
@@ -675,6 +702,48 @@ export const Product = () => {
         visible: true,
       },
       {
+        field: "branchPosVisibility",
+        key: "branchPosVisible",
+        header: translate("items.view.fields.pos_visibility"),
+        body: (rowData: IProduct) => {
+          const visible =
+            rowData.visibility?.find(v => v.application === SourceType.BRANCH_POS)?.visible ?? true;
+      
+          return (
+            <Checkbox
+              inputId={`isVisible-BRANCH_POS-${rowData.id}`}
+              onChange={(e) => handleChangeIsVisible(rowData, SourceType.BRANCH_POS, e.checked)}
+              checked={visible}
+            />
+          );
+        },
+        headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
+        bodyStyle: { textAlign: "left", overflow: "visible" },
+        seq: 10,
+        visible: true,
+      },
+      {
+        field: "onlineOrderingVisibility",
+        key: "onlineOrderingVisible",
+        header: translate("items.view.fields.website_visibility"),
+        body: (rowData: IProduct) => {
+          const visible =
+            rowData.visibility?.find(v => v.application === SourceType.ONLINE_ORDERING)?.visible ?? true;
+      
+          return (
+            <Checkbox
+              inputId={`isVisible-ONLINE_ORDERING-${rowData.id}`}
+              onChange={(e) => handleChangeIsVisible(rowData, SourceType.ONLINE_ORDERING, e.checked)}
+              checked={visible}
+            />
+          );
+        },
+        headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
+        bodyStyle: { textAlign: "left", overflow: "visible" },
+        seq: 11,
+        visible: true,
+      },
+      {
         field: "actions",
         key: "actions",
         header: "Actions",
@@ -696,11 +765,11 @@ export const Product = () => {
         ),
         headerStyle: { width: "5%", textAlign: "center" },
         bodyStyle: { textAlign: "center", overflow: "visible" },
-        seq: 10,
+        seq: 12,
         visible: true,
       },
     ],
-    [localFilters, wareHouses, salesLocations]
+    [localFilters, wareHouses, salesLocations, products]
   );
 
   const [visibleColumns, setVisibleColumns] = useState(() => {
