@@ -187,9 +187,9 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
                 <Col md="8">
                     <h2 data-cy="TermCreateUpdateHeading" key={isNew ? 'create' : 'edit'}>
                         {isNew ? (
-                            <Translate contentKey={'itemCategories.update.restaurant.create.title'} />
+                            <Translate contentKey={'itemCategories.update.retail.create.title'} />
                         ) : (
-                            <Translate contentKey={'itemCategories.update.restaurant.edit.title'} />
+                            <Translate contentKey={'itemCategories.update.retail.edit.title'} />
                         )}
                     </h2>
                 </Col>
