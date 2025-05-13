@@ -171,7 +171,7 @@ export const User = () => {
           sortable
           filter
           header={translate("common.branches")}
-          body={(data) => data?.branches?.map((branch) => branch.name).join(" | ")}
+          body={(data) => data?.branches?.map((branch) => branch.name)?.join(" | ")}
           filterElement={
             <Dropdown
               value={selectedBranchFilter || ''}
@@ -187,7 +187,7 @@ export const User = () => {
 
 
 
-        <Column field="authorities" header={translate("tempApp.authorities")} body={(rowData) => rowData.authorities.join('|')} sortable />
+        <Column field="authorities" header={translate("tempApp.authorities")} body={(rowData) => rowData.authorities?.join('|')} sortable />
 
 
         <Column header={translate("tempApp.activated")} body={activeColumnTemplate} style={{ width: '10%' }} />
