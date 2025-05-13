@@ -839,7 +839,7 @@ export const PizzaItemUpdate = () => {
                                                     value={baseDetail?.toppingsNumber || 0}
                                                     min={0}
                                                     onChange={(e) =>
-                                                      handleBaseDetailChange(index, "toppingsNumber", e.value)
+                                                      handleBaseDetailChange(index, "toppingsNumber", e.value || 0)
                                                     }
                                                   />
                                                 </td>
