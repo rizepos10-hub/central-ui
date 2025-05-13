@@ -1439,15 +1439,18 @@ export const ProductUpdate = () => {
                                       <label>
                                         {translate('items.update.name')}: {attribute?.attributeTax?.name}
                                       </label>
-                                      <AsyncSelect
+                                      <Select
                                         value={attribute?.attributeTerms || []}
                                         isMulti
+                                        options={attributeValuesList}
                                         getOptionLabel={option => option.name}
                                         getOptionValue={option => option.id}
                                         onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
                                         isLoading={loadingAttributesValues}
-                                        onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                                        defaultOptions={attributeValuesList}
+                                        onFocus={() => loadOptions(attribute.attributeTax.id)}
+                                        filterOption={(option, input) =>
+                                          option.label.toLowerCase().includes(input.toLowerCase())
+                                        }
                                       />
                                     </Col>
                                     <Col md={'3'}>
