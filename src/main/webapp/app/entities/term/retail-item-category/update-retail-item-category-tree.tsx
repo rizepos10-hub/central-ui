@@ -15,7 +15,7 @@ import {
     getEntities as categoryEntitiesTree,
     searchEntities as categorySearchEntitiesTree,
     changeEntityField,
-} from './retail-item-category.reducer';
+} from './retail-item-category-tree.reducer';
 
 import { getEntities as getProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 import { uploadImage } from 'app/entities/attachment/attachment.reducer';
@@ -41,11 +41,10 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
 
     const { id } = useParams<'id'>();
     const isNew = id === undefined && !searchParam.get("categoryId");
-    const categories = useAppSelector(state => state.retailCategory.entities);
-    const categoryEntity: ITerm = useAppSelector(state => state.retailCategory.entity);
-    const loading = useAppSelector(state => state.retailCategory.loading);
-    const updating = useAppSelector(state => state.retailCategory.updating);
-    const updateSuccess = useAppSelector(state => state.retailCategory.updateSuccess);
+    const categories = useAppSelector(state => state.retailCategoryTree.entities);
+    const categoryEntity: ITerm = useAppSelector(state => state.retailCategoryTree.entity);
+    const updating = useAppSelector(state => state.retailCategoryTree.updating);
+    const updateSuccess = useAppSelector(state => state.retailCategoryTree.updateSuccess);
     const profileGroupsOptions = useAppSelector(state => state.profileGroup.entities);
     const [paginationState, setPaginationState] = useState(
         overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -187,160 +186,156 @@ export const UpdateItemRetailCategoryTree: React.FC<UpdateItemRetailCategoryTree
                 <Col md="8">
                     <h2 data-cy="TermCreateUpdateHeading" key={isNew ? 'create' : 'edit'}>
                         {isNew ? (
-                            <Translate contentKey={'itemCategories.update.restaurant.create.title'} />
+                            <Translate contentKey={'itemCategories.update.retail.create.title'} />
                         ) : (
-                            <Translate contentKey={'itemCategories.update.restaurant.edit.title'} />
+                            <Translate contentKey={'itemCategories.update.retail.edit.title'} />
                         )}
                     </h2>
                 </Col>
             </Row>
             <Row>
                 <Col md="8" className="d-flex flex-column p-3 bg-white">
-                    {loading ? (
-                        <p>Loading...</p>
-                    ) : (
-                        <form>
-                            <div className="mb-3 d-flex flex-column">
-                                <Translate contentKey="itemCategories.update.name">Name</Translate>
-                                <InputText
-                                    name="name"
-                                    id="category-name"
-                                    required
-                                    value={categoryEntity.name || ''}
-                                    onChange={(e) =>
-                                        dispatch(changeEntityField({ name: 'name', value: e.target.value }))
-                                    }
-                                />
-                            </div>
+                    <form>
+                        <div className="mb-3 d-flex flex-column">
+                            <Translate contentKey="itemCategories.update.name">Name</Translate>
+                            <InputText
+                                name="name"
+                                id="category-name"
+                                required
+                                value={categoryEntity.name || ''}
+                                onChange={(e) =>
+                                    dispatch(changeEntityField({ name: 'name', value: e.target.value }))
+                                }
+                            />
+                        </div>
 
-                            <div className="mb-3">
-                                <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
-                                <Select
-                                    value={categoryEntity.accountingGroups || []}
-                                    isClearable
-                                    onChange={handleProfileGroupsChange}
-                                    options={profileGroupsOptions}
-                                    getOptionLabel={(option) => option.name}
-                                    getOptionValue={(option) => option.id}
-                                />
-                            </div>
+                        <div className="mb-3">
+                            <Translate contentKey="itemCategories.update.profileGroups">Profile Groups</Translate>
+                            <Select
+                                value={categoryEntity.accountingGroups || []}
+                                isClearable
+                                onChange={handleProfileGroupsChange}
+                                options={profileGroupsOptions}
+                                getOptionLabel={(option) => option.name}
+                                getOptionValue={(option) => option.id}
+                            />
+                        </div>
 
-                            <div className="mb-3">
-                                <Translate contentKey="itemCategories.update.parents">Parents</Translate>
-                                <Select
-                                    value={categoryEntity?.parents || []}
-                                    isClearable
-                                    onChange={handleParentsChange}
-                                    options={categories}
-                                    getOptionLabel={(option) => option.name}
-                                    getOptionValue={(option) => option.id}
-                                    onInputChange={handleSearch}
-                                />
-                            </div>
+                        <div className="mb-3">
+                            <Translate contentKey="itemCategories.update.parents">Parents</Translate>
+                            <Select
+                                value={categoryEntity?.parents || []}
+                                isClearable
+                                onChange={handleParentsChange}
+                                options={categories}
+                                getOptionLabel={(option) => option.name}
+                                getOptionValue={(option) => option.id}
+                                onInputChange={handleSearch}
+                            />
+                        </div>
 
-                            <div className="mb-3">
-                                <MediaLibrary
-                                    handleFilesSelectCallback={(files) => {
-                                        const newAttachment = transformAttachmentStructure(files, 'toIAttachment')[0];
-                                        dispatch(
-                                            changeEntityField({
-                                                name: 'attachments',
-                                                value: newAttachment ? [newAttachment] : [],
-                                            })
-                                        );
-                                    }}
-                                    defaultValues={transformAttachmentStructure(
-                                        categoryEntity?.attachments || [],
-                                        'toFileLibraryListItem'
-                                    )}
-                                />
-                            </div>
+                        <div className="mb-3">
+                            <MediaLibrary
+                                handleFilesSelectCallback={(files) => {
+                                    const newAttachment = transformAttachmentStructure(files, 'toIAttachment')[0];
+                                    dispatch(
+                                        changeEntityField({
+                                            name: 'attachments',
+                                            value: newAttachment ? [newAttachment] : [],
+                                        })
+                                    );
+                                }}
+                                defaultValues={transformAttachmentStructure(
+                                    categoryEntity?.attachments || [],
+                                    'toFileLibraryListItem'
+                                )}
+                            />
+                        </div>
 
-                            {/* Visibility Section */}
-                            <div className="mb-3">
-                                <h4>Visibility</h4>
-                                <div className="d-flex gap-3">
-                                    <div>
-                                        <label>
-                                            <input
-                                                type="checkbox"
-                                                checked={
-                                                    localVisibility.find((v: any) => v.application === SourceType.BRANCH_POS)
-                                                        ?.visible !== false
-                                                }
-                                                onChange={(e) =>
-                                                    setLocalVisibility((prev) =>
-                                                        prev.map((item) =>
-                                                            item.application === SourceType.BRANCH_POS
-                                                                ? { ...item, visible: e.target.checked }
-                                                                : item
-                                                        )
+                        {/* Visibility Section */}
+                        <div className="mb-3">
+                            <h4>Visibility</h4>
+                            <div className="d-flex gap-3">
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={
+                                                localVisibility.find((v: any) => v.application === SourceType.BRANCH_POS)
+                                                    ?.visible !== false
+                                            }
+                                            onChange={(e) =>
+                                                setLocalVisibility((prev) =>
+                                                    prev.map((item) =>
+                                                        item.application === SourceType.BRANCH_POS
+                                                            ? { ...item, visible: e.target.checked }
+                                                            : item
                                                     )
-                                                }
-                                            />
-                                            POS
-                                        </label>
-                                    </div>
-                                    <div>
-                                        <label>
-                                            <input
-                                                type="checkbox"
-                                                checked={
-                                                    localVisibility.find((v: any) => v.application === SourceType.ONLINE_ORDERING)
-                                                        ?.visible !== false
-                                                }
-                                                onChange={(e) =>
-                                                    setLocalVisibility((prev) =>
-                                                        prev.map((item) =>
-                                                            item.application === SourceType.ONLINE_ORDERING
-                                                                ? { ...item, visible: e.target.checked }
-                                                                : item
-                                                        )
+                                                )
+                                            }
+                                        />
+                                        POS
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={
+                                                localVisibility.find((v: any) => v.application === SourceType.ONLINE_ORDERING)
+                                                    ?.visible !== false
+                                            }
+                                            onChange={(e) =>
+                                                setLocalVisibility((prev) =>
+                                                    prev.map((item) =>
+                                                        item.application === SourceType.ONLINE_ORDERING
+                                                            ? { ...item, visible: e.target.checked }
+                                                            : item
                                                     )
-                                                }
-                                            />
-                                            Online Ordering
-                                        </label>
-                                    </div>
+                                                )
+                                            }
+                                        />
+                                        Online Ordering
+                                    </label>
                                 </div>
                             </div>
-                            {/* End Visibility Section */}
+                        </div>
+                        {/* End Visibility Section */}
 
-                            <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => resetData()} color="info">
-                                <span className="d-none d-md-inline">
-                                    <Translate contentKey="entity.action.reset">Reset</Translate>
-                                </span>
-                            </Button>
+                        <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => resetData()} color="info">
+                            <span className="d-none d-md-inline">
+                                <Translate contentKey="entity.action.reset">Reset</Translate>
+                            </span>
+                        </Button>
+                        &nbsp;
+                        <Button
+                            onClick={saveEntity}
+                            color="primary"
+                            id="save-entity"
+                            data-cy="entityCreateSaveButton"
+                            type="submit"
+                            disabled={updating}
+                        >
+                            <FontAwesomeIcon icon="save" />
                             &nbsp;
+                            <Translate contentKey="entity.action.save">Save</Translate>
+                        </Button>
+                        &nbsp;
+                        {!isNew && (
                             <Button
-                                onClick={saveEntity}
-                                color="primary"
-                                id="save-entity"
-                                data-cy="entityCreateSaveButton"
+                                onClick={confirmDelete}
+                                color="danger"
+                                id="Delete-entity"
+                                data-cy="entityDeleteButton"
                                 type="submit"
                                 disabled={updating}
                             >
-                                <FontAwesomeIcon icon="save" />
+                                <FontAwesomeIcon icon="trash" />
                                 &nbsp;
-                                <Translate contentKey="entity.action.save">Save</Translate>
+                                <Translate contentKey="entity.action.delete">Delete</Translate>
                             </Button>
-                            &nbsp;
-                            {!isNew && (
-                                <Button
-                                    onClick={confirmDelete}
-                                    color="danger"
-                                    id="Delete-entity"
-                                    data-cy="entityDeleteButton"
-                                    type="submit"
-                                    disabled={updating}
-                                >
-                                    <FontAwesomeIcon icon="trash" />
-                                    &nbsp;
-                                    <Translate contentKey="entity.action.delete">Delete</Translate>
-                                </Button>
-                            )}
-                        </form>
-                    )}
+                        )}
+                    </form>
                 </Col>
             </Row>
         </div>

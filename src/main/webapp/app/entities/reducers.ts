@@ -26,6 +26,7 @@ import printingProfiles from 'app/entities/settings/printing/printing-profiles/p
 import productionCenter from 'app/entities/location/production-center/production-center.reducer';
 import restaurantCategory from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
 import restaurantCategoryTree from 'app/entities/term/restaurant-Item-category/item-restaurant-category-tree.reducer';
+import retailCategoryTree from 'app/entities/term/retail-item-category/retail-item-category-tree.reducer';
 import category from 'app/entities/term/Item-category/item-category.reducer';
 import retailCategory from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import menuCategory from 'app/entities/term/Menu-Category/menu-category.reducer';
@@ -143,6 +144,7 @@ const entitiesReducers = {
   pizzaItem,
   restaurantCategory,
   restaurantCategoryTree,
+  retailCategoryTree,
   category,
   retailCategory,
   menuCategory,

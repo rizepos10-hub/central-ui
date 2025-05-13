@@ -270,6 +270,14 @@ const Barcode = () => {
         { label: "GenericBarcode", value: "GenericBarcode" },
     ]
 
+    if (products.length === 0) {
+        return (
+            <div>
+                No items found
+            </div>
+        )
+    }
+
     return (
         <Container className="d-flex flex-column align-items-center p-5">
             <Row className="w-100 mb-4">
@@ -706,7 +714,6 @@ const Barcode = () => {
                     </div>
                 ))}
             </div>
-
             <Row className="w-100">
                 <Col md={12}>
                     <div className="d-flex justify-content-center">
