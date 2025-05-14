@@ -255,6 +255,17 @@ export const UiSettingsUpdate = () => {
                     </div>
 
                     <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-canOrderOutOfStock">
+                        <strong>{translate('tempApp.UiSettings.canOrderOutOfStock')}</strong>
+                      </Label>
+                      <Checkbox
+                        id="UiSettings-canOrderOutOfStock"
+                        checked={UiSettingsEntity.canOrderOutOfStock || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'canOrderOutOfStock', value: e.checked }))}
+                      />
+                    </div>
+
+                    <div className={'d-flex flex-column mb-3'}>
                       <TabView className='w-100' scrollable>
                         {branchList?.map((branch, index) => (
                           <TabPanel header={branch.name} key={index}>
