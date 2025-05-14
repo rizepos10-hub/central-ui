@@ -27,6 +27,7 @@ export interface IUiSettings {
   branchDetail?: IBranchDetails[];
   colorSetting?: IColorSetting | null
   fontSetting?: IFontSetting
+  canOrderOutOfStock?: boolean
   canOrder?: boolean
   layouts?: ILayouts
   socialProfiles?: ISocialProfiles | null
