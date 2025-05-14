@@ -28,6 +28,7 @@
       "orderConfirmation": "Enable Order Confirmation",
       "scheduleOrders": "Schedule Orders",
       "canOrder": "Can Order",
+      "canOrderOutOfStock": "Can Order Item While It is Out of Stock",
       "hideModalDescription": "Hide Modal Description",
       "hideItemDescription": "Hide Item Description",
       "currencySymbolPosition": "Currency Symbol Position",
