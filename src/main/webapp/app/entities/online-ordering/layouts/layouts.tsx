@@ -29,6 +29,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import CategoriesLayout from '../layout-settings/components/categories/categories';
 import { Layout } from 'app/shared/model/ENUMS/layout.model';
 import { searchEntities as SearchRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
+import AsyncSelect from 'react-select/async';
 
 const Layouts = () => {
     const dispatch = useAppDispatch();
@@ -958,113 +959,129 @@ const LayoutDefaultSlider = ({
 const LayoutDefaultProductSetting = ({
     defaultLayout,
 }: {
-    defaultLayout: ILayouts["LAYOUT_DEFAULT"]
+    defaultLayout: ILayouts["LAYOUT_DEFAULT"];
 }) => {
     const dispatch = useAppDispatch();
-    const items: IItem[] = useAppSelector(state => state.allItems.entities);
-    const loading = useAppSelector((state) => state.allItems.loading);
+    const loading = useAppSelector(state => state.allItems.loading);
 
-    const [filterValue, setFilterValue] = useState<string>("");
+    const debouncedLoadOptions = useMemo(
+        () =>
+            debounce((inputValue, callback) => {
+                dispatch(
+                    searchEntities({
+                        query: inputValue,
+                        sort: 'id,asc',
+                        page: 0,
+                        size: 25,
+                    })
+                ).then(res => {
+                    // @ts-expect-error -- unknown type
+                    const options = (res.payload?.data || []).map(item => ({
+                        value: item.id,
+                        label: item.name,
+                        data: item,
+                    }));
+                    callback(options);
+                });
+            }, 500),
+        [dispatch]
+    );
 
-    useEffect(() => {
-        const handleFilter = debounce(() => {
-            dispatch(searchEntities({
-                query: filterValue,
-                sort: 'id,asc',
-                page: 0,
-                size: 25
-            }))
-        }, 500);
-
-        handleFilter();
-
-        return () => {
-            handleFilter.cancel();
-        };
-    }, [filterValue]);
-
-    if (!items || loading || !defaultLayout?.productSetting?.FEATURED?.items) return <Spinner />
+    const selectedOptions = defaultLayout?.productSetting?.FEATURED?.items?.map(item => ({
+        value: item.id,
+        label: item.name,
+        data: item,
+    }));
 
     return (
         <div>
             <Row>
-                <div className={'d-flex flex-column mb-3'}>
-                    <Label htmlFor="UiSettings-domain">
-                        <strong>title</strong>
-                    </Label>
+                <div className="d-flex flex-column mb-3">
+                    <Label htmlFor="featured-title"><strong>Title</strong></Label>
                     <InputText
-                        id="UiSettings-domain"
-                        value={defaultLayout?.productSetting?.FEATURED?.title || ''}
-                        onChange={e => dispatch(changeEntityField({
-                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
-                            value: { ...defaultLayout?.productSetting, FEATURED: { ...defaultLayout?.productSetting?.FEATURED, title: e.target.value } }
-                        }))}
+                        id="featured-title"
+                        value={defaultLayout.productSetting.FEATURED.title || ''}
+                        onChange={e =>
+                            dispatch(
+                                changeEntityField({
+                                    name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
+                                    value: {
+                                        ...defaultLayout.productSetting,
+                                        FEATURED: {
+                                            ...defaultLayout.productSetting.FEATURED,
+                                            title: e.target.value,
+                                        },
+                                    },
+                                })
+                            )
+                        }
                     />
                 </div>
-                <div className='d-flex flex-column gap-2'>
+
+                <div className="d-flex flex-column gap-2">
                     <h5>Selected Items</h5>
                     <ol>
-                        {defaultLayout?.productSetting?.FEATURED?.items?.map(item => (
+                        {defaultLayout.productSetting.FEATURED.items.map(item => (
                             <li key={item.id}>{item.name}</li>
                         ))}
                     </ol>
                 </div>
 
-                <MultiSelect
-                    options={items}
-                    optionLabel="name"
-                    optionValue="id"
-                    value={defaultLayout?.productSetting?.FEATURED?.items.map(item => item.id) || []}
-                    onChange={(e) => {
-                        const selectedIds = e.value;
-                        const selectedItems = items.filter(item => selectedIds.includes(item.id));
-                        dispatch(changeEntityField({
-                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
-                            value: {
-                                ...defaultLayout.productSetting,
-                                FEATURED: {
-                                    ...defaultLayout.productSetting.FEATURED,
-                                    items: selectedItems
-                                }
-                            }
-                        }));
-                    }}
-                    filter
-                    filterPlaceholder="Search products"
+                <AsyncSelect
+                    isMulti
+                    cacheOptions
+                    defaultOptions
+                    loadOptions={debouncedLoadOptions}
+                    isLoading={loading}
                     placeholder="Select Products"
-                    maxSelectedLabels={5}
-                    selectionLimit={5}
                     className="w-full md:w-20rem"
-                    onFilter={(e) => {
-                        setFilterValue(e.filter);
-                    }}
-                />
-
-            </Row>
-            <Row style={{
-                marginTop: '1rem'
-            }}>
-                <div className="flex align-items-center">
-                    <Checkbox
-                        onChange={e => {
-                            dispatch(changeEntityField({
+                    value={selectedOptions}
+                    onChange={selected => {
+                        const selectedItems = selected
+                            ? selected.map(opt => opt.data)
+                            : [];
+                        dispatch(
+                            changeEntityField({
                                 name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
                                 value: {
-                                    ...defaultLayout?.productSetting, FEATURED: {
-                                        ...defaultLayout?.productSetting?.FEATURED,
-                                        showImages: e.checked
-                                    }
-                                }
-                            }))
-                        }}
-                        checked={defaultLayout?.productSetting?.FEATURED?.showImages} />
-                    <label htmlFor="ingredient1" className="ml-2">Show Images</label>
+                                    ...defaultLayout.productSetting,
+                                    FEATURED: {
+                                        ...defaultLayout.productSetting.FEATURED,
+                                        items: selectedItems,
+                                    },
+                                },
+                            })
+                        );
+                    }}
+                />
+            </Row>
+
+            <Row style={{ marginTop: '1rem' }}>
+                <div className="flex align-items-center">
+                    <Checkbox
+                        checked={defaultLayout.productSetting.FEATURED.showImages}
+                        onChange={e =>
+                            dispatch(
+                                changeEntityField({
+                                    name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.productSetting`,
+                                    value: {
+                                        ...defaultLayout.productSetting,
+                                        FEATURED: {
+                                            ...defaultLayout.productSetting.FEATURED,
+                                            showImages: e.checked,
+                                        },
+                                    },
+                                })
+                            )
+                        }
+                    />
+                    <label className="ml-2">Show Images</label>
                 </div>
             </Row>
-            {/* <LayoutOne items={items}/> */}
         </div>
-    )
-}
+    );
+};
+
 
 const LayoutDefaultRestaurantCategories = ({
     defaultLayout,
@@ -1073,28 +1090,38 @@ const LayoutDefaultRestaurantCategories = ({
 }) => {
     const dispatch = useAppDispatch();
 
-    const categoryOptions: ITerm[] = useAppSelector(state => state.restaurantCategory.entities);
     const loading = useAppSelector(state => state.restaurantCategory.loading);
 
     const [activeIndex, setActiveIndex] = useState(0);
-    const [filterValue, setFilterValue] = useState<string>("");
 
-    useEffect(() => {
-        const handleFilter = debounce(() => {
-            dispatch(SearchRestaurantCategories({
-                query: filterValue,
-                sort: 'id,asc',
-                page: 0,
-                size: 10,
-            }))
-        }, 500);
+    const debouncedLoadOptions = useMemo(
+        () =>
+            debounce((inputValue, callback) => {
+                dispatch(
+                    SearchRestaurantCategories({
+                        query: inputValue,
+                        sort: 'id,asc',
+                        page: 0,
+                        size: 25,
+                    })
+                ).then(res => {
+                    // @ts-expect-error -- unknown type
+                    const options = (res.payload?.data || []).map(item => ({
+                        value: item.id,
+                        label: item.name,
+                        data: item,
+                    }));
+                    callback(options);
+                });
+            }, 500),
+        [dispatch]
+    );
 
-        handleFilter();
-
-        return () => {
-            handleFilter.cancel();
-        };
-    }, [filterValue]);
+    const selectedOptions = defaultLayout?.restuarantCategorySetting?.categories?.map(item => ({
+        value: item.id,
+        label: item.name,
+        data: item,
+    })) || [];
 
     const layouts = [
         {
@@ -1109,103 +1136,94 @@ const LayoutDefaultRestaurantCategories = ({
         }
     ]
 
-    if (!categoryOptions || loading) return <Spinner />
-
     return (
         <div>
-            {loading ? <div className="d-flex my-5">
-                <Spinner />
-            </div> : (
-                <div>
-                    <div className={'d-flex flex-column mb-3'}>
-                        <Label htmlFor="UiSettings-domain">
-                            <strong>title</strong>
-                        </Label>
-                        <InputText
-                            id="UiSettings-domain"
-                            value={defaultLayout?.restuarantCategorySetting?.title || ''}
-                            onChange={e => dispatch(changeEntityField({
-                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
-                                value: { ...defaultLayout?.restuarantCategorySetting, title: e.target.value }
-                            }))}
-                        />
-                    </div>
-
-                    <div className='d-flex flex-column gap-2'>
-                        <ol>
-                            {defaultLayout?.restuarantCategorySetting?.categories?.map(category => (
-                                <li key={category.id}>{category.name}</li>
-                            ))}
-                        </ol>
-                    </div>
-
-                    <MultiSelect
-                        options={categoryOptions}
-                        optionLabel="name"
-                        optionValue="id"
-                        value={defaultLayout?.restuarantCategorySetting?.categories.map(cat => cat.id) || []}
-                        onChange={(e) => {
-                            const selectedIds = e.value;
-                            const selectedCategories = categoryOptions.filter(cat => selectedIds.includes(cat.id));
-                            dispatch(changeEntityField({
-                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
-                                value: {
-                                    ...defaultLayout.restuarantCategorySetting,
-                                    categories: selectedCategories
-                                }
-                            }));
-                        }}
-                        filter
-                        filterPlaceholder="Search categories"
-                        placeholder="Select Categories"
-                        maxSelectedLabels={5}
-                        selectionLimit={5}
-                        className="w-full md:w-20rem"
-                        onFilter={(e) => setFilterValue(e.filter)}
+            <div>
+                <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="UiSettings-domain">
+                        <strong>title</strong>
+                    </Label>
+                    <InputText
+                        id="UiSettings-domain"
+                        value={defaultLayout?.restuarantCategorySetting?.title || ''}
+                        onChange={e => dispatch(changeEntityField({
+                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
+                            value: { ...defaultLayout?.restuarantCategorySetting, title: e.target.value }
+                        }))}
                     />
-
-                    {defaultLayout?.restuarantCategorySetting?.categories?.length > 0 && (
-                        <>
-                            <Row style={{
-                                marginTop: '1rem'
-                            }}>
-                                <div className="flex align-items-center">
-                                    <Checkbox
-                                        onChange={e => {
-                                            dispatch(changeEntityField({
-                                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
-                                                value: {
-                                                    ...defaultLayout?.restuarantCategorySetting, showImages: e.checked
-                                                }
-                                            }))
-                                        }
-                                        }
-                                        checked={defaultLayout?.restuarantCategorySetting?.showImages}
-                                    />
-                                    <label htmlFor="ingredient1" className="ml-2">Show Images</label>
-                                </div>
-                            </Row>
-                            <div>
-                                <TabView activeIndex={activeIndex} onTabChange={(e) => {
-                                    setActiveIndex(e.index)
-                                    dispatch(changeEntityField({
-                                        name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
-                                        value: {
-                                            ...defaultLayout?.restuarantCategorySetting, layout: layouts[e.index].value
-                                        }
-                                    }))
-                                }}>
-                                    {layouts.map((layout, index) => (
-                                        <TabPanel key={layout.id} header={layout.name}>
-                                            <CategoriesLayout layout={layout.value} categories={defaultLayout?.restuarantCategorySetting?.categories || []} />
-                                        </TabPanel>
-                                    ))}
-                                </TabView>
-                            </div>
-                        </>
-                    )}
                 </div>
-            )}
+
+                <div className='d-flex flex-column gap-2'>
+                    <ol>
+                        {defaultLayout?.restuarantCategorySetting?.categories?.map(category => (
+                            <li key={category.id}>{category.name}</li>
+                        ))}
+                    </ol>
+                </div>
+
+                <AsyncSelect
+                    isMulti
+                    cacheOptions
+                    defaultOptions
+                    loadOptions={debouncedLoadOptions}
+                    isLoading={loading}
+                    placeholder="Select Products"
+                    className="w-full md:w-20rem"
+                    value={selectedOptions}
+                    onChange={selected => {
+                        const selectedItems = selected
+                            ? selected.map(opt => opt.data)
+                            : [];
+                        dispatch(
+                            changeEntityField({
+                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting.categories`,
+                                value: selectedItems,
+                            })
+                        );
+                    }}
+                />
+
+                {defaultLayout?.restuarantCategorySetting?.categories?.length > 0 && (
+                    <>
+                        <Row style={{
+                            marginTop: '1rem'
+                        }}>
+                            <div className="flex align-items-center">
+                                <Checkbox
+                                    onChange={e => {
+                                        dispatch(changeEntityField({
+                                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
+                                            value: {
+                                                ...defaultLayout?.restuarantCategorySetting, showImages: e.checked
+                                            }
+                                        }))
+                                    }
+                                    }
+                                    checked={defaultLayout?.restuarantCategorySetting?.showImages}
+                                />
+                                <label htmlFor="ingredient1" className="ml-2">Show Images</label>
+                            </div>
+                        </Row>
+                        <div>
+                            <TabView activeIndex={activeIndex} onTabChange={(e) => {
+                                setActiveIndex(e.index)
+                                dispatch(changeEntityField({
+                                    name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.restuarantCategorySetting`,
+                                    value: {
+                                        ...defaultLayout?.restuarantCategorySetting, layout: layouts[e.index].value
+                                    }
+                                }))
+                            }}>
+                                {layouts.map((layout, index) => (
+                                    <TabPanel key={layout.id} header={layout.name}>
+                                        <CategoriesLayout layout={layout.value} categories={defaultLayout?.restuarantCategorySetting?.categories || []} />
+                                    </TabPanel>
+                                ))}
+                            </TabView>
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
     )
 }
@@ -1217,28 +1235,37 @@ const LayoutDefaultRetailCategories = ({
 }) => {
     const dispatch = useAppDispatch();
 
-    const categoriesOptions: ITerm[] = useAppSelector(state => state.retailCategory.entities);
     const loading = useAppSelector(state => state.retailCategory.loading);
-
-    const [filterValue, setFilterValue] = useState<string>("");
     const [activeIndex, setActiveIndex] = useState(0);
 
-    useEffect(() => {
-        const handleFilter = debounce(() => {
-            dispatch(getRetailCategories({
-                query: filterValue,
-                sort: 'id,asc',
-                page: 0,
-                size: 10
-            }))
-        }, 500);
+    const debouncedLoadOptions = useMemo(
+        () =>
+            debounce((inputValue, callback) => {
+                dispatch(
+                    getRetailCategories({
+                        query: inputValue,
+                        sort: 'id,asc',
+                        page: 0,
+                        size: 25,
+                    })
+                ).then(res => {
+                    // @ts-expect-error -- unknown type
+                    const options = (res.payload?.data || []).map(item => ({
+                        value: item.id,
+                        label: item.name,
+                        data: item,
+                    }));
+                    callback(options);
+                });
+            }, 500),
+        [dispatch]
+    );
 
-        handleFilter();
-
-        return () => {
-            handleFilter.cancel();
-        };
-    }, [filterValue]);
+    const selectedOptions = defaultLayout?.retailCategorySetting?.categories?.map(item => ({
+        value: item.id,
+        label: item.name,
+        data: item,
+    })) || [];
 
     const layouts = [
         {
@@ -1253,103 +1280,94 @@ const LayoutDefaultRetailCategories = ({
         }
     ]
 
-    if (!categoriesOptions || loading) return <Spinner />
-
     return (
         <div>
-            {loading ? <div className="d-flex my-5">
-                <Spinner />
-            </div> : (
-                <div>
-                    <div className={'d-flex flex-column mb-3'}>
-                        <Label htmlFor="UiSettings-domain">
-                            <strong>title</strong>
-                        </Label>
-                        <InputText
-                            id="UiSettings-domain"
-                            value={defaultLayout?.retailCategorySetting?.title || ''}
-                            onChange={e => dispatch(changeEntityField({
-                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
-                                value: { ...defaultLayout?.retailCategorySetting, title: e.target.value }
-                            }))}
-                        />
-                    </div>
-
-                    <div className='d-flex flex-column gap-2'>
-                        <ol>
-                            {defaultLayout?.retailCategorySetting?.categories?.map(category => (
-                                <li key={category.id}>{category.name}</li>
-                            ))}
-                        </ol>
-                    </div>
-
-                    <MultiSelect
-                        options={categoriesOptions}
-                        optionLabel="name"
-                        optionValue="id"
-                        value={defaultLayout?.retailCategorySetting?.categories?.map(cat => cat.id) || []}
-                        onChange={(e) => {
-                            const selectedIds = e.value;
-                            const selectedCategories = categoriesOptions.filter(cat => selectedIds.includes(cat.id));
-                            dispatch(changeEntityField({
-                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
-                                value: {
-                                    ...defaultLayout.retailCategorySetting,
-                                    categories: selectedCategories
-                                }
-                            }));
-                        }}
-                        filter
-                        filterPlaceholder="Search categories"
-                        placeholder="Select Categories"
-                        maxSelectedLabels={5}
-                        selectionLimit={5}
-                        className="w-full md:w-20rem"
-                        onFilter={(e) => setFilterValue(e.filter)}
+            <div>
+                <div className={'d-flex flex-column mb-3'}>
+                    <Label htmlFor="UiSettings-domain">
+                        <strong>title</strong>
+                    </Label>
+                    <InputText
+                        id="UiSettings-domain"
+                        value={defaultLayout?.retailCategorySetting?.title || ''}
+                        onChange={e => dispatch(changeEntityField({
+                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
+                            value: { ...defaultLayout?.retailCategorySetting, title: e.target.value }
+                        }))}
                     />
-                    {defaultLayout?.retailCategorySetting?.categories?.length > 0 && (
-                        <>
-                            <Row style={{
-                                marginTop: '1rem'
-                            }}>
-                                <div className="flex align-items-center">
-                                    <Checkbox
-                                        onChange={e => {
-                                            dispatch(changeEntityField({
-                                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
-                                                value: {
-                                                    ...defaultLayout?.retailCategorySetting, showImages: e.checked
-                                                }
-                                            }))
-                                        }
-                                        }
-                                        checked={defaultLayout?.retailCategorySetting?.showImages}
-                                    />
-                                    <label htmlFor="ingredient1" className="ml-2">Show Images</label>
-                                </div>
-                            </Row>
-                            <div>
-                                <TabView activeIndex={activeIndex} onTabChange={(e) => {
-                                    setActiveIndex(e.index)
-                                    dispatch(changeEntityField({
-                                        name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
-                                        value: {
-                                            ...defaultLayout?.retailCategorySetting, layout: layouts[e.index].value
-                                        }
-                                    }))
-                                }}>
-                                    {layouts.map((layout, index) => (
-                                        <TabPanel key={layout.id} header={layout.name}>
-                                            <CategoriesLayout layout={layout.value} categories={defaultLayout?.retailCategorySetting?.categories} />
-                                        </TabPanel>
-                                    ))}
-                                </TabView>
-                            </div>
-                        </>
-                    )}
                 </div>
-            )}
 
+                <div className='d-flex flex-column gap-2'>
+                    <ol>
+                        {defaultLayout?.retailCategorySetting?.categories?.map(category => (
+                            <li key={category.id}>{category.name}</li>
+                        ))}
+                    </ol>
+                </div>
+
+                <AsyncSelect
+                    isMulti
+                    cacheOptions
+                    defaultOptions
+                    loadOptions={debouncedLoadOptions}
+                    isLoading={loading}
+                    placeholder="Select Products"
+                    className="w-full md:w-20rem"
+                    value={selectedOptions}
+                    onChange={selected => {
+                        const selectedItems = selected
+                            ? selected.map(opt => opt.data)
+                            : [];
+                        dispatch(
+                            changeEntityField({
+                                name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting.categories`,
+                                value: selectedItems,
+                            })
+                        );
+                    }}
+                />
+
+                {defaultLayout?.retailCategorySetting?.categories?.length > 0 && (
+                    <>
+                        <Row style={{
+                            marginTop: '1rem'
+                        }}>
+                            <div className="flex align-items-center">
+                                <Checkbox
+                                    onChange={e => {
+                                        dispatch(changeEntityField({
+                                            name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
+                                            value: {
+                                                ...defaultLayout?.retailCategorySetting, showImages: e.checked
+                                            }
+                                        }))
+                                    }
+                                    }
+                                    checked={defaultLayout?.retailCategorySetting?.showImages}
+                                />
+                                <label htmlFor="ingredient1" className="ml-2">Show Images</label>
+                            </div>
+                        </Row>
+                        <div>
+                            <TabView activeIndex={activeIndex} onTabChange={(e) => {
+                                setActiveIndex(e.index)
+                                dispatch(changeEntityField({
+                                    name: `layouts.${SelectedLayoutEnum.LAYOUT_DEFAULT}.retailCategorySetting`,
+                                    value: {
+                                        ...defaultLayout?.retailCategorySetting, layout: layouts[e.index].value
+                                    }
+                                }))
+                            }}>
+                                {layouts.map((layout, index) => (
+                                    <TabPanel key={layout.id} header={layout.name}>
+                                        <CategoriesLayout layout={layout.value} categories={defaultLayout?.retailCategorySetting?.categories} />
+                                    </TabPanel>
+                                ))}
+                            </TabView>
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
     )
 }
