@@ -261,7 +261,12 @@ export const RegularItemUpdate = () => {
 
     setSelectedAddonGroup(undefined);
     if (isNew) {
-      dispatch(createEntity(entity)).then((res) => {
+      const { id, ...entityWithoutId } = entity;
+      entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+        ...variantWithoutId,
+      }));
+
+      dispatch(createEntity(entityWithoutId)).then((res) => {
         if (createNew) {
           reset()
           setRegularItem({
@@ -273,10 +278,6 @@ export const RegularItemUpdate = () => {
           const payload = res?.payload as any;
           const newProductId = payload?.data?.id;
 
-          const { id, ...entityWithoutId } = entity;
-          entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
-            ...variantWithoutId,
-          }));
           if (clone) {
             dispatch(createEntity(entityWithoutId)).then(res => {
               const payload = res?.payload as any;
