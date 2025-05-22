@@ -126,7 +126,6 @@
           "removeSupplier": "Remove Supplier",
           "selectSupplier": "Select Supplier"
         },
-
         "itemLocation": {
           "department": "Department",
           "section": "Section",
@@ -139,6 +138,12 @@
           "shelfPlaceHolder": "Enter Shelf",
           "shelfLocationPlaceHolder": "Enter shelf Location",
           "label": "Item Location"
+        },
+        "seo": {
+          "label": "Seo Tags",
+          "title": "Title",
+          "description": "Description",
+          "keywords": "Keywords"
         }
       },
 

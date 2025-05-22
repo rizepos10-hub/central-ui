@@ -46,6 +46,7 @@ import { cloneDeep } from 'lodash';
 import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
 import AddonImportModal from 'app/shared/components/item/addon-import-modal';
+import SeoTags from 'app/shared/components/item/seo-tags';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -377,7 +378,15 @@ export const RegularItemUpdate = () => {
     setOpenedAddonModal(false);
   };
 
-
+  const updateSeoTags = (fieldName, value) => {
+    setRegularItem(prevRegularItem => ({
+      ...prevRegularItem,
+      seo: {
+        ...prevRegularItem.seo,
+        [fieldName]: value
+      }
+    }));
+  };
 
   const reorderHeader = (
     data: {
@@ -1119,6 +1128,13 @@ export const RegularItemUpdate = () => {
                       <ItemLoyaltyTab
                         excludedFromLoyaltyPoints={regularItem?.excludedFromLoyaltyPoints}
                         onFieldChange={handleFieldChange}
+                      />
+                    </TabPanel>
+
+                    <TabPanel header={translate('items.update.tabs.seo.label')}>
+                      <SeoTags
+                        field={regularItem?.seo}
+                        onFieldChange={updateSeoTags}
                       />
                     </TabPanel>
                   </TabView>

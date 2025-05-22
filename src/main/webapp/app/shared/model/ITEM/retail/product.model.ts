@@ -13,6 +13,12 @@ export interface IProduct extends IItem {
   itemLocation?: ItemLocation;
 }
 
+export interface ISeo {
+  title?: string;
+  description?: string;
+  keywords?: string;
+}
+
 export const defaultValue: Readonly<IProduct> = {
   variants: [{
     pricingPointBranchPrices: [],

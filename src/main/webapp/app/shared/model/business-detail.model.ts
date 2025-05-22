@@ -4,6 +4,7 @@ import { DayOfWeek } from "app/shared/model/ENUMS/day-of-week.model";
 import { IZone } from './ZONE/zone.model';
 import { EndingType } from './ENUMS/ending-type.model';
 import { EndOfDayReportSection } from './ENUMS/end-of-day-report-section.model';
+import { ISeo } from './ITEM/retail/product.model';
 export interface IBusinessDayDetail {
   day: DayOfWeek;
   openingHours: { dayType: dayTypeEnum; from: string; to: string }[];
@@ -46,6 +47,13 @@ export interface IBranchDetails {
   endingType?: EndingType;
   tokenExpired?: boolean;
   logo?: IAttachment;
+  pages?: ISeoPages
+}
+
+export interface ISeoPages {
+  home: ISeo;
+  retail: ISeo;
+  restaurant: ISeo;
 }
 
 export enum UnitCostCalculationMode {

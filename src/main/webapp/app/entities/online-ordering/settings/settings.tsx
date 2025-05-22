@@ -28,6 +28,7 @@ import { ColorPicker } from 'primereact/colorpicker';
 import { hexToHSL, hslToHex } from 'app/shared/util/color-utils';
 import { ISocialProfile } from 'app/shared/model/ONLINE_ORDERING/social-profile';
 import { Dropdown } from 'primereact/dropdown';
+import SeoTags from 'app/shared/components/item/seo-tags';
 
 export const UiSettingsUpdate = () => {
   const dispatch = useAppDispatch();
@@ -107,6 +108,48 @@ export const UiSettingsUpdate = () => {
       newData[key] = theme[key];
     });
     dispatch(changeEntityField({ name: 'colorSetting', value: newData }));
+  };
+
+  const updateHomeSeo = (index, fieldName, value) => {
+    const branchDetail = UiSettingsEntity?.branchDetail || [];
+    const newData = JSON.parse(JSON.stringify(branchDetail));
+    if (newData.length <= index) {
+      for (let i = newData.length; i <= index; i++) {
+        newData.push({ pages: {} });
+      }
+    }
+    newData[index].pages = newData[index].pages || {};
+    newData[index].pages.home = newData[index].pages.home || {};
+    newData[index].pages.home[fieldName] = value;
+    dispatch(changeEntityField({ name: 'branchDetail', value: newData }));
+  };
+
+  const updateRetailSeo = (index, fieldName, value) => {
+    const branchDetail = UiSettingsEntity?.branchDetail || [];
+    const newData = JSON.parse(JSON.stringify(branchDetail));
+    if (newData.length <= index) {
+      for (let i = newData.length; i <= index; i++) {
+        newData.push({ pages: {} });
+      }
+    }
+    newData[index].pages = newData[index].pages || {};
+    newData[index].pages.retail = newData[index].pages.retail || {};
+    newData[index].pages.retail[fieldName] = value;
+    dispatch(changeEntityField({ name: 'branchDetail', value: newData }));
+  };
+
+  const updateRestaurantSeo = (index, fieldName, value) => {
+    const branchDetail = UiSettingsEntity?.branchDetail || [];
+    const newData = JSON.parse(JSON.stringify(branchDetail));
+    if (newData.length <= index) {
+      for (let i = newData.length; i <= index; i++) {
+        newData.push({ pages: {} });
+      }
+    }
+    newData[index].pages = newData[index].pages || {};
+    newData[index].pages.restaurant = newData[index].pages.restaurant || {};
+    newData[index].pages.restaurant[fieldName] = value;
+    dispatch(changeEntityField({ name: 'branchDetail', value: newData }));
   };
 
   return (
@@ -208,7 +251,7 @@ export const UiSettingsUpdate = () => {
                   <TabPanel header="Social Profiles">
                     <SocialProfiles socialProfiles={UiSettingsEntity.socialProfiles} />
                   </TabPanel>
-                  <TabPanel header="Order">
+                  <TabPanel header="Order / SEO">
                     <div className={'d-flex flex-column mb-3'}>
                       <Label htmlFor="UiSettings-orderTaking">
                         <strong>{translate('tempApp.UiSettings.orderTaking')}</strong>
@@ -269,12 +312,36 @@ export const UiSettingsUpdate = () => {
                       <TabView className='w-100' scrollable>
                         {branchList?.map((branch, index) => (
                           <TabPanel header={branch.name} key={index}>
-                            <div className="d-flex mb-3">
-                              <label className="font-bold">Hide Retail Shop</label>
-                              <Checkbox
-                                checked={UiSettingsEntity?.branchDetail?.[index]?.hideRetailShop || false}
-                                onChange={(e) => handleBranchHideRetailShop(index, e.checked, branch.id)}
-                              />
+                            <div className="d-flex justify-content-between mb-3">
+                              <div>
+                                <label className="font-bold">Hide Retail Shop</label>
+                                <Checkbox
+                                  checked={UiSettingsEntity?.branchDetail?.[index]?.hideRetailShop || false}
+                                  onChange={(e) => handleBranchHideRetailShop(index, e.checked, branch.id)}
+                                />
+                              </div>
+
+                              {/* <div className="">
+                                <label className="font-bold">Home Seo</label>
+                                <SeoTags
+                                  field={UiSettingsEntity?.branchDetail?.[index]?.pages?.home}
+                                  onFieldChange={(field, value) => updateHomeSeo(index, field, value)}
+                                />
+                              </div> */}
+                              <div className="">
+                                <label className="font-bold">Retail Seo</label>
+                                <SeoTags
+                                  field={UiSettingsEntity?.branchDetail?.[index]?.pages?.retail}
+                                  onFieldChange={(field, value) => updateRetailSeo(index, field, value)}
+                                />
+                              </div>
+                              <div>
+                                <label className="font-bold">Restaurant Seo</label>
+                                <SeoTags
+                                  field={UiSettingsEntity?.branchDetail?.[index]?.pages?.restaurant}
+                                  onFieldChange={(field, value) => updateRestaurantSeo(index, field, value)}
+                                />
+                              </div>
                             </div>
                           </TabPanel>
                         ))}
