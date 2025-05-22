@@ -60,6 +60,7 @@ import ItemLocation from 'app/shared/components/item/item-location';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { toast } from 'react-toastify';
 import { ImMagicWand } from "react-icons/im";
+import SeoTags from 'app/shared/components/item/seo-tags';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -199,6 +200,17 @@ export const ProductUpdate = () => {
       }
     }));
   };
+
+  const updateSeoTags = (fieldName, value) => {
+    setProduct(prevProduct => ({
+      ...prevProduct,
+      seo: {
+        ...prevProduct.seo,
+        [fieldName]: value
+      }
+    }));
+  };
+
 
   const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
     setProduct(prev => {
@@ -1919,6 +1931,13 @@ export const ProductUpdate = () => {
                       <ItemLocation
                         onItemLocationChange={updateItemLocation} // Pass down the function as a prop
                         itemLocaion={product?.itemLocation} />
+                    </TabPanel>
+
+                    <TabPanel header={translate('items.update.tabs.seo.label')}>
+                      <SeoTags
+                        field={product?.seo}
+                        onFieldChange={updateSeoTags}
+                      />
                     </TabPanel>
 
                   </TabView>

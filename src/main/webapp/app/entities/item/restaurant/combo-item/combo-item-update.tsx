@@ -32,6 +32,7 @@ import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definiti
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
 import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
+import SeoTags from 'app/shared/components/item/seo-tags';
 
 
 export const ComboItemUpdate = () => {
@@ -102,6 +103,16 @@ export const ComboItemUpdate = () => {
           },
         },
       ],
+    }));
+  };
+
+  const updateSeoTags = (fieldName, value) => {
+    setComboItem(prevItem => ({
+      ...prevItem,
+      seo: {
+        ...prevItem.seo,
+        [fieldName]: value
+      }
     }));
   };
 
@@ -601,6 +612,14 @@ export const ComboItemUpdate = () => {
               <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
                 <ItemLoyaltyTab excludedFromLoyaltyPoints={comboItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
               </TabPanel>
+
+              <TabPanel header={translate('items.update.tabs.seo.label')}>
+                <SeoTags
+                  field={comboItem?.seo}
+                  onFieldChange={updateSeoTags}
+                />
+              </TabPanel>
+
             </TabView>
           </Card>
         </Col>

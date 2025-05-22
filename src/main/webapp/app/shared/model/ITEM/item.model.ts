@@ -12,6 +12,7 @@ import { ITag } from "app/shared/model/TAG/tag.model";
 import { IBrand } from "app/shared/model/brand.model";
 import { IAddonPriceOverride } from '../ADDON/addon-price-override';
 import { IMenu } from '../menu.model';
+import { ISeo } from './retail/product.model';
 
 export interface IItem {
   id?: string;
@@ -38,6 +39,7 @@ export interface IItem {
   productionCenter?: IProductionCenter | null;
   menus?: IMenu[];
   askForPrice?: boolean;
+  seo?: ISeo;
 }
 
 export const defaultValue: Readonly<IItem> = {};
