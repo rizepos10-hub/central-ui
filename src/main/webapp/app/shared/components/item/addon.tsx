@@ -183,6 +183,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
     e.stopPropagation();
     const updatedAddonGroups = addonGroups.filter(group => group.addonGroup.id !== groupId);
     onFieldChange('addonGroups', updatedAddonGroups);
+    setSelectedAddonGroup(undefined);
   };
 
   const handleAddonGroupFieldChange = (addonGroupIndex: number, fieldName: string, value: any) => {

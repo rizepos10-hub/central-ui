@@ -433,8 +433,8 @@ export const RegularItemUpdate = () => {
 
   const handleRemoveAddonGroup = (addonGroup: string, variant: IRegularItemVariant, variantIndex) => {
     const updatedAddonGroups = variant.addonGroups.filter(a => a.addonGroup.id !== addonGroup);
-
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups)
+    setSelectedAddonGroup(undefined);
   };
 
   const handleAddonGroupChange = (selectedAddonGroup: IAddonGroup, variant: IRegularItemVariant, variantIndex) => {
