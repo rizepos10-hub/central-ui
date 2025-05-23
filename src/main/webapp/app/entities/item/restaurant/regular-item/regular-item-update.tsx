@@ -402,6 +402,7 @@ export const RegularItemUpdate = () => {
           onFocus={onFocus}
           optionLabel={'name'}
           optionValue={'id'}
+          filter
         />
         <Button
           disabled={!selected}

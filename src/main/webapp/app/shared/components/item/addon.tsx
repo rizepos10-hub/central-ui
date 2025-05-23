@@ -294,6 +294,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
           onFocus={onFocus}
           optionLabel={'name'}
           optionValue={'id'}
+          filter
         />
         <Button
           disabled={!selected}
