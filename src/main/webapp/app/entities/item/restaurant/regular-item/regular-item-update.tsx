@@ -963,14 +963,6 @@ export const RegularItemUpdate = () => {
                                                       reorderHeader(
                                                         // filter out addongroups that are not already selected then map to id and name, also filter out the addongroups that are selected on the item level 
                                                         addonGroupsList
-                                                          .filter(addonGroup =>
-                                                            !regularItem?.variants?.some(variant =>
-                                                              variant?.addonGroups?.some(group => group.addonGroup.id === addonGroup.id)
-                                                            )
-                                                          )
-                                                          .filter(addonGroup =>
-                                                            !regularItem?.addonGroups?.some(group => group.addonGroup.id === addonGroup.id)
-                                                          )
                                                           .map(addonGroup => ({
                                                             id: addonGroup.id,
                                                             name: addonGroup.name
