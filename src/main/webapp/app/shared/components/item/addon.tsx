@@ -183,6 +183,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
     e.stopPropagation();
     const updatedAddonGroups = addonGroups.filter(group => group.addonGroup.id !== groupId);
     onFieldChange('addonGroups', updatedAddonGroups);
+    setSelectedAddonGroup(undefined);
   };
 
   const handleAddonGroupFieldChange = (addonGroupIndex: number, fieldName: string, value: any) => {
@@ -294,6 +295,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
           onFocus={onFocus}
           optionLabel={'name'}
           optionValue={'id'}
+          filter
         />
         <Button
           disabled={!selected}
@@ -321,9 +323,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
   const selectedVariantAddonGroupIds = item?.variants?.flatMap(variant => variant.addonGroups?.map(group => group.addonGroup.id) ?? []) ?? [];
   const allSelectedAddonGroupIds = [...selectedItemAddonGroupIds, ...selectedVariantAddonGroupIds];
 
-  const filteredAddonGroupsOptions = addonGroupsOptions?.filter(
-    option => !allSelectedAddonGroupIds.includes(option.id)
-  );
+  const filteredAddonGroupsOptions = addonGroupsOptions;
 
 
   const handleImportAddonModalSave = (groups: IAddonGroups[]) => {
