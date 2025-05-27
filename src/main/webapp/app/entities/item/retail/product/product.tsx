@@ -42,6 +42,7 @@ interface ColumnConfig extends Partial<ColumnProps> {
   key?: string;
   seq: number;
   visible: boolean;
+  width?: string;
 }
 export const Product = () => {
   const dispatch = useAppDispatch();
@@ -61,6 +62,7 @@ export const Product = () => {
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
+  const [expandedRows, setExpandedRows] = useState({});
   const wareHouses = useAppSelector((state) => state.warehouse.entities);
   const salesLocations = useAppSelector((state) => state.salesLocation.entities);
   const [paginationState, setPaginationState] = useState(
@@ -386,6 +388,42 @@ export const Product = () => {
     setSelectedActionOption(null);
   }
 
+  const rowExpansionTemplate = (rowData: IProduct) => {
+    if (!rowData.variants || rowData.variants.length <= 1) {
+      return null;
+    }
+
+    return (
+      <div className="p-3">
+        <h5>Variants Stock Details</h5>
+        <DataTable value={rowData.variants} responsiveLayout="scroll">
+          <Column 
+            field="name" 
+            header="Variant Name" 
+            body={(variant) => formatVariant(variant?.name, variant?.attributeValues)}
+          />
+          <Column 
+            field="sku" 
+            header="SKU" 
+            body={(variant) => variant.sku || 'N/A'}
+          />
+          <Column 
+            field="stockQuantities" 
+            header="Stock Quantities" 
+            body={(variant) => (
+              Object.entries(variant?.stockQuantities || {}).map(([key, stock]: [string, IStockQuantity]) => (
+                <span key={stock?.location?.id} className="d-flex flex-row">
+                  <span className="col-6 p-0 fs-6">{stock?.location?.name}</span>
+                  <span className="col-6 p-0 fs-6 fw-bold">{stock?.quantity}</span>
+                </span>
+              ))
+            )}
+          />
+        </DataTable>
+      </div>
+    );
+  };
+
   const StockStatusDialog = ({
     dialogVisible,
     onHide,
@@ -569,12 +607,14 @@ export const Product = () => {
       {
         field: "name",
         header: translate("items.view.fields.name"),
+        style: { width: "100px" },
         body: nameColumnTemplate,
         filterPlaceholder: translate("items.view.filters.name"),
         sortable: true,
         key: "name",
         seq: 1,
         visible: true,
+        width: "100px",
       },
       {
         field: "categories",
@@ -585,6 +625,7 @@ export const Product = () => {
         sortable: true,
         seq: 2,
         visible: true,
+        width: "100px",
       },
       {
         field: "image",
@@ -611,6 +652,7 @@ export const Product = () => {
         body: (rowData) => <SummarizeText>{rowData.desc}</SummarizeText>,
         seq: 4,
         visible: true,
+        width: "100px",
       },
       {
         field: "stockQuantities",
@@ -680,15 +722,18 @@ export const Product = () => {
           <>
             {rowData?.variants?.length === 1 ? (
               <span className="d-flex gap-0 flex-column">
-                {rowData?.variants?.[0]?.stockQuantities?.map((stock) => (
-                  <span key={stock?.location?.id} className="d-flex flex-row">
-                    <span className="col-6 p-0 fs-6">{stock?.location?.name}</span>
-                    <span className="col-6 p-0 fs-6 fw-bold">{stock?.quantity}</span>
-                  </span>
+                {Object.entries(rowData?.variants?.[0]?.stockQuantities || {}).map(([key, stock]: [string, IStockQuantity]) => (
+                  <div key={stock?.location?.id} className="d-flex gap-2 flex-row border-bottom">
+                    <span className="col-9 p-0 fs-6">{stock?.location?.name}</span>
+                    <span className="col-3 p-0 fs-6 fw-bold">{stock?.quantity}</span>
+                  </div>
                 ))}
               </span>
             ) : (
-              <span>{rowData?.variants?.length}</span>
+              <span className="d-flex gap-0 flex-column">
+                <span className="fw-bold">{rowData?.variants?.length} variants</span>
+                <span className="text-xs text-500">Expand to view details</span>
+              </span>
             )}
           </>
         ),
@@ -696,6 +741,7 @@ export const Product = () => {
         bodyStyle: { textAlign: "left", overflow: "visible" },
         seq: 6,
         visible: true,
+        width: "300px",
       },
       {
         field: "productionCenter",
@@ -708,6 +754,7 @@ export const Product = () => {
         bodyStyle: { textAlign: "left", overflow: "visible" },
         seq: 7,
         visible: true,
+        width: "100px",
       },
       {
         field: "tags",
@@ -716,6 +763,7 @@ export const Product = () => {
         key: "tags",
         seq: 8,
         visible: true,
+        width: "100px",
       },
       {
         field: "discounts",
@@ -725,6 +773,7 @@ export const Product = () => {
         key: "discounts",
         seq: 9,
         visible: true,
+        width: "50px",
       },
       {
         field: "branchPosVisibility",
@@ -746,6 +795,7 @@ export const Product = () => {
         bodyStyle: { textAlign: "left", overflow: "visible" },
         seq: 10,
         visible: true,
+        width: "50px",
       },
       {
         field: "onlineOrderingVisibility",
@@ -767,6 +817,7 @@ export const Product = () => {
         bodyStyle: { textAlign: "left", overflow: "visible" },
         seq: 11,
         visible: true,
+        width: "50px",
       },
       {
         field: "actions",
@@ -792,6 +843,7 @@ export const Product = () => {
         bodyStyle: { textAlign: "center", overflow: "visible" },
         seq: 12,
         visible: true,
+        width: "100px",
       },
     ],
     [localFilters, wareHouses, salesLocations, products]
@@ -1009,10 +1061,17 @@ export const Product = () => {
         selectionMode={'checkbox'}
         selection={selectedProducts}
         onSelectionChange={(e) => setSelectedProducts(e.value)}
+        expandedRows={expandedRows}
+        onRowToggle={(e) => setExpandedRows(e.data)}
+        rowExpansionTemplate={rowExpansionTemplate}
       >
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+        <Column 
+          expander={(rowData: IProduct) => rowData.variants && rowData.variants.length > 1} 
+          style={{ width: "3rem" }} 
+        />
         {visibleColumns.map((col) => (
-          <Column key={col.field} field={col.field} header={col.header} body={col.body} />
+          <Column key={col.field} field={col.field} header={col.header} body={col.body} style={{ width: col.width }} />
         ))}
       </DataTable>
     </div>
