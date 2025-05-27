@@ -500,7 +500,7 @@ export const Product = () => {
       : [
         ...visibility,
         {
-        application: application,
+        application,
         visible: value,
         schedule: {},
         },
@@ -616,7 +616,7 @@ export const Product = () => {
         field: "stockQuantities",
         key: "stock",
         header: translate("items.view.fields.inStock"),
-        body: (rowData) => {
+        body(rowData) {
           const variants = rowData.variants || [];
           const [dialogVisible, setDialogVisible] = useState(false);
         
@@ -673,6 +673,31 @@ export const Product = () => {
         visible: true,
       },
       {
+        field: "stockQnantity",
+        key: "stockQnantity",
+        header: translate("items.view.fields.stockQnantity"),
+        body: (rowData: IProduct) => (
+          <>
+            {rowData?.variants?.length === 1 ? (
+              <span className="d-flex gap-0 flex-column">
+                {rowData?.variants?.[0]?.stockQuantities?.map((stock) => (
+                  <span key={stock?.location?.id} className="d-flex flex-row">
+                    <span className="col-6 p-0 fs-6">{stock?.location?.name}</span>
+                    <span className="col-6 p-0 fs-6 fw-bold">{stock?.quantity}</span>
+                  </span>
+                ))}
+              </span>
+            ) : (
+              <span>{rowData?.variants?.length}</span>
+            )}
+          </>
+        ),
+        headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
+        bodyStyle: { textAlign: "left", overflow: "visible" },
+        seq: 6,
+        visible: true,
+      },
+      {
         field: "productionCenter",
         key: "productionCenter",
         header: translate("items.view.fields.productionCenter"),
@@ -705,7 +730,7 @@ export const Product = () => {
         field: "branchPosVisibility",
         key: "branchPosVisible",
         header: translate("items.view.fields.pos_visibility"),
-        body: (rowData: IProduct) => {
+        body(rowData: IProduct) {
           const visible =
             rowData.visibility?.find(v => v.application === SourceType.BRANCH_POS)?.visible ?? true;
       
@@ -726,7 +751,7 @@ export const Product = () => {
         field: "onlineOrderingVisibility",
         key: "onlineOrderingVisible",
         header: translate("items.view.fields.website_visibility"),
-        body: (rowData: IProduct) => {
+        body(rowData: IProduct) {
           const visible =
             rowData.visibility?.find(v => v.application === SourceType.ONLINE_ORDERING)?.visible ?? true;
       
