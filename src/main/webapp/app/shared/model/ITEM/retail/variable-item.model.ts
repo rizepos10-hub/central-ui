@@ -65,7 +65,7 @@ export interface IPricingPointBranchPrice {
 }
 
 export interface IMeasureValue {
-  measure: number,
+  // measure: number,
   isBase?: boolean,
 }
 

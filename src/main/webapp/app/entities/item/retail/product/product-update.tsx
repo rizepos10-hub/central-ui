@@ -248,7 +248,7 @@ export const ProductUpdate = () => {
         ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
         measureValue: {
           isBase: measureValue.isBase,
-          measure: measureValue.isBase ? 1 : measureValue.measure
+          // measure: measureValue.isBase ? 1 : measureValue.measure
         }
       };
 
@@ -259,7 +259,7 @@ export const ProductUpdate = () => {
             ...variant,
             measureValue: {
               isBase: false,
-              measure: variant.measureValue.measure
+              // measure: variant.measureValue.measure
             }
           }
         }
@@ -772,7 +772,8 @@ export const ProductUpdate = () => {
       return {
         ...variant,
         price: product.askForPrice ? 0 : variant.price ? variant.price : 0,
-        purchaseConfig: ((variant?.purchaseConfig?.minOrderQuantity === null || variant?.purchaseConfig?.minOrderQuantity === undefined) && (variant?.purchaseConfig?.defaultPrice === null || variant?.purchaseConfig?.defaultPrice === undefined) && variant?.purchaseConfig?.supplierConfigurations?.length === 0) ? null : variant?.purchaseConfig
+        purchaseConfig: ((variant?.purchaseConfig?.minOrderQuantity === null || variant?.purchaseConfig?.minOrderQuantity === undefined) && (variant?.purchaseConfig?.defaultPrice === null || variant?.purchaseConfig?.defaultPrice === undefined) && variant?.purchaseConfig?.supplierConfigurations?.length === 0) ? null : variant?.purchaseConfig,
+        variantPackage: variant?.measureValue?.isBase ? null : variant?.variantPackage
       };
     });
 
@@ -785,7 +786,7 @@ export const ProductUpdate = () => {
           price: defaultPrice,
           measureValue: product.baseMeasure ? {
             isBase: true,
-            measure: 1
+            // measure: 1
           } : null
         }
       ],
@@ -1517,7 +1518,7 @@ export const ProductUpdate = () => {
                                                 <TabPanel header='General'>
                                                   <Row>
                                                     <Col md="4" className='mt-2 d-flex gap-2'>
-                                                      <div className={'d-flex flex-column gap-2'}>
+                                                      {/* <div className={'d-flex flex-column gap-2'}>
                                                         <label className={'font-semibold'}>
                                                           <Translate contentKey={'items.update.measure'}>Measure</Translate>
                                                         </label>
@@ -1537,7 +1538,7 @@ export const ProductUpdate = () => {
                                                             }}
                                                           />
                                                         </div>
-                                                      </div>
+                                                      </div> */}
                                                       <div className={'d-flex flex-column gap-2'}>
                                                         <label className={'font-semibold'}>
                                                           <Translate contentKey={'items.update.isBaseMeasure'}>Is Measure Base</Translate>
@@ -1546,7 +1547,7 @@ export const ProductUpdate = () => {
                                                           <Checkbox
                                                             checked={product?.variants?.[variantIndex]?.measureValue?.isBase || false}
                                                             onChange={(e) => handleMeasureValueChange({
-                                                              measure: product?.variants?.[variantIndex]?.measureValue?.measure,
+                                                              // measure: product?.variants?.[variantIndex]?.measureValue?.measure,
                                                               isBase: e.checked
                                                             }, variantIndex)}
                                                           />
@@ -1671,7 +1672,7 @@ export const ProductUpdate = () => {
                                                     </Col>
                                                   </Row>
                                                 </TabPanel>
-                                                {!isNew && (
+                                                {!isNew && !variant?.measureValue?.isBase && (
                                                   <TabPanel header='Packaging'>
                                                     <Row>
                                                       <Col md="12">
