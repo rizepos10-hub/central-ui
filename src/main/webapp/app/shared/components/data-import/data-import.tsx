@@ -52,7 +52,8 @@ const ImportButton = ({ type }: ItemImportProps) => {
         fileName = "addons.xlsx";
         break;
       case "REGULAR_RESTAURANT":
-        filePath = "content/samples/regular-item.xlsx";
+        // here i want to add online link instead of local file
+        filePath = "https://cloudlinksai-my.sharepoint.com/:x:/g/personal/ali_aboud_cloudlinks_ai/Eed3nKJRNN9Hl7wwGS-_jnIBtvC758ukjTsuxUoiZsI9BA?e=Zr3iOr&wdOrigin=TEAMS-WEB.p2p_ns.rwc&wdExp=TEAMS-TREATMENT&wdhostclicktime=1748442817249&web=1";
         fileName = "regular-item.xlsx";
         break;
       case "TOPPING":
@@ -60,7 +61,7 @@ const ImportButton = ({ type }: ItemImportProps) => {
         fileName = "toppings.xlsx";
         break;
       case "RETAIL":
-        filePath = "content/samples/retail.xlsx";
+        filePath = "https://cloudlinksai-my.sharepoint.com/:x:/g/personal/ali_aboud_cloudlinks_ai/Ef1RRc-9m2xCnjNmZ0OW090BBM2YR4UHnS2DA39oZg2qQg?e=FnJfhS";
         fileName = "retail.xlsx";
         break;
       default:
