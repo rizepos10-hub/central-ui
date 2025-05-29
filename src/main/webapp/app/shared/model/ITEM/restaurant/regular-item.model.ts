@@ -10,6 +10,7 @@ import { IAddonGroup, IAddonGroups } from "../../ADDON/addon-groups.model";
 import { IAddonPriceOverride } from "../../ADDON/addon-price-override";
 import { IPricingPointBranchPrice } from "../retail/variable-item.model";
 import { ItemVariantType } from "../../ENUMS/item-variant-type.model";
+import { IIngredient } from "../../ingredient";
 
 interface IBranchVariantDetails {
   [key: string]: {
@@ -35,6 +36,7 @@ export interface IRegularItemVariant {
   branchVariantDetails?: IBranchVariantDetails;
   mixAndMatchRule?: IMixAndMatchRule;
   pricingPointBranchPrices?: IPricingPointBranchPrice[];
+  ingredients?: IIngredient[];
 }
 
 export interface IRegularItem extends IItem {
