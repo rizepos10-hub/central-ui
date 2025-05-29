@@ -47,6 +47,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
 import AddonImportModal from 'app/shared/components/item/addon-import-modal';
 import SeoTags from 'app/shared/components/item/seo-tags';
+import IngredientsPicker from 'app/shared/ingredients-picker';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -252,7 +253,16 @@ export const RegularItemUpdate = () => {
           order: index
         };
       }
-      return variant;
+      return {
+        ...variant,
+        ingredients: variant.ingredients?.map(ingredient => ({
+          ...ingredient,
+          item: {
+            id: ingredient.item.id,
+            itemVariantType: ingredient.item.itemVariantType,
+          }
+        }))
+      };
     });
 
     const entity = {
@@ -808,6 +818,14 @@ export const RegularItemUpdate = () => {
                                                     draggable={false}
                                                   />
                                                 </div>
+                                              </Col>
+                                              <Col md="12">
+                                              <IngredientsPicker
+                                                ingredients={variant.ingredients || []}
+                                                onChange={newIngredients => {
+                                                  handleVariantFieldChange(variantIndex, 'ingredients', newIngredients)
+                                                }}
+                                              />
                                               </Col>
                                               <Col md="12">
                                                 <div className={'d-flex flex-column'}>

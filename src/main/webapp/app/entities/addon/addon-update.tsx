@@ -29,6 +29,8 @@ import { filterEntities as getComboItems, updateEntity as updateComboItem } from
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import { initialItemFilterState } from 'app/shared/model/filter-state.model';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
+import IngredientsPicker from 'app/shared/ingredients-picker';
+import { IIngredient } from 'app/shared/model/ingredient';
 
 
 export const AddonUpdate = () => {
@@ -88,6 +90,13 @@ export const AddonUpdate = () => {
 
     const entity = {
       ...addonEntity,
+      ingredients: addonEntity.ingredients?.map(ingredient => ({
+        ...ingredient,
+        item: {
+          id: ingredient.item.id,
+          itemVariantType: ingredient.item.itemVariantType,
+        }
+      }))
     };
 
     if (isNew) {
@@ -203,6 +212,19 @@ export const AddonUpdate = () => {
                   }))}
                 />
               </div>
+
+              <div className={'d-flex flex-column mt-3'}>
+                <IngredientsPicker
+                  ingredients={addonEntity.ingredients || []}
+                  onChange={(newIngredients) => {
+                    dispatch(changeEntityField({
+                      name: 'ingredients',
+                      value: newIngredients
+                    }));
+                  }}
+                />
+              </div>
+
               <div className={'d-flex flex-column my-3'}>
                 <Label for="addon-discount">
                   <Translate contentKey={'common.discount'}>Discounts</Translate>
