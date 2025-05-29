@@ -187,14 +187,11 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
   };
 
   const handleAddonGroupFieldChange = (addonGroupIndex: number, fieldName: string, value: any) => {
-    console.log(value)
     const updatedAddonGroups = [...addonGroups];
-    console.log(updatedAddonGroups)
     const updatedItem = {
       ...updatedAddonGroups[addonGroupIndex],
       [fieldName]: value,
     };
-    console.log(updatedItem)
 
     updatedAddonGroups[addonGroupIndex] = updatedItem;
     onFieldChange('addonGroups', updatedAddonGroups);
@@ -221,6 +218,18 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
     }
   }, [addonGroups]);
 
+  // Keep selectedAddonGroup in sync with addonGroups updates
+  useEffect(() => {
+    if (selectedAddonGroup && addonGroups) {
+      const updatedSelectedGroup = addonGroups.find(
+        group => group.addonGroup.id === selectedAddonGroup.addonGroup.id
+      );
+      if (updatedSelectedGroup && updatedSelectedGroup !== selectedAddonGroup) {
+        setSelectedAddonGroup(updatedSelectedGroup);
+      }
+    }
+  }, [addonGroups, selectedAddonGroup]);
+
 
   const handleAddonGroupExcludedChange = (
     e,
@@ -238,6 +247,19 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
         ),
     };
 
+    updatedAddonGroups[addonGroupIndex] = updatedItem;
+    onFieldChange('addonGroups', updatedAddonGroups);
+  };
+
+  const handleSelectAllAddons = (e, addonGroupIndex: number) => {
+    const updatedAddonGroups = [...addonGroups];
+    const currentAddonGroup = updatedAddonGroups[addonGroupIndex];
+    
+    const updatedItem: IAddonGroups = {
+      ...currentAddonGroup,
+      excluded: e.checked ? [] : [...currentAddonGroup.addonGroup.addons],
+    };
+    
     updatedAddonGroups[addonGroupIndex] = updatedItem;
     onFieldChange('addonGroups', updatedAddonGroups);
   };
@@ -457,6 +479,21 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                   }} />
                   <div>
                     Default Price
+                  </div>
+                </div>
+                <div className='d-flex gap-2 align-items-center'>
+                  <Checkbox
+                    checked={(() => {
+                      const isChecked = selectedAddonGroup?.excluded?.length === 0;
+                      return isChecked;
+                    })()}
+                    onChange={e => handleSelectAllAddons(
+                      e,
+                      addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)
+                    )}
+                  />
+                  <div>
+                    Select All
                   </div>
                 </div>
               </span>
