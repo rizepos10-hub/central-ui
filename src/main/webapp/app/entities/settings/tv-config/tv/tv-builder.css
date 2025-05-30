@@ -1,0 +1,352 @@
+.tv-builder-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.tv-builder-header {
+  background-color: white;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tv-builder-content {
+  display: flex;
+  flex: 1;
+  gap: 20px;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.tv-builder-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tv-builder-sidebar {
+  width: 350px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow-y: auto;
+}
+
+.tv-preview {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.tv-screen {
+  position: relative;
+  background-color: #000;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.carousel-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.carousel-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+.carousel-tab {
+  padding: 8px 16px;
+  border: none;
+  background-color: transparent;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.carousel-tab.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+.carousel-tab:hover {
+  color: #007bff;
+}
+
+.add-page-btn {
+  padding: 8px 16px;
+  border: 1px dashed #ccc;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.add-page-btn:hover {
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.dimension-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.dimension-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.dimension-label {
+  font-size: 12px;
+  color: #666;
+  min-width: 40px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #545b62;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid #007bff;
+  color: #007bff;
+}
+
+.btn-outline:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.carousel-element {
+  position: absolute;
+  cursor: move;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.carousel-element:hover {
+  border-color: #007bff;
+}
+
+.carousel-element.selected {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.carousel-element img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.carousel-element-text {
+  padding: 8px;
+  background-color: rgba(255,255,255,0.9);
+  border-radius: 2px;
+  word-wrap: break-word;
+  overflow: hidden;
+}
+
+.item-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+}
+
+.item-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-field-content {
+  padding: 8px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.item-field-image {
+  max-width: 100px;
+  max-height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.add-element-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.element-controls {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.control-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.control-label {
+  min-width: 60px;
+  font-size: 12px;
+  color: #666;
+}
+
+.control-input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.color-input {
+  width: 40px;
+  height: 30px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.react-resizable {
+  position: relative;
+}
+
+.react-resizable-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  bottom: 0;
+  right: 0;
+  background-color: #007bff;
+  cursor: se-resize;
+  border-radius: 2px;
+}
+
+.tv-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.aspect-ratio-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.aspect-ratio-btn {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background-color: white;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.aspect-ratio-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.no-pages-message {
+  text-align: center;
+  color: #666;
+  padding: 40px;
+  font-style: italic;
+} 
