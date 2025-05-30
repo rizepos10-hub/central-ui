@@ -38,6 +38,12 @@ export const TVUpdate = () => {
   const [activePageIndex, setActivePageIndex] = useState(0);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState('16:9');
+  const [resizingElement, setResizingElement] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    elementId: string;
+  } | null>(null);
 
   const aspectRatios = {
     '16:9': { width: 1920, height: 1080 },
@@ -112,6 +118,18 @@ export const TVUpdate = () => {
     setActivePageIndex(updatedPages.length - 1);
   };
 
+  const deleteCarouselPage = (pageIndex: number) => {
+    const updatedPages = [...(tv.carouselPages || [])];
+    updatedPages.splice(pageIndex, 1);
+    dispatch(changeEntityField({ name: "carouselPages", value: updatedPages }));
+    
+    // Adjust active page index if necessary
+    if (activePageIndex >= updatedPages.length) {
+      setActivePageIndex(Math.max(0, updatedPages.length - 1));
+    }
+    setSelectedElement(null);
+  };
+
   const updateCarouselPage = (pageIndex: number, updates: Partial<ICarouselPage>) => {
     const updatedPages = [...(tv.carouselPages || [])];
     updatedPages[pageIndex] = { ...updatedPages[pageIndex], ...updates };
@@ -163,6 +181,57 @@ export const TVUpdate = () => {
     updateCarouselPage(activePageIndex, { elements: updatedElements });
     setSelectedElement(null);
   };
+
+  const moveElementLayer = (elementId: string, direction: 'up' | 'down') => {
+    const currentPage = tv.carouselPages?.[activePageIndex];
+    if (!currentPage) return;
+
+    const elements = [...currentPage.elements];
+    const elementIndex = elements.findIndex(el => el.id === elementId);
+    
+    if (elementIndex === -1) return;
+
+    if (direction === 'up' && elementIndex < elements.length - 1) {
+      [elements[elementIndex], elements[elementIndex + 1]] = [elements[elementIndex + 1], elements[elementIndex]];
+    } else if (direction === 'down' && elementIndex > 0) {
+      [elements[elementIndex], elements[elementIndex - 1]] = [elements[elementIndex - 1], elements[elementIndex]];
+    }
+
+    updateCarouselPage(activePageIndex, { elements });
+  };
+
+  const reorderElements = (sourceIndex: number, destinationIndex: number) => {
+    const currentPage = tv.carouselPages?.[activePageIndex];
+    if (!currentPage) return;
+
+    const elements = [...currentPage.elements];
+    const [reorderedItem] = elements.splice(sourceIndex, 1);
+    elements.splice(destinationIndex, 0, reorderedItem);
+
+    updateCarouselPage(activePageIndex, { elements });
+  };
+
+  const handleContextMenu = (e: React.MouseEvent, elementId: string) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      elementId
+    });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  // Close context menu when clicking elsewhere
+  useEffect(() => {
+    const handleClickOutside = () => closeContextMenu();
+    if (contextMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [contextMenu]);
 
   const getScreenDimensions = () => {
     const maxWidth = 800;
@@ -281,9 +350,11 @@ export const TVUpdate = () => {
                 height: screenDimensions.height
               }}
             >
-              {currentPage?.elements.map(element => (
+              {currentPage?.elements.map((element, index) => (
                 <Draggable
                   key={element.id}
+                  disabled={resizingElement === element.id}
+                  handle=".drag-handle"
                   position={{
                     x: (element.position.x / 100) * screenDimensions.width,
                     y: (element.position.y / 100) * screenDimensions.height
@@ -300,6 +371,7 @@ export const TVUpdate = () => {
                   <ResizableBox
                     width={(element.size.width / 100) * screenDimensions.width}
                     height={(element.size.height / 100) * screenDimensions.height}
+                    onResizeStart={() => setResizingElement(element.id)}
                     onResize={(e, data) => {
                       updateElement(element.id, {
                         size: {
@@ -308,17 +380,34 @@ export const TVUpdate = () => {
                         }
                       });
                     }}
+                    onResizeStop={() => setResizingElement(null)}
                     minConstraints={[50, 30]}
                     maxConstraints={[screenDimensions.width, screenDimensions.height]}
+                    resizeHandles={['se']}
                   >
                     <div
                       className={`carousel-element ${selectedElement === element.id ? 'selected' : ''}`}
                       onClick={() => setSelectedElement(element.id)}
+                      onContextMenu={(e) => handleContextMenu(e, element.id)}
                       style={{
                         width: '100%',
-                        height: '100%'
+                        height: '100%',
+                        position: 'relative',
+                        zIndex: index + 1
                       }}
                     >
+                      <div 
+                        className="drag-handle"
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          cursor: resizingElement === element.id ? 'default' : 'move',
+                          zIndex: 1
+                        }}
+                      />
                       {element.type === 'text' ? (
                         <div 
                           className="carousel-element-text"
@@ -329,13 +418,22 @@ export const TVUpdate = () => {
                             textAlign: element.style?.textAlign || 'left',
                             height: '100%',
                             display: 'flex',
-                            alignItems: 'center'
+                            alignItems: 'center',
+                            position: 'relative',
+                            zIndex: 0
                           }}
                         >
                           {element.content}
                         </div>
                       ) : (
-                        <img src={element.content} alt="Element" />
+                        <img 
+                          src={element.content} 
+                          alt="Element" 
+                          style={{
+                            position: 'relative',
+                            zIndex: 0
+                          }}
+                        />
                       )}
                     </div>
                   </ResizableBox>
@@ -354,7 +452,19 @@ export const TVUpdate = () => {
                   className={`carousel-tab ${activePageIndex === index ? 'active' : ''}`}
                   onClick={() => setActivePageIndex(index)}
                 >
-                  {page.name}
+                  <span>{page.name}</span>
+                  {tv.carouselPages.length > 1 && (
+                    <button
+                      className="carousel-tab-delete"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteCarouselPage(index);
+                      }}
+                      title="Delete page"
+                    >
+                      ×
+                    </button>
+                  )}
                 </button>
               ))}
               <button className="add-page-btn" onClick={addCarouselPage}>
@@ -436,6 +546,21 @@ export const TVUpdate = () => {
                       <button 
                         className="btn btn-outline btn-small"
                         onClick={() => addElementToPage('text', currentPage.selectedItem.desc)}
+                      >
+                        Add to Canvas
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="item-field">
+                    <label className="form-label">Price</label>
+                    <div className="item-field-content">
+                      ${currentPage.selectedItem.variants?.[0]?.price?.toFixed(2) || 'No price set'}
+                    </div>
+                    {currentPage.selectedItem.variants?.[0]?.price && (
+                      <button 
+                        className="btn btn-outline btn-small"
+                        onClick={() => addElementToPage('text', `$${currentPage.selectedItem.variants[0].price.toFixed(2)}`)}
                       >
                         Add to Canvas
                       </button>
@@ -544,6 +669,80 @@ export const TVUpdate = () => {
                   </button>
                 </div>
               )}
+
+              {/* Layers Panel */}
+              {currentPage && currentPage.elements.length > 0 && (
+                <div className="layers-panel">
+                  <h4>Layers</h4>
+                  <div className="layers-list">
+                    {currentPage.elements.map((element, index) => (
+                      <div
+                        key={element.id}
+                        className={`layer-item ${selectedElement === element.id ? 'selected' : ''}`}
+                        onClick={() => setSelectedElement(element.id)}
+                        onContextMenu={(e) => handleContextMenu(e, element.id)}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', index.toString());
+                        }}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const sourceIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                          reorderElements(sourceIndex, index);
+                        }}
+                      >
+                        <div className="layer-info">
+                          <div className="layer-type">
+                            <FontAwesomeIcon 
+                              icon={element.type === 'text' ? 'font' : 'image'} 
+                              className="layer-icon"
+                            />
+                          </div>
+                          <div className="layer-content">
+                            <div className="layer-name">
+                              {element.type === 'text' ? 'Text' : 'Image'}
+                            </div>
+                            <div className="layer-preview">
+                              {element.type === 'text' 
+                                ? element.content.substring(0, 20) + (element.content.length > 20 ? '...' : '')
+                                : 'Image Element'
+                              }
+                            </div>
+                          </div>
+                          <div className="layer-controls">
+                            <button
+                              className="layer-control-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveElementLayer(element.id, 'up');
+                              }}
+                              disabled={index === currentPage.elements.length - 1}
+                              title="Bring forward"
+                            >
+                              <FontAwesomeIcon icon="chevron-up" />
+                            </button>
+                            <button
+                              className="layer-control-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveElementLayer(element.id, 'down');
+                              }}
+                              disabled={index === 0}
+                              title="Send backward"
+                            >
+                              <FontAwesomeIcon icon="chevron-down" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="layer-index">
+                          Layer {currentPage.elements.length - index}
+                        </div>
+                      </div>
+                    )).reverse()}
+                  </div>
+                </div>
+              )}
             </>
           )}
 
@@ -564,6 +763,39 @@ export const TVUpdate = () => {
           </div>
         </div>
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="context-menu"
+          style={{
+            position: 'fixed',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            zIndex: 1000
+          }}
+        >
+          <div className="context-menu-item" onClick={() => {
+            moveElementLayer(contextMenu.elementId, 'up');
+            closeContextMenu();
+          }}>
+            <FontAwesomeIcon icon="arrow-up" /> Bring Forward
+          </div>
+          <div className="context-menu-item" onClick={() => {
+            moveElementLayer(contextMenu.elementId, 'down');
+            closeContextMenu();
+          }}>
+            <FontAwesomeIcon icon="arrow-down" /> Send Backward
+          </div>
+          <div className="context-menu-separator" />
+          <div className="context-menu-item context-menu-delete" onClick={() => {
+            deleteElement(contextMenu.elementId);
+            closeContextMenu();
+          }}>
+            <FontAwesomeIcon icon="trash" /> Delete Element
+          </div>
+        </div>
+      )}
     </div>
   );
 };
