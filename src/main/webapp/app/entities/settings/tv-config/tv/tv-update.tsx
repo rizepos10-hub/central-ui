@@ -17,6 +17,7 @@ import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { ICarouselPage, ICarouselItemElement } from 'app/shared/model/TV/tv.model';
 import { IRegularItem } from 'app/shared/model/ITEM/restaurant/regular-item.model';
 import './tv-builder.css';
+import { FaArrowDown, FaArrowLeft, FaArrowUp, FaChevronDown, FaChevronUp, FaImage, FaFont, FaSave, FaTrash } from 'react-icons/fa';
 
 export const TVUpdate = () => {
   const dispatch = useAppDispatch();
@@ -34,7 +35,7 @@ export const TVUpdate = () => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-  
+
   const [activePageIndex, setActivePageIndex] = useState(0);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState('16:9');
@@ -290,10 +291,10 @@ export const TVUpdate = () => {
           <div className="form-group" style={{ minWidth: '200px' }}>
             <label className="form-label">TV Name</label>
             <input
-              type="text"
-              name="name"
-              value={tv.name || ''}
-              onChange={handleChange}
+                    type="text"
+                    name="name"
+                    value={tv.name || ''}
+                    onChange={handleChange}
               className="form-input"
               placeholder="Enter TV name"
             />
@@ -331,8 +332,8 @@ export const TVUpdate = () => {
                 onChange={(e) => handleDimensionChange('height', e.target.value)}
                 className="dimension-input"
                 placeholder="Height"
-              />
-            </div>
+                  />
+                </div>
           </div>
         </div>
       </div>
@@ -600,9 +601,9 @@ export const TVUpdate = () => {
                           value={selectedElementData.content}
                           onChange={(e) => updateElement(selectedElement, { content: e.target.value })}
                           className="control-input"
-                        />
-                      </div>
-                      
+                  />
+                </div>
+
                       <div className="control-group">
                         <label className="control-label">Font Size</label>
                         <input
@@ -614,9 +615,9 @@ export const TVUpdate = () => {
                           className="control-input"
                           min="8"
                           max="120"
-                        />
-                      </div>
-                      
+                  />
+                </div>
+
                       <div className="control-group">
                         <label className="control-label">Color</label>
                         <input
@@ -694,10 +695,7 @@ export const TVUpdate = () => {
                       >
                         <div className="layer-info">
                           <div className="layer-type">
-                            <FontAwesomeIcon 
-                              icon={element.type === 'text' ? 'font' : 'image'} 
-                              className="layer-icon"
-                            />
+                            {element.type === 'text' ? <FaFont /> : <FaImage />}
                           </div>
                           <div className="layer-content">
                             <div className="layer-name">
@@ -720,7 +718,7 @@ export const TVUpdate = () => {
                               disabled={index === currentPage.elements.length - 1}
                               title="Bring forward"
                             >
-                              <FontAwesomeIcon icon="chevron-up" />
+                              <FaChevronUp />
                             </button>
                             <button
                               className="layer-control-btn"
@@ -731,7 +729,7 @@ export const TVUpdate = () => {
                               disabled={index === 0}
                               title="Send backward"
                             >
-                              <FontAwesomeIcon icon="chevron-down" />
+                              <FaChevronDown />
                             </button>
                           </div>
                         </div>
@@ -749,7 +747,7 @@ export const TVUpdate = () => {
           {/* Actions */}
           <div className="tv-actions">
             <button onClick={() => navigate(-1)} className="btn btn-secondary">
-              <FontAwesomeIcon icon="arrow-left" />
+              <FaArrowLeft />
               Cancel
             </button>
             <button 
@@ -757,7 +755,7 @@ export const TVUpdate = () => {
               className="btn btn-primary" 
               disabled={updating}
             >
-              <FontAwesomeIcon icon="save" />
+              <FaSave />
               Save
             </button>
           </div>
@@ -779,20 +777,20 @@ export const TVUpdate = () => {
             moveElementLayer(contextMenu.elementId, 'up');
             closeContextMenu();
           }}>
-            <FontAwesomeIcon icon="arrow-up" /> Bring Forward
+            <FaArrowUp /> Bring Forward
           </div>
           <div className="context-menu-item" onClick={() => {
             moveElementLayer(contextMenu.elementId, 'down');
             closeContextMenu();
           }}>
-            <FontAwesomeIcon icon="arrow-down" /> Send Backward
+            <FaArrowDown /> Send Backward
           </div>
           <div className="context-menu-separator" />
           <div className="context-menu-item context-menu-delete" onClick={() => {
             deleteElement(contextMenu.elementId);
             closeContextMenu();
           }}>
-            <FontAwesomeIcon icon="trash" /> Delete Element
+            <FaTrash /> Delete Element
           </div>
         </div>
       )}
