@@ -183,9 +183,6 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
               </>
             ) : (
               <div className={'d-flex flex-column'}>
-                <Label for="addon-name">
-                  <Translate contentKey={'tempApp.addon.stringAddons'}>Addons String</Translate>
-                </Label>
                 <small className="text-muted mb-2">
                   Format: name1,name2@price2,name3@price3 (e.g., lettuce,tomato@2,cheese@5.10)
                 </small>
