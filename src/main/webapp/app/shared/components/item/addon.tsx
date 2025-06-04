@@ -519,7 +519,11 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                       <td className='align-content-center'>{addon.name}</td>
                       <td className='align-content-center'>
                         <InputNumber
-                          value={selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price || addon.price}
+                          value={
+                            selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price != null
+                              ? selectedAddonGroup.addonPriceOverrides.find(override => override.id === addon.id).price
+                              : addon.price
+                          }
                           onChange={e => handleAddonGroupOverridedPriceChange(
                             addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
                             addon.id,
@@ -527,7 +531,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
                           )}
                           inputStyle={{
                             width: '50px',
-                            color: selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price ? 'red' : 'black'
+                            color: selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== null && selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== undefined ? 'red' : 'black'
                           }}
                           mode="decimal"
                           minFractionDigits={2}
