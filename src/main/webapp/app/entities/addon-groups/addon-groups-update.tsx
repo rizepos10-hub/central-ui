@@ -76,24 +76,6 @@ export const AddonGroupUpdate = () => {
   }, []);
 
   useEffect(() => {
-    dispatch(
-      getAddons({
-        page: paginationState.activePage - 1,
-        size: paginationState.itemsPerPage,
-        sort: `${paginationState.sort},${paginationState.order}`,
-      })
-    );
-
-    if (addonUpdateSuccess && newAddon?.id && !isNew) {
-      const entity = {
-        ...addonGroup,
-        addons: [...(addonGroup?.addons || []), newAddon],
-      };
-      dispatch(updateEntity(entity));
-    }
-  }, [addonUpdateSuccess]);
-
-  useEffect(() => {
     if (addonGroupsEntity.id) {
       setAddonGroup(addonGroupsEntity);
     }
@@ -156,7 +138,11 @@ export const AddonGroupUpdate = () => {
                   </PrimeButton>
                 </div>
 
-                <CreateAddonModal isOpen={showModal} toggle={handleShowModal} />
+                <CreateAddonModal
+                  isOpen={showModal}
+                  toggle={handleShowModal}
+                  addonGroup={addonGroup}
+                />
 
                 <form>
                   <FormGroup className={"d-flex flex-column gap-3"}>

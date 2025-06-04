@@ -61,6 +61,7 @@
     "reset": "Reset",
     "deliveryDate": "DeliveryDate",
     "addons": "Addons",
+    "addonGroups": "Addon Groups",
     "variantName": "Variant Name",
     "sku": "Sku",
     "deleteTitle": "Confirm delete operation",

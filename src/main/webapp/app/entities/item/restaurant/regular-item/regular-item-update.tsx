@@ -1034,7 +1034,12 @@ export const RegularItemUpdate = () => {
                                                                   <td className='align-content-center'>{addon.name}</td>
                                                                   <td className='align-content-center'>
                                                                     <InputNumber
-                                                                      value={variant.addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.addonPriceOverrides?.find(override => override.id === addon.id)?.price || addon.price}
+                                                                      value={
+                                                                        (() => {
+                                                                          const priceOverride = variant.addonGroups?.find(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id)?.addonPriceOverrides?.find(override => override.id === addon.id)?.price;
+                                                                          return priceOverride !== null && priceOverride !== undefined ? priceOverride : addon.price;
+                                                                        })()
+                                                                      }
                                                                       onChange={e => handleAddonGroupOverridedPriceChange(
                                                                         variant?.addonGroups?.findIndex(group => group.addonGroup.id === selectedAddonGroup.addonGroup.id),
                                                                         addon.id,
@@ -1043,7 +1048,7 @@ export const RegularItemUpdate = () => {
                                                                       )}
                                                                       inputStyle={{
                                                                         width: '50px',
-                                                                        color: selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price ? 'red' : 'black'
+                                                                        color: selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== null && selectedAddonGroup.addonPriceOverrides?.find(override => override.id === addon.id)?.price !== undefined ? 'red' : 'black'
                                                                       }}
                                                                       mode="decimal"
                                                                       minFractionDigits={2}

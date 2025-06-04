@@ -79,6 +79,17 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const updateAddons = createAsyncThunk(
+  'addon-groups/update_addons',
+  async ({ id, addonGroupId, addons }: { id: string | number; addonGroupId: string; addons: any[] }, thunkAPI) => {
+    const requestUrl = `${apiUrl}/${id}/addons`;
+    const result = await axios.put<IAddonGroup>(requestUrl, { addonGroupId, addons });
+    thunkAPI.dispatch(getEntities({}));
+    return result;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 // slice
 
 export const AddonGroupsSlice = createEntitySlice({
@@ -111,12 +122,23 @@ export const AddonGroupsSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
+      .addMatcher(isFulfilled(updateAddons), (state, action) => {
+        state.updating = false;
+        state.loading = false;
+        state.updateSuccess = true;
+        state.entity = action.payload.data;
+      })
       .addMatcher(isPending(getEntities, getEntity, searchEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
       .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+        state.errorMessage = null;
+        state.updateSuccess = false;
+        state.updating = true;
+      })
+      .addMatcher(isPending(updateAddons), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

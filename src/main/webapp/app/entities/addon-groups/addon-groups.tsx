@@ -98,10 +98,10 @@ export const AddonGroups = () => {
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">
-        <Translate contentKey={'common.addons'}>Addons</Translate>
+        <Translate contentKey={'common.addonGroups'}>Addon Groups</Translate>
       </span>
       <div className="ms-auto">
-        <ImportButton type={'ADDON'} />
+        {/* <ImportButton type={'ADDON'} /> */}
         &nbsp;
         <Button
           label={translate('common.refreshList')}
@@ -115,7 +115,7 @@ export const AddonGroups = () => {
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
-        <Button label={translate('tempApp.addon.createNewAddon')} raised onClick={handleCreate} disabled={loading}>
+        <Button label={translate('tempApp.addonGroup.createNewAddonGroup')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
       </div>
