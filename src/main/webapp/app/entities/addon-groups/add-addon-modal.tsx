@@ -98,7 +98,17 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
       const entity = {
         ...addon,
       };
-      dispatch(createEntity(entity));
+      dispatch(createEntity(entity)).then((res) => {
+        const payload = res.payload as any;
+          const newGroupEntity = {
+            ...addonGroup,
+            addons: [...(addonGroup?.addons || []), {
+              ...entity,
+              id: payload?.data?.id,
+            }],
+          };
+          dispatch(updateEntity(newGroupEntity));
+      });
       setAddon({
         name: '',
         desc: '',
