@@ -29,17 +29,17 @@ export const CreateAddonModal = ({ isOpen, toggle, addonGroup }) => {
   const [addon, setAddon] = useState<IAddon>();
 
   // Regex to validate the string format: name1,name2@price2,name3@price3...
-  const stringAddonsRegex = /^[a-zA-Z0-9\s]+(@\d+(\.\d{1,2})?)?(\s*,\s*[a-zA-Z0-9\s]+(@\d+(\.\d{1,2})?)?)*$/;
+  // const stringAddonsRegex = /^[a-zA-Z0-9\s]+(@\d+(\.\d{1,2})?)?(\s*,\s*[a-zA-Z0-9\s]+(@\d+(\.\d{1,2})?)?)*$/;
 
   const validateStringAddons = (value: string): boolean => {
     if (!value.trim()) {
       setStringValidationError('Please enter addons');
       return false;
     }
-    if (!stringAddonsRegex.test(value.trim())) {
-      setStringValidationError('Invalid format. Use: name1,name2@price2,name3@price3 (e.g., lettuce,tomato@2,cheese@5.10)');
-      return false;
-    }
+    // if (!stringAddonsRegex.test(value.trim())) {
+    //   setStringValidationError('Invalid format. Use: name1,name2@price2,name3@price3 (e.g., lettuce,tomato@2,cheese@5.10)');
+    //   return false;
+    // }
     setStringValidationError('');
     return true;
   };
