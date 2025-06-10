@@ -99,7 +99,8 @@
           "editScreen": {
             "title": "Edit Screen",
             "name": "Name",
-            "color": "Select Color Theme"
+            "color": "Select Color Theme",
+            "isPizza": "Is Pizza"
           }
         }
       }
