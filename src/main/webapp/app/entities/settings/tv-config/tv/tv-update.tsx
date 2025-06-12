@@ -266,7 +266,7 @@ export const TVUpdate = () => {
   };
 
   const screenDimensions = getScreenDimensions();
-  const currentPage = tv.carouselPages?.[activePageIndex];
+  const currentPage: ICarouselPage = tv.carouselPages?.[activePageIndex];
   const selectedElementData = selectedElement ? 
     currentPage?.elements.find(el => el.id === selectedElement) : null;
 
@@ -432,6 +432,7 @@ export const TVUpdate = () => {
                             fontSize: element.style?.fontSize || 24,
                             color: element.style?.color || '#ffffff',
                             fontWeight: element.style?.fontWeight || 'normal',
+                            // @ts-expect-error -- textAlign is not typed
                             textAlign: element.style?.textAlign || 'left',
                             height: '100%',
                             display: 'flex',
