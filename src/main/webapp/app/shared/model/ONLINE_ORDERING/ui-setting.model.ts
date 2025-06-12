@@ -14,7 +14,7 @@ export interface IUiSettings {
   homePageSetting?: ILayoutSettings,
   domain?: string,
   itemPerRow?: number,
-  orderTaking?: "TAKE_AWAY" | "DELIVERY",
+  orderTaking?: "TAKE_AWAY" | "DELIVERY" | "ALL",
   showDeliveryTips?: boolean,
   scheduleOrders?: boolean,
   logo?: IAttachment;
@@ -65,7 +65,7 @@ export type IFontSetting = {
 
 
 export const currencySymbolPositionOptions: IUiSettings["currencySymbolPosition"][] = ["RIGHT", "LEFT"];
-export const orderTakingOptions: IUiSettings["orderTaking"][] = ["TAKE_AWAY", "DELIVERY"];
+export const orderTakingOptions: IUiSettings["orderTaking"][] = ["TAKE_AWAY", "DELIVERY", "ALL"];
 
 
 export const defaultValue: Readonly<IUiSettings> = {
