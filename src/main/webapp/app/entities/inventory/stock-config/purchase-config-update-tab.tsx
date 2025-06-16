@@ -102,14 +102,14 @@ export const PurchaseConfigUpdateTab: React.FC<PurchaseConfigUpdateTabProps> = (
                     onChange={(e) => handleNumberChange('defaultPrice', e.value)}
                     minFractionDigits={2}
                     maxFractionDigits={2}
-                    inputStyle={{
-                      borderColor:
-                        (purchaseConfig?.supplierConfigurations?.length > 0 &&
-                          purchaseConfig?.defaultPrice == null) ||
-                          (purchaseConfig?.minOrderQuantity != null && purchaseConfig?.defaultPrice == null)
-                          ? 'red'
-                          : ''
-                    }}
+                    // inputStyle={{
+                    //   borderColor:
+                    //     (purchaseConfig?.supplierConfigurations?.length > 0 &&
+                    //       purchaseConfig?.defaultPrice == null) ||
+                    //       (purchaseConfig?.minOrderQuantity != null && purchaseConfig?.defaultPrice == null)
+                    //       ? 'red'
+                    //       : ''
+                    // }}
                   />
                 </div>
               </Col>

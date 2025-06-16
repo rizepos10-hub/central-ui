@@ -1,21 +1,21 @@
 {
   "tempApp": {
     "accounting-groups": {
-      "created": "A new Accounting Group is created with identifier {{ param }}",
-      "updated": "An Accounting Group is updated with identifier {{ param }}",
-      "deleted": "An Accounting Group is deleted with identifier {{ param }}",
+      "created": "A new Tax Profile Group is created with identifier {{ param }}",
+      "updated": "An Tax Profile Group is updated with identifier {{ param }}",
+      "deleted": "An Tax Profile Group is deleted with identifier {{ param }}",
       "delete": {
-        "title": "Confirm Delete Accounting Group",
-        "question": "Are you sure you want to delete Accounting Group {{ param }}"
+        "title": "Confirm Delete Tax Profile Group",
+        "question": "Are you sure you want to delete Tax Profile Group {{ param }}"
       },
-      "title": "Accounting Groups",
+      "title": "Tax Profile Groups",
       "id": "Id",
       "firstName": "First Name",
       "lastName": "Last Name",
       "phone": "Phone Number",
       "email": "Email",
-      "createNew": "Create New Accounting Group",
-      "edit": "Edit Accounting Group"
+      "createNew": "Create New Tax Profile Group",
+      "edit": "Edit Tax Profile Group"
     }
   }
 }

@@ -23,7 +23,7 @@
             "item": "Item",
             "description": "Description",
             "variant": "Variant",
-            "defaultPrice": "Default Cost Price",
+            "defaultPrice": "Default Purchase Price",
             "minOrderQuantity": "Min Quantity",
             "edit": "Edit",
             "delete": "Delete"
@@ -34,7 +34,7 @@
             "item": "Search by Item",
             "variant": "Search by Variant",
             "description": "Search By Description",
-            "defaultPrice": "Search by Default Cost Price",
+            "defaultPrice": "Search by Default Purchase Price",
             "minOrderQuantity": "Search by Min Quantity"
           }
         }
@@ -59,7 +59,7 @@
       "item": "Item",
       "variant": "Variant",
       "description": "Description",
-      "defaultPrice": "Default Cost Price",
+      "defaultPrice": "Default Purchase Price",
       "minOrderQuantity": "Min Quantity",
       "minimumStockQuantity": "Minimum Stock Quantity",
       "toBeStocked": "To Be Stocked"

@@ -72,6 +72,11 @@ export const AddonGroupUpdate = () => {
       dispatch(reset());
     } else {
       dispatch(getEntity(id));
+      dispatch(getAddons({
+        page: 0,
+        size: 1000,
+        sort: 'name,asc'
+      }));
     }
   }, []);
 
