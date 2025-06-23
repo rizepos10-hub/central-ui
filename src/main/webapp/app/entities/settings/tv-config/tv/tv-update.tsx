@@ -40,6 +40,7 @@ export const TVUpdate = () => {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState('16:9');
   const [resizingElement, setResizingElement] = useState<string | null>(null);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -138,16 +139,31 @@ export const TVUpdate = () => {
   };
 
   const handleItemSelection = (selectedItem: IRegularItem) => {
+    // Reset variant selection when a new item is selected
+    setSelectedVariantIndex(0);
     updateCarouselPage(activePageIndex, { selectedItem });
   };
 
-  const addElementToPage = (type: 'text' | 'image', content: string) => {
+  const handleVariantSelection = (variantIndex: number) => {
+    setSelectedVariantIndex(variantIndex);
+  };
+
+  const addElementToPage = (type: 'text' | 'image', content: string, fieldToQuery?: string) => {
     const currentPage = tv.carouselPages?.[activePageIndex];
-    if (!currentPage) return;
+    if (!currentPage || !currentPage.selectedItem) return;
+
+    const selectedItem = currentPage.selectedItem;
+    const selectedVariant = selectedItem.variants?.[selectedVariantIndex];
+    
+    // For images, we don't need variant data, but for text we do need field queries
+    if (!fieldToQuery && type === 'text') return;
 
     const newElement: ICarouselItemElement = {
       id: `element-${Date.now()}`,
       type,
+      documentType: 'ITEM',
+      documentId: selectedItem.id || '',
+      fieldToQuery: fieldToQuery || '',
       content,
       position: { x: 10, y: 10 },
       size: { width: type === 'text' ? 30 : 20, height: type === 'text' ? 10 : 15 },
@@ -250,7 +266,7 @@ export const TVUpdate = () => {
   };
 
   const screenDimensions = getScreenDimensions();
-  const currentPage = tv.carouselPages?.[activePageIndex];
+  const currentPage: ICarouselPage = tv.carouselPages?.[activePageIndex];
   const selectedElementData = selectedElement ? 
     currentPage?.elements.find(el => el.id === selectedElement) : null;
 
@@ -357,30 +373,30 @@ export const TVUpdate = () => {
                   disabled={resizingElement === element.id}
                   handle=".drag-handle"
                   position={{
-                    x: (element.position.x / 100) * screenDimensions.width,
-                    y: (element.position.y / 100) * screenDimensions.height
+                    x: ((element.position?.x || 0) / 100) * screenDimensions.width,
+                    y: ((element.position?.y || 0) / 100) * screenDimensions.height
                   }}
                   onStop={(e, data) => {
                     updateElement(element.id, {
                       position: {
-                        x: (data.x / screenDimensions.width) * 100,
-                        y: (data.y / screenDimensions.height) * 100
+                        x: ((data?.x || 0) / screenDimensions.width) * 100,
+                        y: ((data?.y || 0) / screenDimensions.height) * 100
                       }
                     });
                   }}
                 >
                   <ResizableBox
-                    width={(element.size.width / 100) * screenDimensions.width}
-                    height={(element.size.height / 100) * screenDimensions.height}
+                    width={((element.size?.width || 0) / 100) * screenDimensions.width}
+                    height={((element.size?.height || 0) / 100) * screenDimensions.height}
                     onResizeStart={() => setResizingElement(element.id)}
-                    onResize={(e, data) => {
-                      updateElement(element.id, {
-                        size: {
-                          width: (data.size.width / screenDimensions.width) * 100,
-                          height: (data.size.height / screenDimensions.height) * 100
-                        }
-                      });
-                    }}
+                                          onResize={(e, data) => {
+                        updateElement(element.id, {
+                          size: {
+                            width: ((data?.size?.width || 0) / screenDimensions.width) * 100,
+                            height: ((data?.size?.height || 0) / screenDimensions.height) * 100
+                          }
+                        });
+                      }}
                     onResizeStop={() => setResizingElement(null)}
                     minConstraints={[50, 30]}
                     maxConstraints={[screenDimensions.width, screenDimensions.height]}
@@ -416,6 +432,7 @@ export const TVUpdate = () => {
                             fontSize: element.style?.fontSize || 24,
                             color: element.style?.color || '#ffffff',
                             fontWeight: element.style?.fontWeight || 'normal',
+                            // @ts-expect-error -- textAlign is not typed
                             textAlign: element.style?.textAlign || 'left',
                             height: '100%',
                             display: 'flex',
@@ -431,6 +448,9 @@ export const TVUpdate = () => {
                           src={element.content} 
                           alt="Element" 
                           style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
                             position: 'relative',
                             zIndex: 0
                           }}
@@ -529,39 +549,123 @@ export const TVUpdate = () => {
                 <div className="item-fields">
                   <h4>Item Details</h4>
                   
+                  {/* Variant Selection */}
+                  {currentPage.selectedItem.variants && currentPage.selectedItem.variants.length > 1 && (
+                    <div className="form-group">
+                      <label className="form-label">Select Variant</label>
+                      <select
+                        value={selectedVariantIndex}
+                        onChange={(e) => handleVariantSelection(parseInt(e.target.value, 10))}
+                        className="form-input"
+                      >
+                        {currentPage.selectedItem.variants.map((variant, index) => (
+                          <option key={variant.id || index} value={index}>
+                            {variant.name || `Variant ${index + 1}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Show selected variant info */}
+                  {currentPage.selectedItem.variants && currentPage.selectedItem.variants[selectedVariantIndex] && (
+                    <>
+                      <div className="item-field">
+                        <label className="form-label">Variant Name</label>
+                        <div className="item-field-content">
+                          {currentPage.selectedItem.variants[selectedVariantIndex].name || 'Unnamed variant'}
+                        </div>
+                        <button 
+                          className="btn btn-outline btn-small"
+                          onClick={() => addElementToPage(
+                            'text', 
+                            currentPage.selectedItem.variants[selectedVariantIndex].name || '',
+                            `variants[${currentPage.selectedItem.variants[selectedVariantIndex].id}].name`
+                          )}
+                        >
+                          Add to Canvas
+                        </button>
+                      </div>
+
+                      <div className="item-field">
+                        <label className="form-label">Variant Description</label>
+                        <div className="item-field-content">
+                          {currentPage.selectedItem.variants[selectedVariantIndex].description || 'No description'}
+                        </div>
+                        {currentPage.selectedItem.variants[selectedVariantIndex].description && (
+                          <button 
+                            className="btn btn-outline btn-small"
+                                                         onClick={() => addElementToPage(
+                               'text', 
+                               currentPage.selectedItem.variants[selectedVariantIndex].description || '',
+                               `variants[${currentPage.selectedItem.variants[selectedVariantIndex].id}].description`
+                             )}
+                          >
+                            Add to Canvas
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="item-field">
+                        <label className="form-label">Price</label>
+                        <div className="item-field-content">
+                          ${currentPage.selectedItem.variants[selectedVariantIndex].price?.toFixed(2) || 'No price set'}
+                        </div>
+                        {currentPage.selectedItem.variants[selectedVariantIndex].price && (
+                          <button 
+                            className="btn btn-outline btn-small"
+                                                         onClick={() => addElementToPage(
+                               'text', 
+                               `$${currentPage.selectedItem.variants[selectedVariantIndex].price?.toFixed(2)}`,
+                               `variants[${currentPage.selectedItem.variants[selectedVariantIndex].id}].price`
+                             )}
+                          >
+                            Add to Canvas
+                          </button>
+                        )}
+                      </div>
+
+                      {currentPage.selectedItem.variants[selectedVariantIndex].attachments?.[0]?.url && (
+                        <div className="item-field">
+                          <label className="form-label">Variant Image</label>
+                          <img 
+                            src={currentPage.selectedItem.variants[selectedVariantIndex].attachments[0].url} 
+                            alt="Variant" 
+                            className="item-field-image"
+                          />
+                          <button 
+                            className="btn btn-outline btn-small"
+                                                         onClick={() => addElementToPage(
+                               'image', 
+                               currentPage.selectedItem.variants[selectedVariantIndex].attachments[0].url,
+                               `variants[${currentPage.selectedItem.variants[selectedVariantIndex].id}].attachments[0].url`
+                             )}
+                          >
+                            Add to Canvas
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+
                   <div className="item-field">
-                    <label className="form-label">Name</label>
+                    <label className="form-label">Item Name</label>
                     <div className="item-field-content">{currentPage.selectedItem.name}</div>
                     <button 
                       className="btn btn-outline btn-small"
-                      onClick={() => addElementToPage('text', currentPage.selectedItem.name)}
+                      onClick={() => addElementToPage('text', currentPage.selectedItem.name || '', 'name')}
                     >
                       Add to Canvas
                     </button>
                   </div>
 
                   <div className="item-field">
-                    <label className="form-label">Description</label>
+                    <label className="form-label">Item Description</label>
                     <div className="item-field-content">{currentPage.selectedItem.desc || 'No description'}</div>
                     {currentPage.selectedItem.desc && (
                       <button 
                         className="btn btn-outline btn-small"
-                        onClick={() => addElementToPage('text', currentPage.selectedItem.desc)}
-                      >
-                        Add to Canvas
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="item-field">
-                    <label className="form-label">Price</label>
-                    <div className="item-field-content">
-                      ${currentPage.selectedItem.variants?.[0]?.price?.toFixed(2) || 'No price set'}
-                    </div>
-                    {currentPage.selectedItem.variants?.[0]?.price && (
-                      <button 
-                        className="btn btn-outline btn-small"
-                        onClick={() => addElementToPage('text', `$${currentPage.selectedItem.variants[0].price.toFixed(2)}`)}
+                        onClick={() => addElementToPage('text', currentPage.selectedItem.desc || '', 'desc')}
                       >
                         Add to Canvas
                       </button>
@@ -570,7 +674,7 @@ export const TVUpdate = () => {
 
                   {currentPage.selectedItem.attachments?.[0]?.url && (
                     <div className="item-field">
-                      <label className="form-label">Image</label>
+                      <label className="form-label">Item Image</label>
                       <img 
                         src={currentPage.selectedItem.attachments[0].url} 
                         alt="Item" 
@@ -578,7 +682,11 @@ export const TVUpdate = () => {
                       />
                       <button 
                         className="btn btn-outline btn-small"
-                        onClick={() => addElementToPage('image', currentPage.selectedItem.attachments[0].url)}
+                        onClick={() => addElementToPage(
+                          'image', 
+                          currentPage.selectedItem.attachments[0].url,
+                          'attachments[0].url'
+                        )}
                       >
                         Add to Canvas
                       </button>

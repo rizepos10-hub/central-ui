@@ -11,6 +11,9 @@ export interface IDimension {
 export interface ICarouselItemElement {
   id: string;
   type: 'text' | 'image';
+  documentType: 'ITEM';
+  documentId: string;
+  fieldToQuery: string;
   content: string;
   position: {
     x: number; // percentage
