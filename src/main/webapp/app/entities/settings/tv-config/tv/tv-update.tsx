@@ -368,28 +368,41 @@ export const TVUpdate = () => {
               }}
             >
               {currentPage?.elements.map((element, index) => (
-                <Draggable
+                <div
                   key={element.id}
-                  disabled={resizingElement === element.id}
-                  handle=".drag-handle"
-                  position={{
-                    x: ((element.position?.x || 0) / 100) * screenDimensions.width,
-                    y: ((element.position?.y || 0) / 100) * screenDimensions.height
-                  }}
-                  onStop={(e, data) => {
-                    updateElement(element.id, {
-                      position: {
-                        x: ((data?.x || 0) / screenDimensions.width) * 100,
-                        y: ((data?.y || 0) / screenDimensions.height) * 100
-                      }
-                    });
+                  className={`carousel-element ${selectedElement === element.id ? 'selected' : ''}`}
+                  onClick={() => setSelectedElement(element.id)}
+                  onContextMenu={(e) => handleContextMenu(e, element.id)}
+                  style={{
+                    position: 'absolute',
+                    left: ((element.position?.x || 0) / 100) * screenDimensions.width,
+                    top: ((element.position?.y || 0) / 100) * screenDimensions.height,
+                    width: ((element.size?.width || 0) / 100) * screenDimensions.width,
+                    height: ((element.size?.height || 0) / 100) * screenDimensions.height,
+                    zIndex: index + 1
                   }}
                 >
-                  <ResizableBox
-                    width={((element.size?.width || 0) / 100) * screenDimensions.width}
-                    height={((element.size?.height || 0) / 100) * screenDimensions.height}
-                    onResizeStart={() => setResizingElement(element.id)}
-                                          onResize={(e, data) => {
+                  <Draggable
+                    disabled={resizingElement === element.id}
+                    handle=".drag-handle"
+                    bounds={false}
+                    position={{ x: 0, y: 0 }}
+                    onStop={(e, data) => {
+                      const newX = ((element.position?.x || 0) / 100) * screenDimensions.width + (data?.x || 0);
+                      const newY = ((element.position?.y || 0) / 100) * screenDimensions.height + (data?.y || 0);
+                      updateElement(element.id, {
+                        position: {
+                          x: (newX / screenDimensions.width) * 100,
+                          y: (newY / screenDimensions.height) * 100
+                        }
+                      });
+                    }}
+                  >
+                    <ResizableBox
+                      width={((element.size?.width || 0) / 100) * screenDimensions.width}
+                      height={((element.size?.height || 0) / 100) * screenDimensions.height}
+                      onResizeStart={() => setResizingElement(element.id)}
+                      onResize={(e, data) => {
                         updateElement(element.id, {
                           size: {
                             width: ((data?.size?.width || 0) / screenDimensions.width) * 100,
@@ -397,22 +410,18 @@ export const TVUpdate = () => {
                           }
                         });
                       }}
-                    onResizeStop={() => setResizingElement(null)}
-                    minConstraints={[50, 30]}
-                    maxConstraints={[screenDimensions.width, screenDimensions.height]}
-                    resizeHandles={['se']}
-                  >
-                    <div
-                      className={`carousel-element ${selectedElement === element.id ? 'selected' : ''}`}
-                      onClick={() => setSelectedElement(element.id)}
-                      onContextMenu={(e) => handleContextMenu(e, element.id)}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        position: 'relative',
-                        zIndex: index + 1
-                      }}
+                      onResizeStop={() => setResizingElement(null)}
+                      minConstraints={[50, 30]}
+                      maxConstraints={[screenDimensions.width, screenDimensions.height]}
+                      resizeHandles={['se']}
                     >
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          position: 'relative'
+                        }}
+                      >
                       <div 
                         className="drag-handle"
                         style={{
@@ -429,19 +438,28 @@ export const TVUpdate = () => {
                         <div 
                           className="carousel-element-text"
                           style={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: element.style?.textAlign === 'center' ? 'center' : 
+                                          element.style?.textAlign === 'right' ? 'flex-end' : 'flex-start',
+                            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                            borderRadius: '2px',
+                            padding: '8px',
+                            position: 'relative',
+                            zIndex: 0
+                          }}
+                        >
+                          <span style={{
                             fontSize: element.style?.fontSize || 24,
                             color: element.style?.color || '#ffffff',
                             fontWeight: element.style?.fontWeight || 'normal',
                             // @ts-expect-error -- textAlign is not typed
                             textAlign: element.style?.textAlign || 'left',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            position: 'relative',
-                            zIndex: 0
-                          }}
-                        >
-                          {element.content}
+                          }}>
+                            {element.content}
+                          </span>
                         </div>
                       ) : (
                         <img 
@@ -451,6 +469,7 @@ export const TVUpdate = () => {
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
+                            borderRadius: '2px',
                             position: 'relative',
                             zIndex: 0
                           }}
@@ -459,6 +478,7 @@ export const TVUpdate = () => {
                     </div>
                   </ResizableBox>
                 </Draggable>
+                </div>
               ))}
             </div>
           </div>
