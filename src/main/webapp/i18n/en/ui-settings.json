@@ -40,6 +40,7 @@
       "email": "Email",
       "phoneNumber": "Phone Number",
       "address": "Address",
+      "hideBranchesSection": "Hide Branches Section",
       "colorSetting": {
         "title": "Color Setting",
         "background": "Background",

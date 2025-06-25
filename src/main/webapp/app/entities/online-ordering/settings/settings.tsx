@@ -313,6 +313,17 @@ export const UiSettingsUpdate = () => {
                       />
                     </div>
 
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-hideBranchesSection">
+                        <strong>{translate('tempApp.UiSettings.hideBranchesSection')}</strong>
+                      </Label>
+                      <Checkbox
+                        id="UiSettings-hideBranchesSection"
+                        checked={UiSettingsEntity.hideBranchesSection || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'hideBranchesSection', value: e.checked }))}
+                      />
+                    </div>
+
                     <div className="d-flex flex-column mb-3">
                       <Label htmlFor="UiSettings-retailItemsPerRow">
                         <strong>{translate('tempApp.UiSettings.retailItemsPerRow')}</strong>

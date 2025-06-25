@@ -33,6 +33,7 @@ export interface IUiSettings {
   socialProfiles?: ISocialProfiles | null
   retailItemsPerRow?: number
   restaurantItemsPerRow?: number
+  hideBranchesSection?: boolean
 }
 
 export interface ISocialProfiles {

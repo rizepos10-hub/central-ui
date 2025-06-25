@@ -7,14 +7,14 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './pizza-pricing-class.reducer';
 
-import { getEntities as getSizes } from "app/entities/pizza-settings/pizza-size/pizza-size.reducer";
+import { getEntities as getSizes } from 'app/entities/pizza-settings/pizza-size/pizza-size.reducer';
 
-import { InputText } from "primereact/inputtext";
-import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
-import { getSortState, isNumber, Translate } from "react-jhipster";
-import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
-import { IPizzaPricingClass } from "app/shared/model/PIZZA/pizza-pricing-class.model";
-import { InputNumber } from "primereact/inputnumber";
+import { InputText } from 'primereact/inputtext';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { getSortState, isNumber, Translate } from 'react-jhipster';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+import { IPizzaPricingClass } from 'app/shared/model/PIZZA/pizza-pricing-class.model';
+import { InputNumber } from 'primereact/inputnumber';
 
 export const PizzaPricingClassTypeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -23,16 +23,15 @@ export const PizzaPricingClassTypeUpdate = () => {
   const isNew = id === undefined;
 
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const pizzaPriceClassType: any = urlSearchParams.get("type");
+  const pizzaPriceClassType: any = urlSearchParams.get('type');
   const [pizzaPricingClass, setPizzaPricingClass] = useState<IPizzaPricingClass>({
     name: '',
     prices: {},
-    type: ''
+    type: '',
   });
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
-
 
   const pizzaPricingClassEntity = useAppSelector(state => state.pizzaPricingClass.entity);
   const loading = useAppSelector(state => state.pizzaPricingClass.loading);
@@ -40,18 +39,20 @@ export const PizzaPricingClassTypeUpdate = () => {
   const pizzaSizesList = useAppSelector(state => state.pizzaSize.entities);
 
   const sizesMap = useMemo(() => {
-
-    return pizzaSizesList?.slice()?.sort((size1, size2) => size1?.order - size2?.order)?.reduce((acc, size) => {
-      acc[size.id] = size;
-      return acc;
-    }, {});
+    return pizzaSizesList
+      ?.slice()
+      ?.sort((size1, size2) => size1?.order - size2?.order)
+      ?.reduce((acc, size) => {
+        acc[size.id] = size;
+        return acc;
+      }, {});
   }, [pizzaSizesList?.length]);
 
-  const handleClose = (id) => {
+  const handleClose = id => {
     navigate(`/pizza-pricing-class/${id}/edit?type=${pizzaPriceClassType}`);
   };
 
-  console.log(sizesMap, 'sizesMap')
+  console.log(sizesMap, 'sizesMap');
 
   useEffect(() => {
     if (isNew) {
@@ -59,18 +60,18 @@ export const PizzaPricingClassTypeUpdate = () => {
       setPizzaPricingClass({
         name: '',
         prices: {},
-        type: pizzaPriceClassType
+        type: pizzaPriceClassType,
       });
     } else {
       dispatch(getEntity(id));
     }
-    dispatch(getSizes({
-      page: paginationState.activePage - 1,
-      size: paginationState.itemsPerPage,
-      sort: `${paginationState.sort},${paginationState.order}`,
-    }));
-
-
+    dispatch(
+      getSizes({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+      })
+    );
   }, []);
 
   useEffect(() => {
@@ -79,9 +80,7 @@ export const PizzaPricingClassTypeUpdate = () => {
 
       const existingSizeIds = new Set(Object.keys(existingPrices));
 
-      const missingSizeIds = pizzaSizesList
-        .filter((size) => !existingSizeIds.has(size.id))
-        .map((size) => size.id);
+      const missingSizeIds = pizzaSizesList.filter(size => !existingSizeIds.has(size.id)).map(size => size.id);
 
       const initialPricesForMissingSizes = missingSizeIds.reduce((acc, sizeId) => {
         acc[sizeId] = null;
@@ -94,12 +93,12 @@ export const PizzaPricingClassTypeUpdate = () => {
       };
       setPizzaPricingClass({ ...pizzaPricingClassEntity, prices: updatedPrices });
     } else {
-      const priceType = urlSearchParams.get("type");
+      const priceType = urlSearchParams.get('type');
       const initialPrices = pizzaSizesList.reduce((acc, size) => {
         acc[size.id] = null;
         return acc;
       }, {});
-      setPizzaPricingClass((prevState) => ({ ...prevState, type: priceType, prices: initialPrices }));
+      setPizzaPricingClass(prevState => ({ ...prevState, type: priceType, prices: initialPrices }));
     }
   }, [pizzaSizesList?.length, pizzaPricingClassEntity]);
 
@@ -108,6 +107,47 @@ export const PizzaPricingClassTypeUpdate = () => {
     setPizzaPricingClass(prevState => ({ ...prevState, [name]: value }));
   };
 
+  // Add validation function to check if all prices are valid
+  const isFormValid = useMemo(() => {
+    // Check if name is provided
+    if (!pizzaPricingClass.name?.trim()) {
+      return false;
+    }
+
+    // Check if all prices are filled and valid (not null, undefined, or empty)
+    const prices = pizzaPricingClass.prices || {};
+    const priceValues = Object.values(prices);
+
+    // If no prices exist, form is invalid
+    if (priceValues.length === 0) {
+      return false;
+    }
+
+    // Check if all prices have valid values (not null, undefined, or negative)
+    return priceValues.every(price => price !== null && price !== undefined && typeof price === 'number' && price >= 0);
+  }, [pizzaPricingClass.name, pizzaPricingClass.prices]);
+
+  // Add individual field validation
+  const fieldValidation = useMemo(() => {
+    const isNameValid = !!pizzaPricingClass.name?.trim();
+    const prices = pizzaPricingClass.prices || {};
+    const priceValidation = {};
+
+    Object.entries(prices).forEach(([sizeId, price]) => {
+      priceValidation[sizeId] = {
+        isValid: price !== null && price !== undefined && typeof price === 'number' && price >= 0,
+        isEmpty: price === null || price === undefined,
+      };
+    });
+
+    return {
+      name: {
+        isValid: isNameValid,
+        isEmpty: !pizzaPricingClass.name?.trim(),
+      },
+      prices: priceValidation,
+    };
+  }, [pizzaPricingClass.name, pizzaPricingClass.prices]);
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
@@ -116,7 +156,7 @@ export const PizzaPricingClassTypeUpdate = () => {
     };
 
     if (isNew) {
-      dispatch(createEntity(entity)).then((res) => {
+      dispatch(createEntity(entity)).then(res => {
         if (createNew) {
           dispatch(reset());
         } else {
@@ -125,16 +165,16 @@ export const PizzaPricingClassTypeUpdate = () => {
 
           // @ts-expect-error -- unknown type
           if (!res?.error) {
-            navigate(`/pizza-pricing-class/${newId}/edit`)
+            navigate(`/pizza-pricing-class/${newId}/edit`);
           }
         }
-      })
+      });
     } else {
       dispatch(updateEntity(entity)).then(() => {
         if (createNew) {
-          navigate(`/pizza-pricing-class/new?type=${pizzaPriceClassType}`)
+          navigate(`/pizza-pricing-class/new?type=${pizzaPriceClassType}`);
         }
-      })
+      });
     }
   };
 
@@ -142,7 +182,7 @@ export const PizzaPricingClassTypeUpdate = () => {
     <div>
       <Row>
         <Col md="8">
-          <h2>{isNew ? `Add New Pizza Price Class ${pizzaPriceClassType} ` : `Edit Pizza Price Class ${pizzaPriceClassType}`}</h2>
+          <h2>{isNew ? `Add New Pizza Price Class ${pizzaPriceClassType} ` : `Edit Pizza Price Class ${pizzaPricingClass.name}`}</h2>
         </Col>
       </Row>
       <Row>
@@ -152,8 +192,10 @@ export const PizzaPricingClassTypeUpdate = () => {
           ) : (
             <form>
               <FormGroup>
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label for="pizza-pricing-class-name">Name</Label>
+                <div className={'d-flex flex-column mb-3'}>
+                  <Label for="pizza-pricing-class-name">
+                    Name <span style={{ color: 'red' }}>*</span>
+                  </Label>
                   <InputText
                     type="text"
                     name="name"
@@ -164,20 +206,24 @@ export const PizzaPricingClassTypeUpdate = () => {
                   />
                 </div>
 
-                <div className={"d-flex flex-column mb-3"}>
+                <div className={'d-flex flex-column mb-3'}>
                   {pizzaPricingClass?.prices &&
                     Object.entries(pizzaPricingClass.prices)
-                      .sort(([sizeId1], [sizeId2]) => sizesMap[sizeId1]?.order - sizesMap[sizeId2]?.order)
+                      .sort(([sizeId1], [sizeId2]) => (sizesMap[sizeId1]?.order || 0) - (sizesMap[sizeId2]?.order || 0))
                       .map(([sizeId, value], index) => {
+                        const validation = fieldValidation.prices[sizeId];
                         return (
-                          <div key={index} className={"d-flex flex-column my-3"}>
-                            <Label for={`${sizesMap[sizeId]?.name}`}>{sizesMap[sizeId]?.name}</Label>
+                          <div key={index} className={'d-flex flex-column my-3'}>
+                            <Label for={`${sizesMap[sizeId]?.name}`}>
+                              {sizesMap[sizeId]?.name} <span style={{ color: 'red' }}>*</span>
+                            </Label>
                             <InputNumber
                               id={sizesMap[sizeId]?.name}
                               value={value}
+                              required
                               maxFractionDigits={2}
-                              onChange={(e) => {
-                                setPizzaPricingClass((prevState) => ({
+                              onChange={e => {
+                                setPizzaPricingClass(prevState => ({
                                   ...prevState,
                                   prices: {
                                     ...prevState.prices,
@@ -187,10 +233,39 @@ export const PizzaPricingClassTypeUpdate = () => {
                               }}
                             />
                           </div>
-                        )
+                        );
                       })}
-                </div>
 
+                  {/* Summary validation message */}
+                  {!isFormValid && (
+                    <div
+                      style={{
+                        backgroundColor: '#fff5f5',
+                        border: '1px solid #fed7d7',
+                        borderRadius: '4px',
+                        padding: '12px',
+                        marginTop: '16px',
+                      }}
+                    >
+                      <small style={{ color: '#e74c3c', fontWeight: 'bold' }}>Please complete all required fields:</small>
+                      <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px', color: '#e74c3c' }}>
+                        {fieldValidation.name.isEmpty && (
+                          <li>
+                            <small>Enter a name for the pricing class</small>
+                          </li>
+                        )}
+                        {Object.entries(fieldValidation.prices).map(([sizeId, validation]) => {
+                          const validationData = validation as { isValid: boolean; isEmpty: boolean };
+                          return validationData.isEmpty ? (
+                            <li key={sizeId}>
+                              <small>Enter a price for {sizesMap[sizeId]?.name}</small>
+                            </li>
+                          ) : null;
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </FormGroup>
               <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate('/pizza-pricing-class')} color="info">
                 <FontAwesomeIcon icon="arrow-left" />
@@ -200,13 +275,27 @@ export const PizzaPricingClassTypeUpdate = () => {
                 </span>
               </Button>
               &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <Button
+                onClick={saveEntity}
+                color="primary"
+                id="save-entity"
+                data-cy="entityCreateSaveButton"
+                type="submit"
+                disabled={updating || !isFormValid}
+              >
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
               &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+              <Button
+                onClick={e => saveEntity(e, true)}
+                color="primary"
+                id="save-entity"
+                data-cy="entityCreateSaveButton"
+                type="submit"
+                disabled={updating || !isFormValid}
+              >
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
