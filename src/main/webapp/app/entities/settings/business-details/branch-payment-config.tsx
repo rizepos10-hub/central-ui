@@ -29,10 +29,13 @@ const BranchPaymentConfig = ({ editingBranchPayments, setEditingBranchPayments, 
         ...baseConfig,
         integrationKeys: {
           merchantId: '',
-          merchantUserId: '',
-          paymentApiKey: '',
+          paymentPasscode: '',
           profileApiKey: '',
-          merchantPin: '',
+          bamboraBaseUrl: '',
+          tokenizationEndPoint: '',
+          paymentsEndPoint: '',
+          ProfileEndPoint: '',
+          ReportsEndPoint: '',
         },
       };
     } else {
