@@ -13,6 +13,7 @@ import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
 import MediaLibrary from 'app/shared/components/media-library/media-library';
 import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { ColorPicker } from 'primereact/colorpicker';
 import { searchEntities as getRetailCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
 import { getEntities as getRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
 import { ITerm } from 'app/shared/model/term.model';
@@ -39,35 +40,63 @@ const Layouts = () => {
         dispatch(getEntity())
     }, [])
 
-
     return (
-        <div className="container mt-4">
-            <Row>
-                <Col md={4}>
-                    <LayoutsCard
-                        layouts={uiSettings.layouts}
-                        layoutKey={SelectedLayoutEnum.LAYOUT_DEFAULT}
-                        imageSrc="/content/images/LAYOUT_DEFAULT.png"
-                    />
-                </Col>
-                <Col md={4}>
-                    <LayoutsCard
-                        layouts={uiSettings.layouts}
-                        layoutKey={SelectedLayoutEnum.LAYOUT_ONE}
-                        imageSrc="/content/images/LAYOUT_ONE.png"
-                    />
-                </Col>
-            </Row>
-            <Row className='border-top pt-4 mt-2'>
-                {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_ONE && <LayoutGabrielPizzaForm layouts={uiSettings.layouts} />}
-                {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_DEFAULT && <LayoutDefaultForm layouts={uiSettings.layouts} />}
-                {/* Show Selectedd Form Here */}
-            </Row>
-            <Row>
-                <Col md={12}>
-                    <Button label="Save" className="mt-3" onClick={() => dispatch(updateEntity(uiSettings))} />
-                </Col>
-            </Row>
+        <div className="container-fluid py-4">
+            <div className="mb-4">
+                <h2 className="mb-1">Layout Settings</h2>
+                <p className="text-muted">Choose and configure your online ordering layout</p>
+            </div>
+            
+            <Card className="shadow-sm mb-4">
+                <div className="card-body p-4">
+                    <h5 className="card-title mb-3">Select Layout</h5>
+                    <Row className="g-4">
+                        <Col md={6} lg={4}>
+                            <LayoutsCard
+                                layouts={uiSettings.layouts}
+                                layoutKey={SelectedLayoutEnum.LAYOUT_DEFAULT}
+                                imageSrc="/content/images/LAYOUT_DEFAULT.png"
+                                title="Default Layout"
+                                description="Standard layout with slider and categories"
+                            />
+                        </Col>
+                        <Col md={6} lg={4}>
+                            <LayoutsCard
+                                layouts={uiSettings.layouts}
+                                layoutKey={SelectedLayoutEnum.LAYOUT_ONE}
+                                imageSrc="/content/images/LAYOUT_ONE.png"
+                                title="Gabriel Pizza Layout"
+                                description="Custom layout with featured sections"
+                            />
+                        </Col>
+                    </Row>
+                </div>
+            </Card>
+
+            {uiSettings.layouts?.selectedLayout && (
+                <Card className="shadow-sm mb-4">
+                    <div className="card-body p-0">
+                        {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_ONE && 
+                            <LayoutGabrielPizzaForm layouts={uiSettings.layouts} />}
+                        {uiSettings.layouts?.selectedLayout === SelectedLayoutEnum.LAYOUT_DEFAULT && 
+                            <LayoutDefaultForm layouts={uiSettings.layouts} />}
+                    </div>
+                </Card>
+            )}
+
+            <div className="d-flex justify-content-end gap-2">
+                <Button 
+                    label="Cancel" 
+                    outlined
+                    className="px-4"
+                />
+                <Button 
+                    label="Save Changes" 
+                    className="px-4"
+                    onClick={() => dispatch(updateEntity(uiSettings))}
+                    disabled={!uiSettings.layouts?.selectedLayout}
+                />
+            </div>
         </div>
     )
 }
@@ -75,53 +104,72 @@ const Layouts = () => {
 const LayoutsCard = ({
     layouts,
     layoutKey,
-    imageSrc
+    imageSrc,
+    title,
+    description
 }: {
     layouts: ILayouts
     layoutKey: SelectedLayoutEnum
     imageSrc: string
+    title: string
+    description: string
 }) => {
     const dispatch = useAppDispatch();
+    const isSelected = layouts?.selectedLayout === layoutKey;
 
     return (
-        <>
-            <div className="mb-3" style={{ maxWidth: '540px' }}>
-                <div className="row g-0">
-                    <div className="col-md-12">
-                        <img
-                            src={imageSrc}
-                            className="img-fluid"
-                            alt="Card background"
-                        />
+        <div 
+            className={`card h-100 cursor-pointer ${isSelected ? 'border-primary shadow-sm' : 'border-light'}`}
+            style={{ 
+                transition: 'all 0.2s ease',
+                cursor: 'pointer'
+            }}
+            onClick={() => {
+                dispatch(changeEntityField({
+                    name: 'layouts.selectedLayout',
+                    value: isSelected ? null : layoutKey
+                }))
+            }}
+        >
+            <div className="position-relative">
+                <img
+                    src={imageSrc}
+                    className="card-img-top"
+                    alt={title}
+                    style={{ 
+                        height: '200px', 
+                        objectFit: 'cover',
+                        filter: isSelected ? 'none' : 'grayscale(20%)'
+                    }}
+                />
+                {isSelected && (
+                    <div className="position-absolute top-0 end-0 m-2">
+                        <span className="badge bg-primary">
+                            <i className="pi pi-check"></i>
+                        </span>
                     </div>
+                )}
+            </div>
+            <div className="card-body d-flex flex-column">
+                <p className="card-text text-muted small flex-grow-1">{description}</p>
+                <div className="mt-auto">
+                    <Button
+                        label={isSelected ? "Selected" : "Select Layout"}
+                        className="w-100"
+                        severity={isSelected ? "success" : "secondary"}
+                        outlined={!isSelected}
+                        size="small"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            dispatch(changeEntityField({
+                                name: 'layouts.selectedLayout',
+                                value: isSelected ? null : layoutKey
+                            }))
+                        }}
+                    />
                 </div>
             </div>
-            <div className="form-check">
-                <Checkbox
-                    className="form-check-input"
-                    type="checkbox"
-                    id="checkMe"
-                    value={layouts?.selectedLayout}
-                    onChange={(e) => {
-                        if (e?.checked) {
-                            dispatch(changeEntityField({
-                                name: 'layouts.selectedLayout',
-                                value: layoutKey
-                            }))
-                        } else {
-                            dispatch(changeEntityField({
-                                name: 'layouts.selectedLayout',
-                                value: null
-                            }))
-                        }
-                    }}
-                    checked={layouts?.selectedLayout === layoutKey}
-                />
-                <Label className="form-check-label" htmlFor="checkMe">
-                    Check me
-                </Label>
-            </div>
-        </>
+        </div>
     )
 }
 
@@ -194,175 +242,320 @@ const LayoutGabrielPizzaForm = ({
     }, [selectedItems])
 
     return (
-        <TabView>
-            <TabPanel header="Color Settings">
-                <Row className="mb-3">
-                    <Col md={6} className="d-flex flex-column">
-                        <Label htmlFor="background">Background</Label>
-                        <InputText
-                            id="background"
-                            value={layoutOne?.colorSettings?.background}
-                            onChange={e =>
-                                handleFieldChange(
-                                    'layouts.LAYOUT_ONE.colorSettings.background',
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
-                        />
-                    </Col>
-                    <Col md={6} className="d-flex flex-column">
-                        <Label htmlFor="foreground">Foreground</Label>
-                        <InputText
-                            id="foreground"
-                            value={layoutOne?.colorSettings?.foreground}
-                            onChange={e =>
-                                handleFieldChange(
-                                    'layouts.LAYOUT_ONE.colorSettings.foreground',
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
-                        />
-                    </Col>
-                </Row>
+        <div className="p-4">
+            <TabView className="layout-config-tabs">
+                <TabPanel header="Colors">
+                    <div className="mb-4">
+                        <h5 className="mb-2">Color Settings</h5>
+                        <p className="text-muted small">Configure your layout&apos;s color scheme</p>
+                    </div>
+                    
+                    <div className="row g-4">
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <Label htmlFor="background" className="form-label fw-semibold">Background Color</Label>
+                                <div className="d-flex align-items-center gap-3">
+                                    <ColorPicker
+                                        value={layoutOne?.colorSettings?.background || '#ffffff'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.background',
+                                                `#${e.value}`
+                                            )
+                                        }
+                                        format="hex"
+                                    />
+                                    <InputText
+                                        value={layoutOne?.colorSettings?.background || '#ffffff'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.background',
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="#ffffff"
+                                        className="flex-grow-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <Label htmlFor="foreground" className="form-label fw-semibold">Foreground Color</Label>
+                                <div className="d-flex align-items-center gap-3">
+                                    <ColorPicker
+                                        value={layoutOne?.colorSettings?.foreground || '#000000'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.foreground',
+                                                `#${e.value}`
+                                            )
+                                        }
+                                        format="hex"
+                                    />
+                                    <InputText
+                                        value={layoutOne?.colorSettings?.foreground || '#000000'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.foreground',
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="#000000"
+                                        className="flex-grow-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <Label htmlFor="primary" className="form-label fw-semibold">Primary Color</Label>
+                                <div className="d-flex align-items-center gap-3">
+                                    <ColorPicker
+                                        value={layoutOne?.colorSettings?.primary || '#007bff'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.primary',
+                                                `#${e.value}`
+                                            )
+                                        }
+                                        format="hex"
+                                    />
+                                    <InputText
+                                        value={layoutOne?.colorSettings?.primary || '#007bff'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.primary',
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="#007bff"
+                                        className="flex-grow-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <Label htmlFor="primaryForeground" className="form-label fw-semibold">Primary Text Color</Label>
+                                <div className="d-flex align-items-center gap-3">
+                                    <ColorPicker
+                                        value={layoutOne?.colorSettings?.primaryForeground || '#ffffff'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.primaryForeground',
+                                                `#${e.value}`
+                                            )
+                                        }
+                                        format="hex"
+                                    />
+                                    <InputText
+                                        value={layoutOne?.colorSettings?.primaryForeground || '#ffffff'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.primaryForeground',
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="#ffffff"
+                                        className="flex-grow-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <Label htmlFor="secondary" className="form-label fw-semibold">Secondary Color</Label>
+                                <div className="d-flex align-items-center gap-3">
+                                    <ColorPicker
+                                        value={layoutOne?.colorSettings?.secondary || '#6c757d'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.secondary',
+                                                `#${e.value}`
+                                            )
+                                        }
+                                        format="hex"
+                                    />
+                                    <InputText
+                                        value={layoutOne?.colorSettings?.secondary || '#6c757d'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.secondary',
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="#6c757d"
+                                        className="flex-grow-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <Label htmlFor="muted" className="form-label fw-semibold">Muted Color</Label>
+                                <div className="d-flex align-items-center gap-3">
+                                    <ColorPicker
+                                        value={layoutOne?.colorSettings?.muted || '#868e96'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.muted',
+                                                `#${e.value}`
+                                            )
+                                        }
+                                        format="hex"
+                                    />
+                                    <InputText
+                                        value={layoutOne?.colorSettings?.muted || '#868e96'}
+                                        onChange={e =>
+                                            handleFieldChange(
+                                                'layouts.LAYOUT_ONE.colorSettings.muted',
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="#868e96"
+                                        className="flex-grow-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </TabPanel>
 
-                <Row className="mb-3">
-                    <Col md={6} className="d-flex flex-column">
-                        <Label htmlFor="primary">Primary</Label>
-                        <InputText
-                            id="primary"
-                            value={layoutOne?.colorSettings?.primary}
-                            onChange={e =>
-                                handleFieldChange(
-                                    'layouts.LAYOUT_ONE.colorSettings.primary',
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
-                        />
-                    </Col>
-                    <Col md={6} className="d-flex flex-column">
-                        <Label htmlFor="primaryForeground">Primary Foreground</Label>
-                        <InputText
-                            id="primaryForeground"
-                            value={layoutOne?.colorSettings?.primaryForeground}
-                            onChange={e =>
-                                handleFieldChange(
-                                    'layouts.LAYOUT_ONE.colorSettings.primaryForeground',
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
-                        />
-                    </Col>
-                </Row>
+                <TabPanel header="Header">
+                    <div className="mb-4">
+                        <h5 className="mb-2">Header Configuration</h5>
+                        <p className="text-muted small">Configure your header content</p>
+                    </div>
+                    
+                    <div className="row g-3">
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <Label htmlFor="headerTitle" className="form-label fw-semibold">Header Title</Label>
+                                <InputText
+                                    id="headerTitle"
+                                    value={layoutOne?.sections?.header?.title || ''}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.sections.header.title',
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="Enter header title"
+                                    className="w-100"
+                                />
+                            </div>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <Label htmlFor="headerCta" className="form-label fw-semibold">Call to Action</Label>
+                                <InputText
+                                    id="headerCta"
+                                    value={layoutOne?.sections?.header?.callToAction || ''}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.sections.header.callToAction',
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="Enter call to action text"
+                                    className="w-100"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </TabPanel>
 
-                <Row className="mb-3">
-                    <Col md={6} className="d-flex flex-column">
-                        <Label htmlFor="secondary">Secondary</Label>
-                        <InputText
-                            id="secondary"
-                            value={layoutOne?.colorSettings?.secondary}
-                            onChange={e =>
-                                handleFieldChange(
-                                    'layouts.LAYOUT_ONE.colorSettings.secondary',
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
-                        />
-                    </Col>
-                    <Col md={6} className="d-flex flex-column">
-                        <Label htmlFor="muted">Muted</Label>
-                        <InputText
-                            id="muted"
-                            value={layoutOne?.colorSettings?.muted}
-                            onChange={e =>
-                                handleFieldChange(
-                                    'layouts.LAYOUT_ONE.colorSettings.muted',
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
-                        />
-                    </Col>
-                </Row>
-            </TabPanel>
+                <TabPanel header="Content">
+                    <div className="layout-body-sections">
+                        <div className="content-section-card card mb-4">
+                            <div className="card-header bg-light">
+                                <h6 className="mb-0 fw-bold text-primary">🎠 Carousel Section</h6>
+                                <small className="text-muted">Manage rotating banner slides for your homepage</small>
+                            </div>
+                            <div className="card-body">
+                                <LayoutGabrielPizzaCarousel carousel={layoutOne?.sections?.body?.carousel} />
+                            </div>
+                        </div>
 
-            <TabPanel header="Header">
-                <Row className="mb-3">
-                    <Col md={6} className="d-flex flex-column">
-                        <Label htmlFor="headerTitle">Header Title</Label>
-                        <InputText
-                            id="headerTitle"
-                            value={layoutOne?.sections?.header?.title}
-                            onChange={e =>
-                                handleFieldChange(
-                                    'layouts.LAYOUT_ONE.sections.header.title',
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
-                        />
-                    </Col>
-                    <Col md={6} className="d-flex flex-column">
-                        <Label htmlFor="headerCta">Header CTA</Label>
-                        <InputText
-                            id="headerCta"
-                            value={layoutOne?.sections?.header?.callToAction}
-                            onChange={e =>
-                                handleFieldChange(
-                                    'layouts.LAYOUT_ONE.sections.header.callToAction',
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
-                        />
-                    </Col>
-                </Row>
-            </TabPanel>
+                        <div className="content-section-card card mb-4">
+                            <div className="card-header bg-light">
+                                <h6 className="mb-0 fw-bold text-primary">⭐ Featured Items Section</h6>
+                                <small className="text-muted">Highlight specific products on your homepage</small>
+                            </div>
+                            <div className="card-body">
+                                <LayoutGabrielPizzaFeaturedItems
+                                    layoutOne={layoutOne}
+                                    handleFieldChange={handleFieldChange}
+                                    selectedItems={selectedItems}
+                                    handleToggleSelect={handleToggleSelect}
+                                    isModalOpen={isModalOpen}
+                                    setIsModalOpen={setIsModalOpen}
+                                />
+                            </div>
+                        </div>
 
-            <TabPanel header="Body">
-                <LayoutGabrielPizzaCarousel carousel={layoutOne?.sections?.body?.carousel} />
-                <LayoutGabrielPizzaFeaturedItems
-                    layoutOne={layoutOne}
-                    handleFieldChange={handleFieldChange}
-                    selectedItems={selectedItems}
-                    handleToggleSelect={handleToggleSelect}
-                    isModalOpen={isModalOpen}
-                    setIsModalOpen={setIsModalOpen}
-                />
-                <LayoutGabrielPizzaFeaturedCategories
-                    layoutOne={layoutOne}
-                    handleFieldChange={handleFieldChange}
-                    combinedCategories={combinedCategories}
-                />
-            </TabPanel>
+                        <div className="content-section-card card mb-4">
+                            <div className="card-header bg-light">
+                                <h6 className="mb-0 fw-bold text-primary">📂 Featured Categories Section</h6>
+                                <small className="text-muted">Showcase product categories to guide customer navigation</small>
+                            </div>
+                            <div className="card-body">
+                                <LayoutGabrielPizzaFeaturedCategories
+                                    layoutOne={layoutOne}
+                                    handleFieldChange={handleFieldChange}
+                                    combinedCategories={combinedCategories}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </TabPanel>
 
-            <TabPanel header="Footer">
-                <Row className="mb-3">
-                    <Col md={6} className="d-flex flex-column">
-                        <Label htmlFor="footerTitle">Footer Title</Label>
-                        <InputText
-                            id="footerTitle"
-                            value={layoutOne?.sections?.footer?.title}
-                            onChange={e =>
-                                handleFieldChange(
-                                    'layouts.LAYOUT_ONE.sections.footer.title',
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
-                        />
-                    </Col>
-                    <Col md={6} className="d-flex flex-column">
-                        <Label htmlFor="footerCta">Footer CTA</Label>
-                        <InputText
-                            id="footerCta"
-                            value={layoutOne?.sections?.footer?.callToAction}
-                            onChange={e =>
-                                handleFieldChange(
-                                    'layouts.LAYOUT_ONE.sections.footer.callToAction',
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
-                        />
-                    </Col>
-                </Row>
-            </TabPanel>
-        </TabView>
+                <TabPanel header="Footer">
+                    <div className="mb-4">
+                        <h5 className="mb-2">Footer Configuration</h5>
+                        <p className="text-muted small">Configure your footer content</p>
+                    </div>
+                    
+                    <div className="row g-3">
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <Label htmlFor="footerTitle" className="form-label fw-semibold">Footer Title</Label>
+                                <InputText
+                                    id="footerTitle"
+                                    value={layoutOne?.sections?.footer?.title || ''}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.sections.footer.title',
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="Enter footer title"
+                                    className="w-100"
+                                />
+                            </div>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="form-group">
+                                <Label htmlFor="footerCta" className="form-label fw-semibold">Call to Action</Label>
+                                <InputText
+                                    id="footerCta"
+                                    value={layoutOne?.sections?.footer?.callToAction || ''}
+                                    onChange={e =>
+                                        handleFieldChange(
+                                            'layouts.LAYOUT_ONE.sections.footer.callToAction',
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="Enter call to action text"
+                                    className="w-100"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </TabPanel>
+            </TabView>
+        </div>
     );
 };
 
@@ -416,29 +609,65 @@ const LayoutGabrielPizzaCarousel = ({
     };
 
     return (
-        <Row>
-            <Col md={12}>
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                    <h5 className="mb-0">Carousel</h5>
-                    <Button color="primary" onClick={handleAddItem}>
-                        + Add Slide
-                    </Button>
+        <div>
+            {carousel?.length === 0 || !carousel ? (
+                <div className="text-center py-5 border border-dashed rounded bg-light">
+                    <div className="mb-3">
+                        <i className="pi pi-image" style={{ fontSize: '3rem', color: '#ccc' }}></i>
+                    </div>
+                    <h6 className="text-muted mb-2">No carousel slides yet</h6>
+                    <p className="text-muted mb-3 small">Add engaging slides to showcase your featured content</p>
+                    <Button 
+                        label="Add Your First Slide" 
+                        icon="pi pi-plus" 
+                        onClick={handleAddItem}
+                        outlined
+                        size="small"
+                    />
                 </div>
-                {carousel?.map((item, index) => (
+            ) : (
+                <div>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <span className="text-muted small">{carousel?.length || 0} slide{(carousel?.length || 0) !== 1 ? 's' : ''} configured</span>
+                        <Button 
+                            label="Add Slide" 
+                            icon="pi pi-plus" 
+                            onClick={handleAddItem}
+                            size="small"
+                        />
+                    </div>
+                    {carousel?.map((item, index) => (
                     <div
                         key={index}
-                        className="border rounded p-3 mb-2"
+                        className="border rounded p-3 mb-2 position-relative"
                     >
-                        <Row className="mb-2">
-                            <Col md={6} className="d-flex align-items-end justify-content-end">
-                                <Button color="danger" onClick={() => handleRemoveItem(index)}>
-                                    Remove
-                                </Button>
-                            </Col>
-                        </Row>
+                        <Button 
+                            icon="pi pi-trash" 
+                            severity="danger" 
+                            text
+                            rounded
+                            size="small"
+                            onClick={() => handleRemoveItem(index)}
+                            tooltip="Remove slide"
+                            className="position-absolute"
+                            style={{
+                                top: '8px',
+                                right: '8px',
+                                zIndex: 10,
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                border: '1px solid rgba(220, 53, 69, 0.3)',
+                                width: '30px',
+                                height: '30px',
+                                minWidth: '30px'
+                            }}
+                        />
+                        <div className="mb-3">
+                            <h6 className="text-primary fw-bold mb-0">Slide {index + 1}</h6>
+                            <small className="text-muted">Configure your carousel slide content</small>
+                        </div>
                         <Row className="mb-2">
                             <Col md={6} className='d-flex flex-column'>
-                                <Label htmlFor={`src-${index}`}>Image Src</Label>
+                                <Label htmlFor={`src-${index}`} className="form-label fw-semibold">Image</Label>
                                 <MediaLibrary
                                     handleFilesSelectCallback={files => handleFieldChange(index,
                                         'image',
@@ -448,68 +677,77 @@ const LayoutGabrielPizzaCarousel = ({
                                 />
                             </Col>
                             <Col md={6} className='d-flex flex-column'>
-                                <Label htmlFor={`altText-${index}`}>Alt Text</Label>
+                                <Label htmlFor={`altText-${index}`} className="form-label fw-semibold">Alt Text</Label>
                                 <InputText
                                     id={`altText-${index}`}
-                                    value={item.altText}
+                                    value={item.altText || ''}
                                     onChange={e =>
-                                        handleFieldChange(index, 'altText', (e.target as HTMLInputElement).value)
+                                        handleFieldChange(index, 'altText', e.target.value)
                                     }
+                                    placeholder="Image description"
+                                    className="w-100"
                                 />
                             </Col>
                         </Row>
                         <Row className="mb-2">
                             <Col md={6} className='d-flex flex-column'>
-                                <Label htmlFor={`primaryTitle-${index}`}>Title 1</Label>
+                                <Label htmlFor={`primaryTitle-${index}`} className="form-label fw-semibold">Primary Title</Label>
                                 <InputText
                                     id={`primaryTitle-${index}`}
-                                    value={item.primaryTitle}
+                                    value={item.primaryTitle || ''}
                                     onChange={e =>
-                                        handleFieldChange(index, 'primaryTitle', (e.target as HTMLInputElement).value)
+                                        handleFieldChange(index, 'primaryTitle', e.target.value)
                                     }
+                                    placeholder="Main headline"
+                                    className="w-100"
                                 />
                             </Col>
                             <Col md={6} className='d-flex flex-column'>
-                                <Label htmlFor={`secondaryTitle-${index}`}>Title 2</Label>
+                                <Label htmlFor={`secondaryTitle-${index}`} className="form-label fw-semibold">Secondary Title</Label>
                                 <InputText
                                     id={`secondaryTitle-${index}`}
-                                    value={item.secondaryTitle}
+                                    value={item.secondaryTitle || ''}
                                     onChange={e =>
-                                        handleFieldChange(index, 'secondaryTitle', (e.target as HTMLInputElement).value)
+                                        handleFieldChange(index, 'secondaryTitle', e.target.value)
                                     }
+                                    placeholder="Subtitle"
+                                    className="w-100"
                                 />
                             </Col>
                         </Row>
                         <Row className="mb-2">
                             <Col md={12}>
-                                <Label htmlFor={`description-${index}`}>Description</Label>
+                                <Label htmlFor={`description-${index}`} className="form-label fw-semibold">Description</Label>
                                 <InputText
                                     id={`description-${index}`}
-                                    value={item.description}
+                                    value={item.description || ''}
                                     onChange={e =>
-                                        handleFieldChange(index, 'description', (e.target as HTMLInputElement).value)
+                                        handleFieldChange(index, 'description', e.target.value)
                                     }
+                                    placeholder="Slide description"
                                     className="w-100"
                                 />
                             </Col>
                         </Row>
                         <Row>
                             <Col md={12}>
-                                <Label htmlFor={`callToAction-${index}`}>CTA</Label>
+                                <Label htmlFor={`callToAction-${index}`} className="form-label fw-semibold">Call to Action</Label>
                                 <InputText
                                     id={`callToAction-${index}`}
-                                    value={item.callToAction}
+                                    value={item.callToAction || ''}
                                     onChange={e =>
-                                        handleFieldChange(index, 'callToAction', (e.target as HTMLInputElement).value)
+                                        handleFieldChange(index, 'callToAction', e.target.value)
                                     }
+                                    placeholder="Button text"
                                     className="w-100"
                                 />
                             </Col>
                         </Row>
                     </div>
-                ))}
-            </Col>
-        </Row>
+                    ))}
+                </div>
+            )}
+        </div>
     );
 };
 
@@ -530,11 +768,6 @@ const LayoutGabrielPizzaFeaturedItems = ({
 }) => {
     return (
         <Row>
-            <div>
-                <h5>
-                    Featured Items
-                </h5>
-            </div>
             <Col md={6}>
                 {/* <div className='d-flex flex-column'>
                     <Label htmlFor="bodyOrder">Order</Label>
@@ -615,32 +848,55 @@ const LayoutGabrielPizzaFeaturedItems = ({
                         )}
                     />
                 </div>
-                <div>
-                    <div>
-                        <Label htmlFor="headerTitle">Featured Items</Label>
-                        <ItemSelectionModal
-                            isOpen={isModalOpen}
-                            toggle={() => setIsModalOpen(prev => !prev)}
-                            selectedItems={selectedItems}
-                            setSelectedItems={() => null}
-                            handleToggleSelect={handleToggleSelect}
-                        />
-                        <Button
-                            label="Add New Item"
-                            icon="pi pi-plus"
-                            onClick={() => setIsModalOpen(prev => !prev)}
-                        />
-                    </div>
-                    <div>
-                        {layoutOne?.sections?.body?.featuredItems?.rightColumn?.items?.map((item, idx) => (
-                            <div key={idx} className="d-flex align-items-center gap-2">
-                                <span>{item.name}</span>
-                                <Button color="danger" onClick={() => handleToggleSelect([item])}>
-                                    x
-                                </Button>
+                <div className='d-flex flex-column'>
+                    <Label htmlFor="headerTitle" className="form-label fw-semibold mb-2">Featured Items</Label>
+                    <ItemSelectionModal
+                        isOpen={isModalOpen}
+                        toggle={() => setIsModalOpen(prev => !prev)}
+                        selectedItems={selectedItems}
+                        setSelectedItems={() => null}
+                        handleToggleSelect={handleToggleSelect}
+                    />
+                    
+                    {selectedItems?.length === 0 ? (
+                        <div className="text-center py-3 border border-dashed rounded bg-light mb-2">
+                            <p className="text-muted mb-2 small">No featured items selected</p>
+                            <Button
+                                label="Select Items"
+                                icon="pi pi-plus"
+                                onClick={() => setIsModalOpen(prev => !prev)}
+                                outlined
+                                size="small"
+                            />
+                        </div>
+                    ) : (
+                        <div className="mb-2">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <span className="text-muted small">{selectedItems?.length || 0} item{(selectedItems?.length || 0) !== 1 ? 's' : ''} selected</span>
+                                <Button
+                                    label="Add More"
+                                    icon="pi pi-plus"
+                                    onClick={() => setIsModalOpen(prev => !prev)}
+                                    size="small"
+                                />
                             </div>
-                        ))}
-                    </div>
+                            <div className="selected-items-list">
+                                {layoutOne?.sections?.body?.featuredItems?.rightColumn?.items?.map((item, idx) => (
+                                    <div key={idx} className="d-flex align-items-center justify-content-between p-2 border rounded mb-1 bg-white">
+                                        <span className="fw-medium">{item.name}</span>
+                                        <Button 
+                                            icon="pi pi-times" 
+                                            severity="danger" 
+                                            text 
+                                            size="small"
+                                            onClick={() => handleToggleSelect([item])}
+                                            tooltip="Remove item"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </Col>
         </Row>
@@ -659,11 +915,6 @@ const LayoutGabrielPizzaFeaturedCategories = ({
 
     return (
         <Row>
-            <div>
-                <h5>
-                    Featured Categories
-                </h5>
-            </div>
             <Col md={6}>
                 {/* <div className='d-flex flex-column'>
                     <Label htmlFor="bodyOrder">Order</Label>
@@ -689,7 +940,7 @@ const LayoutGabrielPizzaFeaturedCategories = ({
                     />
                 </div>
                 <div className='d-flex flex-column'>
-                    <Label htmlFor="bodyLeftCategories">Categories</Label>
+                    <Label htmlFor="bodyLeftCategories" className="form-label fw-semibold">Categories</Label>
                     <Select
                         value={layoutOne?.sections?.body?.featuredCategories?.leftColumn?.categories}
                         onChange={(e) => handleFieldChange(
@@ -701,7 +952,14 @@ const LayoutGabrielPizzaFeaturedCategories = ({
                         getOptionValue={option => option.id}
                         isMulti
                         isClearable
+                        placeholder="Select categories to feature"
+                        className="mb-2"
                     />
+                    {(!layoutOne?.sections?.body?.featuredCategories?.leftColumn?.categories || layoutOne?.sections?.body?.featuredCategories?.leftColumn?.categories?.length === 0) && (
+                        <div className="text-center py-2 text-muted small">
+                            No categories selected for this column
+                        </div>
+                    )}
                 </div>
             </Col>
             <Col md={6}>
