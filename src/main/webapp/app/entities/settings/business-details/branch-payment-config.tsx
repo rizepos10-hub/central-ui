@@ -9,28 +9,50 @@ import { Button } from "primereact/button";
 type BranchPaymentConfigProps = {
   branchIndex?: number;
   editingBranchPayments?: any;
-  setEditingBranchPayments?: any
-
+  setEditingBranchPayments?: any;
+  moduleCode?: string;
+  onPaymentConfigChange?: (branchIndex: number, paymentConfigs: any[]) => void;
 };
 
-const BranchPaymentConfig = ({ editingBranchPayments, setEditingBranchPayments, branchIndex }: BranchPaymentConfigProps) => {
-  const defaultConfig = {
-    active: false,
-    defaultSelected: false,
-    environment: 'TEST',
-    gateway: null,
-    moduleCode: 'CONVERGE_LIGHTBOX',
-    integrationKeys: {
-      sslMerchantId: '',
-      sslUserId: '',
-      sslPin: '',
-      sslTransactionType: '',
-      sslGetToken: '',
-      sslAddToken: '',
-      apiUrl: '',
-      lightboxUrl: '',
-    },
+const BranchPaymentConfig = ({ editingBranchPayments, setEditingBranchPayments, branchIndex, moduleCode = 'CONVERGE_LIGHTBOX', onPaymentConfigChange }: BranchPaymentConfigProps) => {
+  const getDefaultConfig = () => {
+    const baseConfig = {
+      active: false,
+      defaultSelected: false,
+      environment: 'TEST',
+      gateway: null,
+      moduleCode,
+    };
+
+    if (moduleCode === 'BAMBORA') {
+      return {
+        ...baseConfig,
+        integrationKeys: {
+          merchantId: '',
+          merchantUserId: '',
+          paymentApiKey: '',
+          profileApiKey: '',
+          merchantPin: '',
+        },
+      };
+    } else {
+      return {
+        ...baseConfig,
+        integrationKeys: {
+          sslMerchantId: '',
+          sslUserId: '',
+          sslPin: '',
+          sslTransactionType: '',
+          sslGetToken: '',
+          sslAddToken: '',
+          apiUrl: '',
+          lightboxUrl: '',
+        },
+      };
+    }
   };
+
+  const defaultConfig = getDefaultConfig();
 
   const handleChange = (index: number, field: string, value: any) => {
     setEditingBranchPayments(prevState => {
@@ -41,14 +63,27 @@ const BranchPaymentConfig = ({ editingBranchPayments, setEditingBranchPayments, 
       } else {
         newState[index][field] = value;
       }
+      
+      // Sync with main business details state
+      if (onPaymentConfigChange && branchIndex !== undefined) {
+        onPaymentConfigChange(branchIndex, newState);
+      }
+      
       return newState;
     });
   };
 
-  const addNewPaymentConfig = () => {
+  const addNewPaymentConfig = (e: any) => {
+    e.preventDefault();
     setEditingBranchPayments(prevState => {
-      const newState = cloneDeep(prevState);
+      const newState = cloneDeep(prevState) || [];
       newState.push(defaultConfig);
+      
+      // Sync with main business details state
+      if (onPaymentConfigChange && branchIndex !== undefined) {
+        onPaymentConfigChange(branchIndex, newState);
+      }
+      
       return newState;
     });
   };
@@ -57,21 +92,22 @@ const BranchPaymentConfig = ({ editingBranchPayments, setEditingBranchPayments, 
   return (
     <div className={'d-flex flex-column gap-1'}>
       <div>
-        <Button onClick={addNewPaymentConfig}>Add New Config</Button>
+        <Button onClick={addNewPaymentConfig}>Add New {moduleCode} Config</Button>
       </div>
-      {editingBranchPayments?.map((config, index) => {
+      {editingBranchPayments?.filter(config => config.moduleCode === moduleCode).map((config, index) => {
+        const actualIndex = editingBranchPayments.findIndex(c => c === config);
         return (
-          <React.Fragment key={index}>
+          <React.Fragment key={actualIndex}>
             <div className="d-flex gap-2">
               <div className="d-flex flex-column gap-2 col-6">
                 <div className={'d-flex flex-column gap-'}>
                   <label className="fw-bold">Active</label>
-                  <Checkbox checked={config.active} onChange={e => handleChange(index, 'active', e.checked)} />
+                  <Checkbox checked={config.active} onChange={e => handleChange(actualIndex, 'active', e.checked)} />
                 </div>
 
                 <div className={'d-flex flex-column gap-'}>
                   <label className="fw-bold">Default Selected</label>
-                  <Checkbox checked={config.defaultSelected} onChange={e => handleChange(index, 'defaultSelected', e.checked)} />
+                  <Checkbox checked={config.defaultSelected} onChange={e => handleChange(actualIndex, 'defaultSelected', e.checked)} />
                 </div>
 
                 <div className={'d-flex flex-column gap-'}>
@@ -79,20 +115,20 @@ const BranchPaymentConfig = ({ editingBranchPayments, setEditingBranchPayments, 
                   <SelectButton
                     options={['TEST', 'PROD']}
                     value={config.environment}
-                    onChange={e => handleChange(index, 'environment', e.target.value)}
+                    onChange={e => handleChange(actualIndex, 'environment', e.target.value)}
                   />
                 </div>
 
                 <div className={'d-flex flex-column gap-'}>
                   <label className="fw-bold">Gateway</label>
-                  <InputText value={config.gateway} onChange={e => handleChange(index, 'gateway', e.target.value)} />
+                  <InputText value={config.gateway} onChange={e => handleChange(actualIndex, 'gateway', e.target.value)} />
                 </div>
                 <div className={'d-flex flex-column gap-'}>
                   <label className="fw-bold">Module Code</label>
                   <InputText value={config.moduleCode} disabled />
                 </div>
               </div>
-              <div key={index} className="d-flex flex-column gap-2 col-6">
+              <div key={actualIndex} className="d-flex flex-column gap-2 col-6">
                 {config.integrationKeys && (
                   <div>
                     {Object.keys(config.integrationKeys).map(key => (
@@ -100,7 +136,7 @@ const BranchPaymentConfig = ({ editingBranchPayments, setEditingBranchPayments, 
                         <label className={'fw-bold'}>{camelToTitle(key)}</label>
                         <InputText
                           value={config.integrationKeys[key]}
-                          onChange={e => handleChange(index, `integrationKeys.${key}`, e.target.value)}
+                          onChange={e => handleChange(actualIndex, `integrationKeys.${key}`, e.target.value)}
                         />
                       </div>
                     ))}
@@ -108,10 +144,16 @@ const BranchPaymentConfig = ({ editingBranchPayments, setEditingBranchPayments, 
                 )}
               </div>
             </div>
-            {index < editingBranchPayments.length - 1 && <hr className="my-5 border border-dark" />}
+            {index < editingBranchPayments.filter(c => c.moduleCode === moduleCode).length - 1 && <hr className="my-5 border border-dark" />}
           </React.Fragment>
         );
       })}
+      
+      {(!editingBranchPayments?.some(config => config.moduleCode === moduleCode)) && (
+        <div className="text-center p-4">
+          <p>No {moduleCode} configurations found. Click &quot;Add New {moduleCode} Config&quot; to create one.</p>
+        </div>
+      )}
     </div>
   );
 };
