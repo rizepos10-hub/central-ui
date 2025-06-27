@@ -373,17 +373,79 @@ export const RegularItemUpdate = () => {
   };
 
   const VariantAccordionHeader = (variantIndex) => (
-    <div onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation()
-    }} className={"d-flex justify-content-between ml-2 w-100"}>
-      <label className={"mt-2"}><strong>{regularItem?.variants?.[variantIndex]?.name}</strong></label>
-      <FontAwesomeIcon
-        icon="trash"
-        onClick={() => confirm1(variantIndex)}
-        className={'my-2 cursor-pointer '}
-        style={{ color: 'red' }}
-      />
+    <div
+      onClick={e => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      className="d-flex flex-1 gap-3 ml-2 p-draggable"
+    >
+      <Row className="gap-2">
+        <Row>
+          <Col md="6">
+            <div className="d-flex flex-column gap-2 mt-2">
+              <label className="font-semibold">
+                <Translate contentKey="items.update.name">Name</Translate>
+              </label>
+              <InputText
+                name="variant-name"
+                id="name"
+                required
+                placeholder={translate('items.update.placeholders.variantName')}
+                value={regularItem.variants[variantIndex]?.name || ''}
+                onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
+                style={{
+                  borderColor: showFormErrors && !regularItem.variants[variantIndex]?.name ? 'red' : '',
+                }}
+                onKeyDown={e => {
+                  if (e.key === ' ') {
+                    e.stopPropagation();
+                  }
+                }}
+              />
+            </div>
+          </Col>
+          <Col md="6">
+            <div className="d-flex flex-column gap-2 mt-2">
+              <label htmlFor="price" className="font-semibold">
+                <Translate contentKey="items.update.price">Price</Translate>
+              </label>
+              <InputNumber
+                name="price"
+                id="price"
+                inputId="price"
+                inputClassName="w-1"
+                required
+                placeholder="Variant Price"
+                value={regularItem.variants[variantIndex]?.price ?? null}
+                min={0}
+                maxFractionDigits={2}
+                onChange={e => handleVariantFieldChange(variantIndex, 'price', e.value)}
+                inputStyle={{
+                  borderColor:
+                    showFormErrors &&
+                    (regularItem.variants[variantIndex]?.price === null || regularItem.variants[variantIndex]?.price === undefined)
+                      ? 'red'
+                      : '',
+                }}
+                onKeyDown={e => {
+                  if (e.key === ' ') {
+                    e.stopPropagation();
+                  }
+                }}
+              />
+            </div>
+          </Col>
+        </Row>
+      </Row>
+      <div className="d-flex justify-content-end">
+        <FontAwesomeIcon
+          icon="trash"
+          onClick={() => confirm1(variantIndex)}
+          className="my-2 cursor-pointer"
+          style={{ color: 'red' }}
+        />
+      </div>
     </div>
   );
 
@@ -725,6 +787,13 @@ export const RegularItemUpdate = () => {
 
     return true;
   };
+
+  useEffect(() => {
+    // update form validity whenever item or variants change
+    const allVariantsValid = regularItem?.name &&
+      regularItem?.variants?.length > 0 &&
+      regularItem.variants.every(v => v?.name && v.name.trim() !== '' && v.price !== null && v.price !== undefined);
+  }, [regularItem]);
 
   if (loading) {
     return <Spinner />
