@@ -179,6 +179,13 @@ const AppMenuitem = (props: AppMenuItemProps) => {
     </span>
   ) : null;
 
+  // Helper function to get data-tour attribute
+  const getDataTourAttribute = () => {
+    if (item?.label === 'Settings') return 'settings-menu';
+    if (item?.label === 'Currencies' && item?.to === '/currencies') return 'currencies-menu';
+    return undefined;
+  };
+
   const subMenu =
     item?.items && item?.visible !== false ? (
       <ul ref={submenuRef} className='px-2'>
@@ -206,6 +213,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
             target={item?.target}
             data-pr-tooltip={item?.label}
             data-pr-disabled={!(isSlim() && props.root && !layoutState.menuHoverActive)}
+            data-tour={getDataTourAttribute()}
             tabIndex={0}
             style={{ fontWeight: isActiveRoute ? 'bold' : 'normal' }}
             onMouseEnter={onMouseEnter}
@@ -226,6 +234,7 @@ const AppMenuitem = (props: AppMenuItemProps) => {
             replace={item?.replaceUrl}
             onClick={e => itemClick(e)}
             className={classNames(item?.class, 'p-ripple ', { 'active-route': isActiveRoute })}
+            data-tour={getDataTourAttribute()}
             tabIndex={0}
             onMouseEnter={onMouseEnter}
           >

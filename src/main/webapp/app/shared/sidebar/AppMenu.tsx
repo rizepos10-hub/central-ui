@@ -729,17 +729,9 @@ export const model: MenuItem[] = [
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {
-        label: 'Localization Settings',
+        label: 'Currencies',
         role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
         to: '/currencies',
-        items: [
-          {
-            label: 'Currencies',
-            role: ['ROLE_ADMINISTRATOR', 'ROLE_ONLINE_ORDERING_ADMIN'],
-            to: '/currencies',
-            type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
-          },
-        ],
         type: [BusinessTypeEnum.RESTAURANT, BusinessTypeEnum.RETAIL],
       },
       {

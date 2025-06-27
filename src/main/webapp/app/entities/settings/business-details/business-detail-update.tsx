@@ -163,7 +163,6 @@ export const BusinessDetailUpdate = () => {
                 <ValidatedField
                   label={'Name'}
                   name="businessName"
-
                   data-cy="value"
                   type="text"
                   validate={{
@@ -182,13 +181,12 @@ export const BusinessDetailUpdate = () => {
                     maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
                   }}
                   onChange={handleFieldChange}
-
                 />
                 <div className='d-flex flex-column gap-2'>
                   <div className='fw-light'>
                     Logo
                   </div>
-                  <div className='w-25'>
+                  <div className='w-25' data-tour="logo-upload">
                     {businessDetailsState && (
                       <MediaLibrary
                         sizePerPage={80}
@@ -275,7 +273,14 @@ export const BusinessDetailUpdate = () => {
                   onChange={handleFieldChange}
                 />
 
-                <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
+                <Button 
+                  color="primary" 
+                  id="save-entity" 
+                  data-cy="entityCreateSaveButton" 
+                  data-tour="business-save-button"
+                  type="submit" 
+                  disabled={updating}
+                >
                   <FontAwesomeIcon icon="save" />
                   &nbsp;
                   <Translate contentKey="entity.action.save">Save</Translate>

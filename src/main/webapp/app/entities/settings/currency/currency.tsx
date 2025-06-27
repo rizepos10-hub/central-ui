@@ -176,7 +176,7 @@ export const Currency = () => {
       <Row>
         <Col md="8" className="d-flex flex-column p-3 gap-5  bg-white">
           <Alert className={"alert-warning"}>Kindly be advised that after the implementation of the default currency, any alterations or modifications become permanent and cannot be reversed.</Alert>
-          <div className={"d-flex gap-2 w-auto"}>
+          <div className={"d-flex gap-2 w-auto"} data-tour="default-currency">
             <label className={"text-xl mt-2 font-bold"}>
               Default Currency:
             </label>
@@ -193,7 +193,8 @@ export const Currency = () => {
               <Button
                 raised
                 disabled={defaultCurrency === null}
-                onClick={confirm1}>
+                onClick={confirm1}
+                data-tour="currency-save-button">
                 Set Default Currency
               </Button> : null}
 

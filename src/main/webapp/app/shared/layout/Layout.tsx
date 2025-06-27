@@ -23,6 +23,7 @@ import { ConfirmDialog } from "primereact/confirmdialog";
 import GlobalSearch from "../components/global-search/global-search";
 import { model } from "../sidebar/AppMenu";
 import { getTenantFromURL } from "app/app";
+import GuidedTour from "../components/guided-tour/guided-tour";
 
 
 
@@ -218,6 +219,7 @@ export const Layout = (props: ChildContainerProps) => {
         }}>
           <ConfirmDialog />
           <GlobalSearch data={model} />
+          <GuidedTour />
           <ToastContainer position={toast.POSITION.BOTTOM_RIGHT} className="toastify-container" toastClassName="toastify-toast" />
           <ErrorBoundary>
             {/* <Header */}
