@@ -412,10 +412,8 @@ export const RegularItem = () => {
   };
 
   useEffect(() => {
-    if (query?.filters?.name?.value) {
-      setLocalNameFilter(query?.filters?.name?.value)
-    }
-  }, [])
+    setLocalNameFilter(query?.filters?.name?.value ?? '');
+  }, [query?.filters?.name?.value]);
 
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};

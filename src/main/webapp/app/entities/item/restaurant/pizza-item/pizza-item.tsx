@@ -340,10 +340,8 @@ export const PizzaItem = () => {
   };
 
   useEffect(() => {
-    if (query?.filters?.name?.value) {
-      setLocalNameFilter(query?.filters?.name?.value)
-    }
-  }, [])
+    setLocalNameFilter(query?.filters?.name?.value ?? '');
+  }, [query?.filters?.name?.value]);
 
   const confirm1 = () => {
     confirmDialog({
