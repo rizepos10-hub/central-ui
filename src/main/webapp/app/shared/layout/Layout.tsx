@@ -204,18 +204,11 @@ export const Layout = (props: ChildContainerProps) => {
     <React.Fragment>
 
       <div className={classNames('layout-container', containerClass)}>
-        {isAuthenticated && tenant &&
-          <div ref={sidebarRef} className="layout-sidebar" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} style={{
-            height: '100%',
-            top: '7vh',
-            zIndex: 0
-          }}>
-            {/* onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} */}
-            <AppSidebar />
-          </div>}
+        {isAuthenticated && tenant && <AppSidebar />}
         {isAuthenticated && tenant && <AppTopbar ref={topbarRef} />}
-        <div className={isAuthenticated ? 'layout-content-wrapper' : ''} style={{
+        <div className={classNames(isAuthenticated ? 'layout-content-wrapper' : '', 'layout-wrapper')} style={{
           height: '100%',
+          transition: 'margin-left 0.3s ease'
         }}>
           <ConfirmDialog />
           <GlobalSearch data={model} />

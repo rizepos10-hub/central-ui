@@ -1,4 +1,5 @@
 import AppSubMenu from './AppSubMenu';
+import NewSidebar from './NewSidebar';
 import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getBusinessTypes } from 'app/entities/settings/business-type/business-type.reducer';
@@ -793,7 +794,7 @@ const AppMenu = () => {
   }, []);
 
   // eslint-disable-next-line react/react-in-jsx-scope
-  return <AppSubMenu model={model} businessTypes={businessTypes} />;
+  return <NewSidebar businessTypes={businessTypes} />;
 };
 
 export default AppMenu;

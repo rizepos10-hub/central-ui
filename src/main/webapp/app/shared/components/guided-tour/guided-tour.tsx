@@ -42,31 +42,38 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
       disableBeacon: true,
     },
     {
-      target: '[data-tour="settings-menu"]',
+      target: 'body',
       content: (
         <div>
-          <h4>Settings Menu</h4>
-          <p>First, let's access your business settings. Click on the Settings menu to begin.</p>
+          <h4>Step 1: Access Settings</h4>
+          <p>First, let's access your business settings:</p>
+          <ol>
+            <li>Look at the sidebar on the left</li>
+            <li>Click on the <strong>Settings</strong> icon (gear icon)</li>
+            <li>Then click on <strong>"Business Information"</strong> from the menu</li>
+          </ol>
+          <p>Click "Next" once you've navigated to the Business Information page.</p>
         </div>
       ),
-      placement: 'right' as Placement,
+      placement: 'center' as Placement,
       disableBeacon: true,
     },
     {
-      target: 'input[name="businessName"]',
+      target: 'body',
       content: (
         <div>
-          <h4>Business Information Form</h4>
-          <p>Here's your business information form. You need to fill in:</p>
+          <h4>Step 2: Fill Business Information</h4>
+          <p>Now you should see the Business Information form. Please fill in:</p>
           <ul>
             <li><strong>Business Name</strong> (required)</li>
-            <li><strong>Slogan</strong> (optional)</li>
-            <li><strong>Logo</strong> (recommended)</li>
+            <li><strong>Slogan</strong> (optional but recommended)</li>
+            <li><strong>Logo</strong> (optional but recommended)</li>
           </ul>
-          <p>The tour will pause so you can fill these fields, then click "Save" when done.</p>
+          <p>Once you've filled in the information, <strong>click the "Save" button</strong>.</p>
+          <p><em>The tour will automatically continue after you save.</em></p>
         </div>
       ),
-      placement: 'right' as Placement,
+      placement: 'center' as Placement,
       disableBeacon: true,
     },
     {
@@ -74,7 +81,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
       content: (
         <div>
           <h4>⏸️ Tour Paused - Fill Your Information</h4>
-          <p>Please fill in your business information:</p>
+          <p>Please complete the business information form:</p>
           <ol>
             <li>Enter your <strong>business name</strong></li>
             <li>Add a <strong>slogan</strong> (optional)</li>
@@ -88,26 +95,36 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
       disableBeacon: true,
     },
     {
-      target: '[data-tour="currencies-menu"][href*="currencies"]',
+      target: 'body',
       content: (
         <div>
-          <h4>Great! Now Currency Settings</h4>
-          <p>Your business information has been saved! Now let's set up your default currency. Click on "Currencies" in the Settings menu.</p>
+          <h4>Step 3: Currency Settings</h4>
+          <p>Great! Your business information has been saved. Now let's set up your default currency:</p>
+          <ol>
+            <li>In the Settings menu, click on <strong>"Currencies"</strong></li>
+            <li>This will take you to the currency settings page</li>
+          </ol>
+          <p>Click "Next" once you're on the Currencies page.</p>
         </div>
       ),
-      placement: 'right' as Placement,
+      placement: 'center' as Placement,
       disableBeacon: true,
     },
     {
-      target: '[data-tour="default-currency"]',
+      target: 'body',
       content: (
         <div>
-          <h4>Default Currency Setup</h4>
-          <p>Select your business's default currency from the dropdown. This is critical as it cannot be changed later!</p>
-          <p>The tour will pause so you can make your selection and save.</p>
+          <h4>Step 4: Set Default Currency</h4>
+          <p>Now you should see the currency settings. Please:</p>
+          <ol>
+            <li>Select your <strong>default currency</strong> from the dropdown</li>
+            <li>Click <strong>"Set Default Currency"</strong> button</li>
+          </ol>
+          <p>⚠️ <strong>Important:</strong> This cannot be changed later, so choose carefully!</p>
+          <p><em>The tour will automatically continue after you save.</em></p>
         </div>
       ),
-      placement: 'bottom' as Placement,
+      placement: 'center' as Placement,
       disableBeacon: true,
     },
     {
@@ -170,10 +187,9 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
   }, [isAuthenticated, sessionHasBeenFetched, isVisible]);
 
   useEffect(() => {
-    if (runTour) {
-      localStorage.setItem(TOUR_STEPS_KEY, stepIndex.toString());
-    }
-  }, [stepIndex, runTour]);
+    // Always save the current step to localStorage, even when paused
+    localStorage.setItem(TOUR_STEPS_KEY, stepIndex.toString());
+  }, [stepIndex]);
 
   // Monitor save success to auto-resume tour
   useEffect(() => {
@@ -181,32 +197,11 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
       console.log('✅ Business details saved! Resuming tour...');
       console.log('🔍 Current tour state:', { waitingForSave, stepIndex, runTour, isPaused });
       
-      // Check if currencies menu element exists with specific selector
-      const currenciesMenuSpecific = document.querySelector('[data-tour="currencies-menu"][href*="currencies"]');
-      console.log('🎯 Currencies menu (specific selector) found:', currenciesMenuSpecific);
-      
-      // Check for all elements with data-tour attribute
-      const allCurrenciesMenus = document.querySelectorAll('[data-tour="currencies-menu"]');
-      console.log('🔍 Total currencies menu elements found:', allCurrenciesMenus.length);
-      allCurrenciesMenus.forEach((el, index) => {
-        console.log(`Element ${index}:`, el, 'Text:', el.textContent?.trim(), 'Href:', el.getAttribute('href'));
-      });
-      
-      // Test the specific selector we'll use in the tour
-      const tourTarget = document.querySelector('[data-tour="currencies-menu"][href*="currencies"]');
-      console.log('🎭 Tour target element:', tourTarget);
-      if (tourTarget) {
-        console.log('✅ Tour target text:', tourTarget.textContent?.trim());
-        console.log('✅ Tour target href:', tourTarget.getAttribute('href'));
-      } else {
-        console.log('❌ Tour target not found with specific selector!');
-      }
-      
       clearFieldHighlights();
       setWaitingForSave(false);
       setIsPaused(false);
       setRunTour(true);
-      setStepIndex(4); // Move to next step
+      setStepIndex(4); // Move to currency settings step
       
       console.log('🎭 Tour state after business save:', {
         waitingForSave: false,
@@ -219,11 +214,12 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
 
   useEffect(() => {
     if (waitingForSave && currencySettingsUpdateSuccess && stepIndex === 6) {
+      console.log('✅ Currency settings saved! Completing tour...');
       clearFieldHighlights();
       setWaitingForSave(false);
       setIsPaused(false);
       setRunTour(true);
-      setStepIndex(7); // Move to final step
+      setStepIndex(7); // Move to completion step
     }
   }, [currencySettingsUpdateSuccess, waitingForSave, stepIndex]);
 
@@ -352,64 +348,29 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
       localStorage.removeItem(TOUR_STEPS_KEY);
       onComplete?.();
     } else if (type === 'step:after') {
-      // Handle navigation between routes during tour
-      if (index === 1 && location.pathname !== '/details') {
-        // Navigate to business details and wait for page load
-        console.log('🚀 Navigating to business details...');
+      // Handle tour progression
+      if (index === 1) {
+        // After step 1 instructions, navigate to business details page
+        console.log('🚀 Navigating to business details page...');
         navigate('/details');
-        
-        // Wait for navigation and element to be available
-        setTimeout(() => {
-          const businessNameInput = document.querySelector('input[name="businessName"]');
-          if (businessNameInput) {
-            console.log('✅ Business name input found, proceeding to next step');
-            setStepIndex(index + 1);
-          } else {
-            console.log('⚠️ Business name input not found, retrying...');
-            // Retry after another short delay
-            setTimeout(() => {
-              setStepIndex(index + 1);
-            }, 500);
-          }
-        }, 800);
-        return; // Don't increment step index immediately
-      } else if (index === 4 && location.pathname !== '/currencies') {
-        // Navigate to currencies settings and wait for page load
-        console.log('🚀 Navigating to currencies...');
-        navigate('/currencies');
-        
-        // Wait for navigation and element to be available
-        setTimeout(() => {
-          const currencySelect = document.querySelector('[data-tour="default-currency"]');
-          
-          // Debug: Check currencies menu elements
-          const allDataTourElements = document.querySelectorAll('[data-tour="currencies-menu"]');
-          console.log('🔍 All elements with data-tour="currencies-menu":', allDataTourElements);
-          allDataTourElements.forEach((el, index) => {
-            console.log(`Data-tour element ${index}:`, el, 'Text:', el.textContent, 'Href:', el.getAttribute('href'));
-          });
-          
-          if (currencySelect) {
-            console.log('✅ Currency element found, proceeding to next step');
-            setStepIndex(index + 1);
-          } else {
-            console.log('⚠️ Currency element not found, retrying...');
-            setTimeout(() => {
-              setStepIndex(index + 1);
-            }, 500);
-          }
-        }, 800);
-        return; // Don't increment step index immediately
+        setStepIndex(index + 1);
+        return;
       } else if (index === 2) {
-        // After showing business form, move to pause step and pause tour
+        // After showing business information instructions, move to pause step
         console.log('⏸️ Pausing tour for business information entry...');
         setStepIndex(3);
         setIsPaused(true);
         setWaitingForSave(true);
         setRunTour(false);
         return;
+      } else if (index === 4) {
+        // After step 4 instructions, navigate to currencies page
+        console.log('🚀 Navigating to currencies page...');
+        navigate('/currencies');
+        setStepIndex(index + 1);
+        return;
       } else if (index === 5) {
-        // After showing currency form, move to pause step and pause tour
+        // After showing currency instructions, move to pause step
         console.log('⏸️ Pausing tour for currency selection...');
         setStepIndex(6);
         setIsPaused(true);
