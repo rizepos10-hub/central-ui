@@ -123,10 +123,8 @@ export const ComboItem = () => {
   }
 
   useEffect(() => {
-    if (query?.filters?.name?.value) {
-      setLocalNameFilter(query?.filters?.name?.value)
-    }
-  }, [])
+    setLocalNameFilter(query?.filters?.name?.value ?? '');
+  }, [query?.filters?.name?.value]);
 
   const nameColumnTemplate = rowData => {
     const editUrl = `/restaurant/combo/${rowData.id}/edit`;

@@ -4,6 +4,7 @@ import { Button, Card, CardBody, CardHeader, Col, FormGroup, Row, Spinner, Table
 import { Button as PrimeButton } from 'primereact/button';
 import { getSortState, translate, Translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { toast } from 'react-toastify';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
@@ -76,12 +77,22 @@ export const RegularItemUpdate = () => {
 
   const [regularItem, setRegularItem] = useState<IRegularItem>({});
 
+  // Price entered at the item level – used for auto-sync with the first variant
+  const [defaultPrice, setDefaultPrice] = useState<number | null>(null);
+
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const [selectedAddonGroup, setSelectedAddonGroup] = useState<IAddonGroups>();
   const [currentVariantId, setCurrentVariantId] = useState<string>();
 
+  /*
+   * Track whether a specific field of a variant has been edited manually by the
+   * user. If it has, we stop automatically syncing that field from the parent
+   * item record.
+   */
+  const [variantEdited, setVariantEdited] = useState<Record<number, { name?: boolean; price?: boolean }>>({});
+  const [showFormErrors, setShowFormErrors] = useState(false);
 
   const handleBackClick = () => {
     const fromMenuId = new URLSearchParams(location.search).get('fromMenu');
@@ -102,6 +113,16 @@ export const RegularItemUpdate = () => {
   }, [])
 
   const handleVariantFieldChange = <K extends keyof IRegularItemVariant>(variantIndex, fieldName: K, value: IRegularItemVariant[K]) => {
+    // Mark the field as manually edited so we stop syncing it from item level
+    if (fieldName === 'name' || fieldName === 'price') {
+      setVariantEdited(prev => ({
+        ...prev,
+        [variantIndex]: {
+          ...prev[variantIndex],
+          [fieldName]: true,
+        },
+      }));
+    }
     setRegularItem((prev) => {
       const updatedVariants = [...prev.variants];
       updatedVariants[variantIndex] = {
@@ -114,7 +135,6 @@ export const RegularItemUpdate = () => {
       };
     });
   };
-
 
   const handleBranchPriceChange = useCallback((variantIndex, branchId, priceType, price) => {
     setRegularItem((prev) => {
@@ -137,9 +157,6 @@ export const RegularItemUpdate = () => {
     });
   }, []);
 
-
-
-
   const handleAddVariant = () => {
     setRegularItem((prev) => ({
       ...prev,
@@ -156,8 +173,6 @@ export const RegularItemUpdate = () => {
           price: null,
           salePrice: null,
           branchVariantDetails: {},
-          attributeValues: {},
-          createdDate: new Date().toISOString(),
           pricingPointBranchPrices: [],
           id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
         },
@@ -173,7 +188,6 @@ export const RegularItemUpdate = () => {
   const handleDragLeave = () => {
     setDragOverIndex(null);
   };
-
 
   const handleDrop = (droppedIndex: number) => {
     if (draggedIndex === null || draggedIndex === droppedIndex) return;
@@ -202,8 +216,6 @@ export const RegularItemUpdate = () => {
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
-
-
 
   const handleNavigate = (RegularItemId) => {
     navigate(`/restaurant/regular/${RegularItemId}/edit` + location.search);
@@ -243,8 +255,16 @@ export const RegularItemUpdate = () => {
   }, [regularItemEntity]);
 
   console.log(regularItemEntity, 'regularItemEntity')
+
   const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
+
+    if (!validateEntity()) {
+      setShowFormErrors(true);
+      return;
+    } else {
+      setShowFormErrors(false);
+    }
 
     const updatedVariants = regularItem?.variants?.map((variant, index) => {
       if (index !== 0 && variant.order === 0) {
@@ -478,44 +498,6 @@ export const RegularItemUpdate = () => {
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
   };
 
-  // const onReorder = (event, variantIndex) => {
-  //   const reorderedAddons = event.value;
-  //   handleVariantFieldChange(variantIndex, 'addons', reorderedAddons);
-  // };
-
-  // const handleAddonChange = (selectedAddon: IAddon, variant, variantIndex) => {
-  //   const updatedAddons = [...variant.addons, selectedAddon];
-  //   handleVariantFieldChange(variantIndex, 'addons', updatedAddons as IAddon[])
-  // };
-
-
-  // const handleRemoveAddon = (addon: string, variant, variantIndex) => {
-  //   const updatedAddons = variant.addons.filter(a => a.id !== addon);
-
-  //   handleVariantFieldChange(variantIndex, 'addons', updatedAddons as IAddon[])
-  // };
-
-  // const handleAddonOverridedPriceChange = (addonId, price, variantIndex) => {
-  //   const variant: IRegularItemVariant = regularItem.variants[variantIndex];
-  //   const updatedAddonPriceOverrides = [...variant.addonPriceOverrides];
-  //   const index = updatedAddonPriceOverrides.findIndex(override => override.id === addonId);
-  //   if (price !== null && price !== undefined && price !== '') {
-  //     if (index >= 0) {
-  //       // Update existing price override
-  //       updatedAddonPriceOverrides[index].price = price;
-  //     } else {
-  //       // Add new price override
-  //       updatedAddonPriceOverrides.push({ id: addonId, price });
-  //     }
-  //   } else {
-  //     // Remove price override if price is empty or null
-  //     if (index >= 0) {
-  //       updatedAddonPriceOverrides.splice(index, 1);
-  //     }
-  //   }
-
-  //   handleVariantFieldChange(variantIndex, 'addonPriceOverrides', updatedAddonPriceOverrides);
-  // };
   const handleVariantAddonGroupFieldChange = (
     addonGroupIndex: number,
     fieldName: string,
@@ -589,8 +571,6 @@ export const RegularItemUpdate = () => {
     }
   }, [regularItem.variants]);
 
-
-
   const handleAddonGroupOverridedPriceChange = (
     addonGroupIndex: number,
     addonId: string,
@@ -631,7 +611,6 @@ export const RegularItemUpdate = () => {
 
     handleVariantFieldChange(variantIndex, 'addonGroups', updatedAddonGroups);
   };
-
 
   const handleVariantAddonGroupExcludedChange = (
     e,
@@ -677,6 +656,76 @@ export const RegularItemUpdate = () => {
 
   console.log(regularItem?.addonGroups, 'regularItem?.addonGroups')
 
+  // Automatically keep the first variant's name & price in sync with the item
+  // while creating a NEW item **until** the user edits those fields on the
+  // variant manually. This greatly speeds up item creation because the user
+  // only needs to fill in the required fields at the item level.
+  useEffect(() => {
+    if (!isNew) return; // only during creation
+
+    setRegularItem(prev => {
+      const variants = prev.variants ? [...prev.variants] : [];
+
+      // make sure at least one variant exists
+      if (variants.length === 0) {
+        variants.push({
+          name: prev.name,
+          price: defaultPrice,
+          salePrice: null,
+          branchVariantDetails: {},
+          pricingPointBranchPrices: [],
+          id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
+          accountingGroups: [],
+          attachments: [],
+          addons: [],
+          addonGroups: [],
+          discounts: [],
+        });
+      } else {
+        // update existing first variant when not manually edited
+        const first = variants[0];
+        const updatedFirst = { ...first };
+        if (!variantEdited[0]?.name) {
+          updatedFirst.name = prev.name;
+        }
+        if (!variantEdited[0]?.price) {
+          updatedFirst.price = defaultPrice;
+        }
+        variants[0] = updatedFirst;
+      }
+
+      return { ...prev, variants };
+    });
+  }, [regularItem.name, defaultPrice]);
+
+  // ------------- VALIDATION -------------------
+  const validateEntity = (): boolean => {
+    if (!regularItem.name || regularItem.name.trim() === '') {
+      toast.error('Item name is required');
+      return false;
+    }
+
+    if (!regularItem.variants || regularItem.variants.length === 0) {
+      toast.error('At least one variant is required');
+      return false;
+    }
+
+    // Validate each variant
+    for (let i = 0; i < regularItem.variants.length; i++) {
+      const variant = regularItem.variants[i];
+      if (!variant.name || variant.name.trim() === '') {
+        toast.error(`Variant ${i + 1} name is required`);
+        return false;
+      }
+      if (variant.price === null || variant.price === undefined) {
+        toast.error(`Variant ${i + 1} price is required`);
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   if (loading) {
     return <Spinner />
   }
@@ -708,7 +757,13 @@ export const RegularItemUpdate = () => {
                       <Row>
                         <FormGroup className={`${isNew ? 'd-flex bg-white' : ''}`}>
                           <Col md="12" className={`d-flex flex-column p-3  bg-white `}>
-                            <SharedItemUpdate item={regularItem} onFieldChange={handleFieldChange} />
+                            <SharedItemUpdate
+                              item={regularItem}
+                              onFieldChange={handleFieldChange}
+                              defaultPrice={defaultPrice}
+                              setDefaultPrice={setDefaultPrice}
+                              showFormErrors={showFormErrors}
+                            />
 
                             <Col md="5" className={'d-flex gap-3'}>
                               <PrimeButton color="primary" type="button" onClick={handleAddVariant}>
@@ -753,6 +808,7 @@ export const RegularItemUpdate = () => {
                                                     value={variant?.name || ''}
                                                     onChange={e => handleVariantFieldChange(variantIndex, 'name', e.target.value)}
                                                     draggable={false}
+                                                    style={{ borderColor: showFormErrors && !variant?.name ? 'red' : '' }}
                                                   />
                                                 </div>
                                               </Col>
@@ -769,12 +825,12 @@ export const RegularItemUpdate = () => {
                                                     inputClassName={'w-1'}
                                                     required={true}
                                                     placeholder="Variant Price"
-                                                    value={variant?.price || null}
+                                                    value={variant?.price ?? null}
                                                     size={6}
                                                     min={0}
                                                     maxFractionDigits={2}
                                                     onChange={e => handleVariantFieldChange(variantIndex, 'price', e.value)}
-                                                    draggable={false}
+                                                    inputStyle={{ borderColor: showFormErrors && (variant?.price === null || variant?.price === undefined) ? 'red' : '' }}
                                                   />
                                                 </div>
                                               </Col>

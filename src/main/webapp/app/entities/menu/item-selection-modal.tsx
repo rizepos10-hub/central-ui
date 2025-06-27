@@ -17,6 +17,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import PaginationFilterStateVals from 'app/shared/components/pagination/pagination-filter-state-vals';
+import { useRef } from 'react';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -41,6 +42,8 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   // Local states replacing searchParams
   const [itemName, setItemName] = useState<string>('');
+  // Debounced value of itemName to avoid firing requests on every key stroke
+  const [debouncedItemName, setDebouncedItemName] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>(null);
   const [unassignedItems, setUnassignedItems] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -51,18 +54,32 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const [restaurantFilter, setRestaurantFilter] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
 
+  // Debounce the item name search input so we only fetch after the user stops
+  // typing for 300 ms. This also prevents race-conditions where a slower
+  // response of an earlier query overrides a faster one of a later query.
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedItemName(itemName);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [itemName]);
+
+  // Fetch items whenever the debounced search term or other filters change.
   useEffect(() => {
     dispatch(
       getEntities({
         page: page - 1,
         size,
-        name: itemName,
+        name: debouncedItemName,
         sort: 'id,asc',
         categoryId: selectedCategory || '',
         unassignedItems: unassignedItems ? 'true' : '',
       })
     );
-  }, [page, size, itemName, selectedCategory, unassignedItems]);
+  }, [page, size, debouncedItemName, selectedCategory, unassignedItems]);
 
   useEffect(() => {
     dispatch(
@@ -141,7 +158,10 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
               <Input
                 type="text"
                 id="searchItem"
-                onChange={(e) => setItemName(e.target.value || '')}
+                onChange={(e) => {
+                  setItemName(e.target.value || '');
+                  setPage(1); // reset to first page on new search term
+                }}
                 value={itemName}
                 placeholder="Start Searching"
                 className='w-100'
