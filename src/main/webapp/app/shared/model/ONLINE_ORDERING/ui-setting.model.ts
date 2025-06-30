@@ -24,6 +24,7 @@ export interface IUiSettings {
   phoneNumber?: string;
   applicationName?: string;
   orderConfirmation?: boolean;
+  guestCheckout?: boolean;
   branchDetail?: IBranchDetails[];
   colorSetting?: IColorSetting | null
   fontSetting?: IFontSetting
