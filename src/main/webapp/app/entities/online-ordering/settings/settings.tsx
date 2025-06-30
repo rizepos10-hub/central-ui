@@ -276,13 +276,24 @@ export const UiSettingsUpdate = () => {
                     </div>
 
                     <div className={'d-flex flex-column mb-3'}>
-                      <Label htmlFor="UiSettings-scheduleOrders">
-                        <strong>{translate('tempApp.UiSettings.scheduleOrders')}</strong>
+                      <Label htmlFor="UiSettings-orderConfirmation">
+                        <strong>{translate('tempApp.UiSettings.orderConfirmation')}</strong>
                       </Label>
                       <Checkbox
-                        id="UiSettings-scheduleOrders"
-                        checked={UiSettingsEntity.scheduleOrders || null}
-                        onChange={e => dispatch(changeEntityField({ name: 'scheduleOrders', value: e.checked }))}
+                        id="UiSettings-orderConfirmation"
+                        checked={UiSettingsEntity.orderConfirmation || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'orderConfirmation', value: e.checked }))}
+                      />
+                    </div>
+
+                    <div className={'d-flex flex-column mb-3'}>
+                      <Label htmlFor="UiSettings-guestCheckout">
+                        <strong>{translate('tempApp.UiSettings.guestCheckout')}</strong>
+                      </Label>
+                      <Checkbox
+                        id="UiSettings-guestCheckout"
+                        checked={UiSettingsEntity.guestCheckout || null}
+                        onChange={e => dispatch(changeEntityField({ name: 'guestCheckout', value: e.checked }))}
                       />
                     </div>
 
