@@ -91,6 +91,35 @@ export const deleteEntity = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const exportEntities = createAsyncThunk(
+  'addon/export_entities',
+  async (ids: Array<string>, thunkAPI) => {
+    const requestUrl = `api/export-data/addons`; // fake URL as requested
+
+    // Make the request with responseType: 'blob' to receive binary data
+    const response = await axios.post(requestUrl, ids, {
+      responseType: 'blob' // Expect the response to be in binary format
+    });
+
+    // Create a Blob from the response data
+    const blob = new Blob([response.data], { type: response.headers['content-type'] });
+
+    // Create a temporary download link and trigger it
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = 'exported_addons.xlsx'; // Replace this with the correct file extension
+    document.body.appendChild(link);
+    link.click();
+    link.remove(); // Clean up the DOM after the download
+
+    // Optionally dispatch another action or return the result
+    thunkAPI.dispatch(getEntities({}));
+    return response.data;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 export const changeEntityField = createAction<ChangeFieldPayload<IAddon>>('addon/change-entity-field');
 
 // slice
@@ -123,7 +152,7 @@ export const AddonSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, exportEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -134,7 +163,7 @@ export const AddonSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, exportEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
