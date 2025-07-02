@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Translate, translate } from 'react-jhipster';
@@ -10,11 +10,13 @@ import { Chip } from 'primereact/chip';
 import { FilterMatchMode } from 'primereact/api';
 import ImportButton from 'app/shared/components/data-import/data-import';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
-import { filterEntities } from 'app/entities/addon/addon.reducer';
+import { filterEntities, exportEntities } from 'app/entities/addon/addon.reducer';
 import { Dropdown } from 'primereact/dropdown';
 import { getEntities } from 'app/entities/addon-groups/addon-groups.reducer';
 import { IAddonGroup } from "app/shared/model/ADDON/addon-groups.model";
 import { IProfileGroup } from 'app/shared/model/TAX/profile-group.model';
+import { confirmDialog } from 'primereact/confirmdialog';
+import { IAddon } from 'app/shared/model/ADDON/addon.model';
 
 const initialState = {
   first: 0,
@@ -29,6 +31,13 @@ const initialState = {
   },
 };
 
+// Define action options with edit and move to trash disabled as requested
+const actionOptions = [
+  { name: 'Edit', code: 'EDIT', disabled: true },
+  { name: 'Move To Trash', code: 'MOVE_TO_TRASH', disabled: true },
+  { name: 'Export', code: 'EXPORT', disabled: false },
+];
+
 export const Addon = () => {
   const dispatch = useAppDispatch();
 
@@ -42,6 +51,11 @@ export const Addon = () => {
   const loadingGroups = useAppSelector(state => state.addonGroups.loading);
   const [searchParam, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParam.get('query')) || initialState;
+
+  // Bulk actions state
+  const [selectedActionOption, setSelectedActionOption] = useState(null);
+  const [selectedAddons, setSelectedAddons] = useState<IAddon[]>([]);
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
@@ -68,6 +82,45 @@ export const Addon = () => {
       })
     );
   }, []);
+
+  // Export functionality
+  useEffect(() => {
+    if (selectedActionOption?.code === "EXPORT") {
+      confirmExport();
+    }
+  }, [selectedActionOption]);
+
+  const confirmExport = () => {
+    confirmDialog({
+      message: 'Are you sure you want to export selected addons?',
+      header: 'Export Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => handleExportAddons(),
+      reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const handleExportAddons = async () => {
+    setIsLoadingAction(true);
+    await dispatch(exportEntities(selectedAddons.map(addon => addon.id))).finally(() => setIsLoadingAction(false));
+    setSelectedAddons([]);
+    setSelectedActionOption(null);
+  };
+
+  // Export All functionality
+  const confirmExportAll = () => {
+    confirmDialog({
+      message: 'Are you sure you want to export all addons?',
+      header: 'Export All Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => handleExportAllAddons(),
+    });
+  };
+
+  const handleExportAllAddons = async () => {
+    setIsLoadingAction(true);
+    await dispatch(exportEntities([])).finally(() => setIsLoadingAction(false));
+  };
 
   const onSort = event => {
     const queryParams = JSON.stringify(event);
@@ -136,12 +189,27 @@ export const Addon = () => {
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">
-        <Translate contentKey={'common.addons'}>Addons</Translate>
+      <span className="text-xl text-900 font-bold px-2">
+      <Dropdown
+          value={selectedActionOption}
+          onChange={(e) => setSelectedActionOption(e.value)}
+          options={actionOptions}
+          optionLabel="name"
+          placeholder="Bulk Actions"
+          className="w-full md:w-14rem"
+          disabled={selectedAddons.length < 1}
+          optionDisabled={(option) => option.disabled}
+        />
       </span>
-      <div className="ms-auto">
+      <div className="flex align-items-center gap-2">
         <ImportButton type={'ADDON'} />
-        &nbsp;
+        <Button
+          icon="pi pi-file-export"
+          raised
+          onClick={confirmExportAll}
+          tooltip="Export All"
+          data-pr-position="top"
+        />
         <Button
           label={translate('common.refreshList')}
           severity="secondary"
@@ -151,11 +219,9 @@ export const Addon = () => {
           onClick={handleSyncList}
           disabled={loading}
         >
-          &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
         <Button label={translate('tempApp.addon.createNewAddon')} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
         </Button>
       </div>
     </div>
@@ -197,6 +263,7 @@ export const Addon = () => {
     <div>
       <DataTable
         value={addonList}
+        loading={loading || isLoadingAction}
         editMode="row"
         header={header}
         removableSort
@@ -211,12 +278,16 @@ export const Addon = () => {
         onPage={onPage}
         onFilter={onFilter}
         filterDelay={500}
-        loading={loading}
         onSort={onSort}
         sortField={query.sortField}
         sortOrder={query.sortOrder}
         showGridlines
+        selectionMode='checkbox'
+        selection={selectedAddons}
+        onSelectionChange={(e) => setSelectedAddons(e.value)}
       >
+        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
+
         <Column
           field="name"
           header={translate('common.name')}
