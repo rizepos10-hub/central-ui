@@ -74,6 +74,12 @@ export interface IDeliveryConfiguration {
   shipmentRange: IDistance;
   minCharge: number;
   definedChargeRules: IChargeRule[];
+  deliveryTaggingMode: DeliveryTaggingModeEnum;
+}
+
+export enum DeliveryTaggingModeEnum {
+  RESTRICTED = 'RESTRICTED',
+  UNRESTRICTED = 'UNRESTRICTED',
 }
 
 export interface IChargeRule {

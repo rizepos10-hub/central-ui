@@ -10,7 +10,7 @@ import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
 import { RadioButton } from 'primereact/radiobutton';
 import { InputSwitch } from 'primereact/inputswitch';
-import { IBusinessDetail, Metric, UnitCostCalculationMode, dayTypeEnum, IBranchDetails } from 'app/shared/model/business-detail.model';
+import { IBusinessDetail, Metric, UnitCostCalculationMode, dayTypeEnum, IBranchDetails, DeliveryTaggingModeEnum } from 'app/shared/model/business-detail.model';
 import { RequestType, fromAddress, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import _ from 'lodash';
@@ -242,6 +242,7 @@ export const Branches = () => {
           },
           minCharge: 0,
           definedChargeRules: [],
+          deliveryTaggingMode: DeliveryTaggingModeEnum.UNRESTRICTED,
         };
       }
 
@@ -751,6 +752,19 @@ export const Branches = () => {
                           </Col>
                         </Row>
                       ))}
+
+                      <div className='p-2'>
+                          <Row>
+                            <label className="font-bold">
+                              Delivery Tagging Mode
+                            </label>
+                          </Row>
+                          <Dropdown
+                            options={Object.values(DeliveryTaggingModeEnum).map(mode => ({ label: mode, value: mode }))}
+                            value={branch.deliveryConfiguration?.deliveryTaggingMode}
+                            onChange={(e) => handleDeliveryConfiguration(branchIndex, 'deliveryTaggingMode', e.target.value)}
+                          />
+                      </div>
                     </Col>
                   </div>
                 </>
