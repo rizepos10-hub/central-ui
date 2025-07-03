@@ -61,6 +61,7 @@ import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { toast } from 'react-toastify';
 import { ImMagicWand } from "react-icons/im";
 import SeoTags from 'app/shared/components/item/seo-tags';
+import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -1865,68 +1866,11 @@ export const ProductUpdate = () => {
                       <ItemLoyaltyTab excludedFromLoyaltyPoints={product?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
                     </TabPanel>
                     <TabPanel header={translate('items.update.tabs.ebtEligibleBranches.label')}>
-                      <div className="w-100">
-                        <div className="text-xl font-semibold mb-3">
-                          <Translate contentKey="items.update.tabs.ebtEligibleBranches.title">EBT Eligible Branches</Translate>
-                        </div>
-                        
-                        {getEBTEligibleBranches().length === 0 ? (
-                          <div className="alert alert-warning">
-                            <Translate contentKey="items.update.tabs.ebtEligibleBranches.noBranches">
-                              No branches are configured as EBT eligible. Please configure branches in Business Details first.
-                            </Translate>
-                          </div>
-                        ) : (
-                          <div className="d-flex flex-column gap-3">
-                            <div className="text-sm text-muted">
-                              <Translate contentKey="items.update.tabs.ebtEligibleBranches.description">
-                                Select the branches where this item is eligible for EBT payment.
-                              </Translate>
-                            </div>
-                            
-                            <Table responsive>
-                              <thead>
-                                <tr>
-                                  <th>
-                                    <Translate contentKey="items.update.tabs.ebtEligibleBranches.branchName">Branch Name</Translate>
-                                  </th>
-                                  <th>
-                                    <Translate contentKey="items.update.tabs.ebtEligibleBranches.eligible">EBT Eligible</Translate>
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {getEBTEligibleBranches().map((branch) => (
-                                  <tr key={branch.id}>
-                                    <td>{branch.name}</td>
-                                    <td>
-                                      <Checkbox
-                                        checked={isEBTBranchSelected(branch.id)}
-                                        onChange={(e) => handleEBTEligibleBranchChange(branch.id, e.checked)}
-                                      />
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </Table>
-                            
-                            {product.ebtEligibleByBranch && product.ebtEligibleByBranch.length > 0 && (
-                              <div className="mt-3">
-                                <div className="text-sm font-semibold mb-2">
-                                  <Translate contentKey="items.update.tabs.ebtEligibleBranches.selectedBranches">Selected Branches:</Translate>
-                                </div>
-                                <div className="d-flex flex-wrap gap-2">
-                                  {product.ebtEligibleByBranch.map((ebtBranch) => (
-                                    <span key={ebtBranch.branch.id} className="badge bg-primary">
-                                      {ebtBranch.branch.name}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <EBTEligibleBranches
+                        item={product}
+                        setItem={setProduct}
+                        branchList={branchList}
+                      />
                     </TabPanel>
 
                   </TabView>
