@@ -144,6 +144,15 @@
           "title": "Title",
           "description": "Description",
           "keywords": "Keywords"
+        },
+        "ebtEligibleBranches": {
+          "label": "EBT Eligible Branches",
+          "title": "EBT Eligible Branches",
+          "description": "Select the branches where this item is eligible for EBT payment.",
+          "branchName": "Branch Name",
+          "eligible": "EBT Eligible",
+          "selectedBranches": "Selected Branches:",
+          "noBranches": "No branches are configured as EBT eligible. Please configure branches in Business Details first."
         }
       },
 

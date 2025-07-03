@@ -622,6 +622,44 @@ export const ProductUpdate = () => {
     navigate(`/product/${productId}/edit` + location.search);
   };
 
+  // EBT Eligible Branches Handlers
+  const handleEBTEligibleBranchChange = (branchId: string, isSelected: boolean) => {
+    setProduct(prev => {
+      const currentEbtBranches = prev.ebtEligibleByBranch || [];
+      
+      if (isSelected) {
+        // Add branch if not already in the set
+        const branch = getEBTEligibleBranches().find(b => b.id === branchId);
+        if (branch && !currentEbtBranches.some(eb => eb.branch.id === branchId)) {
+          return {
+            ...prev,
+            ebtEligibleByBranch: [
+              ...currentEbtBranches,
+              { branch: { id: branchId, name: branch.name } }
+            ]
+          };
+        }
+      } else {
+        // Remove branch from the set
+        return {
+          ...prev,
+          ebtEligibleByBranch: currentEbtBranches.filter(eb => eb.branch.id !== branchId)
+        };
+      }
+      
+      return prev;
+    });
+  };
+
+  const getEBTEligibleBranches = () => {
+    // Filter branches that have ebtEligible = true from branch list
+    return branchList?.filter(branch => branch.ebtEligible === true) || [];
+  };
+
+  const isEBTBranchSelected = (branchId: string) => {
+    return product.ebtEligibleByBranch?.some(eb => eb.branch.id === branchId) || false;
+  };
+
   const refreshProduct = () => {
     dispatch(getEntity(id));
     setActiveIndex(3)
@@ -1826,119 +1864,69 @@ export const ProductUpdate = () => {
                     <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
                       <ItemLoyaltyTab excludedFromLoyaltyPoints={product?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
                     </TabPanel>
-                    {/* <TabPanel header={translate('items.update.measures')}>
-                      <Row className={'mb-3 d-flex flex-column gap-3'}>
-                        <Col md="12" className={'d-flex gap-3 mb-3'}>
-                          <div className={'d-flex flex-column gap-2 w-6 mt-3'}>
-                            <label className={'font-semibold'}>
-                              <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
-                            </label>
-                            <Select
-                              value={product?.baseMeasure || null}
-                              options={measureList}
-                              name="baseMeasure"
-                              getOptionValue={option => option.id}
-                              getOptionLabel={option => option.name}
-                              onChange={handleBaseMeasureChange}
-                            />
+                    <TabPanel header={translate('items.update.tabs.ebtEligibleBranches.label')}>
+                      <div className="w-100">
+                        <div className="text-xl font-semibold mb-3">
+                          <Translate contentKey="items.update.tabs.ebtEligibleBranches.title">EBT Eligible Branches</Translate>
+                        </div>
+                        
+                        {getEBTEligibleBranches().length === 0 ? (
+                          <div className="alert alert-warning">
+                            <Translate contentKey="items.update.tabs.ebtEligibleBranches.noBranches">
+                              No branches are configured as EBT eligible. Please configure branches in Business Details first.
+                            </Translate>
                           </div>
-
-                          <Table>
-                            <thead>
-                              <tr>
-                                <th>Measure</th>
-                                <th className="w-1">Exchange Rate</th>
-                              </tr>
-                            </thead>
-                            <thead>
-                              <tr>
-                                <td>
-                                  <Select
-                                    value={measureToAdd?.itemMeasure || null}
-                                    isDisabled={!product?.baseMeasure}
-                                    options={filteredMeasures}
-                                    getOptionValue={option => option.id}
-                                    getOptionLabel={option => option.name}
-                                    onChange={itemMeasure => setMeasureToAdd(prev => ({ ...prev, itemMeasure }))}
-                                  />
-                                </td>
-                                <td>
-                                  <InputNumber
-                                    value={measureToAdd?.exchangeRate || null}
-                                    disabled={!measureToAdd?.itemMeasure}
-                                    onChange={e => setMeasureToAdd(prev => ({ ...prev, exchangeRate: e.value }))}
-                                  />
-                                </td>
-                                <td>
-                                  <Button
-                                    type="button"
-                                    disabled={!measureToAdd?.exchangeRate}
-                                    onClick={handleAddMeasure}
-                                    color="primary"
-                                    className={'mb-2'}
-                                  >
-                                    Add
-                                  </Button>
-                                </td>
-                              </tr>
-                            </thead>
-                          </Table>
-                        </Col>
-
-                        <Col md="8">
-                          <Table>
-                            <thead>
-                              <tr>
-                                <th>
-                                  <Translate contentKey={'items.update.measure'}>Measure</Translate>
-                                </th>
-                                <th>
-                                  <Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate>
-                                </th>
-                                <th>Remove</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {product?.measures?.map((exMeasure, index) => (
-                                <tr key={index}>
-                                  <td>{exMeasure?.itemMeasure?.name}</td>
-                                  <td>
-                                    <InputNumber
-                                      value={exMeasure?.exchangeRate || null}
-                                      required
-                                      onChange={e => handleMeasuresChange(index, e.value)}
-                                    />
-                                  </td>
-                                  <td>
-                                    <PrimeButton type={'button'} onClick={() => handleRemoveMeasure(index)} severity={'danger'}>
-                                      <Translate contentKey={'items.update.remove'}>Remove</Translate>
-                                    </PrimeButton>
-                                  </td>
+                        ) : (
+                          <div className="d-flex flex-column gap-3">
+                            <div className="text-sm text-muted">
+                              <Translate contentKey="items.update.tabs.ebtEligibleBranches.description">
+                                Select the branches where this item is eligible for EBT payment.
+                              </Translate>
+                            </div>
+                            
+                            <Table responsive>
+                              <thead>
+                                <tr>
+                                  <th>
+                                    <Translate contentKey="items.update.tabs.ebtEligibleBranches.branchName">Branch Name</Translate>
+                                  </th>
+                                  <th>
+                                    <Translate contentKey="items.update.tabs.ebtEligibleBranches.eligible">EBT Eligible</Translate>
+                                  </th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </Table>
-                        </Col>
-                      </Row>
-                    </TabPanel> */}
-
-                    {/* <TabPanel header={translate('items.update.tabs.supplier.label')}>
-                      <SupplierAssociationTab
-                        onSupplierChange={handleSupplierChange} // Pass down the function as a prop
-                        variants={product?.variants} itemId={product.id} suppliers={supplierList} />
-                    </TabPanel> */}
-
-                    <TabPanel header={translate('items.update.tabs.itemLocation.label')}>
-                      <ItemLocation
-                        onItemLocationChange={updateItemLocation} // Pass down the function as a prop
-                        itemLocaion={product?.itemLocation} />
-                    </TabPanel>
-
-                    <TabPanel header={translate('items.update.tabs.seo.label')}>
-                      <SeoTags
-                        field={product?.seo}
-                        onFieldChange={updateSeoTags}
-                      />
+                              </thead>
+                              <tbody>
+                                {getEBTEligibleBranches().map((branch) => (
+                                  <tr key={branch.id}>
+                                    <td>{branch.name}</td>
+                                    <td>
+                                      <Checkbox
+                                        checked={isEBTBranchSelected(branch.id)}
+                                        onChange={(e) => handleEBTEligibleBranchChange(branch.id, e.checked)}
+                                      />
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </Table>
+                            
+                            {product.ebtEligibleByBranch && product.ebtEligibleByBranch.length > 0 && (
+                              <div className="mt-3">
+                                <div className="text-sm font-semibold mb-2">
+                                  <Translate contentKey="items.update.tabs.ebtEligibleBranches.selectedBranches">Selected Branches:</Translate>
+                                </div>
+                                <div className="d-flex flex-wrap gap-2">
+                                  {product.ebtEligibleByBranch.map((ebtBranch) => (
+                                    <span key={ebtBranch.branch.id} className="badge bg-primary">
+                                      {ebtBranch.branch.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </TabPanel>
 
                   </TabView>

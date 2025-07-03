@@ -2,6 +2,7 @@ import {IItem} from "app/shared/model/ITEM/item.model";
 import {IAddon} from "app/shared/model/ADDON/addon.model";
 import {IAttachment} from "app/shared/model/attachment.model";
 import {IDiscount} from "app/shared/model/discount.model";
+import {IBranch} from "app/shared/model/branch.model";
 import {IPredefinedPizza} from "app/shared/model/PIZZA/predefined-pizza.model";
 import {IPizzaPricingClass} from "app/shared/model/PIZZA/pizza-pricing-class.model";
 import {ITopping} from "app/shared/model/PIZZA/topping.model";
@@ -9,6 +10,10 @@ import {ICrustType} from "app/shared/model/PIZZA/crust-type.model";
 import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
 import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
 import { IPizzaSize } from "../../PIZZA/pizza-size.model";
+
+export interface IEBTEligibleByBranch {
+  branch: IBranch;
+}
 
 interface IMultiplePizzaDetails{
   numberOfPizza?: number;
@@ -74,7 +79,10 @@ export enum PizzaVariantTypeEnum {
 
 export interface IPizzaItem extends IItem{
   variants?: IPizzaItemVariant[];
+  ebtEligibleByBranch?: IEBTEligibleByBranch[];
 }
 
-export const defaultValue: Readonly<IPizzaItem> = {};
+export const defaultValue: Readonly<IPizzaItem> = {
+  ebtEligibleByBranch: [],
+};
 

@@ -17,6 +17,7 @@ import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-u
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { InputNumber } from "primereact/inputnumber";
+import { Checkbox } from "primereact/checkbox";
 import ComboItemSelection from "app/entities/item/restaurant/combo-item/combo-item-selection";
 import ComboItemAddonDropDown from "app/entities/item/restaurant/combo-item/combo-item-addon";
 import { TabPanel, TabView } from "primereact/tabview";
@@ -312,6 +313,45 @@ export const ComboItemUpdate = () => {
         variants: updatedVariants,
       };
     });
+  };
+
+  
+  // EBT Eligible Branches Handlers
+  const handleEBTEligibleBranchChange = (branchId: string, isSelected: boolean) => {
+    setComboItem(prev => {
+      const currentEbtBranches = prev.ebtEligibleByBranch || [];
+      
+      if (isSelected) {
+        // Add branch if not already in the set
+        const branch = getEBTEligibleBranches().find(b => b.id === branchId);
+        if (branch && !currentEbtBranches.some(eb => eb.branch.id === branchId)) {
+          return {
+            ...prev,
+            ebtEligibleByBranch: [
+              ...currentEbtBranches,
+              { branch: { id: branchId, name: branch.name } }
+            ]
+          };
+        }
+      } else {
+        // Remove branch from the set
+        return {
+          ...prev,
+          ebtEligibleByBranch: currentEbtBranches.filter(eb => eb.branch.id !== branchId)
+        };
+      }
+      
+      return prev;
+    });
+  };
+
+  const getEBTEligibleBranches = () => {
+    // Filter branches that have ebtEligible = true from branch list
+    return branchList?.filter(branch => branch.ebtEligible === true) || [];
+  };
+
+  const isEBTBranchSelected = (branchId: string) => {
+    return comboItem.ebtEligibleByBranch?.some(eb => eb.branch.id === branchId) || false;
   };
 
 
@@ -618,6 +658,71 @@ export const ComboItemUpdate = () => {
                   field={comboItem?.seo}
                   onFieldChange={updateSeoTags}
                 />
+              </TabPanel>
+
+              <TabPanel header={translate('items.update.tabs.ebtEligibleBranches.label')}>
+                <div className="w-100">
+                  <div className="text-xl font-semibold mb-3">
+                    <Translate contentKey="items.update.tabs.ebtEligibleBranches.title">EBT Eligible Branches</Translate>
+                  </div>
+                  
+                  {getEBTEligibleBranches().length === 0 ? (
+                    <div className="alert alert-warning">
+                      <Translate contentKey="items.update.tabs.ebtEligibleBranches.noBranches">
+                        No branches are configured as EBT eligible. Please configure branches in Business Details first.
+                      </Translate>
+                    </div>
+                  ) : (
+                    <div className="d-flex flex-column gap-3">
+                      <div className="text-sm text-muted">
+                        <Translate contentKey="items.update.tabs.ebtEligibleBranches.description">
+                          Select the branches where this item is eligible for EBT payment.
+                        </Translate>
+                      </div>
+                      
+                      <Table responsive>
+                        <thead>
+                          <tr>
+                            <th>
+                              <Translate contentKey="items.update.tabs.ebtEligibleBranches.branchName">Branch Name</Translate>
+                            </th>
+                            <th>
+                              <Translate contentKey="items.update.tabs.ebtEligibleBranches.eligible">EBT Eligible</Translate>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {getEBTEligibleBranches().map((branch) => (
+                            <tr key={branch.id}>
+                              <td>{branch.name}</td>
+                              <td>
+                                <Checkbox
+                                  checked={isEBTBranchSelected(branch.id)}
+                                  onChange={(e) => handleEBTEligibleBranchChange(branch.id, e.checked)}
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                      
+                      {comboItem.ebtEligibleByBranch && comboItem.ebtEligibleByBranch.length > 0 && (
+                        <div className="mt-3">
+                          <div className="text-sm font-semibold mb-2">
+                            <Translate contentKey="items.update.tabs.ebtEligibleBranches.selectedBranches">Selected Branches:</Translate>
+                          </div>
+                          <div className="d-flex flex-wrap gap-2">
+                            {comboItem.ebtEligibleByBranch.map((ebtBranch) => (
+                              <span key={ebtBranch.branch.id} className="badge bg-primary">
+                                {ebtBranch.branch.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </TabPanel>
 
             </TabView>

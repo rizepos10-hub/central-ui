@@ -168,6 +168,12 @@ export const Branches = () => {
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
+  const handleEBTEligibleFlag = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].ebteligible = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
   const handleTokenExpiredFlag = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].tokenExpired = checked;
@@ -463,6 +469,12 @@ export const Branches = () => {
                   <Checkbox
                     checked={branch.wholesale}
                     onChange={(e) => handleWholesaleFlag(branchIndex, e.checked)}
+                  />
+
+                  <label className="font-bold mt-3">Is EBT Eligible</label>
+                  <Checkbox
+                    checked={branch.ebteligible}
+                    onChange={(e) => handleEBTEligibleFlag(branchIndex, e.checked)}
                   />
 
                   <label className="font-bold mt-3">Ending Type</label>

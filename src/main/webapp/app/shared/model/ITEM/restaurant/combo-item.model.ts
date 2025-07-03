@@ -16,6 +16,10 @@ interface IBranchVariantDetails {
   };
 }
 
+export interface IEBTEligibleByBranch {
+  branch: IBranch;
+}
+
 export interface IComboAddon {
   addon?: IAddon;
   amount?: number;
@@ -44,6 +48,7 @@ interface IComboItemVariant {
 
 export interface IComboItem extends IItem {
   variants?: IComboItemVariant[];
+  ebtEligibleByBranch?: IEBTEligibleByBranch[];
 }
 
 export const defaultValue: Readonly<IComboItem> = {
@@ -57,4 +62,5 @@ export const defaultValue: Readonly<IComboItem> = {
   }],
   itemType: "RESTAURANT",
   itemVariantType: ItemVariantType.RESTAURANT_COMBO,
+  ebtEligibleByBranch: [],
 };
