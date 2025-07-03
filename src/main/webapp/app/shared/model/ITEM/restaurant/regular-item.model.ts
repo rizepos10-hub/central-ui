@@ -60,4 +60,5 @@ export const defaultValue: Readonly<IRegularItem> = {
   }],
   itemType: "RESTAURANT",
   itemVariantType: ItemVariantType.RESTAURANT_VARIABLE,
+  ebtEligibleByBranch: [],
 };

@@ -61,6 +61,7 @@ import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { toast } from 'react-toastify';
 import { ImMagicWand } from "react-icons/im";
 import SeoTags from 'app/shared/components/item/seo-tags';
+import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -1826,118 +1827,11 @@ export const ProductUpdate = () => {
                     <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
                       <ItemLoyaltyTab excludedFromLoyaltyPoints={product?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
                     </TabPanel>
-                    {/* <TabPanel header={translate('items.update.measures')}>
-                      <Row className={'mb-3 d-flex flex-column gap-3'}>
-                        <Col md="12" className={'d-flex gap-3 mb-3'}>
-                          <div className={'d-flex flex-column gap-2 w-6 mt-3'}>
-                            <label className={'font-semibold'}>
-                              <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
-                            </label>
-                            <Select
-                              value={product?.baseMeasure || null}
-                              options={measureList}
-                              name="baseMeasure"
-                              getOptionValue={option => option.id}
-                              getOptionLabel={option => option.name}
-                              onChange={handleBaseMeasureChange}
-                            />
-                          </div>
-
-                          <Table>
-                            <thead>
-                              <tr>
-                                <th>Measure</th>
-                                <th className="w-1">Exchange Rate</th>
-                              </tr>
-                            </thead>
-                            <thead>
-                              <tr>
-                                <td>
-                                  <Select
-                                    value={measureToAdd?.itemMeasure || null}
-                                    isDisabled={!product?.baseMeasure}
-                                    options={filteredMeasures}
-                                    getOptionValue={option => option.id}
-                                    getOptionLabel={option => option.name}
-                                    onChange={itemMeasure => setMeasureToAdd(prev => ({ ...prev, itemMeasure }))}
-                                  />
-                                </td>
-                                <td>
-                                  <InputNumber
-                                    value={measureToAdd?.exchangeRate || null}
-                                    disabled={!measureToAdd?.itemMeasure}
-                                    onChange={e => setMeasureToAdd(prev => ({ ...prev, exchangeRate: e.value }))}
-                                  />
-                                </td>
-                                <td>
-                                  <Button
-                                    type="button"
-                                    disabled={!measureToAdd?.exchangeRate}
-                                    onClick={handleAddMeasure}
-                                    color="primary"
-                                    className={'mb-2'}
-                                  >
-                                    Add
-                                  </Button>
-                                </td>
-                              </tr>
-                            </thead>
-                          </Table>
-                        </Col>
-
-                        <Col md="8">
-                          <Table>
-                            <thead>
-                              <tr>
-                                <th>
-                                  <Translate contentKey={'items.update.measure'}>Measure</Translate>
-                                </th>
-                                <th>
-                                  <Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate>
-                                </th>
-                                <th>Remove</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {product?.measures?.map((exMeasure, index) => (
-                                <tr key={index}>
-                                  <td>{exMeasure?.itemMeasure?.name}</td>
-                                  <td>
-                                    <InputNumber
-                                      value={exMeasure?.exchangeRate || null}
-                                      required
-                                      onChange={e => handleMeasuresChange(index, e.value)}
-                                    />
-                                  </td>
-                                  <td>
-                                    <PrimeButton type={'button'} onClick={() => handleRemoveMeasure(index)} severity={'danger'}>
-                                      <Translate contentKey={'items.update.remove'}>Remove</Translate>
-                                    </PrimeButton>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </Table>
-                        </Col>
-                      </Row>
-                    </TabPanel> */}
-
-                    {/* <TabPanel header={translate('items.update.tabs.supplier.label')}>
-                      <SupplierAssociationTab
-                        onSupplierChange={handleSupplierChange} // Pass down the function as a prop
-                        variants={product?.variants} itemId={product.id} suppliers={supplierList} />
-                    </TabPanel> */}
-
-                    <TabPanel header={translate('items.update.tabs.itemLocation.label')}>
-                      <ItemLocation
-                        onItemLocationChange={updateItemLocation} // Pass down the function as a prop
-                        itemLocaion={product?.itemLocation} />
-                    </TabPanel>
-
-                    <TabPanel header={translate('items.update.tabs.seo.label')}>
-                      <SeoTags
-                        field={product?.seo}
-                        onFieldChange={updateSeoTags}
+                    <TabPanel header={translate('items.update.tabs.ebtEligibleBranches.label')}>
+                      <EBTEligibleBranches
+                        item={product}
+                        setItem={setProduct}
+                        branchList={branchList}
                       />
                     </TabPanel>
 

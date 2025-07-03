@@ -47,6 +47,7 @@ export interface IBranchDetails {
   endingType?: EndingType;
   tokenExpired?: boolean;
   logo?: IAttachment;
+  ebteligible?: boolean;
   pages?: ISeoPages
 }
 

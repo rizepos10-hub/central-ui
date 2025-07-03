@@ -48,6 +48,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
 import AddonImportModal from 'app/shared/components/item/addon-import-modal';
 import SeoTags from 'app/shared/components/item/seo-tags';
+import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 import IngredientsPicker from 'app/shared/ingredients-picker';
 
 export const RegularItemUpdate = () => {
@@ -716,8 +717,6 @@ export const RegularItemUpdate = () => {
     });
   };
 
-  console.log(regularItem?.addonGroups, 'regularItem?.addonGroups')
-
   // Automatically keep the first variant's name & price in sync with the item
   // while creating a NEW item **until** the user edits those fields on the
   // variant manually. This greatly speeds up item creation because the user
@@ -1278,6 +1277,14 @@ export const RegularItemUpdate = () => {
                       <SeoTags
                         field={regularItem?.seo}
                         onFieldChange={updateSeoTags}
+                      />
+                    </TabPanel>
+
+                    <TabPanel header={translate('items.update.tabs.ebtEligibleBranches.label')}>
+                      <EBTEligibleBranches 
+                        item={regularItem}
+                        setItem={setRegularItem}
+                        branchList={branchList}
                       />
                     </TabPanel>
                   </TabView>

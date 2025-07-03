@@ -57,4 +57,5 @@ export const defaultValue: Readonly<IComboItem> = {
   }],
   itemType: "RESTAURANT",
   itemVariantType: ItemVariantType.RESTAURANT_COMBO,
+  ebtEligibleByBranch: [],
 };
