@@ -13,6 +13,11 @@ import { IBrand } from "app/shared/model/brand.model";
 import { IAddonPriceOverride } from '../ADDON/addon-price-override';
 import { IMenu } from '../menu.model';
 import { ISeo } from './retail/product.model';
+import { IBranch } from '../branch.model';
+
+export interface IEBTEligibleByBranch {
+  branch: IBranch;
+}
 
 export interface IItem {
   id?: string;
@@ -40,6 +45,7 @@ export interface IItem {
   menus?: IMenu[];
   askForPrice?: boolean;
   seo?: ISeo;
+  ebtEligibleByBranch?: IEBTEligibleByBranch[];
 }
 
 export const defaultValue: Readonly<IItem> = {};

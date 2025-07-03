@@ -623,44 +623,6 @@ export const ProductUpdate = () => {
     navigate(`/product/${productId}/edit` + location.search);
   };
 
-  // EBT Eligible Branches Handlers
-  const handleEBTEligibleBranchChange = (branchId: string, isSelected: boolean) => {
-    setProduct(prev => {
-      const currentEbtBranches = prev.ebtEligibleByBranch || [];
-      
-      if (isSelected) {
-        // Add branch if not already in the set
-        const branch = getEBTEligibleBranches().find(b => b.id === branchId);
-        if (branch && !currentEbtBranches.some(eb => eb.branch.id === branchId)) {
-          return {
-            ...prev,
-            ebtEligibleByBranch: [
-              ...currentEbtBranches,
-              { branch: { id: branchId, name: branch.name } }
-            ]
-          };
-        }
-      } else {
-        // Remove branch from the set
-        return {
-          ...prev,
-          ebtEligibleByBranch: currentEbtBranches.filter(eb => eb.branch.id !== branchId)
-        };
-      }
-      
-      return prev;
-    });
-  };
-
-  const getEBTEligibleBranches = () => {
-    // Filter branches that have ebtEligible = true from branch list
-    return branchList?.filter(branch => branch.ebtEligible === true) || [];
-  };
-
-  const isEBTBranchSelected = (branchId: string) => {
-    return product.ebtEligibleByBranch?.some(eb => eb.branch.id === branchId) || false;
-  };
-
   const refreshProduct = () => {
     dispatch(getEntity(id));
     setActiveIndex(3)

@@ -11,10 +11,6 @@ import {ICrustThickness} from "app/shared/model/PIZZA/crust-thickness.model";
 import {IMixAndMatchRule} from "app/shared/model/mix-and-match-rule.model";
 import { IPizzaSize } from "../../PIZZA/pizza-size.model";
 
-export interface IEBTEligibleByBranch {
-  branch: IBranch;
-}
-
 interface IMultiplePizzaDetails{
   numberOfPizza?: number;
   freeToppingsNumber?: number;
@@ -79,7 +75,6 @@ export enum PizzaVariantTypeEnum {
 
 export interface IPizzaItem extends IItem{
   variants?: IPizzaItemVariant[];
-  ebtEligibleByBranch?: IEBTEligibleByBranch[];
 }
 
 export const defaultValue: Readonly<IPizzaItem> = {

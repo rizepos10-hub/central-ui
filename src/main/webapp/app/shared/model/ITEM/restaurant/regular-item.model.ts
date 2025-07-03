@@ -20,10 +20,6 @@ interface IBranchVariantDetails {
   };
 }
 
-export interface IEBTEligibleByBranch {
-  branch: IBranch;
-}
-
 export interface IRegularItemVariant {
   id?: string | null;
   name?: string | null;
@@ -46,7 +42,6 @@ export interface IRegularItemVariant {
 export interface IRegularItem extends IItem {
   variants?: IRegularItemVariant[];
   menus?: IMenu[];
-  ebtEligibleByBranch?: IEBTEligibleByBranch[];
 }
 
 export const defaultValue: Readonly<IRegularItem> = {

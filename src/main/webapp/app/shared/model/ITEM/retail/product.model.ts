@@ -6,17 +6,12 @@ import { IVariableItemVariant } from "app/shared/model/ITEM/retail/variable-item
 import { ItemLocation } from "app/shared/model/ITEM/retail/item-location.model";
 import { ItemVariantType } from "../../ENUMS/item-variant-type.model";
 
-export interface IEBTEligibleByBranch {
-  branch: IBranch;
-}
-
 export interface IProduct extends IItem {
   variants?: IVariableItemVariant[];
   attributes?: IAttributes[];
   baseMeasure?: IItemMeasure;
   measures?: IExchangeMeasure[];
   itemLocation?: ItemLocation;
-  ebtEligibleByBranch?: IEBTEligibleByBranch[];
 }
 
 export interface ISeo {
