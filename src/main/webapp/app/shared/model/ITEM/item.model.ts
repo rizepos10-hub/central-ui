@@ -17,6 +17,7 @@ import { IBranch } from '../branch.model';
 
 export interface IEBTEligibleByBranch {
   branch: IBranch;
+  ebtEligible?: boolean;
 }
 
 export interface IItem {
