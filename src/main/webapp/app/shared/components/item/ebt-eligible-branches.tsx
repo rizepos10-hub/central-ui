@@ -3,14 +3,11 @@ import { Table } from 'reactstrap';
 import { Translate } from 'react-jhipster';
 import { Checkbox } from 'primereact/checkbox';
 import { IBranch } from 'app/shared/model/branch.model';
-
-interface IEBTEligibleByBranch {
-  branch: IBranch;
-}
+import { IItem } from 'app/shared/model/ITEM/item.model';
 
 interface EBTEligibleBranchesProps {
-  item: any; // Can be IRegularItem, IComboItem, IPizzaItem, or IProduct
-  setItem: (updater: (prev: any) => any) => void;
+  item: IItem; // Can be IRegularItem, IComboItem, IPizzaItem, or IProduct
+  setItem: (updater: (prev: IItem) => IItem) => void;
   branchList: IBranch[];
 }
 
@@ -29,7 +26,10 @@ const EBTEligibleBranches: React.FC<EBTEligibleBranchesProps> = ({ item, setItem
             ...prev,
             ebtEligibleByBranch: [
               ...currentEbtBranches,
-              { branch: { id: branchId, name: branch.name } }
+              {
+                 branch: { id: branchId, name: branch.name },
+                 ebtEligible: true
+              }
             ]
           };
         }
