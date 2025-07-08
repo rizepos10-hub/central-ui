@@ -40,6 +40,9 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   const { isOpen, toggle, selectedItems, handleToggleSelect, disbaleUnselect } = props;
 
+  // Ref to store the current dispatch promise
+  const currentRequestRef = useRef<any>(null);
+
   // Local states replacing searchParams
   const [itemName, setItemName] = useState<string>('');
   // Debounced value of itemName to avoid firing requests on every key stroke
@@ -69,7 +72,13 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   // Fetch items whenever the debounced search term or other filters change.
   useEffect(() => {
-    dispatch(
+    // Cancel the previous request if it exists
+    if (currentRequestRef.current) {
+      currentRequestRef.current.abort();
+    }
+
+    // Dispatch the new request and store the promise
+    const requestPromise = dispatch(
       getEntities({
         page: page - 1,
         size,
@@ -79,7 +88,25 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
         unassignedItems: unassignedItems ? 'true' : '',
       })
     );
+
+    currentRequestRef.current = requestPromise;
+
+    // Cleanup function to abort the request if component unmounts or dependencies change
+    return () => {
+      if (currentRequestRef.current) {
+        currentRequestRef.current.abort();
+      }
+    };
   }, [page, size, debouncedItemName, selectedCategory, unassignedItems]);
+
+  // Clean up on component unmount
+  useEffect(() => {
+    return () => {
+      if (currentRequestRef.current) {
+        currentRequestRef.current.abort();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     dispatch(
@@ -141,8 +168,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const handleSave = () => {
     toggle();
   };
-  console.log(itemList, 'itemList')
-  console.log(selectedItems, 'selectedItems')
+
   return (
     <Modal size="lg" isOpen={isOpen} toggle={toggle} backdrop="static">
       <ModalHeader toggle={toggle}>
@@ -212,7 +238,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                     handleToggleSelect(notSelected);
                   }
                   if (!e.checked && !disbaleUnselect) {
-                    console.log(1)
                     const currentlySelectedFromList = selectedItems.filter(s => itemList.some(i => i.id === s.id));
                     handleToggleSelect(currentlySelectedFromList);
                   }
