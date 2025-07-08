@@ -72,7 +72,23 @@ export const RetailAttributeValuesUpdate = () => {
 
 
   const textEditor = (options) => {
-    return <InputText type="text" value={options.value} onChange={(e: React.ChangeEvent<HTMLInputElement>) => options.editorCallback(e.target.value)} />;
+    return (
+      <InputText 
+        type="text" 
+        value={options.value} 
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => options.editorCallback(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            // Find the save button and click it
+            const saveButton = (e.target as HTMLElement).closest('tr')?.querySelector('[data-pc-section="roweditorsavebutton"]');
+            if (saveButton) {
+              (saveButton as HTMLElement).click();
+            }
+          }
+        }}
+      />
+    );
   };
 
 
