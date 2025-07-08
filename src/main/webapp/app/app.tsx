@@ -6,7 +6,6 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getSession } from 'app/shared/reducers/authentication';
-import { getProfile } from 'app/shared/reducers/application-profile';
 import { hasAnyAuthority } from 'app/shared/auth/private-route';
 import ErrorBoundary from 'app/shared/error/error-boundary';
 import { AUTHORITIES } from 'app/config/constants';
@@ -37,7 +36,6 @@ export const App = () => {
 
   useEffect(() => {
     dispatch(getSession());
-    dispatch(getProfile());
     dispatch(setTenant({ tenant }));
   }, []);
 

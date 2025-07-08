@@ -7,7 +7,8 @@
         "fields": {
           "name": "Name",
           "configure": "Configure",
-          "delete": "Delete"
+          "delete": "Delete",
+          "view": "View"
         },
         "search": {
           "name": "Search by Name"

@@ -11,7 +11,6 @@ import PrimeReact from "primereact/api";
 import ErrorBoundary from "app/shared/error/error-boundary";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { getSession } from "app/shared/reducers/authentication";
-import { getProfile } from "app/shared/reducers/application-profile";
 import { hasAnyAuthority } from "app/shared/auth/private-route";
 import { AUTHORITIES } from "app/config/constants";
 import { toast, ToastContainer } from "react-toastify";
@@ -187,7 +186,6 @@ export const Layout = (props: ChildContainerProps) => {
 
   useEffect(() => {
     dispatch(getSession());
-    dispatch(getProfile());
   }, []);
 
   const currentLocale = useAppSelector(state => state.locale.currentLocale);
