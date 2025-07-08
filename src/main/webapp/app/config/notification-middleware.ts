@@ -35,6 +35,11 @@ export default () => next => action => {
   }
 
   if (isRejectedAction(action) && error && error.isAxiosError) {
+    // Don't show error toasts for aborted requests
+    if (error.name === 'AbortError') {
+      return next(action);
+    }
+    
     const isLoginPage = location.pathname.endsWith('login');
     const isLogoutPage = location.pathname.endsWith('logout');
     if (error.response && !isLoginPage && !isLogoutPage) {
@@ -105,15 +110,20 @@ export default () => next => action => {
             }
         }
       }
-    } else if (error.config && error.config.url === 'api/account' && error.config.method === 'get') {
-      /* eslint-disable no-console */
-      console.log('Authentication Error: Trying to access url api/account with GET.');
     } else if (isLoginPage) {
       toast.warning('Wrong username or password');
     } else {
+      // Don't show error toasts for aborted requests
+      if (error.name === 'AbortError') {
+        return next(action);
+      }
       toast.error(error.message || 'Unknown error!');
     }
   } else if (error && error.response?.status !== 401) {
+    // Don't show error toasts for aborted requests
+    if (error.name === 'AbortError') {
+      return next(action);
+    }
     toast.error(error.message || 'Unknown error!');
   }
   return next(action);
