@@ -36,6 +36,7 @@ import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
 import { TabView, TabPanel } from 'primereact/tabview';
 import { SourceType } from "app/shared/model/ENUMS/source-type.model";
+import { Spinner } from "reactstrap";
 interface ColumnConfig extends Partial<ColumnProps> {
   field: string;
   header: string;
@@ -905,114 +906,7 @@ export const Product = () => {
     { name: 'Permenant Delete', code: 'PURGE', disabled: false },
   ];
   console.log(localFilters?.isArchived?.value, 'localFilters?.isArchived?.value')
-  const header = (
-    <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
-      <span className="text-xl d-flex align-items-center">
-        <Dropdown
-          value={selectedActionOption}
-          onChange={(e) => setSelectedActionOption(e.value)}
-          options={localFilters?.isArchived?.value ? archivedActionOptions : actionOptions}
-          optionLabel="name"
-          placeholder="Bulk Actions"
-          className="w-full md:w-14rem"
-          disabled={selectedProducts.length < 1}
-          optionDisabled={(option) => option.disabled}
-        />
-      </span>
-      {!localFilters?.isArchived?.value ? (
-        <div className="flex align-items-center justify-content-end gap-3">
-          <Button
-            icon="pi pi-sync"
-            raised severity="info"
-            onClick={handleSyncList}
-            disabled={loading}
-            loading={loading}
-            data-pr-position="top"
-            tooltip={translate('items.view.actions.refreshList')}
-          />
-          <Button
-            icon="pi pi-file-export"
-            raised
-            onClick={confirm2}
-            tooltip="Export All"
-            data-pr-position="top"
-          />
-
-          <ImportButton type="RETAIL" data-pr-position="top" />
-
-          <Button
-            icon="pi pi-plus"
-            raised
-            onClick={handleCreate}
-            disabled={loading}
-            data-pr-position="top"
-            tooltip={translate('items.view.actions.createItem')}
-          />
-        </div>
-      ) : (
-        <h4 className="text-center text-danger">
-          Now viewing Recycle Bin
-        </h4>
-      )}
-
-      <div className="flex justify-between items-center">
-        <div className="relative d-flex justify-end mr-auto">
-          <Menu
-            model={[
-              {
-                label: "Select Columns",
-                items: columnOptions.map((col) => ({
-                  template: () => (
-                    <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
-                      <Checkbox
-                        inputId={col.field}
-                        checked={visibleColumns.some((c) => c.field === col.field)}
-                        onChange={() => onColumnToggle(col.field)}
-                      />
-                      <label className="ml-2" htmlFor={col.field} >{col.header}</label>
-                    </div>
-                  ),
-                })),
-              },
-            ]}
-            popup
-            ref={menu}
-          />
-          <ToggleButton
-            tooltip="Recycle Bin"
-            data-pr-position="top"
-            checked={localFilters?.isArchived?.value}
-            onChange={(e) => {
-              if (localFilters?.isArchived?.value) {
-                handleFilterValueChange('isArchived', { value: false, matchMode: FilterMatchMode.EQUALS })
-              } else {
-                handleFilterValueChange('isArchived', { value: true, matchMode: FilterMatchMode.EQUALS })
-              }
-            }}
-            onIcon={<FaTrash className="text-xl" />}
-            offIcon={<FaTrash className="text-xl" />}
-            onLabel=""
-            offLabel=""
-            className="p-button-text mr-auto"
-          />
-
-
-          <Button
-            tooltip="Select Columns"
-            data-pr-position="top"
-            icon={<FaCog className="text-xl" />}
-            className="p-button-text mr-auto"
-            onClick={(event) => menu.current.toggle(event)}
-          />
-        </div>
-        <Button data-pr-position="top" tooltip="Filter" className="p-button-text mr-auto" icon="pi pi-filter" onClick={() => setVisibleRight(true)} />
-
-
-      </div>
-
-    </div>
-  );
-
+  
   return (
     <div>
       {selectedActionOption?.code === "EDIT" && selectedProducts.length > 0 && (
@@ -1027,6 +921,110 @@ export const Product = () => {
           isRetail={true}
         />
       )}
+      
+      {/* Header moved outside of DataTable */}
+      <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
+        <span className="text-xl d-flex align-items-center">
+          <Dropdown
+            value={selectedActionOption}
+            onChange={(e) => setSelectedActionOption(e.value)}
+            options={localFilters?.isArchived?.value ? archivedActionOptions : actionOptions}
+            optionLabel="name"
+            placeholder="Bulk Actions"
+            className="w-full md:w-14rem"
+            disabled={selectedProducts.length < 1}
+            optionDisabled={(option) => option.disabled}
+          />
+        </span>
+        {!localFilters?.isArchived?.value ? (
+          <div className="flex align-items-center justify-content-end gap-3">
+            <Button
+              icon="pi pi-sync"
+              raised severity="info"
+              onClick={handleSyncList}
+              disabled={loading}
+              loading={loading}
+              data-pr-position="top"
+              tooltip={translate('items.view.actions.refreshList')}
+            />
+            <Button
+              icon="pi pi-file-export"
+              raised
+              onClick={confirm2}
+              tooltip="Export All"
+              data-pr-position="top"
+            />
+
+            <ImportButton type="RETAIL" data-pr-position="top" />
+
+            <Button
+              icon="pi pi-plus"
+              raised
+              onClick={handleCreate}
+              // disabled={loading}
+              data-pr-position="top"
+              tooltip={translate('items.view.actions.createItem')}
+            />
+          </div>
+        ) : (
+          <h4 className="text-center text-danger">
+            Now viewing Recycle Bin
+          </h4>
+        )}
+
+        <div className="flex justify-between items-center">
+          <div className="relative d-flex justify-end mr-auto">
+            <Menu
+              model={[
+                {
+                  label: "Select Columns",
+                  items: columnOptions.map((col) => ({
+                    template: () => (
+                      <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          inputId={col.field}
+                          checked={visibleColumns.some((c) => c.field === col.field)}
+                          onChange={() => onColumnToggle(col.field)}
+                        />
+                        <label className="ml-2" htmlFor={col.field} >{col.header}</label>
+                      </div>
+                    ),
+                  })),
+                },
+              ]}
+              popup
+              ref={menu}
+            />
+            <ToggleButton
+              tooltip="Recycle Bin"
+              data-pr-position="top"
+              checked={localFilters?.isArchived?.value}
+              onChange={(e) => {
+                if (localFilters?.isArchived?.value) {
+                  handleFilterValueChange('isArchived', { value: false, matchMode: FilterMatchMode.EQUALS })
+                } else {
+                  handleFilterValueChange('isArchived', { value: true, matchMode: FilterMatchMode.EQUALS })
+                }
+              }}
+              onIcon={<FaTrash className="text-xl" />}
+              offIcon={<FaTrash className="text-xl" />}
+              onLabel=""
+              offLabel=""
+              className="p-button-text mr-auto"
+            />
+
+            <Button
+              tooltip="Select Columns"
+              data-pr-position="top"
+              icon={<FaCog className="text-xl" />}
+              className="p-button-text mr-auto"
+              onClick={(event) => menu.current.toggle(event)}
+            />
+          </div>
+          <Button data-pr-position="top" tooltip="Filter" className="p-button-text mr-auto" icon="pi pi-filter" onClick={() => setVisibleRight(true)} />
+        </div>
+      </div>
+
       <Sidebar visible={visibleRight} position="right" onHide={() => setVisibleRight(false)}>
         <div className="d-flex gap-3">
           <SharedFilter filteredAttributes={filteredAttributes} onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
@@ -1039,7 +1037,6 @@ export const Product = () => {
 
       <DataTable
         value={products}
-        header={header}
         lazy
         dataKey="id"
         paginator
