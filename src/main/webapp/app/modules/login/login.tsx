@@ -34,6 +34,11 @@ export const Login = () => {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLogin();
+  };
+
   useEffect(() => {
     dispatch(getTenant);
   }, []);
@@ -81,41 +86,43 @@ export const Login = () => {
               <span className="text-600 font-medium">Please enter your details</span>
             </div>
             <div className="flex flex-column">
-              <span className="p-input-icon-left w-full mb-4">
-                <i className="pi pi-envelope"></i>
-                <InputText
-                  id="email"
-                  type="text"
-                  className="w-full md:w-25rem"
-                  placeholder="Email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                />
-              </span>
-              <span className="p-input-icon-left w-full mb-4">
-                <i className="pi pi-lock"></i>
-                <InputText
-                  id="password"
-                  type="password"
-                  className="w-full md:w-25rem"
-                  placeholder="Password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                />
-              </span>
-              <div className="mb-4 flex flex-wrap gap-3">
-                <div>
-                  {/* <Checkbox name="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.checked ?? false)} className="mr-2"></Checkbox> */}
-                  <label htmlFor="checkbox" className="text-900 font-medium mr-8">
-                    Remember Me
-                  </label>
+              <form onSubmit={handleSubmit}>
+                <span className="p-input-icon-left w-full mb-4">
+                  <i className="pi pi-envelope"></i>
+                  <InputText
+                    id="email"
+                    type="text"
+                    className="w-full"
+                    placeholder="Email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                  />
+                </span>
+                <span className="p-input-icon-left w-full mb-4">
+                  <i className="pi pi-lock"></i>
+                  <InputText
+                    id="password"
+                    type="password"
+                    className="w-full"
+                    placeholder="Password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                  />
+                </span>
+                <div className="mb-4 flex flex-wrap justify-content-between">
+                  <div>
+                    {/* <Checkbox name="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.checked ?? false)} className="mr-2"></Checkbox> */}
+                    <label htmlFor="checkbox" className="text-900 font-medium mr-8">
+                      Remember Me
+                    </label>
+                  </div>
+                  
+                  <Link to="/account/reset/request" className="text-600 cursor-pointer hover:text-primary cursor-pointer transition-colors transition-duration-300">
+                    Reset password
+                  </Link>
                 </div>
-                
-                <Link to="/account/reset/request" className="text-600 cursor-pointer hover:text-primary cursor-pointer transition-colors transition-duration-300">
-                  Reset password
-                </Link>
-              </div>
-              <Button label="Log In" className="w-full" onClick={handleLogin}></Button>
+                <Button label="Log In" className="w-full" type="submit"></Button>
+              </form>
             </div>
           </div>
         </div>
