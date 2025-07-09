@@ -121,9 +121,6 @@ const DropDownFilter = ({
       showClear
       filterTemplate={filterElement}
       filter
-      style={{
-        width: '70px'
-      }}
       placeholder={placeholder}
       className={classname}
       optionLabel="name"
