@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import Joyride, { STATUS, CallBackProps, Step, Placement } from 'react-joyride';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAppSelector } from 'app/config/store';
+import { useAppSelector, useAppDispatch } from 'app/config/store';
+import { getSetupStatus, updateSetupStatus } from 'app/entities/settings/guided-tour/guided-tour.reducer';
 
-const STORAGE_KEY = 'setup_tour_completed';
 const TOUR_STEPS_KEY = 'tour_current_step';
 
 interface GuidedTourProps {
@@ -15,15 +15,21 @@ interface GuidedTourProps {
 const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
+  
   const [runTour, setRunTour] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
-  const [tourCompleted, setTourCompleted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [waitingForSave, setWaitingForSave] = useState(false);
 
   const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
   const sessionHasBeenFetched = useAppSelector(state => state.authentication.sessionHasBeenFetched);
   const account = useAppSelector(state => state.authentication.account);
+  
+  // Redux state from guided tour reducer
+  const setupCompleted = useAppSelector(state => state.guidedTour.setupCompleted);
+  const guidedTourLoading = useAppSelector(state => state.guidedTour.loading);
+  const guidedTourUpdateSuccess = useAppSelector(state => state.guidedTour.updateSuccess);
   
   // Monitor save states from Redux
   const businessDetailUpdateSuccess = useAppSelector(state => state.businessDetail.updateSuccess);
@@ -163,28 +169,27 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
   ];
 
   useEffect(() => {
-    const completedValue = localStorage.getItem(STORAGE_KEY);
-    const isCompleted = completedValue === 'true'; // Parse string to boolean
+    // Fetch setup status when component mounts
+    if (isAuthenticated && sessionHasBeenFetched) {
+      dispatch(getSetupStatus());
+    }
+  }, [isAuthenticated, sessionHasBeenFetched, dispatch]);
+
+  useEffect(() => {
     const savedStep = localStorage.getItem(TOUR_STEPS_KEY);
     
-    
-    
-    if (!isCompleted && isAuthenticated && isVisible && sessionHasBeenFetched) {
+    if (!setupCompleted && isAuthenticated && isVisible && sessionHasBeenFetched && !guidedTourLoading) {
       setRunTour(true);
-      setTourCompleted(false); // Make sure tour is not marked as completed
       if (savedStep) {
         setStepIndex(parseInt(savedStep, 10));
       }
-    } else if (isCompleted) {
-      // Only mark as completed if it was actually completed before
-      setTourCompleted(true);
+    } else if (setupCompleted) {
       setRunTour(false);
     } else {
       // Not ready to start yet (auth/session not ready)
-      setTourCompleted(false);
       setRunTour(false);
     }
-  }, [isAuthenticated, sessionHasBeenFetched, isVisible]);
+  }, [isAuthenticated, sessionHasBeenFetched, isVisible, setupCompleted, guidedTourLoading]);
 
   useEffect(() => {
     // Always save the current step to localStorage, even when paused
@@ -332,19 +337,18 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
     
     // Cleanup on unmount or when tour completes
     return () => {
-      if (tourCompleted) {
+      if (setupCompleted) {
         clearFieldHighlights();
       }
     };
-  }, [waitingForSave, stepIndex, tourCompleted]);
+  }, [waitingForSave, stepIndex, setupCompleted]);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status, action, index, type } = data;
 
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       setRunTour(false);
-      setTourCompleted(true);
-      localStorage.setItem(STORAGE_KEY, 'true');
+      dispatch(updateSetupStatus(true));
       localStorage.removeItem(TOUR_STEPS_KEY);
       onComplete?.();
     } else if (type === 'step:after') {
@@ -386,9 +390,8 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
 
   const resetTour = () => {
     console.log('🔄 Resetting tour...');
-    localStorage.removeItem(STORAGE_KEY);
+    dispatch(updateSetupStatus(false));
     localStorage.removeItem(TOUR_STEPS_KEY);
-    setTourCompleted(false);
     setStepIndex(0);
     setRunTour(true);
     setIsPaused(false);
@@ -397,10 +400,9 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
 
   const skipTour = () => {
     setRunTour(false);
-    setTourCompleted(true);
     setIsPaused(false);
     setWaitingForSave(false);
-    localStorage.setItem(STORAGE_KEY, 'true');
+    dispatch(updateSetupStatus(true));
     localStorage.removeItem(TOUR_STEPS_KEY);
     onComplete?.();
   };
@@ -419,18 +421,18 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
 
   // Debug logging for render conditions
   console.log('🔍 Tour Render Check:', {
-    tourCompleted,
+    setupCompleted,
     isAuthenticated,
     sessionHasBeenFetched,
     runTour,
     isPaused,
     waitingForSave,
     stepIndex,
-    willRender: !(tourCompleted || !isAuthenticated || !sessionHasBeenFetched)
+    willRender: !(setupCompleted || !isAuthenticated || !sessionHasBeenFetched)
   });
 
-  if (tourCompleted || !isAuthenticated || !sessionHasBeenFetched) {
-    console.log('🚫 Tour not rendering:', { tourCompleted, isAuthenticated, sessionHasBeenFetched });
+  if (setupCompleted || !isAuthenticated || !sessionHasBeenFetched || guidedTourLoading) {
+    console.log('🚫 Tour not rendering:', { setupCompleted, isAuthenticated, sessionHasBeenFetched, guidedTourLoading });
     return null;
   }
 
@@ -551,7 +553,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
       )}
 
       {/* Development helper - remove in production */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* {process.env.NODE_ENV === 'development' && (
         <div style={{ 
           position: 'fixed', 
           bottom: '20px', 
@@ -634,7 +636,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ isVisible = true, onComplete })
             Step: {stepIndex + 1}/8 | {isPaused ? 'Paused' : 'Running'} {waitingForSave ? '| Waiting for save' : ''}
           </div>
         </div>
-      )}
+      )} */}
     </>
   );
 };

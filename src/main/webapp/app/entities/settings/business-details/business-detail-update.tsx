@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { updateEntity, createEntity, getEntities, reset } from './business-detail.reducer';
 import { uploadImage } from 'app/entities/attachment/attachment.reducer';
+import { updateSetupStatus } from 'app/entities/settings/guided-tour/guided-tour.reducer';
 import { Button as PrimeButton } from "primereact/button"
 import { IBusinessDetail, Metric } from "app/shared/model/business-detail.model";
 import _ from 'lodash';
@@ -27,6 +28,7 @@ export const BusinessDetailUpdate = () => {
   const loading = useAppSelector(state => state.businessDetail.loading);
   const updating = useAppSelector(state => state.businessDetail.updating);
   const updateSuccess = useAppSelector(state => state.businessDetail.updateSuccess);
+  const guidedTourUpdating = useAppSelector(state => state.guidedTour.updating);
 
   const isNew = businessDetailEntity === undefined;
 
@@ -63,6 +65,10 @@ export const BusinessDetailUpdate = () => {
 
   const handleClose = () => {
     navigate(-1);
+  };
+
+  const handleResetTour = () => {
+    dispatch(updateSetupStatus(false));
   };
 
   useEffect(() => {
@@ -273,18 +279,32 @@ export const BusinessDetailUpdate = () => {
                   onChange={handleFieldChange}
                 />
 
-                <Button 
-                  color="primary" 
-                  id="save-entity" 
-                  data-cy="entityCreateSaveButton" 
-                  data-tour="business-save-button"
-                  type="submit" 
-                  disabled={updating}
-                >
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
+                <div className="d-flex gap-2">
+                  <Button 
+                    color="primary" 
+                    id="save-entity" 
+                    data-cy="entityCreateSaveButton" 
+                    data-tour="business-save-button"
+                    type="submit" 
+                    disabled={updating}
+                  >
+                    <FontAwesomeIcon icon="save" />
+                    &nbsp;
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                  
+                  <Button 
+                    color="secondary" 
+                    type="button"
+                    onClick={handleResetTour}
+                    disabled={guidedTourUpdating}
+                    title="Reset the guided tour to start from the beginning"
+                  >
+                    <FontAwesomeIcon icon="redo" />
+                    &nbsp;
+                    Reset Tour
+                  </Button>
+                </div>
               </ValidatedForm>
             )}
           </PrimeCard>

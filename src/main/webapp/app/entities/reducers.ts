@@ -97,6 +97,7 @@ import onlineOrderingReducers from "app/entities/online-ordering/reducer";
 import GiftCardItem from './item/virtual/gift-card/giftcard-item.reducer';
 import GiftCardCoupon from './coupon/gift-card/giftcard-coupon.reducer';
 import ReportSummary from 'app/modules/analytics/reports/summary-report.reducer';
+import guidedTour from 'app/entities/settings/guided-tour/guided-tour.reducer';
 
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
@@ -190,7 +191,8 @@ const entitiesReducers = {
   GiftCardItem,
   GiftCardCoupon,
   ReportSummary,
-  ...onlineOrderingReducers
+  ...onlineOrderingReducers,
+  guidedTour,
 
 
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
