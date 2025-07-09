@@ -1,6 +1,8 @@
 {
   "common": {
     "name": "Name",
+    "remove": "Remove",
+    "ingredients": "Ingredients",
     "addresses": "Addresses",
     "code": "Code",
     "printed": "Printed",

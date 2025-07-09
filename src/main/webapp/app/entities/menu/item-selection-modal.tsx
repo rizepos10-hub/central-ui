@@ -17,6 +17,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { IItem } from 'app/shared/model/ITEM/item.model';
 import PaginationFilterStateVals from 'app/shared/components/pagination/pagination-filter-state-vals';
+import { useRef } from 'react';
 
 interface ItemSelectionModalProps {
   isOpen: boolean;
@@ -39,8 +40,13 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
 
   const { isOpen, toggle, selectedItems, handleToggleSelect, disbaleUnselect } = props;
 
+  // Ref to store the current dispatch promise
+  const currentRequestRef = useRef<any>(null);
+
   // Local states replacing searchParams
   const [itemName, setItemName] = useState<string>('');
+  // Debounced value of itemName to avoid firing requests on every key stroke
+  const [debouncedItemName, setDebouncedItemName] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>(null);
   const [unassignedItems, setUnassignedItems] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -51,18 +57,56 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const [restaurantFilter, setRestaurantFilter] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
 
+  // Debounce the item name search input so we only fetch after the user stops
+  // typing for 300 ms. This also prevents race-conditions where a slower
+  // response of an earlier query overrides a faster one of a later query.
   useEffect(() => {
-    dispatch(
+    const handler = setTimeout(() => {
+      setDebouncedItemName(itemName);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [itemName]);
+
+  // Fetch items whenever the debounced search term or other filters change.
+  useEffect(() => {
+    // Cancel the previous request if it exists
+    if (currentRequestRef.current) {
+      currentRequestRef.current.abort();
+    }
+
+    // Dispatch the new request and store the promise
+    const requestPromise = dispatch(
       getEntities({
         page: page - 1,
         size,
-        name: itemName,
+        name: debouncedItemName,
         sort: 'id,asc',
         categoryId: selectedCategory || '',
         unassignedItems: unassignedItems ? 'true' : '',
       })
     );
-  }, [page, size, itemName, selectedCategory, unassignedItems]);
+
+    currentRequestRef.current = requestPromise;
+
+    // Cleanup function to abort the request if component unmounts or dependencies change
+    return () => {
+      if (currentRequestRef.current) {
+        currentRequestRef.current.abort();
+      }
+    };
+  }, [page, size, debouncedItemName, selectedCategory, unassignedItems]);
+
+  // Clean up on component unmount
+  useEffect(() => {
+    return () => {
+      if (currentRequestRef.current) {
+        currentRequestRef.current.abort();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     dispatch(
@@ -124,8 +168,7 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
   const handleSave = () => {
     toggle();
   };
-  console.log(itemList, 'itemList')
-  console.log(selectedItems, 'selectedItems')
+
   return (
     <Modal size="lg" isOpen={isOpen} toggle={toggle} backdrop="static">
       <ModalHeader toggle={toggle}>
@@ -141,7 +184,10 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
               <Input
                 type="text"
                 id="searchItem"
-                onChange={(e) => setItemName(e.target.value || '')}
+                onChange={(e) => {
+                  setItemName(e.target.value || '');
+                  setPage(1); // reset to first page on new search term
+                }}
                 value={itemName}
                 placeholder="Start Searching"
                 className='w-100'
@@ -192,7 +238,6 @@ const ItemSelectionModal: React.FC<ItemSelectionModalProps> = (props) => {
                     handleToggleSelect(notSelected);
                   }
                   if (!e.checked && !disbaleUnselect) {
-                    console.log(1)
                     const currentlySelectedFromList = selectedItems.filter(s => itemList.some(i => i.id === s.id));
                     handleToggleSelect(currentlySelectedFromList);
                   }

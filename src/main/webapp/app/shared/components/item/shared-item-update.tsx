@@ -351,7 +351,7 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
               </div>
             </div>
 
-            {item?.itemVariantType !== ItemVariantType.RESTAURANT_PIZZA && (
+            {item?.itemVariantType !== ItemVariantType.RESTAURANT_PIZZA && item?.variants?.length === 1 && (
               <div className={'d-flex flex-column gap-1  col'}>
                 <label className={'text-xl mt-2 font-bold'}>
                   <Translate contentKey={'items.update.byWeight'}>By Weight</Translate>

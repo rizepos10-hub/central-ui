@@ -5,9 +5,6 @@ import { isFulfilledAction, isRejectedAction } from 'app/shared/reducers/reducer
 
 const addErrorAlert = (message, key?, data?, localizedMessage?) => {
   key = key ? key : message;
-  console.log(message)
-  console.log(key)
-  console.log(data)
   localizedMessage ? toast.error(localizedMessage) : toast.error(translate(key, data));
 };
 
@@ -33,22 +30,22 @@ export default () => next => action => {
       });
     if (alert) {
       const alertParam = alertParams;
-      console.log(entityName)
-      console.log(alert)
-      console.log(alertParam)
       toast.success(translate(alert, { param: entityName ?? alertParam }));
     }
   }
 
   if (isRejectedAction(action) && error && error.isAxiosError) {
+    // Don't show error toasts for aborted requests
+    if (error.name === 'AbortError') {
+      return next(action);
+    }
+    
     const isLoginPage = location.pathname.endsWith('login');
     const isLogoutPage = location.pathname.endsWith('logout');
     if (error.response && !isLoginPage && !isLogoutPage) {
       const response = error.response;
       const data = response.data;
-      console.log(data)
       const localizedMessage = data?.localizedMessage
-      console.log(localizedMessage)
       if (
 
         !(
@@ -74,9 +71,7 @@ export default () => next => action => {
                 }
               });
             if (errorHeader) {
-              console.log(1)
               const entityName = translate('global.menu.entities.' + entityKey);
-              console.log(1)
               addErrorAlert(errorHeader, errorHeader, { entityName }, localizedMessage);
             } else if (data?.fieldErrors) {
               const fieldErrors = data.fieldErrors;
@@ -86,57 +81,50 @@ export default () => next => action => {
                 }
                 // convert 'something[14].other[4].id' to 'something[].other[].id' so translations can be written to it
                 const convertedField = fieldError.field.replace(/\[\d*\]/g, '[]');
-                console.log(1)
                 const fieldName = translate(`tempApp.${fieldError.objectName}.${convertedField}`);
-                console.log(1)
                 addErrorAlert(`Error on field "${fieldName}"`, `error.${fieldError.message}`, { fieldName }, localizedMessage);
               }
             } else if (typeof data === 'string' && data !== '') {
-              console.log(data)
               addErrorAlert(data);
-              console.log(1)
             } else {
-              console.log(data)
               toast.error(data?.message || data?.error || data?.title || 'Unknown error!');
-              console.log(1)
             }
             break;
           }
           case 404:
-            console.log(1)
             addErrorAlert('Not found', 'error.url.not.found');
             break;
           case 401:
             break;
-
+          case 403:
+            toast.error('You are not authorized to access this resource');
+            break;
+          case 500:
+            toast.error('An error occurred, please try again later.');
+            break;
           default:
             if (typeof data === 'string' && data !== '') {
-              console.log(1)
               addErrorAlert(data);
-              console.log(1)
             } else {
-              console.log(1)
               toast.error(data?.message || data?.error || data?.title || 'Unknown error!');
-              console.log(1)
             }
         }
       }
-    } else if (error.config && error.config.url === 'api/account' && error.config.method === 'get') {
-      /* eslint-disable no-console */
-      console.log('Authentication Error: Trying to access url api/account with GET.');
     } else if (isLoginPage) {
-      console.log(1)
       toast.warning('Wrong username or password');
-      console.log(1)
     } else {
-      console.log(1)
+      // Don't show error toasts for aborted requests
+      if (error.name === 'AbortError') {
+        return next(action);
+      }
       toast.error(error.message || 'Unknown error!');
-      console.log(1)
     }
   } else if (error && error.response?.status !== 401) {
-    console.log(1)
+    // Don't show error toasts for aborted requests
+    if (error.name === 'AbortError') {
+      return next(action);
+    }
     toast.error(error.message || 'Unknown error!');
-    console.log(1)
   }
   return next(action);
 };

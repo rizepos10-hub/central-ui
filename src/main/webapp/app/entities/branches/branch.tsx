@@ -10,7 +10,7 @@ import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
 import { RadioButton } from 'primereact/radiobutton';
 import { InputSwitch } from 'primereact/inputswitch';
-import { IBusinessDetail, Metric, UnitCostCalculationMode, dayTypeEnum, IBranchDetails } from 'app/shared/model/business-detail.model';
+import { IBusinessDetail, Metric, UnitCostCalculationMode, dayTypeEnum, IBranchDetails, DeliveryTaggingModeEnum } from 'app/shared/model/business-detail.model';
 import { RequestType, fromAddress, geocode, setKey } from 'react-geocode';
 import { toast } from 'react-toastify';
 import _ from 'lodash';
@@ -59,6 +59,7 @@ export const Branches = () => {
   const isNew = businessDetailEntity === undefined;
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [activeBranchIndex, setActiveBranchIndex] = useState(0);
   const [businessDetailsState, setBusinessDetailsState] = useState<IBusinessDetail>({
     businessName: '',
     slogan: '',
@@ -106,7 +107,20 @@ export const Branches = () => {
   const map = useMap();
 
   useEffect(() => {
-    dispatch(getEntities({})).then((res: any) => setBusinessDetailsState(res.payload.data[0]));
+    dispatch(getEntities({})).then((res: any) => {
+      const businessData = res.payload.data[0];
+      setBusinessDetailsState(businessData);
+      // Initialize payment configurations for the first branch
+      if (businessData?.branchDetails?.length > 0) {
+        const firstBranch = businessData.branchDetails[0];
+        // Initialize paymentConfigurations array if it doesn't exist
+        if (!firstBranch.paymentConfigurations) {
+          firstBranch.paymentConfigurations = [];
+        }
+        setEditingBranchPayments(firstBranch.paymentConfigurations);
+        setEditingPaymentIndex(0);
+      }
+    });
     dispatch(getZones({}))
   }, []);
 
@@ -151,6 +165,12 @@ export const Branches = () => {
   const handleWholesaleFlag = (branchIndex, checked) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].wholesale = checked;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  };
+
+  const handleEBTEligibleFlag = (branchIndex, checked) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    newData[branchIndex].ebteligible = checked;
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
   };
 
@@ -228,6 +248,7 @@ export const Branches = () => {
           },
           minCharge: 0,
           definedChargeRules: [],
+          deliveryTaggingMode: DeliveryTaggingModeEnum.UNRESTRICTED,
         };
       }
 
@@ -336,6 +357,17 @@ export const Branches = () => {
     hideDialog();
   }
 
+  const handlePaymentConfigChange = (branchIndex: number, paymentConfigs: any[]) => {
+    const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+    if (!newData[branchIndex].paymentConfigurations) {
+      newData[branchIndex].paymentConfigurations = [];
+    }
+    newData[branchIndex].paymentConfigurations = paymentConfigs;
+    setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  }
+
+
+
   const handleAddChargeRule = (branchIndex) => {
     const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
     newData[branchIndex].deliveryConfiguration.definedChargeRules.push({
@@ -351,6 +383,12 @@ export const Branches = () => {
       orderAmount: 0,
     });
     setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+  }
+
+  const handleDetailsChange = (index: number, branch: any, branchIndex: number) => {
+    setEditingPaymentIndex(branchIndex)
+    setActiveBranchIndex(index)
+    setEditingBranchPayments(branch.paymentConfigurations || [])
   }
 
   const handleDeleteChargeRule = (branchIndex, chargeRuleIndex) => {
@@ -377,7 +415,20 @@ export const Branches = () => {
             role="tab"
             aria-controls={`v-pills-${index}`}
             aria-selected="true"
-            onClick={() => setActiveIndex(index)}
+            onClick={() => {
+              setActiveIndex(index)
+              // Update payment configurations when switching branches
+              const paymentConfigs = branch.paymentConfigurations || [];
+              setEditingBranchPayments(paymentConfigs)
+              setEditingPaymentIndex(index)
+              
+              // Initialize paymentConfigurations array if it doesn't exist
+              if (!branch.paymentConfigurations) {
+                const newData = JSON.parse(JSON.stringify(businessDetailsState?.branchDetails));
+                newData[index].paymentConfigurations = [];
+                setBusinessDetailsState((prev) => ({ ...prev, branchDetails: newData }));
+              }
+            }}
             style={{
               width: '160px',
             }}
@@ -395,7 +446,7 @@ export const Branches = () => {
             role="tabpanel"
             aria-labelledby={`v-pills-${branchIndex}-tab`}
           >
-            <TabView className='w-100'>
+            <TabView className='w-100' activeIndex={activeBranchIndex} onTabChange={(e: any) => handleDetailsChange(e.index, branch, branchIndex)}>
               <TabPanel header="Details">
                 <div className="d-flex flex-column">
                   <label className="font-bold">Branch Name</label>
@@ -420,26 +471,11 @@ export const Branches = () => {
                     onChange={(e) => handleWholesaleFlag(branchIndex, e.checked)}
                   />
 
-                  <label className="font-bold mt-3">Payment</label>
-                  <Button
-                    label="Payment Configs"
-                    type={"button"}
-                    icon="pi pi-external-link"
-                    style={{
-                      width: '160px',
-                    }}
-                    onClick={() => showDialog(branch, branchIndex)}
+                  <label className="font-bold mt-3">Is EBT Eligible</label>
+                  <Checkbox
+                    checked={branch.ebteligible}
+                    onChange={(e) => handleEBTEligibleFlag(branchIndex, e.checked)}
                   />
-                  <Dialog
-                    header="payment config" visible={editingBranchPayments} style={{ width: '75vw' }} maximizable
-                    modal draggable={false} contentStyle={{ height: '300px' }} onHide={hideDialog}
-                    footer={dialogFooterTemplate}
-                  >
-                    <BranchPaymentConfig
-                      editingBranchPayments={editingBranchPayments}
-                      setEditingBranchPayments={setEditingBranchPayments}
-                    />
-                  </Dialog>
 
                   <label className="font-bold mt-3">Ending Type</label>
                   <Select
@@ -728,6 +764,19 @@ export const Branches = () => {
                           </Col>
                         </Row>
                       ))}
+
+                      <div className='p-2'>
+                          <Row>
+                            <label className="font-bold">
+                              Delivery Tagging Mode
+                            </label>
+                          </Row>
+                          <Dropdown
+                            options={Object.values(DeliveryTaggingModeEnum).map(mode => ({ label: mode, value: mode }))}
+                            value={branch.deliveryConfiguration?.deliveryTaggingMode}
+                            onChange={(e) => handleDeliveryConfiguration(branchIndex, 'deliveryTaggingMode', e.target.value)}
+                          />
+                      </div>
                     </Col>
                   </div>
                 </>
@@ -865,6 +914,28 @@ export const Branches = () => {
                     onChange={(e) => handleUnitCostCalculationModeChange(branchIndex, e.value)}
                   />
                 </div>
+              </TabPanel>
+              <TabPanel header="Payment Configuration" >
+                <TabView className='w-100'>
+                                    <TabPanel header="Converge">
+                    <BranchPaymentConfig
+                      editingBranchPayments={editingBranchPayments}
+                      setEditingBranchPayments={setEditingBranchPayments}
+                      branchIndex={branchIndex}
+                      moduleCode="CONVERGE_LIGHTBOX"
+                      onPaymentConfigChange={handlePaymentConfigChange}
+                    />
+                  </TabPanel>
+                  <TabPanel header="Bambora">
+                    <BranchPaymentConfig
+                      editingBranchPayments={editingBranchPayments}
+                      setEditingBranchPayments={setEditingBranchPayments}
+                      branchIndex={branchIndex}
+                      moduleCode="BAMBORA"
+                      onPaymentConfigChange={handlePaymentConfigChange}
+                    />
+                  </TabPanel>
+                </TabView>
               </TabPanel>
             </TabView>
           </div>

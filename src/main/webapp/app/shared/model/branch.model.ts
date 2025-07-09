@@ -7,6 +7,7 @@ export interface IBranch {
   wholesale?: boolean
   numberOfEmployees?: number | null;
   menu?: IMenu | null;
+  ebtEligible?: boolean;
 }
 
 export const defaultValue: Readonly<IBranch> = {};

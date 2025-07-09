@@ -340,10 +340,8 @@ export const PizzaItem = () => {
   };
 
   useEffect(() => {
-    if (query?.filters?.name?.value) {
-      setLocalNameFilter(query?.filters?.name?.value)
-    }
-  }, [])
+    setLocalNameFilter(query?.filters?.name?.value ?? '');
+  }, [query?.filters?.name?.value]);
 
   const confirm1 = () => {
     confirmDialog({
@@ -446,102 +444,7 @@ export const PizzaItem = () => {
     { name: 'Restore', code: 'RESTORE', disabled: false },
     { name: 'Permenant Delete', code: 'PURGE', disabled: false },
   ];
-  const header = (
-    <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
-      <span className="text-xl d-flex align-items-center">
-        <Dropdown
-          value={selectedActionOption}
-          onChange={(e) => setSelectedActionOption(e.value)}
-          options={query?.filters?.isArchived?.value ? archivedActionOptions : actionOptions}
-          optionLabel="name"
-          placeholder="Bulk Actions"
-          className="w-full md:w-14rem"
-          disabled={selectedProducts.length < 1}
-          optionDisabled={(option) => option.disabled}
-        />
-      </span>
-      {!query?.filters?.isArchived?.value ? (
-        <div className="flex align-items-center justify-content-end gap-3">
-          <Button
-            icon="pi pi-sync"
-            raised severity="info"
-            onClick={handleSyncList}
-            disabled={loading}
-            loading={loading}
-            data-pr-position="top"
-            tooltip={translate('items.view.actions.refreshList')}
-          />
-          <Button
-            icon="pi pi-plus"
-            raised
-            onClick={handleCreate}
-            disabled={loading}
-            data-pr-position="top"
-            tooltip={translate('items.view.actions.createPizza')}
-          />
-        </div>
-      ) : (
-        <h4 className="text-center text-danger">
-          Now viewing Recycle Bin
-        </h4>
-      )}
-
-
-      <div className="flex justify-between items-center">
-        <div className="relative d-flex justify-end mr-auto">
-          <Menu
-            model={[
-              {
-                label: "Select Columns",
-                items: columnOptions.map((col) => ({
-                  template: () => (
-                    <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
-                      <Checkbox
-                        inputId={col.field}
-                        checked={visibleColumns[col.field]}
-                        onChange={() => onColumnToggle(col.field)}
-                      />
-                      <label className="ml-2" htmlFor={col.field} >{col.header}</label>
-                    </div>
-                  ),
-                })),
-              },
-            ]}
-            popup
-            ref={menu}
-          />
-
-
-          <ToggleButton
-            tooltip="Recycle Bin"
-            data-pr-position="top"
-            checked={query?.filters?.isArchived?.value}
-            onChange={(e) => {
-              if (query?.filters?.isArchived?.value) {
-                handleIsArchivedChange(false)
-              } else {
-                handleIsArchivedChange(true)
-              }
-            }}
-            onIcon={<FaTrash className="text-xl" />}
-            offIcon={<FaTrash className="text-xl" />}
-            onLabel=""
-            offLabel=""
-            className="p-button-text mr-auto"
-          />
-
-          <Button
-            data-pr-position="top"
-            icon={<FaCog className="text-xl" />}
-            tooltip='Select Columns'
-            className="border-0 p-button-text mr-auto bg-transparent hover:bg-transparent focus:bg-transparent flex items-center"
-            onClick={(event) => menu.current.toggle(event)}
-          />
-        </div>
-      </div>
-    </div>
-  );
-
+  
   return (
     <div>
       {selectedActionOption?.code === "EDIT" && selectedProducts.length > 0 && (
@@ -556,11 +459,104 @@ export const PizzaItem = () => {
           isRetail={false}
         />
       )}
+      
+      {/* Header moved outside of DataTable */}
+      <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
+        <span className="text-xl d-flex align-items-center">
+          <Dropdown
+            value={selectedActionOption}
+            onChange={(e) => setSelectedActionOption(e.value)}
+            options={query?.filters?.isArchived?.value ? archivedActionOptions : actionOptions}
+            optionLabel="name"
+            placeholder="Bulk Actions"
+            className="w-full md:w-14rem"
+            disabled={selectedProducts.length < 1}
+            optionDisabled={(option) => option.disabled}
+          />
+        </span>
+        {!query?.filters?.isArchived?.value ? (
+          <div className="flex align-items-center justify-content-end gap-3">
+            <Button
+              icon="pi pi-sync"
+              raised severity="info"
+              onClick={handleSyncList}
+              disabled={loading}
+              loading={loading}
+              data-pr-position="top"
+              tooltip={translate('items.view.actions.refreshList')}
+            />
+            <Button
+              icon="pi pi-plus"
+              raised
+              onClick={handleCreate}
+              // disabled={loading}
+              data-pr-position="top"
+              tooltip={translate('items.view.actions.createPizza')}
+            />
+          </div>
+        ) : (
+          <h4 className="text-center text-danger">
+            Now viewing Recycle Bin
+          </h4>
+        )}
+
+        <div className="flex justify-between items-center">
+          <div className="relative d-flex justify-end mr-auto">
+            <Menu
+              model={[
+                {
+                  label: "Select Columns",
+                  items: columnOptions.map((col) => ({
+                    template: () => (
+                      <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          inputId={col.field}
+                          checked={visibleColumns[col.field]}
+                          onChange={() => onColumnToggle(col.field)}
+                        />
+                        <label className="ml-2" htmlFor={col.field} >{col.header}</label>
+                      </div>
+                    ),
+                  })),
+                },
+              ]}
+              popup
+              ref={menu}
+            />
+
+            <ToggleButton
+              tooltip="Recycle Bin"
+              data-pr-position="top"
+              checked={query?.filters?.isArchived?.value}
+              onChange={(e) => {
+                if (query?.filters?.isArchived?.value) {
+                  handleIsArchivedChange(false)
+                } else {
+                  handleIsArchivedChange(true)
+                }
+              }}
+              onIcon={<FaTrash className="text-xl" />}
+              offIcon={<FaTrash className="text-xl" />}
+              onLabel=""
+              offLabel=""
+              className="p-button-text mr-auto"
+            />
+
+            <Button
+              data-pr-position="top"
+              icon={<FaCog className="text-xl" />}
+              tooltip='Select Columns'
+              className="border-0 p-button-text mr-auto bg-transparent hover:bg-transparent focus:bg-transparent flex items-center"
+              onClick={(event) => menu.current.toggle(event)}
+            />
+          </div>
+        </div>
+      </div>
+      
       <DataTable
         value={pizzaItemsList}
         loading={loading || isLoadingDelete}
         editMode="row"
-        header={header}
         removableSort
         filters={query.filters}
         filterDisplay="row"

@@ -6,8 +6,8 @@ module.exports = {
   // If you use an API server, in `prod` mode, you will need to enable CORS
   // (see the `jhipster.cors` common JHipster property in the `application-*.yml` configurations)
 
-  SERVER_ADMIN_API_URL: 'http://164.92.188.249:8089',
-  SERVER_API_URL: 'http://164.92.188.249:8080',
-  SERVER_DOMAIN: 'http://164.92.188.249',
+  SERVER_ADMIN_API_URL: 'https://pos-admin.rize-pos.com',
+  SERVER_API_URL: 'https://pos-central.rize-pos.com',
+  SERVER_DOMAIN: 'https://pos-central.rize-pos.com',
   GOOGLE_MAPS_API_KEY: 'AIzaSyBukK9Dv6-c_K9ba3WvnPPJHT1FUTIUC48'
 };

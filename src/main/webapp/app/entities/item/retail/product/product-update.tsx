@@ -60,6 +60,8 @@ import ItemLocation from 'app/shared/components/item/item-location';
 import { IPricingPoint } from 'app/shared/model/PRICING-POINT/pricing-point';
 import { toast } from 'react-toastify';
 import { ImMagicWand } from "react-icons/im";
+import SeoTags from 'app/shared/components/item/seo-tags';
+import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -200,6 +202,17 @@ export const ProductUpdate = () => {
     }));
   };
 
+  const updateSeoTags = (fieldName, value) => {
+    setProduct(prevProduct => ({
+      ...prevProduct,
+      seo: {
+        ...prevProduct.seo,
+        [fieldName]: value
+      }
+    }));
+  };
+
+
   const handleVariantFieldChange = (variantIndex, fieldName: keyof IVariableItemVariant, value) => {
     setProduct(prev => {
       const updatedVariants = [...prev.variants];
@@ -236,7 +249,7 @@ export const ProductUpdate = () => {
         ...(prev.variants && prev.variants[variantIndex] ? prev.variants[variantIndex] : {}),
         measureValue: {
           isBase: measureValue.isBase,
-          measure: measureValue.isBase ? 1 : measureValue.measure
+          // measure: measureValue.isBase ? 1 : measureValue.measure
         }
       };
 
@@ -247,7 +260,7 @@ export const ProductUpdate = () => {
             ...variant,
             measureValue: {
               isBase: false,
-              measure: variant.measureValue.measure
+              // measure: variant.measureValue.measure
             }
           }
         }
@@ -760,7 +773,8 @@ export const ProductUpdate = () => {
       return {
         ...variant,
         price: product.askForPrice ? 0 : variant.price ? variant.price : 0,
-        purchaseConfig: ((variant?.purchaseConfig?.minOrderQuantity === null || variant?.purchaseConfig?.minOrderQuantity === undefined) && (variant?.purchaseConfig?.defaultPrice === null || variant?.purchaseConfig?.defaultPrice === undefined) && variant?.purchaseConfig?.supplierConfigurations?.length === 0) ? null : variant?.purchaseConfig
+        purchaseConfig: ((variant?.purchaseConfig?.minOrderQuantity === null || variant?.purchaseConfig?.minOrderQuantity === undefined) && (variant?.purchaseConfig?.defaultPrice === null || variant?.purchaseConfig?.defaultPrice === undefined) && variant?.purchaseConfig?.supplierConfigurations?.length === 0) ? null : variant?.purchaseConfig,
+        variantPackage: variant?.measureValue?.isBase ? null : variant?.variantPackage
       };
     });
 
@@ -773,7 +787,7 @@ export const ProductUpdate = () => {
           price: defaultPrice,
           measureValue: product.baseMeasure ? {
             isBase: true,
-            measure: 1
+            // measure: 1
           } : null
         }
       ],
@@ -1505,7 +1519,7 @@ export const ProductUpdate = () => {
                                                 <TabPanel header='General'>
                                                   <Row>
                                                     <Col md="4" className='mt-2 d-flex gap-2'>
-                                                      <div className={'d-flex flex-column gap-2'}>
+                                                      {/* <div className={'d-flex flex-column gap-2'}>
                                                         <label className={'font-semibold'}>
                                                           <Translate contentKey={'items.update.measure'}>Measure</Translate>
                                                         </label>
@@ -1525,7 +1539,7 @@ export const ProductUpdate = () => {
                                                             }}
                                                           />
                                                         </div>
-                                                      </div>
+                                                      </div> */}
                                                       <div className={'d-flex flex-column gap-2'}>
                                                         <label className={'font-semibold'}>
                                                           <Translate contentKey={'items.update.isBaseMeasure'}>Is Measure Base</Translate>
@@ -1534,7 +1548,7 @@ export const ProductUpdate = () => {
                                                           <Checkbox
                                                             checked={product?.variants?.[variantIndex]?.measureValue?.isBase || false}
                                                             onChange={(e) => handleMeasureValueChange({
-                                                              measure: product?.variants?.[variantIndex]?.measureValue?.measure,
+                                                              // measure: product?.variants?.[variantIndex]?.measureValue?.measure,
                                                               isBase: e.checked
                                                             }, variantIndex)}
                                                           />
@@ -1659,7 +1673,7 @@ export const ProductUpdate = () => {
                                                     </Col>
                                                   </Row>
                                                 </TabPanel>
-                                                {!isNew && (
+                                                {!isNew && !variant?.measureValue?.isBase && (
                                                   <TabPanel header='Packaging'>
                                                     <Row>
                                                       <Col md="12">
@@ -1813,112 +1827,12 @@ export const ProductUpdate = () => {
                     <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
                       <ItemLoyaltyTab excludedFromLoyaltyPoints={product?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
                     </TabPanel>
-                    {/* <TabPanel header={translate('items.update.measures')}>
-                      <Row className={'mb-3 d-flex flex-column gap-3'}>
-                        <Col md="12" className={'d-flex gap-3 mb-3'}>
-                          <div className={'d-flex flex-column gap-2 w-6 mt-3'}>
-                            <label className={'font-semibold'}>
-                              <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
-                            </label>
-                            <Select
-                              value={product?.baseMeasure || null}
-                              options={measureList}
-                              name="baseMeasure"
-                              getOptionValue={option => option.id}
-                              getOptionLabel={option => option.name}
-                              onChange={handleBaseMeasureChange}
-                            />
-                          </div>
-
-                          <Table>
-                            <thead>
-                              <tr>
-                                <th>Measure</th>
-                                <th className="w-1">Exchange Rate</th>
-                              </tr>
-                            </thead>
-                            <thead>
-                              <tr>
-                                <td>
-                                  <Select
-                                    value={measureToAdd?.itemMeasure || null}
-                                    isDisabled={!product?.baseMeasure}
-                                    options={filteredMeasures}
-                                    getOptionValue={option => option.id}
-                                    getOptionLabel={option => option.name}
-                                    onChange={itemMeasure => setMeasureToAdd(prev => ({ ...prev, itemMeasure }))}
-                                  />
-                                </td>
-                                <td>
-                                  <InputNumber
-                                    value={measureToAdd?.exchangeRate || null}
-                                    disabled={!measureToAdd?.itemMeasure}
-                                    onChange={e => setMeasureToAdd(prev => ({ ...prev, exchangeRate: e.value }))}
-                                  />
-                                </td>
-                                <td>
-                                  <Button
-                                    type="button"
-                                    disabled={!measureToAdd?.exchangeRate}
-                                    onClick={handleAddMeasure}
-                                    color="primary"
-                                    className={'mb-2'}
-                                  >
-                                    Add
-                                  </Button>
-                                </td>
-                              </tr>
-                            </thead>
-                          </Table>
-                        </Col>
-
-                        <Col md="8">
-                          <Table>
-                            <thead>
-                              <tr>
-                                <th>
-                                  <Translate contentKey={'items.update.measure'}>Measure</Translate>
-                                </th>
-                                <th>
-                                  <Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate>
-                                </th>
-                                <th>Remove</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {product?.measures?.map((exMeasure, index) => (
-                                <tr key={index}>
-                                  <td>{exMeasure?.itemMeasure?.name}</td>
-                                  <td>
-                                    <InputNumber
-                                      value={exMeasure?.exchangeRate || null}
-                                      required
-                                      onChange={e => handleMeasuresChange(index, e.value)}
-                                    />
-                                  </td>
-                                  <td>
-                                    <PrimeButton type={'button'} onClick={() => handleRemoveMeasure(index)} severity={'danger'}>
-                                      <Translate contentKey={'items.update.remove'}>Remove</Translate>
-                                    </PrimeButton>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </Table>
-                        </Col>
-                      </Row>
-                    </TabPanel> */}
-
-                    {/* <TabPanel header={translate('items.update.tabs.supplier.label')}>
-                      <SupplierAssociationTab
-                        onSupplierChange={handleSupplierChange} // Pass down the function as a prop
-                        variants={product?.variants} itemId={product.id} suppliers={supplierList} />
-                    </TabPanel> */}
-
-                    <TabPanel header={translate('items.update.tabs.itemLocation.label')}>
-                      <ItemLocation
-                        onItemLocationChange={updateItemLocation} // Pass down the function as a prop
-                        itemLocaion={product?.itemLocation} />
+                    <TabPanel header={translate('items.update.tabs.ebtEligibleBranches.label')}>
+                      <EBTEligibleBranches
+                        item={product}
+                        setItem={setProduct}
+                        branchList={branchList}
+                      />
                     </TabPanel>
 
                   </TabView>

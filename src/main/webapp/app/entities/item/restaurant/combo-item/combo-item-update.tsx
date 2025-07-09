@@ -17,6 +17,7 @@ import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-u
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { InputNumber } from "primereact/inputnumber";
+import { Checkbox } from "primereact/checkbox";
 import ComboItemSelection from "app/entities/item/restaurant/combo-item/combo-item-selection";
 import ComboItemAddonDropDown from "app/entities/item/restaurant/combo-item/combo-item-addon";
 import { TabPanel, TabView } from "primereact/tabview";
@@ -32,6 +33,8 @@ import CustomDefinitionValuesWrapper from 'app/shared/components/custom-definiti
 import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/custom-definition-value.model';
 import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
+import SeoTags from 'app/shared/components/item/seo-tags';
+import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 
 
 export const ComboItemUpdate = () => {
@@ -102,6 +105,16 @@ export const ComboItemUpdate = () => {
           },
         },
       ],
+    }));
+  };
+
+  const updateSeoTags = (fieldName, value) => {
+    setComboItem(prevItem => ({
+      ...prevItem,
+      seo: {
+        ...prevItem.seo,
+        [fieldName]: value
+      }
     }));
   };
 
@@ -302,7 +315,6 @@ export const ComboItemUpdate = () => {
       };
     });
   };
-
 
   const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
@@ -601,6 +613,22 @@ export const ComboItemUpdate = () => {
               <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
                 <ItemLoyaltyTab excludedFromLoyaltyPoints={comboItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
               </TabPanel>
+
+              <TabPanel header={translate('items.update.tabs.seo.label')}>
+                <SeoTags
+                  field={comboItem?.seo}
+                  onFieldChange={updateSeoTags}
+                />
+              </TabPanel>
+
+              <TabPanel header={translate('items.update.tabs.ebtEligibleBranches.label')}>
+                <EBTEligibleBranches 
+                  item={comboItem}
+                  setItem={setComboItem}
+                  branchList={branchList}
+                />
+              </TabPanel>
+
             </TabView>
           </Card>
         </Col>

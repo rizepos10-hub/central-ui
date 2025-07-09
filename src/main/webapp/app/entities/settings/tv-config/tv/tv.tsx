@@ -86,6 +86,16 @@ export const FloorPlanTv = () => {
       </Link>
     );
   };
+
+  const viewColumnTemplate = (rowData) => {
+    const viewUrl = `/tv/${rowData.id}/view`;
+    return (
+      <Link to={viewUrl} target="_blank" rel="noopener noreferrer">
+        <FontAwesomeIcon icon="eye" style={{ cursor: 'pointer' , color: 'blue' , marginLeft: '0.3rem'}} />
+      </Link>
+    );
+  };
+
   const handleCreate = () => {
     navigate('/tv/new')
   }
@@ -123,6 +133,8 @@ export const FloorPlanTv = () => {
           <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
                    bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
+          <Column header="View"  body={viewColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
+                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
 
         </DataTable>
       </div>

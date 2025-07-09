@@ -36,6 +36,7 @@ const VariantPackaging = ({
                 filters: {
                     ...initialItemFilterState.filters,
                     name: { value: inputValue, matchMode: FilterMatchMode.CONTAINS },
+                    'variants.measureValue.isBase': { value: true, matchMode: FilterMatchMode.EQUALS },
                 }
             });
             const response = await dispatch(
@@ -45,7 +46,7 @@ const VariantPackaging = ({
             );;
             const payload = response.payload as any;
             const data = payload?.data;
-            return data?.flatMap(item => (item?.variants?.map(
+            return data?.flatMap(item => (item?.variants?.filter(variant => variant?.measureValue?.isBase)?.map(
                 variant => ({
                     variantId: variant?.id,
                     name: `(${item?.name}) ${variant?.name}`

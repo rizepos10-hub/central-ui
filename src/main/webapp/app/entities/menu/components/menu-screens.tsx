@@ -15,6 +15,7 @@ import { IItem } from 'app/shared/model/ITEM/item.model';
 import { IMenuData } from '../menu-instance';
 import { CiGrid41 } from "react-icons/ci";
 import { CiGrid2H } from "react-icons/ci";
+import { Checkbox } from 'primereact/checkbox';
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -46,6 +47,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [selectedScreenIndex, setSelectedScreenIndex] = useState(null);
     const [selectedItems, setSelectedItems] = useState<IItem[]>([]);
     const [editScreenName, setEditScreenName] = useState('');
+    const [editScreenIsPizza, setEditScreenIsPizza] = useState(false);
     const [editScreenColor, setEditScreenColor] = useState('');
     const [editScreenCols, setEditScreenCols] = useState<number | null>(1);
     const [selectedColorTheme, setSelectedColorTheme] = useState('');
@@ -147,6 +149,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 name: editScreenName,
                                 backgroundColor: editScreenColor,
                                 numberOfColumns: editScreenCols,
+                                isPizza: editScreenIsPizza,
                             };
                         }
                         return nestedSubScreen;
@@ -1174,7 +1177,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             ...mainScreen,
                             name: editScreenName,
                             backgroundColor: editScreenColor,
-                            numberOfColumns: editScreenCols
+                            numberOfColumns: editScreenCols,
+                            isPizza: editScreenIsPizza,
                         };
                     }
                     return mainScreen;
@@ -1187,7 +1191,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         ...existingSubScreen,
                         name: editScreenName,
                         backgroundColor: editScreenColor,
-                        numberOfColumns: editScreenCols
+                        numberOfColumns: editScreenCols,
+                        isPizza: editScreenIsPizza,
                     };
 
                     // Update using the existing updateSubScreenById
@@ -1407,25 +1412,38 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             <InputNumber id="editCols" min={1} max={12} value={editScreenCols} onChange={e => setEditScreenCols(e.value)} />
                         </div>
 
-                        <Label for="subScreenColor">
-                            <Translate contentKey={'menus.pos.update.modals.editScreen.color'}>Select color theme</Translate>
-                        </Label>
-                        <div className="d-flex flex-wrap mt-3">
-                            {colorThemes.map((color, index) => (
-                                <Button
-                                    key={index}
-                                    style={{
-                                        backgroundColor: color,
-                                        width: '55px',
-                                        height: '30px',
-                                        border: 'none',
-                                        marginRight: '10px',
-                                        marginBottom: '10px',
-                                    }}
-                                    className={editScreenColor === color ? 'active' : ''}
-                                    onClick={() => setEditScreenColor(color)}
-                                ></Button>
-                            ))}
+                        <div className={'d-flex flex-column mt-2'}>
+                            <Label for="isPizza">
+                                <Translate contentKey={'menus.pos.update.modals.editScreen.isPizza'}>Is Pizza</Translate>
+                            </Label>
+                            <Checkbox
+                                id="isPizza"
+                                checked={editScreenIsPizza}
+                                    onChange={e => setEditScreenIsPizza(e.target.checked)}
+                                />
+                        </div>
+
+                        <div className={'d-flex flex-column mt-2'}>
+                            <Label for="subScreenColor">
+                                <Translate contentKey={'menus.pos.update.modals.editScreen.color'}>Select color theme</Translate>
+                            </Label>
+                            <div className="d-flex flex-wrap">
+                                {colorThemes.map((color, index) => (
+                                    <Button
+                                        key={index}
+                                        style={{
+                                            backgroundColor: color,
+                                            width: '55px',
+                                            height: '30px',
+                                            border: 'none',
+                                            marginRight: '10px',
+                                            marginBottom: '10px',
+                                        }}
+                                        className={editScreenColor === color ? 'active' : ''}
+                                        onClick={() => setEditScreenColor(color)}
+                                    ></Button>
+                                ))}
+                            </div>
                         </div>
                     </FormGroup>
                     <Button

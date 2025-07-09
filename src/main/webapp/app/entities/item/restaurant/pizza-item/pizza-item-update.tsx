@@ -41,6 +41,10 @@ import { CustomDefinitionEntityType } from 'app/shared/model/CUSTOM-DEFINITION/c
 import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
 import { IPredefinedPizza } from 'app/shared/model/PIZZA/predefined-pizza.model';
+import SeoTags from 'app/shared/components/item/seo-tags';
+import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { Checkbox } from "primereact/checkbox";
+import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 
 const items: MenuItem[] = [
   {
@@ -80,6 +84,7 @@ export const PizzaItemUpdate = () => {
   const mixAndMatchRuleList = useAppSelector(state => state.mixAndMatchRule.entities);
   const predefinedPizzaOptions: IPredefinedPizza[] = useAppSelector(state => state.predefinedPizza.entities);
   const pizzaPricingClasses = useAppSelector(state => state.pizzaPricingClass.entities);
+  const branchList = useAppSelector(state => state.branch.entities);
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
   );
@@ -176,6 +181,16 @@ export const PizzaItemUpdate = () => {
         variants: updatedVariants,
       };
     });
+  };
+
+  const updateSeoTags = (fieldName, value) => {
+    setPizzaItem(prevItem => ({
+      ...prevItem,
+      seo: {
+        ...prevItem.seo,
+        [fieldName]: value
+      }
+    }));
   };
 
   const handleDefaultPizzasChange = (fieldName, value, pizzaIndex) => {
@@ -454,6 +469,12 @@ export const PizzaItemUpdate = () => {
     }));
 
     dispatch(getMixAndMatchRules({
+      page: paginationState.activePage - 1,
+      size: paginationState.itemsPerPage,
+      sort: `${paginationState.sort},${paginationState.order}`,
+    }));
+
+    dispatch(getBranches({
       page: paginationState.activePage - 1,
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
@@ -1229,6 +1250,22 @@ export const PizzaItemUpdate = () => {
                       <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
                         <ItemLoyaltyTab excludedFromLoyaltyPoints={pizzaItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
                       </TabPanel>
+
+                      <TabPanel header={translate('items.update.tabs.seo.label')}>
+                        <SeoTags
+                          field={pizzaItem?.seo}
+                          onFieldChange={updateSeoTags}
+                        />
+                      </TabPanel>
+
+                      <TabPanel header={translate('items.update.tabs.ebtEligibleBranches.label')}>
+                      <EBTEligibleBranches 
+                        item={pizzaItem}
+                        setItem={setPizzaItem}
+                        branchList={branchList}
+                      />
+                      </TabPanel>
+
                     </TabView>
                   </CardBody>
                 </Card>
