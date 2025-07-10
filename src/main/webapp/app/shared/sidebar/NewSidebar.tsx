@@ -139,6 +139,8 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
     localStorage.setItem(STORAGE_KEYS.sidebarCollapsed, JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
+
+
   // Monitor tour state from localStorage
   useEffect(() => {
     const checkTourState = () => {
