@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { classNames } from 'primereact/utils';
-import { useAppSelector } from 'app/config/store';
 import { model, MenuItem } from './AppMenu';
+import { useAppSelector } from 'app/config/store';
 import './NewSidebar.scss';
 
 interface NewSidebarProps {
@@ -21,6 +21,9 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const authorities = useAppSelector(state => state.authentication.account?.authorities || []);
+  
+  // Get shortcuts from Redux state
+  const shortcuts = useAppSelector(state => state.shortcuts.shortcuts);
 
   // LocalStorage keys
   const STORAGE_KEYS = {
@@ -34,6 +37,30 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
     completed: 'setup_tour_completed',
     currentStep: 'tour_current_step'
   };
+
+  // Enhance menu model with shortcuts (similar to old sidebar implementation)
+  const enhanceMenuModel = (model: MenuItem[]) => {
+    return useMemo(() => {
+      if (shortcuts.length > 0) {
+        // Make a deep copy of the model to avoid mutating the original object
+        const modelCopy = JSON.parse(JSON.stringify(model));
+
+        const controlPanel = modelCopy.find(item => item.label === 'Control Panel');
+        if (controlPanel && controlPanel.items) {
+          const alreadyAdded = controlPanel.items.some(item => shortcuts.some(shortcut => shortcut.label === item.label));
+          if (!alreadyAdded) {
+            const dashboardIndex = controlPanel.items.findIndex(item => item.label === 'Dashboard');
+            const insertIndex = dashboardIndex !== -1 ? dashboardIndex + 1 : controlPanel.items.length;
+            controlPanel.items.splice(insertIndex, 0, ...shortcuts);
+          }
+        }
+        return modelCopy;
+      }
+      return model;
+    }, [model, shortcuts]);
+  };
+
+  const modelWithShortcuts = enhanceMenuModel(model);
 
   // Filter menu items based on user access
   const getFilteredMenuItems = (items: MenuItem[]) => {
@@ -49,7 +76,7 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
     });
   };
 
-  const filteredMainMenuItems = getFilteredMenuItems(model);
+  const filteredMainMenuItems = getFilteredMenuItems(modelWithShortcuts);
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -442,27 +469,36 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
                       setActiveMainMenu('');
                     }
                   } else {
-                    // Open the menu and navigate to first submenu item
+                    // Open the menu
                     setActiveMainMenu(index.toString());
                     
                     // Only auto-navigate if not during tour (tour handles its own navigation)
                     if (!tourState.isActive) {
-                      // Find and navigate to the first accessible submenu item
-                      if (item.items && item.items.length > 0) {
-                        const firstAccessibleItem = item.items.find(subItem => {
-                          const hasRoleAccess = !subItem.role || subItem.role.length === 0 || 
-                            subItem.role.some(role => authorities.includes(role));
-                          const hasBusinessTypeAccess = !subItem.type || subItem.type.length === 0 || 
-                            (businessTypes?.types && subItem.type.some(type => businessTypes.types.includes(type))) || true;
-                          return hasRoleAccess && hasBusinessTypeAccess && subItem.to;
-                        });
-                        
-                        if (firstAccessibleItem?.to) {
-                          navigate(firstAccessibleItem.to);
+                      // Check if user is already on a child route of this menu item
+                      const currentPath = location.pathname;
+                      const isOnChildRoute = item.items && item.items.some(subItem => 
+                        subItem.to && isActiveRoute(subItem.to)
+                      );
+                      
+                      // Only navigate if user is NOT already on a child route
+                      if (!isOnChildRoute) {
+                        // Find and navigate to the first accessible submenu item
+                        if (item.items && item.items.length > 0) {
+                          const firstAccessibleItem = item.items.find(subItem => {
+                            const hasRoleAccess = !subItem.role || subItem.role.length === 0 || 
+                              subItem.role.some(role => authorities.includes(role));
+                            const hasBusinessTypeAccess = !subItem.type || subItem.type.length === 0 || 
+                              (businessTypes?.types && subItem.type.some(type => businessTypes.types.includes(type))) || true;
+                            return hasRoleAccess && hasBusinessTypeAccess && subItem.to;
+                          });
+                          
+                          if (firstAccessibleItem?.to) {
+                            navigate(firstAccessibleItem.to);
+                          }
+                        } else if (item.to) {
+                          // If no subitems, navigate to the main item
+                          navigate(item.to);
                         }
-                      } else if (item.to) {
-                        // If no subitems, navigate to the main item
-                        navigate(item.to);
                       }
                     }
                   }
