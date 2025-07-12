@@ -40,6 +40,7 @@ import AuditLogs from "app/shared/components/logs/audit-logs";
 import VariantBranchPrice from "app/shared/components/item/variant-branch-price";
 import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import PricingSection from 'app/shared/components/item/sections/PricingSection';
 
 
 const defaultItemPriceNumber = {
@@ -90,6 +91,7 @@ export const SimpleItemUpdate = () => {
   });
 
   const [measureToAdd, setMeasureToAdd] = useState<IExchangeMeasure>();
+  const [showFormErrors, setShowFormErrors] = useState(false);
 
 
   const [itemAttribute, setItemAttribute] = useState<{
@@ -348,6 +350,7 @@ export const SimpleItemUpdate = () => {
   }, [id, isNew]);
 
   useEffect(() => {
+  
     if (!isNew) {
       setSimpleItem(simpleItemEntity);
     }
@@ -361,6 +364,7 @@ export const SimpleItemUpdate = () => {
 
   const saveEntity = e => {
     e.preventDefault();
+    setShowFormErrors(false); // Always set to false since validation is not needed
     const entity = {
       ...simpleItem,
       variants: [
@@ -398,6 +402,9 @@ export const SimpleItemUpdate = () => {
 
   return (
     <form onSubmit={saveEntity}>
+      <h1 className="mb-4 mt-2">
+        {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.simple'}>Create New Simple Item</Translate> : `Editing retail product:  ${simpleItem.name}`}
+      </h1>
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card className='p-0'>
@@ -407,317 +414,279 @@ export const SimpleItemUpdate = () => {
                   <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
                       <div className='w-100'>
-                        <div className='text-xl font-semibold'>
-                          {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.simple'}>Create New Simple Item</Translate> : <span>Edit {simpleItem.name}</span>}
-                        </div>
+                        <Row>
+                          <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
+                            <Col md="12" className={`d-flex flex-column bg-white gap-1 p-1`} >
+
+                              <div className={"d-flex flex-column gap-2"}>
+                                <label className={"font-semibold"}>
+                                  <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                                </label>
+                                <InputText
+                                  name="sku"
+                                  id="sku"
+                                  required={true}
+                                  placeholder={translate('items.update.placeholders.itemSku')}
+                                  value={simpleItem?.variants?.[0]?.sku}
+                                  onChange={(e) => handleSimpleItemVariantChange('sku', e.target.value)}
+                                />
+                              </div>
+
+                              <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange} />
+                              <PricingSection
+                                item={simpleItem}
+                                onFieldChange={handleFieldChange}
+                                showFormErrors={showFormErrors}
+                                branchList={branchList}
+                                handleBranchPriceChange={handleBranchPriceChange}
+                              />
+
+                              {/* <VariantBranchPrice
+                                itemVariantType={"RETAIL"}
+                                branchVariantDetails={simpleItem?.variants?.[0]?.branchVariantDetails}
+                                variantIndex={0}
+                                branchList={branchList}
+                                handleBranchPriceChange={handleBranchPriceChange}
+                                handleSavePricingPoint={handleSaveWholesalePrices}
+                              /> */}
+
+                              <Row>
+                                <Col md="7">
+
+                                  <DiscountDropdown
+                                    discounts={simpleItem?.variants?.[0]?.discounts}
+                                    handleChange={handleSimpleItemVariantChange}
+                                  />
+
+                                  <div className={"d-flex flex-column gap-2 mt-2"}>
+                                    <label className={"font-semibold"}>
+                                      <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                    </label>
+                                    <Select
+                                      value={simpleItem?.variants?.[0]?.mixAndMatchRule}
+                                      options={mixAndMatchRuleList}
+                                      getOptionLabel={option => option.name}
+                                      getOptionValue={option => option.id}
+                                      onChange={(mixAndMatchRule) => handleSimpleItemVariantChange('mixAndMatchRule', mixAndMatchRule)}
+                                    />
+                                  </div>
+                                </Col>
+                              </Row>
+
+                              <Row>
+                                <Col md="12">
+                                  <div className={"d-flex flex-row gap-2"}>
+                                    <div className={"d-flex flex-column gap-2"}>
+                                      <label className={"font-semibold"}>
+                                        <Translate contentKey={'items.update.attributes'}>Attributes</Translate>
+                                      </label>
+                                      <Select
+                                        value={itemAttribute?.attributeTax || null}
+                                        isClearable
+                                        styles={{
+                                          control: (baseStyles) => ({
+                                            ...baseStyles,
+                                            minWidth: '15rem'
+                                          }),
+                                        }}
+                                        options={filteredAvailableAttributes()}
+                                        getOptionValue={option => option.id}
+                                        getOptionLabel={option => option.key}
+                                        onChange={(attribute) => handleItemAttributeSelect(attribute)}
+                                      />
+                                    </div>
+                                    <PrimeButton
+                                      type="button"
+                                      color="primary" className={"mt-5"} onClick={handleAddAttribute}
+                                      disabled={isAttributeAddButtonDisabled}
+                                    >
+                                      <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
+                                    </PrimeButton>
+                                  </div>
+                                </Col>
+
+
+
+                                <Col md={"7"} className={"mt-2"}>
+                                  <Accordion multiple activeIndex={[0]}>
+                                    {simpleItem?.attributes?.map((attribute, index) => (
+                                      <AccordionTab key={index} header={attribute?.attributeTax?.key}>
+                                        <div className={"d-flex gap-3"}>
+                                          <label className={"mt-2"}>{translate('items.update.name')}: {attribute?.attributeTax?.key}</label>
+                                          <Col md={"9"}>
+                                            <AsyncSelect
+                                              value={attribute?.attributeTerms}
+                                              isMulti
+                                              getOptionLabel={option => option.name}
+                                              getOptionValue={option => option.id}
+                                              onChange={(selectedOptions) => handleAttributeTermChange(index, selectedOptions)}
+                                              isLoading={loadingAttributesValues}
+                                              onFocus={() => loadOptions(attribute?.attributeTax?.id)}
+                                              defaultOptions={attributeValuesList}
+                                            />
+
+                                          </Col>
+                                        </div>
+                                      </AccordionTab>
+                                    ))}
+
+                                  </Accordion>
+                                </Col>
+                              </Row>
+                            </Col>
+                          </FormGroup>
+
+
+                        </Row>
                       </div>
+                    </TabPanel>
+                      <TabPanel header={translate('items.update.tabs.visibility.label')}>
+                        <Visibility
+                          initialState={simpleItem.visibility}
+                          title={translate('items.update.tabs.visibility.titles.simple')}
+                          onStateChanged={(state) => setSimpleItem(prev => {
+                            return { ...prev, visibility: state }
+                          })} />
+                      </TabPanel>
 
-                      <Row>
+                      <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
+                        <ItemLoyaltyTab excludedFromLoyaltyPoints={simpleItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
+                      </TabPanel>
 
-                        <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
+                      <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
+                        <ItemStockTab refreshProduct={refreshProduct} variants={simpleItem?.variants} itemId={simpleItem.id} />
+                      </TabPanel>
 
-                          <Col md="12" className={`d-flex flex-column bg-white gap-1 p-1`} >
-
-                            <div className={"d-flex flex-column gap-2"}>
+                      <TabPanel header={translate('items.update.measures')}>
+                        <div className='row align-items-end'>
+                          <div className='row col-10'>
+                            <div className='col d-flex flex-column gap-2 mt-3'>
                               <label className={"font-semibold"}>
-                                <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                                <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
                               </label>
-                              <InputText
-                                name="sku"
-                                id="sku"
-                                required={true}
-                                placeholder={translate('items.update.placeholders.itemSku')}
-                                value={simpleItem?.variants?.[0]?.sku}
-                                onChange={(e) => handleSimpleItemVariantChange('sku', e.target.value)}
+                              <Select
+                                value={simpleItem?.baseMeasure}
+                                options={measureList}
+                                name="baseMeasure"
+                                getOptionValue={option => option.id}
+                                getOptionLabel={option => option.name}
+                                onChange={confirm1}
                               />
                             </div>
 
-                            <SharedItemUpdate item={simpleItem} onFieldChange={handleFieldChange} />
+                            <div className='col d-flex flex-column gap-2 mt-3'>
+                              <label className={"font-semibold"}>
+                                <Translate contentKey={'items.update.measure'}>Measure</Translate>
+                              </label>
+                              <Select
+                                value={measureToAdd?.itemMeasure || null}
+                                isDisabled={!simpleItem?.baseMeasure}
+                                options={filteredMeasures}
+                                getOptionValue={option => option.id}
+                                getOptionLabel={option => option.name}
+                                onChange={(itemMeasure) => setMeasureToAdd(prev => ({ ...prev, itemMeasure }))}
+                              />
+                            </div>
 
-                            <Row className="">
-                              <Col md="6">
-                                <div className={"d-flex flex-column gap-2"}>
-                                  <label className={"font-semibold"}>
-                                    <Translate contentKey={'items.update.price'}>Price</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="price"
-                                    id="price"
-                                    required={true}
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName={"w-1"}
-                                    placeholder={translate('items.update.placeholders.itemPrice')}
-                                    value={simpleItem?.variants?.[0]?.price}
-                                    onChange={(e) => handleSimpleItemVariantChange('price', e.value)}
-                                  />
-                                </div>
-                              </Col>
-
-                              <Col md="6">
-                                <div className={"d-flex flex-column gap-2"}>
-                                  <label className={"font-semibold"}>
-                                    <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="sale-price"
-                                    id="sale-price"
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    placeholder={translate('items.update.placeholders.itemSalePrice')}
-                                    value={simpleItem?.variants?.[0]?.salePrice}
-                                    onChange={(e) => handleSimpleItemVariantChange('salePrice', e.value)}
-                                  />
-                                </div>
-                              </Col>
-                            </Row>
-
-
-                            {/* <VariantBranchPrice
-                              itemVariantType={"RETAIL"}
-                              branchVariantDetails={simpleItem?.variants?.[0]?.branchVariantDetails}
-                              variantIndex={0}
-                              branchList={branchList}
-                              handleBranchPriceChange={handleBranchPriceChange}
-                              handleSavePricingPoint={handleSaveWholesalePrices}
-                            /> */}
-
-                            <Row>
-                              <Col md="7">
-
-                                <DiscountDropdown
-                                  discounts={simpleItem?.variants?.[0]?.discounts}
-                                  handleChange={handleSimpleItemVariantChange}
-                                />
-
-                                <div className={"d-flex flex-column gap-2 mt-2"}>
-                                  <label className={"font-semibold"}>
-                                    <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
-                                  </label>
-                                  <Select
-                                    value={simpleItem?.variants?.[0]?.mixAndMatchRule}
-                                    options={mixAndMatchRuleList}
-                                    getOptionLabel={option => option.name}
-                                    getOptionValue={option => option.id}
-                                    onChange={(mixAndMatchRule) => handleSimpleItemVariantChange('mixAndMatchRule', mixAndMatchRule)}
-                                  />
-                                </div>
-                              </Col>
-                            </Row>
-
-                            <Row>
-                              <Col md="12">
-                                <div className={"d-flex flex-row gap-2"}>
-                                  <div className={"d-flex flex-column gap-2"}>
-                                    <label className={"font-semibold"}>
-                                      <Translate contentKey={'items.update.attributes'}>Attributes</Translate>
-                                    </label>
-                                    <Select
-                                      value={itemAttribute?.attributeTax || null}
-                                      isClearable
-                                      styles={{
-                                        control: (baseStyles) => ({
-                                          ...baseStyles,
-                                          minWidth: '15rem'
-                                        }),
-                                      }}
-                                      options={filteredAvailableAttributes()}
-                                      getOptionValue={option => option.id}
-                                      getOptionLabel={option => option.key}
-                                      onChange={(attribute) => handleItemAttributeSelect(attribute)}
-                                    />
-                                  </div>
-                                  <PrimeButton
-                                    type="button"
-                                    color="primary" className={"mt-5"} onClick={handleAddAttribute}
-                                    disabled={isAttributeAddButtonDisabled}
-                                  >
-                                    <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
-                                  </PrimeButton>
-                                </div>
-                              </Col>
-
-
-
-                              <Col md={"7"} className={"mt-2"}>
-                                <Accordion multiple activeIndex={[0]}>
-                                  {simpleItem?.attributes?.map((attribute, index) => (
-                                    <AccordionTab key={index} header={attribute?.attributeTax?.key}>
-                                      <div className={"d-flex gap-3"}>
-                                        <label className={"mt-2"}>{translate('items.update.name')}: {attribute?.attributeTax?.key}</label>
-                                        <Col md={"9"}>
-                                          <AsyncSelect
-                                            value={attribute?.attributeTerms}
-                                            isMulti
-                                            getOptionLabel={option => option.name}
-                                            getOptionValue={option => option.id}
-                                            onChange={(selectedOptions) => handleAttributeTermChange(index, selectedOptions)}
-                                            isLoading={loadingAttributesValues}
-                                            onFocus={() => loadOptions(attribute?.attributeTax?.id)}
-                                            defaultOptions={attributeValuesList}
-                                          />
-
-                                        </Col>
-                                      </div>
-                                    </AccordionTab>
-                                  ))}
-
-                                </Accordion>
-                              </Col>
-                            </Row>
-                          </Col>
-                        </FormGroup>
-
-
-                      </Row>
-                    </TabPanel>
-                    <TabPanel header={translate('items.update.tabs.visibility.label')}>
-                      <Visibility
-                        initialState={simpleItem.visibility}
-                        title={translate('items.update.tabs.visibility.titles.simple')}
-                        onStateChanged={(state) => setSimpleItem(prev => {
-                          return { ...prev, visibility: state }
-                        })} />
-                    </TabPanel>
-
-                    <TabPanel header={translate('items.update.tabs.excludedFromLoyaltyPoints.label')}>
-                      <ItemLoyaltyTab excludedFromLoyaltyPoints={simpleItem?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
-                    </TabPanel>
-
-                    <TabPanel header={translate('items.update.tabs.stock.label')} disabled={isNew}>
-                      <ItemStockTab refreshProduct={refreshProduct} variants={simpleItem?.variants} itemId={simpleItem.id} />
-                    </TabPanel>
-
-                    <TabPanel header={translate('items.update.measures')}>
-                      <div className='row align-items-end'>
-                        <div className='row col-10'>
-                          <div className='col d-flex flex-column gap-2 mt-3'>
-                            <label className={"font-semibold"}>
-                              <Translate contentKey={'items.update.baseMeasure'}>Select Measure</Translate>
-                            </label>
-                            <Select
-                              value={simpleItem?.baseMeasure}
-                              options={measureList}
-                              name="baseMeasure"
-                              getOptionValue={option => option.id}
-                              getOptionLabel={option => option.name}
-                              onChange={confirm1}
-                            />
+                            <div className='col d-flex flex-column gap-2 mt-3'>
+                              <label className={"font-semibold"}>
+                                <Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate>
+                              </label>
+                              <InputNumber
+                                value={measureToAdd?.exchangeRate}
+                                disabled={!measureToAdd?.itemMeasure}
+                                onChange={(e) => setMeasureToAdd(prev => ({ ...prev, exchangeRate: e.value }))}
+                                className='p-1'
+                              />
+                            </div>
                           </div>
-
-                          <div className='col d-flex flex-column gap-2 mt-3'>
-                            <label className={"font-semibold"}>
-                              <Translate contentKey={'items.update.measure'}>Measure</Translate>
-                            </label>
-                            <Select
-                              value={measureToAdd?.itemMeasure || null}
-                              isDisabled={!simpleItem?.baseMeasure}
-                              options={filteredMeasures}
-                              getOptionValue={option => option.id}
-                              getOptionLabel={option => option.name}
-                              onChange={(itemMeasure) => setMeasureToAdd(prev => ({ ...prev, itemMeasure }))}
-                            />
-                          </div>
-
-                          <div className='col d-flex flex-column gap-2 mt-3'>
-                            <label className={"font-semibold"}>
-                              <Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate>
-                            </label>
-                            <InputNumber
-                              value={measureToAdd?.exchangeRate}
-                              disabled={!measureToAdd?.itemMeasure}
-                              onChange={(e) => setMeasureToAdd(prev => ({ ...prev, exchangeRate: e.value }))}
-                              className='p-1'
-                            />
+                          <div className='col-2'>
+                            <PrimeButton
+                              type="button"
+                              disabled={!measureToAdd?.exchangeRate}
+                              onClick={handleAddMeasure}
+                              color="primary"
+                              className={"mb-2"}
+                            >
+                              Add
+                            </PrimeButton>
                           </div>
                         </div>
-                        <div className='col-2'>
-                          <PrimeButton
-                            type="button"
-                            disabled={!measureToAdd?.exchangeRate}
-                            onClick={handleAddMeasure}
-                            color="primary"
-                            className={"mb-2"}
-                          >
-                            Add
-                          </PrimeButton>
-                        </div>
-                      </div>
 
 
-                      <Row className={" d-flex flex-column gap-3"} >
-                        <Col md="8">
-                          <Table>
-                            <thead>
-                              <tr>
-                                <th><Translate contentKey={'items.update.measure'}>Measure</Translate></th>
-                                <th><Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate></th>
-                                <th>Remove</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {simpleItem?.measures?.map((exMeasure, index) => (
-                                <tr key={index}>
-                                  <td>
-                                    {exMeasure?.itemMeasure?.name}
-                                  </td>
-                                  <td>
-                                    <InputNumber
-                                      value={exMeasure?.exchangeRate}
-                                      required
-                                      onChange={(e) => handleMeasuresChange(index, e.value)}
-                                    />
-                                  </td>
-                                  <td>
-                                    <PrimeButton type={"button"} onClick={() => handleRemoveMeasure(index)} severity={"danger"} >
-                                      <Translate contentKey={'items.update.remove'}>Remove</Translate>
-                                    </PrimeButton>
-                                  </td>
+                        <Row className={" d-flex flex-column gap-3"} >
+                          <Col md="8">
+                            <Table>
+                              <thead>
+                                <tr>
+                                  <th><Translate contentKey={'items.update.measure'}>Measure</Translate></th>
+                                  <th><Translate contentKey={'items.update.exchangeRate'}>Exchange Rate</Translate></th>
+                                  <th>Remove</th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </Table>
-                        </Col>
-                      </Row>
-                    </TabPanel>
+                              </thead>
+                              <tbody>
+                                {simpleItem?.measures?.map((exMeasure, index) => (
+                                  <tr key={index}>
+                                    <td>
+                                      {exMeasure?.itemMeasure?.name}
+                                    </td>
+                                    <td>
+                                      <InputNumber
+                                        value={exMeasure?.exchangeRate}
+                                        required
+                                        onChange={(e) => handleMeasuresChange(index, e.value)}
+                                      />
+                                    </td>
+                                    <td>
+                                      <PrimeButton type={"button"} onClick={() => handleRemoveMeasure(index)} severity={"danger"} >
+                                        <Translate contentKey={'items.update.remove'}>Remove</Translate>
+                                      </PrimeButton>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </Table>
+                          </Col>
+                        </Row>
+                      </TabPanel>
 
-                  </TabView>
-                </Col>
-              </Row>
-            </CardBody>
-          </Card>
-        </Col>
-        <Col md={3} style={{
-          position: 'sticky',
-          top: '0',
-          height: '90vh',
-        }}>
-          <Card>
-            <CardHeader>Actions</CardHeader>
-            <div className={'d-flex gap-3 mt-2'}>
-              <PrimeButton type="button" onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"
-                severity='secondary'>
-                <FontAwesomeIcon icon="arrow-left" />
+                    </TabView>
+                  </Col>
+                </Row>
+              </CardBody>
+            </Card>
+          </Col>
+          <Col md={3} style={{
+            position: 'sticky',
+            top: '0',
+            height: '90vh',
+          }}>
+            <Card>
+              <CardHeader>Actions</CardHeader>
+              <div className={'d-flex gap-3 mt-2'}>
+                <PrimeButton type="button" onClick={handleBackClick} id="cancel-save" data-cy="entityCreateCancelButton"
+                  severity='secondary'>
+                  <FontAwesomeIcon icon="arrow-left" />
+                  &nbsp;
+                  <span className="d-none d-md-inline">
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </span>
+                </PrimeButton>
                 &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </PrimeButton>
-              &nbsp;
-              <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
-                disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </PrimeButton>
-            </div>
-          </Card>
-          {simpleItemEntity?.id && <AuditLogs entityId={simpleItemEntity?.id} />}
-        </Col>
+                <PrimeButton color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit"
+                  disabled={updating}>
+                  <FontAwesomeIcon icon="save" />
+                  &nbsp;
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </PrimeButton>
+              </div>
+            </Card>
+            {simpleItemEntity?.id && <AuditLogs entityId={simpleItemEntity?.id} />}
+          </Col>
 
-      </div>
-    </form>
-  );
-};
+        </div>
+      </form>
+    );
+  };
 
-export default SimpleItemUpdate;
+  export default SimpleItemUpdate;

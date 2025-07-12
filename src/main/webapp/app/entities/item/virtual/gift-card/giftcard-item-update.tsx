@@ -19,6 +19,7 @@ import Visibility from 'app/shared/Visibility/Visibility';
 import { TabPanel, TabView } from "primereact/tabview";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import { IGiftCardItem } from 'app/shared/model/ITEM/virtual/giftcard-item.model';
+import PricingSection from 'app/shared/components/item/sections/PricingSection';
 
 
 const defaultItemPriceNumber = {
@@ -55,6 +56,7 @@ export const GiftCardItemUpdate = () => {
       branchVariantDetails: {},
     }]
   });
+  const [showFormErrors, setShowFormErrors] = useState(false);
 
   const findGiftCardById = (id) => {
     return giftCardsCouponEntities.find((giftCard) => giftCard.id === id);
@@ -155,6 +157,9 @@ export const GiftCardItemUpdate = () => {
 
   return (
     <form onSubmit={saveEntity}>
+      <h1 className="mb-4 mt-2 ">
+        {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.giftcard'}>Create New Gift Card Item</Translate> : `Editing ${giftCardItem.name}`}
+      </h1>
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card className='p-0'>
@@ -164,9 +169,7 @@ export const GiftCardItemUpdate = () => {
                   <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
                       <div className='w-100'>
-                        <div className='text-xl font-semibold'>
-                          {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.giftcard'}>Create New Gift Card Item</Translate> : <span>Edit {giftCardItem.name}</span>}
-                        </div>
+
                       </div>
 
                       <Row>
@@ -176,27 +179,13 @@ export const GiftCardItemUpdate = () => {
                           <Col md="12" className={`d-flex flex-column bg-white gap-1 p-1`} >
 
                             <SharedVirtualItemUpdate item={giftCardItem} onFieldChange={handleFieldChange} />
-
-                            <Row className="">
-                              <Col md="6">
-                                <div className={"d-flex flex-column gap-2"}>
-                                  <label className={"font-semibold"}>
-                                    <Translate contentKey={'items.update.price'}>Price</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="price"
-                                    id="price"
-                                    required={true}
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName={"w-1"}
-                                    placeholder={translate('items.update.placeholders.itemPrice')}
-                                    value={giftCardItem?.variants?.[0]?.price}
-                                    onChange={(e) => handleGiftCardItemVariantChange('price', e.value)}
-                                  />
-                                </div>
-                              </Col>
-                            </Row>
+                            <PricingSection
+                              item={giftCardItem}
+                              onFieldChange={handleFieldChange}
+                              showFormErrors={showFormErrors}
+                              branchList={branchList}
+                              handleBranchPriceChange={() => {}}
+                            />
 
                           </Col>
                         </FormGroup>

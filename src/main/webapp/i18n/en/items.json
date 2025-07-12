@@ -251,6 +251,12 @@
       "brand": "Brand",
       "branch": "Branch",
       "selectAttribute": "Select Attribute",
+      "sections": {
+        "basicInfo": "Basic Information",
+        "pricing": "Pricing",
+        "classification": "Classification",
+        "media": "Media"
+      },
       "addAttribute": "Add Attribute",
       "generateVariants": "Generate Variants",
       "addSingleVariant": "Add Single Variant",

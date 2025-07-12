@@ -50,6 +50,7 @@ import AddonImportModal from 'app/shared/components/item/addon-import-modal';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
 import IngredientsPicker from 'app/shared/ingredients-picker';
+import PricingSection from 'app/shared/components/item/sections/PricingSection';
 
 export const RegularItemUpdate = () => {
   const dispatch = useAppDispatch();
@@ -800,6 +801,9 @@ export const RegularItemUpdate = () => {
 
   return (
     <form onKeyDown={preventEnterSubmit}>
+      <h1 className="mb-4 mt-2">
+        {isNew ? translate('items.update.tabs.details.titles.create.variable') : `Editing ${regularItem.name}`}
+      </h1>
       {openedAddonModal && (
         <AddonImportModal
           showModal={openedAddonModal}
@@ -817,20 +821,18 @@ export const RegularItemUpdate = () => {
                   <TabView>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
                       <div className="w-100">
-                        <div className="text-xl font-semibold">
-                          {isNew ? translate('items.update.tabs.details.titles.create.variable') : `Edit ${regularItem.name}`}
-                        </div>
                       </div>
 
                       <Row>
                         <FormGroup className={`${isNew ? 'd-flex bg-white' : ''}`}>
                           <Col md="12" className={`d-flex flex-column p-3  bg-white `}>
-                            <SharedItemUpdate
+                            <SharedItemUpdate item={regularItem} onFieldChange={handleFieldChange} />
+                            <PricingSection
                               item={regularItem}
                               onFieldChange={handleFieldChange}
-                              defaultPrice={defaultPrice}
-                              setDefaultPrice={setDefaultPrice}
                               showFormErrors={showFormErrors}
+                              branchList={branchList}
+                              handleBranchPriceChange={handleBranchPriceChange}
                             />
 
                             <Col md="5" className={'d-flex gap-3'}>

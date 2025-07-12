@@ -30,7 +30,7 @@ a {
     overflow-x: hidden;
     padding: 1rem;
     .card {
-      padding: 1rem;
+      padding: 0;
     }
     .view-routes {
       height: 100%;
@@ -311,3 +311,7 @@ http://stackoverflow.com/questions/23436430/bootstrap-3-input-group-100-width */
 }
 
 /* jhipster-needle-scss-add-main JHipster will add new css style */
+
+.product-image-thumb:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
