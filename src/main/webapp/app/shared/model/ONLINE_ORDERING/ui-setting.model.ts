@@ -47,14 +47,25 @@ export interface ISocialProfiles {
 }
 
 export type IColorSetting = {
+  accent: string
+  "accent-foreground": string
   background: string
+  border: string
+  card: string
+  "card-foreground": string
   foreground: string
   primary: string
-  primaryForeground: string
+  "primary-foreground": string
   secondary: string
-  secondaryForeground: string
+  "secondary-foreground": string
   muted: string
-  mutedForeground: string
+  "muted-foreground": string
+  destructive: string
+  "destructive-foreground": string
+  input: string
+  "popover-foreground": string
+  radius: string
+  ring: string
 }
 
 export type IFontSetting = {
