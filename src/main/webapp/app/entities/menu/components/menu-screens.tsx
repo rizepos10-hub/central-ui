@@ -1428,8 +1428,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             <Checkbox
                                 id="isPizza"
                                 checked={editScreenIsPizza}
-                                    onChange={e => setEditScreenIsPizza(e.target.checked)}
-                                />
+                                onChange={e => setEditScreenIsPizza(e.target.checked)}
+                            />
                         </div>
 
                         <Label for="colorTheme">
