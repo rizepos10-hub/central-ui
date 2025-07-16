@@ -65,6 +65,17 @@ const SharedFilter = ({ handleSearch, itemType, filters, onFilterValueChange, fi
           />
         </div>
         <div className={'col-12 d-flex flex-column gap-1'}>
+          <Label className={'font-semibold'}>Tax</Label>
+          <DropDownFilter
+            classname={'w-100'}
+            placeholder={'Select Tax'}
+            dropDownOptionType={'PROFILE_GROUP'}
+            selectedOption={filters?.['accountingGroups.id']?.value}
+            fieldName={'accountingGroups.id'}
+            handleDropdownChange={handleDropdownChange}
+          />
+        </div>
+        <div className={'col-12 d-flex flex-column gap-1'}>
           <Label className={'font-semibold'}>Category</Label>
           <DropDownFilter
             classname={'w-100'}

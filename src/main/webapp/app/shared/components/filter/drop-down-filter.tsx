@@ -5,7 +5,7 @@ import { getEntities as getMeasures, searchEntities as searchMeasures } from "ap
 import { getEntities as getTags, searchEntities as searchTags } from "app/entities/tag/tag.reducer";
 import { getEntities as getAddonGroups, searchEntities as searchAddonGroups } from "app/entities/addon-groups/addon-groups.reducer";
 import { getEntities as getRestaurantCategories, searchEntities as searchRestaurantCategories } from 'app/entities/term/restaurant-Item-category/item-restaurant-category.reducer';
-
+import { getEntities as getProfileGroups, searchEntities as searchProfileGroups } from 'app/entities/settings/profile-group/profile-group.reducer';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { ITerm } from 'app/shared/model/term.model';
 import { Dropdown } from 'primereact/dropdown';
@@ -15,6 +15,7 @@ import { IBranch } from "app/shared/model/branch.model";
 import { IMeasurementUnit } from "app/shared/model/STOCK/measurement-unit.model";
 import { ITag } from "app/shared/model/TAG/tag.model";
 import { IAddonGroups } from "app/shared/model/ADDON/addon-groups.model";
+import { IProfileGroup } from "app/shared/model/TAX/profile-group.model";
 
 type DropDownFilterProps = {
   selectedOption: string;
@@ -42,6 +43,7 @@ const DropDownFilter = ({
   const branches: IBranch[] = useAppSelector(state => state.branch.entities);
   const tags: ITag[] = useAppSelector(state => state.tag.entities);
   const addonGroups: IAddonGroups[] = useAppSelector(state => state.addonGroups.entities);
+  const profileGroups: IProfileGroup[] = useAppSelector(state => state.profileGroup.entities);
   const [searchTerm, setSearchTerm] = useState("");
 
   const dropDownMap: IDropDownMap = {
@@ -74,6 +76,11 @@ const DropDownFilter = ({
       options: addonGroups,
       getEntities: getAddonGroups,
       searchEntities: searchAddonGroups
+    },
+    PROFILE_GROUP: {
+      options: profileGroups,
+      getEntities: getProfileGroups,
+      searchEntities: searchProfileGroups
     }
   };
   useEffect(() => {

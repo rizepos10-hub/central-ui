@@ -7,6 +7,8 @@ import { IMeasurementUnit } from "app/shared/model/STOCK/measurement-unit.model"
 import { PizzaVariantTypeEnum } from "./ITEM/restaurant/pizza-item.model";
 import { ITag } from "./TAG/tag.model";
 import { IAddonGroups } from "./ADDON/addon-groups.model";
+import { ITax } from "./TAX/tax.model";
+import { IProfileGroup } from "./TAX/profile-group.model";
 
 export interface IDropDownMap {
   RETAIL_CATEGORY: DropDownCategory<ITerm>;
@@ -15,6 +17,7 @@ export interface IDropDownMap {
   MEASURE: DropDownCategory<IMeasurementUnit>
   TAG: DropDownCategory<ITag>
   ADDON_GROUP: DropDownCategory<IAddonGroups>
+  PROFILE_GROUP: DropDownCategory<IProfileGroup>
 }
 
 interface DropDownCategory<T> {
@@ -23,4 +26,4 @@ interface DropDownCategory<T> {
   searchEntities: any;
 }
 
-export type DropDownOptionType = "RETAIL_CATEGORY" | "RESTAURANT_CATEGORY" | "BRANCH" | "MEASURE" | "TAG" | "ADDON_GROUP";
+export type DropDownOptionType = "RETAIL_CATEGORY" | "RESTAURANT_CATEGORY" | "BRANCH" | "MEASURE" | "TAG" | "ADDON_GROUP" | "PROFILE_GROUP";
