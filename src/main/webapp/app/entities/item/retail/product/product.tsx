@@ -254,6 +254,18 @@ export const Product = () => {
     ));
   };
 
+  const TaxBody = rowData => {
+    const taxes = rowData?.accountingGroups;
+    
+    if (!taxes || taxes.length === 0) { 
+      return "No Taxes";
+    }
+
+    return taxes.map((tax, index) => (
+      <span key={tax.id}>{tax.name} {index < taxes.length - 1 && ' | '}</span>
+    ));
+  };
+
   const DiscountBody = rowData => {
     const discounts = rowData?.discounts;
     if (!discounts || discounts.length === 0) {
@@ -754,6 +766,15 @@ export const Product = () => {
         headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
         bodyStyle: { textAlign: "left", overflow: "visible" },
         seq: 7,
+        visible: true,
+        width: "100px",
+      },
+      {
+        field: "accountingGroups",
+        header: "Taxes",
+        body: TaxBody,
+        key: "accountingGroups",
+        seq: 8,
         visible: true,
         width: "100px",
       },
