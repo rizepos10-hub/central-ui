@@ -100,7 +100,8 @@
             "title": "Edit Screen",
             "name": "Name",
             "color": "Select Color Theme",
-            "isPizza": "Is Pizza"
+            "isPizza": "Is Pizza",
+            "image": "Image"
           }
         }
       }
