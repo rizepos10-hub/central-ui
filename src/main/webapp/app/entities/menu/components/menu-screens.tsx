@@ -16,6 +16,9 @@ import { IMenuData } from '../menu-instance';
 import { CiGrid41 } from "react-icons/ci";
 import { CiGrid2H } from "react-icons/ci";
 import { Checkbox } from 'primereact/checkbox';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+import { IAttachment } from 'app/shared/model/attachment.model';
 
 interface MenuScreensProps {
     menu: IMenu;
@@ -48,6 +51,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [selectedItems, setSelectedItems] = useState<IItem[]>([]);
     const [editScreenName, setEditScreenName] = useState('');
     const [editScreenIsPizza, setEditScreenIsPizza] = useState(false);
+    const [mainScreenImage, setMainScreenImage] = useState<IAttachment>();
     const [editScreenColor, setEditScreenColor] = useState('');
     const [editScreenCols, setEditScreenCols] = useState<number | null>(1);
     const [selectedColorTheme, setSelectedColorTheme] = useState('');
@@ -121,6 +125,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setSelectedScreenType(screenType);
         setEditScreenName(selectedScreen.name);
         setEditScreenColor(selectedScreen.backgroundColor);
+        setEditScreenIsPizza(selectedScreen.isPizza);
+        setMainScreenImage(selectedScreen.attachment);
         setIsModalOpen({ ...isModalOpen, isEditModalOpen: true });
     };
 
@@ -150,6 +156,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 backgroundColor: editScreenColor,
                                 numberOfColumns: editScreenCols,
                                 isPizza: editScreenIsPizza,
+                                attachment: mainScreenImage,
                             };
                         }
                         return nestedSubScreen;
@@ -1179,6 +1186,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             backgroundColor: editScreenColor,
                             numberOfColumns: editScreenCols,
                             isPizza: editScreenIsPizza,
+                            attachment: mainScreenImage,
                         };
                     }
                     return mainScreen;
@@ -1193,6 +1201,7 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         backgroundColor: editScreenColor,
                         numberOfColumns: editScreenCols,
                         isPizza: editScreenIsPizza,
+                        attachment: mainScreenImage,
                     };
 
                     // Update using the existing updateSubScreenById
@@ -1421,6 +1430,20 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                 checked={editScreenIsPizza}
                                     onChange={e => setEditScreenIsPizza(e.target.checked)}
                                 />
+                        </div>
+
+                        <Label for="colorTheme">
+                            <Translate contentKey={'menus.pos.update.modals.editScreen.image'}>Image</Translate>
+                        </Label>
+                        <div className="d-flex flex-wrap mt-3">
+                            <MediaLibrary
+                                handleFilesSelectCallback={files =>
+                                    setMainScreenImage(
+                                        transformAttachmentStructure(files, 'toIAttachment')[0]
+                                    )
+                                }
+                                defaultValues={transformAttachmentStructure(mainScreenImage ? [mainScreenImage] : [], 'toFileLibraryListItem')}
+                            />
                         </div>
 
                         <div className={'d-flex flex-column mt-2'}>

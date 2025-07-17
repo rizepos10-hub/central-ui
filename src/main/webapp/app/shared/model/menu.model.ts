@@ -36,6 +36,8 @@ export interface IMenuScreen {
   subScreens?: IMenuScreen[];
   rowIndex?: number;
   empty?: boolean;
+  isPizza?: boolean;
+  attachment?: IAttachment;
   component?: {
     item?: IItem;
   }
