@@ -49,19 +49,19 @@ const ProductSetting = ({
                     </Label>
                     <InputText
                         id="UiSettings-domain"
-                        value={productSetting.FEATURED.title || ''}
+                        value={productSetting?.FEATURED.title || ''}
                         onChange={e => dispatch(changeLayoutField({
                             name: "productSetting",
-                            value: { ...productSetting, FEATURED: { ...productSetting.FEATURED, title: e.target.value } }
+                            value: { ...productSetting, FEATURED: { ...productSetting?.FEATURED, title: e.target.value } }
                         }))}
                     />
                 </div>
                 <MultiSelect
-                    value={productSetting.FEATURED.items}
+                    value={productSetting?.FEATURED.items}
                     onChange={(e) => {
                         dispatch(changeLayoutField({
                             name: "productSetting",
-                            value: { ...productSetting, FEATURED: { ...productSetting.FEATURED, items: e.value } }
+                            value: { ...productSetting, FEATURED: { ...productSetting?.FEATURED, items: e.value } }
                         }))
                     }}
                     options={items}
@@ -86,13 +86,13 @@ const ProductSetting = ({
                                 name: "productSetting",
                                 value: {
                                     ...productSetting, FEATURED: {
-                                        ...productSetting.FEATURED,
+                                        ...productSetting?.FEATURED,
                                         showImages: e.checked
                                     }
                                 }
                             }))
                         }}
-                        checked={productSetting.FEATURED.showImages} />
+                        checked={productSetting?.FEATURED.showImages} />
                     <label htmlFor="ingredient1" className="ml-2">Show Images</label>
                 </div>
             </Row>

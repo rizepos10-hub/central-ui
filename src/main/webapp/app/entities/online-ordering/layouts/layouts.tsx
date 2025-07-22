@@ -1258,7 +1258,7 @@ const LayoutDefaultProductSetting = ({
                     <Label htmlFor="featured-title"><strong>Title</strong></Label>
                     <InputText
                         id="featured-title"
-                        value={defaultLayout?.productSetting.FEATURED.title || ''}
+                        value={defaultLayout?.productSetting?.FEATURED.title || ''}
                         onChange={e =>
                             dispatch(
                                 changeEntityField({
@@ -1266,7 +1266,7 @@ const LayoutDefaultProductSetting = ({
                                     value: {
                                         ...defaultLayout?.productSetting,
                                         FEATURED: {
-                                            ...defaultLayout?.productSetting.FEATURED,
+                                            ...defaultLayout?.productSetting?.FEATURED,
                                             title: e.target.value,
                                         },
                                     },
@@ -1279,7 +1279,7 @@ const LayoutDefaultProductSetting = ({
                 <div className="d-flex flex-column gap-2">
                     <h5>Selected Items</h5>
                     <ol>
-                        {defaultLayout?.productSetting.FEATURED.items.map(item => (
+                        {defaultLayout?.productSetting?.FEATURED.items.map(item => (
                             <li key={item.id}>{item.name}</li>
                         ))}
                     </ol>
@@ -1304,7 +1304,7 @@ const LayoutDefaultProductSetting = ({
                                 value: {
                                     ...defaultLayout?.productSetting,
                                     FEATURED: {
-                                        ...defaultLayout?.productSetting.FEATURED,
+                                        ...defaultLayout?.productSetting?.FEATURED,
                                         items: selectedItems,
                                     },
                                 },
@@ -1317,7 +1317,7 @@ const LayoutDefaultProductSetting = ({
             <Row style={{ marginTop: '1rem' }}>
                 <div className="flex align-items-center">
                     <Checkbox
-                        checked={defaultLayout?.productSetting.FEATURED.showImages}
+                        checked={defaultLayout?.productSetting?.FEATURED.showImages}
                         onChange={e =>
                             dispatch(
                                 changeEntityField({
@@ -1325,7 +1325,7 @@ const LayoutDefaultProductSetting = ({
                                     value: {
                                         ...defaultLayout?.productSetting,
                                         FEATURED: {
-                                            ...defaultLayout?.productSetting.FEATURED,
+                                            ...defaultLayout?.productSetting?.FEATURED,
                                             showImages: e.checked,
                                         },
                                     },
