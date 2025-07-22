@@ -1234,7 +1234,7 @@ const LayoutDefaultProductSetting = ({
                     })
                 ).then(res => {
                     // @ts-expect-error -- unknown type
-                    const options = (res.payload?.data || []).map(item => ({
+                    const options = (res.payload?.data || [])?.map(item => ({
                         value: item.id,
                         label: item.name,
                         data: item,
@@ -1279,7 +1279,7 @@ const LayoutDefaultProductSetting = ({
                 <div className="d-flex flex-column gap-2">
                     <h5>Selected Items</h5>
                     <ol>
-                        {defaultLayout?.productSetting?.FEATURED.items.map(item => (
+                        {defaultLayout?.productSetting?.FEATURED.items?.map(item => (
                             <li key={item.id}>{item.name}</li>
                         ))}
                     </ol>
@@ -1296,7 +1296,7 @@ const LayoutDefaultProductSetting = ({
                     value={selectedOptions}
                     onChange={selected => {
                         const selectedItems = selected
-                            ? selected.map(opt => opt.data)
+                            ? selected?.map(opt => opt.data)
                             : [];
                         dispatch(
                             changeEntityField({
@@ -1364,7 +1364,7 @@ const LayoutDefaultRestaurantCategories = ({
                     })
                 ).then(res => {
                     // @ts-expect-error -- unknown type
-                    const options = (res.payload?.data || []).map(item => ({
+                    const options = (res.payload?.data || [])?.map(item => ({
                         value: item.id,
                         label: item.name,
                         data: item,
@@ -1430,7 +1430,7 @@ const LayoutDefaultRestaurantCategories = ({
                     value={selectedOptions}
                     onChange={selected => {
                         const selectedItems = selected
-                            ? selected.map(opt => opt.data)
+                            ? selected?.map(opt => opt.data)
                             : [];
                         dispatch(
                             changeEntityField({
@@ -1472,7 +1472,7 @@ const LayoutDefaultRestaurantCategories = ({
                                     }
                                 }))
                             }}>
-                                {layouts.map((layout, index) => (
+                                {layouts?.map((layout, index) => (
                                     <TabPanel key={layout.id} header={layout.name}>
                                         <CategoriesLayout layout={layout.value} categories={defaultLayout?.restuarantCategorySetting?.categories || []} />
                                     </TabPanel>
@@ -1508,7 +1508,7 @@ const LayoutDefaultRetailCategories = ({
                     })
                 ).then(res => {
                     // @ts-expect-error -- unknown type
-                    const options = (res.payload?.data || []).map(item => ({
+                    const options = (res.payload?.data || [])?.map(item => ({
                         value: item.id,
                         label: item.name,
                         data: item,
@@ -1574,7 +1574,7 @@ const LayoutDefaultRetailCategories = ({
                     value={selectedOptions}
                     onChange={selected => {
                         const selectedItems = selected
-                            ? selected.map(opt => opt.data)
+                            ? selected?.map(opt => opt.data)
                             : [];
                         dispatch(
                             changeEntityField({
@@ -1616,7 +1616,7 @@ const LayoutDefaultRetailCategories = ({
                                     }
                                 }))
                             }}>
-                                {layouts.map((layout, index) => (
+                                {layouts?.map((layout, index) => (
                                     <TabPanel key={layout.id} header={layout.name}>
                                         <CategoriesLayout layout={layout.value} categories={defaultLayout?.retailCategorySetting?.categories} />
                                     </TabPanel>
