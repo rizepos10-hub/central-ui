@@ -1,10 +1,18 @@
 export const applyMatchModeMap = (query: any) => {
   const matchModeMap = {
     startswith: 'STARTS_WITH',
+    startsWith: 'STARTS_WITH', 
+    STARTS_WITH: 'STARTS_WITH',
     contains: 'CONTAINS',
+    CONTAINS: 'CONTAINS',
     endswith: 'ENDS_WITH',
+    endsWith: 'ENDS_WITH',
+    ENDS_WITH: 'ENDS_WITH', 
     equals: 'EQUALS',
-    notequals: 'NOT_EQUALS'
+    EQUALS: 'EQUALS',
+    notequals: 'NOT_EQUALS',
+    notEquals: 'NOT_EQUALS',
+    NOT_EQUALS: 'NOT_EQUALS'
   };
 
   const updatedFilters: any = {};
@@ -46,17 +54,20 @@ export const applyMatchModeMap = (query: any) => {
 
 
 export const updateTableFilters = (filters) => {
-  for (const key in filters) {
+  const cleanedFilters = { ...filters };
+  
+  for (const key in cleanedFilters) {
     if (key === 'attributes.attributeTerms.id') {
-      if (filters[key].constraints.length === 0) {
-        delete filters[key];
+      if (cleanedFilters[key].constraints.length === 0) {
+        delete cleanedFilters[key];
       }
     } else {
-      if (filters[key].value === null || filters[key].value === undefined || filters[key].value === '') {
-        delete filters[key];
+      // Only delete filter if value is truly empty and we want to remove it from query
+      if (cleanedFilters[key].value === null || cleanedFilters[key].value === undefined || cleanedFilters[key].value === '') {
+        delete cleanedFilters[key];
       }
     }
   }
-  return filters;
+  return cleanedFilters;
 };
 

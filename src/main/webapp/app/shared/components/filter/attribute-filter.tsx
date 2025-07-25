@@ -86,20 +86,26 @@ const AttributeFilter = ({
 
 
   return (
-    <div className={"d-flex gap-2 flex-column"}>
-      <div className={"d-flex gap-0 justify-content-center align-items-baseline"}>
-        <Label htmlFor="plusBtn" className={'font-semibold'}>Attributes</Label>
-        <Button disabled={filteredAvailableAttributes.length <= 0} size={"small"}
+    <div className="d-flex flex-column gap-1">
+      {/* Header with label and add button */}
+      <div className="d-flex align-items-center gap-2">
+        <Label className="form-label fw-semibold mb-0">Attributes</Label>
+        <Button 
+          disabled={filteredAvailableAttributes.length <= 0} 
+          size="small"
           icon="pi pi-plus"
-          name="plusBtn"
-          id="plusBtn"
-          className="p-0"
-          type={"button"}
+          className="p-button-sm"
+          type="button"
           onClick={() => addAttrDropDown(filteredAvailableAttributes?.[0]?.id)}
-          rounded outlined text aria-label="Filter" />
+          rounded 
+          outlined 
+          text 
+          tooltip="Add Attribute Filter"
+        />
       </div>
 
-      <div className={""}>
+      {/* Attribute filters */}
+      <div className="d-flex flex-column gap-2">
         {filteredAttributes.length > 0 ? attributesListing : (
           <AttributeDropdownFilter
             defaultAttribute={null}
