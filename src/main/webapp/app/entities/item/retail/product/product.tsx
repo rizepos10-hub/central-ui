@@ -37,6 +37,8 @@ import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-u
 import { TabView, TabPanel } from 'primereact/tabview';
 import { SourceType } from "app/shared/model/ENUMS/source-type.model";
 import { Spinner } from "reactstrap";
+import DropDownFilter from "app/shared/components/filter/drop-down-filter";
+import AttributeFilter from "app/shared/components/filter/attribute-filter";
 interface ColumnConfig extends Partial<ColumnProps> {
   field: string;
   header: string;
@@ -53,7 +55,7 @@ export const Product = () => {
   const products: IProduct[] = useAppSelector(state => state.product.entities)
   const loading = useAppSelector(state => state.product.loading);
   const totalItems = useAppSelector(state => state.product.totalItems);
-  const [visibleRight, setVisibleRight] = useState(false);
+  const [filtersVisible, setFiltersVisible] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const storedQuery = searchParams.get("query");
   const query = storedQuery && storedQuery.trim() ? JSON.parse(storedQuery) : initialItemFilterState;
@@ -121,11 +123,10 @@ export const Product = () => {
   };
 
   const onFilter = (newFilters) => {
-    const newFilters1 = updateTableFilters(newFilters);
-    setLocalFilters(newFilters1);
+    const cleanedFilters = updateTableFilters({ ...newFilters });
     query['first'] = 0;
     query['page'] = 0;
-    query.filters = updateTableFilters({ ...localFilters });
+    query.filters = cleanedFilters;
     const queryParams = JSON.stringify(query);
     setSearchParams({ query: queryParams }, { replace: true });
     getAllEntities();
@@ -146,9 +147,8 @@ export const Product = () => {
 
     console.log(updatedFilters)
 
-    const cleanedFilters = updateTableFilters(updatedFilters);
-    console.log(cleanedFilters)
-    setLocalFilters(cleanedFilters)
+    // Don't clean filters here to preserve matchMode when value is empty
+    setLocalFilters(updatedFilters)
   }, [query.filters, localFilters]);
 
   const handleClear = () => {
@@ -1042,19 +1042,157 @@ export const Product = () => {
               onClick={(event) => menu.current.toggle(event)}
             />
           </div>
-          <Button data-pr-position="top" tooltip="Filter" className="p-button-text mr-auto" icon="pi pi-filter" onClick={() => setVisibleRight(true)} />
+          <Button data-pr-position="top" tooltip="Toggle Filters" className="p-button-text mr-auto" icon="pi pi-filter" onClick={() => setFiltersVisible(!filtersVisible)} />
         </div>
       </div>
 
-      <Sidebar visible={visibleRight} position="right" onHide={() => setVisibleRight(false)}>
-        <div className="d-flex gap-3">
-          <SharedFilter filteredAttributes={filteredAttributes} onFilterValueChange={handleFilterValueChange} filters={localFilters} itemType={'RETAIL'} handleSearch={onFilter} />
+      {/* Inline Filters Section */}
+      {filtersVisible && (
+        <div className="bg-light p-3 border-top">
+          <div className="row g-3">
+            <div className="col-md-3">
+              <label className="form-label fw-semibold">Name</label>
+              <div className="d-flex gap-1">
+                <select 
+                  className="form-select" 
+                  style={{ maxWidth: '120px' }}
+                  value={localFilters?.name?.matchMode || FilterMatchMode.CONTAINS}
+                  onChange={(e) => {
+                    const currentValue = localFilters?.name?.value || '';
+                    handleFilterValueChange('name', { value: currentValue, matchMode: e.target.value });
+                  }}
+                >
+                  <option value={FilterMatchMode.CONTAINS}>Contains</option>
+                  <option value={FilterMatchMode.STARTS_WITH}>Starts with</option>
+                  <option value={FilterMatchMode.ENDS_WITH}>Ends with</option>
+                  <option value={FilterMatchMode.EQUALS}>Equals</option>
+                  <option value={FilterMatchMode.NOT_EQUALS}>Not equals</option>
+                </select>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Filter by name"
+                  value={localFilters?.name?.value || ''}
+                  onChange={(e) => {
+                    const currentMatchMode = localFilters?.name?.matchMode || FilterMatchMode.CONTAINS;
+                    handleFilterValueChange('name', { value: e.target.value, matchMode: currentMatchMode });
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && onFilter(localFilters)}
+                />
+              </div>
+            </div>
+            
+            <div className="col-md-3">
+              <label className="form-label fw-semibold">SKU</label>
+              <div className="d-flex gap-1">
+                <select 
+                  className="form-select" 
+                  style={{ maxWidth: '120px' }}
+                  value={localFilters?.['variants.sku']?.matchMode || FilterMatchMode.CONTAINS}
+                  onChange={(e) => {
+                    const currentValue = localFilters?.['variants.sku']?.value || '';
+                    handleFilterValueChange('variants.sku', { value: currentValue, matchMode: e.target.value });
+                  }}
+                >
+                  <option value={FilterMatchMode.CONTAINS}>Contains</option>
+                  <option value={FilterMatchMode.STARTS_WITH}>Starts with</option>
+                  <option value={FilterMatchMode.ENDS_WITH}>Ends with</option>
+                  <option value={FilterMatchMode.EQUALS}>Equals</option>
+                  <option value={FilterMatchMode.NOT_EQUALS}>Not equals</option>
+                </select>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Filter by SKU"
+                  value={localFilters?.['variants.sku']?.value || ''}
+                  onChange={(e) => {
+                    const currentMatchMode = localFilters?.['variants.sku']?.matchMode || FilterMatchMode.CONTAINS;
+                    handleFilterValueChange('variants.sku', { value: e.target.value, matchMode: currentMatchMode });
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && onFilter(localFilters)}
+                />
+              </div>
+            </div>
+
+            <div className="col-md-3">
+              <label className="form-label fw-semibold">Tax</label>
+              <DropDownFilter
+                classname={'w-100'}
+                placeholder={'Select Tax'}
+                dropDownOptionType={'PROFILE_GROUP'}
+                selectedOption={localFilters?.['accountingGroups.id']?.value}
+                fieldName={'accountingGroups.id'}
+                handleDropdownChange={(field, value) => handleFilterValueChange(field, value)}
+              />
+            </div>
+
+            <div className="col-md-3">
+              <label className="form-label fw-semibold">Category</label>  
+              <DropDownFilter
+                classname={'w-100'}
+                placeholder={'Select Category'}
+                dropDownOptionType={'RETAIL_CATEGORY'}
+                selectedOption={localFilters?.['categories.id']?.value}
+                fieldName={'categories.id'}
+                handleDropdownChange={(field, value) => handleFilterValueChange(field, value)}
+              />
+            </div>
+
+            <div className="col-md-3">
+              <label className="form-label fw-semibold">Base Measure</label>
+              <DropDownFilter
+                classname={'w-100'}
+                dropDownOptionType={'MEASURE'}
+                placeholder={'Select Measure'}
+                selectedOption={localFilters?.['baseMeasure.id']?.value}
+                fieldName={'baseMeasure.id'}
+                handleDropdownChange={(field, value) => handleFilterValueChange(field, value)}
+              />
+            </div>
+
+            <div className="col-md-3 d-flex align-items-end">
+              <div className="form-check">
+                <Checkbox
+                  inputId="showImages"
+                  checked={localFilters?.['attachments']?.matchMode === FilterMatchMode.NOT_EQUALS}
+                  onChange={(e) => {
+                    if (e.checked) {
+                      handleFilterValueChange('attachments', { value: [] as any, matchMode: FilterMatchMode.NOT_EQUALS });
+                    } else {
+                      handleFilterValueChange('attachments', { value: null as any, matchMode: FilterMatchMode.CUSTOM });
+                    }
+                  }}
+                />
+                <label className="form-check-label ms-2 fw-semibold" htmlFor="showImages">
+                  Only Items With Images
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Separate row for Attributes */}
+          <div className="row g-3 mt-2">
+            <div className="col-md-3">
+              <AttributeFilter filteredAttributes={filteredAttributes} onFilterValueChange={handleFilterValueChange} />
+            </div>
+
+            <div className="col-12 d-flex gap-2 justify-content-end mt-3">
+              <Button 
+                type="button" 
+                severity="secondary" 
+                label="Clear Filters" 
+                onClick={handleClear}
+                outlined
+              />
+              <Button 
+                type="button" 
+                label="Apply Filters" 
+                onClick={() => onFilter(localFilters)}
+              />
+            </div>
+          </div>
         </div>
-        <div className={'d-flex gap-2 justify-content-center mt-3'}>
-          <Button type={'button'} severity={"info"} label={'Clear Filters'} onClick={handleClear} />
-          <Button type={'submit'} label={'Search'} onClick={() => onFilter(localFilters)} />
-        </div>
-      </Sidebar>
+      )}
 
       <DataTable
         value={products}
