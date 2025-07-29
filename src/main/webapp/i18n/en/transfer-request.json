@@ -8,7 +8,11 @@
         "title": "Confirm Delete Transfer Request",
         "question": "Are you sure you want to delete transfer request {{ id }}"
       },
-
+      "transferItems": "Transfer Items",
+      "item": "Item",
+      "quantityInSource": "Quantity in Source",
+      "quantityToTransfer": "Quantity to Transfer",
+      "quantityReceived": "Quantity Received",
       "title": "Transfer Requests",
       "createNew": "Create New Transfer Request",
       "edit": "Edit Transfer Request",

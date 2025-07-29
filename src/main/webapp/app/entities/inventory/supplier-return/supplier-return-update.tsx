@@ -66,12 +66,6 @@ export const SupplierReturnUpdate = () => {
 
 
   const isDisabled = supplierReturnEntity?.status === "COMPLETED";
-  console.log(isDisabled, 'isDisabled');
-  console.log(supplierReturnEntity, 'supplierReturnEntity')
-  const handleClose = () => {
-    navigate(-1);
-  };
-
 
   useEffect(() => {
     if (supplierReturnEntity) {
@@ -94,7 +88,6 @@ export const SupplierReturnUpdate = () => {
     }
     const timer = setTimeout(() => {
       if (!isDisabled) {
-        console.log(isDisabled, 'isDisabled')
         dispatch(getPurchaseOrders({
           query: `status=COMPLETED&filterReturned=${true}`,
           page: paginationState.activePage - 1,
@@ -120,7 +113,6 @@ export const SupplierReturnUpdate = () => {
         quantity: orderLine.received - orderLine.returnedQuantity,
         returnPrice: orderLine?.price
       }));
-    console.log(selectedReturnLines, 'selectedReturnLines')
     setSupplierReturn((prevState) => ({
       ...prevState,
       returnLines: [...(prevState.returnLines || []), ...updatedReturnLines]
@@ -187,14 +179,14 @@ export const SupplierReturnUpdate = () => {
 
           // @ts-expect-error -- unknown type
           if (!res?.error) {
-            navigate(`/inventory/warehouse/${newId}/edit`)
+            navigate(`/inventory/supplier-return/${newId}/edit`)
           }
         }
       })
     } else {
       dispatch(updateEntity(entity)).then(() => {
         if (createNew) {
-          navigate(`/inventory/warehouse/new`)
+          navigate(`/inventory/supplier-return/new`)
         }
       })
     }
@@ -269,16 +261,16 @@ export const SupplierReturnUpdate = () => {
                     <Row className={'mt-3'}>
                       <DataTable
                         value={filteredOrderLines || []}
-                        selectionMode="multiple"
+                        selectionMode={isDisabled ? null : "multiple"}
                         dataKey="id"
                         header={translate("tempApp.supplier.orderLines")}
                         emptyMessage={translate("tempApp.supplier.noOrderLines")}
                         metaKeySelection={false}
                         footer={tableFooterTemplate}
                         selection={selectedReturnLines}
-                        onSelectionChange={e => setSelectedReturnLines(e.value)}
+                        onSelectionChange={isDisabled ? null : (e => setSelectedReturnLines(e.value))}
                       >
-                        <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
+                        {!isDisabled && <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />}
                         <Column field="item.name" header={translate("common.item")} />
                         <Column field="lineTotal" header={translate("tempApp.supplierReturn.lineTotal")} />
                         <Column field="price" header={translate("common.price")} />

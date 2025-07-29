@@ -163,10 +163,10 @@ const OrderCreate = () => {
         }
     }
 
-    const openTill = async () => {
-        setLoading(true);
+    const openTill = () => {
         if (tillStatus === "OPENED") return toast.error('Till is already open!');
         if (!initialAmount) return toast.error('Please enter an initial amount!');
+        setLoading(true);
         const branchRegistryRecord: IBranchRegistry = branchRegistry.find(record => record.branch.id === orderEntity.branchId);
         if (!branchRegistryRecord) {
             toast.error('Branch registry record not found');
@@ -182,17 +182,16 @@ const OrderCreate = () => {
             const till = (action?.payload as { data: ITill })?.data
             setTill(till);
             setDialogTillOpen(false);
-            setLoading(false);
             toast.success('Till opened successfully');
             setTillStatus("OPENED")
             getOpenTills(branchRegistry.map(record => record.id));
-        }).catch((error) => {
+        }).finally(() => {
             setLoading(false);
         })
         
     };
 
-    const closeTill = async () => {
+    const closeTill = () => {
         if (!closingAmount) return toast.error("Please enter a closing amount!");
         setLoading(true);
         try {

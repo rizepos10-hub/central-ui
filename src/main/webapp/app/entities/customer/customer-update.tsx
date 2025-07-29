@@ -645,7 +645,7 @@ export const CustomerUpdate = ({
                 </>
               </TabPanel>
 
-              <TabPanel header={'Wholesale Price'}>
+              <TabPanel header={'Pricing Point'}>
                 {pricingPoints?.length > 0 ? (
                   <>
                     <Table>
