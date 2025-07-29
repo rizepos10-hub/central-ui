@@ -366,8 +366,8 @@ export const TransferRequestUpdate = () => {
                                 disabled={
                                   isDisabled ||
                                   transferRequestItem?.item?.quantity <= 0 ||
-                                  !transferRequestItem?.item ||
-                                  !transferRequestItem?.receivedQuantity
+                                  !transferRequestItem?.item 
+                                  // || !transferRequestItem?.receivedQuantity
                                 }
                                 color={'success'}
                                 onClick={handleAdd}
@@ -470,7 +470,7 @@ export const TransferRequestUpdate = () => {
                               />
                             </td>
                             <td className={'w-2'}>
-                              <Button disabled={!costLines} color={'success'} onClick={() => handleAdd('costLine')}>
+                              <Button disabled={!costLines || !costLines?.supplier || !costLines?.cost || !costLines?.costDate} color={'success'} onClick={() => handleAdd('costLine')}>
                                 Add
                               </Button>
                             </td>

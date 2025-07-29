@@ -9,6 +9,7 @@
     "referenceNumber": "Card Number",
     "walletId": "Wallet Id",
     "wallet": "Wallet",
+    "comments": "Comments",
     "createNewLoyaltyCard": "Create New Loyalty Card",
     "cardHolderName": "Card Holder Name",
     "label": "Label",
