@@ -56,8 +56,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                 const response = res.payload as any;
                 console.log(response)
                 setAttachments([]);
-                // Create new FileLibraryListItem objects for the uploaded files
-                const newItems = files.map(file => ({
+                setSelectedItems(files.map(file => ({
                     _id: response?.id,
                     name: file.name,
                     path: file.name,
@@ -65,11 +64,16 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     type: file.type,
                     updatedAt: new Date().toISOString(),
                     thumbnailUrl: response?.url,
-                }));
-                // Append new items to the existing selectedItems
-                const combinedItems = [...selectedItems, ...newItems];
-                setSelectedItems(combinedItems);
-                handleFilesSelectCallback(combinedItems);
+                })));
+                handleFilesSelectCallback(files.map(file => ({
+                    _id: response?.id,
+                    name: file.name,
+                    path: file.name,
+                    size: file.size,
+                    type: undefined,
+                    updatedAt: new Date().toISOString(),
+                    thumbnailUrl: response?.url,
+                })));
             });
             setLoading(false);
             return true;
@@ -124,59 +128,26 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             </div>
             <div className="d-flex flex-wrap gap-3 my-3">
                 {defaultValues.map((item, index) => (
-                    <div
-                        key={index}
-                        style={{
-                            position: 'relative',
-                            width: 160,
-                            height: 160,
-                            background: '#f8f9fa',
-                            border: '1px solid #e0e0e0',
-                            borderRadius: 12,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'hidden',
-                            transition: 'box-shadow 0.2s',
-                            cursor: 'pointer',
-                        }}
-                        className="product-image-thumb"
-                    >
+                    <div key={index} style={{ position: 'relative' }}>
                         <img
                             src={item.thumbnailUrl}
                             alt={item.name}
+                            className="img-fluid"
                             style={{
-                                maxWidth: '90%',
-                                maxHeight: '90%',
-                                objectFit: 'contain',
-                                borderRadius: 8,
-                                background: '#fff',
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+                                maxWidth: '100px',
+                                maxHeight: '100px',
                             }}
                         />
-                        <span
-                            onClick={e => { e.stopPropagation(); confirm1(index); }}
+                        <TiDelete
+                            onClick={() => confirm1(index)}
                             style={{
                                 position: 'absolute',
-                                top: 8,
-                                right: 8,
-                                width: 32,
-                                height: 32,
-                                background: 'rgba(255,255,255,0.95)',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-                                cursor: 'pointer',
-                                zIndex: 2,
-                                transition: 'background 0.2s',
+                                top: '-0.5rem',
+                                right: '-0.5rem'
                             }}
-                            className="product-image-delete"
-                        >
-                            <TiDelete size={22} color="#d32f2f" />
-                        </span>
+                            className='cursor-pointer text-bg-light'
+                            size={20}
+                        />
                     </div>
                 ))}
             </div>

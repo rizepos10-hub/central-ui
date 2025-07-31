@@ -62,7 +62,6 @@ import { toast } from 'react-toastify';
 import { ImMagicWand } from "react-icons/im";
 import SeoTags from 'app/shared/components/item/seo-tags';
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
-import PricingSection from 'app/shared/components/item/sections/PricingSection';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -1162,9 +1161,6 @@ export const ProductUpdate = () => {
 
   return (
     <form onKeyDown={preventEnterSubmit}>
-      <h1 className="mb-4 mt-2 ">
-        {isNew ? translate('items.update.tabs.details.titles.create.variable') : `Editing - ${product.name}`}
-      </h1>
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card>
@@ -1174,615 +1170,647 @@ export const ProductUpdate = () => {
                   <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
                       <div className="w-100">
-                        <SharedItemUpdate item={product} onFieldChange={handleFieldChange} showFormErrors={showFormErrors} />
-                        <PricingSection
-                          item={product}
-                          onFieldChange={handleFieldChange}
-                          showFormErrors={showFormErrors}
-                          branchList={branchList}
-                          handleBranchPriceChange={handleBranchPriceChange}
-                        />
-
-
-                        <div className={'d-flex flex-column gap-2 mb-3'}>
-                          <label className={'font-semibold'}>
-                            <Translate contentKey={'items.update.measure'}>Measure</Translate>
-                          </label>
-                          <Select
-                            value={product?.baseMeasure || null}
-                            options={measureList}
-                            name="baseMeasure"
-                            getOptionValue={option => option.id}
-                            getOptionLabel={option => option.name}
-                            onChange={handleBaseMeasureChange}
-                          />
+                        <div className="text-xl font-semibold">
+                          {isNew ? translate('items.update.tabs.details.titles.create.variable') : <span>Edit {product.name}</span>}
                         </div>
+                      </div>
 
-                        {!product.askForPrice && (
-                          <div className={'d-flex flex-column gap-2 mb-3'}>
-                            <label className={'font-semibold'}>
-                              <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
-                            </label>
-                            <SelectButton
-                              type="button"
-                              value={product?.itemVariantType || null}
-                              options={itemTypes}
-                              allowEmpty={false}
-                              optionValue={'value'}
-                              optionLabel={'label'}
-                              onChange={option => {
-                                confirm3(option);
-                              }}
-                            />
-                          </div>
-                        )}
-
-                        {/* Showing the fields based on if the item is variable or single here.*/}
-
-                        {isSingleItem && (
-                          <Row>
-                            <Col md="6">
-                              <div className={'d-flex flex-column gap-1'}>
+                      <Row>
+                        <FormGroup className={`${isNew ? 'd-flex bg-white' : ''}`}>
+                          <div className={`d-flex flex-column p-1 bg-white w-100`}>
+                            {isSingleItem && (
+                              <div className={'d-flex flex-column gap-2'}>
                                 <label className={'font-semibold'}>
-                                  <Translate contentKey={'items.update.description'}>Description</Translate>
+                                  <Translate contentKey={'items.update.sku'}>SKU</Translate>
                                 </label>
-                                <InputTextarea
-                                  name="desc"
-                                  id="desc"
-                                  placeholder={translate('items.update.description')}
-                                  value={product?.variants?.[0]?.description || ''}
-                                  onChange={e => setProduct(prev => {
-                                    return {
-                                      ...prev, variants: prev.variants.map(variant => {
-                                        return { ...variant, description: e.target.value }
-                                      })
-                                    }
-                                  })}
-                                />
-                              </div>
-                            </Col>
-
-                            <div className="mb-4 mt-3">
-                              <h2 className="mb-3 pb-2 border-bottom">Shipping Details</h2>
-                              <div className='row'>
-                                <div className='col-6 d-flex flex-column gap-2'>
-                                  <label className="font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="minimumStockLevel"
-                                    id="minimumStockLevel"
-                                    required
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName='w-1'
-                                    placeholder={translate('items.update.placeholders.height')}
-                                    value={product?.variants?.[0]?.shippingDimension?.height ?? null}
-                                    onChange={(e) => handleShippingDimensionChange("height", e.value, 0)}
+                                <div className='d-flex gap-2 position-relative'>
+                                  <InputText
+                                    name="sku"
+                                    id="sku"
+                                    required={true}
+                                    placeholder={translate('items.update.placeholders.itemSku')}
+                                    value={product?.variants?.[0]?.sku || ''}
+                                    onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
+                                    className='w-100 position-relative'
                                   />
-                                </div>
-                                <div className='col-6 d-flex flex-column gap-2'>
-                                  <label className="font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="quantity"
-                                    id="quantity"
-                                    required
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName='w-1'
-                                    placeholder={translate('items.update.placeholders.length')}
-                                    value={product?.variants?.[0]?.shippingDimension?.length ?? null}
-                                    onChange={(e) => handleShippingDimensionChange("length", e.value, 0)}
-                                  />
-                                </div>
-                                <div className='col-6 d-flex flex-column gap-2'>
-                                  <label className="font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="unitCost"
-                                    id="unitCost"
-                                    required
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName='w-1'
-                                    placeholder={translate('items.update.placeholders.width')}
-                                    value={product?.variants?.[0]?.shippingDimension?.width ?? null}
-                                    onChange={(e) => handleShippingDimensionChange("width", e.value, 0)}
-                                  />
-                                </div>
-                                <div className='col-6 d-flex flex-column gap-2'>
-                                  <label className="font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="unitCost"
-                                    id="unitCost"
-                                    required
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    inputClassName='w-1'
-                                    placeholder={translate('items.update.placeholders.weight')}
-                                    value={product?.variants?.[0]?.shippingDimension?.weight ?? null}
-                                    onChange={(e) => handleShippingDimensionChange("weight", e.value, 0)}
-                                  />
+                                  <PrimeButton
+                                    onClick={async () => {
+                                      const generatedSku = await generateSku()
+                                      handleVariantFieldChange(0, 'sku', generatedSku)
+                                    }}
+                                    type="button"
+                                    className="position-absolute end-0"
+                                    rounded
+                                    text
+                                  >
+                                    <ImMagicWand size={16} />
+                                  </PrimeButton>
                                 </div>
                               </div>
-                            </div>
-
-                            {!product.askForPrice && (
-                              <Col md="6">
-                                <div className={'d-flex flex-column gap-2'}>
-                                  <label className={'font-semibold'}>
-                                    <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                                  </label>
-                                  <InputNumber
-                                    name="sale-price"
-                                    id="sale-price"
-                                    min={0}
-                                    maxFractionDigits={2}
-                                    placeholder={translate('items.update.placeholders.itemSalePrice')}
-                                    value={product?.variants?.[0]?.salePrice || null}
-                                    onChange={e => handleVariantFieldChange(0, 'salePrice', e.value)}
-                                  />
-                                </div>
-                              </Col>
                             )}
+                            <SharedItemUpdate item={product} onFieldChange={handleFieldChange} defaultPrice={defaultPrice} setDefaultPrice={setDefaultPrice} showFormErrors={showFormErrors} />
 
-                            {
-                              !isNew && (
-                                <VariantPackaging
-                                  product={product}
-                                  variantIndex={0}
-                                  variant={product?.variants?.[0]}
-                                  handleVariantFieldChange={handleVariantFieldChange}
-                                />
-                              )
-                            }
-                            {!product.askForPrice && (
-                              <ItemStock
-                                productPurchaseConfig={productPurchaseConfig}
-                                handleVariantFieldChange={handleVariantFieldChange}
-                                variant={product?.variants?.[0]}
-                                variantIndex={0}
-                                itemId={product.id}
-                              />
-                            )}
 
-                            {!product.askForPrice && (
-                              <VariantBranchPrice
-                                itemVariantType={'RETAIL'}
-                                branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
-                                variantIndex={0}
-                                branchList={branchList}
-                                handleBranchPriceChange={handleBranchPriceChange}
-                                handleHideItemPerBranch={handleHideItemPerBranch}
-                                variant={product?.variants?.[0]}
-                                setItem={setProduct}
-                              />
-                            )}
-
-                            <Row>
-                              <Col md="7">
-                                <DiscountDropdown
-                                  discounts={product?.variants?.[0]?.discounts}
-                                  variantIndex={0}
-                                  handleVariantChange={handleVariantFieldChange}
-                                />
-
-                                <div className={'d-flex flex-column gap-2 mt-2'}>
-                                  <label className={'font-semibold'}>
-                                    <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
-                                  </label>
-                                  <Select
-                                    isClearable
-                                    value={product?.variants?.[0]?.mixAndMatchRule || null}
-                                    options={mixAndMatchRuleList}
-                                    getOptionLabel={option => option.name}
-                                    getOptionValue={option => option.id}
-                                    onChange={mixAndMatchRule => handleVariantFieldChange(0, 'mixAndMatchRule', mixAndMatchRule)}
-                                  />
-                                </div>
-                              </Col>
-                            </Row>
-                          </Row>
-                        )}
-
-                        <Row>
-                          <Col md="4">
-                            <div className={'d-flex flex-column gap-2'}>
+                            <div className={'d-flex flex-column gap-2 mb-3'}>
                               <label className={'font-semibold'}>
-                                <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
+                                <Translate contentKey={'items.update.measure'}>Measure</Translate>
                               </label>
                               <Select
-                                value={itemAttribute?.attributeTax || null}
-                                options={filteredAvailableAttributes()}
-                                isClearable
+                                value={product?.baseMeasure || null}
+                                options={measureList}
+                                name="baseMeasure"
                                 getOptionValue={option => option.id}
                                 getOptionLabel={option => option.name}
-                                onChange={attribute => handleItemAttributeSelect(attribute)}
+                                onChange={handleBaseMeasureChange}
                               />
                             </div>
-                          </Col>
 
-                          <Col md="3">
-                            <PrimeButton
-                              color="primary"
-                              type="button"
-                              disabled={isAttributeAddButtonDisabled}
-                              className={'mt-5'}
-                              onClick={handleAddAttribute}
-                            >
-                              <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
-                            </PrimeButton>
-                          </Col>
+                            {!product.askForPrice && (
+                              <div className={'d-flex flex-column gap-2 mb-3'}>
+                                <label className={'font-semibold'}>
+                                  <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
+                                </label>
+                                <SelectButton
+                                  type="button"
+                                  value={product?.itemVariantType || null}
+                                  options={itemTypes}
+                                  allowEmpty={false}
+                                  optionValue={'value'}
+                                  optionLabel={'label'}
+                                  onChange={option => {
+                                    confirm3(option);
+                                  }}
+                                />
+                              </div>
+                            )}
 
-                          <Col md={'12'} className={'mt-2'}>
-                            {product?.attributes?.map((attribute, index) => (
-                              <div className={'d-flex gap-3 align-items-end'} key={index}>
-                                <Col md={'9'} >
-                                  <label>
-                                    {translate('items.update.name')}: {attribute?.attributeTax?.name}
+                            {/* Showing the fields based on if the item is variable or single here.*/}
+
+                            {isSingleItem && (
+                              <Row>
+                                <Col md="6">
+                                  <div className={'d-flex flex-column gap-1'}>
+                                    <label className={'font-semibold'}>
+                                      <Translate contentKey={'items.update.description'}>Description</Translate>
+                                    </label>
+                                    <InputTextarea
+                                      name="desc"
+                                      id="desc"
+                                      placeholder={translate('items.update.description')}
+                                      value={product?.variants?.[0]?.description || ''}
+                                      onChange={e => setProduct(prev => {
+                                        return {
+                                          ...prev, variants: prev.variants.map(variant => {
+                                            return { ...variant, description: e.target.value }
+                                          })
+                                        }
+                                      })}
+                                    />
+                                  </div>
+                                </Col>
+
+                                <div className="mb-3 mt-3">
+                                  <p className="text-xl font-bold">Shipping Details: </p>
+                                  <div className='row'>
+                                    <div className='col-6 d-flex flex-column gap-2'>
+                                      <label className="font-semibold">
+                                        <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="minimumStockLevel"
+                                        id="minimumStockLevel"
+                                        required
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        inputClassName='w-1'
+                                        placeholder={translate('items.update.placeholders.height')}
+                                        value={product?.variants?.[0]?.shippingDimension?.height ?? null}
+                                        onChange={(e) => handleShippingDimensionChange("height", e.value, 0)}
+                                      />
+                                    </div>
+                                    <div className='col-6 d-flex flex-column gap-2'>
+                                      <label className="font-semibold">
+                                        <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="quantity"
+                                        id="quantity"
+                                        required
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        inputClassName='w-1'
+                                        placeholder={translate('items.update.placeholders.length')}
+                                        value={product?.variants?.[0]?.shippingDimension?.length ?? null}
+                                        onChange={(e) => handleShippingDimensionChange("length", e.value, 0)}
+                                      />
+                                    </div>
+                                    <div className='col-6 d-flex flex-column gap-2'>
+                                      <label className="font-semibold">
+                                        <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="unitCost"
+                                        id="unitCost"
+                                        required
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        inputClassName='w-1'
+                                        placeholder={translate('items.update.placeholders.width')}
+                                        value={product?.variants?.[0]?.shippingDimension?.width ?? null}
+                                        onChange={(e) => handleShippingDimensionChange("width", e.value, 0)}
+                                      />
+                                    </div>
+                                    <div className='col-6 d-flex flex-column gap-2'>
+                                      <label className="font-semibold">
+                                        <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="unitCost"
+                                        id="unitCost"
+                                        required
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        inputClassName='w-1'
+                                        placeholder={translate('items.update.placeholders.weight')}
+                                        value={product?.variants?.[0]?.shippingDimension?.weight ?? null}
+                                        onChange={(e) => handleShippingDimensionChange("weight", e.value, 0)}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {!product.askForPrice && (
+                                  <Col md="6">
+                                    <div className={'d-flex flex-column gap-2'}>
+                                      <label className={'font-semibold'}>
+                                        <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                      </label>
+                                      <InputNumber
+                                        name="sale-price"
+                                        id="sale-price"
+                                        min={0}
+                                        maxFractionDigits={2}
+                                        placeholder={translate('items.update.placeholders.itemSalePrice')}
+                                        value={product?.variants?.[0]?.salePrice || null}
+                                        onChange={e => handleVariantFieldChange(0, 'salePrice', e.value)}
+                                      />
+                                    </div>
+                                  </Col>
+                                )}
+
+                                {
+                                  !isNew && (
+                                    <VariantPackaging
+                                      product={product}
+                                      variantIndex={0}
+                                      variant={product?.variants?.[0]}
+                                      handleVariantFieldChange={handleVariantFieldChange}
+                                    />
+                                  )
+                                }
+                                {!product.askForPrice && (
+                                  <ItemStock
+                                    productPurchaseConfig={productPurchaseConfig}
+                                    handleVariantFieldChange={handleVariantFieldChange}
+                                    variant={product?.variants?.[0]}
+                                    variantIndex={0}
+                                    itemId={product.id}
+                                  />
+                                )}
+
+                                {!product.askForPrice && (
+                                  <VariantBranchPrice
+                                    itemVariantType={'RETAIL'}
+                                    branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
+                                    variantIndex={0}
+                                    branchList={branchList}
+                                    handleBranchPriceChange={handleBranchPriceChange}
+                                    handleHideItemPerBranch={handleHideItemPerBranch}
+                                    variant={product?.variants?.[0]}
+                                    setItem={setProduct}
+                                  />
+                                )}
+
+                                <Row>
+                                  <Col md="7">
+                                    <DiscountDropdown
+                                      discounts={product?.variants?.[0]?.discounts}
+                                      variantIndex={0}
+                                      handleVariantChange={handleVariantFieldChange}
+                                    />
+
+                                    <div className={'d-flex flex-column gap-2 mt-2'}>
+                                      <label className={'font-semibold'}>
+                                        <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                      </label>
+                                      <Select
+                                        isClearable
+                                        value={product?.variants?.[0]?.mixAndMatchRule || null}
+                                        options={mixAndMatchRuleList}
+                                        getOptionLabel={option => option.name}
+                                        getOptionValue={option => option.id}
+                                        onChange={mixAndMatchRule => handleVariantFieldChange(0, 'mixAndMatchRule', mixAndMatchRule)}
+                                      />
+                                    </div>
+                                  </Col>
+                                </Row>
+                              </Row>
+                            )}
+
+                            <Row>
+                              <Col md="4">
+                                <div className={'d-flex flex-column gap-2'}>
+                                  <label className={'font-semibold'}>
+                                    <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
                                   </label>
                                   <Select
-                                    value={attribute?.attributeTerms || []}
-                                    isMulti
-                                    options={attributeValuesList}
-                                    getOptionLabel={option => option.name}
+                                    value={itemAttribute?.attributeTax || null}
+                                    options={filteredAvailableAttributes()}
+                                    isClearable
                                     getOptionValue={option => option.id}
-                                    onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
-                                    isLoading={loadingAttributesValues}
-                                    onFocus={() => loadOptions(attribute.attributeTax.id)}
-                                    filterOption={(option, input) =>
-                                      option.label.toLowerCase().includes(input.toLowerCase())
-                                    }
+                                    getOptionLabel={option => option.name}
+                                    onChange={attribute => handleItemAttributeSelect(attribute)}
                                   />
-                                </Col>
-                                <Col md={'3'}>
-                                  <PrimeButton type="button" className={'ml-auto bg-danger p-1'} onClick={() => confirm2(index)}>
-                                    <Translate contentKey={'items.update.removeAttribute'}>Remove</Translate>
-                                  </PrimeButton>
-                                </Col>
-                              </div>
-                            ))}
-                          </Col>
-                        </Row>
-
-                        <Row className={'mb-3'}>
-                          {isVariableItem && (
-                            <Row>
-                              <label htmlFor="price" className={'font-semibold'}>
-                                <Translate contentKey={'items.update.variants'}>Variants</Translate>
-                              </label>
-                              <Col md="12" className={'d-flex gap-3'}>
-                                <Button type="button" color="primary" className={'mt-5'} onClick={generateCombinations}>
-                                  <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
-                                </Button>
-
-                                <Button color="primary" type={'button'} className={'mt-5'} onClick={handleAddVariant}>
-                                  <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
-                                </Button>
-
-                                {product.variants?.length > 0 && (
-                                  <Button color="danger" type={'button'} className={'mt-5'} onClick={() => confirm4()}>
-                                    <Translate contentKey={'items.update.removeAllVariants'}>Remove All Variants</Translate>
-                                  </Button>
-                                )}
+                                </div>
                               </Col>
+
+                              <Col md="3">
+                                <PrimeButton
+                                  color="primary"
+                                  type="button"
+                                  disabled={isAttributeAddButtonDisabled}
+                                  className={'mt-5'}
+                                  onClick={handleAddAttribute}
+                                >
+                                  <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
+                                </PrimeButton>
+                              </Col>
+
                               <Col md={'12'} className={'mt-2'}>
-                                <Row className={'mt-2'}>
-                                  {product?.variants?.map((variant, variantIndex) => (
-                                    <Col
-                                      md={'12'}
-                                      key={variantIndex}
-                                      className={` mt-2 pi pi-bars p-draggable d-flex ${dragOverIndex === variantIndex && 'border-top border-primary'
-                                        }`}
-                                      draggable
-                                      onDragStart={() => setDraggedIndex(variantIndex)}
-                                      onDragOver={e => handleDragOver(e, variantIndex)}
-                                      onDragLeave={handleDragLeave}
-                                      onDrop={() => handleDrop(variantIndex)}
-                                    >
-                                      <Accordion multiple className="flex-1 ml-1">
-                                        <i style={{ fontSize: '2.5rem' }} />
-                                        <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)}>
-                                          <TabView>
-                                            <TabPanel header='General'>
-                                              <Row>
-                                                <Col md="4" className='mt-2 d-flex gap-2'>
-                                                  {/* <div className={'d-flex flex-column gap-2'}>
-                                                    <label className={'font-semibold'}>
-                                                      <Translate contentKey={'items.update.measure'}>Measure</Translate>
-                                                    </label>
-                                                    <div className='d-flex gap-2'>
-                                                      <InputNumber
-                                                        value={product?.variants?.[variantIndex]?.measureValue?.measure}
-                                                        onChange={(e) => handleMeasureValueChange({
-                                                          measure: e.value,
-                                                          isBase: product?.variants?.[variantIndex]?.measureValue?.isBase
-                                                        }, variantIndex)}
-                                                        mode="decimal"
-                                                        minFractionDigits={2}
-                                                        maxFractionDigits={2}
-                                                        disabled={product?.variants?.[variantIndex]?.measureValue?.isBase}
-                                                        inputStyle={{
-                                                          width: '100%'
-                                                        }}
-                                                      />
-                                                    </div>
-                                                  </div> */}
-                                                  <div className={'d-flex flex-column gap-2'}>
-                                                    <label className={'font-semibold'}>
-                                                      <Translate contentKey={'items.update.isBaseMeasure'}>Is Measure Base</Translate>
-                                                    </label>
-                                                    <div className='d-flex gap-2'>
-                                                      <Checkbox
-                                                        checked={product?.variants?.[variantIndex]?.measureValue?.isBase || false}
-                                                        onChange={(e) => handleMeasureValueChange({
-                                                          // measure: product?.variants?.[variantIndex]?.measureValue?.measure,
-                                                          isBase: e.checked
-                                                        }, variantIndex)}
-                                                      />
-                                                    </div>
-                                                  </div>
-                                                </Col>
-                                                <Col md="8">
-                                                  <div className={'d-flex flex-column gap-2 mt-2'}>
-                                                    <label className={'font-semibold'}>
-                                                      <Translate contentKey={'items.update.description'}>Description</Translate>
-                                                    </label>
-                                                    <InputTextarea
-                                                      name="desc"
-                                                      id="desc"
-                                                      placeholder={translate('items.update.placeholders.itemDescription')}
-                                                      value={variant.description || ''}
-                                                      onChange={e =>
-                                                        handleVariantFieldChange(
-                                                          variantIndex,
-                                                          'description',
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                    />
-                                                  </div>
-                                                </Col>
-                                              </Row>
-                                              <Row>
-                                                <Col md="12">
-                                                  <div className={'d-flex flex-column '}>
-                                                    <label className={'font-semibold'}>
-                                                      <Translate contentKey={'items.update.image'}>Image</Translate>
-                                                    </label>
-                                                    <MediaLibrary
-                                                      handleFilesSelectCallback={files => addImage(variantIndex, files)}
-                                                      defaultValues={transformAttachmentStructure(
-                                                        variant?.attachments,
-                                                        'toFileLibraryListItem'
-                                                      )}
-                                                    />
-                                                  </div>
-                                                </Col>
-                                              </Row>
-                                            </TabPanel>
-                                            <TabPanel header='Pricing'>
-                                              <Row>
-                                                <Col md="6">
-                                                  <div className={'d-flex flex-column gap-2 mt-2'}>
-                                                    <label className={'font-semibold'}>
-                                                      <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                                                    </label>
-                                                    <InputNumber
-                                                      name="sale-price"
-                                                      id="sale-price"
-                                                      placeholder="Variant Sale Price"
-                                                      min={0}
-                                                      maxFractionDigits={2}
-                                                      value={variant?.salePrice || null}
-                                                      onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
-                                                    />
-                                                  </div>
-                                                </Col>
-                                                <Col md="6">
-                                                  <div className={'d-flex flex-column gap-2 mt-3'}>
-                                                    <label className={'font-semibold'}>
-                                                      <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
-                                                    </label>
-                                                    <Select
-                                                      value={variant?.accountingGroups || []}
-                                                      isClearable
-                                                      options={profileGroupsOptions}
-                                                      getOptionLabel={option => option.name}
-                                                      getOptionValue={option => option.id}
-                                                      onChange={profileGroup =>
-                                                        handleVariantFieldChange(
-                                                          variantIndex,
-                                                          'accountingGroups',
-                                                          profileGroup ? [profileGroup] : []
-                                                        )
-                                                      }
-                                                    />
-                                                  </div>
-                                                </Col>
-                                              </Row>
-                                              <Row>
-                                                <Col md="6">
-                                                  <DiscountDropdown
-                                                    discounts={variant.discounts}
-                                                    handleVariantChange={handleVariantFieldChange}
-                                                    variantIndex={variantIndex}
-                                                  />
-                                                </Col>
-                                                <Col md="6">
-                                                  <div className={'d-flex flex-column gap-2 mt-3'}>
-                                                    <label className={'font-semibold'}>
-                                                      <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
-                                                    </label>
-                                                    <Select
-                                                      value={variant?.mixAndMatchRule || null}
-                                                      options={mixAndMatchRuleList}
-                                                      getOptionLabel={option => option.name}
-                                                      getOptionValue={option => option.id}
-                                                      onChange={mixAndMatchRule =>
-                                                        handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)
-                                                      }
-                                                    />
-                                                  </div>
-                                                </Col>
-                                              </Row>
-                                              <Row>
-                                                <Col md={12}>
-                                                  <VariantBranchPrice
-                                                    branchList={branchList}
-                                                    handleBranchPriceChange={handleBranchPriceChange}
-                                                    variantIndex={variantIndex}
-                                                    branchVariantDetails={variant.branchVariantDetails}
-                                                    itemVariantType={'RETAIL'}
-                                                    handleHideItemPerBranch={handleHideItemPerBranch}
-                                                    variant={variant}
-                                                    setItem={setProduct}
-                                                  />
-                                                </Col>
-                                              </Row>
-                                            </TabPanel>
-                                            {!isNew && !variant?.measureValue?.isBase && (
-                                              <TabPanel header='Packaging'>
-                                                <Row>
-                                                  <Col md="12">
-                                                    <VariantPackaging
-                                                      product={product}
-                                                      variantIndex={variantIndex}
-                                                      variant={variant}
-                                                      handleVariantFieldChange={handleVariantFieldChange}
-                                                    />
-                                                  </Col>
-                                                </Row>
-                                              </TabPanel>
-                                            )}
-                                            <TabPanel header='Inventory'>
-                                              <Row>
-                                                <Col md="12">
-                                                  <ItemStock
-                                                    productPurchaseConfig={productPurchaseConfig}
-                                                    handleVariantFieldChange={handleVariantFieldChange}
-                                                    variant={variant}
-                                                    variantIndex={variantIndex}
-                                                    itemId={product.id}
-                                                  />
-                                                </Col>
-                                              </Row>
-                                              {/* <Row>
-                                                <Col md="12">
-                                                  <SupplierAssociationTab
-                                                    onSupplierChange={(updatedVariant) => handleSupplierChange(variantIndex, updatedVariant)}
-                                                    variant={variant}
-                                                    itemId={product.id}
-                                                    suppliers={supplierList}
-                                                  />
-                                                </Col>
-                                              </Row> */}
-                                            </TabPanel>
-                                            <TabPanel header='Shipping'>
-                                              <Row>
-                                                <Col md="12">
-                                                  <div>
-                                                    <Row>
-                                                      <Col md="12">
-                                                        <div className="mb-4 mt-3">
-                                                          <h2 className="mb-3 pb-2 border-bottom">Shipping Details</h2>
-                                                          <div className='row'>
-                                                            <div className='col-6 d-flex flex-column gap-2'>
-                                                              <label className="font-semibold">
-                                                                <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
-                                                              </label>
-                                                              <InputNumber
-                                                                name="minimumStockLevel"
-                                                                id="minimumStockLevel"
-                                                                required
-                                                                min={0}
-                                                                maxFractionDigits={2}
-                                                                inputClassName='w-1'
-                                                                placeholder={translate('items.update.placeholders.height')}
-                                                                value={product?.variants?.[variantIndex].shippingDimension?.height ?? null}
-                                                                onChange={(e) => handleShippingDimensionChange("height", e.value, variantIndex)}
-                                                              />
-                                                            </div>
-                                                            <div className='col-6 d-flex flex-column gap-2'>
-                                                              <label className="font-semibold">
-                                                                <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
-                                                              </label>
-                                                              <InputNumber
-                                                                name="quantity"
-                                                                id="quantity"
-                                                                required
-                                                                min={0}
-                                                                maxFractionDigits={2}
-                                                                inputClassName='w-1'
-                                                                placeholder={translate('items.update.placeholders.length')}
-                                                                value={product?.variants?.[variantIndex].shippingDimension?.length ?? null}
-                                                                onChange={(e) => handleShippingDimensionChange("length", e.value, variantIndex)}
-                                                              />
-                                                            </div>
-                                                            <div className='col-6 d-flex flex-column gap-2'>
-                                                              <label className="font-semibold">
-                                                                <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
-                                                              </label>
-                                                              <InputNumber
-                                                                name="unitCost"
-                                                                id="unitCost"
-                                                                required
-                                                                min={0}
-                                                                maxFractionDigits={2}
-                                                                inputClassName='w-1'
-                                                                placeholder={translate('items.update.placeholders.width')}
-                                                                value={product?.variants?.[variantIndex].shippingDimension?.width ?? null}
-                                                                onChange={(e) => handleShippingDimensionChange("width", e.value, variantIndex)}
-                                                              />
-                                                            </div>
-                                                            <div className='col-6 d-flex flex-column gap-2'>
-                                                              <label className="font-semibold">
-                                                                <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
-                                                              </label>
-                                                              <InputNumber
-                                                                name="unitCost"
-                                                                id="unitCost"
-                                                                required
-                                                                min={0}
-                                                                maxFractionDigits={2}
-                                                                inputClassName='w-1'
-                                                                placeholder={translate('items.update.placeholders.weight')}
-                                                                value={product?.variants?.[variantIndex].shippingDimension?.weight ?? null}
-                                                                onChange={(e) => handleShippingDimensionChange("weight", e.value, variantIndex)}
-                                                              />
-                                                            </div>
-                                                          </div>
-                                                        </div>
-                                                      </Col>
-                                                    </Row>
-                                                  </div>
-                                                </Col>
-                                              </Row>
-                                            </TabPanel>
-                                          </TabView>
-                                        </AccordionTab>
-                                      </Accordion>
+                                {product?.attributes?.map((attribute, index) => (
+                                  <div className={'d-flex gap-3 align-items-end'} key={index}>
+                                    <Col md={'9'} >
+                                      <label>
+                                        {translate('items.update.name')}: {attribute?.attributeTax?.name}
+                                      </label>
+                                      <Select
+                                        value={attribute?.attributeTerms || []}
+                                        isMulti
+                                        options={attributeValuesList}
+                                        getOptionLabel={option => option.name}
+                                        getOptionValue={option => option.id}
+                                        onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
+                                        isLoading={loadingAttributesValues}
+                                        onFocus={() => loadOptions(attribute.attributeTax.id)}
+                                        filterOption={(option, input) =>
+                                          option.label.toLowerCase().includes(input.toLowerCase())
+                                        }
+                                      />
                                     </Col>
-                                  ))}
-                                </Row>
+                                    <Col md={'3'}>
+                                      <PrimeButton type="button" className={'ml-auto bg-danger p-1'} onClick={() => confirm2(index)}>
+                                        <Translate contentKey={'items.update.removeAttribute'}>Remove</Translate>
+                                      </PrimeButton>
+                                    </Col>
+                                  </div>
+                                ))}
                               </Col>
                             </Row>
-                          )}
-                        </Row>
-                        <Row>
-                          <Col>
-                            <CustomDefinitionValuesWrapper
-                              entityId={product.id}
-                              entityType={CustomDefinitionEntityType.ITEM}
-                            />
-                          </Col>
-                        </Row>
-                      </div>
+
+                            <Row className={'mb-3'}>
+                              {isVariableItem && (
+                                <Row>
+                                  <label htmlFor="price" className={'font-semibold'}>
+                                    <Translate contentKey={'items.update.variants'}>Variants</Translate>
+                                  </label>
+                                  <Col md="12" className={'d-flex gap-3'}>
+                                    <Button type="button" color="primary" className={'mt-5'} onClick={generateCombinations}>
+                                      <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
+                                    </Button>
+
+                                    <Button color="primary" type={'button'} className={'mt-5'} onClick={handleAddVariant}>
+                                      <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
+                                    </Button>
+
+                                    {product.variants?.length > 0 && (
+                                      <Button color="danger" type={'button'} className={'mt-5'} onClick={() => confirm4()}>
+                                        <Translate contentKey={'items.update.removeAllVariants'}>Remove All Variants</Translate>
+                                      </Button>
+                                    )}
+                                  </Col>
+                                  <Col md={'12'} className={'mt-2'}>
+                                    <Row className={'mt-2'}>
+                                      {product?.variants?.map((variant, variantIndex) => (
+                                        <Col
+                                          md={'12'}
+                                          key={variantIndex}
+                                          className={` mt-2 pi pi-bars p-draggable d-flex ${dragOverIndex === variantIndex && 'border-top border-primary'
+                                            }`}
+                                          draggable
+                                          onDragStart={() => setDraggedIndex(variantIndex)}
+                                          onDragOver={e => handleDragOver(e, variantIndex)}
+                                          onDragLeave={handleDragLeave}
+                                          onDrop={() => handleDrop(variantIndex)}
+                                        >
+                                          <Accordion multiple className="flex-1 ml-1">
+                                            <i style={{ fontSize: '2.5rem' }} />
+                                            <AccordionTab headerTemplate={() => VariantAccordionHeader(variantIndex)}>
+                                              <TabView>
+                                                <TabPanel header='General'>
+                                                  <Row>
+                                                    <Col md="4" className='mt-2 d-flex gap-2'>
+                                                      {/* <div className={'d-flex flex-column gap-2'}>
+                                                        <label className={'font-semibold'}>
+                                                          <Translate contentKey={'items.update.measure'}>Measure</Translate>
+                                                        </label>
+                                                        <div className='d-flex gap-2'>
+                                                          <InputNumber
+                                                            value={product?.variants?.[variantIndex]?.measureValue?.measure}
+                                                            onChange={(e) => handleMeasureValueChange({
+                                                              measure: e.value,
+                                                              isBase: product?.variants?.[variantIndex]?.measureValue?.isBase
+                                                            }, variantIndex)}
+                                                            mode="decimal"
+                                                            minFractionDigits={2}
+                                                            maxFractionDigits={2}
+                                                            disabled={product?.variants?.[variantIndex]?.measureValue?.isBase}
+                                                            inputStyle={{
+                                                              width: '100%'
+                                                            }}
+                                                          />
+                                                        </div>
+                                                      </div> */}
+                                                      <div className={'d-flex flex-column gap-2'}>
+                                                        <label className={'font-semibold'}>
+                                                          <Translate contentKey={'items.update.isBaseMeasure'}>Is Measure Base</Translate>
+                                                        </label>
+                                                        <div className='d-flex gap-2'>
+                                                          <Checkbox
+                                                            checked={product?.variants?.[variantIndex]?.measureValue?.isBase || false}
+                                                            onChange={(e) => handleMeasureValueChange({
+                                                              // measure: product?.variants?.[variantIndex]?.measureValue?.measure,
+                                                              isBase: e.checked
+                                                            }, variantIndex)}
+                                                          />
+                                                        </div>
+                                                      </div>
+                                                    </Col>
+                                                    <Col md="8">
+                                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                                        <label className={'font-semibold'}>
+                                                          <Translate contentKey={'items.update.description'}>Description</Translate>
+                                                        </label>
+                                                        <InputTextarea
+                                                          name="desc"
+                                                          id="desc"
+                                                          placeholder={translate('items.update.placeholders.itemDescription')}
+                                                          value={variant.description || ''}
+                                                          onChange={e =>
+                                                            handleVariantFieldChange(
+                                                              variantIndex,
+                                                              'description',
+                                                              e.target.value
+                                                            )
+                                                          }
+                                                        />
+                                                      </div>
+                                                    </Col>
+                                                  </Row>
+                                                  <Row>
+                                                    <Col md="12">
+                                                      <div className={'d-flex flex-column '}>
+                                                        <label className={'font-semibold'}>
+                                                          <Translate contentKey={'items.update.image'}>Image</Translate>
+                                                        </label>
+                                                        <MediaLibrary
+                                                          handleFilesSelectCallback={files => addImage(variantIndex, files)}
+                                                          defaultValues={transformAttachmentStructure(
+                                                            variant?.attachments,
+                                                            'toFileLibraryListItem'
+                                                          )}
+                                                        />
+                                                      </div>
+                                                    </Col>
+                                                  </Row>
+                                                </TabPanel>
+                                                <TabPanel header='Pricing'>
+                                                  <Row>
+                                                    <Col md="6">
+                                                      <div className={'d-flex flex-column gap-2 mt-2'}>
+                                                        <label className={'font-semibold'}>
+                                                          <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                                        </label>
+                                                        <InputNumber
+                                                          name="sale-price"
+                                                          id="sale-price"
+                                                          placeholder="Variant Sale Price"
+                                                          min={0}
+                                                          maxFractionDigits={2}
+                                                          value={variant?.salePrice || null}
+                                                          onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', e.value)}
+                                                        />
+                                                      </div>
+                                                    </Col>
+                                                    <Col md="6">
+                                                      <div className={'d-flex flex-column gap-2 mt-3'}>
+                                                        <label className={'font-semibold'}>
+                                                          <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
+                                                        </label>
+                                                        <Select
+                                                          value={variant?.accountingGroups || []}
+                                                          isClearable
+                                                          options={profileGroupsOptions}
+                                                          getOptionLabel={option => option.name}
+                                                          getOptionValue={option => option.id}
+                                                          onChange={profileGroup =>
+                                                            handleVariantFieldChange(
+                                                              variantIndex,
+                                                              'accountingGroups',
+                                                              profileGroup ? [profileGroup] : []
+                                                            )
+                                                          }
+                                                        />
+                                                      </div>
+                                                    </Col>
+                                                  </Row>
+                                                  <Row>
+                                                    <Col md="6">
+                                                      <DiscountDropdown
+                                                        discounts={variant.discounts}
+                                                        handleVariantChange={handleVariantFieldChange}
+                                                        variantIndex={variantIndex}
+                                                      />
+                                                    </Col>
+                                                    <Col md="6">
+                                                      <div className={'d-flex flex-column gap-2 mt-3'}>
+                                                        <label className={'font-semibold'}>
+                                                          <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                                        </label>
+                                                        <Select
+                                                          value={variant?.mixAndMatchRule || null}
+                                                          options={mixAndMatchRuleList}
+                                                          getOptionLabel={option => option.name}
+                                                          getOptionValue={option => option.id}
+                                                          onChange={mixAndMatchRule =>
+                                                            handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)
+                                                          }
+                                                        />
+                                                      </div>
+                                                    </Col>
+                                                  </Row>
+                                                  <Row>
+                                                    <Col md={12}>
+                                                      <VariantBranchPrice
+                                                        branchList={branchList}
+                                                        handleBranchPriceChange={handleBranchPriceChange}
+                                                        variantIndex={variantIndex}
+                                                        branchVariantDetails={variant.branchVariantDetails}
+                                                        itemVariantType={'RETAIL'}
+                                                        handleHideItemPerBranch={handleHideItemPerBranch}
+                                                        variant={variant}
+                                                        setItem={setProduct}
+                                                      />
+                                                    </Col>
+                                                  </Row>
+                                                </TabPanel>
+                                                {!isNew && !variant?.measureValue?.isBase && (
+                                                  <TabPanel header='Packaging'>
+                                                    <Row>
+                                                      <Col md="12">
+                                                        <VariantPackaging
+                                                          product={product}
+                                                          variantIndex={variantIndex}
+                                                          variant={variant}
+                                                          handleVariantFieldChange={handleVariantFieldChange}
+                                                        />
+                                                      </Col>
+                                                    </Row>
+                                                  </TabPanel>
+                                                )}
+                                                <TabPanel header='Inventory'>
+                                                  <Row>
+                                                    <Col md="12">
+                                                      <ItemStock
+                                                        productPurchaseConfig={productPurchaseConfig}
+                                                        handleVariantFieldChange={handleVariantFieldChange}
+                                                        variant={variant}
+                                                        variantIndex={variantIndex}
+                                                        itemId={product.id}
+                                                      />
+                                                    </Col>
+                                                  </Row>
+                                                  {/* <Row>
+                                                    <Col md="12">
+                                                      <SupplierAssociationTab
+                                                        onSupplierChange={(updatedVariant) => handleSupplierChange(variantIndex, updatedVariant)}
+                                                        variant={variant}
+                                                        itemId={product.id}
+                                                        suppliers={supplierList}
+                                                      />
+                                                    </Col>
+                                                  </Row> */}
+                                                </TabPanel>
+                                                <TabPanel header='Shipping'>
+                                                  <Row>
+                                                    <Col md="12">
+                                                      <div>
+                                                        <Row>
+                                                          <Col md="12">
+                                                            <div className="mb-3 mt-3">
+                                                              <div className='row'>
+                                                                <div className='col-6 d-flex flex-column gap-2'>
+                                                                  <label className="font-semibold">
+                                                                    <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
+                                                                  </label>
+                                                                  <InputNumber
+                                                                    name="minimumStockLevel"
+                                                                    id="minimumStockLevel"
+                                                                    required
+                                                                    min={0}
+                                                                    maxFractionDigits={2}
+                                                                    inputClassName='w-1'
+                                                                    placeholder={translate('items.update.placeholders.height')}
+                                                                    value={product?.variants?.[variantIndex].shippingDimension?.height ?? null}
+                                                                    onChange={(e) => handleShippingDimensionChange("height", e.value, variantIndex)}
+                                                                  />
+                                                                </div>
+                                                                <div className='col-6 d-flex flex-column gap-2'>
+                                                                  <label className="font-semibold">
+                                                                    <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
+                                                                  </label>
+                                                                  <InputNumber
+                                                                    name="quantity"
+                                                                    id="quantity"
+                                                                    required
+                                                                    min={0}
+                                                                    maxFractionDigits={2}
+                                                                    inputClassName='w-1'
+                                                                    placeholder={translate('items.update.placeholders.length')}
+                                                                    value={product?.variants?.[variantIndex].shippingDimension?.length ?? null}
+                                                                    onChange={(e) => handleShippingDimensionChange("length", e.value, variantIndex)}
+                                                                  />
+                                                                </div>
+                                                                <div className='col-6 d-flex flex-column gap-2'>
+                                                                  <label className="font-semibold">
+                                                                    <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
+                                                                  </label>
+                                                                  <InputNumber
+                                                                    name="unitCost"
+                                                                    id="unitCost"
+                                                                    required
+                                                                    min={0}
+                                                                    maxFractionDigits={2}
+                                                                    inputClassName='w-1'
+                                                                    placeholder={translate('items.update.placeholders.width')}
+                                                                    value={product?.variants?.[variantIndex].shippingDimension?.width ?? null}
+                                                                    onChange={(e) => handleShippingDimensionChange("width", e.value, variantIndex)}
+                                                                  />
+                                                                </div>
+                                                                <div className='col-6 d-flex flex-column gap-2'>
+                                                                  <label className="font-semibold">
+                                                                    <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
+                                                                  </label>
+                                                                  <InputNumber
+                                                                    name="unitCost"
+                                                                    id="unitCost"
+                                                                    required
+                                                                    min={0}
+                                                                    maxFractionDigits={2}
+                                                                    inputClassName='w-1'
+                                                                    placeholder={translate('items.update.placeholders.weight')}
+                                                                    value={product?.variants?.[variantIndex].shippingDimension?.weight ?? null}
+                                                                    onChange={(e) => handleShippingDimensionChange("weight", e.value, variantIndex)}
+                                                                  />
+                                                                </div>
+                                                              </div>
+                                                            </div>
+                                                          </Col>
+                                                        </Row>
+                                                      </div>
+                                                    </Col>
+                                                  </Row>
+                                                </TabPanel>
+                                              </TabView>
+                                            </AccordionTab>
+                                          </Accordion>
+                                        </Col>
+                                      ))}
+                                    </Row>
+                                  </Col>
+                                </Row>
+                              )}
+                            </Row>
+                            <Row>
+                              <Col>
+                                <CustomDefinitionValuesWrapper
+                                  entityId={product.id}
+                                  entityType={CustomDefinitionEntityType.ITEM}
+                                />
+                              </Col>
+                            </Row>
+                          </div>
+                        </FormGroup>
+                      </Row>
                     </TabPanel>
 
                     <TabPanel header={translate('items.update.tabs.visibility.label')}>
