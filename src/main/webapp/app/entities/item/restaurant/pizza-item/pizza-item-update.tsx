@@ -45,7 +45,6 @@ import SeoTags from 'app/shared/components/item/seo-tags';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import { Checkbox } from "primereact/checkbox";
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
-import PricingSection from 'app/shared/components/item/sections/PricingSection';
 
 const items: MenuItem[] = [
   {
@@ -92,7 +91,6 @@ export const PizzaItemUpdate = () => {
 
 
   const [pizzaItem, setPizzaItem] = useState<IPizzaItem>({});
-  const [showFormErrors, setShowFormErrors] = useState(false);
 
   const isMultiple = pizzaItem?.variants?.[0]?.multiple === true
   const filteredOptions = useMemo(() => {
@@ -504,23 +502,9 @@ export const PizzaItemUpdate = () => {
     }
   }, [pizzaItemEntity, updateSuccess]);
 
-  // Simple validation: require name for first variant
-  const validateEntity = () => {
-    const variant = pizzaItem?.variants?.[0] || {};
-    if (!pizzaItem.name) {
-      return false;
-    }
-    return true;
-  };
 
   const saveEntity = (e, createNew = false, clone = false) => {
     e.preventDefault();
-    if (!validateEntity()) {
-      setShowFormErrors(true);
-      return;
-    } else {
-      setShowFormErrors(false);
-    }
     let entity = {
       ...pizzaItem,
     };
@@ -624,11 +608,6 @@ export const PizzaItemUpdate = () => {
 
   return (
     <div>
-       <div className='w-100'>
-                          <h1 >
-                            {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.pizza'}>Create New Pizza Item</Translate> : <span className=''>Editing Pizza Item:  {pizzaItem.name}</span>}
-                          </h1>
-                        </div>
       {isNew ?
         <div className="card">
           <Steps
@@ -702,7 +681,11 @@ export const PizzaItemUpdate = () => {
                   <CardBody className='p-1'>
                     <TabView>
                       <TabPanel header={translate('items.update.tabs.details.label')}>
-                       
+                        <div className='w-100'>
+                          <div className='text-xl font-semibold'>
+                            {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.pizza'}>Create New Pizza Item</Translate> : <span>Edit {pizzaItem.name}</span>}
+                          </div>
+                        </div>
                         <FormGroup className={`${isNew ? "d-flex justify-content-center bg-white" : ""}`}>
 
                           <div className={`d-flex flex-column p-3  bg-white gap-3`} >
@@ -729,12 +712,6 @@ export const PizzaItemUpdate = () => {
                               </Row> : null}
 
                             <SharedItemUpdate item={pizzaItem} onFieldChange={handleFieldChange} />
-                            <PricingSection
-                              item={pizzaItem}
-                              onFieldChange={handleFieldChange}
-                              showFormErrors={showFormErrors}
-                              branchList={branchList}
-                            />
 
                             <Row className={""} >
                               <div className={'d-flex flex-column gap-1'}>

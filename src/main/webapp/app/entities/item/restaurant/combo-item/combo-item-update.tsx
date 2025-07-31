@@ -35,7 +35,6 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
-import PricingSection from 'app/shared/components/item/sections/PricingSection';
 
 
 export const ComboItemUpdate = () => {
@@ -61,7 +60,7 @@ export const ComboItemUpdate = () => {
   const [comboItem, setComboItem] = useState<IComboItem>({});
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showFormErrors, setShowFormErrors] = useState(false);
+
 
 
   const toggleModal = () => {
@@ -391,15 +390,15 @@ export const ComboItemUpdate = () => {
 
   return (
     <form onKeyDown={preventEnterSubmit}>
-      <h1 className="mb-4 mt-2 ">
-        {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.combo'}>Create New Combo Item</Translate> : `Editing ${comboItem.name}`}
-      </h1>
       <div className={"d-flex row"}>
         <Col md={9}>
           <Card>
             <TabView>
               <TabPanel header={translate('items.update.tabs.details.label')}>
                 <div className='w-100'>
+                  <div className='text-xl font-semibold'>
+                    {isNew ? <Translate contentKey={'items.update.tabs.details.titles.create.combo'}>Create New Combo Item</Translate> : <span>Edit {comboItem.name}</span>}
+                  </div>
                 </div>
                 <Row>
                   <FormGroup className={`${isNew ? "d-flex bg-white" : ""}`}>
@@ -415,13 +414,9 @@ export const ComboItemUpdate = () => {
                         />
                         : null}
 
-                      <SharedItemUpdate item={comboItem} onFieldChange={handleFieldChange} />
-                      <PricingSection
+                      <SharedItemUpdate
                         item={comboItem}
                         onFieldChange={handleFieldChange}
-                        showFormErrors={showFormErrors}
-                        branchList={branchList}
-                        handleBranchPriceChange={handleBranchPriceChange}
                       />
 
                       <Row>
@@ -471,6 +466,53 @@ export const ComboItemUpdate = () => {
                           </div>
                         </Col>
                       </Row>
+
+                      <Col md="4">
+                        <div className={"d-flex flex-column gap-2 mt-3"}>
+                          <label className={"font-semibold"}>
+                            <Translate contentKey={'items.update.price'}>Price</Translate>
+                          </label>
+                          <InputNumber
+                            name="price"
+                            id="price"
+                            required={true}
+                            min={0}
+                            maxFractionDigits={2}
+                            placeholder={translate('items.update.placeholders.itemPrice')}
+                            value={comboItem?.variants?.[0]?.price || null}
+                            onChange={(e) => handleComboVariantChange("price", e.value)}
+                          />
+                        </div>
+                      </Col>
+
+                      <Col md="4">
+                        <div className={"d-flex flex-column gap-2 mt-2"}>
+                          <label className={"font-semibold"}>
+                            <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                          </label>
+                          <InputNumber
+                            name="sale-price"
+                            id="sale-price"
+                            placeholder="Variant Sale Price"
+                            min={0}
+                            size={6}
+                            maxFractionDigits={2}
+                            value={comboItem?.variants?.[0]?.salePrice || null}
+                            onChange={(e) => handleComboVariantChange('salePrice', e.value)}
+                          />
+                        </div>
+                      </Col>
+
+                      <VariantBranchPrice
+                        branchVariantDetails={comboItem?.variants?.[0].branchVariantDetails}
+                        branchList={branchList}
+                        handleBranchPriceChange={handleBranchPriceChange}
+                        variantIndex={0}
+                        itemVariantType={"RESTAURANT"}
+                        handleHideItemPerBranch={handleHideItemPerBranch}
+                        variant={comboItem?.variants?.[0]}
+                        setItem={setComboItem}
+                      />
 
                       <Row>
                         <FormGroup>

@@ -42,7 +42,6 @@ import DiscountDropdown from "app/shared/components/item/discount-dropdown";
 import MediaLibrary from "app/shared/components/media-library/media-library";
 import { transformAttachmentStructure } from "app/shared/util/attachment-utils";
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import PricingSection from 'app/shared/components/item/sections/PricingSection';
 
 
 const defaultItemPriceNumber = {
@@ -92,7 +91,6 @@ export const VariableItemUpdate = () => {
     variants: []
   });
   const [measureToAdd, setMeasureToAdd] = useState<IExchangeMeasure>();
-  const [showFormErrors, setShowFormErrors] = useState(false);
 
   const [itemAttribute, setItemAttribute] = useState<{
     attributeTax: ITaxonomy;
@@ -440,11 +438,8 @@ export const VariableItemUpdate = () => {
   }, [variableItemEntity, updateSuccess]);
 
 
-  // Dummy validation function for compatibility
-  const validateEntity = () => true;
   const saveEntity = e => {
     e.preventDefault();
-    setShowFormErrors(false); // Always set to false since validation is not needed
     const entity = {
       ...variableItem,
     };
@@ -578,9 +573,6 @@ export const VariableItemUpdate = () => {
 
   return (
     <form onSubmit={saveEntity}>
-      <h1 className="mb-4 mt-2">
-        {isNew ? translate('items.update.tabs.details.titles.create.variable') : `Editing retail product:  ${variableItem.name}`}
-      </h1>
       <div className={'d-flex row'}>
         <Col md={9}>
           <Card>
@@ -590,20 +582,15 @@ export const VariableItemUpdate = () => {
                   <TabView>
                     <TabPanel header={translate('items.update.tabs.details.label')}>
                       <div className="w-100">
-
+                        <div className="text-xl font-semibold">
+                          {isNew ? translate('items.update.tabs.details.titles.create.variable') : <span>Edit {variableItem.name}</span>}
+                        </div>
                       </div>
 
                       <Row>
                         <FormGroup className={`${isNew ? 'd-flex bg-white' : ''}`}>
                           <div className={`d-flex flex-column p-1 bg-white w-100`}>
                             <SharedItemUpdate item={variableItem} onFieldChange={handleFieldChange} />
-                            <PricingSection
-                              item={variableItem}
-                              onFieldChange={handleFieldChange}
-                              showFormErrors={showFormErrors}
-                              branchList={branchList}
-                              handleBranchPriceChange={handleBranchPriceChange}
-                            />
 
                             <Row className={'mb-3'}>
                               <Row>

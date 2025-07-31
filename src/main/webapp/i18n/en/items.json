@@ -199,8 +199,7 @@
         "length": "Length",
         "width": "Width",
         "weight": "Weight",
-        "height": "Height",
-        "stockChangeReason": "Stock Change Reason"
+        "height": "Height"
       },
       "name": "Name",
       "description": "Description",
@@ -251,12 +250,6 @@
       "brand": "Brand",
       "branch": "Branch",
       "selectAttribute": "Select Attribute",
-      "sections": {
-        "basicInfo": "Basic Information",
-        "pricing": "Pricing",
-        "classification": "Classification",
-        "media": "Media"
-      },
       "addAttribute": "Add Attribute",
       "generateVariants": "Generate Variants",
       "addSingleVariant": "Add Single Variant",

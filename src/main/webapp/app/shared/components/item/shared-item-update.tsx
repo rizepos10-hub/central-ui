@@ -151,261 +151,250 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
 
   return (
     <div>
-      {/* Basic Information Section */}
-      <div className="mb-4">
-        <h2 className="mb-3 pb-2 border-bottom">
-          <Translate contentKey={'items.update.sections.basicInfo'}>Basic Information</Translate>
-        </h2>
-        <Row>
-          <Col md="6">
-            <div className={'d-flex flex-column gap-1'}>
-              <label className={'font-semibold'}>
-                <Translate contentKey={'items.update.name'}>Name</Translate>
-              </label>
-              <InputText
-                type="text"
-                name="name"
-                id="name"
-                required={true}
-                placeholder={translate('items.update.placeholders.itemName')}
-                value={item.name || ''}
-                onChange={e => onFieldChange('name', e.target.value)}
-                style={{ borderColor: showFormErrors && !item.name ? 'red' : '' }}
-              />
-            </div>
-          </Col>
-          <Col md="6">
-            <div className={'d-flex flex-column gap-1'}>
-              <label className={'font-semibold'}>
-                <Translate contentKey={'items.update.shortDescription'}>Short Description</Translate>
-              </label>
-              <InputTextarea
-                name="desc"
-                id="desc"
-                placeholder={translate('items.update.placeholders.shortDescription')}
-                value={item.desc || ''}
-                onChange={e => onFieldChange('desc', e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); } }}
-                rows={5}
-              />
-            </div>
-          </Col>
-        </Row>
-        <Row className="mt-2">
-          <Col md="6">
-            <div className={'d-flex flex-column gap-1'}>
-              <label className={'font-semibold'}>
-                <Translate contentKey="items.update.categories">Categories</Translate>
-              </label>
-              <Select
-                value={item?.categories || []}
-                isMulti={true}
-                options={itemCategoriesOptions}
-                getOptionLabel={option => option.name}
-                getOptionValue={option => option.id}
-                onChange={selectedItemTerms => onFieldChange('categories', selectedItemTerms)}
-                onMenuOpen={() => {
-                  if (isRestaurantItem) {
-                    dispatch(
-                      getRestaurantItemCategories({
-                        page: paginationState.activePage - 1,
-                        size: paginationState.itemsPerPage,
-                        sort: `${paginationState.sort},${paginationState.order}`,
-                      })
-                    )
-                  } else {
-                    dispatch(
-                      getRetailItemCategories({
-                        page: paginationState.activePage - 1,
-                        size: paginationState.itemsPerPage,
-                        sort: `${paginationState.sort},${paginationState.order}`,
-                      })
-                    )
-                  }
-                }}
-              />
-            </div>
-          </Col>
-          <Col md="6">
-            <div className={'d-flex flex-column gap-1'}>
-              <label className={'font-semibold'}>
-                <Translate contentKey="items.update.tags">Tags</Translate>
-              </label>
-              <Select
-                value={item?.tags || []}
-                isMulti={true}
-                options={tags}
-                getOptionLabel={option => option.name}
-                getOptionValue={option => option.id}
-                onChange={selectedTags => onFieldChange('tags', selectedTags)}
-                onMenuOpen={() => {
-                  dispatch(
-                    getTags({
-                      page: paginationState.activePage - 1,
-                      size: paginationState.itemsPerPage,
-                      sort: `${paginationState.sort},${paginationState.order}`,
-                    })
-                  );
-                }}
-              />
-            </div>
-          </Col>
-        </Row>
-      </div>
+      <Row>
+        <FormGroup className={'d-flex flex-column gap-1'}>
+          <Col md="12">
+            <div className="row">
+              <Col md="6">
+                <div className={'d-flex flex-column gap-1  '}>
+                  <label className={'font-semibold'}>
+                    <Translate contentKey={'items.update.name'}>Name</Translate>
+                  </label>
+                  <InputText
+                    type="text"
+                    name="name"
+                    id="name"
+                    required={true}
+                    placeholder={translate('items.update.placeholders.itemName')}
+                    value={item.name || ''}
+                    onChange={e => onFieldChange('name', e.target.value)}
+                    style={{
+                      borderColor: showFormErrors && !item.name ? 'red' : ''
+                    }}
+                  />
+                </div>
+              </Col>
 
-      {/* Media Section */}
-      <div className="mb-4">
-        <h2 className="mb-3 pb-2 border-bottom">
-          <Translate contentKey={'items.update.sections.media'}>Media</Translate>
-        </h2>
-        <Row>
-          <Col md={12}>
-            <div className={'d-flex flex-column'}>
-              <label className={'font-semibold'}>
-                <Translate contentKey={'items.update.image'}>Image</Translate>
-              </label>
-              <MediaLibrary
-                multiSelect={true}
-                handleFilesSelectCallback={files => addImage(files)}
-                defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
-              />
-            </div>
-          </Col>
-        </Row>
-      </div>
+              {!item.askForPrice && (
+                <Col md="4">
+                  <div className={'d-flex flex-column gap-2'}>
+                    <label className={'font-semibold'}>
+                      {isRetailVariable ? 'Default Price' : 'Price'}
+                    </label>
+                    <InputNumber
+                      name="price"
+                      id="price"
+                      required={true}
+                      min={0}
+                      maxFractionDigits={2}
+                      inputClassName={'w-1'}
+                      placeholder={translate('items.update.placeholders.itemPrice')}
+                      value={defaultPrice || null}
+                      onChange={e => {
+                        console.log(e.value)
+                        setDefaultPrice(e.value || 0);
+                      }}
+                      style={{
+                        borderColor: showFormErrors && !item?.variants?.[0]?.price ? 'red' : ''
+                      }}
+                    />
+                  </div>
+                </Col>
+              )}
 
-      {/* Pricing Section */}
-      <div className="mb-4">
-        <h2 className="mb-3 pb-2 border-bottom">
-          <Translate contentKey={'items.update.sections.pricing'}>Pricing</Translate>
-        </h2>
-        <Row className="align-items-center">
-          {!item.askForPrice && (
-            <Col md="4">
-              <div className={'d-flex flex-column gap-2'}>
+
+              {/* checkbox for askForPrice field */}
+              <Col md="2">
+                <div className={'d-flex flex-column gap-2 mb-3'}>
+                  <label className={'font-semibold'}>
+                    <Translate contentKey={'items.update.askForPrice'}>Ask for Price</Translate>
+                  </label>
+                  <Checkbox
+                    checked={item?.askForPrice || false}
+                    onChange={(e) => onFieldChange('askForPrice', e.checked)}
+                  />
+                </div>
+              </Col>
+
+
+              <Col md="12">
+                <div className={'d-flex flex-column gap-1'}>
+                  <label className={'font-semibold'}>
+                    <Translate contentKey={'items.update.shortDescription'}>Short Description</Translate>
+                  </label>
+                  <InputTextarea
+                    name="desc"
+                    id="desc"
+                    placeholder={translate('items.update.placeholders.shortDescription')}
+                    value={item.desc || ''}
+                    onChange={e => onFieldChange('desc', e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.stopPropagation();
+                      }
+                    }}
+                    rows={5}
+                  />
+
+                </div>
+              </Col>
+            </div>
+
+            <div className="row">
+              <div className={'d-flex flex-column gap-1 col'}>
                 <label className={'font-semibold'}>
-                  {isRetailVariable ? 'Default Price' : 'Price'}
-                </label>
-                <InputNumber
-                  name="price"
-                  id="price"
-                  required={true}
-                  min={0}
-                  maxFractionDigits={2}
-                  inputClassName={'w-1'}
-                  placeholder={translate('items.update.placeholders.itemPrice')}
-                  value={defaultPrice || null}
-                  onChange={e => setDefaultPrice(e.value || 0)}
-                  style={{ borderColor: showFormErrors && !item?.variants?.[0]?.price ? 'red' : '' }}
-                />
-              </div>
-            </Col>
-          )}
-          <Col md="3" className="d-flex align-items-center mt-3 mt-md-0">
-            <Checkbox
-              checked={item?.askForPrice || false}
-              onChange={(e) => onFieldChange('askForPrice', e.checked)}
-              inputId="askForPrice"
-              className="me-2"
-            />
-            <label htmlFor="askForPrice" className="font-semibold mb-0 ms-1">
-              <Translate contentKey={'items.update.askForPrice'}>Ask for Price</Translate>
-            </label>
-          </Col>
-          {item?.itemVariantType !== ItemVariantType.RESTAURANT_PIZZA && item?.variants?.length === 1 && (
-            <Col md="3" className="d-flex align-items-center mt-3 mt-md-0">
-              <Checkbox
-                checked={item?.byWeight ? true : false}
-                onChange={e => onFieldChange('byWeight', e.checked)}
-                inputId="byWeight"
-                className="me-2"
-              />
-              <label htmlFor="byWeight" className="font-semibold mb-0 ms-1">
-                <Translate contentKey={'items.update.byWeight'}>By Weight</Translate>
-              </label>
-            </Col>
-          )}
-          {isVariableItem && (
-            <Col md="6" className="mt-3">
-              <DiscountDropdown discounts={item?.discounts} handleChange={onFieldChange} />
-            </Col>
-          )}
-        </Row>
-      </div>
-
-      {/* Classification Section */}
-      <div className="mb-4">
-        <h2 className="mb-3 pb-2 border-bottom">
-          <Translate contentKey={'items.update.sections.classification'}>Classification</Translate>
-        </h2>
-        <Row className="align-items-center">
-          <Col md="4">
-            <div className={'d-flex flex-column gap-1'}>
-              <label className={'font-semibold'}>
-                <Translate contentKey="items.update.productionCenter">Production Center</Translate>
-              </label>
-              <Select
-                value={item?.productionCenter || null}
-                options={productionCenterOptions}
-                isClearable
-                getOptionLabel={option => option.name}
-                getOptionValue={option => option.id}
-                onChange={productionCenter => onFieldChange('productionCenter', productionCenter)}
-                onMenuOpen={() => {
-                  dispatch(
-                    getProductionCenters({
-                      page: paginationState.activePage - 1,
-                      size: paginationState.itemsPerPage,
-                      sort: `${paginationState.sort},${paginationState.order}`,
-                    })
-                  );
-                }}
-              />
-            </div>
-          </Col>
-          <Col md="4">
-            <div className={'d-flex flex-column gap-1'}>
-              <label className={'font-semibold'}>
-                <Translate contentKey="items.update.profileGroups">Profile Groups</Translate>
-              </label>
-              <Select
-                value={item?.accountingGroups || []}
-                isClearable
-                options={profileGroupsOptions}
-                getOptionLabel={option => option.name}
-                getOptionValue={option => option.id}
-                onChange={profileGroup => onFieldChange('accountingGroups', profileGroup ? [profileGroup] : [])}
-                onMenuOpen={() => {
-                  dispatch(
-                    getProfileGroups({
-                      page: paginationState.activePage - 1,
-                      size: paginationState.itemsPerPage,
-                      sort: `${paginationState.sort},${paginationState.order}`,
-                    })
-                  );
-                }}
-              />
-            </div>
-          </Col>
-          {isRetailItem && (
-            <Col md="4">
-              <div className={'d-flex flex-column gap-1'}>
-                <label className={'font-semibold'}>
-                  <Translate contentKey="items.update.brand">brand</Translate>
+                  <Translate contentKey="items.update.productionCenter">Production Center</Translate>
                 </label>
                 <Select
-                  value={item?.brand || null}
+                  value={item?.productionCenter || null}
+                  options={productionCenterOptions}
                   isClearable
-                  options={brands}
                   getOptionLabel={option => option.name}
                   getOptionValue={option => option.id}
-                  onChange={brand => onFieldChange('brand', brand)}
+                  onChange={productionCenter => onFieldChange('productionCenter', productionCenter)}
+                  onMenuOpen={() => {
+                    dispatch(
+                      getProductionCenters({
+                        page: paginationState.activePage - 1,
+                        size: paginationState.itemsPerPage,
+                        sort: `${paginationState.sort},${paginationState.order}`,
+                      })
+                    );
+                  }}
                 />
               </div>
-            </Col>
-          )}
-        </Row>
-      </div>
+
+              <div className={'d-flex flex-column gap-1 col'}>
+                <label className={'font-semibold'}>
+                  <Translate contentKey="items.update.profileGroups">Profile Groups</Translate>
+                </label>
+                <Select
+                  value={item?.accountingGroups || []}
+                  isClearable
+                  options={profileGroupsOptions}
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                  onChange={profileGroup => onFieldChange('accountingGroups', profileGroup ? [profileGroup] : [])}
+                  onMenuOpen={() => {
+                    dispatch(
+                      getProfileGroups({
+                        page: paginationState.activePage - 1,
+                        size: paginationState.itemsPerPage,
+                        sort: `${paginationState.sort},${paginationState.order}`,
+                      })
+                    );
+                  }}
+                />
+              </div>
+
+              {isVariableItem ? (
+                <div className="col">
+                  <DiscountDropdown discounts={item?.discounts} handleChange={onFieldChange} />
+                </div>
+              ) : null}
+            </div>
+            <div className="row">
+              <div className={'d-flex flex-column gap-1  col'}>
+                <label className={'font-semibold'}>
+                  <Translate contentKey="items.update.categories">Categories</Translate>
+                </label>
+                <Select
+                  value={item?.categories || []}
+                  isMulti={true}
+                  options={itemCategoriesOptions}
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                  onChange={selectedItemTerms => onFieldChange('categories', selectedItemTerms)}
+                  onMenuOpen={() => {
+                    if (isRestaurantItem) {
+                      dispatch(
+                        getRestaurantItemCategories({
+                          page: paginationState.activePage - 1,
+                          size: paginationState.itemsPerPage,
+                          sort: `${paginationState.sort},${paginationState.order}`,
+                        })
+                      )
+                    } else {
+                      dispatch(
+                        getRetailItemCategories({
+                          page: paginationState.activePage - 1,
+                          size: paginationState.itemsPerPage,
+                          sort: `${paginationState.sort},${paginationState.order}`,
+                        })
+                      )
+                    }
+                  }}
+                />
+              </div>
+
+              <div className={'d-flex flex-column gap-1  col'}>
+                <label className={'font-semibold'}>
+                  <Translate contentKey="items.update.tags">Tags</Translate>
+                </label>
+                <Select
+                  value={item?.tags || []}
+                  isMulti={true}
+                  options={tags}
+                  getOptionLabel={option => option.name}
+                  getOptionValue={option => option.id}
+                  onChange={selectedTags => onFieldChange('tags', selectedTags)}
+                  onMenuOpen={() => {
+                    dispatch(
+                      getTags({
+                        page: paginationState.activePage - 1,
+                        size: paginationState.itemsPerPage,
+                        sort: `${paginationState.sort},${paginationState.order}`,
+                      })
+                    );
+                  }}
+                />
+              </div>
+            </div>
+
+            {item?.itemVariantType !== ItemVariantType.RESTAURANT_PIZZA && item?.variants?.length === 1 && (
+              <div className={'d-flex flex-column gap-1  col'}>
+                <label className={'text-xl mt-2 font-bold'}>
+                  <Translate contentKey={'items.update.byWeight'}>By Weight</Translate>
+                </label>
+                <Checkbox checked={item?.byWeight ? true : false} onChange={e => onFieldChange('byWeight', e.checked)} />
+              </div>
+            )}
+
+            {isRetailItem ? (
+              <div className="row">
+                <div className={'d-flex flex-column gap-2 mt-2 col-6'}>
+                  <label className={'text-xl font-semibold'}>
+                    <Translate contentKey="items.update.brand">brand</Translate>
+                  </label>
+                  <Select
+                    value={item?.brand || null}
+                    isClearable
+                    options={brands}
+                    getOptionLabel={option => option.name}
+                    getOptionValue={option => option.id}
+                    onChange={brand => onFieldChange('brand', brand)}
+                  />
+                </div>
+              </div>
+            ) : null}
+
+            <Row className={''}>
+              <Col md={'7'}>
+                <div className={'d-flex flex-column '}>
+                  <label className={'font-semibold'}>
+                    <Translate contentKey={'items.update.image'}>Image</Translate>
+                  </label>
+                  <MediaLibrary
+                    multiSelect={true}
+                    handleFilesSelectCallback={files => addImage(files)}
+                    defaultValues={transformAttachmentStructure(item?.attachments, 'toFileLibraryListItem')}
+                  />
+                </div>
+              </Col>
+            </Row>
+          </Col>
+        </FormGroup>
+      </Row>
     </div>
   );
 };
