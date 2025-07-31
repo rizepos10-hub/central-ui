@@ -1111,7 +1111,7 @@ export const ProductUpdate = () => {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       accept() {
         handleFieldChange('itemVariantType', option.value)
-        handleFieldChange('variants', [])
+        handleFieldChange('variants', product.variants && product.variants.length > 0 ? [product.variants[0]] : [])
       },
     });
   };
