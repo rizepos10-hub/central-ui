@@ -142,6 +142,19 @@ export const purgeEntities = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+export const exportEntities = createAsyncThunk(
+  'pizza-item/export_entities',
+  async (ids: Array<string>, thunkAPI) => {
+    const requestUrl = `api/export-data/restaurant-pizza`;
+    
+    // Make the request and expect job information instead of blob
+    const response = await axios.post(requestUrl, ids);
+    
+    return response;
+  },
+  { serializeError: serializeAxiosError }
+);
+
 
 // slice
 
@@ -169,7 +182,7 @@ export const PizzaItemSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, archiveEntities, unArchiveEntities, purgeEntities), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity, updateEntities, archiveEntities, unArchiveEntities, purgeEntities, exportEntities), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -180,7 +193,7 @@ export const PizzaItemSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, archiveEntity, updateEntities, archiveEntities, unArchiveEntities, purgeEntities), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, archiveEntity, updateEntities, archiveEntities, unArchiveEntities, purgeEntities, exportEntities), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;
