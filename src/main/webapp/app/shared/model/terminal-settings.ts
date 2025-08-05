@@ -25,6 +25,7 @@ export interface ITerminalSettings {
     customerAppIp: string | null;
     customerAppPort: number | null;
     receiveOnlineOrderPopups: boolean;
+    enableWalkInType: boolean;
     pathToCustomerApp: string | null;
     customerAppIsOnSameDevice: boolean;
     openDrawerType: openDrawerTypeEnum | null;
