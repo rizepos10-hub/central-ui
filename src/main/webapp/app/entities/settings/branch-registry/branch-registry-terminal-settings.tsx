@@ -150,6 +150,19 @@ function GeneralSettings() {
             </div>
             <div className="col-12">
                 <FieldWrapper
+                    icon="pi-arrow-down-left"
+                    title="Enable walk in"
+                    description="Enable walk in"
+                >
+                    <Checkbox
+                        checked={branchRegistry?.terminalSettings?.enableWalkInType}
+                        value={branchRegistry?.terminalSettings?.enableWalkInType}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'enableWalkInType', value: e.checked }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
                     icon="pi-hashtag"
                     title="HST Number"
                     description="Enter HST number"
