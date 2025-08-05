@@ -1086,7 +1086,7 @@ export const PizzaItemUpdate = () => {
                               </Col>
                             </Row>
 
-                            {pizzaItem?.variants?.[0]?.multiple ? (
+                            {pizzaItem?.variants?.[0]?.multiple && pizzaItem?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.FIXED_DEAL ? (
                               <Row>
                                 <Col md="8">
                                   <Table>
