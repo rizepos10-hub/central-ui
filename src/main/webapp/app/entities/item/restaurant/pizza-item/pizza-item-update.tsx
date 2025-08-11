@@ -810,10 +810,25 @@ export const PizzaItemUpdate = () => {
                                 <InputNumber
                                   value={pizzaItem?.variants?.[0]?.numberOfPizza || null}
                                   min={1}
-                                  onChange={(e) =>
-                                    handlePizzaVariantChange("numberOfPizza", e.value)
-                                  }
+                                  onChange={(e) => {
+                                    handlePizzaVariantChange("numberOfPizza", e.value);
+                                    // If numberOfPizza is not 1, uncheck addPredefinedPizzasAsToppingsOnly
+                                    if (e.value !== 1) {
+                                      handlePizzaVariantChange("addPredefinedPizzasAsToppingsOnly", false);
+                                    }
+                                  }}
                                 />
+                                <div className="d-flex align-items-center mt-2">
+                                  <Checkbox
+                                    inputId="addPredefinedPizzasAsToppingsOnly"
+                                    checked={pizzaItem?.variants?.[0]?.addPredefinedPizzasAsToppingsOnly || false}
+                                    onChange={e => handlePizzaVariantChange("addPredefinedPizzasAsToppingsOnly", e.checked)}
+                                    disabled={pizzaItem?.variants?.[0]?.numberOfPizza !== 1}
+                                  />
+                                  <label htmlFor="addPredefinedPizzasAsToppingsOnly" className="ms-2">
+                                    <Translate contentKey="items.update.pizza.addPredefinedPizzasAsToppingsOnly">Add Predefined Pizzas As Toppings Only</Translate>
+                                  </label>
+                                </div>
                               </div>
                               : null}
                             {(

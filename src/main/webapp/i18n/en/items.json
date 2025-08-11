@@ -315,7 +315,8 @@
           "PREDEFINED": "Predefined",
           "MAKE_YOUR_OWN": "Make Your Own",
           "FIXED_DEAL": "Fixed Deal"
-        }
+        },
+        "addPredefinedPizzasAsToppingsOnly": "Add Predefined Pizzas As Toppings Only (number of pizza should be 1)"
       },
       "regular": {
         "variants": "Variants",
