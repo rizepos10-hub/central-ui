@@ -64,6 +64,7 @@ export interface IPizzaItemVariant {
   archived?: boolean;
   numberOfPizza?: number;
   pizzaVariantType?: PizzaVariantTypeEnum;
+  addPredefinedPizzasAsToppingsOnly?: boolean;
 }
 
 export enum PizzaVariantTypeEnum {
