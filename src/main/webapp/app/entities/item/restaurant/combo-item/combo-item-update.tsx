@@ -35,6 +35,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import SharedAddon from 'app/shared/components/item/addon';
 import SeoTags from 'app/shared/components/item/seo-tags';
 import EBTEligibleBranches from 'app/shared/components/item/ebt-eligible-branches';
+import { OrderList } from 'primereact/orderlist';
 
 
 export const ComboItemUpdate = () => {
@@ -522,67 +523,80 @@ export const ComboItemUpdate = () => {
                               <Translate contentKey={'items.update.combo.addItem'}>Add Item</Translate>
                             </PrimeButton>
                           </div>
-                          <Table>
-                            <thead>
-                              <tr>
-                                <th><Translate contentKey={'items.update.combo.itemName'}>Item Name</Translate></th>
-                                <th><Translate contentKey={'items.update.combo.itemVariants'}>Item Variants</Translate></th>
-                                <th><Translate contentKey={'items.update.combo.quantity'}>Quantity</Translate></th>
-                                <th><Translate contentKey={'items.update.combo.addons'}>Addons</Translate></th>
-                                <th><Translate contentKey={'items.update.combo.delete'}>Delete</Translate></th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {comboItem?.variants?.[0]?.comboPackages?.map((comboPackage: any, index) => {
-                                console.log(comboPackage, 'comboPackagecomboPackage')
-                                return (
-                                  <tr key={index}>
-                                    <td><p>{comboPackage.item?.name}
-                                      {comboPackage?.pizzaPackage ?
+                          <OrderList
+                            value={comboItem?.variants?.[0]?.comboPackages || []}
+                            onChange={e => {
+                              setComboItem(prev => ({
+                                ...prev,
+                                variants: [
+                                  {
+                                    ...(prev.variants && prev.variants[0] ? prev.variants[0] : {}),
+                                    comboPackages: e.value,
+                                  },
+                                ],
+                              }));
+                            }}
+                            itemTemplate={(comboPackage: any) => {
+                              const comboPackages = comboItem?.variants?.[0]?.comboPackages || [];
+                              const index = comboPackages.indexOf(comboPackage);
+                              return (
+                                <div className="d-flex align-items-center w-100 gap-2 p-2 border-bottom">
+                                  <div style={{ flex: 2 }}>
+                                    <p className="mb-0">{comboPackage.item?.name}
+                                      {comboPackage?.pizzaPackage ? (
                                         <div className={"d-flex"}>
                                           <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.pizzaSize?.name}&nbsp;</span>
                                           <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.crustType?.name}&nbsp;</span>
                                           <span className="text-sm mb-0">{comboPackage?.pizzaPackage?.crustThickness?.name}</span>
                                         </div>
-                                        : null}
-                                    </p></td>
-                                    <td>{comboPackage?.variant?.name}</td>
-                                    <td>
-                                      <InputNumber
-                                        name={`quantity_${comboPackage?.variant?.id}`}
-                                        placeholder={translate('items.update.combo.quantityPlaceholder', { variantName: comboPackage?.variant?.name })}
-                                        value={comboPackage.amount || null}
-                                        min={0}
-                                        onChange={(e) => handleComboAmountChange(index, e.value)}
-                                      />
-                                    </td>
-                                    <td>
-                                      <div>
-                                        <ComboItemAddonDropDown
-                                          itemAddons={comboPackage.item?.addons}
-                                          variantAddons={comboPackage?.variant?.addons}
-                                          selectedComboAddons={comboPackage?.addons}
-                                          onIncrement={(addonIndex) => handleAddonAmountChange(index, addonIndex, "increment")}
-                                          onDecrement={(addonIndex) => handleAddonAmountChange(index, addonIndex, "decrement")}
-                                          onAddAddon={(addon) => handleAddComboAddon(index, addon)}
-                                          onDeleteAddon={(addonIndex) => handleDeleteComboAddon(index, addonIndex)}
-                                        />
-                                      </div>
-                                    </td>
-                                    <td>
-                                      <PrimeButton
-                                        type={"button"}
-                                        severity='danger'
-                                        onClick={() => handleDeleteComboPackage(index)}
-                                      >
-                                        <Translate contentKey={'items.update.combo.delete'}>Delete</Translate>
-                                      </PrimeButton>
-                                    </td>
-                                  </tr>
-                                )
-                              })}
-                            </tbody>
-                          </Table>
+                                      ) : null}
+                                    </p>
+                                  </div>
+                                  <div style={{ flex: 1 }}>{comboPackage?.variant?.name}</div>
+                                  <div style={{ flex: 1 }}>
+                                    <InputNumber
+                                      name={`quantity_${comboPackage?.variant?.id}`}
+                                      placeholder={translate('items.update.combo.quantityPlaceholder', { variantName: comboPackage?.variant?.name })}
+                                      value={comboPackage.amount || null}
+                                      min={0}
+                                      onChange={e => handleComboAmountChange(index, e.value)}
+                                    />
+                                  </div>
+                                  <div style={{ flex: 2 }}>
+                                    <ComboItemAddonDropDown
+                                      itemAddons={comboPackage.item?.addons}
+                                      variantAddons={comboPackage?.variant?.addons}
+                                      selectedComboAddons={comboPackage?.addons}
+                                      onIncrement={addonIndex => handleAddonAmountChange(index, addonIndex, "increment")}
+                                      onDecrement={addonIndex => handleAddonAmountChange(index, addonIndex, "decrement")}
+                                      onAddAddon={addon => handleAddComboAddon(index, addon)}
+                                      onDeleteAddon={addonIndex => handleDeleteComboAddon(index, addonIndex)}
+                                    />
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <PrimeButton
+                                      type={"button"}
+                                      severity='danger'
+                                      onClick={() => handleDeleteComboPackage(index)}
+                                    >
+                                      <Translate contentKey={'items.update.combo.delete'}>Delete</Translate>
+                                    </PrimeButton>
+                                  </div>
+                                </div>
+                              );
+                            }}
+                            dragdrop
+                            dataKey="id"
+                            header={
+                              <div className="d-flex w-100">
+                                <div style={{ flex: 2 }}><Translate contentKey={'items.update.combo.itemName'}>Item Name</Translate></div>
+                                <div style={{ flex: 1 }}><Translate contentKey={'items.update.combo.itemVariants'}>Item Variants</Translate></div>
+                                <div style={{ flex: 1 }}><Translate contentKey={'items.update.combo.quantity'}>Quantity</Translate></div>
+                                <div style={{ flex: 2 }}><Translate contentKey={'items.update.combo.addons'}>Addons</Translate></div>
+                                <div style={{ flex: 1 }}><Translate contentKey={'items.update.combo.delete'}>Delete</Translate></div>
+                              </div>
+                            }
+                          />
                           <Row>
                             <Col>
                               <CustomDefinitionValuesWrapper

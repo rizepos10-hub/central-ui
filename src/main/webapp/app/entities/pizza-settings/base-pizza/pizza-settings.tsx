@@ -14,6 +14,7 @@ import { IPizzaSettings } from 'app/shared/model/PIZZA/pizza-settings.model';
 import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { IBranch } from 'app/shared/model/branch.model';
 import { TabPanel, TabView } from 'primereact/tabview';
+import { Checkbox } from 'primereact/checkbox';
 
 export const PizzaSettings = () => {
     const dispatch = useAppDispatch();
@@ -104,20 +105,21 @@ export const PizzaSettings = () => {
         { label: 'Base', value: 'BASE' }
     ];
 
-    const handleFallbackChange = (branch, option) => {
+    // Replace handleFallbackChange with a dynamic handler
+    const handleBranchSettingChange = (branch, field, value) => {
         const currentSettings = pizzaSettings.pizzaSettingsByBranch || [];
         const branchIndex = currentSettings.findIndex(b => b.branch.id === branch.id);
         let newSettings;
         if (branchIndex >= 0) {
             newSettings = currentSettings.map(item =>
                 item.branch.id === branch.id
-                    ? { ...item, selectedPizzaFallbackOption: option.value }
+                    ? { ...item, [field]: value }
                     : item
             );
         } else {
             newSettings = [
                 ...currentSettings,
-                { branch, selectedPizzaFallbackOption: option.value }
+                { branch, [field]: value }
             ];
         }
         dispatch(changeEntityField({ name: 'pizzaSettingsByBranch', value: newSettings }));
@@ -163,7 +165,7 @@ export const PizzaSettings = () => {
                         </FormGroup>
                         <FormGroup>
                             <div className="d-flex flex-column">
-                                <TabView>
+                                <TabView scrollable>
                                     {branchList.map((branch, idx) => {
                                         const branchSetting = pizzaSettings.pizzaSettingsByBranch
                                             ? pizzaSettings.pizzaSettingsByBranch.find(b => b.branch.id === branch.id)
@@ -172,14 +174,24 @@ export const PizzaSettings = () => {
                                             ? fallbackOptions.find(opt => opt.value === branchSetting.selectedPizzaFallbackOption)
                                             : null;
                                         return (
-                                            <TabPanel header={branch.name} key={idx}>
-                                                <Label for="pizzaSettingsByBranch">Default fallback to</Label>
-                                                <Select
-                                                    options={fallbackOptions}
-                                                    onChange={option => handleFallbackChange(branch, option)}
-                                                    value={selectedFallback}
-                                                    placeholder="Select fallback default"
-                                                />
+                                            <TabPanel header={branch.name} key={idx} className='d-flex flex-column gap-2'>
+                                                <div>
+                                                    <Label for="pizzaSettingsByBranch">Default fallback to</Label>
+                                                    <Select
+                                                        options={fallbackOptions}
+                                                        onChange={option => handleBranchSettingChange(branch, 'selectedPizzaFallbackOption', option.value)}
+                                                        value={selectedFallback}
+                                                        placeholder="Select fallback default"
+                                                    />
+                                                </div>
+                                                <div className='d-flex flex-column'>
+                                                    <Label for="showToppingsOnPredefinedPizza">Show Toppings on predefined pizza</Label>
+                                                    <Checkbox 
+                                                        checked={branchSetting?.showToppingsOnPredefinedPizza || false}
+                                                        value={branchSetting?.showToppingsOnPredefinedPizza || false}
+                                                        onChange={e => handleBranchSettingChange(branch, 'showToppingsOnPredefinedPizza', e.checked)}
+                                                    />
+                                                </div>
                                             </TabPanel>
                                         );
                                     })}

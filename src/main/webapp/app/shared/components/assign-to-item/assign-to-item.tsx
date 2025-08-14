@@ -12,6 +12,7 @@ import DropDownFilter from 'app/shared/components/filter/drop-down-filter';
 import { Link, useParams } from "react-router-dom";
 import { translate } from "react-jhipster";
 import { FilterMatchMode } from "primereact/api";
+import { Dropdown } from "primereact/dropdown";
 
 export const ItemsTable = ({
     items,
@@ -116,7 +117,7 @@ export const ItemsTable = ({
         );
     };
 
-    const handleDropdownChange = (field, value) => {
+    const handleFilterChange = (field, value) => {
         setQuery(prev => ({
             ...prev,
             filters: {
@@ -125,6 +126,51 @@ export const ItemsTable = ({
                     ...prev.filters[field],
                     value: value?.value,
                     matchMode: FilterMatchMode.EQUALS
+                }
+            }
+        }));
+    };
+
+    const assignmentOptions = [
+        { label: 'All', value: null },
+        { label: 'Assigned', value: 'assigned' },
+        { label: 'Unassigned', value: 'unassigned' }
+    ];
+
+    const getAssignmentFilterValue = () => {
+        const filter = query.filters?.["addonGroups.addonGroup.id"];
+        if (filter?.value === id) {
+            if (filter.matchMode === FilterMatchMode.EQUALS) {
+                return 'assigned';
+            }
+            if (filter.matchMode === FilterMatchMode.NOT_EQUALS) {
+                return 'unassigned';
+            }
+        }
+        return null;
+    }
+
+    const onAssignmentFilterChange = e => {
+        const selection = e.value;
+        const field = "addonGroups.addonGroup.id";
+        let filterValue = null;
+        let matchMode = FilterMatchMode.EQUALS;
+
+        if (selection === 'assigned') {
+            filterValue = id;
+        } else if (selection === 'unassigned') {
+            filterValue = id;
+            matchMode = FilterMatchMode.NOT_EQUALS;
+        }
+
+        setQuery(prev => ({
+            ...prev,
+            filters: {
+                ...prev.filters,
+                [field]: {
+                    ...prev.filters[field],
+                    value: filterValue,
+                    matchMode
                 }
             }
         }));
@@ -154,6 +200,7 @@ export const ItemsTable = ({
                 header={translate('items.view.fields.name')}
                 filter
                 filterField={"name"}
+                filterHeaderStyle={{ width: '400px' }}
                 body={nameColumnTemplate}
                 filterPlaceholder={translate('items.view.filters.name')}
             />
@@ -169,11 +216,25 @@ export const ItemsTable = ({
                         dropDownOptionType={"RESTAURANT_CATEGORY"}
                         selectedOption={query?.filters?.["categories.id"]?.value}
                         fieldName={"categories.id"}
-                        handleDropdownChange={handleDropdownChange}
+                        handleDropdownChange={handleFilterChange}
                     />
                 }
             />
-            <Column header="Actions" body={actionsBody} />
+            <Column
+                header="Actions"
+                body={actionsBody}
+                style={{ width: '100px' }}
+                filter
+                filterElement={
+                    <Dropdown
+                        value={getAssignmentFilterValue()}
+                        options={assignmentOptions}
+                        onChange={onAssignmentFilterChange}
+                        placeholder="Filter by assignment"
+                        showClear
+                    />
+                }
+            />
         </DataTable>
     );
 }

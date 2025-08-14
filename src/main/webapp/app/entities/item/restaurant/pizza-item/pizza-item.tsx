@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { createEntity, archiveEntities, filterEntities, getEntities, purgeEntities, unArchiveEntities } from './pizza-item.reducer';
+import { createEntity, archiveEntities, exportEntities, filterEntities, getEntities, purgeEntities, unArchiveEntities } from './pizza-item.reducer';
 import { DataTable, DataTableFilterEvent } from "primereact/datatable";
 import { Column, ColumnProps } from "primereact/column";
 import { IPizzaItem, PizzaVariantTypeEnum } from "app/shared/model/ITEM/restaurant/pizza-item.model";
@@ -28,6 +28,8 @@ import { Menu } from 'primereact/menu';
 import { Checkbox } from 'primereact/checkbox';
 import { SummarizeText } from 'app/shared/util/SummarizeText';
 import { ToggleButton } from 'primereact/togglebutton';
+import { ProgressBar } from "primereact/progressbar";
+import axios from "axios";
 
 export const PizzaItem = () => {
   const dispatch = useAppDispatch();
@@ -70,6 +72,39 @@ export const PizzaItem = () => {
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
   const [isLoadingDelete, setIsLoadingDelete] = useState(false);
+  
+  // Export job tracking state
+  const EXPORT_JOB_STORAGE_KEY = 'pizza-item-export-job';
+  
+  const [exportJob, setExportJob] = useState<{
+    id: string;
+    status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+    message: string;
+    path: string | null;
+    progress: number;
+    errorMessage: string | null;
+  } | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<number | null>(null);
+
+  // Persist export job to localStorage
+  const persistExportJob = (job: typeof exportJob) => {
+    if (job) {
+      localStorage.setItem(EXPORT_JOB_STORAGE_KEY, JSON.stringify(job));
+    } else {
+      localStorage.removeItem(EXPORT_JOB_STORAGE_KEY);
+    }
+  };
+
+  // Load export job from localStorage
+  const loadPersistedExportJob = () => {
+    try {
+      const stored = localStorage.getItem(EXPORT_JOB_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.error('Error loading persisted export job:', error);
+      return null;
+    }
+  };
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
@@ -80,8 +115,57 @@ export const PizzaItem = () => {
     );
   };
 
+  // Export job polling function
+  const pollExportStatus = async (jobId: string) => {
+    try {
+      const response = await axios.get(`/api/export-data/status/${jobId}`);
+      const jobData = response.data;
+      
+      setExportJob(jobData);
+      persistExportJob(jobData);
+      
+      if (jobData.status === 'COMPLETED' || jobData.status === 'FAILED' || jobData.status === 'CANCELLED') {
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          setPollingInterval(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error polling export status:', error);
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        setPollingInterval(null);
+      }
+    }
+  };
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
+
   useEffect(() => {
     getAllEntities();
+    
+    // Restore persisted export job on component mount (only on first mount)
+    if (!exportJob) {
+      const persistedJob = loadPersistedExportJob();
+      if (persistedJob) {
+        setExportJob(persistedJob);
+        
+        // Resume polling if job is still in progress
+        if (persistedJob.status === 'PENDING' || persistedJob.status === 'PROCESSING') {
+          const interval = setInterval(() => {
+            pollExportStatus(persistedJob.id);
+          }, 2000);
+          setPollingInterval(interval);
+        }
+      }
+    }
   }, [searchParams]);
 
   const handleSyncList = () => {
@@ -444,9 +528,177 @@ export const PizzaItem = () => {
     { name: 'Restore', code: 'RESTORE', disabled: false },
     { name: 'Permenant Delete', code: 'PURGE', disabled: false },
   ];
+
+  // Export functions
+  useEffect(() => {
+    if (selectedActionOption?.code === "EXPORT") {
+      confirmBulkExport();
+    }
+  }, [selectedActionOption]);
+
+  const confirmBulkExport = () => {
+    confirmDialog({
+      message: `Are you sure you want to export ${selectedProducts.length} selected items?`,
+      header: 'Export Selected Items',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => handleItemsExport(),
+      reject: () => setSelectedActionOption(null)
+    });
+  };
+
+  const confirm2 = () => {
+    confirmDialog({
+      message: 'Are you sure you want to export all items?',
+      header: 'Export All Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => handleExportAll(),
+      reject: () => {}
+    });
+  };
+
+  const handleExportAll = async () => {
+    setIsLoadingDelete(true);
+    try {
+      // Pass empty array to export all items
+      const result = await dispatch(exportEntities([]));
+      const payload = result.payload as any;
+      
+      if (payload?.data) {
+        const jobData = payload.data;
+        setExportJob(jobData);
+        persistExportJob(jobData);
+        
+        // Start polling for status updates
+        const interval = setInterval(() => {
+          pollExportStatus(jobData.id);
+        }, 2000); // Poll every 2 seconds
+        
+        setPollingInterval(interval);
+      }
+    } catch (error) {
+      console.error('Export all failed:', error);
+    } finally {
+      setIsLoadingDelete(false);
+    }
+  };
+
+  const handleItemsExport = async () => {
+    setIsLoadingDelete(true);
+    try {
+      const result = await dispatch(exportEntities(selectedProducts.map(product => product.id)));
+      const payload = result.payload as any;
+      
+      if (payload?.data) {
+        const jobData = payload.data;
+        setExportJob(jobData);
+        persistExportJob(jobData);
+        
+        // Start polling for status updates
+        const interval = setInterval(() => {
+          pollExportStatus(jobData.id);
+        }, 2000); // Poll every 2 seconds
+        
+        setPollingInterval(interval);
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setIsLoadingDelete(false);
+      setSelectedProducts([]);
+      setSelectedActionOption(null);
+    }
+  }
+
+  // Download file function
+  const downloadFile = (filePath: string) => {
+    const link = document.createElement('a');
+    link.href = filePath;
+    link.download = filePath.split('/').pop() || 'export.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export Status Header Component
+  const ExportStatusHeader = () => {
+    if (!exportJob) return null;
+
+    const getStatusColor = () => {
+      switch (exportJob.status) {
+        case 'COMPLETED': return 'text-success';
+        case 'FAILED': return 'text-danger';
+        case 'CANCELLED': return 'text-warning';
+        case 'PROCESSING': return 'text-info';
+        default: return 'text-info';
+      }
+    };
+
+    const getStatusIcon = () => {
+      switch (exportJob.status) {
+        case 'COMPLETED': return 'pi pi-check-circle';
+        case 'FAILED': return 'pi pi-times-circle';
+        case 'CANCELLED': return 'pi pi-exclamation-triangle';
+        case 'PROCESSING': return 'pi pi-spin pi-spinner';
+        default: return 'pi pi-clock';
+      }
+    };
+
+    return (
+      <div className="bg-light border p-3 mb-3 d-flex align-items-center justify-content-between">
+        <div className="d-flex align-items-center">
+          <i className={`${getStatusIcon()} ${getStatusColor()} me-2`} style={{ fontSize: '1.2rem' }}></i>
+          <div>
+            <span className="fw-bold me-2">Export Status: {exportJob.status}</span>
+            <small className="text-muted">{exportJob.message}</small>
+            {exportJob.status === 'PROCESSING' && (
+              <div className="mt-1">
+                <ProgressBar 
+                  value={exportJob.progress} 
+                  style={{ width: '200px', height: '8px' }}
+                  className="me-2"
+                />
+                <small>{exportJob.progress}%</small>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="d-flex gap-2">
+          {exportJob.status === 'COMPLETED' && exportJob.path && (
+            <Button
+              label="Download"
+              icon="pi pi-download"
+              size="small"
+              className="p-button-success"
+              onClick={() => downloadFile(exportJob.path)}
+            />
+          )}
+          
+          {exportJob.status === 'FAILED' && exportJob.errorMessage && (
+            <small className="text-danger">{exportJob.errorMessage}</small>
+          )}
+          
+          {(exportJob.status === 'COMPLETED' || exportJob.status === 'FAILED' || exportJob.status === 'CANCELLED') && (
+            <Button
+              icon="pi pi-times"
+              size="small"
+              className="p-button-text p-button-secondary"
+              onClick={() => {
+                setExportJob(null);
+                persistExportJob(null);
+              }}
+              tooltip="Dismiss"
+            />
+          )}
+        </div>
+      </div>
+    );
+  };
   
   return (
     <div>
+      <ExportStatusHeader />
+      
       {selectedActionOption?.code === "EDIT" && selectedProducts.length > 0 && (
         <BulkEdit
           products={pizzaItemsList}
@@ -484,6 +736,13 @@ export const PizzaItem = () => {
               loading={loading}
               data-pr-position="top"
               tooltip={translate('items.view.actions.refreshList')}
+            />
+            <Button
+              icon="pi pi-file-export"
+              raised
+              onClick={confirm2}
+              tooltip="Export All"
+              data-pr-position="top"
             />
             <Button
               icon="pi pi-plus"

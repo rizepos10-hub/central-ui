@@ -122,7 +122,7 @@ export const AddonGroupUpdate = () => {
   return (
     <div>
       <Row>
-        <Col md={isNew ? "12" : "6"}>
+        <Col md={isNew ? "12" : "4"}>
           <Row>
             <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
               {isNew ? (
@@ -202,7 +202,7 @@ export const AddonGroupUpdate = () => {
           </PrimeCard>
         </Col>
         {!isNew && (
-          <Col md="6">
+          <Col md="8">
             <Row>
               <h2 id="tempApp.addon.home.createOrEditLabel" data-cy="AddonCreateUpdateHeading">
                 <Translate contentKey={'tempApp.addon.assignToItem'}>Assign To Item</Translate>

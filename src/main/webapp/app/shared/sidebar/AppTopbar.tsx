@@ -16,10 +16,10 @@ import { Spinner } from 'reactstrap';
 import { IOrder } from '../model/ORDER/order.model';
 import { ICustomer } from '../model/CUSTOMER/customer.model';
 import "../components/notifications-center/notifications-center.scss";
+import './AppTopbar.scss';
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
-    const { onMenuToggle, showProfileSidebar, showConfigSidebar, layoutState, isDesktop } = useContext(LayoutContext);
-    const menubuttonRef = useRef(null);
+    const { showProfileSidebar, showConfigSidebar, layoutState, isDesktop } = useContext(LayoutContext);
 
     const giveMargin = layoutState?.staticMenuDesktopInactive === false;
     const isDesktopEnvironment = isDesktop();
@@ -29,7 +29,6 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
 
     const [isNotificationsMenuOpen, setIsNotificationsMenuOpen] = useState(false)
     const [notificationsCount, setNotificationsCount] = useState(parseInt(localStorage.getItem('notificationsCount'), 10) || 0);
-
 
     useEffect(() => {
         // Event handler to update state when notificationsCount changes
@@ -46,67 +45,59 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
         };
     }, []);
 
-    useImperativeHandle(ref, () => ({
-        menubutton: menubuttonRef.current
-    }));
+    useImperativeHandle(ref, () => ({}));
 
     const logo = "/content/images/rize-pos-align-left.png";
 
     return (
-        // for static Menu
-        // <div className="layout-topbar bg-white p-3" style={{ marginLeft: isDesktopEnvironment &&  giveMargin ? '18rem' : '0' }}>
-        <div className="layout-topbar" style={{
-
-        }}>
+        <div className="modern-topbar">
             <div className="topbar-start">
-                <button ref={menubuttonRef} type="button" className="topbar-menubutton p-link p-trigger" onClick={onMenuToggle}>
-                    <i className="pi pi-bars"></i>
-                </button>
                 {isDesktopEnvironment && (
-                    <img src={logo} alt="logo" className="topbar-logo" style={{
-                        height: '7vh',
-                        width: '238px',
-                        marginRight: '44px',
-                        paddingTop: '0.5vh',
-                        paddingBottom: '0.5vh',
-                        paddingLeft: '0.5vh',
-                    }} />
+                    <div className="topbar-logo-container">
+                        <img src={logo} alt="Rize POS" className="topbar-logo" />
+                    </div>
                 )}
-                <AppBreadcrumb className="topbar-breadcrumb"></AppBreadcrumb>
+                
+                <div className="topbar-breadcrumb-container">
+                    <AppBreadcrumb className="modern-breadcrumb"></AppBreadcrumb>
+                </div>
             </div>
 
             <div className="topbar-end">
-                <ul className="topbar-menu">
-                    <li className="topbar-search">
+                <div className="topbar-actions">
+                    <div className="topbar-search-container">
                         <TopBarSearch />
-                    </li>
-                    <li className="ml-3">
-                        {/* <Button type="button" icon="pi pi-cog" text rounded className="p-button-text p-button-secondary flex-shrink-0" onClick={onConfigButtonClick}></Button> */}
-                    </li>
-                    <li className="topbar-profile">
+                    </div>
+                    
+                    <div className="topbar-notifications">
                         <div
-                            className={
-                                isNotificationsMenuOpen ? "notificationIcon notificationsIsActive" : "notificationIcon"
-                            }
+                            className={`notification-button ${isNotificationsMenuOpen ? 'active' : ''}`}
                             data-cy="notification-icon"
+                            onClick={() => setIsNotificationsMenuOpen(!isNotificationsMenuOpen)}
+                            title="Notifications"
                         >
-                            {notificationsCount ? (
-                                <div className='notificationsBadge'>
-                                    {notificationsCount}
-                                </div>
-                            ) : <></>}
-                            <button type="button" className="p-link" onClick={() => setIsNotificationsMenuOpen(!isNotificationsMenuOpen)}>
-                                <i className="pi pi-bell" style={{ fontSize: '1.2rem', translate: '33%' }}></i>
-                            </button>
+                            {notificationsCount > 0 && (
+                                <span className="notification-badge">
+                                    {notificationsCount > 99 ? '99+' : notificationsCount}
+                                </span>
+                            )}
+                            <i className="pi pi-bell"></i>
                         </div>
+                        
                         {isNotificationsMenuOpen && (
                             <NotificationsCenter setShowMenu={setIsNotificationsMenuOpen} showMenu={isNotificationsMenuOpen} />
                         )}
-                        <button type="button" className="p-link" onClick={showProfileSidebar}>
-                            <i className="pi pi-user" style={{ fontSize: '1.2rem', translate: '33%' }}></i>
-                        </button>
-                    </li>
-                </ul>
+                    </div>
+                    
+                    <button 
+                        type="button" 
+                        className="profile-button" 
+                        onClick={showProfileSidebar}
+                        title="Profile"
+                    >
+                        <i className="pi pi-user"></i>
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -137,50 +128,36 @@ const TopBarSearch = () => {
     }, []);
 
     return (
-        <span className="p-input-icon-left">
-            <i className="pi pi-search"></i>
-            <InputText
-                ref={inputRef}
-                type="text"
-                placeholder="Search"
-                style={{
-                    borderRadius: '0.8em',
-                    width: dropdownOpen ? '700px' : '100%',
-                }}
-                value={inputValue}
-                onChange={handleInputChange}
-                onFocus={() => setDropdownOpen(true)}
-            />
+        <div className="modern-search-wrapper">
+            <div className="search-input-container">
+                <i className="pi pi-search search-icon"></i>
+                <InputText
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Search items, orders, customers..."
+                    className="modern-search-input"
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    onFocus={() => setDropdownOpen(true)}
+                />
+            </div>
+            
             {dropdownOpen && (
-                <div
-                    ref={dropdownRef}
-                    style={{
-                        position: 'absolute',
-                        zIndex: 1000,
-                        height: '500px',
-                        width: '700px',
-                        background: 'var(--primary-color-text)',
-                        overflowY: 'auto',
-                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                        border: '0.5px solid var(--primary-color-text)',
-                        borderRadius: '0.8em',
-                    }}
-                >
-                    <TabView>
-                        <TabPanel header="Items">
+                <div ref={dropdownRef} className="search-dropdown">
+                    <TabView className="search-tabs">
+                        <TabPanel header="Items" leftIcon="pi pi-box">
                             <ItemsSearch inputValue={inputValue} setDropdownOpen={setDropdownOpen} />
                         </TabPanel>
-                        <TabPanel header="Orders">
+                        <TabPanel header="Orders" leftIcon="pi pi-shopping-cart">
                             <OrdersSearch inputValue={inputValue} setDropdownOpen={setDropdownOpen} />
                         </TabPanel>
-                        <TabPanel header="Customers">
+                        <TabPanel header="Customers" leftIcon="pi pi-users">
                             <CustomersSearch inputValue={inputValue} setDropdownOpen={setDropdownOpen} />
                         </TabPanel>
                     </TabView>
                 </div>
-            )
-            }
-        </span >
+            )}
+        </div>
     );
 }
 
@@ -212,9 +189,14 @@ const ItemsSearch = ({
     }, [inputValue])
 
     return (
-        !loading ? (
-            <div className='d-flex flex-column'>
-                {itemList.map((item) => (
+        <div className="search-results">
+            {loading ? (
+                <div className="search-loading">
+                    <Spinner size="sm" />
+                    <span>Searching...</span>
+                </div>
+            ) : itemList.length > 0 ? (
+                itemList.map((item) => (
                     <ClickableLink
                         key={item.id}
                         to={
@@ -224,14 +206,18 @@ const ItemsSearch = ({
                                         : `/product/${item.id}/edit`
                         }
                         setDropdownOpen={setDropdownOpen}
+                        icon="pi pi-box"
                     >
                         {item.name}
                     </ClickableLink>
-                ))}
-            </div>
-        ) : (
-            <div><Spinner /></div>
-        )
+                ))
+            ) : (
+                <div className="search-no-results">
+                    <i className="pi pi-search"></i>
+                    <span>No items found</span>
+                </div>
+            )}
+        </div>
     )
 }
 
@@ -262,21 +248,30 @@ const OrdersSearch = ({
     }, [inputValue])
 
     return (
-        !loading ? (
-            <div className='d-flex flex-column'>
-                {orderList.map((order) => (
+        <div className="search-results">
+            {loading ? (
+                <div className="search-loading">
+                    <Spinner size="sm" />
+                    <span>Searching...</span>
+                </div>
+            ) : orderList.length > 0 ? (
+                orderList.map((order) => (
                     <ClickableLink
                         key={order.id}
                         to={`order/${order.id}`}
                         setDropdownOpen={setDropdownOpen}
+                        icon="pi pi-shopping-cart"
                     >
-                        {order.sequenceNumber}
+                        Order #{order.sequenceNumber}
                     </ClickableLink>
-                ))}
-            </div>
-        ) : (
-            <div><Spinner /></div>
-        )
+                ))
+            ) : (
+                <div className="search-no-results">
+                    <i className="pi pi-search"></i>
+                    <span>No orders found</span>
+                </div>
+            )}
+        </div>
     )
 }
 
@@ -307,32 +302,43 @@ const CustomersSearch = ({
     }, [inputValue])
 
     return (
-        !loading ? (
-            <div className='d-flex flex-column'>
-                {customerList.map((customer) => (
+        <div className="search-results">
+            {loading ? (
+                <div className="search-loading">
+                    <Spinner size="sm" />
+                    <span>Searching...</span>
+                </div>
+            ) : customerList.length > 0 ? (
+                customerList.map((customer) => (
                     <ClickableLink
                         key={customer.id}
                         to={`customer/${customer.id}/edit`}
                         setDropdownOpen={setDropdownOpen}
+                        icon="pi pi-user"
                     >
                         {customer.firstName} {customer.lastName}
                     </ClickableLink>
-                ))}
-            </div>
-        ) : (
-            <div><Spinner /></div>
-        )
+                ))
+            ) : (
+                <div className="search-no-results">
+                    <i className="pi pi-search"></i>
+                    <span>No customers found</span>
+                </div>
+            )}
+        </div>
     )
 }
 
 const ClickableLink = ({
     to,
     children,
-    setDropdownOpen
+    setDropdownOpen,
+    icon
 }: {
     to: string;
     children: any;
     setDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    icon?: string;
 }) => {
     const navigate = useNavigate();
 
@@ -342,9 +348,11 @@ const ClickableLink = ({
     }
 
     return (
-        <Button text onClick={handleNavigate} className="text-dark">
-            {children}
-        </Button>
+        <div className="search-result-item" onClick={handleNavigate}>
+            {icon && <i className={icon}></i>}
+            <span>{children}</span>
+            <i className="pi pi-arrow-right arrow-icon"></i>
+        </div>
     )
 }
 

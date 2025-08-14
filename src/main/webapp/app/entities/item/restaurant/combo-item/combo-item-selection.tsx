@@ -16,7 +16,7 @@ import { filterEntities } from "app/entities/item/restaurant/combo-item/items-fo
 import { IItem } from "app/shared/model/ITEM/item.model";
 import { IComboPackage } from "app/shared/model/ITEM/restaurant/combo-item.model";
 import Select from "react-select";
-import { ICrustThicknessPricingItem, ICrustTypePricingItem } from "app/shared/model/ITEM/restaurant/pizza-item.model";
+import { ICrustThicknessPricingItem, ICrustTypePricingItem, IPizzaItem, PizzaVariantTypeEnum } from "app/shared/model/ITEM/restaurant/pizza-item.model";
 import { ICrustThickness } from "app/shared/model/PIZZA/crust-thickness.model";
 import { ICrustType } from "app/shared/model/PIZZA/crust-type.model";
 import { getEntities as getCrustTypes } from "app/entities/pizza-settings/pizza-crust-setting/pizza-crust-type.reducer";
@@ -100,14 +100,14 @@ const ComboItemSelection = ({ isOpen, onAddItems, toggleModal, comboPackages }) 
 
   const handleAddItems = () => {
     const comboPackagesToSave = Object.entries(selectedVariants)?.map(([itemVariantId, comboPackage]: [string, any]) => {
-      const item = comboPackage?.item;
+      const item : IPizzaItem = comboPackage?.item;
       const isPizzaItem = item?.itemVariantType === "RESTAURANT_PIZZA";
       return {
         item,
         variant: comboPackage.variant,
         amount: 1,
         addons: [],
-        ...(isPizzaItem && { pizzaPackage: comboPackage.pizzaPackage })
+        ...(isPizzaItem &&  { pizzaPackage: item?.variants?.[0]?.pizzaVariantType === PizzaVariantTypeEnum.FIXED_DEAL ? null : comboPackage.pizzaPackage })
       }
     })
     onAddItems(comboPackagesToSave)

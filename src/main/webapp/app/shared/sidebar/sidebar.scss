@@ -1,3 +1,23 @@
+// Import the new sidebar styles
+@import './NewSidebar.scss';
+
+// Override existing layout styles for the new sidebar
+.layout-container {
+  &.layout-static {
+    .layout-content-wrapper {
+      margin-left: 0 !important;
+    }
+  }
+}
+
+// Ensure the new sidebar takes precedence
+.new-sidebar {
+  position: fixed !important;
+  z-index: 50 !important; // Lower than navbar but above content
+}
+
+// The content margin is now handled dynamically by the NewSidebar component
+
 .sidebar {
   background-color: transparent;
   display: flex;

@@ -11,6 +11,7 @@ export interface IPizzaSettings {
 export interface IPizzaSettingsByBranch {
     branch: IBranch
     selectedPizzaFallbackOption: 'BASE' | 'MAKE_YOUR_OWN'
+    showToppingsOnPredefinedPizza: boolean
 }
 
 export const defaultValue: Readonly<IPizzaSettings> = {

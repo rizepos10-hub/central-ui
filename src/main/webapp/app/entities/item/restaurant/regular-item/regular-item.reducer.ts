@@ -56,7 +56,7 @@ export const updateEntity = createAsyncThunk(
   'regular-item/update_entity',
   async (entity: IRegularItem, thunkAPI) => {
     const result = await axios.put<IRegularItem>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
+    // thunkAPI.dispatch(getEntities({}));
     return result;
   },
   { serializeError: serializeAxiosError }
@@ -150,27 +150,11 @@ export const exportEntities = createAsyncThunk(
   'regular-item/export_entities',
   async (ids: Array<string>, thunkAPI) => {
     const requestUrl = `api/export-data/restaurant-variable`;
-
-    // Make the request with responseType: 'blob' to receive binary data
-    const response = await axios.post(requestUrl, ids, {
-      responseType: 'blob' // Expect the response to be in binary format
-    });
-
-    // Create a Blob from the response data
-    const blob = new Blob([response.data], { type: response.headers['content-type'] });
-
-    // Create a temporary download link and trigger it
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = 'exported_file.xlsx'; // Replace this with the correct file extension, e.g., 'exported_file.xlsx' if it's an Excel file
-    document.body.appendChild(link);
-    link.click();
-    link.remove(); // Clean up the DOM after the download
-
-    // Optionally dispatch another action or return the result
-    thunkAPI.dispatch(getEntities({}));
-    return response.data;
+    
+    // Make the request and expect job information instead of blob
+    const response = await axios.post(requestUrl, ids);
+    
+    return response;
   },
   { serializeError: serializeAxiosError }
 );

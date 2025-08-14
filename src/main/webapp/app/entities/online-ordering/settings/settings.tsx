@@ -92,7 +92,22 @@ export const UiSettingsUpdate = () => {
 
   const handleColorSettingChange = (field, value, isHex = false) => {
     const newData = JSON.parse(JSON.stringify(UiSettingsEntity?.colorSetting)) || {};
-    newData[field] = isHex ? hexToHSL(value) : value; // Convert to HSL if HEX is provided, else use the value directly
+    
+    // Auto-detect hex colors and convert them to HSL
+    let processedValue = value;
+    if (!isHex && typeof value === 'string') {
+      // Check if the value is a hex color (with or without #)
+      const hexRegex = /^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+      if (hexRegex.test(value)) {
+        // Add # if it's missing
+        const hexValue = value.startsWith('#') ? value : `#${value}`;
+        processedValue = hexToHSL(hexValue);
+      }
+    } else if (isHex) {
+      processedValue = hexToHSL(value);
+    }
+    
+    newData[field] = processedValue;
     dispatch(changeEntityField({ name: 'colorSetting', value: newData }));
   };
 
@@ -431,33 +446,115 @@ export const UiSettingsUpdate = () => {
                       />
                     </div>
 
-                    <div className={'d-flex flex-column mb-3'}>
-                      <h2>
-                        <strong>{translate('tempApp.UiSettings.colorSetting.title')}</strong>
-                      </h2>
+                    <div style={{
+                      background: '#f8f9fa',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      border: '1px solid #e9ecef',
+                      marginBottom: '1.5rem'
+                    }}>
+                      <h5 style={{
+                        marginBottom: '1rem',
+                        color: '#007bff',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}>
+                        <i className="fas fa-palette"></i>
+                        {translate('tempApp.UiSettings.colorSetting.title')}
+                      </h5>
+                      
                       <PremadeColorThemes handleCustomThemeSelector={handleCustomThemeSelector} />
+                      
                       {UiSettingsEntity?.colorSetting && (
-                        Object.keys(UiSettingsEntity.colorSetting).map(key => (
-                          <div className="d-flex gap-2" key={key}>
-                            <Label htmlFor={`UiSettings-colorSetting.${key}`}>
-                              <strong>{translate(`tempApp.UiSettings.colorSetting.${key}`)}</strong>
-                            </Label>
-                            <InputText
-                              id={`UiSettings-colorSetting.${key}`}
-                              value={UiSettingsEntity.colorSetting[key] || ''}
-                              onChange={(e) => handleColorSettingChange(key, e.target.value)}
-                            />
-
-                            <ColorPicker
-                              value={
-                                UiSettingsEntity && typeof UiSettingsEntity.colorSetting[key] === 'string'
-                                  ? hslToHex(UiSettingsEntity.colorSetting[key])  // Convert from HSL to HEX for the color picker
-                                  : '#000000'
-                              }
-                              onChange={(e) => handleColorSettingChange(key, e.value, true)}  // Passing HEX value from picker
-                            />
-                          </div>
-                        ))
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                          gap: '16px',
+                          marginTop: '20px'
+                        }}>
+                          {Object.keys(UiSettingsEntity.colorSetting).map(key => (
+                            <div 
+                              key={key}
+                              style={{
+                                background: 'white',
+                                borderRadius: '8px',
+                                padding: '16px',
+                                border: '1px solid #dee2e6',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                marginBottom: '12px'
+                              }}>
+                                <div style={{
+                                  width: '24px',
+                                  height: '24px',
+                                  borderRadius: '4px',
+                                  backgroundColor: UiSettingsEntity && typeof UiSettingsEntity.colorSetting[key] === 'string'
+                                    ? `hsl(${UiSettingsEntity.colorSetting[key]})`
+                                    : '#000000',
+                                  border: '2px solid #dee2e6'
+                                }} />
+                                <Label 
+                                  htmlFor={`UiSettings-colorSetting.${key}`}
+                                  style={{
+                                    fontWeight: '600',
+                                    color: '#495057',
+                                    margin: 0,
+                                    flex: 1
+                                  }}
+                                >
+                                  {translate(`tempApp.UiSettings.colorSetting.${key}`)}
+                                </Label>
+                              </div>
+                              
+                              <div style={{
+                                display: 'flex',
+                                gap: '8px',
+                                alignItems: 'center'
+                              }}>
+                                <InputText
+                                  id={`UiSettings-colorSetting.${key}`}
+                                  value={UiSettingsEntity.colorSetting[key] || ''}
+                                  onChange={(e) => handleColorSettingChange(key, e.target.value)}
+                                  style={{
+                                    flex: 1,
+                                    fontSize: '0.875rem',
+                                    fontFamily: 'monospace'
+                                  }}
+                                  placeholder="HSL value (e.g., 0 0% 100%) or hex color (e.g., #ffffff)"
+                                />
+                                
+                                <ColorPicker
+                                  value={
+                                    UiSettingsEntity && typeof UiSettingsEntity.colorSetting[key] === 'string'
+                                      ? hslToHex(UiSettingsEntity.colorSetting[key])
+                                      : '#000000'
+                                  }
+                                  onChange={(e) => handleColorSettingChange(key, e.value, true)}
+                                  style={{
+                                    border: '1px solid #dee2e6',
+                                    borderRadius: '4px'
+                                  }}
+                                />
+                              </div>
+                              
+                              <div style={{
+                                marginTop: '8px',
+                                fontSize: '0.75rem',
+                                color: '#6c757d',
+                                fontStyle: 'italic'
+                              }}>
+                                HSL format: hue saturation% lightness% (hex colors auto-convert)
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
 
@@ -622,314 +719,416 @@ const SocialProfiles = ({
 const PremadeColorThemes = ({
   handleCustomThemeSelector
 }) => {
+  const themes = [
+    {
+      name: 'Light Crimson',
+      colors: ['hsl(0 0% 100%)', 'hsl(60 4.8% 95.9%)', 'hsl(0, 75%, 59%)'],
+      theme: {
+        "accent": '60 4.8% 95.9%',
+        "accent-foreground": '24 9.8% 10%',
+        "background": '0 0% 100%',
+        "border": '20 6% 90%',
+        "card": '0 0% 100%',
+        "card-foreground": '20 14.3% 4.1%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '20 14.3% 4.1%',
+        "input": '20 6% 90%',
+        "muted": '60 4.8% 95.9%',
+        "muted-foreground": '25 5.3% 44.7%',
+        "popover": '0 0% 100%',
+        "popover-foreground": '20 14.3% 4.1%',
+        "primary": '24 9.8% 10%',
+        "primary-foreground": '60 9.1% 97.8%',
+        "radius": '0.5rem',
+        "ring": '24 9.8% 10%',
+        "secondary": '60 4.8% 95.9%',
+        "secondary-foreground": '24 9.8% 10%',
+      }
+    },
+    {
+      name: 'Dark Crimson',
+      colors: ['hsl(24 10% 10%)', 'hsl(12 6.5% 15.1%)', 'hsl(0, 75%, 59%)'],
+      theme: {
+        "accent": '12 6.5% 15.1%',
+        "accent-foreground": '60 9.1% 97.8%',
+        "background": '24 10% 10%',
+        "border": '12 6.5% 15.1%',
+        "card": '24 10% 10%',
+        "card-foreground": '60 9.1% 97.8%',
+        "destructive": '0 62% 30%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '60 9.1% 97.8%',
+        "input": '12 6.5% 15.1%',
+        "muted": '12 6.5% 15.1%',
+        "muted-foreground": '24 5.4% 63.9%',
+        "popover": '24 10% 10%',
+        "popover-foreground": '60 9.1% 97.8%',
+        "primary": '60 9.1% 97.8%',
+        "primary-foreground": '24 9.8% 10%',
+        "radius": '0.5rem',
+        "ring": '60 9.1% 97.8%',
+        "secondary": '12 6.5% 15.1%',
+        "secondary-foreground": '60 9.1% 97.8%',
+      }
+    },
+    {
+      name: 'Modern Ledger',
+      colors: ['hsl(350 42% 98%)', 'hsl(350 40% 41%)', 'hsl(350 10% 84%)'],
+      theme: {
+        "accent": '350 10% 84%',
+        "accent-foreground": '350 10% 24%',
+        "background": '350 42% 98%',
+        "border": '350 10% 84%',
+        "card": '350 42% 98%',
+        "card-foreground": '350 80% 3%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '350 80% 3%',
+        "input": '350 10% 84%',
+        "muted": '350 33% 91%',
+        "muted-foreground": '350 13% 36%',
+        "popover": '350 42% 98%',
+        "popover-foreground": '350 80% 3%',
+        "primary": '350 40% 41%',
+        "primary-foreground": '0 0% 100%',
+        "radius": '0.5rem',
+        "ring": '350 40% 41%',
+        "secondary": '350 10% 84%',
+        "secondary-foreground": '350 10% 24%',
+      }
+    },
+    {
+      name: 'Autumn Harvest',
+      colors: ['hsl(222 39% 98%)', 'hsl(222 69% 44%)', 'hsl(42 69% 44%)'],
+      theme: {
+        "accent": '42 69% 44%',
+        "accent-foreground": '42 69% 4%',
+        "background": '222 39% 98%',
+        "border": '222 69% 44%',
+        "card": '222 39% 98%',
+        "card-foreground": '222 71% 4%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '222 71% 4%',
+        "input": '222 69% 44%',
+        "muted": '42 24% 88%',
+        "muted-foreground": '42 4% 25%',
+        "popover": '222 39% 98%',
+        "popover-foreground": '222 71% 4%',
+        "primary": '222 69% 44%',
+        "primary-foreground": '0 0% 100%',
+        "radius": '0.5rem',
+        "ring": '222 69% 44%',
+        "secondary": '42 69% 44%',
+        "secondary-foreground": '42 69% 4%',
+      }
+    },
+    {
+      name: 'Mint',
+      colors: ['hsl(186 63% 99%)', 'hsl(186 62% 66%)', 'hsl(186 2% 87%)'],
+      theme: {
+        "accent": '186 2% 87%',
+        "accent-foreground": '186 2% 27%',
+        "background": '186 63% 99%',
+        "border": '186 62% 66%',
+        "card": '186 63% 99%',
+        "card-foreground": '186 62% 5%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '186 62% 5%',
+        "input": '186 62% 66%',
+        "muted": '186 39% 89%',
+        "muted-foreground": '186 5% 27%',
+        "popover": '186 63% 99%',
+        "popover-foreground": '186 62% 5%',
+        "primary": '186 62% 66%',
+        "primary-foreground": '186 62% 5%',
+        "radius": '0.5rem',
+        "ring": '186 62% 66%',
+        "secondary": '186 2% 87%',
+        "secondary-foreground": '186 2% 27%',
+      }
+    },
+    {
+      name: 'Royal Purple',
+      colors: ['hsl(0 0% 100%)', 'hsl(281 92% 46%)', 'hsl(60 5% 96%)'],
+      theme: {
+        "accent": '60 5% 96%',
+        "accent-foreground": '25 6% 45%',
+        "background": '0 0% 100%',
+        "border": '20 6% 90%',
+        "card": '0 0% 100%',
+        "card-foreground": '20 14% 4%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '20 14% 4%',
+        "input": '20 6% 90%',
+        "muted": '60 5% 96%',
+        "muted-foreground": '25 6% 45%',
+        "popover": '0 0% 100%',
+        "popover-foreground": '20 14% 4%',
+        "primary": '281 92% 46%',
+        "primary-foreground": '60 9% 98%',
+        "radius": '0.5rem',
+        "ring": '281 92% 46%',
+        "secondary": '60 5% 96%',
+        "secondary-foreground": '25 6% 45%',
+      }
+    },
+    {
+      name: 'Golden Amber',
+      colors: ['hsl(0 0% 100%)', 'hsl(43 72% 52%)', 'hsl(60 5% 96%)'],
+      theme: {
+        "accent": '60 5% 96%',
+        "accent-foreground": '25 6% 45%',
+        "background": '0 0% 100%',
+        "border": '20 6% 90%',
+        "card": '0 0% 100%',
+        "card-foreground": '20 14% 4%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '20 14% 4%',
+        "input": '20 6% 90%',
+        "muted": '60 5% 96%',
+        "muted-foreground": '25 6% 45%',
+        "popover": '0 0% 100%',
+        "popover-foreground": '20 14% 4%',
+        "primary": '43 72% 52%',
+        "primary-foreground": '60 9% 98%',
+        "radius": '0.5rem',
+        "ring": '43 72% 52%',
+        "secondary": '60 5% 96%',
+        "secondary-foreground": '25 6% 45%',
+      }
+    },
+    {
+      name: 'Rose Blush',
+      colors: ['hsl(335 0% 93.5%)', 'hsl(355 85% 58%)', 'hsl(35 0% 89.5%)'],
+      theme: {
+        "accent": '35 0% 89.5%',
+        "accent-foreground": '0 0% 38.5%',
+        "background": '335 0% 93.5%',
+        "border": '355 85% 58%',
+        "card": '335 0% 93.5%',
+        "card-foreground": '355 0% 0%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '355 0% 0%',
+        "input": '355 85% 58%',
+        "muted": '5 68% 82%',
+        "muted-foreground": '0 0% 38.5%',
+        "popover": '335 0% 93.5%',
+        "popover-foreground": '355 0% 0%',
+        "primary": '355 85% 58%',
+        "primary-foreground": '60 9% 98%',
+        "radius": '0.5rem',
+        "ring": '355 85% 58%',
+        "secondary": '35 0% 89.5%',
+        "secondary-foreground": '0 0% 38.5%',
+      }
+    },
+    {
+      name: 'Forest Green',
+      colors: ['hsl(335 5% 77.5%)', 'hsl(103 75% 49%)', 'hsl(35 10% 73.5%)'],
+      theme: {
+        "accent": '35 10% 73.5%',
+        "accent-foreground": '0 11% 22.5%',
+        "background": '335 5% 77.5%',
+        "border": '103 75% 49%',
+        "card": '335 5% 77.5%',
+        "card-foreground": '355 19% 0%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '355 19% 0%',
+        "input": '103 75% 49%',
+        "muted": '92 33% 67%',
+        "muted-foreground": '0 11% 22.5%',
+        "popover": '335 5% 77.5%',
+        "popover-foreground": '355 19% 0%',
+        "primary": '103 75% 49%',
+        "primary-foreground": '60 9% 98%',
+        "radius": '0.5rem',
+        "ring": '103 75% 49%',
+        "secondary": '35 10% 73.5%',
+        "secondary-foreground": '0 11% 22.5%',
+      }
+    },
+    {
+      name: 'Emerald Sage',
+      colors: ['hsl(355 15% 93.5%)', 'hsl(160 77% 44%)', 'hsl(55 20% 89.5%)'],
+      theme: {
+        "accent": '55 20% 89.5%',
+        "accent-foreground": '20 21% 38.5%',
+        "background": '355 15% 93.5%',
+        "border": '160 77% 44%',
+        "card": '355 15% 93.5%',
+        "card-foreground": '15 29% 0%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '15 29% 0%',
+        "input": '160 77% 44%',
+        "muted": '138 38% 81%',
+        "muted-foreground": '20 21% 38.5%',
+        "popover": '355 15% 93.5%',
+        "popover-foreground": '15 29% 0%',
+        "primary": '160 77% 44%',
+        "primary-foreground": '60 9% 98%',
+        "radius": '0.5rem',
+        "ring": '160 77% 44%',
+        "secondary": '55 20% 89.5%',
+        "secondary-foreground": '20 21% 38.5%',
+      }
+    },
+    {
+      name: 'Ocean Blue',
+      colors: ['hsl(333 0% 84.5%)', 'hsl(233 87% 40%)', 'hsl(33 0% 80.5%)'],
+      theme: {
+        "accent": '33 0% 80.5%',
+        "accent-foreground": '358 0% 29.5%',
+        "background": '333 0% 84.5%',
+        "border": '233 87% 40%',
+        "card": '333 0% 84.5%',
+        "card-foreground": '353 0% 0%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '353 0% 0%',
+        "input": '233 87% 40%',
+        "muted": '256 33% 69%',
+        "muted-foreground": '358 0% 29.5%',
+        "popover": '333 0% 84.5%',
+        "popover-foreground": '353 0% 0%',
+        "primary": '233 87% 40%',
+        "primary-foreground": '60 9% 98%',
+        "radius": '0.5rem',
+        "ring": '233 87% 40%',
+        "secondary": '33 0% 80.5%',
+        "secondary-foreground": '358 0% 29.5%',
+      }
+    },
+    {
+      name: 'Warm Honey',
+      colors: ['hsl(4.5 4.5% 97.3%)', 'hsl(50 90% 48%)', 'hsl(64.5 9.5% 93.3%)'],
+      theme: {
+        "accent": '64.5 9.5% 93.3%',
+        "accent-foreground": '29.5 10.5% 42.3%',
+        "background": '4.5 4.5% 97.3%',
+        "border": '50 90% 48%',
+        "card": '4.5 4.5% 97.3%',
+        "card-foreground": '24.5 18.5% 1.3%',
+        "destructive": '0 84% 60%',
+        "destructive-foreground": '0 0% 98%',
+        "foreground": '24.5 18.5% 1.3%',
+        "input": '50 90% 48%',
+        "muted": '45 69% 84%',
+        "muted-foreground": '29.5 10.5% 42.3%',
+        "popover": '4.5 4.5% 97.3%',
+        "popover-foreground": '24.5 18.5% 1.3%',
+        "primary": '50 90% 48%',
+        "primary-foreground": '60 9% 98%',
+        "radius": '0.5rem',
+        "ring": '50 90% 48%',
+        "secondary": '64.5 9.5% 93.3%',
+        "secondary-foreground": '29.5 10.5% 42.3%',
+      }
+    }
+  ];
+
   return (
-    <div className='d-flex flex-column gap-2 py-2'>
-      <h6 className='border-bottom-1'>Pre-made Themes</h6>
-      <div className='d-flex gap-2 pb-2'>
-        <div className='d-flex gap-2 flex-column'>
-          Light Crimson
-          <div onClick={() => {
-            handleCustomThemeSelector({
-              "background": '0 0% 100%',
-              "foreground": '20 14.3% 4.1%',
-              "primary": '24 9.8% 10%',
-              "primary-foreground": '60 9.1% 97.8%',
-              "secondary": '60 4.8% 95.9%',
-              "secondary-foreground": '24 9.8% 10%',
-              "muted": '60 4.8% 95.9%',
-              "muted-foreground": '25 5.3% 44.7%',
-              "custom-color": '0, 75%, 59%',
-            })
-          }}
+    <div style={{
+      background: '#f8f9fa',
+      borderRadius: '12px',
+      padding: '20px',
+      border: '1px solid #e9ecef',
+      marginBottom: '1.5rem'
+    }}>
+      <h5 style={{
+        marginBottom: '1rem',
+        color: '#007bff',
+        fontWeight: 'bold',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem'
+      }}>
+        <i className="fas fa-palette"></i>
+        Pre-made Themes
+      </h5>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '16px'
+      }}>
+        {themes.map((theme, index) => (
+          <div 
+            key={index}
+            onClick={() => handleCustomThemeSelector(theme.theme)}
             style={{
-              height: '3rem',
-              width: '6rem',
-              borderRadius: '50%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
+              background: 'white',
+              borderRadius: '8px',
+              padding: '16px',
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              border: '2px solid transparent',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+              e.currentTarget.style.borderColor = '#007bff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+              e.currentTarget.style.borderColor = 'transparent';
             }}
           >
-            <div style={{
-              backgroundColor: 'hsl(0 0% 100%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-            <div style={{
-              backgroundColor: 'hsl(60 4.8% 95.9%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-            <div style={{
-              backgroundColor: 'hsl(0, 75%, 59%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{
+                display: 'flex',
+                height: '60px',
+                borderRadius: '6px',
+                overflow: 'hidden',
+                border: '1px solid #dee2e6'
+              }}>
+                {theme.colors.map((color, colorIndex) => (
+                  <div
+                    key={colorIndex}
+                    style={{
+                      flex: 1,
+                      backgroundColor: color,
+                      transition: 'transform 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <span style={{
+                display: 'block',
+                fontWeight: '600',
+                color: '#495057',
+                marginBottom: '4px'
+              }}>
+                {theme.name}
+              </span>
+              <small style={{
+                color: '#6c757d',
+                fontSize: '0.875rem'
+              }}>
+                Click to apply
+              </small>
+            </div>
           </div>
-        </div>
-        <div className='d-flex gap-2 flex-column'>
-          Dark Crimson
-          <div onClick={() => {
-            handleCustomThemeSelector({
-              "background": '24 10% 10%',
-              "foreground": '60 9.1% 97.8%',
-              "primary": '60 9.1% 97.8%',
-              "primary-foreground": '24 9.8% 10%',
-              "secondary": '12 6.5% 15.1%',
-              "secondary-foreground": '60 9.1% 97.8%',
-              "muted": '12 6.5% 15.1%',
-              "muted-foreground": '24 5.4% 63.9%',
-              "custom-color": '0, 75%, 59%',
-            })
-          }}
-            style={{
-              height: '3rem',
-              width: '6rem',
-              borderRadius: '50%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-          >
-            <div style={{
-              backgroundColor: 'hsl(24 10% 10%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-            <div style={{
-              backgroundColor: 'hsl(12 6.5% 15.1%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-            <div style={{
-              backgroundColor: 'hsl(0, 75%, 59%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-          </div>
-        </div>
-        <div className='d-flex gap-2 flex-column'>
-          Modern Ledger
-          <div onClick={() => {
-            handleCustomThemeSelector({
-              "background": '350 42% 98%',
-              "foreground": '350 80% 3%',
-              "primary": '350 40% 41%',
-              "primary-foreground": '0 0% 100%',
-              "secondary": '350 10% 84%',
-              "secondary-foreground": '350 10% 24%',
-              "muted": '350 33% 91%',
-              "muted-foreground": '350 13% 36%',
-              "custom-color": '349.8 39.25925925925926 26.47058823529412%',
-            })
-          }}
-            style={{
-              height: '3rem',
-              width: '6rem',
-              borderRadius: '50%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-          >
-            <div style={{
-              backgroundColor: 'hsl(350 42% 98%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-            <div style={{
-              backgroundColor: 'hsl(350 40% 41%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-            <div style={{
-              backgroundColor: 'hsl(350 10% 84%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-          </div>
-        </div>
-        <div className='d-flex gap-2 flex-column'>
-          Autumn Harvest
-          <div onClick={() => {
-            handleCustomThemeSelector({
-              "background": '222 39% 98%',
-              "foreground": '222 71% 4%',
-              "primary": '222 69% 44%',
-              "primary-foreground": '0 0% 100%',
-              "secondary": '42 69% 44%',
-              "secondary-foreground": '42 69% 4%',
-              "muted": '42 24% 88%',
-              "muted-foreground": '42 4% 25%',
-              "custom-color": '349.8 39.25925925925926 26.47058823529412%',
-            })
-          }}
-            style={{
-              height: '3rem',
-              width: '6rem',
-              borderRadius: '50%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-          >
-            <div style={{
-              backgroundColor: 'hsl(222 39% 98%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-            <div style={{
-              backgroundColor: 'hsl(222 69% 44%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-            <div style={{
-              backgroundColor: 'hsl(42 69% 44%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-          </div>
-        </div>
-        <div className='d-flex gap-2 flex-column'>
-          Mint
-          <div onClick={() => {
-            handleCustomThemeSelector({
-              "background": '186 63% 99%',
-              "foreground": '186 62% 5%',
-              "primary": '186 62% 66%',
-              "primary-foreground": '186 62% 5%',
-              "secondary": '186 2% 87%',
-              "secondary-foreground": '186 2% 27%',
-              "muted": '186 39% 89%',
-              "muted-foreground": '186 5% 27%',
-              "custom-color": '185.7 34.25925925925925 42.35294117647059%',
-            })
-          }}
-            style={{
-              height: '3rem',
-              width: '6rem',
-              borderRadius: '50%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-          >
-            <div style={{
-              backgroundColor: 'hsl(186 63% 99%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-            <div style={{
-              backgroundColor: 'hsl(186 62% 66%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-            <div style={{
-              backgroundColor: 'hsl(186 2% 87%)',
-              width: '100%',
-              height: '100%',
-            }}></div>
-          </div>
-        </div>
-        {/* <div className='d-flex gap-2 flex-column'>
-        Mint
-        <div onClick={() => {
-          handleCustomThemeSelector({
-            "background": '220 23% 5%',
-            "foreground": '210 25% 95%',
-            "primary": '346.42 78.12% 44.05%',
-            "primary-foreground": '210 0% 100%',
-            "secondary": '210 15% 25%',
-            "secondary-foreground": '210 15% 85%',
-            "muted": '220 12% 15%',
-            "muted-foreground": '220 12% 65%',
-            "custom-color": '185.7 34.25925925925925 42.35294117647059%',
-          })
-        }}
-          style={{
-            height: '3rem',
-            width: '6rem',
-            borderRadius: '50%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-        >
-          <div style={{
-            backgroundColor: 'hsl(220 23% 5%)',
-            width: '100%',
-            height: '100%',
-          }}></div>
-          <div style={{
-            backgroundColor: 'hsl(346.42 78.12% 44.05%)',
-            width: '100%',
-            height: '100%',
-          }}></div>
-          <div style={{
-            backgroundColor: 'hsl(210 15% 25%)',
-            width: '100%',
-            height: '100%',
-          }}></div>
-        </div>
-      </div> */}
-        {/* <div className='d-flex gap-2 flex-column'>
-        Mint
-        <div onClick={() => {
-          handleCustomThemeSelector({
-            "background": '69 62% 98%',
-            "foreground": '69 63% 4%',
-            "primary": '69 60% 12%',
-            "primary-foreground": '69 60% 52%',
-            "secondary": '39 60% 12%',
-            "secondary-foreground": '39 60% 52%',
-            "muted": '39 11% 92%',
-            "muted-foreground": '39 9% 39%',
-            "custom-color": '70.0 39.99999999999999 29.411764705882355%',
-          })
-        }}
-          style={{
-            height: '3rem',
-            width: '6rem',
-            borderRadius: '50%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-        >
-          <div style={{
-            backgroundColor: 'hsl(69 62% 98%)',
-            width: '100%',
-            height: '100%',
-          }}></div>
-          <div style={{
-            backgroundColor: 'hsl(69 60% 12%)',
-            width: '100%',
-            height: '100%',
-          }}></div>
-          <div style={{
-            backgroundColor: 'hsl(39 60% 12%)',
-            width: '100%',
-            height: '100%',
-          }}></div>
-        </div>
-      </div> */}
+        ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default UiSettingsUpdate;

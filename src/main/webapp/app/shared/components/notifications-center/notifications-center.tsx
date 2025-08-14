@@ -4,7 +4,7 @@ import { AiOutlineBell } from "react-icons/ai";
 import { InputSwitch } from "primereact/inputswitch";
 import { UncontrolledTooltip } from "reactstrap";
 import { useAppDispatch, useAppSelector } from "app/config/store";
-import { INotification } from "app/shared/model/notification.model";
+import { INotification, NotificationCategoryEnum } from "app/shared/model/notification.model";
 import { useNavigate } from "react-router-dom";
 import { getEntities } from "./notifications.reducer";
 
@@ -19,7 +19,6 @@ const NotificationsCenter = ({
     const dispatch = useAppDispatch();
 
     const notifications: INotification[] = useAppSelector(state => state.notification.entities);
-    console.log(notifications)
 
     const [unreadCount, setUnreadCount] = useState<number>(parseInt(localStorage.getItem('notificationsCount'), 10) || 0);
 
@@ -33,12 +32,48 @@ const NotificationsCenter = ({
 
     const listInnerRef = useRef();
 
+	const isAbsoluteHttpUrl = (url?: string) => !!url && /^(https?:)\/\//i.test(url);
+
+	const handleNotificationClick = (notification: INotification) => {
+		const isDownload = notification?.category === NotificationCategoryEnum.DOWNLOAD_FILE;
+		const url = notification?.url;
+
+		if (isDownload && url) {
+			if (isAbsoluteHttpUrl(url)) {
+				const link = document.createElement('a');
+				link.href = url;
+				link.target = '_blank';
+				link.rel = 'noopener noreferrer';
+				link.download = url.split('/').pop() || 'download';
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			} else {
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = url.split('/').pop() || 'download';
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			}
+			setShowMenu(false);
+			return;
+		}
+
+		if (url) {
+			if (isAbsoluteHttpUrl(url)) {
+				window.open(url, '_blank', 'noopener');
+			} else {
+				navigate(url);
+			}
+		}
+	};
+
     const onScroll = () => {
         if (listInnerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } =
                 listInnerRef.current;
             if (scrollTop + clientHeight >= scrollHeight - 1) {
-                console.log("reached bottom!");
                 // getNotificationsHandler();
             }
         }
@@ -108,10 +143,7 @@ const NotificationsCenter = ({
                         <div className="notifications" key={key}>
                             <div
                                 className="notificationCon"
-                                onClick={() => {
-                                    // markAsReadHandler(notification);
-                                    navigate(notification.url)
-                                }}
+                                onClick={() => handleNotificationClick(notification)}
                             >
                                 <div className={`notification ${key < unreadCount ? 'unread' : ''}`}>
                                     <span>

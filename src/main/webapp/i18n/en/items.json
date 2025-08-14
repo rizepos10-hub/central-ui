@@ -199,8 +199,7 @@
         "length": "Length",
         "width": "Width",
         "weight": "Weight",
-        "height": "Height",
-        "stockChangeReason": "Stock Change Reason"
+        "height": "Height"
       },
       "name": "Name",
       "description": "Description",
@@ -316,7 +315,8 @@
           "PREDEFINED": "Predefined",
           "MAKE_YOUR_OWN": "Make Your Own",
           "FIXED_DEAL": "Fixed Deal"
-        }
+        },
+        "addPredefinedPizzasAsToppingsOnly": "Add Predefined Pizzas As Toppings Only (number of pizza should be 1)"
       },
       "regular": {
         "variants": "Variants",
