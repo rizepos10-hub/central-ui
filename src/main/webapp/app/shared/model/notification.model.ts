@@ -9,6 +9,12 @@ export interface INotification {
     sentAt?: string;
     readAt?: string;
     createdAt?: string;
+    category?: NotificationCategoryEnum | null
 }
+
+export enum NotificationCategoryEnum {
+    ORDER = "ORDER",
+    DOWNLOAD_FILE = "DOWNLOAD_FILE"
+} 
 
 export const defaultValue: Readonly<INotification> = {};
