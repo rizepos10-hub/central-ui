@@ -37,7 +37,7 @@ export const importRetailData = createAsyncThunk('item/retail-data-import', asyn
 
 export const importData = createAsyncThunk('item/data-import', async (formData: { file: File; type: FileType }) => {
 
-  return await axios.post(apiUrl, formData, {
+  return await axios.post('/api/import-restaurant-data', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
