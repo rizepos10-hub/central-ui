@@ -18,6 +18,8 @@ export interface ITerminalSettings {
     receiptShowOrderNumber: boolean;
     receiptHeader: string | null;
     receiptFooter: string | null;
+    alwaysShowScrollbar: boolean;
+    scrollbarThickness: number | null;
     hstNumber: number | null;
     pstNumber: number | null;
     gstNumber: number | null;

@@ -205,8 +205,7 @@ function PersonalizationSettings() {
     const branchRegistry: IBranchRegistry = useAppSelector(state => state.branchRegistry.entity);
     const dispatch = useAppDispatch();
 
-    console.log(branchRegistry, 'branchRegistry')
-    console.log(branchRegistry?.terminalSettings?.showItemsPic, 'branchRegistry?.terminalSettings?.showItemsPic')
+    
 
     return (
         <div className="grid">
@@ -233,6 +232,31 @@ function PersonalizationSettings() {
                         checked={branchRegistry?.terminalSettings?.showRetailItemsOnly}
                         value={branchRegistry?.terminalSettings?.showRetailItemsOnly}
                         onChange={(e) => dispatch(changeTerminalField({ name: 'showRetailItemsOnly', value: e.checked }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-bars"
+                    title="Always Show Scrollbar"
+                    description="Force scrollbar to always be visible"
+                >
+                    <Checkbox
+                        checked={branchRegistry?.terminalSettings?.alwaysShowScrollbar}
+                        value={branchRegistry?.terminalSettings?.alwaysShowScrollbar}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'alwaysShowScrollbar', value: e.checked }))}
+                    />
+                </FieldWrapper>
+            </div>
+            <div className="col-12">
+                <FieldWrapper
+                    icon="pi-ellipsis-v"
+                    title="Scrollbar Thickness"
+                    description="Thickness in pixels"
+                >
+                    <InputNumber
+                        value={branchRegistry?.terminalSettings?.scrollbarThickness}
+                        onChange={(e) => dispatch(changeTerminalField({ name: 'scrollbarThickness', value: e.value }))}
                     />
                 </FieldWrapper>
             </div>
