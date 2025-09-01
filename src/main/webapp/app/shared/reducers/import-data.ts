@@ -3,7 +3,7 @@ import { createAsyncThunk, createSlice, isFulfilled, isPending, isRejected } fro
 
 import { serializeAxiosError } from "app/shared/reducers/reducer.utils";
 
-export type FileType = "REGULAR_RESTAURANT" | "ADDON" | "TOPPING" | "RETAIL"
+export type FileType = "REGULAR_RESTAURANT" | "ADDON" | "TOPPING" | "RETAIL" | "SUPPLIER" | "ADDON_GROUPS"
 
 
 type DataImport = {
@@ -56,6 +56,26 @@ export const importDataFromOldSystem = createAsyncThunk('item/data-import', asyn
   { serializeError: serializeAxiosError }
 );
 
+export const importSupplierData = createAsyncThunk('supplier/data-import', async (formData: { file: File }) => {
+  return await axios.post('/api/import-supplier-data', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+},
+  { serializeError: serializeAxiosError }
+);
+
+export const importAddonGroupsData = createAsyncThunk('addon-groups/data-import', async (formData: { file: File }) => {
+  return await axios.post('/api/import-addon-groups-data', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+},
+  { serializeError: serializeAxiosError }
+);
+
 
 // slice
 
@@ -65,16 +85,16 @@ export const DataImportSlice = createSlice({
   initialState,
   extraReducers(builder) {
     builder
-      .addMatcher(isPending(importData, importRetailData), state => {
+      .addMatcher(isPending(importData, importRetailData, importSupplierData, importAddonGroupsData, importDataFromOldSystem), state => {
         state.errorMessage = null;
         state.importSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isFulfilled(importData, importRetailData), state => {
+      .addMatcher(isFulfilled(importData, importRetailData, importSupplierData, importAddonGroupsData, importDataFromOldSystem), state => {
         state.loading = false;
         state.importSuccess = true;
       })
-      .addMatcher(isRejected(importData, importRetailData), (state, action) => {
+      .addMatcher(isRejected(importData, importRetailData, importSupplierData, importAddonGroupsData, importDataFromOldSystem), (state, action) => {
         state.errorMessage = action.error.message;
         state.loading = false
         state.importSuccess = false
