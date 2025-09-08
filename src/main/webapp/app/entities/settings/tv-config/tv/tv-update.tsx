@@ -18,6 +18,7 @@ import { ICarouselPage, ICarouselItemElement } from 'app/shared/model/TV/tv.mode
 import { IRegularItem } from 'app/shared/model/ITEM/restaurant/regular-item.model';
 import './tv-builder.css';
 import { FaArrowDown, FaArrowLeft, FaArrowUp, FaChevronDown, FaChevronUp, FaImage, FaFont, FaSave, FaTrash } from 'react-icons/fa';
+import { ITv } from '../../../../shared/model/TV/tv.model';
 
 export const TVUpdate = () => {
   const dispatch = useAppDispatch();
@@ -25,10 +26,10 @@ export const TVUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  // const branchList = useAppSelector(state => state.branch.entities);
+  const branchList = useAppSelector(state => state.branch.entities);
   // const tvDisplayList = useAppSelector(state => state.tvDisplay.entities);
   const regularItemList = useAppSelector(state => state.regularItem.entities);
-  const tv = useAppSelector(state => state.tv.entity);
+  const tv : ITv = useAppSelector(state => state.tv.entity);
   const loading = useAppSelector(state => state.tv.loading);
   const updating = useAppSelector(state => state.tv.updating);
 
@@ -313,6 +314,19 @@ export const TVUpdate = () => {
                     onChange={handleChange}
               className="form-input"
               placeholder="Enter TV name"
+            />
+          </div>
+
+          <div className="form-group" style={{ minWidth: '200px' }}>
+            <label className="form-label">Branch</label>
+            <Select
+              options={branchList}
+              onChange={handleBranchChange}
+              getOptionValue={option => option.id}
+              getOptionLabel={option => option.name}
+              value={tv.branch || null}
+              placeholder="Select a branch..."
+              isClearable
             />
           </div>
           
