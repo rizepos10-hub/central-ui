@@ -19,6 +19,8 @@ import { IRegularItem } from 'app/shared/model/ITEM/restaurant/regular-item.mode
 import './tv-builder.css';
 import { FaArrowDown, FaArrowLeft, FaArrowUp, FaChevronDown, FaChevronUp, FaImage, FaFont, FaSave, FaTrash } from 'react-icons/fa';
 import { ITv } from '../../../../shared/model/TV/tv.model';
+import MediaLibrary from "../../../../shared/components/media-library/media-library";
+import { transformAttachmentStructure } from "../../../../shared/util/attachment-utils";
 
 export const TVUpdate = () => {
   const dispatch = useAppDispatch();
@@ -149,25 +151,29 @@ export const TVUpdate = () => {
     setSelectedVariantIndex(variantIndex);
   };
 
-  const addElementToPage = (type: 'text' | 'image', content: string, fieldToQuery?: string) => {
+  const addElementToPage = (type: 'text' | 'image', content: string, fieldToQuery?: string, isStandaloneImage = false, isBackgroundImage = false) => {
     const currentPage = tv.carouselPages?.[activePageIndex];
-    if (!currentPage || !currentPage.selectedItem) return;
+    if (!currentPage) return;
+
+    // For standalone images, we don't need a selected item
+    if (!isStandaloneImage && !currentPage.selectedItem) return;
 
     const selectedItem = currentPage.selectedItem;
-    const selectedVariant = selectedItem.variants?.[selectedVariantIndex];
     
-    // For images, we don't need variant data, but for text we do need field queries
-    if (!fieldToQuery && type === 'text') return;
+    // For text elements tied to items, we need field queries
+    if (!isStandaloneImage && !fieldToQuery && type === 'text') return;
 
     const newElement: ICarouselItemElement = {
       id: `element-${Date.now()}`,
       type,
       documentType: 'ITEM',
-      documentId: selectedItem.id || '',
+      documentId: isStandaloneImage ? '' : (selectedItem?.id || ''),
       fieldToQuery: fieldToQuery || '',
       content,
-      position: { x: 10, y: 10 },
-      size: { width: type === 'text' ? 30 : 20, height: type === 'text' ? 10 : 15 },
+      position: isBackgroundImage ? { x: 0, y: 0 } : { x: 10, y: 10 },
+      size: isBackgroundImage 
+        ? { width: 100, height: 100 } // Full screen background
+        : { width: type === 'text' ? 30 : 20, height: type === 'text' ? 10 : 15 },
       style: type === 'text' ? {
         fontSize: 24,
         color: '#ffffff',
@@ -227,6 +233,13 @@ export const TVUpdate = () => {
     elements.splice(destinationIndex, 0, reorderedItem);
 
     updateCarouselPage(activePageIndex, { elements });
+  };
+
+  const fitAsBackground = (elementId: string) => {
+    updateElement(elementId, {
+      position: { x: 0, y: 0 },
+      size: { width: 100, height: 100 }
+    });
   };
 
   const handleContextMenu = (e: React.MouseEvent, elementId: string) => {
@@ -578,6 +591,20 @@ export const TVUpdate = () => {
                 />
               </div>
 
+              {/* Standalone Image Selector */}
+              <div className="form-group">
+                <label className="form-label">Add Custom Image</label>
+                <p className="form-description">Add any image as a decorative element (not tied to items)</p>
+                <MediaLibrary
+                  handleFilesSelectCallback={(files) => {
+                    if (files.length > 0) {
+                      addElementToPage('image', files[0].thumbnailUrl, '', true);
+                    }
+                  }}
+                  multiSelect={false}
+                />
+              </div>
+
               {/* Selected Item Fields */}
               {currentPage.selectedItem && (
                 <div className="item-fields">
@@ -801,6 +828,17 @@ export const TVUpdate = () => {
                         </select>
                       </div>
                     </>
+                  )}
+
+                  {selectedElementData.type === 'image' && (
+                    <button 
+                      className="btn btn-outline btn-small"
+                      onClick={() => fitAsBackground(selectedElement)}
+                      style={{ marginTop: '10px', marginRight: '10px' }}
+                    >
+                      <FaImage />
+                      Fit as Background
+                    </button>
                   )}
 
                   <button 

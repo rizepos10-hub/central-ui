@@ -127,7 +127,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                 {loading && <Spinner style={{ width: '3rem', height: '3rem' }} />}
             </div>
             <div className="d-flex flex-wrap gap-3 my-3">
-                {defaultValues.map((item, index) => (
+                {defaultValues?.map((item, index) => (
                     <div key={index} style={{ position: 'relative' }}>
                         <img
                             src={item.thumbnailUrl}
