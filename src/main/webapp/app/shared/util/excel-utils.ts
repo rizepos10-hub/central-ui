@@ -35,16 +35,16 @@ export const exportExcelSummaryReport = async (
     fromDate && toDate && sheetData.push([`Date Range`, fromDate, toDate]);
     sheetData.push(['Total Sales']);
     sheetData.push(['New sales (orders)', salesData.totalSales.orders]);
+    sheetData.push(['Gross Sales', (salesData.totalSales.grossSales + salesData.totalSales.refunds).toFixed(2)]);
+    sheetData.push(['Refunds', (salesData.totalSales.refunds || 0).toFixed(2)]);
     sheetData.push(['Gross Sales', salesData.totalSales.grossSales.toFixed(2)]);
-    sheetData.push(['Wallet Credits', fmt(salesData.totalSales.walletCredits)]);
-    sheetData.push(['Net Sales', salesData.totalSales.netSales.toFixed(2)]);
     sheetData.push(['Tax', salesData.totalSales.totalTAX.toFixed(2)]);
+    sheetData.push([]); // blank row
+    sheetData.push(['Net Sales', salesData.totalSales.netSales.toFixed(2)]);
     sheetData.push(['Discounts', salesData.totalSales.discount.toFixed(2)]);
-    sheetData.push(['Payments', salesData.totalSales.subTotal.toFixed(2)]);
-    sheetData.push(['Subtotal', salesData.totalSales.subTotal.toFixed(2)]);
-    sheetData.push(['Refunds', salesData.totalSales.refunds.toFixed(2)]);
-    sheetData.push(['Applied Coupon', salesData.totalSales.appliedCoupon.toFixed(2)]);
     sheetData.push(['Tip', salesData.totalSales.totalTip.toFixed(2)]);
+    sheetData.push([]); // blank row
+    sheetData.push(['Collected', salesData.totalSales.subTotal.toFixed(2)]);
     sheetData.push([]); // blank row
 
     // --- TOTAL RECEIVED ---
