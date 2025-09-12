@@ -14,7 +14,6 @@ const GenericSalesReport = ({ title, report }: { title: string; report: ISummary
     setShow(prevState => !prevState);
   }
 
-  console.log(walletCredits)
   return (
     <Col className="p-0">
       <h4>{title}</h4>
@@ -23,35 +22,33 @@ const GenericSalesReport = ({ title, report }: { title: string; report: ISummary
           <tbody>
             <tr>
               <th colSpan={2}>New sales (orders)</th>
-              <th></th>
               <th colSpan={2} className="col-4 text-right">
                 {orders}
               </th>
             </tr>
             <tr>
-              <td></td>
-              <td colSpan={2}>Gross Sales</td>
-              <td colSpan={2} className="text-right">
+              <th colSpan={2}>Gross Sales</th>
+              <th colSpan={2} className="text-right">
+                {(grossSales + refunds).toFixed(2)}
+              </th>
+              <th colSpan={2} className="text-right">
+                Sales include refunds
+              </th>
+            </tr>
+            <tr>
+              <th colSpan={2}>Refunds</th>
+              <th colSpan={2} className="text-right text-danger">
+                {refunds || 0}
+              </th>
+            </tr>
+            <tr>
+              <th colSpan={2}>Gross Sales</th>
+              <th colSpan={2} className="text-right">
                 {grossSales}
-              </td>
+              </th>
             </tr>
             <tr>
-              <td></td>
-              <td colSpan={2}>Wallet Credits</td>
-              <td colSpan={2} className="text-right">
-                {walletCredits || 0}
-              </td>
-            </tr>
-            <tr>
-              <td></td>
-              <td colSpan={2}>Net Sales</td>
-              <td colSpan={2} className="text-right">
-                {netSales}
-              </td>
-            </tr>
-            <tr>
-              <td></td>
-              <td colSpan={2}>
+              <th colSpan={2}>
                 <span
                   onClick={handleClick}
                   className="text-primary cursor-pointer"
@@ -60,58 +57,45 @@ const GenericSalesReport = ({ title, report }: { title: string; report: ISummary
                   Tax ({Object.keys(taxes || {})?.length})
                   <i className="pi pi-angle-up"></i>
                 </span>
-              </td>
-              <td colSpan={2} className="text-right">
+              </th>
+              <th colSpan={2} className="text-right text-danger">
                 {totalTAX}
-              </td>
+              </th>
             </tr>
             {Object?.entries(taxes || {})?.map(([taxType, amount]) => (
               <tr key={taxType} className={`${!show && 'hidden'}`}>
-                <td></td>
-                <td colSpan={3}>{taxType}</td>
-                <td className="text-right">{amount}</td>
+                <th colSpan={3}>{taxType}</th>
+                <th className="text-right">{amount}</th>
               </tr>
             ))}
             <tr>
+              <td colSpan={4}>&nbsp;</td>
+            </tr>
+            <tr>
+              <th>Net Sales</th>
+              <th colSpan={2} className="text-right">
+                <span>${netSales}</span>
+              </th>
+            </tr>
+            <tr>
               <th>Discounts</th>
-              <th colSpan={2}></th>
               <th colSpan={2} className="text-right">
                 <span>${discount}</span>
               </th>
             </tr>
             <tr>
-              <th>Payments</th>
-              <th colSpan={2}></th>
+              <th>Tip</th>
               <th colSpan={2} className="text-right">
-                {subTotal}
+                {totalTip}
               </th>
             </tr>
             <tr>
-              <td></td>
-              <td colSpan={2}>Subtotal</td>
-              <td colSpan={2} className="text-right">
-                {subTotal}
-              </td>
+              <td colSpan={4}>&nbsp;</td>
             </tr>
             <tr>
-              <td></td>
-              <td colSpan={2}>Refunds</td>
-              <td colSpan={2} className="text-right">
-                {refunds}
-              </td>
-            </tr>
-            <tr>
-              <td></td>
-              <td colSpan={2}>Applied Coupon</td>
-              <td colSpan={2} className="text-right">
-                {appliedCoupon}
-              </td>
-            </tr>
-            <tr>
-              <th>Tip</th>
-              <th colSpan={2}></th>
+              <th>Collected</th>
               <th colSpan={2} className="text-right">
-                {totalTip}
+                {subTotal}
               </th>
             </tr>
           </tbody>
