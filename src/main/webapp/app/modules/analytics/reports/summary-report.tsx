@@ -61,7 +61,7 @@ const SalesSummaryReport = () => {
     setFromDate(lastWeekStartDate);
     setToDate(today);
 
-    setTimeout(() => handleSubmit(), 100);
+    handleSubmit(undefined, lastWeekStartDate, today);
   };
 
   const fetchLastTwoWeeksData = () => {
@@ -70,7 +70,7 @@ const SalesSummaryReport = () => {
     setFromDate(lastTwoWeeksStartDate);
     setToDate(today);
 
-    setTimeout(() => handleSubmit(), 100);
+    handleSubmit(undefined, lastTwoWeeksStartDate, today);
   };
 
   const fetchLastMonthData = () => {
@@ -79,7 +79,7 @@ const SalesSummaryReport = () => {
     setFromDate(lastMonthStartDate);
     setToDate(today);
 
-    setTimeout(() => handleSubmit(), 100);
+    handleSubmit(undefined, lastMonthStartDate, today);
   };
 
   const fetchLastThreeMonthsData = () => {
@@ -88,22 +88,30 @@ const SalesSummaryReport = () => {
     setFromDate(lastThreeMonthsStartDate);
     setToDate(today);
 
-    setTimeout(() => handleSubmit(), 100);
+    handleSubmit(undefined, lastThreeMonthsStartDate, today);
   };
 
-  const handleSubmit = async (event?: React.FormEvent) => {
+  const handleSubmit = async (event?: React.FormEvent, customFromDate?: Date, customToDate?: Date) => {
     if (event) event.preventDefault();
 
-    const fromDateObj = new Date(fromDate);
-    const toDateObj = new Date(toDate);
+    const fromDateToUse = customFromDate || fromDate;
+    const toDateToUse = customToDate || toDate;
+
+    if (!fromDateToUse || !toDateToUse) {
+      alert("Please select both from and to dates.");
+      return;
+    }
+
+    const fromDateObj = new Date(fromDateToUse);
+    const toDateObj = new Date(toDateToUse);
     if (fromDateObj > toDateObj) {
       alert("From date cannot be later than To date.");
       return;
     }
     try {
       setLoading(true);
-      const formattedFromDate = (fromDate).toISOString();
-      const formattedToDate = (toDate).toISOString();
+      const formattedFromDate = fromDateToUse.toISOString();
+      const formattedToDate = toDateToUse.toISOString();
       const formData = new FormData();
       formData.append('fromDate', formattedFromDate);
       formData.append('toDate', formattedToDate);
