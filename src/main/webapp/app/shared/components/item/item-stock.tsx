@@ -152,7 +152,7 @@ const ItemStock = ({
 
   return (
     <div>
-      {wareHouses?.length > 0 && salesLocations?.length > 0 && (
+      {wareHouses?.length > 0 || salesLocations?.length > 0 && (
         <>
           <h4>Stock Management</h4>
           <TabView activeIndex={wareHouses?.length > 0 ? 0 : 1}>
