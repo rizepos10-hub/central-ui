@@ -257,6 +257,7 @@ const DynamicEndOfDayReportUI = ({
                 <GenericSalesReport
                     title={translate('analytics.report.totalSales')}
                     report={reportData.totalSales}
+                    payments={reportData.totalReceived}
                 />
                 <EndOfTillTotalReceived totalReceived={reportData.totalReceived} />
             </div>
