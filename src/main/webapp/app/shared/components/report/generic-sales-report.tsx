@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Col, Container, Row, Table } from 'reactstrap';
 import { ISummaryReport } from "app/shared/model/report-summary.model";
 
-const GenericSalesReport = ({ title, report }: { title: string; report: ISummaryReport["totalSales"] }) => {
+const GenericSalesReport = ({ title, report, payments }: { title: string; report: ISummaryReport["totalSales"], payments?: ISummaryReport["totalReceived"] }) => {
   if (!report) return;
 
   const { orders, subTotal, discount, appliedCoupon, deliveryCharge, deliveryTAX,
@@ -89,15 +89,19 @@ const GenericSalesReport = ({ title, report }: { title: string; report: ISummary
                 {totalTip}
               </th>
             </tr>
-            <tr>
-              <td colSpan={4}>&nbsp;</td>
-            </tr>
-            <tr>
-              <th>Collected</th>
-              <th colSpan={2} className="text-right">
-                {subTotal}
-              </th>
-            </tr>
+            {payments && (
+              <>
+                <tr>
+                  <td colSpan={4}>&nbsp;</td>
+                </tr>
+                <tr>
+                  <th>Collected</th>
+                  <th colSpan={2} className="text-right">
+                    {payments.reduce((sum, payment) => sum + (payment.received || 0), 0).toFixed(2)}
+                  </th>
+                </tr>
+              </>
+            )}
           </tbody>
         </table>
 

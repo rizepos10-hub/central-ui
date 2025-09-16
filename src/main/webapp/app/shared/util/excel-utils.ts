@@ -44,7 +44,7 @@ export const exportExcelSummaryReport = async (
     sheetData.push(['Discounts', salesData.totalSales.discount.toFixed(2)]);
     sheetData.push(['Tip', salesData.totalSales.totalTip.toFixed(2)]);
     sheetData.push([]); // blank row
-    sheetData.push(['Collected', salesData.totalSales.subTotal.toFixed(2)]);
+    sheetData.push(['Collected', salesData.totalReceived.reduce((sum, payment) => sum + (payment.received || 0), 0).toFixed(2)]);
     sheetData.push([]); // blank row
 
     // --- TOTAL RECEIVED ---
