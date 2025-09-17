@@ -57,6 +57,11 @@ export const TVUpdate = () => {
   // Store initial positions when drag starts
   const [dragStartPositions, setDragStartPositions] = useState<{[elementId: string]: {x: number, y: number}} | null>(null);
 
+  // Undo/Redo functionality
+  const [undoStack, setUndoStack] = useState<ICarouselPage[]>([]);
+  const [redoStack, setRedoStack] = useState<ICarouselPage[]>([]);
+  const [isUndoRedo, setIsUndoRedo] = useState(false); // Flag to prevent saving undo states during undo/redo
+
   // Cache for text height calculations
   const textHeightCache = useRef<Map<string, number>>(new Map());
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -127,6 +132,7 @@ export const TVUpdate = () => {
 
     return result;
   }, [screenDimensions.width, screenDimensions.height]);
+
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -271,20 +277,29 @@ export const TVUpdate = () => {
   };
 
 
-  const updateElement = useCallback((elementId: string, updates: Partial<ICarouselItemElement>, immediate = true) => {
+  const updateElement = (elementId: string, updates: Partial<ICarouselItemElement>, saveUndo = true) => {
     const currentPage = tv.carouselPages?.[activePageIndex];
     if (!currentPage) return;
+
+    // Save undo state before making changes
+    if (saveUndo && !isUndoRedo) {
+      saveUndoState();
+    }
 
     // For drag/resize operations, we'll use immediate updates to avoid delays
     const updatedElements = currentPage.elements.map(el =>
       el.id === elementId ? { ...el, ...updates } : el
     );
     updateCarouselPage(activePageIndex, { elements: updatedElements });
-  }, [tv.carouselPages, activePageIndex, updateCarouselPage]);
+  };
 
-  const updateMultipleElements = (elementIds: string[], updates: Partial<ICarouselItemElement> | ((element: ICarouselItemElement) => Partial<ICarouselItemElement>)) => {
+  const updateMultipleElements = (elementIds: string[], updates: Partial<ICarouselItemElement> | ((element: ICarouselItemElement) => Partial<ICarouselItemElement>), saveUndo = true) => {
     const currentPage = tv.carouselPages?.[activePageIndex];
     if (!currentPage) return;
+
+    if (saveUndo && !isUndoRedo) {
+      saveUndoState();
+    }
 
     const updatedElements = currentPage.elements.map(el => {
       if (elementIds.includes(el.id)) {
@@ -570,6 +585,66 @@ export const TVUpdate = () => {
     [tv.carouselPages, activePageIndex]
   );
 
+  // Undo/Redo functions
+  const saveUndoState = useCallback(() => {
+    if (isUndoRedo || !currentPage) return;
+
+    setUndoStack(prev => {
+      const newStack = [...prev, { ...currentPage }];
+      // Limit undo stack to 50 operations
+      return newStack.length > 50 ? newStack.slice(1) : newStack;
+    });
+
+    // Clear redo stack when new action is performed
+    setRedoStack([]);
+  }, [currentPage, isUndoRedo]);
+
+  const undo = useCallback(() => {
+    if (undoStack.length === 0) return;
+
+    setIsUndoRedo(true);
+
+    const previousState = undoStack[undoStack.length - 1];
+    const newUndoStack = undoStack.slice(0, -1);
+
+    // Save current state to redo stack
+    if (currentPage) {
+      setRedoStack(prev => [...prev, { ...currentPage }]);
+    }
+
+    // Update the TV state with previous state
+    setUndoStack(newUndoStack);
+    updateCarouselPage(activePageIndex, previousState);
+
+    // Clear selections
+    setSelectedElements([]);
+
+    setTimeout(() => setIsUndoRedo(false), 100);
+  }, [undoStack, currentPage, activePageIndex, updateCarouselPage]);
+
+  const redo = useCallback(() => {
+    if (redoStack.length === 0) return;
+
+    setIsUndoRedo(true);
+
+    const nextState = redoStack[redoStack.length - 1];
+    const newRedoStack = redoStack.slice(0, -1);
+
+    // Save current state to undo stack
+    if (currentPage) {
+      setUndoStack(prev => [...prev, { ...currentPage }]);
+    }
+
+    // Update the TV state with next state
+    setRedoStack(newRedoStack);
+    updateCarouselPage(activePageIndex, nextState);
+
+    // Clear selections
+    setSelectedElements([]);
+
+    setTimeout(() => setIsUndoRedo(false), 100);
+  }, [redoStack, currentPage, activePageIndex, updateCarouselPage]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -598,6 +673,21 @@ export const TVUpdate = () => {
       if (e.key === 'Escape') {
         setSelectedElements([]);
         closeContextMenu();
+      }
+
+      // Ctrl+Z: Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey && undoStack.length > 0) {
+        e.preventDefault();
+        undo();
+      }
+
+      // Ctrl+Y or Ctrl+Shift+Z: Redo
+      if (((e.ctrlKey || e.metaKey) && e.key === 'y') ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z')) {
+        if (redoStack.length > 0) {
+          e.preventDefault();
+          redo();
+        }
       }
     };
 
@@ -661,8 +751,30 @@ export const TVUpdate = () => {
     <div className="tv-builder-container">
       {/* Header */}
       <div className="tv-builder-header">
-        <h2>{isNew ? "Create New TV" : "Edit TV"}</h2>
-        
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h2>{isNew ? "Create New TV" : "Edit TV"}</h2>
+
+          {/* Undo/Redo Controls */}
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              className="btn btn-outline btn-small"
+              onClick={undo}
+              disabled={undoStack.length === 0}
+              title="Undo (Ctrl+Z)"
+            >
+              ↶ Undo
+            </button>
+            <button
+              className="btn btn-outline btn-small"
+              onClick={redo}
+              disabled={redoStack.length === 0}
+              title="Redo (Ctrl+Y)"
+            >
+              ↷ Redo
+            </button>
+          </div>
+        </div>
+
         {/* TV Configuration */}
         <div style={{ display: 'flex', gap: '20px', marginTop: '15px' }}>
           <div className="form-group" style={{ minWidth: '200px' }}>
