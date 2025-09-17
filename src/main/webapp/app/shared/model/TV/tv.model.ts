@@ -29,6 +29,7 @@ export interface ICarouselItemElement {
     fontWeight?: string;
     textAlign?: string;
   };
+  locked?: boolean;
 }
 
 export interface ICarouselPage {

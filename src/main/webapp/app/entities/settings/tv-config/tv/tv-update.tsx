@@ -40,7 +40,7 @@ export const TVUpdate = () => {
   );
 
   const [activePageIndex, setActivePageIndex] = useState(0);
-  const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  const [selectedElements, setSelectedElements] = useState<string[]>([]);
   const [aspectRatio, setAspectRatio] = useState('16:9');
   const [resizingElement, setResizingElement] = useState<string | null>(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
@@ -132,7 +132,7 @@ export const TVUpdate = () => {
     if (activePageIndex >= updatedPages.length) {
       setActivePageIndex(Math.max(0, updatedPages.length - 1));
     }
-    setSelectedElement(null);
+    setSelectedElements([]);
   };
 
   const updateCarouselPage = (pageIndex: number, updates: Partial<ICarouselPage>) => {
@@ -184,7 +184,7 @@ export const TVUpdate = () => {
 
     const updatedElements = [...currentPage.elements, newElement];
     updateCarouselPage(activePageIndex, { elements: updatedElements });
-    setSelectedElement(newElement.id);
+    setSelectedElements([newElement.id]);
   };
 
   const updateElement = (elementId: string, updates: Partial<ICarouselItemElement>) => {
@@ -203,7 +203,7 @@ export const TVUpdate = () => {
 
     const updatedElements = currentPage.elements.filter(el => el.id !== elementId);
     updateCarouselPage(activePageIndex, { elements: updatedElements });
-    setSelectedElement(null);
+    setSelectedElements(prev => prev.filter(id => id !== elementId));
   };
 
   const moveElementLayer = (elementId: string, direction: 'up' | 'down') => {
@@ -242,6 +242,194 @@ export const TVUpdate = () => {
     });
   };
 
+  // Multi-selection operations
+  const alignLeft = () => {
+    if (selectedElements.length < 2) return;
+
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+    const leftmostX = Math.min(...selectedElementsData.map(el => el.position?.x || 0));
+
+    selectedElements.forEach(elementId => {
+      updateElement(elementId, {
+        position: {
+          ...elements.find(el => el.id === elementId)?.position,
+          x: leftmostX
+        }
+      });
+    });
+  };
+
+  const alignTop = () => {
+    if (selectedElements.length < 2) return;
+
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+    const topmostY = Math.min(...selectedElementsData.map(el => el.position?.y || 0));
+
+    selectedElements.forEach(elementId => {
+      updateElement(elementId, {
+        position: {
+          ...elements.find(el => el.id === elementId)?.position,
+          y: topmostY
+        }
+      });
+    });
+  };
+
+  const alignBottom = () => {
+    if (selectedElements.length < 2) return;
+
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+    // Calculate bottom edge (y + height) and find the bottommost
+    const bottommostY = Math.max(...selectedElementsData.map(el => (el.position?.y || 0) + (el.size?.height || 0)));
+
+    selectedElements.forEach(elementId => {
+      const element = elements.find(el => el.id === elementId);
+      const elementHeight = element?.size?.height || 0;
+      updateElement(elementId, {
+        position: {
+          ...element?.position,
+          y: bottommostY - elementHeight
+        }
+      });
+    });
+  };
+
+  const alignRight = () => {
+    if (selectedElements.length < 2) return;
+
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+    // Calculate right edge (x + width) and find the rightmost
+    const rightmostX = Math.max(...selectedElementsData.map(el => (el.position?.x || 0) + (el.size?.width || 0)));
+
+    selectedElements.forEach(elementId => {
+      const element = elements.find(el => el.id === elementId);
+      const elementWidth = element?.size?.width || 0;
+      updateElement(elementId, {
+        position: {
+          ...element?.position,
+          x: rightmostX - elementWidth
+        }
+      });
+    });
+  };
+
+  const makeSameWidth = () => {
+    if (selectedElements.length < 2) return;
+
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+    const firstElementWidth = selectedElementsData[0]?.size?.width || 0;
+
+    selectedElements.forEach(elementId => {
+      updateElement(elementId, {
+        size: {
+          ...elements.find(el => el.id === elementId)?.size,
+          width: firstElementWidth
+        }
+      });
+    });
+  };
+
+  const makeSameHeight = () => {
+    if (selectedElements.length < 2) return;
+
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+    const firstElementHeight = selectedElementsData[0]?.size?.height || 0;
+
+    selectedElements.forEach(elementId => {
+      updateElement(elementId, {
+        size: {
+          ...elements.find(el => el.id === elementId)?.size,
+          height: firstElementHeight
+        }
+      });
+    });
+  };
+
+  const makeSameSizeSmaller = () => {
+    if (selectedElements.length < 2) return;
+
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+    const smallestWidth = Math.min(...selectedElementsData.map(el => el.size?.width || 0));
+    const smallestHeight = Math.min(...selectedElementsData.map(el => el.size?.height || 0));
+
+    selectedElements.forEach(elementId => {
+      updateElement(elementId, {
+        size: {
+          width: smallestWidth,
+          height: smallestHeight
+        }
+      });
+    });
+  };
+
+  const makeSameSizeLarger = () => {
+    if (selectedElements.length < 2) return;
+
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+    const largestWidth = Math.max(...selectedElementsData.map(el => el.size?.width || 0));
+    const largestHeight = Math.max(...selectedElementsData.map(el => el.size?.height || 0));
+
+    selectedElements.forEach(elementId => {
+      updateElement(elementId, {
+        size: {
+          width: largestWidth,
+          height: largestHeight
+        }
+      });
+    });
+  };
+
+  const bulkChangeTextColor = (color: string) => {
+    const elements = currentPage?.elements || [];
+    const selectedTextElements = elements.filter(el =>
+      selectedElements.includes(el.id) && el.type === 'text'
+    );
+
+    selectedTextElements.forEach(element => {
+      updateElement(element.id, {
+        style: {
+          ...element.style,
+          color
+        }
+      });
+    });
+  };
+
+  const bulkToggleLock = () => {
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+    const allLocked = selectedElementsData.every(el => el.locked);
+
+    selectedElements.forEach(elementId => {
+      updateElement(elementId, {
+        locked: !allLocked
+      });
+    });
+
+    // Clear selection if we just locked all elements
+    if (!allLocked) {
+      setSelectedElements([]);
+    }
+  };
+
+  const bulkDelete = () => {
+    if (selectedElements.length === 0) return;
+
+    if (window.confirm(`Are you sure you want to delete ${selectedElements.length} element(s)?`)) {
+      const updatedElements = currentPage?.elements.filter(el => !selectedElements.includes(el.id)) || [];
+      updateCarouselPage(activePageIndex, { elements: updatedElements });
+      setSelectedElements([]);
+    }
+  };
+
   const handleContextMenu = (e: React.MouseEvent, elementId: string) => {
     e.preventDefault();
     setContextMenu({
@@ -269,9 +457,9 @@ export const TVUpdate = () => {
     const maxHeight = 450;
     const actualWidth = tv.dimensions?.width || 1920;
     const actualHeight = tv.dimensions?.height || 1080;
-    
+
     const ratio = Math.min(maxWidth / actualWidth, maxHeight / actualHeight);
-    
+
     return {
       width: actualWidth * ratio,
       height: actualHeight * ratio,
@@ -281,8 +469,44 @@ export const TVUpdate = () => {
 
   const screenDimensions = getScreenDimensions();
   const currentPage: ICarouselPage = tv.carouselPages?.[activePageIndex];
-  const selectedElementData = selectedElement ? 
-    currentPage?.elements.find(el => el.id === selectedElement) : null;
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!currentPage) return;
+
+      // Ctrl+A or Cmd+A: Select all elements
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+        e.preventDefault();
+        const unlockedElements = currentPage.elements
+          .filter(el => !el.locked)
+          .map(el => el.id);
+        setSelectedElements(unlockedElements);
+      }
+
+      // Delete key: Delete selected elements
+      if (e.key === 'Delete' && selectedElements.length > 0) {
+        e.preventDefault();
+        if (selectedElements.length === 1) {
+          deleteElement(selectedElements[0]);
+        } else {
+          bulkDelete();
+        }
+      }
+
+      // Escape: Clear selection
+      if (e.key === 'Escape') {
+        setSelectedElements([]);
+        closeContextMenu();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [currentPage, selectedElements]);
+  
+  const selectedElementData = selectedElements.length === 1 ?
+    currentPage?.elements.find(el => el.id === selectedElements[0]) : null;
 
   const saveEntity = (e, createNew = false) => {
     e.preventDefault();
@@ -387,18 +611,40 @@ export const TVUpdate = () => {
           {/* TV Preview */}
           <div className="tv-preview">
             <h3>TV Preview</h3>
-            <div 
+            <div
               className="tv-screen"
               style={{
                 width: screenDimensions.width,
                 height: screenDimensions.height
               }}
+              onClick={(e) => {
+                // Clear selection when clicking empty space
+                if (e.target === e.currentTarget) {
+                  setSelectedElements([]);
+                }
+              }}
             >
               {currentPage?.elements.map((element, index) => (
                 <div
                   key={element.id}
-                  className={`carousel-element ${selectedElement === element.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedElement(element.id)}
+                  className={`carousel-element ${selectedElements.includes(element.id) ? 'selected' : ''} ${element.locked ? 'locked' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Don't allow selection of locked elements
+                    if (element.locked) return;
+
+                    if (e.ctrlKey || e.metaKey) {
+                      // Multi-select: toggle element in selection
+                      setSelectedElements(prev =>
+                        prev.includes(element.id)
+                          ? prev.filter(id => id !== element.id)
+                          : [...prev, element.id]
+                      );
+                    } else {
+                      // Single select: replace selection
+                      setSelectedElements([element.id]);
+                    }
+                  }}
                   onContextMenu={(e) => handleContextMenu(e, element.id)}
                   style={{
                     position: 'absolute',
@@ -410,7 +656,7 @@ export const TVUpdate = () => {
                   }}
                 >
                   <Draggable
-                    disabled={resizingElement === element.id}
+                    disabled={element.locked || resizingElement === element.id}
                     handle=".drag-handle"
                     bounds={false}
                     position={{ x: 0, y: 0 }}
@@ -428,19 +674,21 @@ export const TVUpdate = () => {
                     <ResizableBox
                       width={((element.size?.width || 0) / 100) * screenDimensions.width}
                       height={((element.size?.height || 0) / 100) * screenDimensions.height}
-                      onResizeStart={() => setResizingElement(element.id)}
+                      onResizeStart={() => !element.locked && setResizingElement(element.id)}
                       onResize={(e, data) => {
-                        updateElement(element.id, {
-                          size: {
-                            width: ((data?.size?.width || 0) / screenDimensions.width) * 100,
-                            height: ((data?.size?.height || 0) / screenDimensions.height) * 100
-                          }
-                        });
+                        if (!element.locked) {
+                          updateElement(element.id, {
+                            size: {
+                              width: ((data?.size?.width || 0) / screenDimensions.width) * 100,
+                              height: ((data?.size?.height || 0) / screenDimensions.height) * 100
+                            }
+                          });
+                        }
                       }}
                       onResizeStop={() => setResizingElement(null)}
                       minConstraints={[50, 30]}
                       maxConstraints={[screenDimensions.width, screenDimensions.height]}
-                      resizeHandles={['se']}
+                      resizeHandles={element.locked ? [] : ['se']}
                     >
                       <div
                         style={{
@@ -449,7 +697,7 @@ export const TVUpdate = () => {
                           position: 'relative'
                         }}
                       >
-                      <div 
+                      <div
                         className="drag-handle"
                         style={{
                           position: 'absolute',
@@ -457,10 +705,27 @@ export const TVUpdate = () => {
                           left: 0,
                           right: 0,
                           bottom: 0,
-                          cursor: resizingElement === element.id ? 'default' : 'move',
+                          cursor: element.locked ? 'not-allowed' : (resizingElement === element.id ? 'default' : 'move'),
                           zIndex: 1
                         }}
                       />
+                      {element.locked && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '2px',
+                            right: '2px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            borderRadius: '2px',
+                            padding: '2px 4px',
+                            fontSize: '12px',
+                            zIndex: 2,
+                            pointerEvents: 'none'
+                          }}
+                        >
+                          🔒
+                        </div>
+                      )}
                       {element.type === 'text' ? (
                         <div 
                           className="carousel-element-text"
@@ -604,6 +869,118 @@ export const TVUpdate = () => {
                   multiSelect={false}
                 />
               </div>
+
+              {/* Multi-Selection Operations */}
+              {selectedElements.length > 1 && (
+                <div className="multi-selection-toolbar">
+                  <h4>Multi-Selection Operations ({selectedElements.length} selected)</h4>
+
+                  <div className="toolbar-section">
+                    <label className="form-label">Alignment</label>
+                    <div className="toolbar-buttons">
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={alignLeft}
+                        title="Align Left"
+                      >
+                        Align Left
+                      </button>
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={alignRight}
+                        title="Align Right"
+                      >
+                        Align Right
+                      </button>
+                    </div>
+                    <div className="toolbar-buttons">
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={alignTop}
+                        title="Align Top"
+                      >
+                        Align Top
+                      </button>
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={alignBottom}
+                        title="Align Bottom"
+                      >
+                        Align Bottom
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="toolbar-section">
+                    <label className="form-label">Sizing</label>
+                    <div className="toolbar-buttons">
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={makeSameWidth}
+                        title="Make Same Width"
+                      >
+                        Same Width
+                      </button>
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={makeSameHeight}
+                        title="Make Same Height"
+                      >
+                        Same Height
+                      </button>
+                    </div>
+                    <div className="toolbar-buttons">
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={makeSameSizeSmaller}
+                        title="Make Same Size (Smallest)"
+                      >
+                        Size &lt;
+                      </button>
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={makeSameSizeLarger}
+                        title="Make Same Size (Largest)"
+                      >
+                        Size &gt;
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Text Color - only show if all selected elements are text */}
+                  {currentPage?.elements.filter(el => selectedElements.includes(el.id)).every(el => el.type === 'text') && (
+                    <div className="toolbar-section">
+                      <label className="form-label">Text Color</label>
+                      <input
+                        type="color"
+                        onChange={(e) => bulkChangeTextColor(e.target.value)}
+                        className="color-input"
+                        title="Change Text Color"
+                      />
+                    </div>
+                  )}
+
+                  <div className="toolbar-section">
+                    <label className="form-label">Actions</label>
+                    <div className="toolbar-buttons">
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={bulkToggleLock}
+                        title="Lock/Unlock Selected"
+                      >
+                        🔒 Lock/Unlock
+                      </button>
+                      <button
+                        className="btn btn-secondary btn-small"
+                        onClick={bulkDelete}
+                        title="Delete Selected"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Selected Item Fields */}
               {currentPage.selectedItem && (
@@ -768,7 +1145,7 @@ export const TVUpdate = () => {
                         <input
                           type="text"
                           value={selectedElementData.content}
-                          onChange={(e) => updateElement(selectedElement, { content: e.target.value })}
+                          onChange={(e) => updateElement(selectedElements[0], { content: e.target.value })}
                           className="control-input"
                   />
                 </div>
@@ -778,7 +1155,7 @@ export const TVUpdate = () => {
                         <input
                           type="number"
                           value={selectedElementData.style?.fontSize || 24}
-                          onChange={(e) => updateElement(selectedElement, {
+                          onChange={(e) => updateElement(selectedElements[0], {
                             style: { ...selectedElementData.style, fontSize: parseInt(e.target.value, 10) }
                           })}
                           className="control-input"
@@ -792,7 +1169,7 @@ export const TVUpdate = () => {
                         <input
                           type="color"
                           value={selectedElementData.style?.color || '#ffffff'}
-                          onChange={(e) => updateElement(selectedElement, {
+                          onChange={(e) => updateElement(selectedElements[0], {
                             style: { ...selectedElementData.style, color: e.target.value }
                           })}
                           className="color-input"
@@ -803,7 +1180,7 @@ export const TVUpdate = () => {
                         <label className="control-label">Weight</label>
                         <select
                           value={selectedElementData.style?.fontWeight || 'normal'}
-                          onChange={(e) => updateElement(selectedElement, {
+                          onChange={(e) => updateElement(selectedElements[0], {
                             style: { ...selectedElementData.style, fontWeight: e.target.value }
                           })}
                           className="control-input"
@@ -817,7 +1194,7 @@ export const TVUpdate = () => {
                         <label className="control-label">Align</label>
                         <select
                           value={selectedElementData.style?.textAlign || 'left'}
-                          onChange={(e) => updateElement(selectedElement, {
+                          onChange={(e) => updateElement(selectedElements[0], {
                             style: { ...selectedElementData.style, textAlign: e.target.value }
                           })}
                           className="control-input"
@@ -833,7 +1210,7 @@ export const TVUpdate = () => {
                   {selectedElementData.type === 'image' && (
                     <button 
                       className="btn btn-outline btn-small"
-                      onClick={() => fitAsBackground(selectedElement)}
+                      onClick={() => fitAsBackground(selectedElements[0])}
                       style={{ marginTop: '10px', marginRight: '10px' }}
                     >
                       <FaImage />
@@ -843,7 +1220,7 @@ export const TVUpdate = () => {
 
                   <button 
                     className="btn btn-secondary btn-small"
-                    onClick={() => deleteElement(selectedElement)}
+                    onClick={() => deleteElement(selectedElements[0])}
                     style={{ marginTop: '10px' }}
                   >
                     Delete Element
@@ -859,8 +1236,23 @@ export const TVUpdate = () => {
                     {currentPage.elements.map((element, index) => (
                       <div
                         key={element.id}
-                        className={`layer-item ${selectedElement === element.id ? 'selected' : ''}`}
-                        onClick={() => setSelectedElement(element.id)}
+                        className={`layer-item ${selectedElements.includes(element.id) ? 'selected' : ''} ${element.locked ? 'locked' : ''}`}
+                        onClick={(e) => {
+                          // Don't allow selection of locked elements
+                          if (element.locked) return;
+
+                          if (e.ctrlKey || e.metaKey) {
+                            // Multi-select: toggle element in selection
+                            setSelectedElements(prev =>
+                              prev.includes(element.id)
+                                ? prev.filter(id => id !== element.id)
+                                : [...prev, element.id]
+                            );
+                          } else {
+                            // Single select: replace selection
+                            setSelectedElements([element.id]);
+                          }
+                        }}
                         onContextMenu={(e) => handleContextMenu(e, element.id)}
                         draggable
                         onDragStart={(e) => {
@@ -876,6 +1268,7 @@ export const TVUpdate = () => {
                         <div className="layer-info">
                           <div className="layer-type">
                             {element.type === 'text' ? <FaFont /> : <FaImage />}
+                            {element.locked && <span style={{ marginLeft: '4px', fontSize: '12px' }}>🔒</span>}
                           </div>
                           <div className="layer-content">
                             <div className="layer-name">
@@ -964,6 +1357,20 @@ export const TVUpdate = () => {
             closeContextMenu();
           }}>
             <FaArrowDown /> Send Backward
+          </div>
+          <div className="context-menu-separator" />
+          <div className="context-menu-item" onClick={() => {
+            const element = currentPage?.elements.find(el => el.id === contextMenu.elementId);
+            if (element) {
+              updateElement(contextMenu.elementId, { locked: !element.locked });
+              if (!element.locked) {
+                // Clear selection if we just locked the element
+                setSelectedElements(prev => prev.filter(id => id !== contextMenu.elementId));
+              }
+            }
+            closeContextMenu();
+          }}>
+            🔒 {currentPage?.elements.find(el => el.id === contextMenu.elementId)?.locked ? 'Unlock' : 'Lock'} Element
           </div>
           <div className="context-menu-separator" />
           <div className="context-menu-item context-menu-delete" onClick={() => {

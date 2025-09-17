@@ -1,7 +1,7 @@
 .tv-builder-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #f5f5f5;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -18,6 +18,7 @@
   flex: 1;
   gap: 20px;
   padding: 20px;
+  align-items: flex-start;
 }
 
 .tv-builder-main {
@@ -25,6 +26,11 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: sticky;
+  top: 20px;
+  align-self: flex-start;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
 }
 
 .tv-builder-sidebar {
@@ -34,6 +40,7 @@
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   overflow-y: auto;
+  max-height: calc(100vh - 40px);
 }
 
 .tv-preview {
@@ -565,4 +572,75 @@
 
 .layers-list .layer-item:drag {
   opacity: 0.5;
+}
+
+/* Multi-Selection Toolbar */
+.multi-selection-toolbar {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.multi-selection-toolbar h4 {
+  margin: 0 0 15px 0;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.toolbar-section {
+  margin-bottom: 12px;
+}
+
+.toolbar-section:last-child {
+  margin-bottom: 0;
+}
+
+.toolbar-section .form-label {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #6c757d;
+}
+
+.toolbar-buttons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.toolbar-buttons:last-child {
+  margin-bottom: 0;
+}
+
+/* Locked Element Styles */
+.carousel-element.locked {
+  border-color: #ffc107 !important;
+  opacity: 0.8;
+}
+
+.carousel-element.locked:hover {
+  border-color: #e0a800 !important;
+}
+
+.layer-item.locked {
+  opacity: 0.6;
+  background-color: #fff3cd;
+  border-left: 3px solid #ffc107;
+}
+
+.layer-item.locked .layer-name::after {
+  content: ' (Locked)';
+  font-size: 10px;
+  color: #856404;
+  font-style: italic;
+}
+
+/* Multi-selection visual feedback */
+.carousel-element.selected:not(.locked) {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
 } 
