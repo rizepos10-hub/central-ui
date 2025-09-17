@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Draggable from 'react-draggable';
@@ -51,21 +51,53 @@ export const TVUpdate = () => {
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
 
-  // Helper function to calculate text height based on content and font size
-  const calculateTextHeight = (text: string, fontSize: number, widthPercentage: number): number => {
-    // Create a temporary canvas to measure text
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
+  // Local state for smooth resize preview
+  const [resizePreview, setResizePreview] = useState<{[elementId: string]: {width: number, height: number, fontSize?: number}} | null>(null);
+
+  // Store initial positions when drag starts
+  const [dragStartPositions, setDragStartPositions] = useState<{[elementId: string]: {x: number, y: number}} | null>(null);
+
+  // Cache for text height calculations
+  const textHeightCache = useRef<Map<string, number>>(new Map());
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const screenDimensions = useMemo(() => {
+    const maxWidth = 800;
+    const maxHeight = 450;
+    const actualWidth = tv.dimensions?.width || 1920;
+    const actualHeight = tv.dimensions?.height || 1080;
+
+    const ratio = Math.min(maxWidth / actualWidth, maxHeight / actualHeight);
+
+    return {
+      width: actualWidth * ratio,
+      height: actualHeight * ratio,
+      scale: ratio
+    };
+  }, [tv.dimensions?.width, tv.dimensions?.height]);
+
+  // Optimized text height calculation with caching
+  const calculateTextHeight = useCallback((text: string, fontSize: number, widthPercentage: number): number => {
+    const cacheKey = `${text}-${fontSize}-${Math.round(widthPercentage)}`;
+    const cached = textHeightCache.current.get(cacheKey);
+    if (cached) return cached;
+
+    // Reuse canvas element
+    if (!canvasRef.current) {
+      canvasRef.current = document.createElement('canvas');
+    }
+
+    const context = canvasRef.current.getContext('2d');
     if (!context) return 10; // fallback
 
     context.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
-    const lineHeight = fontSize * 1.2; // Standard line height multiplier
+    const lineHeight = fontSize * 1.2;
 
     // Calculate actual width in pixels
     const actualWidth = (widthPercentage / 100) * screenDimensions.width;
-    const maxWidth = actualWidth * 0.9; // Account for padding
+    const maxWidth = actualWidth * 0.9;
 
-    // Split text into words and calculate how many lines we need
+    // Optimized word wrapping
     const words = text.split(' ');
     let lines = 1;
     let currentLineWidth = 0;
@@ -80,13 +112,21 @@ export const TVUpdate = () => {
       }
     }
 
-    // Calculate total height needed (lines * lineHeight + padding)
-    const totalHeightPixels = (lines * lineHeight) + 16; // 16px for padding
+    const totalHeightPixels = (lines * lineHeight) + 16;
     const minHeightPixels = Math.max(totalHeightPixels, fontSize + 16);
+    const result = (minHeightPixels / screenDimensions.height) * 100;
 
-    // Convert back to percentage
-    return (minHeightPixels / screenDimensions.height) * 100;
-  };
+    // Cache the result
+    textHeightCache.current.set(cacheKey, result);
+
+    // Limit cache size
+    if (textHeightCache.current.size > 100) {
+      const firstKey = textHeightCache.current.keys().next().value;
+      textHeightCache.current.delete(firstKey);
+    }
+
+    return result;
+  }, [screenDimensions.width, screenDimensions.height]);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -230,15 +270,17 @@ export const TVUpdate = () => {
     setSelectedElements([newElement.id]);
   };
 
-  const updateElement = (elementId: string, updates: Partial<ICarouselItemElement>) => {
+
+  const updateElement = useCallback((elementId: string, updates: Partial<ICarouselItemElement>, immediate = true) => {
     const currentPage = tv.carouselPages?.[activePageIndex];
     if (!currentPage) return;
 
+    // For drag/resize operations, we'll use immediate updates to avoid delays
     const updatedElements = currentPage.elements.map(el =>
       el.id === elementId ? { ...el, ...updates } : el
     );
     updateCarouselPage(activePageIndex, { elements: updatedElements });
-  };
+  }, [tv.carouselPages, activePageIndex, updateCarouselPage]);
 
   const updateMultipleElements = (elementIds: string[], updates: Partial<ICarouselItemElement> | ((element: ICarouselItemElement) => Partial<ICarouselItemElement>)) => {
     const currentPage = tv.carouselPages?.[activePageIndex];
@@ -523,23 +565,10 @@ export const TVUpdate = () => {
     }
   }, [contextMenu]);
 
-  const getScreenDimensions = () => {
-    const maxWidth = 800;
-    const maxHeight = 450;
-    const actualWidth = tv.dimensions?.width || 1920;
-    const actualHeight = tv.dimensions?.height || 1080;
-
-    const ratio = Math.min(maxWidth / actualWidth, maxHeight / actualHeight);
-
-    return {
-      width: actualWidth * ratio,
-      height: actualHeight * ratio,
-      scale: ratio
-    };
-  };
-
-  const screenDimensions = getScreenDimensions();
-  const currentPage: ICarouselPage = tv.carouselPages?.[activePageIndex];
+  const currentPage: ICarouselPage = useMemo(() =>
+    tv.carouselPages?.[activePageIndex],
+    [tv.carouselPages, activePageIndex]
+  );
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -575,7 +604,30 @@ export const TVUpdate = () => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [currentPage, selectedElements]);
-  
+
+  // Update text element heights when they change
+  useEffect(() => {
+    if (currentPage?.elements) {
+      currentPage.elements.forEach(element => {
+        if (element.type === 'text') {
+          const fontSize = element.style?.fontSize || 24;
+          const currentWidth = element.size?.width || 0;
+          const expectedHeight = calculateTextHeight(element.content, fontSize, currentWidth);
+
+          // Only update if height is significantly different (avoid infinite loops)
+          if (Math.abs((element.size?.height || 0) - expectedHeight) > 1) {
+            updateElement(element.id, {
+              size: {
+                ...element.size,
+                height: expectedHeight
+              }
+            });
+          }
+        }
+      });
+    }
+  }, [currentPage?.elements, calculateTextHeight, updateElement]);
+
   const selectedElementData = selectedElements.length === 1 ?
     currentPage?.elements.find(el => el.id === selectedElements[0]) : null;
 
@@ -738,8 +790,22 @@ export const TVUpdate = () => {
                             return el && !el.locked;
                           })
                         : [element.id];
+
                       setDraggingElements(elementsToMove);
                       setDragOffsets({}); // Reset offsets
+
+                      // Store initial positions
+                      const initialPositions: {[elementId: string]: {x: number, y: number}} = {};
+                      elementsToMove.forEach(id => {
+                        const el = currentPage?.elements.find(e => e.id === id);
+                        if (el) {
+                          initialPositions[id] = {
+                            x: el.position?.x || 0,
+                            y: el.position?.y || 0
+                          };
+                        }
+                      });
+                      setDragStartPositions(initialPositions);
                     }}
                     onDrag={(e, data) => {
                       // Real-time visual offset updates for multi-selection
@@ -780,12 +846,10 @@ export const TVUpdate = () => {
                         }));
                       } else {
                         // Single element drag
-                        const newX = ((element.position?.x || 0) / 100) * screenDimensions.width + (data?.x || 0);
-                        const newY = ((element.position?.y || 0) / 100) * screenDimensions.height + (data?.y || 0);
                         updateElement(element.id, {
                           position: {
-                            x: (newX / screenDimensions.width) * 100,
-                            y: (newY / screenDimensions.height) * 100
+                            x: (element.position?.x || 0) + deltaX,
+                            y: (element.position?.y || 0) + deltaY
                           }
                         });
                       }
@@ -793,18 +857,16 @@ export const TVUpdate = () => {
                       // Clear dragging state and offsets
                       setDraggingElements([]);
                       setDragOffsets({});
+                      setDragStartPositions(null);
                     }}
                   >
                     <ResizableBox
-                      width={((element.size?.width || 0) / 100) * screenDimensions.width}
-                      height={element.type === 'text' ?
-                        calculateTextHeight(element.content, element.style?.fontSize || 24, element.size?.width || 0) / 100 * screenDimensions.height :
-                        ((element.size?.height || 0) / 100) * screenDimensions.height
-                      }
+                      width={resizePreview?.[element.id]?.width || ((element.size?.width || 0) / 100) * screenDimensions.width}
+                      height={resizePreview?.[element.id]?.height || ((element.size?.height || 0) / 100) * screenDimensions.height}
                       onResizeStart={(e, { node, handle }) => {
                         if (!element.locked) {
                           setResizingElement(element.id);
-                          // Store baseline for proportional scaling (only for corner resizing)
+                          // Store baseline for proportional font scaling (only for corner resizing)
                           if (element.type === 'text' && handle === 'se') {
                             setResizeBaseline({
                               size: {
@@ -818,48 +880,83 @@ export const TVUpdate = () => {
                       }}
                       onResize={(e, { size, handle }) => {
                         if (!element.locked) {
-                          const newWidth = (size.width / screenDimensions.width) * 100;
+                          // Use local state for immediate visual feedback during resize
+                          const pixelWidth = size.width;
+                          const pixelHeight = size.height;
 
                           if (element.type === 'text') {
-                            // For text elements, auto-calculate height
-                            const fontSize = element.style?.fontSize || 24;
+                            // For text elements, calculate font scaling for corner resize
+                            let previewFontSize = element.style?.fontSize || 24;
+
+                            // Scale font when resizing from corner (se handle) like Canva
+                            if (handle === 'se' && resizeBaseline) {
+                              const baselineWidthPx = (resizeBaseline.size.width / 100) * screenDimensions.width;
+                              const baselineFontSize = resizeBaseline.fontSize;
+
+                              if (baselineWidthPx > 0) {
+                                const widthScale = pixelWidth / baselineWidthPx;
+                                // More responsive scaling with lower threshold
+                                if (Math.abs(widthScale - 1) > 0.01) {
+                                  previewFontSize = Math.max(8, Math.min(120, Math.round(baselineFontSize * widthScale)));
+                                }
+                              }
+                            }
+
+                            // Always auto-calculate height based on current font size and width
+                            const widthPercentage = (pixelWidth / screenDimensions.width) * 100;
+                            const autoHeight = calculateTextHeight(element.content, previewFontSize, widthPercentage);
+                            const autoHeightPixels = (autoHeight / 100) * screenDimensions.height;
+
+                            setResizePreview({
+                              [element.id]: {
+                                width: pixelWidth,
+                                height: autoHeightPixels,
+                                fontSize: previewFontSize
+                              }
+                            });
+                          } else {
+                            // For non-text elements, simple width/height preview
+                            setResizePreview({
+                              [element.id]: {
+                                width: pixelWidth,
+                                height: pixelHeight
+                              }
+                            });
+                          }
+                        }
+                      }}
+                      onResizeStop={(e, data) => {
+                        // Always clear states first to ensure resize stops
+                        setResizingElement(null);
+                        setResizeBaseline(null);
+
+                        if (!element.locked) {
+                          // Apply final changes to Redux state
+                          const newWidth = (data.size.width / screenDimensions.width) * 100;
+                          const newHeight = (data.size.height / screenDimensions.height) * 100;
+
+                          if (element.type === 'text') {
+                            // Get font size from preview if it was scaled, otherwise use current font size
+                            const fontSize = resizePreview?.[element.id]?.fontSize || element.style?.fontSize || 24;
                             const autoHeight = calculateTextHeight(element.content, fontSize, newWidth);
 
                             const updates: Partial<ICarouselItemElement> = {
                               size: {
                                 width: newWidth,
-                                height: autoHeight
+                                height: autoHeight  // Always use auto-calculated height for text
                               }
                             };
 
-                            // Only scale font when resizing from corner (se handle) like Canva
-                            if (handle === 'se' && resizeBaseline) {
-                              const baselineWidth = resizeBaseline.size.width;
-                              const baselineFontSize = resizeBaseline.fontSize;
-
-                              if (baselineWidth > 0) {
-                                // Use width scaling as primary factor
-                                const widthScale = newWidth / baselineWidth;
-
-                                // Only apply scaling if the change is significant
-                                if (Math.abs(widthScale - 1) > 0.05) {
-                                  const newFontSize = Math.round(baselineFontSize * widthScale);
-                                  const boundedFontSize = Math.max(8, Math.min(120, newFontSize));
-
-                                  // Recalculate height with new font size
-                                  updates.size.height = calculateTextHeight(element.content, boundedFontSize, newWidth);
-                                  updates.style = {
-                                    ...element.style,
-                                    fontSize: boundedFontSize
-                                  };
-                                }
-                              }
+                            // Update font size if it was scaled during corner resize
+                            if (data.handle === 'se' && resizePreview?.[element.id]?.fontSize) {
+                              updates.style = {
+                                ...element.style,
+                                fontSize: resizePreview[element.id].fontSize
+                              };
                             }
 
                             updateElement(element.id, updates);
                           } else {
-                            // For non-text elements, use normal resizing
-                            const newHeight = (size.height / screenDimensions.height) * 100;
                             updateElement(element.id, {
                               size: {
                                 width: newWidth,
@@ -868,16 +965,39 @@ export const TVUpdate = () => {
                             });
                           }
                         }
+
+                        // Clear preview state last
+                        setResizePreview(null);
                       }}
-                      onResizeStop={() => {
-                        setResizingElement(null);
-                        setResizeBaseline(null);
-                      }}
-                      minConstraints={[50, element.type === 'text' ? 30 : 30]}
+                      minConstraints={[30, element.type === 'text' ? 20 : 30]} // Smaller minimum for easier resizing
                       maxConstraints={[screenDimensions.width, screenDimensions.height]}
                       resizeHandles={element.locked ? [] :
-                        element.type === 'text' ? ['e', 'se'] : ['se'] // Text: only east and southeast (width and corner)
+                        element.type === 'text' ? ['e', 'se'] : ['se'] // Text: east (width) + southeast (font scaling), Images: southeast (corner)
                       }
+                      handleStyle={{
+                        se: {
+                          width: '14px',
+                          height: '14px',
+                          backgroundColor: '#007bff',
+                          border: '2px solid white',
+                          borderRadius: '2px',
+                          cursor: 'se-resize',
+                          bottom: '-7px',
+                          right: '-7px'
+                        },
+                        e: {
+                          width: '6px',
+                          height: '24px',
+                          backgroundColor: '#007bff',
+                          border: '1px solid white',
+                          borderRadius: '3px',
+                          cursor: 'ew-resize',
+                          right: '-3px',
+                          top: '50%',
+                          transform: 'translateY(-50%)'
+                        }
+                      }}
+                      axis={element.type === 'text' ? undefined : 'both'}
                     >
                       <div
                         style={{
@@ -951,7 +1071,7 @@ export const TVUpdate = () => {
                           }}
                         >
                           <span style={{
-                            fontSize: element.style?.fontSize || 24,
+                            fontSize: resizePreview?.[element.id]?.fontSize || element.style?.fontSize || 24,
                             color: element.style?.color || '#ffffff',
                             fontWeight: element.style?.fontWeight || 'normal',
                             textAlign: 'center',
@@ -1369,16 +1489,6 @@ export const TVUpdate = () => {
                   
                   {selectedElementData.type === 'text' && (
                     <>
-                      <div className="control-group">
-                        <label className="control-label">Text</label>
-                        <input
-                          type="text"
-                          value={selectedElementData.content}
-                          onChange={(e) => updateElement(selectedElements[0], { content: e.target.value })}
-                          className="control-input"
-                  />
-                </div>
-
                       <div className="control-group">
                         <label className="control-label">Font Size</label>
                         <input
