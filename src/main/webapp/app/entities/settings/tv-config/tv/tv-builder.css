@@ -643,4 +643,34 @@
 .carousel-element.selected:not(.locked) {
   border-color: #007bff;
   box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+/* Multi-selection drag feedback */
+.carousel-element.dragging {
+  opacity: 0.85;
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0,123,255,0.5);
+  border-color: #007bff !important;
+  border-width: 3px !important;
+  z-index: 9999 !important;
+  animation: dragPulse 0.8s ease-in-out infinite alternate;
+}
+
+.carousel-element.selected.dragging {
+  box-shadow: 0 8px 24px rgba(0,123,255,0.6);
+  border-color: #0056b3 !important;
+  border-width: 4px !important;
+}
+
+.carousel-element:not(.dragging) {
+  transition: all 0.2s ease;
+}
+
+@keyframes dragPulse {
+  0% {
+    box-shadow: 0 8px 24px rgba(0,123,255,0.5);
+  }
+  100% {
+    box-shadow: 0 12px 32px rgba(0,123,255,0.7);
+  }
 } 
