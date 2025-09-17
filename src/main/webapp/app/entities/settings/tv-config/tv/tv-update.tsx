@@ -191,9 +191,23 @@ export const TVUpdate = () => {
     const currentPage = tv.carouselPages?.[activePageIndex];
     if (!currentPage) return;
 
-    const updatedElements = currentPage.elements.map(el => 
+    const updatedElements = currentPage.elements.map(el =>
       el.id === elementId ? { ...el, ...updates } : el
     );
+    updateCarouselPage(activePageIndex, { elements: updatedElements });
+  };
+
+  const updateMultipleElements = (elementIds: string[], updates: Partial<ICarouselItemElement> | ((element: ICarouselItemElement) => Partial<ICarouselItemElement>)) => {
+    const currentPage = tv.carouselPages?.[activePageIndex];
+    if (!currentPage) return;
+
+    const updatedElements = currentPage.elements.map(el => {
+      if (elementIds.includes(el.id)) {
+        const elementUpdates = typeof updates === 'function' ? updates(el) : updates;
+        return { ...el, ...elementUpdates };
+      }
+      return el;
+    });
     updateCarouselPage(activePageIndex, { elements: updatedElements });
   };
 
@@ -250,14 +264,12 @@ export const TVUpdate = () => {
     const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
     const leftmostX = Math.min(...selectedElementsData.map(el => el.position?.x || 0));
 
-    selectedElements.forEach(elementId => {
-      updateElement(elementId, {
-        position: {
-          ...elements.find(el => el.id === elementId)?.position,
-          x: leftmostX
-        }
-      });
-    });
+    updateMultipleElements(selectedElements, (element) => ({
+      position: {
+        ...element.position,
+        x: leftmostX
+      }
+    }));
   };
 
   const alignTop = () => {
@@ -267,14 +279,12 @@ export const TVUpdate = () => {
     const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
     const topmostY = Math.min(...selectedElementsData.map(el => el.position?.y || 0));
 
-    selectedElements.forEach(elementId => {
-      updateElement(elementId, {
-        position: {
-          ...elements.find(el => el.id === elementId)?.position,
-          y: topmostY
-        }
-      });
-    });
+    updateMultipleElements(selectedElements, (element) => ({
+      position: {
+        ...element.position,
+        y: topmostY
+      }
+    }));
   };
 
   const alignBottom = () => {
@@ -285,15 +295,14 @@ export const TVUpdate = () => {
     // Calculate bottom edge (y + height) and find the bottommost
     const bottommostY = Math.max(...selectedElementsData.map(el => (el.position?.y || 0) + (el.size?.height || 0)));
 
-    selectedElements.forEach(elementId => {
-      const element = elements.find(el => el.id === elementId);
-      const elementHeight = element?.size?.height || 0;
-      updateElement(elementId, {
+    updateMultipleElements(selectedElements, (element) => {
+      const elementHeight = element.size?.height || 0;
+      return {
         position: {
-          ...element?.position,
+          ...element.position,
           y: bottommostY - elementHeight
         }
-      });
+      };
     });
   };
 
@@ -305,15 +314,14 @@ export const TVUpdate = () => {
     // Calculate right edge (x + width) and find the rightmost
     const rightmostX = Math.max(...selectedElementsData.map(el => (el.position?.x || 0) + (el.size?.width || 0)));
 
-    selectedElements.forEach(elementId => {
-      const element = elements.find(el => el.id === elementId);
-      const elementWidth = element?.size?.width || 0;
-      updateElement(elementId, {
+    updateMultipleElements(selectedElements, (element) => {
+      const elementWidth = element.size?.width || 0;
+      return {
         position: {
-          ...element?.position,
+          ...element.position,
           x: rightmostX - elementWidth
         }
-      });
+      };
     });
   };
 
@@ -322,16 +330,14 @@ export const TVUpdate = () => {
 
     const elements = currentPage?.elements || [];
     const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
-    const firstElementWidth = selectedElementsData[0]?.size?.width || 0;
+    const targetWidth = Math.max(...selectedElementsData.map(el => el.size?.width || 0));
 
-    selectedElements.forEach(elementId => {
-      updateElement(elementId, {
-        size: {
-          ...elements.find(el => el.id === elementId)?.size,
-          width: firstElementWidth
-        }
-      });
-    });
+    updateMultipleElements(selectedElements, (element) => ({
+      size: {
+        ...element.size,
+        width: targetWidth
+      }
+    }));
   };
 
   const makeSameHeight = () => {
@@ -339,16 +345,14 @@ export const TVUpdate = () => {
 
     const elements = currentPage?.elements || [];
     const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
-    const firstElementHeight = selectedElementsData[0]?.size?.height || 0;
+    const targetHeight = Math.max(...selectedElementsData.map(el => el.size?.height || 0));
 
-    selectedElements.forEach(elementId => {
-      updateElement(elementId, {
-        size: {
-          ...elements.find(el => el.id === elementId)?.size,
-          height: firstElementHeight
-        }
-      });
-    });
+    updateMultipleElements(selectedElements, (element) => ({
+      size: {
+        ...element.size,
+        height: targetHeight
+      }
+    }));
   };
 
   const makeSameSizeSmaller = () => {
@@ -359,13 +363,11 @@ export const TVUpdate = () => {
     const smallestWidth = Math.min(...selectedElementsData.map(el => el.size?.width || 0));
     const smallestHeight = Math.min(...selectedElementsData.map(el => el.size?.height || 0));
 
-    selectedElements.forEach(elementId => {
-      updateElement(elementId, {
-        size: {
-          width: smallestWidth,
-          height: smallestHeight
-        }
-      });
+    updateMultipleElements(selectedElements, {
+      size: {
+        width: smallestWidth,
+        height: smallestHeight
+      }
     });
   };
 
@@ -377,30 +379,26 @@ export const TVUpdate = () => {
     const largestWidth = Math.max(...selectedElementsData.map(el => el.size?.width || 0));
     const largestHeight = Math.max(...selectedElementsData.map(el => el.size?.height || 0));
 
-    selectedElements.forEach(elementId => {
-      updateElement(elementId, {
-        size: {
-          width: largestWidth,
-          height: largestHeight
-        }
-      });
+    updateMultipleElements(selectedElements, {
+      size: {
+        width: largestWidth,
+        height: largestHeight
+      }
     });
   };
 
   const bulkChangeTextColor = (color: string) => {
     const elements = currentPage?.elements || [];
-    const selectedTextElements = elements.filter(el =>
-      selectedElements.includes(el.id) && el.type === 'text'
-    );
+    const selectedTextElementIds = elements
+      .filter(el => selectedElements.includes(el.id) && el.type === 'text')
+      .map(el => el.id);
 
-    selectedTextElements.forEach(element => {
-      updateElement(element.id, {
-        style: {
-          ...element.style,
-          color
-        }
-      });
-    });
+    updateMultipleElements(selectedTextElementIds, (element) => ({
+      style: {
+        ...element.style,
+        color
+      }
+    }));
   };
 
   const bulkToggleLock = () => {
@@ -408,10 +406,8 @@ export const TVUpdate = () => {
     const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
     const allLocked = selectedElementsData.every(el => el.locked);
 
-    selectedElements.forEach(elementId => {
-      updateElement(elementId, {
-        locked: !allLocked
-      });
+    updateMultipleElements(selectedElements, {
+      locked: !allLocked
     });
 
     // Clear selection if we just locked all elements
