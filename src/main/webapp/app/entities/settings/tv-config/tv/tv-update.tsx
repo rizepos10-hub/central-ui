@@ -24,6 +24,296 @@ import { ITv } from '../../../../shared/model/TV/tv.model';
 import MediaLibrary from "../../../../shared/components/media-library/media-library";
 import { transformAttachmentStructure } from "../../../../shared/util/attachment-utils";
 
+interface PreviewModalProps {
+  showPreview: boolean;
+  setShowPreview: (show: boolean) => void;
+  currentPage: ICarouselPage | undefined;
+  tv: ITv;
+}
+
+const PreviewModal: React.FC<PreviewModalProps> = ({ showPreview, setShowPreview, currentPage, tv }) => {
+  if (!showPreview) return null;
+
+  return (
+    <div
+      className="preview-modal"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: '#000',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+      onClick={() => setShowPreview(false)}
+    >
+      <div
+        className="preview-screen"
+        style={{
+          width: tv.dimensions?.width || 1920,
+          height: tv.dimensions?.height || 1080,
+          maxWidth: '95vw',
+          maxHeight: '95vh',
+          backgroundColor: '#000',
+          position: 'relative',
+          overflow: 'hidden',
+          transform: 'scale(' + Math.min(
+            (window.innerWidth * 0.95) / (tv.dimensions?.width || 1920),
+            (window.innerHeight * 0.95) / (tv.dimensions?.height || 1080)
+          ) + ')'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {currentPage?.elements.map((element, index) => (
+          <div
+            key={element.id}
+            className="preview-element"
+            style={{
+              position: 'absolute',
+              left: `${element.position?.x || 0}%`,
+              top: `${element.position?.y || 0}%`,
+              width: `${element.size?.width || 0}%`,
+              height: `${element.size?.height || 0}%`,
+              zIndex: index + 1
+            }}
+          >
+            {element.type === 'text' ? (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '8px',
+                  fontSize: element.style?.fontSize || 24,
+                  color: element.style?.color || '#ffffff',
+                  fontWeight: element.style?.fontWeight || 'normal',
+                  textAlign: element.style?.textAlign as any || 'center',
+                  lineHeight: '1.2'
+                }}
+              >
+                {element.content}
+              </div>
+            ) : (
+              <img
+                src={element.content}
+                alt="Element"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+            )}
+          </div>
+        ))}
+
+        <div
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            color: 'white',
+            padding: '8px 12px',
+            borderRadius: '4px',
+            fontSize: '14px',
+            zIndex: 1000
+          }}
+        >
+          Press ESC to close preview
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface HeaderControlsProps {
+  isNew: boolean;
+  undo: () => void;
+  redo: () => void;
+  undoStack: ICarouselPage[];
+  redoStack: ICarouselPage[];
+  setShowPreview: (show: boolean) => void;
+  currentPage: ICarouselPage | undefined;
+}
+
+const HeaderControls: React.FC<HeaderControlsProps> = ({
+  isNew,
+  undo,
+  redo,
+  undoStack,
+  redoStack,
+  setShowPreview,
+  currentPage
+}) => {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <h2>{isNew ? "Create New TV" : "Edit TV"}</h2>
+
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button
+          className="btn btn-outline btn-small"
+          onClick={undo}
+          disabled={undoStack.length === 0}
+          title="Undo (Ctrl+Z)"
+        >
+          ↶ Undo
+        </button>
+        <button
+          className="btn btn-outline btn-small"
+          onClick={redo}
+          disabled={redoStack.length === 0}
+          title="Redo (Ctrl+Y)"
+        >
+          ↷ Redo
+        </button>
+        <button
+          className="btn btn-primary btn-small"
+          onClick={() => setShowPreview(true)}
+          disabled={!currentPage || currentPage.elements.length === 0}
+          title="Preview TV (Press Escape to close)"
+        >
+          👁️ Preview
+        </button>
+      </div>
+    </div>
+  );
+};
+
+interface MultiSelectionToolbarProps {
+  selectedElements: string[];
+  alignLeft: () => void;
+  alignRight: () => void;
+  alignTop: () => void;
+  alignBottom: () => void;
+  makeSameWidth: () => void;
+  makeSameHeight: () => void;
+  makeSameSizeSmaller: () => void;
+  makeSameSizeLarger: () => void;
+  bulkChangeTextColor: (color: string) => void;
+  bulkChangeFontSize: (fontSize: number) => void;
+  bulkToggleLock: () => void;
+  bulkDelete: () => void;
+  currentPage: ICarouselPage | undefined;
+}
+
+const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
+  selectedElements,
+  alignLeft,
+  alignRight,
+  alignTop,
+  alignBottom,
+  makeSameWidth,
+  makeSameHeight,
+  makeSameSizeSmaller,
+  makeSameSizeLarger,
+  bulkChangeTextColor,
+  bulkChangeFontSize,
+  bulkToggleLock,
+  bulkDelete,
+  currentPage
+}) => {
+  if (selectedElements.length <= 1) return null;
+
+  const allSelectedAreText = currentPage?.elements.filter(el => selectedElements.includes(el.id)).every(el => el.type === 'text');
+
+  return (
+    <div className="multi-selection-toolbar">
+      <h4>Multi-Selection Operations ({selectedElements.length} selected)</h4>
+
+      <div className="toolbar-section">
+        <label className="form-label">Alignment</label>
+        <div className="toolbar-buttons">
+          <button className="btn btn-outline btn-small" onClick={alignLeft} title="Align Left">
+            Align Left
+          </button>
+          <button className="btn btn-outline btn-small" onClick={alignRight} title="Align Right">
+            Align Right
+          </button>
+        </div>
+        <div className="toolbar-buttons">
+          <button className="btn btn-outline btn-small" onClick={alignTop} title="Align Top">
+            Align Top
+          </button>
+          <button className="btn btn-outline btn-small" onClick={alignBottom} title="Align Bottom">
+            Align Bottom
+          </button>
+        </div>
+      </div>
+
+      <div className="toolbar-section">
+        <label className="form-label">Sizing</label>
+        <div className="toolbar-buttons">
+          <button className="btn btn-outline btn-small" onClick={makeSameWidth} title="Make Same Width">
+            Same Width
+          </button>
+          <button className="btn btn-outline btn-small" onClick={makeSameHeight} title="Make Same Height">
+            Same Height
+          </button>
+        </div>
+        <div className="toolbar-buttons">
+          <button className="btn btn-outline btn-small" onClick={makeSameSizeSmaller} title="Make Same Size (Smallest)">
+            Size &lt;
+          </button>
+          <button className="btn btn-outline btn-small" onClick={makeSameSizeLarger} title="Make Same Size (Largest)">
+            Size &gt;
+          </button>
+        </div>
+      </div>
+
+      {allSelectedAreText && (
+        <>
+          <div className="toolbar-section">
+            <label className="form-label">Text Color</label>
+            <input
+              type="color"
+              onChange={(e) => bulkChangeTextColor(e.target.value)}
+              className="color-input"
+              title="Change Text Color"
+            />
+          </div>
+
+          <div className="toolbar-section">
+            <label className="form-label">Font Size</label>
+            <input
+              type="number"
+              placeholder="Font Size"
+              onChange={(e) => {
+                const fontSize = parseInt(e.target.value, 10);
+                if (!isNaN(fontSize) && fontSize >= 8 && fontSize <= 120) {
+                  bulkChangeFontSize(fontSize);
+                }
+              }}
+              className="control-input"
+              min="8"
+              max="120"
+              title="Change Font Size"
+            />
+          </div>
+        </>
+      )}
+
+      <div className="toolbar-section">
+        <label className="form-label">Actions</label>
+        <div className="toolbar-buttons">
+          <button className="btn btn-outline btn-small" onClick={bulkToggleLock} title="Lock/Unlock Selected">
+            🔒 Lock/Unlock
+          </button>
+          <button className="btn btn-secondary btn-small" onClick={bulkDelete} title="Delete Selected">
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const TVUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -50,6 +340,7 @@ export const TVUpdate = () => {
   const [resizeBaseline, setResizeBaseline] = useState<{size: {width: number, height: number}, fontSize: number} | null>(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
+  const [showPreview, setShowPreview] = useState<boolean>(false);
 
   // Local state for smooth resize preview
   const [resizePreview, setResizePreview] = useState<{[elementId: string]: {width: number, height: number, fontSize?: number}} | null>(null);
@@ -669,10 +960,14 @@ export const TVUpdate = () => {
         }
       }
 
-      // Escape: Clear selection
+      // Escape: Clear selection or close preview
       if (e.key === 'Escape') {
-        setSelectedElements([]);
-        closeContextMenu();
+        if (showPreview) {
+          setShowPreview(false);
+        } else {
+          setSelectedElements([]);
+          closeContextMenu();
+        }
       }
 
       // Ctrl+Z: Undo
@@ -693,7 +988,7 @@ export const TVUpdate = () => {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [currentPage, selectedElements]);
+  }, [currentPage, selectedElements, showPreview]);
 
   // Update text element heights when they change
   useEffect(() => {
@@ -751,29 +1046,15 @@ export const TVUpdate = () => {
     <div className="tv-builder-container">
       {/* Header */}
       <div className="tv-builder-header">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2>{isNew ? "Create New TV" : "Edit TV"}</h2>
-
-          {/* Undo/Redo Controls */}
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              className="btn btn-outline btn-small"
-              onClick={undo}
-              disabled={undoStack.length === 0}
-              title="Undo (Ctrl+Z)"
-            >
-              ↶ Undo
-            </button>
-            <button
-              className="btn btn-outline btn-small"
-              onClick={redo}
-              disabled={redoStack.length === 0}
-              title="Redo (Ctrl+Y)"
-            >
-              ↷ Redo
-            </button>
-          </div>
-        </div>
+        <HeaderControls
+          isNew={isNew}
+          undo={undo}
+          redo={redo}
+          undoStack={undoStack}
+          redoStack={redoStack}
+          setShowPreview={setShowPreview}
+          currentPage={currentPage}
+        />
 
         {/* TV Configuration */}
         <div style={{ display: 'flex', gap: '20px', marginTop: '15px' }}>
@@ -1311,137 +1592,22 @@ export const TVUpdate = () => {
                 />
               </div>
 
-              {/* Multi-Selection Operations */}
-              {selectedElements.length > 1 && (
-                <div className="multi-selection-toolbar">
-                  <h4>Multi-Selection Operations ({selectedElements.length} selected)</h4>
-
-                  <div className="toolbar-section">
-                    <label className="form-label">Alignment</label>
-                    <div className="toolbar-buttons">
-                      <button
-                        className="btn btn-outline btn-small"
-                        onClick={alignLeft}
-                        title="Align Left"
-                      >
-                        Align Left
-                      </button>
-                      <button
-                        className="btn btn-outline btn-small"
-                        onClick={alignRight}
-                        title="Align Right"
-                      >
-                        Align Right
-                      </button>
-                    </div>
-                    <div className="toolbar-buttons">
-                      <button
-                        className="btn btn-outline btn-small"
-                        onClick={alignTop}
-                        title="Align Top"
-                      >
-                        Align Top
-                      </button>
-                      <button
-                        className="btn btn-outline btn-small"
-                        onClick={alignBottom}
-                        title="Align Bottom"
-                      >
-                        Align Bottom
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="toolbar-section">
-                    <label className="form-label">Sizing</label>
-                    <div className="toolbar-buttons">
-                      <button
-                        className="btn btn-outline btn-small"
-                        onClick={makeSameWidth}
-                        title="Make Same Width"
-                      >
-                        Same Width
-                      </button>
-                      <button
-                        className="btn btn-outline btn-small"
-                        onClick={makeSameHeight}
-                        title="Make Same Height"
-                      >
-                        Same Height
-                      </button>
-                    </div>
-                    <div className="toolbar-buttons">
-                      <button
-                        className="btn btn-outline btn-small"
-                        onClick={makeSameSizeSmaller}
-                        title="Make Same Size (Smallest)"
-                      >
-                        Size &lt;
-                      </button>
-                      <button
-                        className="btn btn-outline btn-small"
-                        onClick={makeSameSizeLarger}
-                        title="Make Same Size (Largest)"
-                      >
-                        Size &gt;
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Text Controls - only show if all selected elements are text */}
-                  {currentPage?.elements.filter(el => selectedElements.includes(el.id)).every(el => el.type === 'text') && (
-                    <>
-                      <div className="toolbar-section">
-                        <label className="form-label">Text Color</label>
-                        <input
-                          type="color"
-                          onChange={(e) => bulkChangeTextColor(e.target.value)}
-                          className="color-input"
-                          title="Change Text Color"
-                        />
-                      </div>
-
-                      <div className="toolbar-section">
-                        <label className="form-label">Font Size</label>
-                        <input
-                          type="number"
-                          placeholder="Font Size"
-                          onChange={(e) => {
-                            const fontSize = parseInt(e.target.value, 10);
-                            if (!isNaN(fontSize) && fontSize >= 8 && fontSize <= 120) {
-                              bulkChangeFontSize(fontSize);
-                            }
-                          }}
-                          className="control-input"
-                          min="8"
-                          max="120"
-                          title="Change Font Size"
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  <div className="toolbar-section">
-                    <label className="form-label">Actions</label>
-                    <div className="toolbar-buttons">
-                      <button
-                        className="btn btn-outline btn-small"
-                        onClick={bulkToggleLock}
-                        title="Lock/Unlock Selected"
-                      >
-                        🔒 Lock/Unlock
-                      </button>
-                      <button
-                        className="btn btn-secondary btn-small"
-                        onClick={bulkDelete}
-                        title="Delete Selected"
-                      >
-                        🗑️ Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <MultiSelectionToolbar
+                selectedElements={selectedElements}
+                alignLeft={alignLeft}
+                alignRight={alignRight}
+                alignTop={alignTop}
+                alignBottom={alignBottom}
+                makeSameWidth={makeSameWidth}
+                makeSameHeight={makeSameHeight}
+                makeSameSizeSmaller={makeSameSizeSmaller}
+                makeSameSizeLarger={makeSameSizeLarger}
+                bulkChangeTextColor={bulkChangeTextColor}
+                bulkChangeFontSize={bulkChangeFontSize}
+                bulkToggleLock={bulkToggleLock}
+                bulkDelete={bulkDelete}
+                currentPage={currentPage}
+              />
 
               {/* Selected Item Fields */}
               {currentPage.selectedItem && (
@@ -1886,6 +2052,13 @@ export const TVUpdate = () => {
           </span>
         </div>
       </Dialog>
+
+      <PreviewModal
+        showPreview={showPreview}
+        setShowPreview={setShowPreview}
+        currentPage={currentPage}
+        tv={tv}
+      />
     </div>
   );
 };
