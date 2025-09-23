@@ -208,8 +208,8 @@ interface MultiSelectionToolbarProps {
   alignRight: () => void;
   alignTop: () => void;
   alignBottom: () => void;
-  distributeVertically: () => void;
-  distributeHorizontally: () => void;
+  spaceHorizontallyWithGap: (gapPercentage: number) => void;
+  spaceVerticallyWithGap: (gapPercentage: number) => void;
   makeSameWidth: () => void;
   makeSameHeight: () => void;
   makeSameSizeSmaller: () => void;
@@ -232,8 +232,8 @@ const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
   alignRight,
   alignTop,
   alignBottom,
-  distributeVertically,
-  distributeHorizontally,
+  spaceHorizontallyWithGap,
+  spaceVerticallyWithGap,
   makeSameWidth,
   makeSameHeight,
   makeSameSizeSmaller,
@@ -253,6 +253,10 @@ const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
 
   const selectedTextElements = currentPage?.elements.filter(el => selectedElements.includes(el.id) && el.type === 'text') || [];
   const allSelectedAreText = currentPage?.elements.filter(el => selectedElements.includes(el.id)).every(el => el.type === 'text');
+
+  // Local state for gap inputs
+  const [horizontalGap, setHorizontalGap] = React.useState<number>(2);
+  const [verticalGap, setVerticalGap] = React.useState<number>(2);
 
   // Check if any selected elements have specific styles
   const anyBold = selectedTextElements.some(el => el.style?.fontWeight === 'bold');
@@ -282,23 +286,57 @@ const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
             Align Bottom
           </button>
         </div>
+      </div>
+
+      <div className="toolbar-section">
+        <label className="form-label">Spacing</label>
         <div className="toolbar-buttons">
-          <button
-            className="btn btn-outline btn-small"
-            onClick={distributeVertically}
-            title="Distribute Vertically (3+ elements)"
-            disabled={selectedElements.length < 3}
-          >
-            ↕ Distribute V
-          </button>
-          <button
-            className="btn btn-outline btn-small"
-            onClick={distributeHorizontally}
-            title="Distribute Horizontally (3+ elements)"
-            disabled={selectedElements.length < 3}
-          >
-            ↔ Distribute H
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginRight: '8px' }}>
+            <span style={{ fontSize: '11px', color: '#666' }}>H:</span>
+            <input
+              type="number"
+              value={horizontalGap}
+              onChange={(e) => setHorizontalGap(Number(e.target.value))}
+              className="control-input"
+              style={{ width: '50px', padding: '2px 4px' }}
+              min="0"
+              max="20"
+              step="0.5"
+            />
+            <span style={{ fontSize: '11px', color: '#666' }}>%</span>
+            <button
+              className="btn btn-outline btn-small"
+              onClick={() => spaceHorizontallyWithGap(horizontalGap)}
+              title={`Space horizontally with ${horizontalGap}% gaps`}
+              disabled={selectedElements.length < 2}
+            >
+              Apply H
+            </button>
+          </div>
+        </div>
+        <div className="toolbar-buttons">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#666' }}>V:</span>
+            <input
+              type="number"
+              value={verticalGap}
+              onChange={(e) => setVerticalGap(Number(e.target.value))}
+              className="control-input"
+              style={{ width: '50px', padding: '2px 4px' }}
+              min="0"
+              max="20"
+              step="0.5"
+            />
+            <span style={{ fontSize: '11px', color: '#666' }}>%</span>
+            <button
+              className="btn btn-outline btn-small"
+              onClick={() => spaceVerticallyWithGap(verticalGap)}
+              title={`Space vertically with ${verticalGap}% gaps`}
+              disabled={selectedElements.length < 2}
+            >
+              Apply V
+            </button>
+          </div>
         </div>
       </div>
 
@@ -827,88 +865,95 @@ export const TVUpdate = () => {
     });
   };
 
-  const distributeVertically = () => {
-    if (selectedElements.length < 3) return;
 
-    const elements = currentPage?.elements || [];
-    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+  const spaceHorizontallyWithGap = (gapPercentage: number) => {
+    if (selectedElements.length < 2) return;
 
-    // Sort elements by their Y position (top to bottom)
-    const sortedElements = [...selectedElementsData].sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0));
+    const currentPage = tv.carouselPages?.[activePageIndex];
+    if (!currentPage) return;
 
-    if (sortedElements.length < 3) return;
+    saveUndoState();
 
-    const topElement = sortedElements[0];
-    const bottomElement = sortedElements[sortedElements.length - 1];
-
-    const topY = topElement.position?.y || 0;
-    const bottomY = bottomElement.position?.y || 0;
-
-    // Calculate total space available for distribution
-    const totalSpace = bottomY - topY;
-    const spacing = totalSpace / (sortedElements.length - 1);
-
-    // Calculate new positions for all middle elements
-    const updates: { [elementId: string]: Partial<ICarouselItemElement> } = {};
-
-    for (let i = 1; i < sortedElements.length - 1; i++) {
-      const element = sortedElements[i];
-      const newY = topY + (spacing * i);
-
-      updates[element.id] = {
-        position: {
-          ...element.position,
-          y: newY
-        }
-      };
-    }
-
-    // Apply all updates at once
-    Object.keys(updates).forEach(elementId => {
-      updateElement(elementId, updates[elementId], false);
-    });
-  };
-
-  const distributeHorizontally = () => {
-    if (selectedElements.length < 3) return;
-
-    const elements = currentPage?.elements || [];
+    const elements = currentPage.elements || [];
     const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
 
     // Sort elements by their X position (left to right)
     const sortedElements = [...selectedElementsData].sort((a, b) => (a.position?.x || 0) - (b.position?.x || 0));
 
-    if (sortedElements.length < 3) return;
-
-    const leftElement = sortedElements[0];
-    const rightElement = sortedElements[sortedElements.length - 1];
-
-    const leftX = leftElement.position?.x || 0;
-    const rightX = rightElement.position?.x || 0;
-
-    // Calculate total space available for distribution
-    const totalSpace = rightX - leftX;
-    const spacing = totalSpace / (sortedElements.length - 1);
-
-    // Calculate new positions for all middle elements
+    // Calculate new positions with equal gaps
     const updates: { [elementId: string]: Partial<ICarouselItemElement> } = {};
 
-    for (let i = 1; i < sortedElements.length - 1; i++) {
-      const element = sortedElements[i];
-      const newX = leftX + (spacing * i);
+    // Start with the first element's position and track cumulative position
+    let currentX = (sortedElements[0].position?.x || 0) + (sortedElements[0].size?.width || 0);
 
-      updates[element.id] = {
+    // Position each subsequent element with the specified gap
+    for (let i = 1; i < sortedElements.length; i++) {
+      const currentElement = sortedElements[i];
+
+      // Add gap and position the current element
+      currentX += gapPercentage;
+
+      updates[currentElement.id] = {
         position: {
-          ...element.position,
-          x: newX
+          ...currentElement.position,
+          x: currentX
         }
       };
+
+      // Update currentX to the end of this element for the next iteration
+      currentX += (currentElement.size?.width || 0);
     }
 
-    // Apply all updates at once
-    Object.keys(updates).forEach(elementId => {
-      updateElement(elementId, updates[elementId], false);
-    });
+    // Apply all updates at once by updating the entire elements array
+    const updatedElements = elements.map(el =>
+      updates[el.id] ? { ...el, ...updates[el.id] } : el
+    );
+    updateCarouselPage(activePageIndex, { elements: updatedElements });
+  };
+
+  const spaceVerticallyWithGap = (gapPercentage: number) => {
+    if (selectedElements.length < 2) return;
+
+    const currentPage = tv.carouselPages?.[activePageIndex];
+    if (!currentPage) return;
+
+    saveUndoState();
+
+    const elements = currentPage.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+
+    // Sort elements by their Y position (top to bottom)
+    const sortedElements = [...selectedElementsData].sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0));
+
+    // Calculate new positions with equal gaps
+    const updates: { [elementId: string]: Partial<ICarouselItemElement> } = {};
+
+    // Start with the first element's position and track cumulative position
+    let currentY = (sortedElements[0].position?.y || 0) + (sortedElements[0].size?.height || 0);
+
+    // Position each subsequent element with the specified gap
+    for (let i = 1; i < sortedElements.length; i++) {
+      const currentElement = sortedElements[i];
+
+      // Add gap and position the current element
+      currentY += gapPercentage;
+
+      updates[currentElement.id] = {
+        position: {
+          ...currentElement.position,
+          y: currentY
+        }
+      };
+
+      // Update currentY to the end of this element for the next iteration
+      currentY += (currentElement.size?.height || 0);
+    }
+
+    // Apply all updates at once by updating the entire elements array
+    const updatedElements = elements.map(el =>
+      updates[el.id] ? { ...el, ...updates[el.id] } : el
+    );
+    updateCarouselPage(activePageIndex, { elements: updatedElements });
   };
 
   const makeSameWidth = () => {
@@ -1864,8 +1909,8 @@ export const TVUpdate = () => {
                 alignRight={alignRight}
                 alignTop={alignTop}
                 alignBottom={alignBottom}
-                distributeVertically={distributeVertically}
-                distributeHorizontally={distributeHorizontally}
+                spaceHorizontallyWithGap={spaceHorizontallyWithGap}
+                spaceVerticallyWithGap={spaceVerticallyWithGap}
                 makeSameWidth={makeSameWidth}
                 makeSameHeight={makeSameHeight}
                 makeSameSizeSmaller={makeSameSizeSmaller}
