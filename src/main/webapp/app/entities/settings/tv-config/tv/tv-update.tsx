@@ -93,6 +93,9 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ showPreview, setShowPreview
                   fontSize: element.style?.fontSize || 24,
                   color: element.style?.color || '#ffffff',
                   fontWeight: element.style?.fontWeight || 'normal',
+                  fontStyle: element.style?.fontStyle || 'normal',
+                  textDecoration: element.style?.textDecoration || 'none',
+                  fontFamily: element.style?.fontFamily || 'Arial, sans-serif',
                   textAlign: element.style?.textAlign as any || 'center',
                   lineHeight: '1.2'
                 }}
@@ -198,6 +201,11 @@ interface MultiSelectionToolbarProps {
   makeSameSizeLarger: () => void;
   bulkChangeTextColor: (color: string) => void;
   bulkChangeFontSize: (fontSize: number) => void;
+  bulkChangeFontFamily: (fontFamily: string) => void;
+  bulkToggleFontWeight: () => void;
+  bulkToggleFontStyle: () => void;
+  bulkToggleUnderline: () => void;
+  bulkToggleStrikethrough: () => void;
   bulkToggleLock: () => void;
   bulkDelete: () => void;
   currentPage: ICarouselPage | undefined;
@@ -215,13 +223,25 @@ const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
   makeSameSizeLarger,
   bulkChangeTextColor,
   bulkChangeFontSize,
+  bulkChangeFontFamily,
+  bulkToggleFontWeight,
+  bulkToggleFontStyle,
+  bulkToggleUnderline,
+  bulkToggleStrikethrough,
   bulkToggleLock,
   bulkDelete,
   currentPage
 }) => {
   if (selectedElements.length <= 1) return null;
 
+  const selectedTextElements = currentPage?.elements.filter(el => selectedElements.includes(el.id) && el.type === 'text') || [];
   const allSelectedAreText = currentPage?.elements.filter(el => selectedElements.includes(el.id)).every(el => el.type === 'text');
+
+  // Check if any selected elements have specific styles
+  const anyBold = selectedTextElements.some(el => el.style?.fontWeight === 'bold');
+  const anyItalic = selectedTextElements.some(el => el.style?.fontStyle === 'italic');
+  const anyUnderline = selectedTextElements.some(el => el.style?.textDecoration === 'underline');
+  const anyStrikethrough = selectedTextElements.some(el => el.style?.textDecoration === 'line-through');
 
   return (
     <div className="multi-selection-toolbar">
@@ -295,6 +315,62 @@ const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
               max="120"
               title="Change Font Size"
             />
+          </div>
+
+          <div className="toolbar-section">
+            <label className="form-label">Font Family</label>
+            <select
+              onChange={(e) => bulkChangeFontFamily(e.target.value)}
+              className="control-input"
+              defaultValue=""
+              title="Change Font Family"
+            >
+              <option value="">Choose font...</option>
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="Helvetica, sans-serif">Helvetica</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="'Times New Roman', serif">Times New Roman</option>
+              <option value="'Courier New', monospace">Courier New</option>
+              <option value="Verdana, sans-serif">Verdana</option>
+              <option value="Tahoma, sans-serif">Tahoma</option>
+              <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+              <option value="Impact, sans-serif">Impact</option>
+              <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+            </select>
+          </div>
+
+          <div className="toolbar-section">
+            <label className="form-label">Font Styles</label>
+            <div className="toolbar-buttons">
+              <button
+                className={`btn btn-small font-toggle ${anyBold ? 'active' : 'btn-outline'}`}
+                onClick={bulkToggleFontWeight}
+                title="Toggle Bold"
+              >
+                <strong>B</strong>
+              </button>
+              <button
+                className={`btn btn-small font-toggle ${anyItalic ? 'active' : 'btn-outline'}`}
+                onClick={bulkToggleFontStyle}
+                title="Toggle Italic"
+              >
+                <em>I</em>
+              </button>
+              <button
+                className={`btn btn-small font-toggle ${anyUnderline ? 'active' : 'btn-outline'}`}
+                onClick={bulkToggleUnderline}
+                title="Toggle Underline"
+              >
+                <u>U</u>
+              </button>
+              <button
+                className={`btn btn-small font-toggle ${anyStrikethrough ? 'active' : 'btn-outline'}`}
+                onClick={bulkToggleStrikethrough}
+                title="Toggle Strikethrough"
+              >
+                <s>S</s>
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -816,6 +892,72 @@ export const TVUpdate = () => {
         }
       };
     });
+  };
+
+  const bulkChangeFontFamily = (fontFamily: string) => {
+    const elements = currentPage?.elements || [];
+    const selectedTextElementIds = elements
+      .filter(el => selectedElements.includes(el.id) && el.type === 'text')
+      .map(el => el.id);
+
+    updateMultipleElements(selectedTextElementIds, (element) => ({
+      style: {
+        ...element.style,
+        fontFamily
+      }
+    }));
+  };
+
+  const bulkToggleFontWeight = () => {
+    const elements = currentPage?.elements || [];
+    const selectedTextElements = elements.filter(el => selectedElements.includes(el.id) && el.type === 'text');
+    const anyBold = selectedTextElements.some(el => el.style?.fontWeight === 'bold');
+
+    updateMultipleElements(selectedTextElements.map(el => el.id), (element) => ({
+      style: {
+        ...element.style,
+        fontWeight: anyBold ? 'normal' : 'bold'
+      }
+    }));
+  };
+
+  const bulkToggleFontStyle = () => {
+    const elements = currentPage?.elements || [];
+    const selectedTextElements = elements.filter(el => selectedElements.includes(el.id) && el.type === 'text');
+    const anyItalic = selectedTextElements.some(el => el.style?.fontStyle === 'italic');
+
+    updateMultipleElements(selectedTextElements.map(el => el.id), (element) => ({
+      style: {
+        ...element.style,
+        fontStyle: anyItalic ? 'normal' : 'italic'
+      }
+    }));
+  };
+
+  const bulkToggleUnderline = () => {
+    const elements = currentPage?.elements || [];
+    const selectedTextElements = elements.filter(el => selectedElements.includes(el.id) && el.type === 'text');
+    const anyUnderline = selectedTextElements.some(el => el.style?.textDecoration === 'underline');
+
+    updateMultipleElements(selectedTextElements.map(el => el.id), (element) => ({
+      style: {
+        ...element.style,
+        textDecoration: anyUnderline ? 'none' : 'underline'
+      }
+    }));
+  };
+
+  const bulkToggleStrikethrough = () => {
+    const elements = currentPage?.elements || [];
+    const selectedTextElements = elements.filter(el => selectedElements.includes(el.id) && el.type === 'text');
+    const anyStrikethrough = selectedTextElements.some(el => el.style?.textDecoration === 'line-through');
+
+    updateMultipleElements(selectedTextElements.map(el => el.id), (element) => ({
+      style: {
+        ...element.style,
+        textDecoration: anyStrikethrough ? 'none' : 'line-through'
+      }
+    }));
   };
 
   const bulkToggleLock = () => {
@@ -1467,6 +1609,9 @@ export const TVUpdate = () => {
                             fontSize: resizePreview?.[element.id]?.fontSize || element.style?.fontSize || 24,
                             color: element.style?.color || '#ffffff',
                             fontWeight: element.style?.fontWeight || 'normal',
+                            fontStyle: element.style?.fontStyle || 'normal',
+                            textDecoration: element.style?.textDecoration || 'none',
+                            fontFamily: element.style?.fontFamily || 'Arial, sans-serif',
                             textAlign: 'center',
                             lineHeight: '1.2',
                             display: 'block',
@@ -1604,6 +1749,11 @@ export const TVUpdate = () => {
                 makeSameSizeLarger={makeSameSizeLarger}
                 bulkChangeTextColor={bulkChangeTextColor}
                 bulkChangeFontSize={bulkChangeFontSize}
+                bulkChangeFontFamily={bulkChangeFontFamily}
+                bulkToggleFontWeight={bulkToggleFontWeight}
+                bulkToggleFontStyle={bulkToggleFontStyle}
+                bulkToggleUnderline={bulkToggleUnderline}
+                bulkToggleStrikethrough={bulkToggleStrikethrough}
                 bulkToggleLock={bulkToggleLock}
                 bulkDelete={bulkDelete}
                 currentPage={currentPage}
@@ -1815,17 +1965,79 @@ export const TVUpdate = () => {
                       </div>
 
                       <div className="control-group">
-                        <label className="control-label">Weight</label>
+                        <label className="control-label">Font Family</label>
                         <select
-                          value={selectedElementData.style?.fontWeight || 'normal'}
+                          value={selectedElementData.style?.fontFamily || 'Arial, sans-serif'}
                           onChange={(e) => updateElement(selectedElements[0], {
-                            style: { ...selectedElementData.style, fontWeight: e.target.value }
+                            style: { ...selectedElementData.style, fontFamily: e.target.value }
                           })}
                           className="control-input"
                         >
-                          <option value="normal">Normal</option>
-                          <option value="bold">Bold</option>
+                          <option value="Arial, sans-serif">Arial</option>
+                          <option value="Helvetica, sans-serif">Helvetica</option>
+                          <option value="Georgia, serif">Georgia</option>
+                          <option value="'Times New Roman', serif">Times New Roman</option>
+                          <option value="'Courier New', monospace">Courier New</option>
+                          <option value="Verdana, sans-serif">Verdana</option>
+                          <option value="Tahoma, sans-serif">Tahoma</option>
+                          <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                          <option value="Impact, sans-serif">Impact</option>
+                          <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
                         </select>
+                      </div>
+
+                      <div className="control-group">
+                        <label className="control-label">Font Styles</label>
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                          <button
+                            className={`btn btn-small font-toggle ${(selectedElementData.style?.fontWeight === 'bold') ? 'active' : 'btn-outline'}`}
+                            onClick={() => updateElement(selectedElements[0], {
+                              style: {
+                                ...selectedElementData.style,
+                                fontWeight: selectedElementData.style?.fontWeight === 'bold' ? 'normal' : 'bold'
+                              }
+                            })}
+                            title="Bold"
+                          >
+                            <strong>B</strong>
+                          </button>
+                          <button
+                            className={`btn btn-small font-toggle ${(selectedElementData.style?.fontStyle === 'italic') ? 'active' : 'btn-outline'}`}
+                            onClick={() => updateElement(selectedElements[0], {
+                              style: {
+                                ...selectedElementData.style,
+                                fontStyle: selectedElementData.style?.fontStyle === 'italic' ? 'normal' : 'italic'
+                              }
+                            })}
+                            title="Italic"
+                          >
+                            <em>I</em>
+                          </button>
+                          <button
+                            className={`btn btn-small font-toggle ${(selectedElementData.style?.textDecoration === 'underline') ? 'active' : 'btn-outline'}`}
+                            onClick={() => updateElement(selectedElements[0], {
+                              style: {
+                                ...selectedElementData.style,
+                                textDecoration: selectedElementData.style?.textDecoration === 'underline' ? 'none' : 'underline'
+                              }
+                            })}
+                            title="Underline"
+                          >
+                            <u>U</u>
+                          </button>
+                          <button
+                            className={`btn btn-small font-toggle ${(selectedElementData.style?.textDecoration === 'line-through') ? 'active' : 'btn-outline'}`}
+                            onClick={() => updateElement(selectedElements[0], {
+                              style: {
+                                ...selectedElementData.style,
+                                textDecoration: selectedElementData.style?.textDecoration === 'line-through' ? 'none' : 'line-through'
+                              }
+                            })}
+                            title="Strikethrough"
+                          >
+                            <s>S</s>
+                          </button>
+                        </div>
                       </div>
                       
                       <div className="control-group">

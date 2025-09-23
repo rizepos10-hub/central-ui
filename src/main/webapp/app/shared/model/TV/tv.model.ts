@@ -28,6 +28,9 @@ export interface ICarouselItemElement {
     color?: string;
     fontWeight?: string;
     textAlign?: string;
+    fontStyle?: string;
+    textDecoration?: string;
+    fontFamily?: string;
   };
   locked?: boolean;
 }
