@@ -208,6 +208,8 @@ interface MultiSelectionToolbarProps {
   alignRight: () => void;
   alignTop: () => void;
   alignBottom: () => void;
+  distributeVertically: () => void;
+  distributeHorizontally: () => void;
   makeSameWidth: () => void;
   makeSameHeight: () => void;
   makeSameSizeSmaller: () => void;
@@ -230,6 +232,8 @@ const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
   alignRight,
   alignTop,
   alignBottom,
+  distributeVertically,
+  distributeHorizontally,
   makeSameWidth,
   makeSameHeight,
   makeSameSizeSmaller,
@@ -276,6 +280,24 @@ const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
           </button>
           <button className="btn btn-outline btn-small" onClick={alignBottom} title="Align Bottom">
             Align Bottom
+          </button>
+        </div>
+        <div className="toolbar-buttons">
+          <button
+            className="btn btn-outline btn-small"
+            onClick={distributeVertically}
+            title="Distribute Vertically (3+ elements)"
+            disabled={selectedElements.length < 3}
+          >
+            ↕ Distribute V
+          </button>
+          <button
+            className="btn btn-outline btn-small"
+            onClick={distributeHorizontally}
+            title="Distribute Horizontally (3+ elements)"
+            disabled={selectedElements.length < 3}
+          >
+            ↔ Distribute H
           </button>
         </div>
       </div>
@@ -802,6 +824,90 @@ export const TVUpdate = () => {
           x: rightmostX - elementWidth
         }
       };
+    });
+  };
+
+  const distributeVertically = () => {
+    if (selectedElements.length < 3) return;
+
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+
+    // Sort elements by their Y position (top to bottom)
+    const sortedElements = [...selectedElementsData].sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0));
+
+    if (sortedElements.length < 3) return;
+
+    const topElement = sortedElements[0];
+    const bottomElement = sortedElements[sortedElements.length - 1];
+
+    const topY = topElement.position?.y || 0;
+    const bottomY = bottomElement.position?.y || 0;
+
+    // Calculate total space available for distribution
+    const totalSpace = bottomY - topY;
+    const spacing = totalSpace / (sortedElements.length - 1);
+
+    // Calculate new positions for all middle elements
+    const updates: { [elementId: string]: Partial<ICarouselItemElement> } = {};
+
+    for (let i = 1; i < sortedElements.length - 1; i++) {
+      const element = sortedElements[i];
+      const newY = topY + (spacing * i);
+
+      updates[element.id] = {
+        position: {
+          ...element.position,
+          y: newY
+        }
+      };
+    }
+
+    // Apply all updates at once
+    Object.keys(updates).forEach(elementId => {
+      updateElement(elementId, updates[elementId], false);
+    });
+  };
+
+  const distributeHorizontally = () => {
+    if (selectedElements.length < 3) return;
+
+    const elements = currentPage?.elements || [];
+    const selectedElementsData = elements.filter(el => selectedElements.includes(el.id));
+
+    // Sort elements by their X position (left to right)
+    const sortedElements = [...selectedElementsData].sort((a, b) => (a.position?.x || 0) - (b.position?.x || 0));
+
+    if (sortedElements.length < 3) return;
+
+    const leftElement = sortedElements[0];
+    const rightElement = sortedElements[sortedElements.length - 1];
+
+    const leftX = leftElement.position?.x || 0;
+    const rightX = rightElement.position?.x || 0;
+
+    // Calculate total space available for distribution
+    const totalSpace = rightX - leftX;
+    const spacing = totalSpace / (sortedElements.length - 1);
+
+    // Calculate new positions for all middle elements
+    const updates: { [elementId: string]: Partial<ICarouselItemElement> } = {};
+
+    for (let i = 1; i < sortedElements.length - 1; i++) {
+      const element = sortedElements[i];
+      const newX = leftX + (spacing * i);
+
+      updates[element.id] = {
+        position: {
+          ...element.position,
+          x: newX
+        }
+      };
+    }
+
+    // Apply all updates at once
+    Object.keys(updates).forEach(elementId => {
+      updateElement(elementId, updates[elementId], false);
     });
   };
 
@@ -1758,6 +1864,8 @@ export const TVUpdate = () => {
                 alignRight={alignRight}
                 alignTop={alignTop}
                 alignBottom={alignBottom}
+                distributeVertically={distributeVertically}
+                distributeHorizontally={distributeHorizontally}
                 makeSameWidth={makeSameWidth}
                 makeSameHeight={makeSameHeight}
                 makeSameSizeSmaller={makeSameSizeSmaller}
