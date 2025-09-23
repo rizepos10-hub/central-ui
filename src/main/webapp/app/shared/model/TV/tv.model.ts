@@ -10,7 +10,7 @@ export interface IDimension {
 
 export interface ICarouselItemElement {
   id: string;
-  type: 'text' | 'image';
+  type: 'text' | 'image' | 'line';
   documentType: 'ITEM';
   documentId: string;
   fieldToQuery: string;
@@ -23,6 +23,7 @@ export interface ICarouselItemElement {
     width: number; // percentage
     height: number; // percentage
   };
+  angle?: number; // rotation angle in degrees (for lines)
   style?: {
     fontSize?: number;
     color?: string;
@@ -31,6 +32,8 @@ export interface ICarouselItemElement {
     fontStyle?: string;
     textDecoration?: string;
     fontFamily?: string;
+    lineWidth?: number; // for line thickness
+    lineStyle?: 'solid' | 'dashed' | 'dotted';
   };
   locked?: boolean;
 }

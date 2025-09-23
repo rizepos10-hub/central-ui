@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -19,7 +21,7 @@ import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { ICarouselPage, ICarouselItemElement } from 'app/shared/model/TV/tv.model';
 import { IRegularItem } from 'app/shared/model/ITEM/restaurant/regular-item.model';
 import './tv-builder.css';
-import { FaArrowDown, FaArrowLeft, FaArrowUp, FaChevronDown, FaChevronUp, FaImage, FaFont, FaSave, FaTrash } from 'react-icons/fa';
+import { FaArrowDown, FaArrowLeft, FaArrowUp, FaChevronDown, FaChevronUp, FaImage, FaFont, FaSave, FaTrash, FaMinus } from 'react-icons/fa';
 import { ITv } from '../../../../shared/model/TV/tv.model';
 import MediaLibrary from "../../../../shared/components/media-library/media-library";
 import { transformAttachmentStructure } from "../../../../shared/util/attachment-utils";
@@ -78,7 +80,9 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ showPreview, setShowPreview
               top: `${element.position?.y || 0}%`,
               width: `${element.size?.width || 0}%`,
               height: `${element.size?.height || 0}%`,
-              zIndex: index + 1
+              zIndex: index + 1,
+              transform: element.type === 'line' ? `rotate(${element.angle || 0}deg)` : undefined,
+              transformOrigin: element.type === 'line' ? 'center' : undefined
             }}
           >
             {element.type === 'text' ? (
@@ -101,6 +105,27 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ showPreview, setShowPreview
                 }}
               >
                 {element.content}
+              </div>
+            ) : element.type === 'line' ? (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    height: element.style?.lineStyle === 'solid' ? `${element.style?.lineWidth || 2}px` : '0px',
+                    backgroundColor: element.style?.lineStyle === 'solid' ? (element.style?.color || '#ffffff') : 'transparent',
+                    borderTop: element.style?.lineStyle !== 'solid'
+                      ? `${element.style?.lineWidth || 2}px ${element.style?.lineStyle || 'solid'} ${element.style?.color || '#ffffff'}`
+                      : 'none'
+                  }}
+                />
               </div>
             ) : (
               <img
@@ -463,6 +488,7 @@ const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
   );
 };
 
+// eslint-disable-next-line complexity
 export const TVUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -496,6 +522,11 @@ export const TVUpdate = () => {
 
   // Store initial positions when drag starts
   const [dragStartPositions, setDragStartPositions] = useState<{[elementId: string]: {x: number, y: number}} | null>(null);
+
+  // Line rotation functionality
+  const [rotatingElement, setRotatingElement] = useState<string | null>(null);
+  const [rotationStart, setRotationStart] = useState<{x: number, y: number, angle: number} | null>(null);
+  const [showAngleDisplay, setShowAngleDisplay] = useState<{elementId: string, angle: number, x: number, y: number} | null>(null);
 
   // Undo/Redo functionality
   const [undoStack, setUndoStack] = useState<ICarouselPage[]>([]);
@@ -584,6 +615,29 @@ export const TVUpdate = () => {
     '4:3': { width: 1024, height: 768 },
     '21:9': { width: 2560, height: 1080 },
     '1:1': { width: 1080, height: 1080 }
+  };
+
+  // Helper function to calculate angle between two points
+  const calculateAngle = (centerX: number, centerY: number, pointX: number, pointY: number): number => {
+    const deltaX = pointX - centerX;
+    const deltaY = pointY - centerY;
+    let angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+    // Normalize angle to 0-360 degrees
+    if (angle < 0) angle += 360;
+    return Math.round(angle);
+  };
+
+  // Helper function to get element center position in screen coordinates
+  const getElementCenter = (element: ICarouselItemElement): {x: number, y: number} => {
+    const elementLeft = ((element.position?.x || 0) / 100) * screenDimensions.width;
+    const elementTop = ((element.position?.y || 0) / 100) * screenDimensions.height;
+    const elementWidth = ((element.size?.width || 0) / 100) * screenDimensions.width;
+    const elementHeight = ((element.size?.height || 0) / 100) * screenDimensions.height;
+
+    return {
+      x: elementLeft + elementWidth / 2,
+      y: elementTop + elementHeight / 2
+    };
   };
 
   useEffect(() => {
@@ -680,34 +734,41 @@ export const TVUpdate = () => {
     setSelectedVariantIndex(variantIndex);
   };
 
-  const addElementToPage = (type: 'text' | 'image', content: string, fieldToQuery?: string, isStandaloneImage = false, isBackgroundImage = false) => {
+  const addElementToPage = (type: 'text' | 'image' | 'line', content: string, fieldToQuery?: string, isStandaloneImage = false, isBackgroundImage = false) => {
     const currentPage = tv.carouselPages?.[activePageIndex];
     if (!currentPage) return;
 
-    // For standalone images, we don't need a selected item
-    if (!isStandaloneImage && !currentPage.selectedItem) return;
+    // For standalone images and lines, we don't need a selected item
+    if (!isStandaloneImage && type !== 'line' && !currentPage.selectedItem) return;
 
     const selectedItem = currentPage.selectedItem;
-    
+
     // For text elements tied to items, we need field queries
-    if (!isStandaloneImage && !fieldToQuery && type === 'text') return;
+    if (!isStandaloneImage && type !== 'line' && !fieldToQuery && type === 'text') return;
 
     const newElement: ICarouselItemElement = {
       id: `element-${Date.now()}`,
       type,
       documentType: 'ITEM',
-      documentId: isStandaloneImage ? '' : (selectedItem?.id || ''),
+      documentId: (isStandaloneImage || type === 'line') ? '' : (selectedItem?.id || ''),
       fieldToQuery: fieldToQuery || '',
       content,
       position: isBackgroundImage ? { x: 0, y: 0 } : { x: 10, y: 10 },
-      size: isBackgroundImage 
+      size: isBackgroundImage
         ? { width: 100, height: 100 } // Full screen background
-        : { width: type === 'text' ? 30 : 20, height: type === 'text' ? 10 : 15 },
+        : type === 'line'
+          ? { width: 30, height: 0.5 } // Default line: 30% width, thin height
+          : { width: type === 'text' ? 30 : 20, height: type === 'text' ? 10 : 15 },
+      angle: type === 'line' ? 0 : undefined, // Lines start at 0 degrees
       style: type === 'text' ? {
         fontSize: 24,
         color: '#ffffff',
         fontWeight: 'normal',
         textAlign: 'left'
+      } : type === 'line' ? {
+        color: '#ffffff',
+        lineWidth: 2,
+        lineStyle: 'solid'
       } : undefined
     };
 
@@ -1476,7 +1537,9 @@ export const TVUpdate = () => {
                     top: ((element.position?.y || 0) / 100) * screenDimensions.height + (dragOffsets[element.id]?.y || 0),
                     width: ((element.size?.width || 0) / 100) * screenDimensions.width,
                     height: ((element.size?.height || 0) / 100) * screenDimensions.height,
-                    zIndex: index + 1
+                    zIndex: index + 1,
+                    transform: element.type === 'line' ? `rotate(${element.angle || 0}deg)` : undefined,
+                    transformOrigin: element.type === 'line' ? 'center' : undefined
                   }}
                 >
                   <Draggable
@@ -1567,6 +1630,7 @@ export const TVUpdate = () => {
                       onResizeStart={(e, { node, handle }) => {
                         if (!element.locked) {
                           setResizingElement(element.id);
+
                           // Store baseline for proportional font scaling (only for corner resizing)
                           if (element.type === 'text' && handle === 'se') {
                             setResizeBaseline({
@@ -1673,7 +1737,9 @@ export const TVUpdate = () => {
                       minConstraints={[30, element.type === 'text' ? 20 : 30]} // Smaller minimum for easier resizing
                       maxConstraints={[screenDimensions.width, screenDimensions.height]}
                       resizeHandles={element.locked ? [] :
-                        element.type === 'text' ? ['e', 'se'] : ['se'] // Text: east (width) + southeast (font scaling), Images: southeast (corner)
+                        element.type === 'text' ? ['e', 'se'] :
+                        element.type === 'line' ? ['e'] : // Lines: only east (width)
+                        ['se'] // Images: southeast (corner)
                       }
                       handleStyle={{
                         se: {
@@ -1786,10 +1852,33 @@ export const TVUpdate = () => {
                             {element.content}
                           </span>
                         </div>
+                      ) : element.type === 'line' ? (
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            position: 'relative',
+                            zIndex: 0
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: '100%',
+                              height: element.style?.lineStyle === 'solid' ? `${element.style?.lineWidth || 2}px` : '0px',
+                              backgroundColor: element.style?.lineStyle === 'solid' ? (element.style?.color || '#ffffff') : 'transparent',
+                              borderTop: element.style?.lineStyle !== 'solid'
+                                ? `${element.style?.lineWidth || 2}px ${element.style?.lineStyle || 'solid'} ${element.style?.color || '#ffffff'}`
+                                : 'none'
+                            }}
+                          />
+                        </div>
                       ) : (
-                        <img 
-                          src={element.content} 
-                          alt="Element" 
+                        <img
+                          src={element.content}
+                          alt="Element"
                           style={{
                             width: '100%',
                             height: '100%',
@@ -1798,6 +1887,75 @@ export const TVUpdate = () => {
                             position: 'relative',
                             zIndex: 0
                           }}
+                        />
+                      )}
+
+                      {/* Custom Rotation Handle for Lines */}
+                      {element.type === 'line' && selectedElements.includes(element.id) && !element.locked && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: '-10px',
+                            right: '-10px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#ff6b35',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                            cursor: 'crosshair',
+                            zIndex: 1000,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            if (element.locked) return;
+
+                            setRotatingElement(element.id);
+                            const center = getElementCenter(element);
+                            setRotationStart({
+                              x: e.clientX,
+                              y: e.clientY,
+                              angle: element.angle || 0
+                            });
+
+                            // Show angle display
+                            setShowAngleDisplay({
+                              elementId: element.id,
+                              angle: element.angle || 0,
+                              x: center.x,
+                              y: center.y
+                            });
+
+                            const handleMouseMove = (moveE: MouseEvent) => {
+                              const center = getElementCenter(element);
+                              const newAngle = calculateAngle(center.x, center.y, moveE.clientX, moveE.clientY);
+
+                              // Update angle display
+                              setShowAngleDisplay({
+                                elementId: element.id,
+                                angle: newAngle,
+                                x: center.x,
+                                y: center.y
+                              });
+
+                              // Update only this element's angle
+                              updateElement(element.id, { angle: newAngle }, false);
+                            };
+
+                            const handleMouseUp = () => {
+                              setRotatingElement(null);
+                              setRotationStart(null);
+                              setShowAngleDisplay(null);
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                          title="Drag to rotate"
                         />
                       )}
                     </div>
@@ -1901,6 +2059,19 @@ export const TVUpdate = () => {
                   }}
                   multiSelect={false}
                 />
+              </div>
+
+              {/* Add Line Button */}
+              <div className="form-group">
+                <label className="form-label">Add Line Element</label>
+                <p className="form-description">Add a line that can be resized and rotated</p>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => addElementToPage('line', '', '', true)}
+                  style={{ width: '100%' }}
+                >
+                  ➖ Add Line
+                </button>
               </div>
 
               <MultiSelectionToolbar
@@ -2226,7 +2397,7 @@ export const TVUpdate = () => {
                   )}
 
                   {selectedElementData.type === 'image' && (
-                    <button 
+                    <button
                       className="btn btn-outline btn-small"
                       onClick={() => fitAsBackground(selectedElements[0])}
                       style={{ marginTop: '10px', marginRight: '10px' }}
@@ -2236,7 +2407,71 @@ export const TVUpdate = () => {
                     </button>
                   )}
 
-                  <button 
+                  {selectedElementData.type === 'line' && (
+                    <>
+                      <div className="control-group">
+                        <label className="control-label">Line Color</label>
+                        <input
+                          type="color"
+                          value={selectedElementData.style?.color || '#ffffff'}
+                          onChange={(e) => updateElement(selectedElements[0], {
+                            style: { ...selectedElementData.style, color: e.target.value }
+                          })}
+                          className="color-input"
+                        />
+                      </div>
+
+                      <div className="control-group">
+                        <label className="control-label">Line Width</label>
+                        <input
+                          type="number"
+                          value={selectedElementData.style?.lineWidth || 2}
+                          onChange={(e) => updateElement(selectedElements[0], {
+                            style: { ...selectedElementData.style, lineWidth: parseInt(e.target.value, 10) }
+                          })}
+                          className="control-input"
+                          min="1"
+                          max="20"
+                        />
+                      </div>
+
+                      <div className="control-group">
+                        <label className="control-label">Line Style</label>
+                        <select
+                          value={selectedElementData.style?.lineStyle || 'solid'}
+                          onChange={(e) => updateElement(selectedElements[0], {
+                            style: { ...selectedElementData.style, lineStyle: e.target.value as 'solid' | 'dashed' | 'dotted' }
+                          })}
+                          className="control-input"
+                        >
+                          <option value="solid">Solid</option>
+                          <option value="dashed">Dashed</option>
+                          <option value="dotted">Dotted</option>
+                        </select>
+                      </div>
+
+                      <div className="control-group">
+                        <label className="control-label">Angle</label>
+                        <input
+                          type="number"
+                          value={selectedElementData.angle || 0}
+                          onChange={(e) => updateElement(selectedElements[0], {
+                            angle: parseInt(e.target.value, 10)
+                          })}
+                          className="control-input"
+                          min="0"
+                          max="359"
+                        />
+                        <span style={{ fontSize: '12px', color: '#666', marginLeft: '4px' }}>°</span>
+                      </div>
+
+                      <p style={{ fontSize: '11px', color: '#666', margin: '8px 0' }}>
+                        💡 Drag the orange circle to rotate the line. Use the blue handle to resize width.
+                      </p>
+                    </>
+                  )}
+
+                  <button
                     className="btn btn-secondary btn-small"
                     onClick={() => deleteElement(selectedElements[0])}
                     style={{ marginTop: '10px' }}
@@ -2285,17 +2520,21 @@ export const TVUpdate = () => {
                       >
                         <div className="layer-info">
                           <div className="layer-type">
-                            {element.type === 'text' ? <FaFont /> : <FaImage />}
+                            {element.type === 'text' ? <FaFont /> :
+                             element.type === 'line' ? <FaMinus /> : <FaImage />}
                             {element.locked && <span style={{ marginLeft: '4px', fontSize: '12px' }}>🔒</span>}
                           </div>
                           <div className="layer-content">
                             <div className="layer-name">
-                              {element.type === 'text' ? 'Text' : 'Image'}
+                              {element.type === 'text' ? 'Text' :
+                               element.type === 'line' ? 'Line' : 'Image'}
                             </div>
                             <div className="layer-preview">
-                              {element.type === 'text' 
+                              {element.type === 'text'
                                 ? element.content.substring(0, 20) + (element.content.length > 20 ? '...' : '')
-                                : 'Image Element'
+                                : element.type === 'line'
+                                  ? `${element.angle || 0}° • ${element.style?.lineWidth || 2}px`
+                                  : 'Image Element'
                               }
                             </div>
                           </div>
@@ -2389,6 +2628,28 @@ export const TVUpdate = () => {
           }}>
             <FaTrash /> Delete Element
           </div>
+        </div>
+      )}
+
+      {/* Angle Display during rotation */}
+      {showAngleDisplay && (
+        <div
+          style={{
+            position: 'fixed',
+            left: showAngleDisplay.x + 20,
+            top: showAngleDisplay.y - 30,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            color: 'white',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            zIndex: 10000,
+            pointerEvents: 'none',
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          {showAngleDisplay.angle}°
         </div>
       )}
 
