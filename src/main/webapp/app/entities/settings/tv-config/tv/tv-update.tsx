@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 
 
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
@@ -242,6 +243,7 @@ interface MultiSelectionToolbarProps {
   bulkChangeTextColor: (color: string) => void;
   bulkChangeFontSize: (fontSize: number) => void;
   bulkChangeFontFamily: (fontFamily: string) => void;
+  bulkChangeTextAlign: (textAlign: string) => void;
   bulkToggleFontWeight: () => void;
   bulkToggleFontStyle: () => void;
   bulkToggleUnderline: () => void;
@@ -266,6 +268,7 @@ const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
   bulkChangeTextColor,
   bulkChangeFontSize,
   bulkChangeFontFamily,
+  bulkChangeTextAlign,
   bulkToggleFontWeight,
   bulkToggleFontStyle,
   bulkToggleUnderline,
@@ -435,6 +438,33 @@ const MultiSelectionToolbar: React.FC<MultiSelectionToolbarProps> = ({
               <option value="Impact, sans-serif">Impact</option>
               <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
             </select>
+          </div>
+
+          <div className="toolbar-section">
+            <label className="form-label">Text Alignment</label>
+            <div className="toolbar-buttons">
+              <button
+                className="btn btn-small btn-outline"
+                onClick={() => bulkChangeTextAlign('left')}
+                title="Align Left"
+              >
+                ⬅️
+              </button>
+              <button
+                className="btn btn-small btn-outline"
+                onClick={() => bulkChangeTextAlign('center')}
+                title="Align Center"
+              >
+                ↔️
+              </button>
+              <button
+                className="btn btn-small btn-outline"
+                onClick={() => bulkChangeTextAlign('right')}
+                title="Align Right"
+              >
+                ➡️
+              </button>
+            </div>
           </div>
 
           <div className="toolbar-section">
@@ -1129,6 +1159,20 @@ export const TVUpdate = () => {
       style: {
         ...element.style,
         fontFamily
+      }
+    }));
+  };
+
+  const bulkChangeTextAlign = (textAlign: string) => {
+    const elements = currentPage?.elements || [];
+    const selectedTextElementIds = elements
+      .filter(el => selectedElements.includes(el.id) && el.type === 'text')
+      .map(el => el.id);
+
+    updateMultipleElements(selectedTextElementIds, (element) => ({
+      style: {
+        ...element.style,
+        textAlign
       }
     }));
   };
@@ -1844,7 +1888,7 @@ export const TVUpdate = () => {
                             fontStyle: element.style?.fontStyle || 'normal',
                             textDecoration: element.style?.textDecoration || 'none',
                             fontFamily: element.style?.fontFamily || 'Arial, sans-serif',
-                            textAlign: 'center',
+                            textAlign: element.style?.textAlign as any || 'left',
                             lineHeight: '1.2',
                             display: 'block',
                             width: '100%'
@@ -2089,6 +2133,7 @@ export const TVUpdate = () => {
                 bulkChangeTextColor={bulkChangeTextColor}
                 bulkChangeFontSize={bulkChangeFontSize}
                 bulkChangeFontFamily={bulkChangeFontFamily}
+                bulkChangeTextAlign={bulkChangeTextAlign}
                 bulkToggleFontWeight={bulkToggleFontWeight}
                 bulkToggleFontStyle={bulkToggleFontStyle}
                 bulkToggleUnderline={bulkToggleUnderline}

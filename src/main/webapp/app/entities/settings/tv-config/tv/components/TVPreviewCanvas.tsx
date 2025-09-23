@@ -1,3 +1,5 @@
+/* eslint-disable complexity */
+
 import React from 'react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
