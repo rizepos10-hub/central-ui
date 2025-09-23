@@ -144,6 +144,8 @@ interface HeaderControlsProps {
   redoStack: ICarouselPage[];
   setShowPreview: (show: boolean) => void;
   currentPage: ICarouselPage | undefined;
+  saveEntity: (e: any) => void;
+  updating: boolean;
 }
 
 const HeaderControls: React.FC<HeaderControlsProps> = ({
@@ -153,7 +155,9 @@ const HeaderControls: React.FC<HeaderControlsProps> = ({
   undoStack,
   redoStack,
   setShowPreview,
-  currentPage
+  currentPage,
+  saveEntity,
+  updating
 }) => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -183,6 +187,15 @@ const HeaderControls: React.FC<HeaderControlsProps> = ({
           title="Preview TV (Press Escape to close)"
         >
           👁️ Preview
+        </button>
+        <button
+          className="btn btn-primary btn-small"
+          onClick={saveEntity}
+          disabled={updating}
+          title="Save TV"
+          style={{ marginLeft: '10px' }}
+        >
+          💾 Save
         </button>
       </div>
     </div>
@@ -1196,6 +1209,8 @@ export const TVUpdate = () => {
           redoStack={redoStack}
           setShowPreview={setShowPreview}
           currentPage={currentPage}
+          saveEntity={saveEntity}
+          updating={updating}
         />
 
         {/* TV Configuration */}
@@ -2172,14 +2187,6 @@ export const TVUpdate = () => {
             <button onClick={() => navigate(-1)} className="btn btn-secondary">
               <FaArrowLeft />
               Cancel
-            </button>
-            <button 
-              onClick={saveEntity} 
-              className="btn btn-primary" 
-              disabled={updating}
-            >
-              <FaSave />
-              Save
             </button>
           </div>
         </div>
