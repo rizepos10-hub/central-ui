@@ -379,7 +379,8 @@ const TVPreviewCanvas: React.FC<TVPreviewCanvasProps> = ({
                       height: '100%',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
+                      justifyContent: element.style?.textAlign === 'right' ? 'flex-end' :
+                                    element.style?.textAlign === 'center' ? 'center' : 'flex-start',
                       backgroundColor: 'rgba(0, 0, 0, 0.3)',
                       borderRadius: '2px',
                       padding: '8px',
@@ -394,7 +395,7 @@ const TVPreviewCanvas: React.FC<TVPreviewCanvasProps> = ({
                       fontStyle: element.style?.fontStyle || 'normal',
                       textDecoration: element.style?.textDecoration || 'none',
                       fontFamily: element.style?.fontFamily || 'Arial, sans-serif',
-                      textAlign: 'center',
+                      textAlign: element.style?.textAlign as any || 'left',
                       lineHeight: '1.2',
                       display: 'block',
                       width: '100%'
