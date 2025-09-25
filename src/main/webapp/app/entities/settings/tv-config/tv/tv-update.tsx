@@ -93,7 +93,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ showPreview, setShowPreview
                   height: '100%',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  justifyContent: element.style?.textAlign === 'right' ? 'flex-end' :
+                                element.style?.textAlign === 'center' ? 'center' : 'flex-start',
                   padding: '8px',
                   fontSize: element.style?.fontSize || 24,
                   color: element.style?.color || '#ffffff',
@@ -101,7 +102,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ showPreview, setShowPreview
                   fontStyle: element.style?.fontStyle || 'normal',
                   textDecoration: element.style?.textDecoration || 'none',
                   fontFamily: element.style?.fontFamily || 'Arial, sans-serif',
-                  textAlign: element.style?.textAlign as any || 'center',
+                  textAlign: element.style?.textAlign as any || 'left',
                   lineHeight: '1.2'
                 }}
               >
@@ -633,6 +634,20 @@ export const TVUpdate = () => {
 
     return result;
   }, [screenDimensions.width, screenDimensions.height]);
+
+  // Helper function to transform drag deltas for rotated elements
+  const transformDragDelta = (deltaX: number, deltaY: number, angle: number): { x: number, y: number } => {
+    if (!angle) return { x: deltaX, y: deltaY };
+
+    const radians = angle * Math.PI / 180;
+    const cos = Math.cos(-radians); // Use negative angle for inverse transformation
+    const sin = Math.sin(-radians);
+
+    return {
+      x: deltaX * cos - deltaY * sin,
+      y: deltaX * sin + deltaY * cos
+    };
+  };
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -1556,7 +1571,7 @@ export const TVUpdate = () => {
               {currentPage?.elements.map((element, index) => (
                 <div
                   key={element.id}
-                  className={`carousel-element ${selectedElements.includes(element.id) ? 'selected' : ''} ${element.locked ? 'locked' : ''} ${draggingElements.includes(element.id) ? 'dragging' : ''}`}
+                  className={`carousel-element ${selectedElements.includes(element.id) && element.type !== 'line' ? 'selected' : ''} ${element.locked ? 'locked' : ''} ${draggingElements.includes(element.id) ? 'dragging' : ''} ${element.type === 'line' ? 'line-element' : ''}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     // Don't allow selection of locked elements
@@ -1582,8 +1597,9 @@ export const TVUpdate = () => {
                     width: ((element.size?.width || 0) / 100) * screenDimensions.width,
                     height: ((element.size?.height || 0) / 100) * screenDimensions.height,
                     zIndex: index + 1,
-                    transform: element.type === 'line' ? `rotate(${element.angle || 0}deg)` : undefined,
-                    transformOrigin: element.type === 'line' ? 'center' : undefined
+                    // No rotation transform on outer container to avoid react-draggable conflict
+                    transform: undefined,
+                    transformOrigin: undefined
                   }}
                 >
                   <Draggable
@@ -1591,6 +1607,7 @@ export const TVUpdate = () => {
                     handle=".drag-handle"
                     bounds={false}
                     position={{ x: 0, y: 0 }}
+                    allowAnyClick={false}
                     onStart={() => {
                       const elementsToMove = selectedElements.length > 1 && selectedElements.includes(element.id)
                         ? selectedElements.filter(id => {
@@ -1782,7 +1799,7 @@ export const TVUpdate = () => {
                       maxConstraints={[screenDimensions.width, screenDimensions.height]}
                       resizeHandles={element.locked ? [] :
                         element.type === 'text' ? ['e', 'se'] :
-                        element.type === 'line' ? ['e'] : // Lines: only east (width)
+                        element.type === 'line' ? [] : // Lines: use custom rotated handles, hide default ones
                         ['se'] // Images: southeast (corner)
                       }
                       handleStyle={{
@@ -1809,12 +1826,85 @@ export const TVUpdate = () => {
                         }
                       }}
                       axis={element.type === 'text' ? undefined : 'both'}
+                      style={element.type === 'line' ? { border: 'none' } : undefined}
                     >
+                      {/* Rotated selection border with resize handle for line elements */}
+                      {element.type === 'line' && selectedElements.includes(element.id) && !element.locked && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '-2px',
+                            left: '-2px',
+                            right: '-2px',
+                            bottom: '-2px',
+                            border: '2px solid #007bff',
+                            borderRadius: '0px',
+                            transform: `rotate(${element.angle || 0}deg)`,
+                            transformOrigin: 'center center',
+                            pointerEvents: 'none',
+                            zIndex: 1
+                          }}
+                        >
+                          {/* Resize handle positioned on the rotated border */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              width: '6px',
+                              height: '24px',
+                              backgroundColor: '#007bff',
+                              border: '1px solid white',
+                              borderRadius: '3px',
+                              cursor: 'ew-resize',
+                              right: '-3px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              pointerEvents: 'auto',
+                              zIndex: 2
+                            }}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+
+                              if (element.locked) return;
+
+                              setResizingElement(element.id);
+                              const startX = e.clientX;
+                              const startWidth = ((element.size?.width || 0) / 100) * screenDimensions.width;
+
+                              const handleMouseMove = (moveE: MouseEvent) => {
+                                const deltaX = moveE.clientX - startX;
+                                const newWidthPx = Math.max(30, startWidth + deltaX);
+                                const newWidthPercent = (newWidthPx / screenDimensions.width) * 100;
+
+                                updateElement(element.id, {
+                                  size: {
+                                    ...element.size,
+                                    width: newWidthPercent
+                                  }
+                                });
+                              };
+
+                              const handleMouseUp = () => {
+                                setResizingElement(null);
+                                document.removeEventListener('mousemove', handleMouseMove);
+                                document.removeEventListener('mouseup', handleMouseUp);
+                              };
+
+                              document.addEventListener('mousemove', handleMouseMove);
+                              document.addEventListener('mouseup', handleMouseUp);
+                            }}
+                          />
+                        </div>
+                      )}
+
                       <div
                         style={{
                           width: '100%',
                           height: '100%',
-                          position: 'relative'
+                          position: 'relative',
+                          // Apply rotation consistently to inner content for lines
+                          transform: element.type === 'line' ? `rotate(${element.angle || 0}deg)` : undefined,
+                          transformOrigin: element.type === 'line' ? 'center center' : undefined
                         }}
                       >
                       <div
@@ -1965,24 +2055,28 @@ export const TVUpdate = () => {
                               angle: element.angle || 0
                             });
 
-                            // Show angle display
+                            // Show angle display near the rotation handle (bottom-right corner)
+                            const cornerX = center.x + ((element.size?.width || 0) / 100) * screenDimensions.width / 2;
+                            const cornerY = center.y + ((element.size?.height || 0) / 100) * screenDimensions.height / 2;
                             setShowAngleDisplay({
                               elementId: element.id,
                               angle: element.angle || 0,
-                              x: center.x,
-                              y: center.y
+                              x: cornerX,
+                              y: cornerY
                             });
 
                             const handleMouseMove = (moveE: MouseEvent) => {
                               const center = getElementCenter(element);
                               const newAngle = calculateAngle(center.x, center.y, moveE.clientX, moveE.clientY);
 
-                              // Update angle display
+                              // Update angle display near the rotation handle
+                              const cornerX = center.x + ((element.size?.width || 0) / 100) * screenDimensions.width / 2;
+                              const cornerY = center.y + ((element.size?.height || 0) / 100) * screenDimensions.height / 2;
                               setShowAngleDisplay({
                                 elementId: element.id,
                                 angle: newAngle,
-                                x: center.x,
-                                y: center.y
+                                x: cornerX,
+                                y: cornerY
                               });
 
                               // Update only this element's angle
@@ -2682,8 +2776,8 @@ export const TVUpdate = () => {
         <div
           style={{
             position: 'fixed',
-            left: showAngleDisplay.x + 20,
-            top: showAngleDisplay.y - 30,
+            left: showAngleDisplay.x + 10,
+            top: showAngleDisplay.y + 10,
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             color: 'white',
             padding: '8px 12px',

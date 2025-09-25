@@ -243,6 +243,28 @@
   border-color: #007bff;
 }
 
+/* Disable default hover, selected, and dragging borders for line elements (they use custom rotated borders) */
+.carousel-element.line-element:hover {
+  border-color: transparent;
+}
+
+.carousel-element.line-element.selected {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.carousel-element.line-element.dragging {
+  border-color: transparent !important;
+  border-width: 2px !important; /* Reset to default width */
+}
+
+.carousel-element.line-element.selected.dragging {
+  border-color: transparent !important;
+  border-width: 2px !important; /* Reset to default width */
+}
+
+/* Line elements don't need default borders - they only show borders when selected (properly rotated) */
+
 .carousel-element.selected {
   border-color: #007bff;
   box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
