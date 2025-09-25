@@ -54,23 +54,39 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ showPreview, setShowPreview
       }}
       onClick={() => setShowPreview(false)}
     >
-      <div
-        className="preview-screen"
-        style={{
-          width: tv.dimensions?.width || 1920,
-          height: tv.dimensions?.height || 1080,
-          maxWidth: '95vw',
-          maxHeight: '95vh',
-          backgroundColor: '#000',
-          position: 'relative',
-          overflow: 'hidden',
-          transform: 'scale(' + Math.min(
-            (window.innerWidth * 0.95) / (tv.dimensions?.width || 1920),
-            (window.innerHeight * 0.95) / (tv.dimensions?.height || 1080)
-          ) + ')'
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+      {(() => {
+        // Calculate screen dimensions the same way as main editor
+        const maxWidth = 800;
+        const maxHeight = 450;
+        const actualWidth = tv.dimensions?.width || 1920;
+        const actualHeight = tv.dimensions?.height || 1080;
+        const editorRatio = Math.min(maxWidth / actualWidth, maxHeight / actualHeight);
+
+        // Use the same scaled dimensions as the main editor
+        const scaledWidth = actualWidth * editorRatio;
+        const scaledHeight = actualHeight * editorRatio;
+
+        // Calculate preview scale to fit the scaled dimensions
+        const previewScale = Math.min(
+          (window.innerWidth * 0.95) / scaledWidth,
+          (window.innerHeight * 0.95) / scaledHeight
+        );
+
+        return (
+          <div
+            className="preview-screen"
+            style={{
+              width: scaledWidth,
+              height: scaledHeight,
+              maxWidth: '95vw',
+              maxHeight: '95vh',
+              backgroundColor: '#000',
+              position: 'relative',
+              overflow: 'hidden',
+              transform: `scale(${previewScale})`
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
         {currentPage?.elements.map((element, index) => (
           <div
             key={element.id}
@@ -159,6 +175,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ showPreview, setShowPreview
           Press ESC to close preview
         </div>
       </div>
+        );
+      })()}
     </div>
   );
 };
