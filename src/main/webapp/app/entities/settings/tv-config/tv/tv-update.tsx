@@ -1629,6 +1629,13 @@ export const TVUpdate = () => {
                       setSelectedElements([element.id]);
                     }
                   }}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    // Only allow editing of free text elements
+                    if (element.type === 'text' && !element.fieldToQuery) {
+                      startEditingText(element.id, element.content);
+                    }
+                  }}
                   onContextMenu={(e) => handleContextMenu(e, element.id)}
                   style={{
                     position: 'absolute',
@@ -2057,13 +2064,6 @@ export const TVUpdate = () => {
                                 lineHeight: '1.2',
                                 display: 'block',
                                 width: '100%'
-                              }}
-                              onDoubleClick={(e) => {
-                                e.stopPropagation();
-                                // Only allow editing of free text (no fieldToQuery)
-                                if (!element.fieldToQuery) {
-                                  startEditingText(element.id, element.content);
-                                }
                               }}
                             >
                               {element.content}
