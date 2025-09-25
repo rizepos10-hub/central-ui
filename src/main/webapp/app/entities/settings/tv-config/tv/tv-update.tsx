@@ -576,6 +576,9 @@ export const TVUpdate = () => {
   const [rotatingElement, setRotatingElement] = useState<string | null>(null);
   const [rotationStart, setRotationStart] = useState<{x: number, y: number, angle: number} | null>(null);
   const [showAngleDisplay, setShowAngleDisplay] = useState<{elementId: string, angle: number, x: number, y: number} | null>(null);
+  const [freeTextInput, setFreeTextInput] = useState<string>('');
+  const [editingTextElement, setEditingTextElement] = useState<string | null>(null);
+  const [editingTextValue, setEditingTextValue] = useState<string>('');
 
   // Undo/Redo functionality
   const [undoStack, setUndoStack] = useState<ICarouselPage[]>([]);
@@ -1280,6 +1283,25 @@ export const TVUpdate = () => {
   const bulkDelete = () => {
     if (selectedElements.length === 0) return;
     setShowDeleteDialog(true);
+  };
+
+  // Text editing functions
+  const startEditingText = (elementId: string, currentContent: string) => {
+    setEditingTextElement(elementId);
+    setEditingTextValue(currentContent);
+  };
+
+  const saveTextEdit = () => {
+    if (editingTextElement && editingTextValue.trim()) {
+      updateElement(editingTextElement, { content: editingTextValue.trim() });
+    }
+    setEditingTextElement(null);
+    setEditingTextValue('');
+  };
+
+  const cancelTextEdit = () => {
+    setEditingTextElement(null);
+    setEditingTextValue('');
   };
 
   const confirmDelete = () => {
@@ -1990,20 +2012,63 @@ export const TVUpdate = () => {
                             zIndex: 0
                           }}
                         >
-                          <span style={{
-                            fontSize: resizePreview?.[element.id]?.fontSize || element.style?.fontSize || 24,
-                            color: element.style?.color || '#ffffff',
-                            fontWeight: element.style?.fontWeight || 'normal',
-                            fontStyle: element.style?.fontStyle || 'normal',
-                            textDecoration: element.style?.textDecoration || 'none',
-                            fontFamily: element.style?.fontFamily || 'Arial, sans-serif',
-                            textAlign: element.style?.textAlign as any || 'left',
-                            lineHeight: '1.2',
-                            display: 'block',
-                            width: '100%'
-                          }}>
-                            {element.content}
-                          </span>
+                          {editingTextElement === element.id ? (
+                            <input
+                              type="text"
+                              value={editingTextValue}
+                              onChange={(e) => setEditingTextValue(e.target.value)}
+                              onBlur={saveTextEdit}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  saveTextEdit();
+                                } else if (e.key === 'Escape') {
+                                  cancelTextEdit();
+                                }
+                                e.stopPropagation(); // Prevent element selection/drag
+                              }}
+                              onClick={(e) => e.stopPropagation()} // Prevent element selection
+                              autoFocus
+                              style={{
+                                fontSize: resizePreview?.[element.id]?.fontSize || element.style?.fontSize || 24,
+                                color: element.style?.color || '#ffffff',
+                                fontWeight: element.style?.fontWeight || 'normal',
+                                fontStyle: element.style?.fontStyle || 'normal',
+                                textDecoration: element.style?.textDecoration || 'none',
+                                fontFamily: element.style?.fontFamily || 'Arial, sans-serif',
+                                textAlign: element.style?.textAlign as any || 'left',
+                                lineHeight: '1.2',
+                                width: '100%',
+                                border: 'none',
+                                outline: 'none',
+                                backgroundColor: 'transparent',
+                                padding: '2px'
+                              }}
+                            />
+                          ) : (
+                            <span
+                              style={{
+                                fontSize: resizePreview?.[element.id]?.fontSize || element.style?.fontSize || 24,
+                                color: element.style?.color || '#ffffff',
+                                fontWeight: element.style?.fontWeight || 'normal',
+                                fontStyle: element.style?.fontStyle || 'normal',
+                                textDecoration: element.style?.textDecoration || 'none',
+                                fontFamily: element.style?.fontFamily || 'Arial, sans-serif',
+                                textAlign: element.style?.textAlign as any || 'left',
+                                lineHeight: '1.2',
+                                display: 'block',
+                                width: '100%'
+                              }}
+                              onDoubleClick={(e) => {
+                                e.stopPropagation();
+                                // Only allow editing of free text (no fieldToQuery)
+                                if (!element.fieldToQuery) {
+                                  startEditingText(element.id, element.content);
+                                }
+                              }}
+                            >
+                              {element.content}
+                            </span>
+                          )}
                         </div>
                       ) : element.type === 'line' ? (
                         <div
@@ -2229,6 +2294,40 @@ export const TVUpdate = () => {
                 >
                   ➖ Add Line
                 </button>
+              </div>
+
+              {/* Add Free Text Button */}
+              <div className="form-group">
+                <label className="form-label">Add Free Text</label>
+                <p className="form-description">Add custom text as a decorative element (not tied to items)</p>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Enter text content..."
+                    value={freeTextInput}
+                    onChange={(e) => setFreeTextInput(e.target.value)}
+                    className="form-input"
+                    style={{ flex: 1 }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && freeTextInput.trim()) {
+                        addElementToPage('text', freeTextInput.trim(), '', true);
+                        setFreeTextInput('');
+                      }
+                    }}
+                  />
+                  <button
+                    className="btn btn-outline"
+                    onClick={() => {
+                      if (freeTextInput.trim()) {
+                        addElementToPage('text', freeTextInput.trim(), '', true);
+                        setFreeTextInput('');
+                      }
+                    }}
+                    disabled={!freeTextInput.trim()}
+                  >
+                    ➕ Add Text
+                  </button>
+                </div>
               </div>
 
               <MultiSelectionToolbar
@@ -2765,6 +2864,30 @@ export const TVUpdate = () => {
           }}>
             <FaArrowDown /> Send Backward
           </div>
+
+          {(() => {
+            const element = currentPage?.elements.find(el => el.id === contextMenu.elementId);
+            // Show edit option only for free text elements (no fieldToQuery)
+            const isFreeText = element?.type === 'text' && !element?.fieldToQuery;
+
+            if (isFreeText) {
+              return (
+                <>
+                  <div className="context-menu-separator" />
+                  <div className="context-menu-item" onClick={() => {
+                    if (element) {
+                      startEditingText(contextMenu.elementId, element.content);
+                    }
+                    closeContextMenu();
+                  }}>
+                    ✏️ Edit Text
+                  </div>
+                </>
+              );
+            }
+            return null;
+          })()}
+
           <div className="context-menu-separator" />
           <div className="context-menu-item" onClick={() => {
             const element = currentPage?.elements.find(el => el.id === contextMenu.elementId);
