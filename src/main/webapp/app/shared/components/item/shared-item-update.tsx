@@ -204,17 +204,19 @@ export const SharedItemUpdate = ({ item, onFieldChange, defaultPrice, setDefault
 
 
               {/* checkbox for askForPrice field */}
-              <Col md="2">
-                <div className={'d-flex flex-column gap-2 mb-3'}>
-                  <label className={'font-semibold'}>
-                    <Translate contentKey={'items.update.askForPrice'}>Ask for Price</Translate>
-                  </label>
-                  <Checkbox
-                    checked={item?.askForPrice || false}
-                    onChange={(e) => onFieldChange('askForPrice', e.checked)}
-                  />
-                </div>
-              </Col>
+              {(item?.itemVariantType === ItemVariantType.RETAIL_SIMPLE || item?.itemVariantType === ItemVariantType.RESTAURANT_VARIABLE) && (
+                <Col md="2">
+                  <div className={'d-flex flex-column gap-2 mb-3'}>
+                    <label className={'font-semibold'}>
+                      <Translate contentKey={'items.update.askForPrice'}>Ask for Price</Translate>
+                    </label>
+                    <Checkbox
+                      checked={item?.askForPrice || false}
+                      onChange={(e) => onFieldChange('askForPrice', e.checked)}
+                    />
+                  </div>
+                </Col>
+              )}
 
 
               <Col md="12">
