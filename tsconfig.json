@@ -17,12 +17,15 @@
     "checkJs": false,
     "baseUrl": "./",
     "paths": {
-      "app/*": ["src/main/webapp/app/*"]
+      "app/*": ["src/main/webapp/app/*"],
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/lib/*": ["./src/main/webapp/app/lib/*"]
     },
     "importHelpers": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/main/webapp/app"],
+  "include": ["src/main/webapp/app", "components"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.spec.tsx"]
 }

@@ -1,0 +1,52 @@
+@echo off
+echo Installing all shadcn/ui components...
+
+npx shadcn@latest add accordion --yes
+npx shadcn@latest add alert --yes
+npx shadcn@latest add alert-dialog --yes
+npx shadcn@latest add aspect-ratio --yes
+npx shadcn@latest add avatar --yes
+npx shadcn@latest add badge --yes
+npx shadcn@latest add breadcrumb --yes
+npx shadcn@latest add button --yes
+npx shadcn@latest add calendar --yes
+npx shadcn@latest add card --yes
+npx shadcn@latest add carousel --yes
+npx shadcn@latest add checkbox --yes
+npx shadcn@latest add collapsible --yes
+npx shadcn@latest add command --yes
+npx shadcn@latest add context-menu --yes
+npx shadcn@latest add data-table --yes
+npx shadcn@latest add date-picker --yes
+npx shadcn@latest add dialog --yes
+npx shadcn@latest add drawer --yes
+npx shadcn@latest add dropdown-menu --yes
+npx shadcn@latest add form --yes
+npx shadcn@latest add hover-card --yes
+npx shadcn@latest add input --yes
+npx shadcn@latest add input-otp --yes
+npx shadcn@latest add label --yes
+npx shadcn@latest add menubar --yes
+npx shadcn@latest add navigation-menu --yes
+npx shadcn@latest add pagination --yes
+npx shadcn@latest add popover --yes
+npx shadcn@latest add progress --yes
+npx shadcn@latest add radio-group --yes
+npx shadcn@latest add resizable --yes
+npx shadcn@latest add scroll-area --yes
+npx shadcn@latest add select --yes
+npx shadcn@latest add separator --yes
+npx shadcn@latest add sheet --yes
+npx shadcn@latest add skeleton --yes
+npx shadcn@latest add slider --yes
+npx shadcn@latest add sonner --yes
+npx shadcn@latest add switch --yes
+npx shadcn@latest add table --yes
+npx shadcn@latest add tabs --yes
+npx shadcn@latest add textarea --yes
+npx shadcn@latest add toast --yes
+npx shadcn@latest add toggle --yes
+npx shadcn@latest add toggle-group --yes
+npx shadcn@latest add tooltip --yes
+
+echo All components installed!
