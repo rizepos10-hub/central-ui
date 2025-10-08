@@ -59,6 +59,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
     const [selectedScreenType, setSelectedScreenType] = useState(null);
     const [newSubScreenCols, setNewSubScreenCols] = useState<number | null>(1);
     const [newSubScreenColor, setNewSubScreenColor] = useState('');
+    const [newSubScreenIsPizza, setNewSubScreenIsPizza] = useState(false);
+    const [newSubScreenImage, setNewSubScreenImage] = useState<IAttachment>();
     const [draggedIndex, setDraggedIndex] = useState(null);
     const [breadcrumb, setBreadcrumb] = useState<string[]>([]);
     const [subScreenStack, setSubScreenStack] = useState([]);
@@ -885,6 +887,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                             subScreens: [],
                             rowHeight: [],
                             id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
+                            isPizza: newSubScreenIsPizza,
+                            attachment: newSubScreenImage,
                         },
                     ],
                 };
@@ -906,6 +910,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         subScreens: [],
                         rowHeight: [],
                         id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
+                        isPizza: newSubScreenIsPizza,
+                        attachment: newSubScreenImage,
                     }),
                 };
                 updatedSubScreenStack = subScreenStack.map(subScreen =>
@@ -923,6 +929,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                                     subScreens: [],
                                     rowHeight: [],
                                     id: Math.random().toString(36).substring(2, 15) + Date.now().toString(36).substring(8),
+                                    isPizza: newSubScreenIsPizza,
+                                    attachment: newSubScreenImage,
                                 },
                             ],
                         }
@@ -949,6 +957,8 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
         setNewSubScreenName('');
         setNewSubScreenColor('');
         setNewSubScreenCols(null);
+        setNewSubScreenIsPizza(false);
+        setNewSubScreenImage(undefined);
     };
 
     useEffect(() => {
@@ -1365,6 +1375,31 @@ const MenuScreens: React.FC<MenuScreensProps> = ({
                         <div className={'d-flex flex-column mt-2'}>
                             <Label for="subScreenColumns">Sub-screen Cols</Label>
                             <InputNumber id="subScreenColumns" min={1} max={12} value={newSubScreenCols} onChange={e => setNewSubScreenCols(e.value)} />
+                        </div>
+
+                        <div className={'d-flex flex-column mt-2'}>
+                            <Label for="newSubScreenIsPizza">
+                                <Translate contentKey={'menus.pos.update.modals.subScreen.isPizza'}>Is Pizza</Translate>
+                            </Label>
+                            <Checkbox
+                                id="newSubScreenIsPizza"
+                                checked={newSubScreenIsPizza}
+                                onChange={e => setNewSubScreenIsPizza(e.target.checked)}
+                            />
+                        </div>
+
+                        <Label for="newSubScreenImage">
+                            <Translate contentKey={'menus.pos.update.modals.subScreen.image'}>Image</Translate>
+                        </Label>
+                        <div className="d-flex flex-wrap mt-3">
+                            <MediaLibrary
+                                handleFilesSelectCallback={files =>
+                                    setNewSubScreenImage(
+                                        transformAttachmentStructure(files, 'toIAttachment')[0]
+                                    )
+                                }
+                                defaultValues={transformAttachmentStructure(newSubScreenImage ? [newSubScreenImage] : [], 'toFileLibraryListItem')}
+                            />
                         </div>
 
                         <Label for="subScreenColor">

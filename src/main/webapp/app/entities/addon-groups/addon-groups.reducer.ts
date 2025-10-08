@@ -90,6 +90,20 @@ export const updateAddons = createAsyncThunk(
   { serializeError: serializeAxiosError }
 );
 
+// TODO: Uncomment when backend export API is implemented
+// export const exportEntities = createAsyncThunk(
+//   'addon-groups/export_entities',
+//   async (ids: Array<string>, thunkAPI) => {
+//     const requestUrl = `api/export-data/addon-groups`;
+//     
+//     // Make the request and expect job information instead of blob
+//     const response = await axios.post(requestUrl, ids);
+//     
+//     return response;
+//   },
+//   { serializeError: serializeAxiosError }
+// );
+
 // slice
 
 export const AddonGroupsSlice = createEntitySlice({
@@ -116,7 +130,7 @@ export const AddonGroupsSlice = createEntitySlice({
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
-      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {
+      .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity /* , exportEntities */), (state, action) => {
         state.updating = false;
         state.loading = false;
         state.updateSuccess = true;
@@ -133,7 +147,7 @@ export const AddonGroupsSlice = createEntitySlice({
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity /* , exportEntities */), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

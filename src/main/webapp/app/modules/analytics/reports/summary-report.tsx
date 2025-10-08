@@ -44,10 +44,9 @@ const SalesSummaryReport = () => {
   ];
 
   const handleFromDateChange = (e: any) => {
-    console.log(e.value)
     setFromDate(e.value);
   };
-  console.log(fromDate)
+  
 
   const handleToDateChange = (e: any) => {
     const date = new Date(e.value);
@@ -161,6 +160,11 @@ const SalesSummaryReport = () => {
   useEffect(() => {
     dispatch(getBranches({}));
   }, [dispatch]);
+
+  useEffect(() => {
+    // Fetch initial report on first load with default dates/filters
+    handleSubmit();
+  }, []);
 
   const printWrapperRef = useRef<HTMLDivElement>(null);
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Translate, translate } from 'react-jhipster';
@@ -11,6 +11,9 @@ import { FilterMatchMode } from 'primereact/api';
 import ImportButton from 'app/shared/components/data-import/data-import';
 import { applyMatchModeMap } from 'app/shared/util/filter-match-model-util';
 import { searchEntities } from 'app/entities/addon-groups/addon-groups.reducer';
+// import { exportEntities } from 'app/entities/addon-groups/addon-groups.reducer'; // TODO: Uncomment when backend is implemented
+// import { confirmDialog } from 'primereact/confirmdialog';
+// import { IAddonGroup } from 'app/shared/model/ADDON/addon-groups.model';
 
 const initialState = {
   first: 0,
@@ -30,11 +33,13 @@ export const AddonGroups = () => {
 
   const navigate = useNavigate();
 
-  const addonList = useAppSelector(state => state.addon.entities);
-  const loading = useAppSelector(state => state.addon.loading);
-  const totalItems = useAppSelector(state => state.addon.totalItems);
+  const addonList = useAppSelector(state => state.addonGroups.entities);
+  const loading = useAppSelector(state => state.addonGroups.loading);
+  const totalItems = useAppSelector(state => state.addonGroups.totalItems);
   const [searchParam, setSearchParams] = useSearchParams();
   const query = JSON.parse(searchParam.get('query')) || initialState;
+  // const [selectedAddonGroups, setSelectedAddonGroups] = useState<IAddonGroup[]>([]);
+  // const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
@@ -95,19 +100,75 @@ export const AddonGroups = () => {
     navigate('/addon-groups/new');
   };
 
+  // TODO: Uncomment export functions when backend is implemented
+  // const handleExportSelected = async () => {
+  //   setIsLoadingAction(true);
+  //   try {
+  //     const result = await dispatch(exportEntities(selectedAddonGroups.map(group => group.id)));
+  //     const payload = result.payload as any;
+  //     
+  //     if (payload?.data) {
+  //       console.log('Export started:', payload.data);
+  //     }
+  //   } catch (error) {
+  //     console.error('Export failed:', error);
+  //   } finally {
+  //     setIsLoadingAction(false);
+  //     setSelectedAddonGroups([]);
+  //   }
+  // };
+
+  // const handleExportAll = async () => {
+  //   setIsLoadingAction(true);
+  //   try {
+  //     const result = await dispatch(exportEntities([]));
+  //     const payload = result.payload as any;
+  //     
+  //     if (payload?.data) {
+  //       console.log('Export all started:', payload.data);
+  //     }
+  //   } catch (error) {
+  //     console.error('Export all failed:', error);
+  //   } finally {
+  //     setIsLoadingAction(false);
+  //   }
+  // };
+
+  // const confirmBulkExport = () => {
+  //   confirmDialog({
+  //     message: `Are you sure you want to export ${selectedAddonGroups.length} selected addon groups?`,
+  //     header: 'Export Selected Addon Groups',
+  //     icon: 'pi pi-exclamation-triangle',
+  //     defaultFocus: 'accept',
+  //     accept: () => handleExportSelected(),
+  //     reject: () => {}
+  //   });
+  // };
+
+  // const confirmExportAll = () => {
+  //   confirmDialog({
+  //     message: 'Are you sure you want to export all addon groups?',
+  //     header: 'Export All Confirmation',
+  //     icon: 'pi pi-exclamation-triangle',
+  //     defaultFocus: 'accept',
+  //     accept: () => handleExportAll(),
+  //     reject: () => {}
+  //   });
+  // };
+
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <span className="text-xl text-900 font-bold">
         <Translate contentKey={'common.addonGroups'}>Addon Groups</Translate>
       </span>
       <div className="ms-auto">
-        {/* <ImportButton type={'ADDON'} /> */}
+        <ImportButton type={'ADDON_GROUPS'} />
         &nbsp;
         <Button
           label={translate('common.refreshList')}
           severity="secondary"
           raised
-          className="me-5"
+          className="me-2"
           color="info"
           onClick={handleSyncList}
           disabled={loading}
@@ -115,6 +176,13 @@ export const AddonGroups = () => {
           &nbsp;
           <FontAwesomeIcon icon="sync" spin={loading} />{' '}
         </Button>
+        {/* TODO: Uncomment export buttons when backend is implemented */}
+        {/* <Button label="Export Selected" severity="help" raised className="me-2" onClick={confirmBulkExport} disabled={selectedAddonGroups.length === 0 || isLoadingAction}>
+          <FontAwesomeIcon icon="download" className="me-1" />
+        </Button>
+        <Button label="Export All" severity="warning" raised className="me-2" onClick={confirmExportAll} disabled={loading || isLoadingAction}>
+          <FontAwesomeIcon icon="file-export" className="me-1" />
+        </Button> */}
         <Button label={translate('tempApp.addonGroup.createNewAddonGroup')} raised onClick={handleCreate} disabled={loading}>
           &nbsp;
         </Button>
@@ -145,7 +213,13 @@ export const AddonGroups = () => {
         sortField={query.sortField}
         sortOrder={query.sortOrder}
         showGridlines
+        // TODO: Uncomment selection when export is implemented
+        // selectionMode="checkbox"
+        // selection={selectedAddonGroups}
+        // onSelectionChange={(e) => setSelectedAddonGroups(e.value)}
       >
+        {/* TODO: Uncomment selection column when export is implemented */}
+        {/* <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} /> */}
         <Column
           field="name"
           header={translate('common.name')}

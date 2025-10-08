@@ -17,6 +17,7 @@ import { useAppDispatch } from 'app/config/store';
 import { getEntities as getBusiness } from 'app/entities/settings/business-details/business-detail.reducer';
 import { SplitButton } from 'primereact/splitbutton';
 import CategoryReport from './category-report';
+import { useNavigate } from 'react-router-dom';
 
 interface DynamicEndOfDayReportUIProps {
     reportData: any;
@@ -44,6 +45,7 @@ const DynamicEndOfDayReportUI = ({
     handleExcelExport
 }: DynamicEndOfDayReportUIProps) => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
 
     const [billsSummary, setBillsSummary] = useState<any>(null);
     const [visibleSections, setVisibleSections] = useState({
@@ -60,6 +62,32 @@ const DynamicEndOfDayReportUI = ({
 
     const toggleSection = (section: keyof typeof visibleSections) => {
         setVisibleSections(prev => ({ ...prev, [section]: !prev[section] }));
+    };
+
+    const handleBack = () => {
+        navigate(-1);
+    };
+
+    const handleRefresh = () => {
+        // Refetch business details
+        dispatch(getBusiness({})).then((res: any) => {
+            setBusinessDetailsState(res.payload.data[0]);
+        });
+
+        // Refetch bills summary
+        if (endOfDay?.id) {
+            fetchFirstLastBills(endOfDay?.id).then((result) => {
+                setBillsSummary(result.data);
+            });
+        } else {
+            fetchFirstLastBillsSummary(branchId, source, fromDate, toDate).then((result) => {
+                setBillsSummary(result.data);
+            });
+        }
+
+        // // Trigger a page reload to refetch all data
+        navigate(0)
+        // window.location.reload();
     };
 
     const pageStyle = `
@@ -130,7 +158,27 @@ const DynamicEndOfDayReportUI = ({
     return (
         <div ref={printWrapperRef} className="mt-2">
             <div className="hide-on-print bg-white p-2 mb-2">
-                <h5>Sections</h5>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="mb-0">Sections</h5>
+                    <div className="d-flex gap-2">
+                        <Button
+                            type="button"
+                            className="p-button-outlined p-button-secondary"
+                            icon="pi pi-arrow-left"
+                            label="Back"
+                            onClick={handleBack}
+                            data-pr-tooltip="Go Back"
+                        />
+                        <Button
+                            type="button"
+                            className="p-button-outlined p-button-info"
+                            icon="pi pi-refresh"
+                            label="Refresh"
+                            onClick={handleRefresh}
+                            data-pr-tooltip="Refresh Data"
+                        />
+                    </div>
+                </div>
                 <div className="flex gap-4">
                     <label className="flex items-center">
                         <input

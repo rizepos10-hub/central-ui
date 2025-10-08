@@ -51,7 +51,10 @@ export const ProductionCenterUpdate = () => {
   const [selectedOrderMethod, setSelectedOrderMethod] = useState<{ value: string; label: string; id: string; } | undefined>();
 
 
-  const orderMethodOptions = Object.keys(OrderMethod).map(method => ({ label: method, value: method, id: method }))
+  const orderMethodOptions = [
+    { label: 'ALL', value: null, id: 'all' },
+    ...Object.keys(OrderMethod).map(method => ({ label: method, value: method, id: method }))
+  ]
 
   console.log(orderMethodOptions, 'orderMethodOptions')
 
@@ -104,6 +107,7 @@ export const ProductionCenterUpdate = () => {
       ...productionCenterEntity,
       ...values,
       printingProfile: { id: selectedPrintingProfile.value ? selectedPrintingProfile.value : selectedPrintingProfile.id },
+      orderMethod: selectedOrderMethod?.value || null,
     };
 
     if (isNew) {
@@ -158,8 +162,13 @@ export const ProductionCenterUpdate = () => {
                 />
                 <div className="mb-3">
                   {translate('tempApp.productionCenter.orderMethod')}
-                  <Select defaultValue={initialOrderMethod}
-                    onChange={handleOrderMethodChange} options={orderMethodOptions} />
+                  <Select
+                    defaultValue={initialOrderMethod}
+                    value={selectedOrderMethod}
+                    onChange={handleOrderMethodChange}
+                    options={orderMethodOptions}
+                    isClearable
+                  />
                 </div>
 
                 <div className="mb-3">

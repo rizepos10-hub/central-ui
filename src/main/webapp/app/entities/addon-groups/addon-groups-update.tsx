@@ -68,15 +68,16 @@ export const AddonGroupUpdate = () => {
   };
 
   useEffect(() => {
+    dispatch(getAddons({
+      page: 0,
+      size: 1000,
+      sort: 'name,asc'
+    }));
+    
     if (isNew) {
       dispatch(reset());
     } else {
       dispatch(getEntity(id));
-      dispatch(getAddons({
-        page: 0,
-        size: 1000,
-        sort: 'name,asc'
-      }));
     }
   }, []);
 

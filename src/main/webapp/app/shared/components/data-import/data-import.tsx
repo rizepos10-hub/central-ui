@@ -1,7 +1,7 @@
 import { Button } from "primereact/button";
 import React from "react";
 import { useAppDispatch, useAppSelector } from "app/config/store";
-import { FileType, importData, importRetailData } from "app/shared/reducers/import-data";
+import { FileType, importData, importRetailData, importSupplierData, importAddonGroupsData } from "app/shared/reducers/import-data";
 import { Tooltip } from "reactstrap";
 
 type ItemImportProps = {
@@ -25,6 +25,10 @@ const ImportButton = ({ type }: ItemImportProps) => {
       if (selectedFile) {
         if (type === 'RETAIL') {
           dispatch(importRetailData({ file: selectedFile }));
+        } else if (type === 'SUPPLIER') {
+          dispatch(importSupplierData({ file: selectedFile }));
+        } else if (type === 'ADDON_GROUPS') {
+          dispatch(importAddonGroupsData({ file: selectedFile }));
         } else {
           dispatch(importData({ file: selectedFile, type }));
         }
@@ -63,6 +67,14 @@ const ImportButton = ({ type }: ItemImportProps) => {
       case "RETAIL":
         filePath = "https://cloudlinksai-my.sharepoint.com/:x:/g/personal/ali_aboud_cloudlinks_ai/Ef1RRc-9m2xCnjNmZ0OW090BBM2YR4UHnS2DA39oZg2qQg?e=FnJfhS";
         fileName = "retail.xlsx";
+        break;
+      case "SUPPLIER":
+        filePath = "https://cloudlinksai-my.sharepoint.com/:x:/g/personal/hussein_aboud_cloudlinks_ai/ESp-D84npNhIjNpF2UYxJ8YBa5Hr0LNaijbJ9rsLhqToiw?e=6xS1XW&wdOrigin=TEAMS-WEB.p2p_ns.rwc&wdExp=TEAMS-TREATMENT&wdhostclicktime=1756735856496&web=1";
+        fileName = "suppliers.xlsx";
+        break;
+      case "ADDON_GROUPS":
+        filePath = "https://cloudlinksai-my.sharepoint.com/:x:/g/personal/hussein_aboud_cloudlinks_ai/EXSnB54nng9FrKGUc9qK9VkB2pRJdaU-sQh5FWmvo3xk0w?rtime=RJsVX2Dp3Ug&wdOrigin=TEAMS-WEB.p2p_ns.rwc&wdExp=TEAMS-TREATMENT&wdhostclicktime=1756735492746&web=1";
+        fileName = "addon-groups.xlsx";
         break;
       default:
         return;
