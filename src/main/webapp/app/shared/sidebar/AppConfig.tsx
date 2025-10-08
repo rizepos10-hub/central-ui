@@ -1,20 +1,15 @@
 import PrimeReact from 'primereact/api';
-import { PrimeReactContext } from 'primereact/api';
-
 import { Button } from 'primereact/button';
 import { InputSwitch, InputSwitchChangeEvent } from 'primereact/inputswitch';
 import { RadioButton, RadioButtonChangeEvent } from 'primereact/radiobutton';
-import { Sidebar } from 'primereact/sidebar';
 import { classNames } from 'primereact/utils';
 import React, { useContext, useEffect } from 'react';
 import { LayoutContext } from './context/layoutcontext';
 import type { AppConfigProps, ColorScheme } from './types/types';
-import {Col, Container, Row} from "reactstrap";
 import {Card} from "primereact/card";
 
 const AppConfig = (props: AppConfigProps) => {
     const { layoutConfig, setLayoutConfig, layoutState, setLayoutState, isSlim, isSlimPlus, isHorizontal } = useContext(LayoutContext);
-    const { changeTheme } = useContext(PrimeReactContext);
     const scales = [12, 13, 14, 15, 16];
 
     const componentThemes = [
@@ -69,21 +64,19 @@ const AppConfig = (props: AppConfigProps) => {
     };
 
    const changeColorScheme = (colorScheme: ColorScheme) => {
-    changeTheme?.(
-      layoutConfig.colorScheme,
-      colorScheme,
-      "theme-link",
-      () => {
+        // Apply Tailwind dark mode class
+        const htmlElement = document.documentElement;
+        if (colorScheme === 'dark') {
+            htmlElement.classList.add('dark');
+        } else {
+            htmlElement.classList.remove('dark');
+        }
         setLayoutConfig((prevState) => ({ ...prevState, colorScheme }));
-      }
-      );
     };
 
-
   const _changeTheme = (theme: string) => {
-     changeTheme?.(layoutConfig.theme, theme, "theme-link", () => {
+      // Theme changes are now handled by Tailwind CSS variables
       setLayoutConfig((prevState) => ({ ...prevState, theme }));
-    });
   };
 
 
@@ -110,18 +103,12 @@ const AppConfig = (props: AppConfigProps) => {
     }, [layoutConfig.scale]);
 
     return (
-
-          <div>
-            <Row>
-              <Col md="8">
-                <h2>
-                 Themes
-                </h2>
-              </Col>
-            </Row>
-            <Row>
-              <Col md="8"  className="d-flex flex-column p-3">
-                <Card>
+          <div className="p-4">
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold">Themes</h2>
+            </div>
+            <div className="max-w-2xl">
+              <Card>
                 <div className="flex flex-wrap row-gap-3">
                     {componentThemes.map((theme, i) => {
                         return (
@@ -239,10 +226,8 @@ const AppConfig = (props: AppConfigProps) => {
                     </>
                 )}
                 </Card>
-              </Col>
-            </Row>
+            </div>
           </div>
-
     );
 };
 

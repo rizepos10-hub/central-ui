@@ -10,14 +10,7 @@ import { clearAuthentication } from 'app/shared/reducers/authentication';
 import ErrorBoundary from 'app/shared/error/error-boundary';
 import AppComponent from 'app/app';
 import { loadIcons } from 'app/config/icon-loader';
-import 'primeflex/primeflex.css';
-import "./prime-override.css"
-import 'primeicons/primeicons.css';
-import 'primereact/resources/primereact.css';
-import 'primereact/resources/primereact.min.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
-
-import {PrimeReactProvider} from "primereact/api";
+// Removed PrimeReact and Bootstrap CSS imports - now using Tailwind CSS + shadcn
 
 const store = getStore();
 registerLocale(store);
@@ -33,13 +26,11 @@ const root = createRoot(rootEl);
 const render = Component =>
   root.render(
     <ErrorBoundary>
-      <PrimeReactProvider>
       <Provider store={store}>
         <div>
           <Component />
         </div>
       </Provider>
-      </PrimeReactProvider>
     </ErrorBoundary>
   );
 

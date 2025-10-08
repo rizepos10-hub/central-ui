@@ -1,14 +1,11 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type { ChildContainerProps, LayoutContextProps, LayoutConfig, LayoutState, Breadcrumb } from '../types/types';
-import {PrimeReactContext} from "primereact/api";
 
 export const LayoutContext = React.createContext({} as LayoutContextProps);
 
 export const LayoutProvider = (props: ChildContainerProps) => {
-    const { changeTheme } = useContext(PrimeReactContext);
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
     const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>({
-
         ripple: false,
         inputStyle: 'outlined',
         menuMode: 'slim',
@@ -35,13 +32,17 @@ export const LayoutProvider = (props: ChildContainerProps) => {
     const storedLayoutConfig = localStorage.getItem('layoutConfig');
     if (storedLayoutConfig) {
       const parsedLayoutConfig = JSON.parse(storedLayoutConfig);
-      const { colorScheme , theme} = parsedLayoutConfig;
+      const { colorScheme } = parsedLayoutConfig;
 
-      changeTheme?.(layoutConfig.colorScheme, colorScheme, "theme-link", () => {
-        changeTheme?.(layoutConfig.theme, theme, "theme-link", () => {
-          setLayoutConfig(() => ({...parsedLayoutConfig}));
-        })
-      })
+      // Apply dark mode class for Tailwind
+      const htmlElement = document.documentElement;
+      if (colorScheme === 'dark') {
+        htmlElement.classList.add('dark');
+      } else {
+        htmlElement.classList.remove('dark');
+      }
+
+      setLayoutConfig(() => ({...parsedLayoutConfig}));
     }
 
     const storedLayoutState = localStorage.getItem('layoutState');

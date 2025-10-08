@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
+// import 'bootstrap/dist/css/bootstrap.min.css';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
 import axios from "axios";
 import { format, addDays, addMonths } from 'date-fns';

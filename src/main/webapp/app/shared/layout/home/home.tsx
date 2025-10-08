@@ -1,18 +1,8 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { FilterMatchMode, FilterOperator } from 'primereact/api';
-import { Button } from 'primereact/button';
-import { Chart } from 'primereact/chart';
-import { Column } from 'primereact/column';
-import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
-import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
-import { InputText } from 'primereact/inputtext';
-import { Rating } from 'primereact/rating';
-
-import { Tooltip } from 'primereact/tooltip';
-import { ChartData, ChartOptions } from 'chart.js';
+import React, { useContext, useEffect, useState } from 'react';
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartConfig } from '@/components/ui/chart';
 import type { ChartDataState, ChartOptionsState, Demo } from '../../sidebar/types/types';
 import {LayoutContext} from "app/shared/sidebar/context/layoutcontext";
-import axios from "axios";
 import {
   fetchOrdersByYear,
   fetchRecentSales,
@@ -21,16 +11,38 @@ import {
   fetchTopItems
 } from "app/modules/analytics/api";
 import {format, subWeeks} from "date-fns";
-import {Spinner} from "reactstrap";
 import {translate, Translate} from "react-jhipster";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  ColumnDef,
+  flexRender,
+  SortingState,
+} from '@tanstack/react-table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/src/main/webapp/app/lib/utils';
+import { Download, Search, ArrowUp, ArrowDown, ArrowUpDown, Star, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Home() {
 
   const [products, setProducts] = useState<any>([]);
-  const [chartOptions, setChartOptions] = useState<ChartOptionsState>({});
   const [bestSellers, setBestSellers] = useState([]);
   const [recentSales, setRecentSales] = useState([]);
-  const [topCategories, setTopCategories] = useState([])
+  const [topCategories, setTopCategories] = useState([]);
+  const [lineChartData, setLineChartData] = useState<any[]>([]);
+  const [pieChartData, setPieChartData] = useState<any[]>([]);
+  const [lineChartConfig, setLineChartConfig] = useState<ChartConfig>({});
+  const [pieChartConfig, setPieChartConfig] = useState<ChartConfig>({});
 
 
 
@@ -69,16 +81,28 @@ export default function Home() {
     },
 
   ]);
-  const [chartData, setChartData] = useState<ChartDataState>({});
-  const [selectedWeek, setSelectedWeek] = useState(0);
-  const [filters, setFilters] = useState<DataTableFilterMeta>({});
   const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const [sorting, setSorting] = useState<SortingState>([]);
   const { layoutConfig } = useContext(LayoutContext);
-  const dt = useRef<DataTable<any>>(null);
-  const knobValue = 90;
 
   const exportCSV = () => {
-    dt.current?.exportCSV();
+    const headers = ['Name', 'Category', 'Price', 'Status'];
+    const rows = recentSales.map((item: any) => [
+      `${item.itemName} (${item.variantName})`,
+      item.categories?.[0]?.name || '',
+      item.currentPrice?.toFixed(2) || '',
+      item.inventoryStatus || 'INSTOCK'
+    ]);
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'recent-sales.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const formatCurrency = (value: number) => {
@@ -88,102 +112,112 @@ export default function Home() {
     });
   };
 
-  const onWeekChange = (e: DropdownChangeEvent) => {
-    const newBarData = { ...chartData.barData };
-    (newBarData.datasets as any)[0].data = weeks[e.value].data[0];
-    (newBarData.datasets as any)[1].data[1] = weeks[e.value].data[1];
-    setSelectedWeek(e.value);
-    setChartData((prevState: ChartDataState) => ({
-      ...prevState,
-      barData: { ...prevState.barData, datasets: newBarData.datasets || [] }
-    }));
-  };
   const onGlobalFilterChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    const value = e.target.value;
-    const _filters = { ...filters };
-    (_filters['global'] as any).value = value;
-
-    console.log(value)
-    setFilters(_filters);
-    setGlobalFilterValue(value);
-    console.log(recentSales, 'recenthere')
+    setGlobalFilterValue(e.target.value);
   };
 
-  const initFilters = () => {
-    setFilters({
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      name: {
-        operator: FilterOperator.AND,
-        constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }]
+  const columns: ColumnDef<any>[] = [
+    {
+      accessorKey: 'itemName',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-8 px-2"
+          >
+            {translate('home.table.name')}
+            {column.getIsSorted() === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : column.getIsSorted() === 'desc' ? <ArrowDown className="ml-2 h-4 w-4" /> : <ArrowUpDown className="ml-2 h-4 w-4" />}
+          </Button>
+        );
       },
-      'country.name': {
-        operator: FilterOperator.AND,
-        constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }]
+      cell: ({ row }) => (
+        <span className="font-medium text-base">
+          {row.original.itemName} <span className="text-sm text-muted-foreground">({row.original.variantName})</span>
+        </span>
+      ),
+    },
+    {
+      accessorFn: (row) => row.categories?.[0]?.name,
+      id: 'category',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-8 px-2"
+          >
+            {translate('home.table.category')}
+            {column.getIsSorted() === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : column.getIsSorted() === 'desc' ? <ArrowDown className="ml-2 h-4 w-4" /> : <ArrowUpDown className="ml-2 h-4 w-4" />}
+          </Button>
+        );
       },
-      representative: { value: null, matchMode: FilterMatchMode.IN },
-      date: {
-        operator: FilterOperator.AND,
-        constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }]
+      cell: ({ row }) => row.original.categories?.[0]?.name || '-',
+    },
+    {
+      accessorKey: 'currentPrice',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-8 px-2"
+          >
+            {translate('home.table.price')}
+            {column.getIsSorted() === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : column.getIsSorted() === 'desc' ? <ArrowDown className="ml-2 h-4 w-4" /> : <ArrowUpDown className="ml-2 h-4 w-4" />}
+          </Button>
+        );
       },
-      balance: {
-        operator: FilterOperator.AND,
-        constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }]
+      cell: ({ row }) => <span>${row.original.currentPrice?.toFixed(2) || '0.00'}</span>,
+    },
+    {
+      accessorKey: 'inventoryStatus',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="h-8 px-2"
+          >
+            {translate('home.table.status')}
+            {column.getIsSorted() === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : column.getIsSorted() === 'desc' ? <ArrowDown className="ml-2 h-4 w-4" /> : <ArrowUpDown className="ml-2 h-4 w-4" />}
+          </Button>
+        );
       },
-      status: {
-        operator: FilterOperator.OR,
-        constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }]
+      cell: ({ row }) => {
+        const status = row.original.inventoryStatus || 'INSTOCK';
+        const statusLower = status.toLowerCase();
+        return (
+          <Badge
+            variant={statusLower === 'instock' ? 'default' : statusLower === 'lowstock' ? 'secondary' : 'destructive'}
+          >
+            {status}
+          </Badge>
+        );
       },
-      activity: { value: null, matchMode: FilterMatchMode.BETWEEN },
-      verified: { value: null, matchMode: FilterMatchMode.EQUALS }
-    });
-    setGlobalFilterValue('');
-  };
+    },
+  ];
 
-  const nameBodyTemplate = (rowData: any) => {
-    return (
-      <>
-        <span className="p-column-title">Name</span>
-        <span className="font-medium text-lg mb-1 font-bold" key={rowData.id}>{rowData.itemName} <span className="text-sm" key={rowData.id}>({rowData.variantName})</span></span>
-
-      </>
-    );
-  };
-
-  const priceBodyTemplate = (rowData: Demo.Product) => {
-    return (
-      <>
-        <span className="p-column-title">Price</span>
-        <p className="m-3" key={rowData.id}>{(rowData.currentPrice as number).toFixed(2)}</p>
-      </>
-    );
-  };
-
-  const categoryBodyTemplate = (rowData: Demo.Product) => {
-    return (
-      <>
-        <span className="p-column-title">Category</span>
-        {rowData.categories[0]?.name}
-      </>
-    );
-  };
-
-  const statusBodyTemplate = (rowData: Demo.Product) => {
-    const badgeClass = rowData.inventoryStatus?.toLowerCase();
-    return (
-      <>
-        <span className="p-column-title">Status</span>
-        <span className={' product-badge status-' + badgeClass}>{rowData.inventoryStatus ?? 'INSTOCK'  }</span>
-      </>
-    );
-  };
-
-  const searchBodyTemplate = () => {
-    return (
-      <>
-        <Button type="button" icon="pi pi-search" className="p-button-outlined p-button-rounded"></Button>
-      </>
-    );
-  };
+  const table = useReactTable({
+    data: recentSales,
+    columns,
+    state: {
+      sorting,
+      globalFilter: globalFilterValue,
+    },
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilterValue,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    globalFilterFn: 'includesString',
+    initialState: {
+      pagination: {
+        pageSize: 20,
+      },
+    },
+  });
 
   const setAllLoading = (value) => {
     setLoading((prev) => ({
@@ -278,346 +312,426 @@ export default function Home() {
 
 
   useEffect(() => {
-    // ProductService.getProductsSmall().then((data) => setProducts(data));
-    const documentStyle = getComputedStyle(document.documentElement);
-    const textColor = documentStyle.getPropertyValue('--text-color');
-    const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
-    const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
-    const pieData: ChartData = {
-      labels: topCategories?.map(category => category.categoryName),
-      datasets: [
-        {
-          data: topCategories.map(category => category.amount),
-          backgroundColor: [documentStyle.getPropertyValue('--primary-700'), documentStyle.getPropertyValue('--primary-400'), documentStyle.getPropertyValue('--primary-100')],
-          hoverBackgroundColor: [documentStyle.getPropertyValue('--primary-600'), documentStyle.getPropertyValue('--primary-300'), documentStyle.getPropertyValue('--primary-200')]
-        }
-      ]
-    };
-
-
-
-    const pieOptions: ChartOptions = {
-      animation: {
-        duration: 0
-      },
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: {
-            color: textColor,
-            usePointStyle: true,
-            font: {
-              weight: 'bold'
-            },
-            padding: 28
-          },
-          position: 'bottom'
-        }
-      }
-    };
     const fixedColors = [
-      '#E91E63', // Pink
-      '#03A9F4', // Light Blue
-      '#607D8B', // Gray
-      '#9C27B0', // Purple
-      '#2196F3', // Blue
-      '#00BCD4', // Cyan
-      '#8BC34A', // Light Green
-      '#FFC107', // Yellow
-      '#4CAF50', // Green
-      '#FF5733', // Red
-      '#FF9800', // Orange
-      '#673AB7', // Deep Purple
-      '#009688', // Teal
-      '#CDDC39', // Lime
-      '#FFEB3B', // Amber
-      '#9E9E9E', // Grey
-      '#795548', // Brown
-      '#FF4081', // Pink
-      '#FF5722', // Deep Orange
-      '#9E9E9E', // Grey
-
+      '#E91E63', '#03A9F4', '#607D8B', '#9C27B0', '#2196F3',
+      '#00BCD4', '#8BC34A', '#FFC107', '#4CAF50', '#FF5733',
+      '#FF9800', '#673AB7', '#009688', '#CDDC39', '#FFEB3B',
+      '#9E9E9E', '#795548', '#FF4081', '#FF5722', '#9E9E9E'
     ];
-    const barData:any = {
-      labels: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-      datasets: yearlyOrders.map((branchData, index) => ({
-        label: branchData.branchName,
-        data: branchData.monthlyOrders.map((order) => order.ordersCount),
-        fill: false,
-        borderColor:  fixedColors[index % fixedColors.length],
-        tension: 0.4
-      }))
-    };
 
-    const barOptions = {
-      maintainAspectRatio: false,
-      aspectRatio: 0.6,
-      plugins: {
-        legend: {
-          labels: {
-            color: textColor
-          }
-        }
-      },
-      scales: {
-        x: {
-          ticks: {
-            color: textColorSecondary
-          },
-          grid: {
-            color: surfaceBorder
-          }
-        },
-        y: {
-          ticks: {
-            color: textColorSecondary
-          },
-          grid: {
-            color: surfaceBorder
-          }
-        }
-      }
-    };
-    setChartOptions({
-      barOptions,
-      pieOptions
-    });
-    setChartData({
-      barData,
-      pieData
-    });
-    initFilters();
-  }, [layoutConfig,topCategories,yearlyOrders]);
+    // Prepare line chart data for Recharts
+    if (yearlyOrders.length > 0) {
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const lineData = months.map((month, monthIndex) => {
+        const dataPoint: any = { month };
+        yearlyOrders.forEach((branchData) => {
+          dataPoint[branchData.branchName] = branchData.monthlyOrders[monthIndex]?.ordersCount || 0;
+        });
+        return dataPoint;
+      });
+      setLineChartData(lineData);
+
+      // Create config for line chart
+      const lineConfig: ChartConfig = {};
+      yearlyOrders.forEach((branchData, index) => {
+        lineConfig[branchData.branchName] = {
+          label: branchData.branchName,
+          color: fixedColors[index % fixedColors.length]
+        };
+      });
+      setLineChartConfig(lineConfig);
+    }
+
+    // Prepare pie chart data for Recharts
+    if (topCategories.length > 0) {
+      const pieData = topCategories.map((category) => ({
+        name: category.categoryName,
+        value: category.amount
+      }));
+      setPieChartData(pieData);
+
+      const pieConfig: ChartConfig = {};
+      topCategories.forEach((category, index) => {
+        pieConfig[category.categoryName] = {
+          label: category.categoryName,
+          color: fixedColors[index % fixedColors.length]
+        };
+      });
+      setPieChartConfig(pieConfig);
+    }
+  }, [layoutConfig, topCategories, yearlyOrders]);
 
 
 
-  const onYearChange =  (event) => {
-    const selectedYearValue = event.value;
-    setSelectedYear(selectedYearValue);
+  const onYearChange = (value: string) => {
+    setSelectedYear(parseInt(value));
   };
 
 
   return (
-    <div className="grid">
-      <div className="col-12 md:col-6 xl:col-3">
-        <div className="card h-full">
-          <span className="font-semibold text-lg"><Translate  contentKey={'home.sales'}/></span>
-          <div className="flex justify-content-between align-items-start mt-3">
-            {
-              loading.topFieldsData ? (
-                <Spinner />
-                )
-                :
-                (
-                  <div className="w-6">
-                    <span className="text-4xl font-bold text-900">{topFields.sales}</span>
-                    <div className="text-green-500">
-                      <span className="font-medium">+12%</span>
-                      <i className="pi pi-arrow-up text-xs ml-2"></i>
-                    </div>
+    <div className="grid grid-cols-1 gap-2 p-1">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+        <Card>
+          <CardContent className="p-2">
+            <span className="font-semibold text-sm block mb-1"><Translate contentKey={'home.sales'}/></span>
+            <div className="flex justify-between items-start">
+              {loading.topFieldsData ? (
+                <Skeleton className="h-12 w-32" />
+              ) : (
+                <div className="flex-1">
+                  <span className="text-2xl font-bold block">{topFields.sales}</span>
+                  <div className="text-green-500 mt-2 flex items-center">
+                    <span className="font-medium">+12%</span>
+                    <ArrowUp className="ml-2 h-3 w-3" />
                   </div>
-                )
-              }
-            <div className="w-6">
-              <svg width="100%" viewBox="0 0 258 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M1 93.9506L4.5641 94.3162C8.12821 94.6817 15.2564 95.4128 22.3846 89.6451C29.5128 83.8774 36.641 71.6109 43.7692 64.4063C50.8974 57.2018 58.0256 55.0592 65.1538 58.9268C72.2821 62.7945 79.4103 72.6725 86.5385 73.5441C93.6667 74.4157 100.795 66.2809 107.923 65.9287C115.051 65.5765 122.179 73.0068 129.308 66.8232C136.436 60.6396 143.564 40.8422 150.692 27.9257C157.821 15.0093 164.949 8.97393 172.077 6.43766C179.205 3.9014 186.333 4.86425 193.462 12.0629C200.59 19.2616 207.718 32.696 214.846 31.0487C221.974 29.4014 229.103 12.6723 236.231 5.64525C243.359 -1.38178 250.487 1.29325 254.051 2.63076L257.615 3.96827"
-                  style={{ strokeWidth: '2px', stroke: 'var(--primary-color)' }}
-                  stroke="10"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="col-12 md:col-6 xl:col-3">
-        <div className="card h-full">
-          <span className="font-semibold text-lg"><Translate  contentKey={'home.revenue'}/></span>
-          <div className="flex justify-content-between align-items-start mt-3">
-            {
-              loading.topFieldsData ? (
-                  <Spinner />
-                )
-                :
-                (
-            <div className="w-6">
-              <span className="text-4xl font-bold text-900">{topFields?.revenue?.toFixed(2)}</span>
-              <div className="text-green-500">
-                <span className="font-medium">+20%</span>
-                <i className="pi pi-arrow-up text-xs ml-2"></i>
+                </div>
+              )}
+              <div className="flex-1">
+                <svg width="100%" viewBox="0 0 258 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M1 93.9506L4.5641 94.3162C8.12821 94.6817 15.2564 95.4128 22.3846 89.6451C29.5128 83.8774 36.641 71.6109 43.7692 64.4063C50.8974 57.2018 58.0256 55.0592 65.1538 58.9268C72.2821 62.7945 79.4103 72.6725 86.5385 73.5441C93.6667 74.4157 100.795 66.2809 107.923 65.9287C115.051 65.5765 122.179 73.0068 129.308 66.8232C136.436 60.6396 143.564 40.8422 150.692 27.9257C157.821 15.0093 164.949 8.97393 172.077 6.43766C179.205 3.9014 186.333 4.86425 193.462 12.0629C200.59 19.2616 207.718 32.696 214.846 31.0487C221.974 29.4014 229.103 12.6723 236.231 5.64525C243.359 -1.38178 250.487 1.29325 254.051 2.63076L257.615 3.96827"
+                    style={{ strokeWidth: '2px', stroke: 'hsl(var(--primary))' }}
+                    stroke="10"
+                  />
+                </svg>
               </div>
             </div>
-                )
-            }
-            <div className="w-6">
-              <svg width="100%" viewBox="0 0 115 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M1 35.6498L2.24444 32.4319C3.48889 29.214 5.97778 22.7782 8.46667 20.3627C10.9556 17.9473 13.4444 19.5522 15.9333 21.7663C18.4222 23.9803 20.9111 26.8035 23.4 30.6606C25.8889 34.5176 28.3778 39.4085 30.8667 37.2137C33.3556 35.0189 35.8444 25.7383 38.3333 26.3765C40.8222 27.0146 43.3111 37.5714 45.8 38.9013C48.2889 40.2311 50.7778 32.3341 53.2667 31.692C55.7556 31.0499 58.2444 37.6628 60.7333 39.4617C63.2222 41.2607 65.7111 38.2458 68.2 34.9205C70.6889 31.5953 73.1778 27.9597 75.6667 23.5955C78.1556 19.2313 80.6444 14.1385 83.1333 13.8875C85.6222 13.6365 88.1111 18.2272 90.6 20.2425C93.0889 22.2578 95.5778 21.6977 98.0667 18.8159C100.556 15.9341 103.044 10.7306 105.533 7.37432C108.022 4.01806 110.511 2.50903 111.756 1.75451L113 1"
-                  style={{ strokeWidth: '1px', stroke: 'var(--primary-color)' }}
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="col-12 md:col-6 xl:col-3">
-        <div className="card h-full">
-          <span className="font-semibold text-lg"><Translate  contentKey={'home.visitors'}/></span>
-          <div className="flex justify-content-between align-items-start mt-3">
-            {
-              loading.topFieldsData ? (
-                  <Spinner />
-                )
-                :
-                (
-            <div className="w-6">
-              <span className="text-4xl font-bold text-900">{topFields?.visitors}</span>
-              <div className="text-pink-500">
-                <span className="font-medium">+24%</span>
-                <i className="pi pi-arrow-down text-xs ml-2"></i>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-2">
+            <span className="font-semibold text-sm block mb-1"><Translate contentKey={'home.revenue'}/></span>
+            <div className="flex justify-between items-start">
+              {loading.topFieldsData ? (
+                <Skeleton className="h-12 w-32" />
+              ) : (
+                <div className="flex-1">
+                  <span className="text-2xl font-bold block">{topFields?.revenue?.toFixed(2)}</span>
+                  <div className="text-green-500 mt-2 flex items-center">
+                    <span className="font-medium">+20%</span>
+                    <ArrowUp className="ml-2 h-3 w-3" />
+                  </div>
+                </div>
+              )}
+              <div className="flex-1">
+                <svg width="100%" viewBox="0 0 115 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M1 35.6498L2.24444 32.4319C3.48889 29.214 5.97778 22.7782 8.46667 20.3627C10.9556 17.9473 13.4444 19.5522 15.9333 21.7663C18.4222 23.9803 20.9111 26.8035 23.4 30.6606C25.8889 34.5176 28.3778 39.4085 30.8667 37.2137C33.3556 35.0189 35.8444 25.7383 38.3333 26.3765C40.8222 27.0146 43.3111 37.5714 45.8 38.9013C48.2889 40.2311 50.7778 32.3341 53.2667 31.692C55.7556 31.0499 58.2444 37.6628 60.7333 39.4617C63.2222 41.2607 65.7111 38.2458 68.2 34.9205C70.6889 31.5953 73.1778 27.9597 75.6667 23.5955C78.1556 19.2313 80.6444 14.1385 83.1333 13.8875C85.6222 13.6365 88.1111 18.2272 90.6 20.2425C93.0889 22.2578 95.5778 21.6977 98.0667 18.8159C100.556 15.9341 103.044 10.7306 105.533 7.37432C108.022 4.01806 110.511 2.50903 111.756 1.75451L113 1"
+                    style={{ strokeWidth: '1px', stroke: 'hsl(var(--primary))' }}
+                  />
+                </svg>
               </div>
             </div>
-                )
-            }
-            <div className="w-6">
-              <svg width="100%" viewBox="0 0 115 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M1.5 1L2.74444 2.61495C3.98889 4.2299 6.47778 7.4598 8.96667 9.07151C11.4556 10.6832 13.9444 10.6767 16.4333 11.6127C18.9222 12.5487 21.4111 14.4271 23.9 16.6724C26.3889 18.9178 28.8778 21.5301 31.3667 20.1977C33.8556 18.8652 36.3444 13.5878 38.8333 11.3638C41.3222 9.13969 43.8111 9.96891 46.3 11.9894C48.7889 14.0099 51.2778 17.2217 53.7667 16.2045C56.2556 15.1873 58.7444 9.9412 61.2333 11.2783C63.7222 12.6155 66.2111 20.5359 68.7 21.4684C71.1889 22.401 73.6778 16.3458 76.1667 16.0009C78.6556 15.6561 81.1444 21.0217 83.6333 24.2684C86.1222 27.515 88.6111 28.6428 91.1 27.4369C93.5889 26.2311 96.0778 22.6916 98.5667 22.7117C101.056 22.7317 103.544 26.3112 106.033 29.7859C108.522 33.2605 111.011 36.6302 112.256 38.3151L113.5 40"
-                  style={{ strokeWidth: '1px', stroke: 'var(--pink-500)' }}
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="col-12 md:col-6 xl:col-3">
-        <div className="card h-full">
-          <span className="font-semibold text-lg"><Translate  contentKey={'home.stock'}/></span>
-          <div className="flex justify-content-between align-items-start mt-3">
-            {
-              loading.topFieldsData ? (
-                  <Spinner />
-                )
-                :
-                (
-            <div className="w-6">
-              <span className="text-4xl font-bold text-900">{topFields?.stock}</span>
-              <div className="text-green-500">
-                <span className="font-medium">+30%</span>
-                <i className="pi pi-arrow-up text-xs ml-2"></i>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-2">
+            <span className="font-semibold text-sm block mb-1"><Translate contentKey={'home.visitors'}/></span>
+            <div className="flex justify-between items-start">
+              {loading.topFieldsData ? (
+                <Skeleton className="h-12 w-32" />
+              ) : (
+                <div className="flex-1">
+                  <span className="text-2xl font-bold block">{topFields?.visitors}</span>
+                  <div className="text-pink-500 mt-2 flex items-center">
+                    <span className="font-medium">+24%</span>
+                    <ArrowDown className="ml-2 h-3 w-3" />
+                  </div>
+                </div>
+              )}
+              <div className="flex-1">
+                <svg width="100%" viewBox="0 0 115 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M1.5 1L2.74444 2.61495C3.98889 4.2299 6.47778 7.4598 8.96667 9.07151C11.4556 10.6832 13.9444 10.6767 16.4333 11.6127C18.9222 12.5487 21.4111 14.4271 23.9 16.6724C26.3889 18.9178 28.8778 21.5301 31.3667 20.1977C33.8556 18.8652 36.3444 13.5878 38.8333 11.3638C41.3222 9.13969 43.8111 9.96891 46.3 11.9894C48.7889 14.0099 51.2778 17.2217 53.7667 16.2045C56.2556 15.1873 58.7444 9.9412 61.2333 11.2783C63.7222 12.6155 66.2111 20.5359 68.7 21.4684C71.1889 22.401 73.6778 16.3458 76.1667 16.0009C78.6556 15.6561 81.1444 21.0217 83.6333 24.2684C86.1222 27.515 88.6111 28.6428 91.1 27.4369C93.5889 26.2311 96.0778 22.6916 98.5667 22.7117C101.056 22.7317 103.544 26.3112 106.033 29.7859C108.522 33.2605 111.011 36.6302 112.256 38.3151L113.5 40"
+                    style={{ strokeWidth: '1px', stroke: 'rgb(236 72 153)' }}
+                  />
+                </svg>
               </div>
             </div>
-                )
-            }
-            <div className="w-6">
-              <svg width="100%" viewBox="0 0 103 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M0.5 22.7464L2 23C3.40972 23.1524 5.42201 18.0581 8.95833 16.9517C12 16 14.5972 23.4341 17.4167 20.4309C20.2361 17.4277 19 9.50002 25.5 9.50002C31 9.50002 30 4.00002 33 4.00002C35.8428 4.00002 40 13 42.7917 11.0655C47.3252 7.92391 48.4306 14.016 51.25 11.4384C54.0694 8.86075 56.5 12.5 59.7083 8.22399C63.3559 3.36252 65.4888 0.499985 68.5 0.499985C73 0.499985 73.5 7.00001 78.5 6.5C84.9677 5.85322 82.2931 2.58281 85 1.50002C87.5 0.500003 90.7222 11.8656 93.5417 8.93639C97.5 4.00002 99.1806 7.12226 100.59 7.6798L102 8.23734"
-                  stroke="#6366F1"
-                />
-              </svg>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-2">
+            <span className="font-semibold text-sm block mb-1"><Translate contentKey={'home.stock'}/></span>
+            <div className="flex justify-between items-start">
+              {loading.topFieldsData ? (
+                <Skeleton className="h-12 w-32" />
+              ) : (
+                <div className="flex-1">
+                  <span className="text-2xl font-bold block">{topFields?.stock}</span>
+                  <div className="text-green-500 mt-2 flex items-center">
+                    <span className="font-medium">+30%</span>
+                    <ArrowUp className="ml-2 h-3 w-3" />
+                  </div>
+                </div>
+              )}
+              <div className="flex-1">
+                <svg width="100%" viewBox="0 0 103 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M0.5 22.7464L2 23C3.40972 23.1524 5.42201 18.0581 8.95833 16.9517C12 16 14.5972 23.4341 17.4167 20.4309C20.2361 17.4277 19 9.50002 25.5 9.50002C31 9.50002 30 4.00002 33 4.00002C35.8428 4.00002 40 13 42.7917 11.0655C47.3252 7.92391 48.4306 14.016 51.25 11.4384C54.0694 8.86075 56.5 12.5 59.7083 8.22399C63.3559 3.36252 65.4888 0.499985 68.5 0.499985C73 0.499985 73.5 7.00001 78.5 6.5C84.9677 5.85322 82.2931 2.58281 85 1.50002C87.5 0.500003 90.7222 11.8656 93.5417 8.93639C97.5 4.00002 99.1806 7.12226 100.59 7.6798L102 8.23734"
+                    stroke="#6366F1"
+                  />
+                </svg>
+              </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
+        <div className="xl:col-span-2">
+          <Card>
+            <CardContent className="p-2">
+              <div className="flex items-start justify-between mb-1">
+                <span className="text-sm font-semibold"><Translate contentKey={'home.revenueOverview'}/></span>
+                <Select value={selectedYear.toString()} onValueChange={onYearChange}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map(year => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {loading.chartsData ? (
+                <Skeleton className="h-[350px] w-full" />
+              ) : (
+                <ChartContainer config={lineChartConfig} className="h-[350px] w-full">
+                  <LineChart data={lineChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <ChartLegend content={<ChartLegendContent />} />
+                    {Object.keys(lineChartConfig).map((key) => (
+                      <Line
+                        key={key}
+                        type="monotone"
+                        dataKey={key}
+                        stroke={lineChartConfig[key].color}
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    ))}
+                  </LineChart>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div>
+          <Card>
+            <CardContent className="p-2">
+              <div className="text-sm font-semibold mb-1"><Translate contentKey={'home.salesByCategory'}/></div>
+              {loading.chartsData ? (
+                <Skeleton className="h-[368px] w-full" />
+              ) : (
+                <ChartContainer config={pieChartConfig} className="h-[368px] w-full">
+                  <PieChart>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Pie
+                      data={pieChartData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      label
+                    >
+                      {pieChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={Object.values(pieChartConfig)[index]?.color || '#000'} />
+                      ))}
+                    </Pie>
+                    <ChartLegend content={<ChartLegendContent />} />
+                  </PieChart>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-    <div className="col-12 xl:col-9">
-        <div className="card h-auto">
-          <div className="flex align-items-start justify-content-between mb-6">
-            <span className="text-900 text-xl font-semibold"><Translate  contentKey={'home.revenueOverview'}/></span>
-            <Dropdown options={years.map(year => ({label: year.toString(), value: year}))}
-                      defaultValue={selectedYear} value={selectedYear} className="w-10rem" optionLabel="label"
-                      onChange={onYearChange}/>
-          </div>
-          {loading.chartsData ? (
-            <Spinner />
-          ) :  <Chart type="line" data={chartData.barData} options={chartOptions.barOptions} height={'350px'}/>
-          }
-        </div>
-      </div>
-
-        <div className="col-12 xl:col-3">
-          <div className="card h-auto">
-            <div className="text-900 text-xl font-semibold mb-6"><Translate  contentKey={'home.salesByCategory'}/></div>
-            {loading.chartsData ? (
-            <Spinner />
-            ) : (
-            <Chart height="368px" type="pie" data={chartData.pieData} options={chartOptions.pieOptions}></Chart>
-             )}
-          </div>
-        </div>
-
-      <div className="col-12 lg:col-8">
-        <div className="card">
-          <div className="flex flex-column md:flex-row md:align-items-start md:justify-content-between mb-3">
-            <div className="text-900 text-xl font-semibold mb-3 md:mb-0"><Translate  contentKey={'home.recentSales'}/></div>
-            <div className="inline-flex align-items-center">
-                            <span className="p-input-icon-left flex-auto">
-                                <i className="pi pi-search"></i>
-                                <InputText type={'text'} value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={translate('home.table.search')} style={{ borderRadius: '2rem' }} className="w-full" />
-                            </span>
-              <Tooltip target=".export-target-button" />
-              <Button icon="pi pi-upload" className="p-button-rounded mx-3 export-target-button" data-pr-tooltip={translate("home.table.export")} onClick={exportCSV}></Button>
-            </div>
-          </div>
-          <DataTable ref={dt} value={recentSales}
-                     paginator  rows={20}
-                     className="datatable-responsive"
-                     globalFilter={globalFilterValue}
-                     showGridlines
-                     emptyMessage={<Translate  contentKey={'home.table.emptyMessage'}/>}
-                     loading={loading.recentSalesData}>
-            <Column  field="itemName" header={<Translate  contentKey={'home.table.name'}/>} sortable body={nameBodyTemplate} headerStyle={{ minWidth: '12rem' }} />
-            <Column field="category[0].name" header={<Translate  contentKey={'home.table.category'}/>} sortable body={categoryBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
-            <Column field="currentPrice" header={<Translate  contentKey={'home.table.price'}/>} body={priceBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
-            <Column field="inventoryStatus" header={<Translate  contentKey={'home.table.status'}/>} body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
-            {/* <Column body={searchBodyTemplate} style={{ textAlign: 'center' }} /> */}
-          </DataTable>
-        </div>
-      </div>
-      <div className="col-12 lg:col-4" >
-        <div className="card h-full">
-          <div className="text-900 text-xl font-semibold mb-3"><Translate  contentKey={'home.topProducts'}/></div>
-          { loading.topItemsData ? (
-            <ul className="list-none p-0 m-0">
-            <Spinner />
-            </ul>
-          )
-            : (
-              <ul className="list-none p-0 m-0">
-            {bestSellers?.map((product, i) => {
-              return (
-                <li key={i} className="flex align-items-center justify-content-between p-3">
-                  <div className="inline-flex align-items-center">
-                    <img
-                      src={
-                        product?.variantAttachments && product?.variantAttachments.length > 0
-                          ? product?.variantAttachments[0]?.url
-                          : product?.itemAttachments && product?.itemAttachments.length > 0
-                            ? product?.itemAttachments[0]?.url
-                            : null
-                      }
-                      alt={product.name}
-                      width="75"
-                      className="shadow-2 flex-shrink-0"
-                      style={{objectFit: 'contain', maxHeight: '75px'}}
+      {/* Recent Sales Table and Top Products */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardContent className="p-2">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4 gap-3">
+                <div className="text-xl font-semibold"><Translate contentKey={'home.recentSales'}/></div>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1 md:w-64">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      value={globalFilterValue}
+                      onChange={onGlobalFilterChange}
+                      placeholder={translate('home.table.search')}
+                      className="pl-8 rounded-full"
                     />
+                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" className="rounded-full" onClick={exportCSV}>
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{translate("home.table.export")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
 
-                    <div className="flex flex-column ml-3">
-                      <span className="font-medium text-lg mb-1 font-bold">{product.itemName} <span
-                        className="text-sm">({product.variantName})</span></span>
-                      <Rating value={product.rating} readOnly cancel={false} onIconProps={{style: {fontSize: '12px'}}}
-                              offIconProps={{style: {fontSize: '12px'}}}></Rating>
+              {loading.recentSalesData ? (
+                <div className="space-y-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        {table.getHeaderGroups().map(headerGroup => (
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map(header => (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableHeader>
+                      <TableBody>
+                        {table.getRowModel().rows?.length ? (
+                          table.getRowModel().rows.map(row => (
+                            <TableRow key={row.id}>
+                              {row.getVisibleCells().map(cell => (
+                                <TableCell key={cell.id}>
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={columns.length} className="h-24 text-center">
+                              <Translate contentKey={'home.table.emptyMessage'}/>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Pagination */}
+                  <div className="flex items-center justify-between px-2 py-4">
+                    <div className="text-sm text-muted-foreground">
+                      Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
+                      {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} of{' '}
+                      {table.getFilteredRowModel().rows.length} results
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => table.previousPage()}
+                        disabled={!table.getCanPreviousPage()}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => table.nextPage()}
+                        disabled={!table.getCanNextPage()}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <span
-                    className="ml-auto font-semibold text-xl p-text-secondary">${(product.currentPrice).toFixed(2)}</span>
-                </li>
-              );
-            })}
-          </ul>
-            )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        <div>
+          <Card>
+            <CardContent className="p-2">
+              <div className="text-xl font-semibold mb-4"><Translate contentKey={'home.topProducts'}/></div>
+              {loading.topItemsData ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton className="h-[75px] w-[75px] rounded" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ul className="space-y-3">
+                  {bestSellers?.map((product, i) => (
+                    <li key={i} className="flex items-center justify-between p-3 border-b last:border-b-0">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={
+                            product?.variantAttachments && product?.variantAttachments.length > 0
+                              ? product?.variantAttachments[0]?.url
+                              : product?.itemAttachments && product?.itemAttachments.length > 0
+                                ? product?.itemAttachments[0]?.url
+                                : '/content/images/placeholder.png'
+                          }
+                          alt={product.name}
+                          width="75"
+                          height="75"
+                          className="rounded shadow-sm object-contain"
+                          style={{maxHeight: '75px'}}
+                        />
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium text-base">
+                            {product.itemName} <span className="text-sm text-muted-foreground">({product.variantName})</span>
+                          </span>
+                          <div className="flex items-center gap-0.5">
+                            {[...Array(5)].map((_, starIndex) => (
+                              <Star
+                                key={starIndex}
+                                className={cn(
+                                  "h-3 w-3",
+                                  starIndex < (product.rating || 0)
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "fill-muted text-muted"
+                                )}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="font-semibold text-lg text-muted-foreground">
+                        ${(product.currentPrice).toFixed(2)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

@@ -2,8 +2,6 @@ import React, { useCallback, useContext, useEffect, useRef } from "react";
 
 import "../sidebar/sidebar.scss";
 import AppSidebar from "app/shared/sidebar/AppSidebar";
-import '../styles/layout/layout.scss';
-import '../styles/demo/Demos.scss';
 import { LayoutContext } from "app/shared/sidebar/context/layoutcontext";
 import { classNames, DomHandler } from "primereact/utils";
 import { useEventListener, useMountEffect, useResizeListener } from "primereact/hooks";
