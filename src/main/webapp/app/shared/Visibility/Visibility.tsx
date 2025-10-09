@@ -13,8 +13,6 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Plus, X } from 'lucide-react';
 
-type Nullable<T> = T | null;
-
 
 interface Props {
   initialState: IVisibility[];

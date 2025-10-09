@@ -118,8 +118,12 @@ export const Menu = () => {
   };
 
   const branchNames = useMemo(() => {
-    const names = new Set(menuList.filter(item => item.branch?.name).map((menu) => menu.branch?.name));
-    return Array.from(names);
+    const names = new Set(
+      menuList
+        .filter(item => item.branch?.name)
+        .map((menu) => menu.branch!.name)
+    );
+    return Array.from(names) as string[];
   }, [menuList]);
 
   const saveEntity = values => {
@@ -164,7 +168,7 @@ export const Menu = () => {
       ),
     },
     {
-      accessorFn: (row) => row.branch?.name,
+      accessorFn: (row) => row.branches?.[0]?.name,
       id: 'branch',
       header: ({ column }) => {
         return (
@@ -178,9 +182,9 @@ export const Menu = () => {
           </Button>
         );
       },
-      cell: ({ row }) => <span className="text-xs">{row.original.branch?.name || '-'}</span>,
+      cell: ({ row }) => <span className="text-xs">{row.original.branches?.[0]?.name || '-'}</span>,
       filterFn: (row, id, value) => {
-        return value === '' || row.original.branch?.name === value;
+        return value === '' || row.original.branches?.[0]?.name === value;
       },
     },
     {

@@ -85,7 +85,7 @@ const MenuInstance = () => {
             setData(newData);
         }
 
-        if (menuEntity?.branch) {
+        if (menuEntity?.branches[0]) {
             setSelectedBranches(menuEntity?.branches)
         }
 
