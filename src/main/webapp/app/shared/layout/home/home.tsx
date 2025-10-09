@@ -580,7 +580,6 @@ export default function Home() {
                       className="pl-8 rounded-full"
                     />
                   </div>
-                  <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="outline" size="icon" className="rounded-full" onClick={exportCSV}>
@@ -591,7 +590,6 @@ export default function Home() {
                         <p>{translate("home.table.export")}</p>
                       </TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
                 </div>
               </div>
 

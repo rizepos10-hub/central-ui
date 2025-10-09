@@ -905,174 +905,172 @@ const OrderCreate = () => {
                                     <DialogTitle>Select Attributes</DialogTitle>
                                 </DialogHeader>
                                 <div className="space-y-4 p-2">
-                                {variantDialog.product?.attributes?.map((attr, idx) => {
-                                    return (
-                                        <div className="space-y-2" key={idx}>
-                                            <Label className="font-semibold">{attr.attributeTax.name}</Label>
-                                            <RadioGroup
-                                                value={variantDialog.selectedRetailAttributes?.find(attrVal => attrVal.taxonomy.id === attr.attributeTax.id)?.id || ''}
-                                                onValueChange={(value) => {
-                                                    const selectedValue = attr.attributeTerms.find(attributeTerm => attributeTerm.id === value)
-                                                    const taxonomyExistInFormValues = variantDialog.selectedRetailAttributes.find(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
+                                    {variantDialog.product?.attributes?.map((attr, idx) => {
+                                        return (
+                                            <div className="space-y-2" key={idx}>
+                                                <Label className="font-semibold">{attr.attributeTax.name}</Label>
+                                                <RadioGroup
+                                                    value={variantDialog.selectedRetailAttributes?.find(attrVal => attrVal.taxonomy.id === attr.attributeTax.id)?.id || ''}
+                                                    onValueChange={(value) => {
+                                                        const selectedValue = attr.attributeTerms.find(attributeTerm => attributeTerm.id === value)
+                                                        const taxonomyExistInFormValues = variantDialog.selectedRetailAttributes.find(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
 
-                                                    if (taxonomyExistInFormValues) {
-                                                        const index = variantDialog.selectedRetailAttributes.findIndex(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
-                                                        variantDialog.selectedRetailAttributes[index] = {
-                                                            id: selectedValue.id,
-                                                            name: selectedValue.name,
-                                                            taxonomy: {
-                                                                id: selectedValue.taxonomy.id,
-                                                                name: selectedValue.taxonomy.name
+                                                        if (taxonomyExistInFormValues) {
+                                                            const index = variantDialog.selectedRetailAttributes.findIndex(attr => attr.taxonomy.id === selectedValue.taxonomy.id)
+                                                            variantDialog.selectedRetailAttributes[index] = {
+                                                                id: selectedValue.id,
+                                                                name: selectedValue.name,
+                                                                taxonomy: {
+                                                                    id: selectedValue.taxonomy.id,
+                                                                    name: selectedValue.taxonomy.name
+                                                                }
                                                             }
+                                                        } else {
+                                                            variantDialog.selectedRetailAttributes.push({
+                                                                id: selectedValue.id,
+                                                                name: selectedValue.name,
+                                                                taxonomy: {
+                                                                    id: selectedValue.taxonomy.id,
+                                                                    name: selectedValue.taxonomy.name
+                                                                }
+                                                            })
                                                         }
-                                                    } else {
-                                                        variantDialog.selectedRetailAttributes.push({
-                                                            id: selectedValue.id,
-                                                            name: selectedValue.name,
-                                                            taxonomy: {
-                                                                id: selectedValue.taxonomy.id,
-                                                                name: selectedValue.taxonomy.name
-                                                            }
+                                                        setVariantDialog({
+                                                            ...variantDialog,
+                                                            selectedRetailAttributes: variantDialog.selectedRetailAttributes
                                                         })
-                                                    }
+                                                    }}
+                                                    className="flex gap-3 pl-3"
+                                                >
+                                                    {attr?.attributeTerms?.map((variant, idx) => (
+                                                        <div className="flex items-center space-x-2" key={idx}>
+                                                            <RadioGroupItem value={variant.id} id={variant.id} />
+                                                            <Label htmlFor={variant.id} className="font-normal cursor-pointer">
+                                                                {variant.name}
+                                                            </Label>
+                                                        </div>
+                                                    ))}
+                                                </RadioGroup>
+                                            </div>
+                                        )
+                                    })}
+                                    <div className="flex flex-wrap gap-2 mt-4">
+                                        {variantDialog.availableVariants.map((variant, idx) => (
+                                            <Button
+                                                key={idx}
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 text-xs"
+                                                onClick={() => {
+                                                    dispatch(changeEntityField({
+                                                        name: 'items',
+                                                        value: [
+                                                            ...orderEntity.items,
+                                                            {
+                                                                cartId: variantDialog.product.id + new Date().getTime().toString(),
+                                                                itemId: variantDialog.product.id,
+                                                                variantId: variant.id,
+                                                                itemName: variantDialog.product.name,
+                                                                variantName: variant.name,
+                                                                price: getFinalPrice({
+                                                                    branchId: orderEntity.branchId,
+                                                                    variantItem: variant,
+                                                                    item: variantDialog.product,
+                                                                    pricingPointId,
+                                                                    pricingPoints,
+                                                                }),
+                                                                amount: 1,
+                                                                discount: {},
+                                                                selectedRetailAttributes: variantDialog.selectedRetailAttributes,
+                                                                customDiscount: 0,
+                                                                accountingGroups: variantDialog.product.accountingGroups,
+                                                            }
+                                                        ]
+                                                    }))
                                                     setVariantDialog({
-                                                        ...variantDialog,
-                                                        selectedRetailAttributes: variantDialog.selectedRetailAttributes
+                                                        visible: false,
+                                                        chosenVariant: null,
+                                                        selectedRetailAttributes: [],
+                                                        product: {},
+                                                        availableVariants: []
                                                     })
-                                                }}
-                                                className="flex gap-3 pl-3"
-                                            >
-                                                {attr?.attributeTerms?.map((variant, idx) => (
-                                                    <div className="flex items-center space-x-2" key={idx}>
-                                                        <RadioGroupItem value={variant.id} id={variant.id} />
-                                                        <Label htmlFor={variant.id} className="font-normal cursor-pointer">
-                                                            {variant.name}
-                                                        </Label>
-                                                    </div>
-                                                ))}
-                                            </RadioGroup>
-                                        </div>
-                                    )
-                                })}
-                                <div className="flex flex-wrap gap-2 mt-4">
-                                    {variantDialog.availableVariants.map((variant, idx) => (
-                                        <Button
-                                            key={idx}
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 text-xs"
-                                            onClick={() => {
-                                                dispatch(changeEntityField({
-                                                    name: 'items',
-                                                    value: [
-                                                        ...orderEntity.items,
-                                                        {
-                                                            cartId: variantDialog.product.id + new Date().getTime().toString(),
-                                                            itemId: variantDialog.product.id,
-                                                            variantId: variant.id,
-                                                            itemName: variantDialog.product.name,
-                                                            variantName: variant.name,
-                                                            price: getFinalPrice({
-                                                                branchId: orderEntity.branchId,
-                                                                variantItem: variant,
-                                                                item: variantDialog.product,
-                                                                pricingPointId,
-                                                                pricingPoints,
-                                                            }),
-                                                            amount: 1,
-                                                            discount: {},
-                                                            selectedRetailAttributes: variantDialog.selectedRetailAttributes,
-                                                            customDiscount: 0,
-                                                            accountingGroups: variantDialog.product.accountingGroups,
-                                                        }
-                                                    ]
-                                                }))
-                                                setVariantDialog({
-                                                    visible: false,
-                                                    chosenVariant: null,
-                                                    selectedRetailAttributes: [],
-                                                    product: {},
-                                                    availableVariants: []
-                                                })
-                                            }}>
-                                            {variant.name}
-                                        </Button>
-                                    ))}
-                                </div>
+                                                }}>
+                                                {variant.name}
+                                            </Button>
+                                        ))}
+                                    </div>
                                 </div>
                             </DialogContent>
                         </Dialog>
                         <div className="grid grid-cols-6 gap-2">
                             {products.map((product, index) => (
-                                <TooltipProvider key={index}>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Card
-                                                className="p-0 cursor-pointer hover:border-primary transition-colors"
-                                                style={{ height: '120px', width: '100%' }}
-                                                onClick={() => {
-                                                    if (product.itemVariantType === "RETAIL_SIMPLE") {
-                                                        if (product.askForPrice) {
-                                                            setCustomPriceModalData({
-                                                                visible: true,
-                                                                product,
-                                                                price: 0
-                                                            })
-                                                        } else {
-                                                            dispatch(changeEntityField({
-                                                                name: 'items',
-                                                                value: [
-                                                                    ...orderEntity.items,
-                                                                    {
-                                                                        cartId: product.id + new Date().getTime().toString(),
-                                                                        itemId: product.id,
-                                                                        variantId: product.variants[0].id,
-                                                                        itemName: product.name,
-                                                                        variantName: product.variants[0].name,
-                                                                        price: getFinalPrice({
-                                                                            branchId: orderEntity.branchId,
-                                                                            variantItem: product.variants?.[0],
-                                                                            item: product,
-                                                                        }),
-                                                                        amount: 1,
-                                                                        discount: {},
-                                                                        selectedRetailAttributes: [],
-                                                                        customDiscount: 0,
-                                                                        accountingGroups: product.accountingGroups,
-                                                                    }
-                                                                ]
-                                                            }))
-                                                        }
-                                                    } else {
-                                                        setVariantDialog({
+                                <Tooltip key={index}>
+                                    <TooltipTrigger asChild>
+                                        <Card
+                                            className="p-0 cursor-pointer hover:border-primary transition-colors"
+                                            style={{ height: '120px', width: '100%' }}
+                                            onClick={() => {
+                                                if (product.itemVariantType === "RETAIL_SIMPLE") {
+                                                    if (product.askForPrice) {
+                                                        setCustomPriceModalData({
                                                             visible: true,
                                                             product,
-                                                            selectedRetailAttributes: [],
-                                                            chosenVariant: null,
-                                                            availableVariants: []
+                                                            price: 0
                                                         })
+                                                    } else {
+                                                        dispatch(changeEntityField({
+                                                            name: 'items',
+                                                            value: [
+                                                                ...orderEntity.items,
+                                                                {
+                                                                    cartId: product.id + new Date().getTime().toString(),
+                                                                    itemId: product.id,
+                                                                    variantId: product.variants[0].id,
+                                                                    itemName: product.name,
+                                                                    variantName: product.variants[0].name,
+                                                                    price: getFinalPrice({
+                                                                        branchId: orderEntity.branchId,
+                                                                        variantItem: product.variants?.[0],
+                                                                        item: product,
+                                                                    }),
+                                                                    amount: 1,
+                                                                    discount: {},
+                                                                    selectedRetailAttributes: [],
+                                                                    customDiscount: 0,
+                                                                    accountingGroups: product.accountingGroups,
+                                                                }
+                                                            ]
+                                                        }))
                                                     }
-                                                }}
-                                            >
-                                                <CardContent className="p-0 h-full flex flex-col">
-                                                    {product.attachments[0]?.url && (
-                                                        <img
-                                                            src={product.attachments[0]?.url}
-                                                            alt={product.name}
-                                                            className="w-full h-[75px] object-cover rounded-t-md"
-                                                        />
-                                                    )}
-                                                    <div className="p-2 flex-1">
-                                                        <h6 className="text-xs font-medium truncate">{product.name}</h6>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p className="text-xs">{product.name}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                                } else {
+                                                    setVariantDialog({
+                                                        visible: true,
+                                                        product,
+                                                        selectedRetailAttributes: [],
+                                                        chosenVariant: null,
+                                                        availableVariants: []
+                                                    })
+                                                }
+                                            }}
+                                        >
+                                            <CardContent className="p-0 h-full flex flex-col">
+                                                {product.attachments[0]?.url && (
+                                                    <img
+                                                        src={product.attachments[0]?.url}
+                                                        alt={product.name}
+                                                        className="w-full h-[75px] object-cover rounded-t-md"
+                                                    />
+                                                )}
+                                                <div className="p-2 flex-1">
+                                                    <h6 className="text-xs font-medium truncate">{product.name}</h6>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="text-xs">{product.name}</p>
+                                    </TooltipContent>
+                                </Tooltip>
                             ))}
                         </div>
                     </div>

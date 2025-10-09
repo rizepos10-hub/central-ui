@@ -223,7 +223,6 @@ export const Menu = () => {
         const deleteUrl = `/menu/${row.original.id}/delete?type=${menuType}&page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
         return (
           <div className="flex items-center gap-1">
-            <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link to={editUrl}>
@@ -234,8 +233,6 @@ export const Menu = () => {
                 </TooltipTrigger>
                 <TooltipContent><p>Edit</p></TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link to={deleteUrl}>
@@ -246,7 +243,6 @@ export const Menu = () => {
                 </TooltipTrigger>
                 <TooltipContent><p>Delete</p></TooltipContent>
               </Tooltip>
-            </TooltipProvider>
           </div>
         );
       },
@@ -293,7 +289,6 @@ export const Menu = () => {
                 translate('menus.pos.view.table.title')}
             </h2>
             <div className="flex items-center gap-1">
-              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -308,9 +303,7 @@ export const Menu = () => {
                   </TooltipTrigger>
                   <TooltipContent><p>{translate('items.view.actions.triggerAllMenus')}</p></TooltipContent>
                 </Tooltip>
-              </TooltipProvider>
 
-              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -325,9 +318,7 @@ export const Menu = () => {
                   </TooltipTrigger>
                   <TooltipContent><p>{translate('items.view.actions.refreshList')}</p></TooltipContent>
                 </Tooltip>
-              </TooltipProvider>
 
-              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -341,7 +332,6 @@ export const Menu = () => {
                   </TooltipTrigger>
                   <TooltipContent><p>{translate('menus.shared.view.table.buttons.createNewMenu')}</p></TooltipContent>
                 </Tooltip>
-              </TooltipProvider>
             </div>
           </div>
 

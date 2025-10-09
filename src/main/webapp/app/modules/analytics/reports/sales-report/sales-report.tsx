@@ -439,7 +439,6 @@ export const SalesReport = () => {
 `;
 
   const headerButtons = (
-    <TooltipProvider>
       <div className="flex items-center justify-end gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
@@ -479,7 +478,6 @@ export const SalesReport = () => {
           pageStyle={pageStyle}
         />
       </div>
-    </TooltipProvider>
   );
 
   return (

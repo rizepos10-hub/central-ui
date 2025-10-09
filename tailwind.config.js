@@ -15,6 +15,11 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Comic Sans MS', 'cursive'],
+        serif: ['Georgia', 'serif'],
+        mono: ['Courier New', 'monospace'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
