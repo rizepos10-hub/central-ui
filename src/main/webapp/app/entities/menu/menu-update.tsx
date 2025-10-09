@@ -1,18 +1,21 @@
-import React, { useEffect } from 'react'
-import { Translate, ValidatedField, ValidatedForm, translate } from 'react-jhipster'
-import { Button, Modal, ModalBody, ModalHeader } from 'reactstrap'
-import Select from 'react-select'
-import { SelectButton } from 'primereact/selectbutton'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useAppDispatch, useAppSelector } from 'app/config/store'
-import { IMenu } from 'app/shared/model/menu.model'
+import React, { useEffect } from 'react';
+import { Translate, ValidatedField, ValidatedForm, translate } from 'react-jhipster';
+import Select from 'react-select';
+import { Save, X } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { IMenu } from 'app/shared/model/menu.model';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom';
 import { getEntity } from './menu.reducer';
-import { IBranch } from 'app/shared/model/branch.model'
-import MediaLibrary from 'app/shared/components/media-library/media-library'
-import { IAttachment } from 'app/shared/model/attachment.model'
-import { transformAttachmentStructure } from 'app/shared/util/attachment-utils'
+import { IBranch } from 'app/shared/model/branch.model';
+import MediaLibrary from 'app/shared/components/media-library/media-library';
+import { IAttachment } from 'app/shared/model/attachment.model';
+import { transformAttachmentStructure } from 'app/shared/util/attachment-utils';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 const MenuUpdate = ({
     setIsModalOpen,
@@ -39,7 +42,7 @@ const MenuUpdate = ({
 }) => {
     const dispatch = useAppDispatch();
     const { id } = useParams<'id'>();
-    console.log(selectedBranches, 'selectedBranches')
+
     const menuEntity = useAppSelector(state => state.menu.entity);
     const branchList: IBranch[] = useAppSelector(state => state.branch.entities);
 
@@ -50,39 +53,47 @@ const MenuUpdate = ({
             // @ts-expect-error -- unknown type
             if (res.payload?.data?.name) {
                 // @ts-expect-error -- unknown type
-                setSelectedName(res.payload?.data?.name)
+                setSelectedName(res.payload?.data?.name);
             }
         });
-    }, [id])
+    }, [id]);
 
     useEffect(() => {
-        setSelectedBranches(menuEntity?.branches)
-        setSelectedAttachment(menuEntity?.image)
-        setSelectedName(menuEntity?.name)
-    }, [menuEntity])
+        setSelectedBranches(menuEntity?.branches);
+        setSelectedAttachment(menuEntity?.image);
+        setSelectedName(menuEntity?.name);
+    }, [menuEntity]);
 
     return (
-        <Modal isOpen={isModalOpen} toggle={() => setIsModalOpen(prev => !prev)} className="modal-lg">
-            <ModalHeader toggle={() => setIsModalOpen(prev => !prev)}>
-                <Translate contentKey="menus.shared.update.edit.title">Edit Menu</Translate>
-            </ModalHeader>
-            <ModalBody>
-                <ValidatedForm onSubmit={saveEntity}>
-                    <ValidatedField
-                        label={translate('menus.shared.update.name')}
-                        id="menu-name"
-                        name="name"
-                        data-cy="name"
-                        type="text"
-                        validate={{
-                            required: { value: true, message: translate('entity.validation.required') },
-                            maxLength: { value: 100, message: translate('entity.validation.maxlength', { max: 100 }) },
-                        }}
-                        value={selectedName}
-                        onChange={(e) => setSelectedName(e.target.value)}
-                    />
-                    <div className="mb-3">
-                        {translate('menus.shared.update.branches')}
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogContent className="max-w-2xl p-3">
+                <DialogHeader className="p-2">
+                    <DialogTitle className="text-sm font-semibold">
+                        <Translate contentKey="menus.shared.update.edit.title">Edit Menu</Translate>
+                    </DialogTitle>
+                </DialogHeader>
+
+                <ValidatedForm onSubmit={saveEntity} className="space-y-2 px-2">
+                    <div className="space-y-1">
+                        <Label htmlFor="menu-name" className="text-xs">
+                            {translate('menus.shared.update.name')}
+                        </Label>
+                        <Input
+                            id="menu-name"
+                            name="name"
+                            data-cy="name"
+                            type="text"
+                            value={selectedName}
+                            onChange={(e) => setSelectedName(e.target.value)}
+                            className="h-8 text-xs"
+                            required
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <Label htmlFor="branch" className="text-xs">
+                            {translate('menus.shared.update.branches')}
+                        </Label>
                         <Select
                             onChange={(selected) => {
                                 setSelectedBranches(
@@ -101,33 +112,52 @@ const MenuUpdate = ({
                             data-cy="branch"
                             isMulti
                             isClearable
+                            styles={{
+                                control: (base) => ({
+                                    ...base,
+                                    minHeight: '32px',
+                                    fontSize: '0.75rem',
+                                }),
+                                option: (base) => ({
+                                    ...base,
+                                    fontSize: '0.75rem',
+                                }),
+                            }}
                         />
                     </div>
-                    <div className="my-3">
+
+                    <div className="space-y-1">
                         <MediaLibrary
                             handleFilesSelectCallback={(files) => setSelectedAttachment(transformAttachmentStructure(files, 'toIAttachment')[0])}
                             defaultValues={selectedAttachment ? transformAttachmentStructure([selectedAttachment], 'toFileLibraryListItem') : []}
-                        // handleFilesSelectCallback={(files) => dispatch(changeEntityField({ name: 'logo', value: transformAttachmentStructure(files, 'toIAttachment')[0] }))}
-                        // defaultValues={transformAttachmentStructure(brandEntity.logo ? [brandEntity.logo] : [], 'toFileLibraryListItem')}
                         />
                     </div>
-                    <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => setIsModalOpen(prev => !prev)} replace='true' color="info">
-                        <FontAwesomeIcon icon="arrow-left" />
-                        &nbsp;
-                        <span className="d-none d-md-inline">
-                            <Translate contentKey="entity.action.back">Back</Translate>
-                        </span>
-                    </Button>
-                    &nbsp;
-                    <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                        <FontAwesomeIcon icon="save" />
-                        &nbsp;
-                        <Translate contentKey="entity.action.save">Save</Translate>
-                    </Button>
-                </ValidatedForm>
-            </ModalBody>
-        </Modal>
-    )
-}
 
-export default MenuUpdate
+                    <DialogFooter className="gap-1 pt-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsModalOpen(false)}
+                            className="h-8 text-xs"
+                        >
+                            <X className="h-3 w-3 mr-1" />
+                            <Translate contentKey="entity.action.back">Back</Translate>
+                        </Button>
+                        <Button
+                            type="submit"
+                            size="sm"
+                            disabled={updating}
+                            className="h-8 text-xs"
+                        >
+                            <Save className="h-3 w-3 mr-1" />
+                            <Translate contentKey="entity.action.save">Save</Translate>
+                        </Button>
+                    </DialogFooter>
+                </ValidatedForm>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+export default MenuUpdate;

@@ -26,6 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { FilterMatchMode } from "primereact/api";
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 
 const initialState = {
@@ -265,11 +266,11 @@ export const BranchRegistry = ({ isRegisterClosure }: { isRegisterClosure?: bool
 
 
   return (
-    <div className="p-2">
+    <PageWrapper>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold">Branch Register</CardTitle>
+            <CardTitle className="text-xl font-bold">Branch Register</CardTitle>
             <Button
               variant="outline"
               onClick={handleSyncList}
@@ -380,7 +381,7 @@ export const BranchRegistry = ({ isRegisterClosure }: { isRegisterClosure?: bool
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageWrapper>
   );
 };
 

@@ -1,38 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import {
-    Button,
-    Modal,
-    ModalFooter,
-    ModalBody,
-    ModalHeader
-} from 'reactstrap';
-import { Button as PrimeButton } from 'primereact/button';
-import { getSortState, TextFormat, Translate, translate, ValidatedField, ValidatedForm } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { convertDateTimeFromServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { IMenu, IMenuScreen } from 'app/shared/model/menu.model';
 import { updateEntity, createEntity, reset, sendEvent, duplicateMenu, getEntity } from './menu.reducer';
-import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-import { getEntities as getTerms } from 'app/entities/term/Menu-Category/menu-category.reducer';
-import { getEntities as getItems } from "app/entities/item/all-items.reducer";
-import Select from "react-select";
-import { IItem } from "app/shared/model/ITEM/item.model";
-import { SelectButton } from "primereact/selectbutton";
-import { TabPanel, TabView } from 'primereact/tabview';
-import MenuTable from './components/menu-table';
 import { APP_DATE_FORMAT } from 'app/config/constants';
 import MenuScreens from './components/menu-screens';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import MenuUpdate from './menu-update';
-import { Dialog } from "primereact/dialog";
 import Visibility from "app/shared/Visibility/Visibility";
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { IVisibility } from 'app/shared/model/visibility.model';
 import { IBranch } from 'app/shared/model/branch.model';
 import { IAttachment } from 'app/shared/model/attachment.model';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Edit2, Zap, Copy, ArrowLeftRight, Eye } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { TextFormat } from 'react-jhipster';
 
 export interface IMenuData {
     name: string;
@@ -62,6 +46,8 @@ const MenuInstance = () => {
     // const [totalPages, setTotalPages] = useState<number>(0)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showVisibility, setShowVisibility] = useState(false);
+    const [duplicateConfirmOpen, setDuplicateConfirmOpen] = useState(false);
+    const [transferConfirmOpen, setTransferConfirmOpen] = useState(false);
     const [selectedBranches, setSelectedBranches] = useState<IBranch[]>([]);
     const [selectedName, setSelectedName] = useState("");
     const [selectedAttachment, setSelectedAttachment] = useState<IAttachment>()
@@ -133,33 +119,13 @@ const MenuInstance = () => {
         setIsModalOpen(false)
     };
 
-    const confirm1 = () => {
-        console.log(1)
-        confirmDialog({
-            message: 'Are you sure you want to proceed?',
-            header: 'Confirmation',
-            icon: 'pi pi-exclamation-triangle',
-            defaultFocus: 'accept',
-            accept: () => handleDuplicateAction()
-        });
-    };
-
     const handleDuplicateAction = () => {
         dispatch(duplicateMenu(id)).then((result: any) => {
             if (result?.payload?.id) {
                 navigate(`/menu/${result?.payload?.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
             }
         });
-    };
-
-    const confirm2 = () => {
-        confirmDialog({
-            message: 'Are you sure you want to proceed?',
-            header: 'Confirmation',
-            icon: 'pi pi-exclamation-triangle',
-            defaultFocus: 'accept',
-            accept: () => handleTransferToPOSAction()
-        });
+        setDuplicateConfirmOpen(false);
     };
 
     const handleTransferToPOSAction = () => {
@@ -170,10 +136,11 @@ const MenuInstance = () => {
             saveEntity({ type: 'ONLINE_ORDERING' });
             navigate(`/menu/${menuEntity.id}/ONLINE_ORDERING/edit?page=1&sort=id,asc`);
         }
+        setTransferConfirmOpen(false);
     }
 
     return (
-        <div>
+        <PageWrapper>
             {menuEntity.id && (
                 <MenuUpdate
                     setIsModalOpen={setIsModalOpen}
@@ -189,69 +156,116 @@ const MenuInstance = () => {
                 />
             )}
 
-            <div className="">
-                <div className="card p-1">
-                    <div className="row g-3 p-1 align-items-end">
-                        <div className="col-3">
-                            <p className="text-muted">Menu</p>
-                            <p className="fs-5 fw-bold py-0">{menuEntity.name}</p>
-                        </div>
-                        <div className="col-2">
-                            <p className="text-muted">Created At</p>
-                            <p className="fs-5 fw-semibold">
-                                {menuEntity.createdDate ? <TextFormat value={menuEntity.createdDate} type="date" format={APP_DATE_FORMAT} /> : null}
-                            </p>
-                        </div>
-                        <div className="col-2">
-                            <p className="text-muted">Updated At</p>
-                            <p className="fs-5 fw-semibold">
-                                {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : null}
-                            </p>
-                        </div>
-                        <div className="col-5 mt-3 mt-md-0 d-flex gap-2">
-                            <PrimeButton label="Edit" className="p-button-outlined p-1" onClick={() => setIsModalOpen(prev => !prev)} style={{
-                                height: '2.5rem',
-                            }} />
-                            <PrimeButton label="Trigger" className='p-1' onClick={() => { dispatch(sendEvent(id)) }} style={{
-                                height: '2.5rem',
-                            }} />
-                            <PrimeButton label="Duplicate" className="p-button-secondary p-1" onClick={confirm1} style={{
-                                height: '2.5rem',
-                            }} />
-                            <PrimeButton label={`Transfer to ${menuEntity.type === 'POS' ? 'Online Ordering' : 'POS'}`} className="p-button-secondary p-1" onClick={confirm2} style={{
-                                height: '2.5rem',
-                            }} />
+            <Dialog open={showVisibility} onOpenChange={setShowVisibility}>
+                <DialogContent className="max-w-2xl p-3">
+                    <DialogHeader className="p-2">
+                        <DialogTitle className="text-sm font-semibold">Menu Visibility</DialogTitle>
+                    </DialogHeader>
+                    <div className="p-2">
+                        <Visibility
+                            initialState={data.visibilities}
+                            title={"Menu Visibility"}
+                            onStateChanged={(visibilities) => setData(prev => {
+                                return { ...prev, visibilities }
+                            })}
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
 
-                            <PrimeButton label={`Visibility`} className="p-button-secondary p-1" onClick={() => setShowVisibility(prev => !prev)} style={{
-                                height: '2.5rem',
-                            }} />
-                            <Dialog
-                                visible={showVisibility}
-                                style={{ width: '50vw' }}
-                                onHide={() => setShowVisibility(false)}
-                            >
-                                <Visibility
-                                    initialState={data.visibilities}
-                                    title={"Menu Visibility"}
-                                    onStateChanged={(visibilities) => setData(prev => {
-                                        return { ...prev, visibilities }
-                                    })}
-                                />
-                            </Dialog>
+            <AlertDialog open={duplicateConfirmOpen} onOpenChange={setDuplicateConfirmOpen}>
+                <AlertDialogContent className="max-w-md p-3">
+                    <AlertDialogHeader className="p-2">
+                        <AlertDialogTitle className="text-sm font-semibold">Confirmation</AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs">
+                            Are you sure you want to duplicate this menu?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-1 pt-2">
+                        <AlertDialogCancel asChild>
+                            <Button variant="outline" size="sm" className="h-8 text-xs">Cancel</Button>
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                            <Button size="sm" className="h-8 text-xs" onClick={handleDuplicateAction}>Proceed</Button>
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={transferConfirmOpen} onOpenChange={setTransferConfirmOpen}>
+                <AlertDialogContent className="max-w-md p-3">
+                    <AlertDialogHeader className="p-2">
+                        <AlertDialogTitle className="text-sm font-semibold">Confirmation</AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs">
+                            Are you sure you want to transfer this menu to {menuEntity.type === 'POS' ? 'Online Ordering' : 'POS'}?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-1 pt-2">
+                        <AlertDialogCancel asChild>
+                            <Button variant="outline" size="sm" className="h-8 text-xs">Cancel</Button>
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                            <Button size="sm" className="h-8 text-xs" onClick={handleTransferToPOSAction}>Proceed</Button>
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <Card className="mb-2">
+                <CardContent className="p-2">
+                    <div className="grid grid-cols-12 gap-2 items-end">
+                        <div className="col-span-3">
+                            <p className="text-xs text-muted-foreground mb-0.5">Menu</p>
+                            <p className="text-sm font-semibold">{menuEntity.name}</p>
+                        </div>
+                        <div className="col-span-2">
+                            <p className="text-xs text-muted-foreground mb-0.5">Created At</p>
+                            <p className="text-xs font-medium">
+                                {menuEntity.createdDate ? <TextFormat value={menuEntity.createdDate} type="date" format={APP_DATE_FORMAT} /> : '-'}
+                            </p>
+                        </div>
+                        <div className="col-span-2">
+                            <p className="text-xs text-muted-foreground mb-0.5">Updated At</p>
+                            <p className="text-xs font-medium">
+                                {menuEntity.lastModifiedDate ? <TextFormat value={menuEntity.lastModifiedDate} type="date" format={APP_DATE_FORMAT} /> : '-'}
+                            </p>
+                        </div>
+                        <div className="col-span-5 flex gap-1 justify-end">
+                            <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => setIsModalOpen(prev => !prev)}>
+                                <Edit2 className="h-3 w-3 mr-1" />
+                                Edit
+                            </Button>
+                            <Button size="sm" className="h-7 text-xs px-2" onClick={() => { dispatch(sendEvent(id)) }}>
+                                <Zap className="h-3 w-3 mr-1" />
+                                Trigger
+                            </Button>
+                            <Button variant="secondary" size="sm" className="h-7 text-xs px-2" onClick={() => setDuplicateConfirmOpen(true)}>
+                                <Copy className="h-3 w-3 mr-1" />
+                                Duplicate
+                            </Button>
+                            <Button variant="secondary" size="sm" className="h-7 text-xs px-2" onClick={() => setTransferConfirmOpen(true)}>
+                                <ArrowLeftRight className="h-3 w-3 mr-1" />
+                                Transfer to {menuEntity.type === 'POS' ? 'Online' : 'POS'}
+                            </Button>
+                            <Button variant="secondary" size="sm" className="h-7 text-xs px-2" onClick={() => setShowVisibility(prev => !prev)}>
+                                <Eye className="h-3 w-3 mr-1" />
+                                Visibility
+                            </Button>
                         </div>
                     </div>
-                </div>
-                <MenuScreens
-                    menu={menuEntity}
-                    data={data}
-                    setData={setData}
-                    saveEntity={saveEntity}
-                    reset={reset}
-                    loading={loading}
-                    updating={updating}
-                />
-            </div>
-        </div >
+                </CardContent>
+            </Card>
+
+            <MenuScreens
+                menu={menuEntity}
+                data={data}
+                setData={setData}
+                saveEntity={saveEntity}
+                reset={reset}
+                loading={loading}
+                updating={updating}
+            />
+        </PageWrapper>
     )
 }
 

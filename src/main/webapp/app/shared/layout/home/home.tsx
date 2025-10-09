@@ -32,6 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/src/main/webapp/app/lib/utils';
 import { Download, Search, ArrowUp, ArrowDown, ArrowUpDown, Star, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export default function Home() {
 
@@ -369,7 +370,8 @@ export default function Home() {
 
 
   return (
-    <div className="grid grid-cols-1 gap-2 p-1">
+    <PageWrapper>
+      <div className="grid grid-cols-1 gap-2">
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
         <Card>
@@ -734,6 +736,7 @@ export default function Home() {
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </PageWrapper>
   );
 }
