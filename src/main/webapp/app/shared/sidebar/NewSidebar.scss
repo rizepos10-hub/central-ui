@@ -1,501 +1,295 @@
+// NewSidebar using Tailwind CSS variables
 .new-sidebar {
-  display: flex;
-  height: calc(100vh - 7vh); // Account for navbar height
-  position: fixed;
-  left: 0;
-  top: 7vh; // Start below navbar
-  z-index: 50; // Lower than navbar but above content
-  background: var(--surface-ground);
-  border-right: 1px solid var(--surface-border);
+  @apply flex fixed left-0 z-50;
+  height: calc(100vh - 7vh);
+  top: 7vh;
+  background: hsl(var(--background));
+  border-right: 1px solid hsl(var(--border));
   transition: transform 0.3s ease;
 
   &.collapsed {
     .submenu-panel {
-      display: none;
+      @apply hidden;
     }
 
     .icon-item {
-      opacity: 0.6;
-      cursor: default;
+      @apply opacity-60 cursor-default;
 
       &:hover {
-        background: none;
-        
+        @apply bg-transparent;
+
         .icon {
-          color: rgba(255, 255, 255, 0.8);
+          @apply text-white/80;
           transform: none;
         }
-      }
-    }
-
-    .sidebar-toggle-btn {
-      background: #e74c3c; // Red color when collapsed to make it more obvious
-      border-color: white;
-      
-      &:hover {
-        background: #c0392b;
       }
     }
   }
 
   .icon-panel {
-    width: 80px;
-    background: var(--primary-color);
-    display: flex;
-    flex-direction: column;
+    @apply w-20 flex flex-col overflow-hidden relative;
+    background: hsl(var(--primary));
     box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-    overflow: hidden; // Prevent overflow issues
-    position: relative; // For absolute positioning of toggle button
 
     .icon-panel-content {
-      padding: 1rem 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      overflow-y: auto; // Enable vertical scrolling
-      flex: 1; // Take up all available space
-      position: relative; // For scroll indicators
-      
-      // Custom scrollbar for icon panel
+      @apply p-4 pt-4 pb-4 flex flex-col gap-2 overflow-y-auto flex-1 relative;
+
       &::-webkit-scrollbar {
-        width: 6px; // Slightly wider for better visibility
+        width: 6px;
       }
 
       &::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
+        @apply bg-white/10 rounded;
       }
 
       &::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.4);
-        border-radius: 3px;
+        @apply bg-white/40 rounded;
       }
 
       &::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.6);
+        @apply bg-white/60;
       }
 
-      // Firefox scrollbar
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
-
-      // Scroll indicators (subtle gradient at top/bottom when scrollable)
-      &::before {
-        content: '';
-        position: sticky;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 10px;
-        background: linear-gradient(to bottom, var(--primary-color), transparent);
-        z-index: 1;
-        pointer-events: none;
-      }
-
-      &::after {
-        content: '';
-        position: sticky;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 10px;
-        background: linear-gradient(to top, var(--primary-color), transparent);
-        z-index: 1;
-        pointer-events: none;
-      }
     }
 
     .icon-item {
+      @apply flex items-center justify-center cursor-pointer relative -mx-2 rounded-lg flex-shrink-0;
       height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
       transition: all 0.3s ease;
-      position: relative;
-      margin: 0 0.5rem;
-      border-radius: 8px;
-      flex-shrink: 0; // Prevent icons from shrinking
 
       .icon {
-        font-size: 1.5rem;
-        color: rgba(255, 255, 255, 0.8);
+        @apply text-2xl text-white/80;
         transition: all 0.3s ease;
       }
 
       &:hover {
-        background: rgba(255, 255, 255, 0.1);
-        
+        @apply bg-white/10;
+
         .icon {
-          color: white;
-          transform: scale(1.1);
+          @apply text-white scale-110;
         }
       }
 
       &.active {
-        background: rgba(255, 255, 255, 0.2);
-        
+        @apply bg-white/20;
+
         .icon {
-          color: white;
+          @apply text-white;
         }
 
         &::after {
           content: '';
-          position: absolute;
-          right: -1px;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 4px;
-          height: 30px;
-          background: white;
-          border-radius: 2px 0 0 2px;
+          @apply absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-l;
         }
       }
 
       &.has-active-route:not(.active) {
-        background: rgba(255, 255, 255, 0.15);
-        
+        @apply bg-white/15;
+
         .icon {
-          color: white;
+          @apply text-white;
         }
-      }
-    }
-
-    .sidebar-toggle-container {
-      position: fixed; // Use fixed positioning to ensure it's always accessible
-      top: calc(50vh + 3.5vh); // Center it in the sidebar (accounting for navbar)
-      left: 60px; // Position relative to the icon panel edge
-      transform: translateY(-50%);
-      z-index: 9999; // Very high z-index
-      pointer-events: auto; // Ensure it's always clickable
-    }
-
-    .sidebar-toggle-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: 2px solid white; // Add border for better visibility
-      background: var(--primary-color);
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); // Stronger shadow for visibility
-      outline: none; // Remove focus outline that might interfere
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        transition: all 0.3s ease;
-        transform: translate(-50%, -50%);
-      }
-
-      &:hover {
-        background: var(--primary-600);
-        transform: scale(1.1);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-
-        &::before {
-          width: 60px;
-          height: 60px;
-        }
-
-        i {
-          transform: scale(1.2);
-        }
-      }
-
-      &:active {
-        transform: scale(0.95);
-      }
-
-      &:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
-      }
-
-      i {
-        font-size: 1.2rem;
-        transition: transform 0.3s ease;
-        z-index: 1;
       }
     }
   }
 
   .submenu-panel {
-    width: 0;
-    overflow: hidden;
-    background: var(--surface-0);
+    @apply w-0 overflow-hidden;
+    background: hsl(var(--card));
     transition: width 0.3s ease;
     box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
-    border-right: 1px solid var(--surface-border);
+    border-right: 1px solid hsl(var(--border));
 
     &.visible {
       width: 280px;
     }
 
     .submenu-content {
+      @apply h-full flex flex-col;
       width: 280px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
     }
 
     .submenu-header-main {
-      padding: 1.75rem 1.5rem;
-      background: linear-gradient(135deg, var(--primary-50) 0%, var(--surface-50) 100%);
-      border-bottom: 2px solid var(--surface-border);
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+      @apply p-7 flex items-center gap-4;
+      background: linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--card)) 100%);
+      border-bottom: 2px solid hsl(var(--border));
 
       .main-icon {
-        font-size: 1.5rem;
-        color: var(--primary-color);
-        padding: 0.5rem;
-        background: var(--surface-0);
-        border-radius: 8px;
+        @apply text-2xl p-2 rounded-lg;
+        color: hsl(var(--primary));
+        background: hsl(var(--background));
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .main-label {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: var(--text-color);
+        @apply text-lg font-bold;
+        color: hsl(var(--foreground));
         letter-spacing: -0.025em;
       }
     }
 
     .submenu-items {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem 0;
+      @apply flex-1 overflow-y-auto py-4;
 
-      // Custom scrollbar
       &::-webkit-scrollbar {
         width: 6px;
       }
 
       &::-webkit-scrollbar-track {
-        background: var(--surface-100);
-        border-radius: 3px;
+        @apply bg-muted/30 rounded;
       }
 
       &::-webkit-scrollbar-thumb {
-        background: var(--surface-300);
-        border-radius: 3px;
-        
+        @apply bg-muted rounded;
+
         &:hover {
-          background: var(--surface-400);
+          @apply bg-muted-foreground/50;
         }
       }
 
-      // Firefox scrollbar
       scrollbar-width: thin;
-      scrollbar-color: var(--surface-300) var(--surface-100);
     }
 
     .submenu-item {
-      margin: 0 0.75rem 0.125rem 0.75rem;
-      border-radius: 6px;
-      overflow: hidden;
-      
+      @apply mx-3 mb-0.5 rounded-md overflow-hidden;
+
       &:last-child {
-        margin-bottom: 0;
+        @apply mb-0;
       }
 
       &.level-0 {
         .submenu-header,
         .submenu-link {
-          padding: 0.875rem 1rem;
-          font-weight: 500;
+          @apply py-3.5 px-4 font-medium;
         }
       }
 
-              &.level-1 {
-          margin: 0 1rem;
-          
-          .submenu-header,
-          .submenu-link {
-            padding: 0.75rem 1rem 0.75rem 2rem;
-            font-weight: 400;
-            font-size: 0.875rem;
-            opacity: 0.95;
-          }
-        }
+      &.level-1 {
+        @apply mx-4;
 
-              &.level-2 {
-          margin: 0 1.25rem;
-          
-          .submenu-header,
-          .submenu-link {
-            padding: 0.625rem 1rem 0.625rem 2.5rem;
-            font-weight: 400;
-            font-size: 0.8125rem;
-            opacity: 0.9;
-          }
+        .submenu-header,
+        .submenu-link {
+          @apply py-3 px-4 pl-8 font-normal text-sm opacity-95;
         }
+      }
+
+      &.level-2 {
+        @apply mx-5;
+
+        .submenu-header,
+        .submenu-link {
+          @apply py-2.5 px-4 pl-10 font-normal text-xs opacity-90;
+        }
+      }
     }
 
-              .submenu-header {
-      display: flex;
-      align-items: center;
-      gap: 0.875rem;
-      cursor: pointer;
+    .submenu-header {
+      @apply flex items-center gap-3.5 cursor-pointer border-none rounded-md mb-1 relative;
+      background: hsl(var(--card));
       transition: all 0.2s ease;
-      border: none;
-      background: var(--surface-0);
-      border-radius: 6px;
-      margin-bottom: 0.25rem;
-      position: relative;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
       &:hover {
-        background: var(--surface-100);
+        background: hsl(var(--muted));
         transform: translateX(2px);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       &.active {
-        // background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-50) 100%);
-        color: var(--primary-color);
-        box-shadow: 0 2px 8px rgba(var(--primary-color), 0.25);
-        
+        color: hsl(var(--primary));
+
         &::before {
           content: '';
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 3px;
-          height: 20px;
-          background: var(--primary-color);
-          border-radius: 2px;
+          @apply absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded;
+          background: hsl(var(--primary));
         }
-        
+
         .submenu-label {
-          color: var(--primary-color);
-          font-weight: 500;
+          @apply font-medium;
+          color: hsl(var(--primary));
         }
       }
 
       &.expanded {
-        background: var(--surface-50);
+        background: hsl(var(--muted));
+        @apply mb-0 rounded-b-none;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        margin-bottom: 0;
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
-        
+
         .expand-icon {
-          transform: rotate(90deg);
-          color: var(--text-color-secondary);
+          @apply text-muted-foreground;
         }
-        
+
         .submenu-label {
-          color: var(--text-color);
-          font-weight: 500;
+          @apply font-medium;
+          color: hsl(var(--foreground));
         }
-        
+
         .submenu-icon {
-          color: var(--text-color-secondary);
+          color: hsl(var(--muted-foreground));
         }
       }
 
       .submenu-icon {
-        font-size: 1rem;
-        color: var(--text-color-secondary);
-        min-width: 1.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        @apply text-base min-w-5 flex items-center justify-center;
+        color: hsl(var(--muted-foreground));
       }
 
       .submenu-label {
-        flex: 1;
-        font-size: 0.9rem;
-        color: var(--text-color);
-        line-height: 1.4;
+        @apply flex-1 text-sm leading-snug;
+        color: hsl(var(--foreground));
       }
 
       .expand-icon {
-        font-size: 0.75rem;
-        color: var(--text-color-secondary);
+        @apply text-muted-foreground min-w-4 flex items-center justify-center;
         transition: transform 0.2s ease;
-        transform: rotate(0deg);
-        min-width: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
       }
     }
 
     .submenu-link {
-      display: flex;
-      align-items: center;
-      gap: 0.875rem;
-      text-decoration: none;
+      @apply flex items-center gap-3.5 no-underline rounded-md mb-1 relative;
+      background: hsl(var(--card));
+      color: hsl(var(--foreground));
       transition: all 0.2s ease;
-      color: var(--text-color);
-      border-radius: 6px;
-      margin-bottom: 0.25rem;
-      background: var(--surface-0);
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
       &:hover {
-        background: var(--surface-100);
-        text-decoration: none;
-        color: var(--text-color);
+        background: hsl(var(--muted));
+        @apply no-underline;
+        color: hsl(var(--foreground));
         transform: translateX(2px);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       &.active {
-        background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-50) 100%);
-        color: var(--primary-color);
-        font-weight: 600;
-        box-shadow: 0 2px 8px rgba(var(--primary-color), 0.25);
-        position: relative;
+        background: hsl(var(--primary) / 0.1);
+        color: hsl(var(--primary));
+        @apply font-semibold;
+        box-shadow: 0 2px 8px hsl(var(--primary) / 0.25);
 
         &::before {
           content: '';
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 3px;
-          height: 20px;
-          background: var(--primary-color);
-          border-radius: 2px;
+          @apply absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded;
+          background: hsl(var(--primary));
         }
 
         .submenu-icon {
-          color: var(--primary-color);
+          color: hsl(var(--primary));
         }
-        
+
         .submenu-label {
-          color: var(--primary-color);
+          color: hsl(var(--primary));
         }
       }
 
       &.single {
-        font-weight: 500;
-        font-size: 0.95rem;
+        @apply font-medium text-sm;
       }
 
       &.tour-target {
         background: linear-gradient(135deg, #ffc107 0%, #ffab00 100%) !important;
-        color: #fff !important;
-        font-weight: bold !important;
+        @apply text-white font-bold;
         box-shadow: 0 0 20px rgba(255, 193, 7, 0.6) !important;
         animation: tourPulse 2s infinite;
         border-left: 4px solid #ff6b6b !important;
@@ -509,7 +303,7 @@
 
         .submenu-icon,
         .submenu-label {
-          color: #fff !important;
+          color: white !important;
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
@@ -523,105 +317,86 @@
         opacity: 0.6 !important;
         cursor: not-allowed !important;
         pointer-events: auto !important;
-        background: var(--surface-200) !important;
-        color: var(--text-color-secondary) !important;
+        background: hsl(var(--muted)) !important;
+        color: hsl(var(--muted-foreground)) !important;
 
         &:hover {
-          background: var(--surface-200) !important;
+          background: hsl(var(--muted)) !important;
           transform: none !important;
           box-shadow: none !important;
         }
 
         .submenu-icon,
         .submenu-label {
-          color: var(--text-color-secondary) !important;
+          color: hsl(var(--muted-foreground)) !important;
         }
       }
 
       .submenu-icon {
-        font-size: 1rem;
-        color: var(--text-color-secondary);
-        min-width: 1.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        @apply text-base min-w-5 flex items-center justify-center;
+        color: hsl(var(--muted-foreground));
       }
 
       .submenu-label {
-        font-size: 0.9rem;
-        line-height: 1.4;
+        @apply text-sm leading-snug;
       }
     }
 
     .submenu-children {
-      background: var(--surface-0);
-      border-radius: 0 0 6px 6px;
-      margin: 0 0 0.25rem 0;
-      padding: 0.75rem 0 0.5rem 0;
-      box-shadow: 0 2px 8px rgba(var(--primary-color), 0.1);
-      position: relative;
-      
+      background: hsl(var(--card));
+      @apply rounded-b-md m-0 mb-1 py-3 pb-2 relative;
+      box-shadow: 0 2px 8px hsl(var(--primary) / 0.1);
+
       &::before {
         content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, var(--primary-200) 0%, transparent 100%);
+        @apply absolute top-0 left-0 right-0 h-px;
+        background: linear-gradient(90deg, hsl(var(--primary) / 0.3) 0%, transparent 100%);
       }
-      
-              .submenu-item {
-          margin: 0 0.75rem 0.125rem 0.75rem;
-          
-          &:last-child {
-            margin-bottom: 0;
+
+      .submenu-item {
+        @apply mx-3 mb-0.5;
+
+        &:last-child {
+          @apply mb-0;
+        }
+
+        .submenu-header,
+        .submenu-link {
+          background: hsl(var(--card));
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+
+          &:hover {
+            background: hsl(var(--muted) / 0.5);
+            transform: translateX(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
           }
-          
-          .submenu-header,
-          .submenu-link {
-            background: var(--surface-0);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-            
-            &:hover {
-              background: var(--surface-50);
-              transform: translateX(1px);
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+          &.active {
+            background: hsl(var(--primary) / 0.1);
+            color: hsl(var(--primary));
+            box-shadow: 0 2px 6px hsl(var(--primary) / 0.2);
+
+            &::before {
+              content: '';
+              @apply absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded;
+              height: 18px;
+              background: hsl(var(--primary));
             }
-            
-            &.active {
-              background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-50) 100%);
-              color: var(--primary-color);
-              box-shadow: 0 2px 6px rgba(var(--primary-color), 0.2);
-              
-              &::before {
-                content: '';
-                position: absolute;
-                left: 0;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 3px;
-                height: 18px;
-                background: var(--primary-color);
-                border-radius: 2px;
-              }
-              
-              .submenu-icon {
-                color: var(--primary-color);
-              }
-              
-              .submenu-label {
-                color: var(--primary-color);
-                font-weight: 500;
-              }
+
+            .submenu-icon {
+              color: hsl(var(--primary));
+            }
+
+            .submenu-label {
+              @apply font-medium;
+              color: hsl(var(--primary));
             }
           }
         }
+      }
     }
   }
 }
-
-// This will be handled dynamically by the component
 
 // Mobile responsive
 @media (max-width: 768px) {
@@ -630,24 +405,11 @@
       width: 60px;
 
       .icon-item {
-        height: 50px; // Slightly smaller on mobile
-        margin: 0 0.25rem;
+        @apply px-1;
+        height: 50px;
 
         .icon {
-          font-size: 1.25rem; // Smaller icons on mobile
-        }
-      }
-
-      .sidebar-toggle-container {
-        left: 43px; // Adjust for smaller icon panel (60px - 17px)
-      }
-
-      .sidebar-toggle-btn {
-        width: 35px;
-        height: 35px;
-
-        i {
-          font-size: 1rem;
+          @apply text-xl;
         }
       }
     }
@@ -662,40 +424,37 @@
       }
 
       .submenu-header-main {
-        padding: 1.25rem 1rem;
-        
+        @apply p-5;
+
         .main-icon {
-          font-size: 1.125rem;
-          padding: 0.25rem;
+          @apply text-lg p-1;
         }
-        
+
         .main-label {
-          font-size: 1rem;
+          @apply text-base;
         }
       }
 
       .submenu-items {
-        padding: 0.625rem 0;
+        @apply py-2.5;
       }
 
       .submenu-item {
-        margin: 0 0.375rem 0.125rem 0.375rem;
-        
+        @apply mx-1.5 mb-0.5;
+
         &.level-0 {
           .submenu-header,
           .submenu-link {
-            padding: 0.625rem 0.75rem;
-            font-size: 0.8125rem;
+            @apply py-2.5 px-3 text-xs;
           }
         }
 
         &.level-1 {
-          margin: 0 0.625rem;
-          
+          @apply mx-2.5;
+
           .submenu-header,
           .submenu-link {
-            padding: 0.5rem 0.75rem 0.5rem 1.25rem;
-            font-size: 0.75rem;
+            @apply py-2 px-3 pl-5 text-xs;
           }
         }
       }
@@ -709,42 +468,27 @@
       width: 60px;
 
       .icon-item {
-        height: 45px; // Even smaller on very small screens
-        margin: 0 0.25rem;
+        @apply px-1;
+        height: 45px;
 
         .icon {
-          font-size: 1.1rem; // Even smaller icons
-        }
-      }
-
-      .sidebar-toggle-container {
-        left: 45px; // Adjust for smallest icon panel (60px - 15px)
-      }
-
-      .sidebar-toggle-btn {
-        width: 30px;
-        height: 30px;
-
-        i {
-          font-size: 0.9rem;
+          @apply text-lg;
         }
       }
     }
 
     .submenu-panel {
-      position: absolute;
-      left: 60px; // Updated to match the smaller icon panel width
-      top: 0;
-      height: calc(100vh - 7vh); // Match the sidebar height
-      z-index: 1000;
+      @apply absolute top-0 z-[1000];
+      left: 60px;
+      height: calc(100vh - 7vh);
 
       &.visible {
-        width: calc(100vw - 60px); // Updated calculation
+        width: calc(100vw - 60px);
       }
 
       .submenu-content {
-        width: calc(100vw - 60px); // Updated calculation
+        width: calc(100vw - 60px);
       }
     }
   }
-} 
+}

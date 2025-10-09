@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { classNames } from 'primereact/utils';
 import { model, MenuItem } from './AppMenu';
 import { useAppSelector } from 'app/config/store';
 import './NewSidebar.scss';
+import { cn } from '@/src/main/webapp/app/lib/utils';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface NewSidebarProps {
   businessTypes?: any;
@@ -268,7 +269,7 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
         <div key={itemKey} className={`submenu-item level-${level}`}>
           {hasSubitems ? (
             <div
-              className={classNames('submenu-header', { 'active': isActive, 'expanded': isExpanded })}
+              className={cn('submenu-header', { 'active': isActive, 'expanded': isExpanded })}
               onClick={() => {
                 // Check localStorage directly for most up-to-date tour state
                 const tourCompleted = localStorage.getItem(TOUR_STORAGE_KEYS.completed) === 'true';
@@ -284,9 +285,9 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
                 toggleSubmenu(itemKey);
               }}
             >
-              <i className={classNames('submenu-icon', item.icon)} />
+              <i className={cn('submenu-icon', item.icon)} />
               <span className="submenu-label">{item.label}</span>
-              <i className={classNames('expand-icon pi', isExpanded ? 'pi-chevron-down' : 'pi-chevron-right')} />
+              {isExpanded ? <ChevronDown className="expand-icon h-3 w-3" /> : <ChevronRight className="expand-icon h-3 w-3" />}
             </div>
           ) : (
                           <Link
@@ -299,7 +300,7 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
                   
                   return ((tourState.isActive && tourState.waitingForSave) || isWaitingForSave) ? '#' : item.to;
                 })()}
-                className={classNames('submenu-link', { 
+                className={cn('submenu-link', { 
                   'active': isActive,
                   'tour-target': isTourTarget,
                   'blocked': (() => {
@@ -338,7 +339,7 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
                 }}
                 style={tourState.isActive && tourState.waitingForSave ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
               >
-                <i className={classNames('submenu-icon', item.icon)} />
+                <i className={cn('submenu-icon', item.icon)} />
                 <span className="submenu-label">{item.label}</span>
               </Link>
           )}
@@ -431,7 +432,7 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
   }, []);
 
   return (
-    <div className={classNames('new-sidebar', { 'collapsed': sidebarCollapsed })}>
+    <div className={cn('new-sidebar', { 'collapsed': sidebarCollapsed })}>
       {/* Icon Panel */}
       <div className="icon-panel">
         <div className="icon-panel-content">
@@ -444,7 +445,7 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
             return (
               <div
                 key={index}
-                className={classNames('icon-item', { 
+                className={cn('icon-item', { 
                   'active': isActive,
                   'has-active-route': hasActiveRoute
                 })}
@@ -508,7 +509,7 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
                 title={item.label}
                 data-tour={getDataTourAttribute(item)}
               >
-                <i className={classNames('icon', item.icon)} />
+                <i className={cn('icon', item.icon)} />
               </div>
             );
           })}
@@ -516,22 +517,22 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
           {/* Toggle Button */}
           {/* <div className="sidebar-toggle-container">
             <button
-              className={classNames('sidebar-toggle-btn', { 'collapsed': sidebarCollapsed })}
+              className={cn('sidebar-toggle-btn', { 'collapsed': sidebarCollapsed })}
               onClick={toggleSidebar}
               title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             >
-              <i className={classNames('pi', sidebarCollapsed ? 'pi-angle-right' : 'pi-angle-left')} />
+              <i className={cn('pi', sidebarCollapsed ? 'pi-angle-right' : 'pi-angle-left')} />
             </button>
           </div> */}
         </div>
       </div>
 
       {/* Submenu Panel */}
-      <div className={classNames('submenu-panel', { 'visible': activeMenuItem && !sidebarCollapsed })}>
+      <div className={cn('submenu-panel', { 'visible': activeMenuItem && !sidebarCollapsed })}>
         {activeMenuItem && !sidebarCollapsed && (
           <div className="submenu-content">
             <div className="submenu-header-main">
-              <i className={classNames('main-icon', activeMenuItem.icon)} />
+              <i className={cn('main-icon', activeMenuItem.icon)} />
               <span className="main-label">{activeMenuItem.label}</span>
             </div>
             
@@ -541,7 +542,7 @@ const NewSidebar: React.FC<NewSidebarProps> = ({ businessTypes }) => {
               ) : (
                 <Link
                   to={activeMenuItem.to}
-                  className={classNames('submenu-link single', { 
+                  className={cn('submenu-link single', { 
                     'active': isActiveRoute(activeMenuItem.to),
                     'tour-target': tourState.isActive && (
                       (tourState.stepIndex >= 1 && tourState.stepIndex <= 3 && activeMenuItem.to === '/details') ||

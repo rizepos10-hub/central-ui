@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 
 const PaginationFilter = ({ totalPages }) => {
     const navigate = useNavigate();
@@ -32,36 +34,76 @@ const PaginationFilter = ({ totalPages }) => {
     }
 
     return (
-        <nav aria-label="Page navigation example">
-            <ul className="pagination">
+        <nav aria-label="Pagination navigation" className="flex items-center justify-center">
+            <div className="flex items-center gap-1">
                 {currentPage > 1 && (
-                    <li className="page-item">
-                        <a className="page-link" onClick={() => handleNavigation(createQueryString('page', Math.max(1, currentPage - 1).toString()))}>Previous</a>
-                    </li>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => handleNavigation(createQueryString('page', Math.max(1, currentPage - 1).toString()))}
+                    >
+                        <ChevronLeft className="h-3 w-3 mr-1" />
+                        Previous
+                    </Button>
                 )}
                 {startPage > 1 && (
-                    <li className="page-item">
-                        <a className="page-link" onClick={() => handleNavigation(createQueryString('page', '1'))}>1</a>
-                    </li>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-xs"
+                        onClick={() => handleNavigation(createQueryString('page', '1'))}
+                    >
+                        1
+                    </Button>
                 )}
-                {startPage > 2 && <li className="page-item"><span className="page-link">...</span></li>}
-                {Array.from({ length: endPage - startPage + 1 }, (_, index) => (
-                    <li key={index} className={`page-item ${startPage + index === currentPage ? 'active' : ''}`}>
-                        <a className="page-link" onClick={() => handleNavigation(createQueryString('page', (startPage + index).toString()))}>{startPage + index}</a>
-                    </li>
-                ))}
-                {endPage < totalPages - 1 && <li className="page-item"><span className="page-link">...</span></li>}
+                {startPage > 2 && (
+                    <Button variant="ghost" size="sm" disabled className="h-7 w-7 p-0 text-xs">
+                        <MoreHorizontal className="h-3 w-3" />
+                    </Button>
+                )}
+                {Array.from({ length: endPage - startPage + 1 }, (_, index) => {
+                    const pageNum = startPage + index;
+                    const isActive = pageNum === currentPage;
+                    return (
+                        <Button
+                            key={index}
+                            variant={isActive ? 'default' : 'outline'}
+                            size="sm"
+                            className="h-7 w-7 p-0 text-xs"
+                            onClick={() => handleNavigation(createQueryString('page', pageNum.toString()))}
+                        >
+                            {pageNum}
+                        </Button>
+                    );
+                })}
+                {endPage < totalPages - 1 && (
+                    <Button variant="ghost" size="sm" disabled className="h-7 w-7 p-0 text-xs">
+                        <MoreHorizontal className="h-3 w-3" />
+                    </Button>
+                )}
                 {endPage < totalPages && (
-                    <li className="page-item">
-                        <a className="page-link" onClick={() => handleNavigation(createQueryString('page', totalPages.toString()))}>{totalPages}</a>
-                    </li>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-xs"
+                        onClick={() => handleNavigation(createQueryString('page', totalPages.toString()))}
+                    >
+                        {totalPages}
+                    </Button>
                 )}
                 {currentPage < totalPages && (
-                    <li className="page-item">
-                        <a className="page-link" onClick={() => handleNavigation(createQueryString('page', Math.min(totalPages, currentPage + 1).toString()))}>Next</a>
-                    </li>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => handleNavigation(createQueryString('page', Math.min(totalPages, currentPage + 1).toString()))}
+                    >
+                        Next
+                        <ChevronRight className="h-3 w-3 ml-1" />
+                    </Button>
                 )}
-            </ul>
+            </div>
         </nav>
     );
 };

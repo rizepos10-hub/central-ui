@@ -1,19 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Dropdown } from 'primereact/dropdown';
 import { SalesReportsMeasures, SalesReportsTypes } from 'app/shared/model/ENUMS/sales-reports.models';
-
 import { fetchSalesReport } from 'app/modules/analytics/api';
 import DateCustomComponent from 'app/modules/analytics/reports/sales-report/custom-date-range';
 import { format, getDayOfYear, startOfYear, sub, subYears } from 'date-fns';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { ColumnGroup } from 'primereact/columngroup';
-import { Row as PrimeRow } from 'primereact/row';
-import { Tooltip } from 'primereact/tooltip';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { fetchSalesReportRedux } from 'app/modules/analytics/reports/sales-report/sales-report.reducer';
-import { Spinner } from 'reactstrap';
-import Select from 'react-select';
 import { ICurrency } from 'app/shared/model/CURRENCY/currency.model';
 import { getEntities as getCurrencies } from 'app/entities/settings/currency/currencies.reducer';
 import { getEntity as getCurrencySettings } from 'app/entities/settings/currency/currency-settings.reducer';
@@ -21,9 +12,16 @@ import { formatPrice } from 'app/shared/util/price-utils';
 import { toLocalISOString } from 'app/shared/util/date-utils';
 import { useParams } from 'react-router-dom';
 import { capitalizeFirstLetter, capitalizeString } from 'app/shared/util/string-utils';
-import { Button } from 'primereact/button';
 import ReactToPrint from 'react-to-print';
 import { saveAsExcelFile } from 'app/shared/util/excel-utils';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { FileSpreadsheet, Printer, Loader2 } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Slot = {
   order: number;
@@ -175,15 +173,6 @@ export const SalesReport = () => {
     fetchReportData();
   }, [selectedMeasure, selectedType, dateRange, reportType]);
 
-  const handleTypeChange = e => {
-    const type = e.value;
-    setSelectedType(type);
-  };
-
-  const handleMeasureChange = e => {
-    const measure = e.value;
-    setSelectedMeasure(measure);
-  };
 
   const sortedHeaderSlots = salesReportData?.headerSlots?.slice().sort((a, b) => a?.order - b?.order);
 
@@ -195,123 +184,9 @@ export const SalesReport = () => {
       property !== selectedMeasure.toLowerCase() &&
       property !== 'slots'
   );
-  const datatableRows = propertiesToDisplay.map(property => (
-    <Column
-      key={property}
-      field={property}
-      body={rowData => {
-        const value = rowData[property];
-        return selectedMeasure === "SALE_COUNT" && property === "returns" ? value : typeof value === 'number' ? `${formatPrice(value, exchange)} ` : value;
-      }}
-    />
-  ));
-
-
-  const datatableHeaders = propertiesToDisplay.map((property, index) => <Column key={property} header={capitalizeFirstLetter(property)} />);
-
-  const headerGroup = (
-    <ColumnGroup>
-      <PrimeRow>
-        <Column header={reportType ? capitalizeString(reportType) : selectedType} />
-        {sortedHeaderSlots?.map(header => (
-          <Column key={header.order} header={header.label} colSpan={1} />
-        ))}
-        <Column key={'value'} header={'Total'} />
-        {datatableHeaders}
-      </PrimeRow>
-    </ColumnGroup>
-  );
 
   const totalsRowForFooter = Object.values(salesReportData?.totalByDateRange || {});
   const measure = selectedMeasure.toLowerCase();
-
-  const footerGroup = (
-    <ColumnGroup>
-      <PrimeRow>
-        <Column className="bg-silver text-left " colSpan={totalsRowForFooter?.length + 1} footer={'Total By Date Range'} />
-        <Column className="bg-white" colSpan={10} />
-      </PrimeRow>
-      <PrimeRow>
-        <Column footer="Totals" className="bg-white text-left" />
-        {totalsRowForFooter.map((totalsRecord: any, index) => (
-          <Column
-            className="bg-white"
-            key={index}
-            footer={selectedMeasure !== 'SALE_COUNT' ? `${formatPrice(totalsRecord?.value, exchange)}` : totalsRecord?.value}
-          />
-        ))}
-        <Column className="bg-white" colSpan={10} />
-      </PrimeRow>
-
-      {/*  Display the selected measure always in the second row */}
-      {selectedMeasure !== 'SALE_COUNT' ? (
-        <PrimeRow>
-          <Column footer={capitalizeFirstLetter(selectedMeasure.toLowerCase())} className="bg-white text-left" />
-          {totalsRowForFooter.map((totalsRecord: any, index) => (
-            <Column className="bg-white" key={index} footer={`${formatPrice(totalsRecord[measure], exchange)}`} />
-          ))}
-          <Column className="bg-white" colSpan={10} />
-        </PrimeRow>
-      ) : null}
-      {selectedMeasure !== 'REVENUE' ? (
-        <PrimeRow>
-          <Column footer={'Revenue'} className="bg-white text-left" />
-          {totalsRowForFooter.map((totalsRecord: any, index) => (
-            <Column className="bg-white" key={index} footer={`${formatPrice(totalsRecord.revenue, exchange)} `} />
-          ))}
-          <Column className="bg-white" colSpan={10} />
-        </PrimeRow>
-      ) : null}
-
-      <PrimeRow>
-        <Column footer={'Cost Of Goods'} className="bg-white text-left" />
-        {totalsRowForFooter.map((totalsRecord: any, index) => (
-          <Column className="bg-white" key={index} footer={`${formatPrice(totalsRecord.costOfGoods, exchange)} `} />
-        ))}
-        <Column className="bg-white" colSpan={10} />
-      </PrimeRow>
-
-      {selectedMeasure !== 'RETURNS' ? (
-        <PrimeRow>
-          <Column footer={'Returned'} className="bg-white text-left" />
-          {totalsRowForFooter.map((totalsRecord: any, index) => (
-            <Column
-              className="bg-white"
-              key={index}
-              footer={selectedMeasure !== 'SALE_COUNT' ? `${formatPrice(totalsRecord?.returns, exchange)}` : totalsRecord?.returns}
-            />
-          ))}
-          <Column className="bg-white" colSpan={10} />
-        </PrimeRow>
-      ) : null}
-
-      <PrimeRow>
-        <Column footer={'Margin'} className="bg-white text-left" />
-        {totalsRowForFooter.map((totalsRecord: any, index) => (
-          <Column className="bg-white" key={index} footer={`${formatPrice(totalsRecord.margin, exchange)}`} />
-        ))}
-        <Column className="bg-white" colSpan={10} />
-      </PrimeRow>
-
-      <PrimeRow>
-        <Column footer={'Gross Profit'} className="bg-white text-left" />
-        {totalsRowForFooter.map((totalsRecord: any, index) => (
-          <Column className="bg-white" key={index} footer={`${formatPrice(totalsRecord.grossProfit, exchange)}`} />
-        ))}
-        <Column className="bg-white" colSpan={10} />
-      </PrimeRow>
-
-      {selectedMeasure !== 'TAX' ? (
-        <PrimeRow>
-          <Column footer={'Tax'} className="bg-white text-left" />
-          {totalsRowForFooter.map((totalsRecord: any, index) => (
-            <Column className="bg-white" key={index} footer={`${formatPrice(totalsRecord.tax, exchange)} `} />
-          ))}
-          <Column className="bg-white" colSpan={10} />
-        </PrimeRow>
-      ) : null}
-    </ColumnGroup>
-  );
 
   const exportExcel = () => {
     const structuredExcelData = salesReportData?.rows?.map(row => {
@@ -563,140 +438,304 @@ export const SalesReport = () => {
   }
 `;
 
-  const header = (
-    <div className="flex align-items-center justify-content-end gap-2">
-      <Button type="button" className='rounded-circle' icon="pi pi-file-excel" severity="success" rounded onClick={exportExcel} data-pr-tooltip="XLS" />
-      <ReactToPrint
-        trigger={() => (
-          <Button
-            type="button"
-            className="rounded-circle"
-            icon="pi pi-print"
-            severity="info"
-            rounded
-            data-pr-tooltip="PRINT"
-          />
-        )}
-        content={() => dtWrapper.current}
-        pageStyle={pageStyle}
-      />
-    </div>
+  const headerButtons = (
+    <TooltipProvider>
+      <div className="flex items-center justify-end gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              size="sm"
+              variant="default"
+              className="h-8 w-8 p-0 rounded-full"
+              onClick={exportExcel}
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Export to Excel</p>
+          </TooltipContent>
+        </Tooltip>
+        <ReactToPrint
+          trigger={() => (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="h-8 w-8 p-0 rounded-full"
+                >
+                  <Printer className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Print Report</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          content={() => dtWrapper.current}
+          pageStyle={pageStyle}
+        />
+      </div>
+    </TooltipProvider>
   );
 
   return (
-    <>
-      <h1>
-        <strong>Sales Report</strong>
-      </h1>
+    <PageWrapper>
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold">Sales Report</h1>
 
-      <div className="d-flex gap-3">
-        {!reportType ? (
-          <>
-            <div className="d-flex flex-column gap-1">
-              <label>Report Type</label>
-              <Dropdown options={reportTypesOptions} onChange={handleTypeChange} value={selectedType} />
-            </div>
-            <div className="d-flex flex-column gap-1">
-              <label>Measure Type</label>
-              <Dropdown
-                options={reportMeasuresOptions}
-                optionLabel={'label'}
-                optionValue={'value'}
-                onChange={handleMeasureChange}
-                value={selectedMeasure}
-              />
-            </div>
-          </>
-        ) : null}
-        <div className="d-flex flex-column gap-1">
-          <div className="d-flex flex-column gap-1">
-            <label>Date Range</label>
-            <DateCustomComponent onApplyDateRange={handleDateRangeApply} dateRange={dateRange} setDateRange={setDateRange} />
-          </div>
+        <div className="flex gap-3 flex-wrap">
+          {!reportType ? (
+            <>
+              <div className="flex flex-col gap-1">
+                <Label className="text-xs">Report Type</Label>
+                <Select value={selectedType} onValueChange={(value) => setSelectedType(value as any)}>
+                  <SelectTrigger className="h-8 text-xs w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reportTypesOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value} className="text-xs">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label className="text-xs">Measure Type</Label>
+                <Select value={selectedMeasure} onValueChange={(value) => setSelectedMeasure(value as any)}>
+                  <SelectTrigger className="h-8 text-xs w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reportMeasuresOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value} className="text-xs">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          ) : null}
+        <div className="flex flex-col gap-1">
+          <Label className="text-xs">Date Range</Label>
+          <DateCustomComponent onApplyDateRange={handleDateRangeApply} dateRange={dateRange} setDateRange={setDateRange} />
         </div>
-        <div className="d-flex flex-column gap-1">
-          <div className="d-flex flex-column gap-1">
-            <label>Display Currency</label>
-            <Dropdown
-              ref={dt}
-              value={displayCurrency}
-              onChange={e => setDisplayCurrency(e.value)}
-              options={filteredDisplayCurrencies}
-              filter
-              optionLabel={'name'}
-              placeholder="Select a Currency"
-            />
-          </div>
+        <div className="flex flex-col gap-1">
+          <Label className="text-xs">Display Currency</Label>
+          <Select
+            value={displayCurrency?.code}
+            onValueChange={(code) => setDisplayCurrency(filteredDisplayCurrencies.find(c => c.code === code))}
+          >
+            <SelectTrigger className="h-8 text-xs w-[180px]">
+              <SelectValue placeholder="Select a Currency" />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredDisplayCurrencies.map(currency => (
+                <SelectItem key={currency.code} value={currency.code} className="text-xs">
+                  {currency.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
-      <div className="my-3 card">
-        <Tooltip target=".export-buttons>button" position="bottom" />
-        <div ref={dtWrapper}>
+      <Card className="my-3">
+        <CardContent className="p-0">
+          <div ref={dtWrapper}>
+            <div className="p-4">
+              {headerButtons}
+            </div>
 
-          <div
-            className='gap-3 sales-report-print-header'
-            style={{
-              display: 'none',
-            }}
-          >
-            <div className='fs-2 fw-bold text-center'>Sales Report</div>
-            <div className='fs-5 fw-semibold d-flex flex-column gap-1'>
-              <div>
-                <span>Report Type : </span>
-                <span>{reportType ? capitalizeString(reportType) : selectedType}</span>
-              </div>
-              <div>
-                <span>Measure Type : </span>
-                <span>{selectedMeasure ? capitalizeString(selectedMeasure) : selectedMeasure}</span>
-              </div>
-              {dateRange?.from && dateRange?.to && (
+            <div
+              className='gap-3 sales-report-print-header hidden print:flex print:flex-col'
+            >
+              <div className='text-2xl font-bold text-center'>Sales Report</div>
+              <div className='text-lg font-semibold flex flex-col gap-1'>
                 <div>
-                  <span>Date Range : </span>
-                  <span>{format(new Date(dateRange?.from), "yyyy-MM-dd")} - {format(new Date(dateRange?.to), "yyyy-MM-dd")}</span>
+                  <span>Report Type: </span>
+                  <span>{reportType ? capitalizeString(reportType) : selectedType}</span>
+                </div>
+                <div>
+                  <span>Measure Type: </span>
+                  <span>{selectedMeasure ? capitalizeString(selectedMeasure) : selectedMeasure}</span>
+                </div>
+                {dateRange?.from && dateRange?.to && (
+                  <div>
+                    <span>Date Range: </span>
+                    <span>{format(new Date(dateRange?.from), "yyyy-MM-dd")} - {format(new Date(dateRange?.to), "yyyy-MM-dd")}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="relative border rounded-md" style={{ height: 'calc(100vh - 280px)' }}>
+              {salesReportLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="flex flex-col h-full">
+                  <div className="border-b bg-muted">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs h-8 font-semibold bg-muted">{reportType ? capitalizeString(reportType) : selectedType}</TableHead>
+                          {sortedHeaderSlots?.map(header => (
+                            <TableHead key={header.order} className="text-xs h-8 font-semibold bg-muted whitespace-nowrap">{header.label}</TableHead>
+                          ))}
+                          <TableHead className="text-xs h-8 font-semibold bg-muted">Total</TableHead>
+                          {propertiesToDisplay.map(property => (
+                            <TableHead key={property} className="text-xs h-8 font-semibold bg-muted whitespace-nowrap">{capitalizeFirstLetter(property)}</TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                    </Table>
+                  </div>
+
+                  <div className="flex-1 overflow-auto">
+                    <Table>
+                      <TableBody>
+                        {salesReportData?.rows?.map((row, rowIndex) => (
+                          <TableRow key={rowIndex} className="text-xs hover:bg-muted/50">
+                            <TableCell className="text-xs font-medium">{row.rowRecord.name}</TableCell>
+                            {sortedHeaderSlots?.map(header => {
+                              const slotIndex = row.slots.findIndex(s => s.order === header.order);
+                              return (
+                                <TableCell key={header.order} className="text-xs whitespace-nowrap">
+                                  {slotIndex >= 0
+                                    ? selectedMeasure !== 'SALE_COUNT'
+                                      ? `${formatPrice(row.slots[slotIndex].value, exchange)} `
+                                      : row.slots[slotIndex].value
+                                    : null}
+                                </TableCell>
+                              );
+                            })}
+                            <TableCell className="text-xs whitespace-nowrap">
+                              {selectedMeasure !== 'SALE_COUNT' ? `${formatPrice(row['value'], exchange)} ` : row['value']}
+                            </TableCell>
+                            {propertiesToDisplay.map(property => {
+                              const value = row[property];
+                              return (
+                                <TableCell key={property} className="text-xs whitespace-nowrap">
+                                  {selectedMeasure === "SALE_COUNT" && property === "returns"
+                                    ? value
+                                    : typeof value === 'number'
+                                      ? `${formatPrice(value, exchange)} `
+                                      : value}
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <div className="border-t bg-muted shadow-lg">
+                    <Table>
+                      <TableFooter>
+                        <TableRow className="bg-muted">
+                          <TableCell colSpan={totalsRowForFooter?.length + 1} className="text-left text-xs font-bold py-3">
+                            Total By Date Range
+                          </TableCell>
+                          <TableCell colSpan={10} />
+                        </TableRow>
+                        <TableRow className="bg-muted/80">
+                          <TableCell className="text-xs font-bold">Totals</TableCell>
+                      {totalsRowForFooter.map((totalsRecord: any, index) => (
+                        <TableCell key={index} className="text-xs">
+                          {selectedMeasure !== 'SALE_COUNT' ? `${formatPrice(totalsRecord?.value, exchange)}` : totalsRecord?.value}
+                        </TableCell>
+                      ))}
+                      <TableCell colSpan={10} />
+                    </TableRow>
+                    {selectedMeasure !== 'SALE_COUNT' && (
+                      <TableRow className="bg-muted/70">
+                        <TableCell className="text-xs font-bold">{capitalizeFirstLetter(selectedMeasure.toLowerCase())}</TableCell>
+                        {totalsRowForFooter.map((totalsRecord: any, index) => (
+                          <TableCell key={index} className="text-xs font-medium">
+                            {`${formatPrice(totalsRecord[measure], exchange)}`}
+                          </TableCell>
+                        ))}
+                        <TableCell colSpan={10} />
+                      </TableRow>
+                    )}
+                    {selectedMeasure !== 'REVENUE' && (
+                      <TableRow className="bg-muted/60">
+                        <TableCell className="text-xs font-bold">Revenue</TableCell>
+                        {totalsRowForFooter.map((totalsRecord: any, index) => (
+                          <TableCell key={index} className="text-xs font-medium">
+                            {`${formatPrice(totalsRecord.revenue, exchange)} `}
+                          </TableCell>
+                        ))}
+                        <TableCell colSpan={10} />
+                      </TableRow>
+                    )}
+                    <TableRow className="bg-muted/50">
+                      <TableCell className="text-xs font-bold">Cost Of Goods</TableCell>
+                      {totalsRowForFooter.map((totalsRecord: any, index) => (
+                        <TableCell key={index} className="text-xs font-medium">
+                          {`${formatPrice(totalsRecord.costOfGoods, exchange)} `}
+                        </TableCell>
+                      ))}
+                      <TableCell colSpan={10} />
+                    </TableRow>
+                    {selectedMeasure !== 'RETURNS' && (
+                      <TableRow className="bg-muted/40">
+                        <TableCell className="text-xs font-bold">Returned</TableCell>
+                        {totalsRowForFooter.map((totalsRecord: any, index) => (
+                          <TableCell key={index} className="text-xs font-medium">
+                            {selectedMeasure !== 'SALE_COUNT' ? `${formatPrice(totalsRecord?.returns, exchange)}` : totalsRecord?.returns}
+                          </TableCell>
+                        ))}
+                        <TableCell colSpan={10} />
+                      </TableRow>
+                    )}
+                    <TableRow className="bg-muted/30">
+                      <TableCell className="text-xs font-bold">Margin</TableCell>
+                      {totalsRowForFooter.map((totalsRecord: any, index) => (
+                        <TableCell key={index} className="text-xs font-medium">
+                          {`${formatPrice(totalsRecord.margin, exchange)}`}
+                        </TableCell>
+                      ))}
+                      <TableCell colSpan={10} />
+                    </TableRow>
+                    <TableRow className="bg-muted/20">
+                      <TableCell className="text-xs font-bold">Gross Profit</TableCell>
+                      {totalsRowForFooter.map((totalsRecord: any, index) => (
+                        <TableCell key={index} className="text-xs font-medium">
+                          {`${formatPrice(totalsRecord.grossProfit, exchange)}`}
+                        </TableCell>
+                      ))}
+                      <TableCell colSpan={10} />
+                    </TableRow>
+                    {selectedMeasure !== 'TAX' && (
+                      <TableRow className="bg-muted/10">
+                        <TableCell className="text-xs font-bold">Tax</TableCell>
+                        {totalsRowForFooter.map((totalsRecord: any, index) => (
+                          <TableCell key={index} className="text-xs font-medium">
+                            {`${formatPrice(totalsRecord.tax, exchange)} `}
+                          </TableCell>
+                        ))}
+                        <TableCell colSpan={10} />
+                      </TableRow>
+                    )}
+                      </TableFooter>
+                    </Table>
+                  </div>
                 </div>
               )}
             </div>
           </div>
-
-          <DataTable
-            headerColumnGroup={headerGroup}
-            footerColumnGroup={footerGroup}
-            scrollable
-            stripedRows
-            showGridlines
-            loading={salesReportLoading}
-            size={'small'}
-            tableStyle={{ minWidth: '50rem' }}
-            scrollHeight="45rem"
-            value={salesReportData?.rows}
-            header={header}
-          >
-            <Column field={'rowRecord.name'} />
-            {sortedHeaderSlots?.map(
-              header =>
-                header.order >= 0 && (
-                  <Column
-                    key={header.order}
-                    body={rowData => {
-                      const slotIndex = rowData.slots.findIndex(s => s.order === header.order);
-                      return slotIndex >= 0
-                        ? selectedMeasure !== 'SALE_COUNT'
-                          ? `${formatPrice(rowData.slots[slotIndex].value, exchange)} `
-                          : rowData.slots[slotIndex].value
-                        : null;
-                    }}
-                  />
-                )
-            )}
-            <Column
-              body={rowData => {
-                return selectedMeasure !== 'SALE_COUNT' ? `${formatPrice(rowData['value'], exchange)} ` : rowData['value'];
-              }}
-            />
-            {datatableRows}
-          </DataTable>
-        </div>
+        </CardContent>
+      </Card>
       </div>
-    </>
+    </PageWrapper>
   );
 };
