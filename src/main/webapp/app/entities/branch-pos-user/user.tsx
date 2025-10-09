@@ -1,30 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
-import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+import { Translate, translate, getSortState } from 'react-jhipster';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
-
+import { getEntities as getBranches } from 'app/entities/branch/branch.reducer';
 import { IUser } from 'app/shared/model/user.model';
-import { searchEntities, getEntities } from './user.reducer';
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { Button } from "primereact/button";
-import { FilterMatchMode } from "primereact/api";
-import { InputText } from "primereact/inputtext";
-import PosBranchUser from "app/entities/branch-pos-user/user.reducer";
-import { Dropdown } from "primereact/dropdown";
-import { MultiSelect } from "primereact/multiselect";
+import { getEntities } from './user.reducer';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { RefreshCw, Plus, Edit, Check, X } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const User = () => {
   const dispatch = useAppDispatch();
-
   const location = useLocation();
   const navigate = useNavigate();
-  const [selectedBranchFilter, setSelectedBranchFilter] = useState(null);
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, 'id'), location.search)
@@ -35,11 +29,9 @@ export const User = () => {
   const totalItems = useAppSelector(state => state.PosBranchUser.totalItems);
   const branchList = useAppSelector(state => state.branch.entities);
 
-  const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    email: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    branches: { value: selectedBranchFilter, matchMode: FilterMatchMode.CONTAINS },
-  });
+  const [nameFilter, setNameFilter] = useState('');
+  const [emailFilter, setEmailFilter] = useState('');
+  const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>('');
 
   const modifiedUserList = userList
     .filter((user) => {
@@ -51,13 +43,11 @@ export const User = () => {
       name: `${user.firstName} ${user.lastName !== null ? user.lastName : ''}`,
     }));
 
-
-  const filteredBranchOptions = branchList
-    .map((branch) => ({
-      label: branch.name,
-      value: branch.id,
-    }));
-
+  const filteredUsers = modifiedUserList.filter(user => {
+    const matchesName = !nameFilter || user.name.toLowerCase().includes(nameFilter.toLowerCase());
+    const matchesEmail = !emailFilter || user.email?.toLowerCase().startsWith(emailFilter.toLowerCase());
+    return matchesName && matchesEmail;
+  });
 
   const getUsers = () => {
     dispatch(getEntities({
@@ -65,141 +55,194 @@ export const User = () => {
       size: paginationState.itemsPerPage,
       sort: `${paginationState.sort},${paginationState.order}`,
     }));
-    dispatch(getBranches({}))
+    dispatch(getBranches({}));
   };
 
   useEffect(() => {
-    getUsers()
+    getUsers();
   }, []);
 
-  const nameColumnTemplate = (rowData) => {
-    const editUrl = `/branch-pos-user/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData.name}
-      </Link>
-    );
-  };
-
-  const handleNameFilterChange = (e) => {
-    const filterValue = e.target.value;
-    if (filterValue === '') {
-      setFilters({
-        ...filters,
-        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      });
-    } else {
-      setFilters({
-        ...filters,
-        name: { value: filterValue, matchMode: FilterMatchMode.CONTAINS },
-      });
-    }
-  };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/branch-pos-user/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/user/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
-      </Link>
-    );
-  };
   const handleCreate = () => {
-    navigate('/branch-pos-user/new')
-  }
-
-  const activeColumnTemplate = rowData => {
-    return rowData.verified ? <p className="text-success ml-2  ">&#10004;</p> :
-      <p className="text-danger ml-2 ">&#10006;</p>
+    navigate('/branch-pos-user/new');
   };
-
-  const handleBranchFilter = (branchId) => {
-    setSelectedBranchFilter(branchId);
-  };
-
-
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.posUsers'} /></span>
-      <div className="ms-auto">
-        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={getUsers} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate("tempApp.createNewUser")} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
-
-
 
   return (
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-xl font-bold">
+            <Translate contentKey={'tempApp.posUsers'} />
+          </h1>
+          <div className="flex gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={getUsers}
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  {translate("common.refreshList")}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Refresh user list</p>
+              </TooltipContent>
+            </Tooltip>
 
-    <div >
-      <DataTable value={modifiedUserList} editMode="row" header={header} paginator showGridlines
-        globalFilterFields={['firstName', 'lastName']} loading={loading}
-        filters={filters} filterDisplay="row" totalRecords={totalItems} rows={20}>
-        <Column
-          field="name" header={translate("common.name")} filter
-          filterElement={<InputText placeholder={translate("common.search.name")} onChange={handleNameFilterChange} style={{
-            width: '200px'
-          }} />}
-          filterField="name" body={nameColumnTemplate} sortable
-          style={{
-            width: '300px'
-          }}
-          headerStyle={{
-            width: '300px'
-          }}
-        />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={handleCreate}
+                  disabled={loading}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {translate("tempApp.createNewUser")}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Create new POS user</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
 
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs h-8 font-semibold w-[300px]">
+                  {translate("common.name")}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold">
+                  {translate("common.email")}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold">
+                  {translate("common.branches")}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold">
+                  {translate("tempApp.authorities")}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold w-[100px]">
+                  {translate("tempApp.activated")}
+                </TableHead>
+                <TableHead className="text-xs h-8 font-semibold w-[80px]">
+                  {translate("common.edit")}
+                </TableHead>
+              </TableRow>
+              <TableRow>
+                <TableHead className="p-2">
+                  <Input
+                    placeholder={translate("common.search.name")}
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    className="h-7 text-xs w-[200px]"
+                  />
+                </TableHead>
+                <TableHead className="p-2">
+                  <Input
+                    placeholder={translate("common.search.email")}
+                    value={emailFilter}
+                    onChange={(e) => setEmailFilter(e.target.value)}
+                    className="h-7 text-xs"
+                  />
+                </TableHead>
+                <TableHead className="p-2">
+                  <Select
+                    value={selectedBranchFilter || 'all'}
+                    onValueChange={(value) => setSelectedBranchFilter(value === 'all' ? '' : value)}
+                  >
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder={translate("common.search.branch")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="text-xs">All Branches</SelectItem>
+                      {branchList.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id} className="text-xs">
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableHead>
+                <TableHead className="p-2"></TableHead>
+                <TableHead className="p-2"></TableHead>
+                <TableHead className="p-2"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-xs py-8">
+                    <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-xs py-8 text-muted-foreground">
+                    No users found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredUsers.map((user) => {
+                  const editUrl = `/branch-pos-user/${user.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+                  return (
+                    <TableRow key={user.id} className="text-xs hover:bg-muted/50">
+                      <TableCell className="text-xs">
+                        <Link to={editUrl} className="text-primary hover:underline">
+                          {user.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs">{user.email}</TableCell>
+                      <TableCell className="text-xs">
+                        {user.branches?.map((branch) => branch.name)?.join(' | ')}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {user.authorities?.join(' | ')}
+                      </TableCell>
+                      <TableCell className="text-xs text-center">
+                        {user.verified ? (
+                          <Check className="h-4 w-4 text-green-600 inline" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-600 inline" />
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs text-center">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link to={editUrl}>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                                <Edit className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                              </Button>
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">Edit user</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
-        <Column field="email" header={translate("common.email")} filter filterPlaceholder={translate("common.search.email")} sortable />
-
-        <Column
-          field="branches"
-          sortable
-          filter
-          header={translate("common.branches")}
-          body={(data) => data?.branches?.map((branch) => branch.name)?.join(" | ")}
-          filterElement={
-            <Dropdown
-              value={selectedBranchFilter || ''}
-              options={filteredBranchOptions}
-              onChange={(e) => {
-                handleBranchFilter(e.value);
-              }}
-              placeholder={translate("common.search.branch")}
-            />
-          }
-        />
-
-
-
-
-        <Column field="authorities" header={translate("tempApp.authorities")} body={(rowData) => rowData.authorities?.join('|')} sortable />
-
-
-        <Column header={translate("tempApp.activated")} body={activeColumnTemplate} style={{ width: '10%' }} />
-        <Column header={translate("common.edit")} body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center' }}
-          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
-
-        {/* <Column  header="Delete" body={deleteColumnTemplate} headerStyle={{ width: '1%',  }} */}
-        {/*          bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} /> */}
-
-
-      </DataTable>
-    </div>
+        {filteredUsers.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div>
+              Showing {filteredUsers.length} of {totalItems} users
+            </div>
+          </div>
+        )}
+      </div>
+    </PageWrapper>
   );
 };
 
