@@ -574,15 +574,25 @@ export const SalesReport = () => {
               </div>
             </div>
 
-            <div className="relative border rounded-md" style={{ height: 'calc(100vh - 280px)' }}>
+            <div className="relative border rounded-md overflow-hidden" style={{ height: 'calc(100vh - 280px)' }}>
               {salesReportLoading ? (
                 <div className="flex items-center justify-center p-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : (
                 <div className="flex flex-col h-full">
-                  <div className="border-b bg-muted">
-                    <Table>
+                  <div className="overflow-x-auto border-b bg-muted">
+                    <Table className="w-full" style={{ tableLayout: 'fixed', minWidth: '100%' }}>
+                      <colgroup>
+                        <col style={{ width: '200px' }} />
+                        {sortedHeaderSlots?.map(header => (
+                          <col key={`col-${header.order}`} style={{ width: '120px' }} />
+                        ))}
+                        <col style={{ width: '120px' }} />
+                        {propertiesToDisplay.map(property => (
+                          <col key={`col-${property}`} style={{ width: '120px' }} />
+                        ))}
+                      </colgroup>
                       <TableHeader>
                         <TableRow>
                           <TableHead className="text-xs h-8 font-semibold bg-muted">{reportType ? capitalizeString(reportType) : selectedType}</TableHead>
@@ -599,7 +609,17 @@ export const SalesReport = () => {
                   </div>
 
                   <div className="flex-1 overflow-auto">
-                    <Table>
+                    <Table className="w-full" style={{ tableLayout: 'fixed', minWidth: '100%' }}>
+                      <colgroup>
+                        <col style={{ width: '200px' }} />
+                        {sortedHeaderSlots?.map(header => (
+                          <col key={`col-body-${header.order}`} style={{ width: '120px' }} />
+                        ))}
+                        <col style={{ width: '120px' }} />
+                        {propertiesToDisplay.map(property => (
+                          <col key={`col-body-${property}`} style={{ width: '120px' }} />
+                        ))}
+                      </colgroup>
                       <TableBody>
                         {salesReportData?.rows?.map((row, rowIndex) => (
                           <TableRow key={rowIndex} className="text-xs hover:bg-muted/50">
@@ -637,8 +657,18 @@ export const SalesReport = () => {
                     </Table>
                   </div>
 
-                  <div className="border-t bg-muted shadow-lg">
-                    <Table>
+                  <div className="border-t bg-muted shadow-lg overflow-x-auto">
+                    <Table className="w-full" style={{ tableLayout: 'fixed', minWidth: '100%' }}>
+                      <colgroup>
+                        <col style={{ width: '200px' }} />
+                        {sortedHeaderSlots?.map(header => (
+                          <col key={`col-footer-${header.order}`} style={{ width: '120px' }} />
+                        ))}
+                        <col style={{ width: '120px' }} />
+                        {propertiesToDisplay.map(property => (
+                          <col key={`col-footer-${property}`} style={{ width: '120px' }} />
+                        ))}
+                      </colgroup>
                       <TableFooter>
                         <TableRow className="bg-muted">
                           <TableCell colSpan={totalsRowForFooter?.length + 1} className="text-left text-xs font-bold py-3">
