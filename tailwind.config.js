@@ -16,9 +16,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['Comic Sans MS', 'cursive'],
-        serif: ['Georgia', 'serif'],
-        mono: ['Courier New', 'monospace'],
+        sans: ["var(--font-sans)"],
+        serif: ["var(--font-serif)"],
+        mono: ["var(--font-mono)"],
       },
       colors: {
         border: "hsl(var(--border))",
