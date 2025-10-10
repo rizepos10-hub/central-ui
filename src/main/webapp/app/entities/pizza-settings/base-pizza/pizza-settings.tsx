@@ -131,6 +131,10 @@ export const PizzaSettings = () => {
 
     const [activeTab, setActiveTab] = useState(branchList[0]?.id || '0');
 
+    useEffect(() => {
+        setActiveTab(branchList[0]?.id)
+    }, [branchList])
+
     return (
         <PageWrapper>
             <div className="mb-4">
