@@ -1,19 +1,19 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
 import { Translate, translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './service-charge.reducer';
-import { InputNumber } from "primereact/inputnumber";
-import { Dropdown } from 'primereact/dropdown';
 import { ServiceChargeApplicableOn, ServiceChargeKey, ServiceChargeSettingType, ServiceChargeWhenToApply } from 'app/shared/model/service-charge.model';
-import { InputText } from 'primereact/inputtext';
 import Select from 'react-select'
 import _ from 'lodash';
 import { getEntities as getBranches } from "app/entities/branch/branch.reducer";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const ServiceChargeUpdate = () => {
   const dispatch = useAppDispatch();
@@ -111,154 +111,157 @@ export const ServiceChargeUpdate = () => {
 
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2 id="service-charge.home.createOrEditLabel" data-cy="ServiceChargeCreateUpdateHeading">
-            {isNew ? "Create New Service Charge" : "Edit Service Charge"}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="12" className="d-flex flex-column p-3 bg-white">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form>
-              <FormGroup>
-                <div className={"d-flex gap-2 w-100"}>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="service-charge-key">{translate('service-charge.key')}</Label>
-                    <Dropdown
-                      value={serviceChargeEntity.key || null}
-                      onChange={e => dispatch(changeEntityField({ name: 'key', value: e.value }))}
-                      options={serviceChargeKeys}
-                      placeholder="Select a Key"
-                      showClear
-                      style={{ minWidth: '12rem' }}
-                    />
-                  </div>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="service-charge-name">{translate('service-charge.name')}</Label>
-                    <InputText
-                      id="service-charge-name"
-                      value={serviceChargeEntity.value?.name || ''}
-                      onChange={e => handleValueChange('name', e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
+    <PageWrapper>
+      <h2 className="text-xl font-bold">
+        {isNew ? "Create New Service Charge" : "Edit Service Charge"}
+      </h2>
 
-                <div className={"d-flex gap-2 w-100"}>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="service-charge-type">{translate('service-charge.settings.type')}</Label>
-                    <Dropdown
-                      value={serviceChargeEntity.value?.setting?.type || null}
-                      onChange={e => handleTypeChange(e)}
-                      options={typeOptions}
-                      placeholder="Select a Setting"
-                      showClear
-                      style={{ minWidth: '12rem' }}
-                    />
-                  </div>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="service-charge-applicableOn">{translate('service-charge.applicableOn')}</Label>
-                    <Select
-                      options={applicableOnOptions}
-                      value={applicableOnOptions.filter(option => serviceChargeEntity.value?.setting?.applicableOn?.includes(option.value)) || null}
-                      onChange={handleApplicableOnChange}
-                      isMulti
-                    />
-                  </div>
-                </div>
+      <div className="bg-white p-6 rounded-md border">
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <form className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="service-charge-key" className="text-xs">{translate('service-charge.key')}</Label>
+                <Select
+                  id="service-charge-key"
+                  value={serviceChargeEntity.key ? serviceChargeKeys.find(k => k.value === serviceChargeEntity.key) : null}
+                  onChange={(option) => dispatch(changeEntityField({ name: 'key', value: option?.value }))}
+                  options={serviceChargeKeys}
+                  placeholder="Select a Key"
+                  isClearable
+                  styles={{
+                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                    option: (base) => ({ ...base, fontSize: '0.75rem' })
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="service-charge-name" className="text-xs">{translate('service-charge.name')}</Label>
+                <Input
+                  id="service-charge-name"
+                  value={serviceChargeEntity.value?.name || ''}
+                  onChange={e => handleValueChange('name', e.target.value)}
+                  required
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
 
-                <div className={"d-flex gap-2 w-100"}>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="service-charge-whenToApply">{translate('service-charge.whenToApply')}</Label>
-                    <Dropdown
-                      value={serviceChargeEntity.value?.whenToApply || null}
-                      options={whenToApplyOptions}
-                      onChange={e => handleValueChange('whenToApply', e.value)}
-                      placeholder="Select a When To Apply"
-                      showClear
-                      style={{ minWidth: '12rem' }}
-                    />
-                  </div>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="service-charge-branch">{translate('service-charge.branch')}</Label>
-                    <Dropdown
-                      value={serviceChargeEntity.branch?.id || null}
-                      onChange={e => handleBranchChange(e)}
-                      options={branchList.map(branch => ({ label: branch.name, value: branch.id }))}
-                      placeholder="Select a Branch"
-                      showClear
-                      style={{ minWidth: '12rem' }}
-                    />
-                  </div>
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="service-charge-type" className="text-xs">{translate('service-charge.settings.type')}</Label>
+                <Select
+                  id="service-charge-type"
+                  value={serviceChargeEntity.value?.setting?.type ? typeOptions.find(t => t.value === serviceChargeEntity.value.setting.type) : null}
+                  onChange={handleTypeChange}
+                  options={typeOptions}
+                  placeholder="Select a Setting"
+                  isClearable
+                  styles={{
+                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                    option: (base) => ({ ...base, fontSize: '0.75rem' })
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="service-charge-applicableOn" className="text-xs">{translate('service-charge.applicableOn')}</Label>
+                <Select
+                  id="service-charge-applicableOn"
+                  options={applicableOnOptions}
+                  value={applicableOnOptions.filter(option => serviceChargeEntity.value?.setting?.applicableOn?.includes(option.value)) || null}
+                  onChange={handleApplicableOnChange}
+                  isMulti
+                  styles={{
+                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                    option: (base) => ({ ...base, fontSize: '0.75rem' })
+                  }}
+                />
+              </div>
+            </div>
 
-                <div className={"d-flex gap-2 w-100"}>
-                  <div className={"d-flex flex-column mb-3 w-100"}>
-                    <Label htmlFor="service-charge-charge">{translate('service-charge.charge')}</Label>
-                    <InputNumber
-                      id="service-charge-charge"
-                      value={serviceChargeEntity.value?.charge || 0}
-                      onChange={(e) => handleValueChange('charge', e.value)}
-                      required
-                      maxFractionDigits={2}
-                    />
-                  </div>
-                  {/* {serviceChargeEntity.value?.setting?.type === ServiceChargeSettingType.PERCENTAGE && (
-                    <>
-                      <div className={"d-flex flex-column mb-3 w-100"}>
-                        <Label htmlFor="service-charge-minCharge">{translate('service-charge.minCharge')}</Label>
-                        <InputNumber
-                          id="service-charge-minCharge"
-                          value={serviceChargeEntity.value?.minCharge || 0}
-                          onChange={(e) => handleValueChange('minCharge', e.value)}
-                          required
-                          maxFractionDigits={2}
-                        />
-                      </div>
-                      <div className={"d-flex flex-column mb-3 w-100"}>
-                        <Label htmlFor="service-charge-maxCharge">{translate('service-charge.maxCharge')}</Label>
-                        <InputNumber
-                          id="service-charge-maxCharge"
-                          value={serviceChargeEntity.value?.maxCharge || 0}
-                          onChange={(e) => handleValueChange('maxCharge', e.value)}
-                          required
-                          maxFractionDigits={2}
-                        />
-                      </div>
-                    </>
-                  )} */}
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="service-charge-whenToApply" className="text-xs">{translate('service-charge.whenToApply')}</Label>
+                <Select
+                  id="service-charge-whenToApply"
+                  value={serviceChargeEntity.value?.whenToApply ? whenToApplyOptions.find(w => w.value === serviceChargeEntity.value.whenToApply) : null}
+                  options={whenToApplyOptions}
+                  onChange={(option) => handleValueChange('whenToApply', option?.value)}
+                  placeholder="Select When To Apply"
+                  isClearable
+                  styles={{
+                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                    option: (base) => ({ ...base, fontSize: '0.75rem' })
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="service-charge-branch" className="text-xs">{translate('service-charge.branch')}</Label>
+                <Select
+                  id="service-charge-branch"
+                  value={serviceChargeEntity.branch?.id ? { label: branchList.find(b => b.id === serviceChargeEntity.branch.id)?.name, value: serviceChargeEntity.branch.id } : null}
+                  onChange={(option) => handleBranchChange({ value: option?.value })}
+                  options={branchList.map(branch => ({ label: branch.name, value: branch.id }))}
+                  placeholder="Select a Branch"
+                  isClearable
+                  styles={{
+                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                    option: (base) => ({ ...base, fontSize: '0.75rem' })
+                  }}
+                />
+              </div>
+            </div>
 
-              </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
+            <div className="space-y-2">
+              <Label htmlFor="service-charge-charge" className="text-xs">{translate('service-charge.charge')}</Label>
+              <Input
+                id="service-charge-charge"
+                type="number"
+                step="0.01"
+                value={serviceChargeEntity.value?.charge || 0}
+                onChange={(e) => handleValueChange('charge', parseFloat(e.target.value))}
+                required
+                className="h-8 text-xs"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(-1)}
+                className="h-8 text-xs"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <Translate contentKey="entity.action.back">Back</Translate>
               </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
+              <Button
+                size="sm"
+                onClick={saveEntity}
+                type="submit"
+                disabled={updating}
+                className="h-8 text-xs"
+              >
+                <Save className="h-4 w-4" />
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
+              <Button
+                size="sm"
+                onClick={(e) => saveEntity(e, true)}
+                type="submit"
+                disabled={updating}
+                className="h-8 text-xs"
+              >
+                <Save className="h-4 w-4" />
                 <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
-            </form>
-          )}
-        </Col>
-      </Row>
-    </div>
+            </div>
+          </form>
+        )}
+      </div>
+    </PageWrapper>
   );
 };
 

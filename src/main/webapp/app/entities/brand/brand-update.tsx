@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
-import { getSortState, Translate, } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate, translate } from 'react-jhipster';
+import { Save, ArrowLeft } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { getEntities as getTags } from 'app/entities/brand/brand.reducer';
 import { getEntity, updateEntity, createEntity, changeEntityField, reset } from './brand.reducer';
-import Select from 'react-select';
-import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
-import { Card as PrimeCard } from 'primereact/card';
-import { InputText } from 'primereact/inputtext';
 import { IBrand } from "app/shared/model/brand.model";
 import MediaLibrary from "app/shared/components/media-library/media-library";
 import { transformAttachmentStructure } from "app/shared/util/attachment-utils";
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const BrandUpdate = () => {
   const dispatch = useAppDispatch();
@@ -76,66 +75,83 @@ export const BrandUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2> {isNew ? (
-            <Translate contentKey={'tempApp.createNewBRand'}>Create New Brand</Translate>
-          ) : (
-            <Translate contentKey={'tempApp.editBrand'}>Edit Brand</Translate>
-          )}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3">
-          <PrimeCard>
-            {loading ? (
-              <p>Loading...</p>
+    <PageWrapper>
+      <Card className="max-w-2xl">
+        <CardHeader className="p-2">
+          <CardTitle className="text-sm font-semibold">
+            {isNew ? (
+              <Translate contentKey={'tempApp.createNewBRand'}>Create New Brand</Translate>
             ) : (
-              <>
-                <form>
-                  <div className={"d-flex flex-column"}>
-                    <Label for="name">
-                      <Translate contentKey={'common.name'} />
-                    </Label>
-
-                    <InputText type="text" name="name" required={true} id="name" value={brandEntity?.name || ''}
-                      onChange={handleChange} />
-                  </div>
-
-                  <div className="my-3">
-                    <MediaLibrary
-                      handleFilesSelectCallback={(files) => dispatch(changeEntityField({ name: 'logo', value: transformAttachmentStructure(files, 'toIAttachment')[0] }))}
-                      defaultValues={transformAttachmentStructure(brandEntity.logo ? [brandEntity.logo] : [], 'toFileLibraryListItem')}
-                    />
-                  </div>
-
-                  <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                    <FontAwesomeIcon icon="arrow-left" />
-                    &nbsp;
-                    <span className="d-none d-md-inline">
-                      <Translate contentKey="entity.action.back">Back</Translate>
-                    </span>
-                  </Button>
-                  &nbsp;
-                  <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                    <FontAwesomeIcon icon="save" />
-                    &nbsp;
-                    <Translate contentKey="entity.action.save">Save</Translate>
-                  </Button>
-                  &nbsp;
-                  <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                    <FontAwesomeIcon icon="save" />
-                    &nbsp;
-                    <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-                  </Button>
-                </form>
-              </>
+              <Translate contentKey={'tempApp.editBrand'}>Edit Brand</Translate>
             )}
-          </PrimeCard>
-        </Col>
-      </Row>
-    </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-2">
+          {loading ? (
+            <p className="text-xs">Loading...</p>
+          ) : (
+            <form onSubmit={saveEntity} className="space-y-2">
+              <div className="space-y-1">
+                <Label htmlFor="name" className="text-xs">
+                  <Translate contentKey={'common.name'} />
+                </Label>
+                <Input
+                  type="text"
+                  name="name"
+                  required={true}
+                  id="name"
+                  value={brandEntity?.name || ''}
+                  onChange={handleChange}
+                  className="h-8 text-xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">
+                  <Translate contentKey={'common.image'} />
+                </Label>
+                <MediaLibrary
+                  handleFilesSelectCallback={(files) => dispatch(changeEntityField({ name: 'logo', value: transformAttachmentStructure(files, 'toIAttachment')[0] }))}
+                  defaultValues={transformAttachmentStructure(brandEntity.logo ? [brandEntity.logo] : [], 'toFileLibraryListItem')}
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(-1)}
+                  className="h-8 text-xs"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  <Translate contentKey="entity.action.back">Back</Translate>
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={updating}
+                  className="h-8 text-xs"
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  <Translate contentKey="entity.action.save">Save</Translate>
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={(e) => saveEntity(e, true)}
+                  disabled={updating}
+                  className="h-8 text-xs"
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+                </Button>
+              </div>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+    </PageWrapper>
   );
 };
 

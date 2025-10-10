@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Card as PrimeCard } from 'primereact/card'
+import { ArrowLeft, Save } from 'lucide-react';
+import { Translate } from 'react-jhipster';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity, updateEntity, createEntity, reset } from './item-measure.reducer';
-import { InputText } from "primereact/inputtext";
 import { IItemMeasure } from "app/shared/model/item-measure.model";
-import { Translate } from 'react-jhipster';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const ItemMeasureUpdate = () => {
   const dispatch = useAppDispatch();
@@ -75,69 +76,74 @@ export const ItemMeasureUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>{isNew ? "Add New Item Measure" : "Edit Item Measure"}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3">
-          <PrimeCard>
-            {loading ? (
-              <p>Loading...</p>
-            ) : (
-              <form>
-                <FormGroup>
-                  <div className={"d-flex flex-column"}>
-                    <Label for="name">Name</Label>
-                    <InputText
-                      type="text"
-                      name="name"
-                      required={true}
-                      id="name"
-                      value={itemMeasure.name || ''}
-                      onChange={handleChange}
-                    />
-                  </div>
+    <PageWrapper>
+      <h2 className="text-xl font-bold">{isNew ? "Add New Item Measure" : "Edit Item Measure"}</h2>
 
-                  <div className={"d-flex flex-column mt-2"}>
-                    <Label for="code">Code</Label>
-                    <InputText
-                      type="text"
-                      name="code"
-                      id="code"
-                      value={itemMeasure.code || ''}
-                      onChange={handleChange}
-                    />
-                  </div>
+      <div className="bg-white p-6 rounded-md border">
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-xs">Name</Label>
+              <Input
+                type="text"
+                name="name"
+                required={true}
+                id="name"
+                value={itemMeasure.name || ''}
+                onChange={handleChange}
+                className="h-8 text-xs"
+              />
+            </div>
 
-                </FormGroup>
-                <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                  <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;
-                  <span className="d-none d-md-inline">
-                    <Translate contentKey="entity.action.back">Back</Translate>
-                  </span>
-                </Button>
-                &nbsp;
-                <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-                &nbsp;
-                <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
-                  <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
-                </Button>
-              </form>
-            )}
-          </PrimeCard>
-        </Col>
-      </Row>
-    </div>
+            <div className="space-y-2">
+              <Label htmlFor="code" className="text-xs">Code</Label>
+              <Input
+                type="text"
+                name="code"
+                id="code"
+                value={itemMeasure.code || ''}
+                onChange={handleChange}
+                className="h-8 text-xs"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(-1)}
+                className="h-8 text-xs"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <Translate contentKey="entity.action.back">Back</Translate>
+              </Button>
+              <Button
+                size="sm"
+                onClick={saveEntity}
+                type="submit"
+                disabled={updating}
+                className="h-8 text-xs"
+              >
+                <Save className="h-4 w-4" />
+                <Translate contentKey="entity.action.save">Save</Translate>
+              </Button>
+              <Button
+                size="sm"
+                onClick={(e) => saveEntity(e, true)}
+                type="submit"
+                disabled={updating}
+                className="h-8 text-xs"
+              >
+                <Save className="h-4 w-4" />
+                <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
+              </Button>
+            </div>
+          </form>
+        )}
+      </div>
+    </PageWrapper>
   );
 };
 

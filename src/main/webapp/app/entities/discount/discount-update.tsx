@@ -1,18 +1,18 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label } from 'reactstrap';
 import { Translate, translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { IDiscount } from 'app/shared/model/discount.model';
 import { getEntity, updateEntity, createEntity, reset, changeEntityField } from './discount.reducer';
 import Select from "react-select";
-import { InputNumber } from "primereact/inputnumber";
 import { DiscountType } from "app/shared/model/ENUMS/discount-type.model";
-import { InputText } from "primereact/inputtext";
-import { Dropdown } from "primereact/dropdown";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 export const DiscountUpdate = () => {
   const dispatch = useAppDispatch();
@@ -59,67 +59,79 @@ export const DiscountUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2 id="tempApp.discount.home.createOrEditLabel" data-cy="DiscountCreateUpdateHeading">
-            {isNew ? `${translate("tempApp.createNewDiscount")}` : `${translate("tempApp.editDiscount")}`}
-          </h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3  bg-white">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <form>
-              <FormGroup>
-                <div className={"d-flex flex-column mb-3"}>
-                  <Label htmlFor="discount-value">{translate('tempApp.value')}</Label>
-                  <InputNumber
-                    id="discount-value"
-                    value={discountEntity.value || null}
-                    onChange={e => dispatch(changeEntityField({ name: 'value', value: e.value }))}
-                    required
-                  />
-                </div>
+    <PageWrapper>
+      <h2 className="text-xl font-bold">
+        {isNew ? translate("tempApp.createNewDiscount") : translate("tempApp.editDiscount")}
+      </h2>
 
-                <div className="d-flex flex-column">
-                  <Label htmlFor="discount-type">{translate('tempApp.type')}</Label>
-                  <Select
-                    id="discount-type"
-                    name={"type"}
-                    required
-                    options={discountTypeValuesOptions}
-                    value={discountEntity?.type ? { label: discountEntity?.type, value: discountEntity?.type } : null}
-                    onChange={(selectedType: { label: string, value: string }) => dispatch(changeEntityField({ name: 'type', value: selectedType?.value }))}
-                  />
-                </div>
-              </FormGroup>
-              <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
+      <div className="bg-white p-6 rounded-md border">
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="discount-value" className="text-xs">{translate('tempApp.value')}</Label>
+              <Input
+                id="discount-value"
+                type="number"
+                value={discountEntity.value || ''}
+                onChange={e => dispatch(changeEntityField({ name: 'value', value: parseFloat(e.target.value) }))}
+                required
+                className="h-8 text-xs"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="discount-type" className="text-xs">{translate('tempApp.type')}</Label>
+              <Select
+                id="discount-type"
+                name="type"
+                required
+                options={discountTypeValuesOptions}
+                value={discountEntity?.type ? { label: discountEntity?.type, value: discountEntity?.type } : null}
+                onChange={(selectedType: { label: string, value: string }) => dispatch(changeEntityField({ name: 'type', value: selectedType?.value }))}
+                styles={{
+                  control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                  option: (base) => ({ ...base, fontSize: '0.75rem' })
+                }}
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(-1)}
+                className="h-8 text-xs"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <Translate contentKey="entity.action.back">Back</Translate>
               </Button>
-              &nbsp;
-              <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
+              <Button
+                size="sm"
+                onClick={saveEntity}
+                type="submit"
+                disabled={updating}
+                className="h-8 text-xs"
+              >
+                <Save className="h-4 w-4" />
                 <Translate contentKey="entity.action.save">Save</Translate>
               </Button>
-              &nbsp;
-              <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp;
+              <Button
+                size="sm"
+                onClick={(e) => saveEntity(e, true)}
+                type="submit"
+                disabled={updating}
+                className="h-8 text-xs"
+              >
+                <Save className="h-4 w-4" />
                 <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
               </Button>
-            </form>
-          )}
-        </Col>
-      </Row>
-    </div>
+            </div>
+          </form>
+        )}
+      </div>
+    </PageWrapper>
   );
 };
 

@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DraggableList } from 'app/shared/components/draggable-list/draggable-list';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 type SharedAddonProps = {
   onFieldChange: (field: string, value: IAddon[] | IItem['addonGroups']) => void;
@@ -270,7 +271,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
   }
 
   return (
-    <>
+    <PageWrapper>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-semibold">
@@ -458,7 +459,7 @@ const SharedAddon = ({ onFieldChange, addons, addonGroups, item }: SharedAddonPr
           handleClose={() => { setOpenedAddonModal(false) }}
         />
       )}
-    </>
+    </PageWrapper>
   );
 };
 
