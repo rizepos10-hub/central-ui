@@ -246,29 +246,29 @@ const Barcode = () => {
         printSettings.showPrice
     ])
 
-    const barcodeFormats: Array<{ label: string; value: string }> = [
-        { label: "CODE39", value: "CODE39" },
-        { label: "CODE128", value: "CODE128" },
-        { label: "CODE128A", value: "CODE128A" },
-        { label: "CODE128B", value: "CODE128B" },
-        { label: "CODE128C", value: "CODE128C" },
-        { label: "EAN13", value: "EAN13" },
-        { label: "EAN8", value: "EAN8" },
-        { label: "EAN5", value: "EAN5" },
-        { label: "EAN2", value: "EAN2" },
-        { label: "UPC", value: "UPC" },
-        { label: "UPCE", value: "UPCE" },
-        { label: "ITF14", value: "ITF14" },
-        { label: "ITF", value: "ITF" },
-        { label: "MSI", value: "MSI" },
-        { label: "MSI10", value: "MSI10" },
-        { label: "MSI11", value: "MSI11" },
-        { label: "MSI1010", value: "MSI1010" },
-        { label: "MSI1110", value: "MSI1110" },
-        { label: "pharmacode", value: "pharmacode" },
-        { label: "codabar", value: "codabar" },
-        { label: "GenericBarcode", value: "GenericBarcode" },
-    ]
+    const barcodeFormats = [
+        { label: "CODE39" as const, value: "CODE39" as const },
+        { label: "CODE128" as const, value: "CODE128" as const },
+        { label: "CODE128A" as const, value: "CODE128A" as const },
+        { label: "CODE128B" as const, value: "CODE128B" as const },
+        { label: "CODE128C" as const, value: "CODE128C" as const },
+        { label: "EAN13" as const, value: "EAN13" as const },
+        { label: "EAN8" as const, value: "EAN8" as const },
+        { label: "EAN5" as const, value: "EAN5" as const },
+        { label: "EAN2" as const, value: "EAN2" as const },
+        { label: "UPC" as const, value: "UPC" as const },
+        { label: "UPCE" as const, value: "UPCE" as const },
+        { label: "ITF14" as const, value: "ITF14" as const },
+        { label: "ITF" as const, value: "ITF" as const },
+        { label: "MSI" as const, value: "MSI" as const },
+        { label: "MSI10" as const, value: "MSI10" as const },
+        { label: "MSI11" as const, value: "MSI11" as const },
+        { label: "MSI1010" as const, value: "MSI1010" as const },
+        { label: "MSI1110" as const, value: "MSI1110" as const },
+        { label: "pharmacode" as const, value: "pharmacode" as const },
+        { label: "codabar" as const, value: "codabar" as const },
+        { label: "GenericBarcode" as const, value: "GenericBarcode" as const },
+    ] as const
 
     if (products.length === 0) {
         return (
