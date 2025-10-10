@@ -79,6 +79,7 @@ import {
 } from "lucide-react";
 import Select from 'react-select';
 import { FilterMatchMode } from "primereact/api";
+import { PageWrapper } from "app/shared/layout/page-wrapper";
 
 interface ColumnConfig {
   field: string;
@@ -1204,7 +1205,7 @@ export const Product = () => {
   };
 
   return (
-    <div>
+    <PageWrapper>
       <ExportStatusHeader />
 
       {selectedActionOption?.code === "EDIT" && selectedProducts.length > 0 && (
@@ -1667,7 +1668,7 @@ export const Product = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageWrapper>
   );
 };
 

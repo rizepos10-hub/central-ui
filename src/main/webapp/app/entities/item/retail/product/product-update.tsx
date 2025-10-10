@@ -66,6 +66,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Trash2, GripVertical, Loader2 } from 'lucide-react';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
 
 const defaultItemPriceNumber = {
   PRICE_1: null,
@@ -1094,816 +1095,818 @@ export const ProductUpdate = () => {
   }
 
   return (
-    <form onKeyDown={preventEnterSubmit}>
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1 lg:w-3/4">
-          <Card>
-            <CardContent className="p-4">
-              <div>
-                <Tabs value={activeIndex} onValueChange={setActiveIndex}>
-                  <TabsList className="w-full justify-start mb-4 h-auto flex-wrap">
-                    <TabsTrigger value="details" className="text-xs h-7">
-                      {translate('items.update.tabs.details.label')}
-                    </TabsTrigger>
-                    <TabsTrigger value="visibility" className="text-xs h-7">
-                      {translate('items.update.tabs.visibility.label')}
-                    </TabsTrigger>
-                    <TabsTrigger value="loyalty" className="text-xs h-7">
-                      {translate('items.update.tabs.excludedFromLoyaltyPoints.label')}
-                    </TabsTrigger>
-                    <TabsTrigger value="ebt" className="text-xs h-7">
-                      {translate('items.update.tabs.ebtEligibleBranches.label')}
-                    </TabsTrigger>
-                  </TabsList>
+    <PageWrapper>
+      <form onKeyDown={preventEnterSubmit}>
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1 lg:w-3/4">
+            <Card>
+              <CardContent className="p-4">
+                <div>
+                  <Tabs value={activeIndex} onValueChange={setActiveIndex}>
+                    <TabsList className="w-full justify-start mb-4 h-auto flex-wrap">
+                      <TabsTrigger value="details" className="text-xs h-7">
+                        {translate('items.update.tabs.details.label')}
+                      </TabsTrigger>
+                      <TabsTrigger value="visibility" className="text-xs h-7">
+                        {translate('items.update.tabs.visibility.label')}
+                      </TabsTrigger>
+                      <TabsTrigger value="loyalty" className="text-xs h-7">
+                        {translate('items.update.tabs.excludedFromLoyaltyPoints.label')}
+                      </TabsTrigger>
+                      <TabsTrigger value="ebt" className="text-xs h-7">
+                        {translate('items.update.tabs.ebtEligibleBranches.label')}
+                      </TabsTrigger>
+                    </TabsList>
 
-                  <TabsContent value="details">
-                    <div className="w-full">
-                      <div className="text-lg font-semibold mb-4">
-                        {isNew ? translate('items.update.tabs.details.titles.create.variable') : <span>Edit {product.name}</span>}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex flex-col p-1 bg-white w-full space-y-4">
-                        {isSingleItem && (
-                          <div className="space-y-1">
-                            <label className="text-xs font-semibold">
-                              <Translate contentKey={'items.update.sku'}>SKU</Translate>
-                            </label>
-                            <div className="relative flex gap-2">
-                              <Input
-                                name="sku"
-                                id="sku"
-                                required={true}
-                                placeholder={translate('items.update.placeholders.itemSku')}
-                                value={product?.variants?.[0]?.sku || ''}
-                                onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
-                                className="h-8 text-xs pr-10"
-                              />
-                              <Button
-                                onClick={async () => {
-                                  const generatedSku = await generateSku()
-                                  handleVariantFieldChange(0, 'sku', generatedSku)
-                                }}
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="absolute right-0 h-8 w-8 p-0"
-                              >
-                                <ImMagicWand size={14} />
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                        <SharedItemUpdate item={product} onFieldChange={handleFieldChange} defaultPrice={defaultPrice} setDefaultPrice={setDefaultPrice} showFormErrors={showFormErrors} />
-
-                        <div className="space-y-1">
-                          <label className="text-xs font-semibold">
-                            <Translate contentKey={'items.update.measure'}>Measure</Translate>
-                          </label>
-                          <Select
-                            value={product?.baseMeasure || null}
-                            options={measureList}
-                            name="baseMeasure"
-                            getOptionValue={option => option.id}
-                            getOptionLabel={option => option.name}
-                            onChange={handleBaseMeasureChange}
-                            styles={customSelectStyles}
-                          />
+                    <TabsContent value="details">
+                      <div className="w-full">
+                        <div className="text-lg font-semibold mb-4">
+                          {isNew ? translate('items.update.tabs.details.titles.create.variable') : <span>Edit {product.name}</span>}
                         </div>
+                      </div>
 
-                        {!product.askForPrice && (
+                      <div className="space-y-4">
+                        <div className="flex flex-col p-1 bg-white w-full space-y-4">
+                          {isSingleItem && (
+                            <div className="space-y-1">
+                              <label className="text-xs font-semibold">
+                                <Translate contentKey={'items.update.sku'}>SKU</Translate>
+                              </label>
+                              <div className="relative flex gap-2">
+                                <Input
+                                  name="sku"
+                                  id="sku"
+                                  required={true}
+                                  placeholder={translate('items.update.placeholders.itemSku')}
+                                  value={product?.variants?.[0]?.sku || ''}
+                                  onChange={e => handleVariantFieldChange(0, 'sku', e.target.value)}
+                                  className="h-8 text-xs pr-10"
+                                />
+                                <Button
+                                  onClick={async () => {
+                                    const generatedSku = await generateSku()
+                                    handleVariantFieldChange(0, 'sku', generatedSku)
+                                  }}
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="absolute right-0 h-8 w-8 p-0"
+                                >
+                                  <ImMagicWand size={14} />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                          <SharedItemUpdate item={product} onFieldChange={handleFieldChange} defaultPrice={defaultPrice} setDefaultPrice={setDefaultPrice} showFormErrors={showFormErrors} />
+
                           <div className="space-y-1">
                             <label className="text-xs font-semibold">
-                              <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
+                              <Translate contentKey={'items.update.measure'}>Measure</Translate>
                             </label>
-                            <div className="flex gap-1">
-                              {itemTypes.map((type) => (
-                                <Button
-                                  key={type.value}
-                                  type="button"
-                                  variant={product?.itemVariantType === type.value ? "default" : "outline"}
-                                  size="sm"
-                                  className="h-8 text-xs"
-                                  onClick={() => setChangeVariantTypeDialog({ open: true, newType: type })}
-                                >
-                                  {type.label}
-                                </Button>
-                              ))}
-                            </div>
+                            <Select
+                              value={product?.baseMeasure || null}
+                              options={measureList}
+                              name="baseMeasure"
+                              getOptionValue={option => option.id}
+                              getOptionLabel={option => option.name}
+                              onChange={handleBaseMeasureChange}
+                              styles={customSelectStyles}
+                            />
                           </div>
-                        )}
 
-                        {isSingleItem && (
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="space-y-1">
-                                <label className="text-xs font-semibold">
-                                  <Translate contentKey={'items.update.description'}>Description</Translate>
-                                </label>
-                                <Textarea
-                                  name="desc"
-                                  id="desc"
-                                  placeholder={translate('items.update.description')}
-                                  value={product?.variants?.[0]?.description || ''}
-                                  onChange={e => setProduct(prev => {
-                                    return {
-                                      ...prev, variants: prev.variants.map(variant => {
-                                        return { ...variant, description: e.target.value }
-                                      })
-                                    }
-                                  })}
-                                  className="text-xs min-h-[80px]"
-                                  rows={3}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="mb-3">
-                              <p className="text-base font-bold mb-2">Shipping Details: </p>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  <label className="text-xs font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
-                                  </label>
-                                  <Input
-                                    type="number"
-                                    name="minimumStockLevel"
-                                    id="minimumStockLevel"
-                                    required
-                                    min={0}
-                                    step="0.01"
-                                    placeholder={translate('items.update.placeholders.height')}
-                                    value={product?.variants?.[0]?.shippingDimension?.height ?? ''}
-                                    onChange={(e) => handleShippingDimensionChange("height", parseFloat(e.target.value) || 0, 0)}
-                                    className="h-8 text-xs"
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
-                                  </label>
-                                  <Input
-                                    type="number"
-                                    name="quantity"
-                                    id="quantity"
-                                    required
-                                    min={0}
-                                    step="0.01"
-                                    placeholder={translate('items.update.placeholders.length')}
-                                    value={product?.variants?.[0]?.shippingDimension?.length ?? ''}
-                                    onChange={(e) => handleShippingDimensionChange("length", parseFloat(e.target.value) || 0, 0)}
-                                    className="h-8 text-xs"
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
-                                  </label>
-                                  <Input
-                                    type="number"
-                                    name="unitCost"
-                                    id="unitCost"
-                                    required
-                                    min={0}
-                                    step="0.01"
-                                    placeholder={translate('items.update.placeholders.width')}
-                                    value={product?.variants?.[0]?.shippingDimension?.width ?? ''}
-                                    onChange={(e) => handleShippingDimensionChange("width", parseFloat(e.target.value) || 0, 0)}
-                                    className="h-8 text-xs"
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-semibold">
-                                    <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
-                                  </label>
-                                  <Input
-                                    type="number"
-                                    name="unitCost"
-                                    id="unitCost"
-                                    required
-                                    min={0}
-                                    step="0.01"
-                                    placeholder={translate('items.update.placeholders.weight')}
-                                    value={product?.variants?.[0]?.shippingDimension?.weight ?? ''}
-                                    onChange={(e) => handleShippingDimensionChange("weight", parseFloat(e.target.value) || 0, 0)}
-                                    className="h-8 text-xs"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            {!product.askForPrice && (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  <label className="text-xs font-semibold">
-                                    <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                                  </label>
-                                  <Input
-                                    type="number"
-                                    name="sale-price"
-                                    id="sale-price"
-                                    min={0}
-                                    step="0.01"
-                                    placeholder={translate('items.update.placeholders.itemSalePrice')}
-                                    value={product?.variants?.[0]?.salePrice || ''}
-                                    onChange={e => handleVariantFieldChange(0, 'salePrice', parseFloat(e.target.value) || null)}
-                                    className="h-8 text-xs"
-                                  />
-                                </div>
-                              </div>
-                            )}
-
-                            {
-                              !isNew && (
-                                <VariantPackaging
-                                  product={product}
-                                  variantIndex={0}
-                                  variant={product?.variants?.[0]}
-                                  handleVariantFieldChange={handleVariantFieldChange}
-                                />
-                              )
-                            }
-                            {!product.askForPrice && (
-                              <ItemStock
-                                productPurchaseConfig={productPurchaseConfig}
-                                handleVariantFieldChange={handleVariantFieldChange}
-                                variant={product?.variants?.[0]}
-                                variantIndex={0}
-                                itemId={product.id}
-                              />
-                            )}
-
-                            {!product.askForPrice && (
-                              <VariantBranchPrice
-                                itemVariantType={'RETAIL'}
-                                branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
-                                variantIndex={0}
-                                branchList={branchList}
-                                handleBranchPriceChange={handleBranchPriceChange}
-                                handleHideItemPerBranch={handleHideItemPerBranch}
-                                variant={product?.variants?.[0]}
-                                setItem={setProduct}
-                              />
-                            )}
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div className="md:col-span-2">
-                                <DiscountDropdown
-                                  discounts={product?.variants?.[0]?.discounts}
-                                  variantIndex={0}
-                                  handleVariantChange={handleVariantFieldChange}
-                                />
-
-                                <div className="space-y-1 mt-2">
-                                  <label className="text-xs font-semibold">
-                                    <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
-                                  </label>
-                                  <Select
-                                    isClearable
-                                    value={product?.variants?.[0]?.mixAndMatchRule || null}
-                                    options={mixAndMatchRuleList}
-                                    getOptionLabel={option => option.name}
-                                    getOptionValue={option => option.id}
-                                    onChange={mixAndMatchRule => handleVariantFieldChange(0, 'mixAndMatchRule', mixAndMatchRule)}
-                                    styles={customSelectStyles}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="md:col-span-1 space-y-1">
+                          {!product.askForPrice && (
+                            <div className="space-y-1">
                               <label className="text-xs font-semibold">
-                                <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
+                                <Translate contentKey={'items.update.itemType'}>Item Type</Translate>
                               </label>
-                              <Select
-                                value={itemAttribute?.attributeTax || null}
-                                options={filteredAvailableAttributes()}
-                                isClearable
-                                getOptionValue={option => option.id}
-                                getOptionLabel={option => option.name}
-                                onChange={attribute => handleItemAttributeSelect(attribute)}
-                                styles={customSelectStyles}
-                              />
-                            </div>
-
-                            <div className="flex items-end">
-                              <Button
-                                variant="default"
-                                type="button"
-                                disabled={isAttributeAddButtonDisabled}
-                                className="h-8 text-xs"
-                                onClick={handleAddAttribute}
-                              >
-                                <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
-                              </Button>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            {product?.attributes?.map((attribute, index) => (
-                              <div className="flex gap-3 items-end" key={index}>
-                                <div className="flex-1">
-                                  <label className="text-xs">
-                                    {translate('items.update.name')}: {attribute?.attributeTax?.name}
-                                  </label>
-                                  <Select
-                                    value={attribute?.attributeTerms || []}
-                                    isMulti
-                                    options={attributeValuesList}
-                                    getOptionLabel={option => option.name}
-                                    getOptionValue={option => option.id}
-                                    onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
-                                    isLoading={loadingAttributesValues}
-                                    onFocus={() => loadOptions(attribute.attributeTax.id)}
-                                    filterOption={(option, input) =>
-                                      option.label.toLowerCase().includes(input.toLowerCase())
-                                    }
-                                    styles={customSelectStyles}
-                                  />
-                                </div>
-                                <div>
+                              <div className="flex gap-1">
+                                {itemTypes.map((type) => (
                                   <Button
+                                    key={type.value}
                                     type="button"
-                                    variant="destructive"
+                                    variant={product?.itemVariantType === type.value ? "default" : "outline"}
                                     size="sm"
                                     className="h-8 text-xs"
-                                    onClick={() => setDeleteAttributeDialog({ open: true, index })}
+                                    onClick={() => setChangeVariantTypeDialog({ open: true, newType: type })}
                                   >
-                                    <Translate contentKey={'items.update.removeAttribute'}>Remove</Translate>
+                                    {type.label}
                                   </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          {isVariableItem && (
-                            <div className="space-y-4">
-                              <label htmlFor="price" className="text-xs font-semibold">
-                                <Translate contentKey={'items.update.variants'}>Variants</Translate>
-                              </label>
-                              <div className="flex gap-3 flex-wrap">
-                                <Button type="button" variant="default" size="sm" className="h-8 text-xs" onClick={generateCombinations}>
-                                  <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
-                                </Button>
-
-                                <Button variant="default" size="sm" type={'button'} className="h-8 text-xs" onClick={handleAddVariant}>
-                                  <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
-                                </Button>
-
-                                {product.variants?.length > 0 && (
-                                  <Button variant="destructive" size="sm" type={'button'} className="h-8 text-xs" onClick={() => setDeleteAllVariantsDialog(true)}>
-                                    <Translate contentKey={'items.update.removeAllVariants'}>Remove All Variants</Translate>
-                                  </Button>
-                                )}
-                              </div>
-                              <div className="space-y-2">
-                                {product?.variants?.map((variant, variantIndex) => (
-                                  <div
-                                    key={variantIndex}
-                                    className={`flex ${dragOverIndex === variantIndex ? 'border-t-2 border-primary' : ''}`}
-                                    draggable
-                                    onDragStart={() => setDraggedIndex(variantIndex)}
-                                    onDragOver={e => handleDragOver(e, variantIndex)}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={() => handleDrop(variantIndex)}
-                                  >
-                                    <Accordion type="single" collapsible className="flex-1 ml-1">
-                                      <AccordionItem value={`variant-${variantIndex}`}>
-                                        <AccordionTrigger className="text-xs hover:no-underline">
-                                          {VariantAccordionHeader(variantIndex)}
-                                        </AccordionTrigger>
-                                        <AccordionContent>
-                                          <Tabs defaultValue="general">
-                                            <TabsList className="w-full justify-start mb-4 h-auto flex-wrap">
-                                              <TabsTrigger value="general" className="text-xs h-7">General</TabsTrigger>
-                                              <TabsTrigger value="pricing" className="text-xs h-7">Pricing</TabsTrigger>
-                                              {!isNew && !variant?.measureValue?.isBase && (
-                                                <TabsTrigger value="packaging" className="text-xs h-7">Packaging</TabsTrigger>
-                                              )}
-                                              <TabsTrigger value="inventory" className="text-xs h-7">Inventory</TabsTrigger>
-                                              <TabsTrigger value="shipping" className="text-xs h-7">Shipping</TabsTrigger>
-                                            </TabsList>
-
-                                            <TabsContent value="general">
-                                              <div className="space-y-4">
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                  <div className="space-y-1">
-                                                    <label className="text-xs font-semibold">
-                                                      <Translate contentKey={'items.update.isBaseMeasure'}>Is Measure Base</Translate>
-                                                    </label>
-                                                    <div className="flex gap-2 items-center">
-                                                      <Checkbox
-                                                        checked={product?.variants?.[variantIndex]?.measureValue?.isBase === true}
-                                                        onCheckedChange={(checked) => handleMeasureValueChange({
-                                                          isBase: checked === true
-                                                        }, variantIndex)}
-                                                      />
-                                                    </div>
-                                                  </div>
-                                                  <div className="md:col-span-2 space-y-1">
-                                                    <label className="text-xs font-semibold">
-                                                      <Translate contentKey={'items.update.description'}>Description</Translate>
-                                                    </label>
-                                                    <Textarea
-                                                      name="desc"
-                                                      id="desc"
-                                                      placeholder={translate('items.update.placeholders.itemDescription')}
-                                                      value={variant.description || ''}
-                                                      onChange={e =>
-                                                        handleVariantFieldChange(
-                                                          variantIndex,
-                                                          'description',
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      className="text-xs min-h-[80px]"
-                                                      rows={3}
-                                                    />
-                                                  </div>
-                                                </div>
-                                                <div>
-                                                  <div className="space-y-1">
-                                                    <label className="text-xs font-semibold">
-                                                      <Translate contentKey={'items.update.image'}>Image</Translate>
-                                                    </label>
-                                                    <MediaLibrary
-                                                      handleFilesSelectCallback={files => addImage(variantIndex, files)}
-                                                      defaultValues={transformAttachmentStructure(
-                                                        variant?.attachments,
-                                                        'toFileLibraryListItem'
-                                                      )}
-                                                    />
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            </TabsContent>
-
-                                            <TabsContent value="pricing">
-                                              <div className="space-y-4">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <div className="space-y-1">
-                                                    <label className="text-xs font-semibold">
-                                                      <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
-                                                    </label>
-                                                    <Input
-                                                      type="number"
-                                                      name="sale-price"
-                                                      id="sale-price"
-                                                      placeholder="Variant Sale Price"
-                                                      min={0}
-                                                      step="0.01"
-                                                      value={variant?.salePrice || ''}
-                                                      onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', parseFloat(e.target.value) || null)}
-                                                      className="h-8 text-xs"
-                                                    />
-                                                  </div>
-                                                  <div className="space-y-1">
-                                                    <label className="text-xs font-semibold">
-                                                      <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
-                                                    </label>
-                                                    <Select
-                                                      value={variant?.accountingGroups || []}
-                                                      isClearable
-                                                      options={profileGroupsOptions}
-                                                      getOptionLabel={option => option.name}
-                                                      getOptionValue={option => option.id}
-                                                      onChange={profileGroup =>
-                                                        handleVariantFieldChange(
-                                                          variantIndex,
-                                                          'accountingGroups',
-                                                          profileGroup ? [profileGroup] : []
-                                                        )
-                                                      }
-                                                      styles={customSelectStyles}
-                                                    />
-                                                  </div>
-                                                </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <div>
-                                                    <DiscountDropdown
-                                                      discounts={variant.discounts}
-                                                      handleVariantChange={handleVariantFieldChange}
-                                                      variantIndex={variantIndex}
-                                                    />
-                                                  </div>
-                                                  <div className="space-y-1">
-                                                    <label className="text-xs font-semibold">
-                                                      <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
-                                                    </label>
-                                                    <Select
-                                                      value={variant?.mixAndMatchRule || null}
-                                                      options={mixAndMatchRuleList}
-                                                      getOptionLabel={option => option.name}
-                                                      getOptionValue={option => option.id}
-                                                      onChange={mixAndMatchRule =>
-                                                        handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)
-                                                      }
-                                                      styles={customSelectStyles}
-                                                    />
-                                                  </div>
-                                                </div>
-                                                <div>
-                                                  <VariantBranchPrice
-                                                    branchList={branchList}
-                                                    handleBranchPriceChange={handleBranchPriceChange}
-                                                    variantIndex={variantIndex}
-                                                    branchVariantDetails={variant.branchVariantDetails}
-                                                    itemVariantType={'RETAIL'}
-                                                    handleHideItemPerBranch={handleHideItemPerBranch}
-                                                    variant={variant}
-                                                    setItem={setProduct}
-                                                  />
-                                                </div>
-                                              </div>
-                                            </TabsContent>
-
-                                            {!isNew && !variant?.measureValue?.isBase && (
-                                              <TabsContent value="packaging">
-                                                <div>
-                                                  <VariantPackaging
-                                                    product={product}
-                                                    variantIndex={variantIndex}
-                                                    variant={variant}
-                                                    handleVariantFieldChange={handleVariantFieldChange}
-                                                  />
-                                                </div>
-                                              </TabsContent>
-                                            )}
-
-                                            <TabsContent value="inventory">
-                                              <div>
-                                                <ItemStock
-                                                  productPurchaseConfig={productPurchaseConfig}
-                                                  handleVariantFieldChange={handleVariantFieldChange}
-                                                  variant={variant}
-                                                  variantIndex={variantIndex}
-                                                  itemId={product.id}
-                                                />
-                                              </div>
-                                            </TabsContent>
-
-                                            <TabsContent value="shipping">
-                                              <div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <div className="space-y-1">
-                                                    <label className="text-xs font-semibold">
-                                                      <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
-                                                    </label>
-                                                    <Input
-                                                      type="number"
-                                                      name="minimumStockLevel"
-                                                      id="minimumStockLevel"
-                                                      required
-                                                      min={0}
-                                                      step="0.01"
-                                                      placeholder={translate('items.update.placeholders.height')}
-                                                      value={product?.variants?.[variantIndex].shippingDimension?.height ?? ''}
-                                                      onChange={(e) => handleShippingDimensionChange("height", parseFloat(e.target.value) || 0, variantIndex)}
-                                                      className="h-8 text-xs"
-                                                    />
-                                                  </div>
-                                                  <div className="space-y-1">
-                                                    <label className="text-xs font-semibold">
-                                                      <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
-                                                    </label>
-                                                    <Input
-                                                      type="number"
-                                                      name="quantity"
-                                                      id="quantity"
-                                                      required
-                                                      min={0}
-                                                      step="0.01"
-                                                      placeholder={translate('items.update.placeholders.length')}
-                                                      value={product?.variants?.[variantIndex].shippingDimension?.length ?? ''}
-                                                      onChange={(e) => handleShippingDimensionChange("length", parseFloat(e.target.value) || 0, variantIndex)}
-                                                      className="h-8 text-xs"
-                                                    />
-                                                  </div>
-                                                  <div className="space-y-1">
-                                                    <label className="text-xs font-semibold">
-                                                      <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
-                                                    </label>
-                                                    <Input
-                                                      type="number"
-                                                      name="unitCost"
-                                                      id="unitCost"
-                                                      required
-                                                      min={0}
-                                                      step="0.01"
-                                                      placeholder={translate('items.update.placeholders.width')}
-                                                      value={product?.variants?.[variantIndex].shippingDimension?.width ?? ''}
-                                                      onChange={(e) => handleShippingDimensionChange("width", parseFloat(e.target.value) || 0, variantIndex)}
-                                                      className="h-8 text-xs"
-                                                    />
-                                                  </div>
-                                                  <div className="space-y-1">
-                                                    <label className="text-xs font-semibold">
-                                                      <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
-                                                    </label>
-                                                    <Input
-                                                      type="number"
-                                                      name="unitCost"
-                                                      id="unitCost"
-                                                      required
-                                                      min={0}
-                                                      step="0.01"
-                                                      placeholder={translate('items.update.placeholders.weight')}
-                                                      value={product?.variants?.[variantIndex].shippingDimension?.weight ?? ''}
-                                                      onChange={(e) => handleShippingDimensionChange("weight", parseFloat(e.target.value) || 0, variantIndex)}
-                                                      className="h-8 text-xs"
-                                                    />
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            </TabsContent>
-                                          </Tabs>
-                                        </AccordionContent>
-                                      </AccordionItem>
-                                    </Accordion>
-                                  </div>
                                 ))}
                               </div>
                             </div>
                           )}
-                        </div>
-                        <div>
-                          <CustomDefinitionValuesWrapper
-                            entityId={product.id}
-                            entityType={CustomDefinitionEntityType.ITEM}
-                          />
+
+                          {isSingleItem && (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                  <label className="text-xs font-semibold">
+                                    <Translate contentKey={'items.update.description'}>Description</Translate>
+                                  </label>
+                                  <Textarea
+                                    name="desc"
+                                    id="desc"
+                                    placeholder={translate('items.update.description')}
+                                    value={product?.variants?.[0]?.description || ''}
+                                    onChange={e => setProduct(prev => {
+                                      return {
+                                        ...prev, variants: prev.variants.map(variant => {
+                                          return { ...variant, description: e.target.value }
+                                        })
+                                      }
+                                    })}
+                                    className="text-xs min-h-[80px]"
+                                    rows={3}
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="mb-3">
+                                <p className="text-base font-bold mb-2">Shipping Details: </p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-semibold">
+                                      <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
+                                    </label>
+                                    <Input
+                                      type="number"
+                                      name="minimumStockLevel"
+                                      id="minimumStockLevel"
+                                      required
+                                      min={0}
+                                      step="0.01"
+                                      placeholder={translate('items.update.placeholders.height')}
+                                      value={product?.variants?.[0]?.shippingDimension?.height ?? ''}
+                                      onChange={(e) => handleShippingDimensionChange("height", parseFloat(e.target.value) || 0, 0)}
+                                      className="h-8 text-xs"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-semibold">
+                                      <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
+                                    </label>
+                                    <Input
+                                      type="number"
+                                      name="quantity"
+                                      id="quantity"
+                                      required
+                                      min={0}
+                                      step="0.01"
+                                      placeholder={translate('items.update.placeholders.length')}
+                                      value={product?.variants?.[0]?.shippingDimension?.length ?? ''}
+                                      onChange={(e) => handleShippingDimensionChange("length", parseFloat(e.target.value) || 0, 0)}
+                                      className="h-8 text-xs"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-semibold">
+                                      <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
+                                    </label>
+                                    <Input
+                                      type="number"
+                                      name="unitCost"
+                                      id="unitCost"
+                                      required
+                                      min={0}
+                                      step="0.01"
+                                      placeholder={translate('items.update.placeholders.width')}
+                                      value={product?.variants?.[0]?.shippingDimension?.width ?? ''}
+                                      onChange={(e) => handleShippingDimensionChange("width", parseFloat(e.target.value) || 0, 0)}
+                                      className="h-8 text-xs"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-semibold">
+                                      <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
+                                    </label>
+                                    <Input
+                                      type="number"
+                                      name="unitCost"
+                                      id="unitCost"
+                                      required
+                                      min={0}
+                                      step="0.01"
+                                      placeholder={translate('items.update.placeholders.weight')}
+                                      value={product?.variants?.[0]?.shippingDimension?.weight ?? ''}
+                                      onChange={(e) => handleShippingDimensionChange("weight", parseFloat(e.target.value) || 0, 0)}
+                                      className="h-8 text-xs"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {!product.askForPrice && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-semibold">
+                                      <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                    </label>
+                                    <Input
+                                      type="number"
+                                      name="sale-price"
+                                      id="sale-price"
+                                      min={0}
+                                      step="0.01"
+                                      placeholder={translate('items.update.placeholders.itemSalePrice')}
+                                      value={product?.variants?.[0]?.salePrice || ''}
+                                      onChange={e => handleVariantFieldChange(0, 'salePrice', parseFloat(e.target.value) || null)}
+                                      className="h-8 text-xs"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
+                              {
+                                !isNew && (
+                                  <VariantPackaging
+                                    product={product}
+                                    variantIndex={0}
+                                    variant={product?.variants?.[0]}
+                                    handleVariantFieldChange={handleVariantFieldChange}
+                                  />
+                                )
+                              }
+                              {!product.askForPrice && (
+                                <ItemStock
+                                  productPurchaseConfig={productPurchaseConfig}
+                                  handleVariantFieldChange={handleVariantFieldChange}
+                                  variant={product?.variants?.[0]}
+                                  variantIndex={0}
+                                  itemId={product.id}
+                                />
+                              )}
+
+                              {!product.askForPrice && (
+                                <VariantBranchPrice
+                                  itemVariantType={'RETAIL'}
+                                  branchVariantDetails={product?.variants?.[0]?.branchVariantDetails}
+                                  variantIndex={0}
+                                  branchList={branchList}
+                                  handleBranchPriceChange={handleBranchPriceChange}
+                                  handleHideItemPerBranch={handleHideItemPerBranch}
+                                  variant={product?.variants?.[0]}
+                                  setItem={setProduct}
+                                />
+                              )}
+
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="md:col-span-2">
+                                  <DiscountDropdown
+                                    discounts={product?.variants?.[0]?.discounts}
+                                    variantIndex={0}
+                                    handleVariantChange={handleVariantFieldChange}
+                                  />
+
+                                  <div className="space-y-1 mt-2">
+                                    <label className="text-xs font-semibold">
+                                      <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                    </label>
+                                    <Select
+                                      isClearable
+                                      value={product?.variants?.[0]?.mixAndMatchRule || null}
+                                      options={mixAndMatchRuleList}
+                                      getOptionLabel={option => option.name}
+                                      getOptionValue={option => option.id}
+                                      onChange={mixAndMatchRule => handleVariantFieldChange(0, 'mixAndMatchRule', mixAndMatchRule)}
+                                      styles={customSelectStyles}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="md:col-span-1 space-y-1">
+                                <label className="text-xs font-semibold">
+                                  <Translate contentKey={'items.update.selectAttribute'}>Select Attribute</Translate>
+                                </label>
+                                <Select
+                                  value={itemAttribute?.attributeTax || null}
+                                  options={filteredAvailableAttributes()}
+                                  isClearable
+                                  getOptionValue={option => option.id}
+                                  getOptionLabel={option => option.name}
+                                  onChange={attribute => handleItemAttributeSelect(attribute)}
+                                  styles={customSelectStyles}
+                                />
+                              </div>
+
+                              <div className="flex items-end">
+                                <Button
+                                  variant="default"
+                                  type="button"
+                                  disabled={isAttributeAddButtonDisabled}
+                                  className="h-8 text-xs"
+                                  onClick={handleAddAttribute}
+                                >
+                                  <Translate contentKey={'items.update.addAttribute'}>Add Attribute</Translate>
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              {product?.attributes?.map((attribute, index) => (
+                                <div className="flex gap-3 items-end" key={index}>
+                                  <div className="flex-1">
+                                    <label className="text-xs">
+                                      {translate('items.update.name')}: {attribute?.attributeTax?.name}
+                                    </label>
+                                    <Select
+                                      value={attribute?.attributeTerms || []}
+                                      isMulti
+                                      options={attributeValuesList}
+                                      getOptionLabel={option => option.name}
+                                      getOptionValue={option => option.id}
+                                      onChange={selectedOptions => handleAttributeTermChange(index, selectedOptions)}
+                                      isLoading={loadingAttributesValues}
+                                      onFocus={() => loadOptions(attribute.attributeTax.id)}
+                                      filterOption={(option, input) =>
+                                        option.label.toLowerCase().includes(input.toLowerCase())
+                                      }
+                                      styles={customSelectStyles}
+                                    />
+                                  </div>
+                                  <div>
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="sm"
+                                      className="h-8 text-xs"
+                                      onClick={() => setDeleteAttributeDialog({ open: true, index })}
+                                    >
+                                      <Translate contentKey={'items.update.removeAttribute'}>Remove</Translate>
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            {isVariableItem && (
+                              <div className="space-y-4">
+                                <label htmlFor="price" className="text-xs font-semibold">
+                                  <Translate contentKey={'items.update.variants'}>Variants</Translate>
+                                </label>
+                                <div className="flex gap-3 flex-wrap">
+                                  <Button type="button" variant="default" size="sm" className="h-8 text-xs" onClick={generateCombinations}>
+                                    <Translate contentKey={'items.update.generateVariants'}>Generate Variants</Translate>
+                                  </Button>
+
+                                  <Button variant="default" size="sm" type={'button'} className="h-8 text-xs" onClick={handleAddVariant}>
+                                    <Translate contentKey={'items.update.addSingleVariant'}>Add Single Variant</Translate>
+                                  </Button>
+
+                                  {product.variants?.length > 0 && (
+                                    <Button variant="destructive" size="sm" type={'button'} className="h-8 text-xs" onClick={() => setDeleteAllVariantsDialog(true)}>
+                                      <Translate contentKey={'items.update.removeAllVariants'}>Remove All Variants</Translate>
+                                    </Button>
+                                  )}
+                                </div>
+                                <div className="space-y-2">
+                                  {product?.variants?.map((variant, variantIndex) => (
+                                    <div
+                                      key={variantIndex}
+                                      className={`flex ${dragOverIndex === variantIndex ? 'border-t-2 border-primary' : ''}`}
+                                      draggable
+                                      onDragStart={() => setDraggedIndex(variantIndex)}
+                                      onDragOver={e => handleDragOver(e, variantIndex)}
+                                      onDragLeave={handleDragLeave}
+                                      onDrop={() => handleDrop(variantIndex)}
+                                    >
+                                      <Accordion type="single" collapsible className="flex-1 ml-1">
+                                        <AccordionItem value={`variant-${variantIndex}`}>
+                                          <AccordionTrigger className="text-xs hover:no-underline">
+                                            {VariantAccordionHeader(variantIndex)}
+                                          </AccordionTrigger>
+                                          <AccordionContent>
+                                            <Tabs defaultValue="general">
+                                              <TabsList className="w-full justify-start mb-4 h-auto flex-wrap">
+                                                <TabsTrigger value="general" className="text-xs h-7">General</TabsTrigger>
+                                                <TabsTrigger value="pricing" className="text-xs h-7">Pricing</TabsTrigger>
+                                                {!isNew && !variant?.measureValue?.isBase && (
+                                                  <TabsTrigger value="packaging" className="text-xs h-7">Packaging</TabsTrigger>
+                                                )}
+                                                <TabsTrigger value="inventory" className="text-xs h-7">Inventory</TabsTrigger>
+                                                <TabsTrigger value="shipping" className="text-xs h-7">Shipping</TabsTrigger>
+                                              </TabsList>
+
+                                              <TabsContent value="general">
+                                                <div className="space-y-4">
+                                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    <div className="space-y-1">
+                                                      <label className="text-xs font-semibold">
+                                                        <Translate contentKey={'items.update.isBaseMeasure'}>Is Measure Base</Translate>
+                                                      </label>
+                                                      <div className="flex gap-2 items-center">
+                                                        <Checkbox
+                                                          checked={product?.variants?.[variantIndex]?.measureValue?.isBase === true}
+                                                          onCheckedChange={(checked) => handleMeasureValueChange({
+                                                            isBase: checked === true
+                                                          }, variantIndex)}
+                                                        />
+                                                      </div>
+                                                    </div>
+                                                    <div className="md:col-span-2 space-y-1">
+                                                      <label className="text-xs font-semibold">
+                                                        <Translate contentKey={'items.update.description'}>Description</Translate>
+                                                      </label>
+                                                      <Textarea
+                                                        name="desc"
+                                                        id="desc"
+                                                        placeholder={translate('items.update.placeholders.itemDescription')}
+                                                        value={variant.description || ''}
+                                                        onChange={e =>
+                                                          handleVariantFieldChange(
+                                                            variantIndex,
+                                                            'description',
+                                                            e.target.value
+                                                          )
+                                                        }
+                                                        className="text-xs min-h-[80px]"
+                                                        rows={3}
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                  <div>
+                                                    <div className="space-y-1">
+                                                      <label className="text-xs font-semibold">
+                                                        <Translate contentKey={'items.update.image'}>Image</Translate>
+                                                      </label>
+                                                      <MediaLibrary
+                                                        handleFilesSelectCallback={files => addImage(variantIndex, files)}
+                                                        defaultValues={transformAttachmentStructure(
+                                                          variant?.attachments,
+                                                          'toFileLibraryListItem'
+                                                        )}
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </TabsContent>
+
+                                              <TabsContent value="pricing">
+                                                <div className="space-y-4">
+                                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-1">
+                                                      <label className="text-xs font-semibold">
+                                                        <Translate contentKey={'items.update.salePrice'}>Sale Price</Translate>
+                                                      </label>
+                                                      <Input
+                                                        type="number"
+                                                        name="sale-price"
+                                                        id="sale-price"
+                                                        placeholder="Variant Sale Price"
+                                                        min={0}
+                                                        step="0.01"
+                                                        value={variant?.salePrice || ''}
+                                                        onChange={e => handleVariantFieldChange(variantIndex, 'salePrice', parseFloat(e.target.value) || null)}
+                                                        className="h-8 text-xs"
+                                                      />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                      <label className="text-xs font-semibold">
+                                                        <Translate contentKey={'items.update.profileGroups'}>Profile Group</Translate>
+                                                      </label>
+                                                      <Select
+                                                        value={variant?.accountingGroups || []}
+                                                        isClearable
+                                                        options={profileGroupsOptions}
+                                                        getOptionLabel={option => option.name}
+                                                        getOptionValue={option => option.id}
+                                                        onChange={profileGroup =>
+                                                          handleVariantFieldChange(
+                                                            variantIndex,
+                                                            'accountingGroups',
+                                                            profileGroup ? [profileGroup] : []
+                                                          )
+                                                        }
+                                                        styles={customSelectStyles}
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                      <DiscountDropdown
+                                                        discounts={variant.discounts}
+                                                        handleVariantChange={handleVariantFieldChange}
+                                                        variantIndex={variantIndex}
+                                                      />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                      <label className="text-xs font-semibold">
+                                                        <Translate contentKey={'items.update.mixAndMatchRule'}>Mix And Match Rule</Translate>
+                                                      </label>
+                                                      <Select
+                                                        value={variant?.mixAndMatchRule || null}
+                                                        options={mixAndMatchRuleList}
+                                                        getOptionLabel={option => option.name}
+                                                        getOptionValue={option => option.id}
+                                                        onChange={mixAndMatchRule =>
+                                                          handleVariantFieldChange(variantIndex, 'mixAndMatchRule', mixAndMatchRule)
+                                                        }
+                                                        styles={customSelectStyles}
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                  <div>
+                                                    <VariantBranchPrice
+                                                      branchList={branchList}
+                                                      handleBranchPriceChange={handleBranchPriceChange}
+                                                      variantIndex={variantIndex}
+                                                      branchVariantDetails={variant.branchVariantDetails}
+                                                      itemVariantType={'RETAIL'}
+                                                      handleHideItemPerBranch={handleHideItemPerBranch}
+                                                      variant={variant}
+                                                      setItem={setProduct}
+                                                    />
+                                                  </div>
+                                                </div>
+                                              </TabsContent>
+
+                                              {!isNew && !variant?.measureValue?.isBase && (
+                                                <TabsContent value="packaging">
+                                                  <div>
+                                                    <VariantPackaging
+                                                      product={product}
+                                                      variantIndex={variantIndex}
+                                                      variant={variant}
+                                                      handleVariantFieldChange={handleVariantFieldChange}
+                                                    />
+                                                  </div>
+                                                </TabsContent>
+                                              )}
+
+                                              <TabsContent value="inventory">
+                                                <div>
+                                                  <ItemStock
+                                                    productPurchaseConfig={productPurchaseConfig}
+                                                    handleVariantFieldChange={handleVariantFieldChange}
+                                                    variant={variant}
+                                                    variantIndex={variantIndex}
+                                                    itemId={product.id}
+                                                  />
+                                                </div>
+                                              </TabsContent>
+
+                                              <TabsContent value="shipping">
+                                                <div>
+                                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-1">
+                                                      <label className="text-xs font-semibold">
+                                                        <Translate contentKey='items.update.shippingDimension.height'>Height</Translate>
+                                                      </label>
+                                                      <Input
+                                                        type="number"
+                                                        name="minimumStockLevel"
+                                                        id="minimumStockLevel"
+                                                        required
+                                                        min={0}
+                                                        step="0.01"
+                                                        placeholder={translate('items.update.placeholders.height')}
+                                                        value={product?.variants?.[variantIndex].shippingDimension?.height ?? ''}
+                                                        onChange={(e) => handleShippingDimensionChange("height", parseFloat(e.target.value) || 0, variantIndex)}
+                                                        className="h-8 text-xs"
+                                                      />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                      <label className="text-xs font-semibold">
+                                                        <Translate contentKey='items.update.shippingDimension.length'>Length</Translate>
+                                                      </label>
+                                                      <Input
+                                                        type="number"
+                                                        name="quantity"
+                                                        id="quantity"
+                                                        required
+                                                        min={0}
+                                                        step="0.01"
+                                                        placeholder={translate('items.update.placeholders.length')}
+                                                        value={product?.variants?.[variantIndex].shippingDimension?.length ?? ''}
+                                                        onChange={(e) => handleShippingDimensionChange("length", parseFloat(e.target.value) || 0, variantIndex)}
+                                                        className="h-8 text-xs"
+                                                      />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                      <label className="text-xs font-semibold">
+                                                        <Translate contentKey='items.update.shippingDimension.width'>Width</Translate>
+                                                      </label>
+                                                      <Input
+                                                        type="number"
+                                                        name="unitCost"
+                                                        id="unitCost"
+                                                        required
+                                                        min={0}
+                                                        step="0.01"
+                                                        placeholder={translate('items.update.placeholders.width')}
+                                                        value={product?.variants?.[variantIndex].shippingDimension?.width ?? ''}
+                                                        onChange={(e) => handleShippingDimensionChange("width", parseFloat(e.target.value) || 0, variantIndex)}
+                                                        className="h-8 text-xs"
+                                                      />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                      <label className="text-xs font-semibold">
+                                                        <Translate contentKey='items.update.shippingDimension.weight'>Weight</Translate>
+                                                      </label>
+                                                      <Input
+                                                        type="number"
+                                                        name="unitCost"
+                                                        id="unitCost"
+                                                        required
+                                                        min={0}
+                                                        step="0.01"
+                                                        placeholder={translate('items.update.placeholders.weight')}
+                                                        value={product?.variants?.[variantIndex].shippingDimension?.weight ?? ''}
+                                                        onChange={(e) => handleShippingDimensionChange("weight", parseFloat(e.target.value) || 0, variantIndex)}
+                                                        className="h-8 text-xs"
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </TabsContent>
+                                            </Tabs>
+                                          </AccordionContent>
+                                        </AccordionItem>
+                                      </Accordion>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <CustomDefinitionValuesWrapper
+                              entityId={product.id}
+                              entityType={CustomDefinitionEntityType.ITEM}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </TabsContent>
+                    </TabsContent>
 
-                  <TabsContent value="visibility">
-                    <Visibility
-                      initialState={product.visibility}
-                      title={translate('items.update.tabs.visibility.titles.variable')}
-                      onStateChanged={visibility =>
-                        setProduct(prev => {
-                          return { ...prev, visibility };
-                        })
-                      }
-                    />
-                  </TabsContent>
+                    <TabsContent value="visibility">
+                      <Visibility
+                        initialState={product.visibility}
+                        title={translate('items.update.tabs.visibility.titles.variable')}
+                        onStateChanged={visibility =>
+                          setProduct(prev => {
+                            return { ...prev, visibility };
+                          })
+                        }
+                      />
+                    </TabsContent>
 
-                  <TabsContent value="loyalty">
-                    <ItemLoyaltyTab excludedFromLoyaltyPoints={product?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
-                  </TabsContent>
+                    <TabsContent value="loyalty">
+                      <ItemLoyaltyTab excludedFromLoyaltyPoints={product?.excludedFromLoyaltyPoints} onFieldChange={handleFieldChange} />
+                    </TabsContent>
 
-                  <TabsContent value="ebt">
-                    <EBTEligibleBranches
-                      item={product}
-                      setItem={setProduct}
-                      branchList={branchList}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        <div
-          className="lg:w-1/4"
-          style={{
-            position: 'sticky',
-            top: '0',
-            height: '90vh',
-          }}
-        >
-          <Card>
-            <CardHeader className="p-2">
-              <div className="text-sm font-semibold">Actions</div>
-            </CardHeader>
-            <CardContent className="p-2 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="secondary"
-                  className="h-8 text-xs w-full"
-                  onClick={handleBackClick}
-                  type={'button'}
-                  id="cancel-save"
-                  data-cy="entityCreateCancelButton"
-                >
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </Button>
-                <Button
-                  variant="default"
-                  className="h-8 text-xs w-full"
-                  onClick={saveEntity}
-                  id="save-entity"
-                  data-cy="entityCreateSaveButton"
-                  type="submit"
-                  disabled={updating}
-                >
-                  {updating && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                  <Translate contentKey="entity.action.save">Save</Translate>
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="default"
-                  className="h-8 text-xs w-full"
-                  onClick={(e) => saveEntity(e, true)}
-                  id="save-entity"
-                  data-cy="entityCreateSaveButton"
-                  type="submit"
-                  disabled={updating}
-                >
-                  <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
-                </Button>
-                <Button
-                  variant="default"
-                  className="h-8 text-xs w-full"
-                  onClick={(e) => saveEntity(e, false, true)}
-                  id="save-entity"
-                  data-cy="entityCreateSaveButton"
-                  type="submit"
-                  disabled={updating}
-                >
-                  <Translate contentKey="entity.action.saveandclone">Save and create clone</Translate>
-                </Button>
-              </div>
-              {showFormErrors &&
-                <div className="text-red-500 text-xs font-bold">
-                  Some Fields are required
+                    <TabsContent value="ebt">
+                      <EBTEligibleBranches
+                        item={product}
+                        setItem={setProduct}
+                        branchList={branchList}
+                      />
+                    </TabsContent>
+                  </Tabs>
                 </div>
-              }
-            </CardContent>
-          </Card>
-          {productEntity?.id && <AuditLogs entityId={productEntity?.id} />}
+              </CardContent>
+            </Card>
+          </div>
+          <div
+            className="lg:w-1/4"
+            style={{
+              position: 'sticky',
+              top: '0',
+              height: '90vh',
+            }}
+          >
+            <Card>
+              <CardHeader className="p-2">
+                <div className="text-sm font-semibold">Actions</div>
+              </CardHeader>
+              <CardContent className="p-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="secondary"
+                    className="h-8 text-xs w-full"
+                    onClick={handleBackClick}
+                    type={'button'}
+                    id="cancel-save"
+                    data-cy="entityCreateCancelButton"
+                  >
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </Button>
+                  <Button
+                    variant="default"
+                    className="h-8 text-xs w-full"
+                    onClick={saveEntity}
+                    id="save-entity"
+                    data-cy="entityCreateSaveButton"
+                    type="submit"
+                    disabled={updating}
+                  >
+                    {updating && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="default"
+                    className="h-8 text-xs w-full"
+                    onClick={(e) => saveEntity(e, true)}
+                    id="save-entity"
+                    data-cy="entityCreateSaveButton"
+                    type="submit"
+                    disabled={updating}
+                  >
+                    <Translate contentKey="entity.action.saveandnew">Save and create new</Translate>
+                  </Button>
+                  <Button
+                    variant="default"
+                    className="h-8 text-xs w-full"
+                    onClick={(e) => saveEntity(e, false, true)}
+                    id="save-entity"
+                    data-cy="entityCreateSaveButton"
+                    type="submit"
+                    disabled={updating}
+                  >
+                    <Translate contentKey="entity.action.saveandclone">Save and create clone</Translate>
+                  </Button>
+                </div>
+                {showFormErrors &&
+                  <div className="text-red-500 text-xs font-bold">
+                    Some Fields are required
+                  </div>
+                }
+              </CardContent>
+            </Card>
+            {productEntity?.id && <AuditLogs entityId={productEntity?.id} />}
+          </div>
         </div>
-      </div>
 
-      {/* Alert Dialogs */}
-      <AlertDialog open={deleteVariantDialog.open} onOpenChange={(open) => setDeleteVariantDialog({ open, index: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm">Confirmation</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
-              Are you sure you want to proceed?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="h-8 text-xs" onClick={handleDeleteVariant}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {/* Alert Dialogs */}
+        <AlertDialog open={deleteVariantDialog.open} onOpenChange={(open) => setDeleteVariantDialog({ open, index: null })}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-sm">Confirmation</AlertDialogTitle>
+              <AlertDialogDescription className="text-xs">
+                Are you sure you want to proceed?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+              <AlertDialogAction className="h-8 text-xs" onClick={handleDeleteVariant}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-      <AlertDialog open={deleteAttributeDialog.open} onOpenChange={(open) => setDeleteAttributeDialog({ open, index: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm">Confirmation</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
-              Are you sure you want to proceed?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="h-8 text-xs" onClick={handleRemoveAttribute}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <AlertDialog open={deleteAttributeDialog.open} onOpenChange={(open) => setDeleteAttributeDialog({ open, index: null })}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-sm">Confirmation</AlertDialogTitle>
+              <AlertDialogDescription className="text-xs">
+                Are you sure you want to proceed?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+              <AlertDialogAction className="h-8 text-xs" onClick={handleRemoveAttribute}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-      <AlertDialog open={changeVariantTypeDialog.open} onOpenChange={(open) => setChangeVariantTypeDialog({ open, newType: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm">Confirmation</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
-              Changing the variant type will reset the variant details.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="h-8 text-xs" onClick={handleChangeVariantType}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <AlertDialog open={changeVariantTypeDialog.open} onOpenChange={(open) => setChangeVariantTypeDialog({ open, newType: null })}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-sm">Confirmation</AlertDialogTitle>
+              <AlertDialogDescription className="text-xs">
+                Changing the variant type will reset the variant details.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+              <AlertDialogAction className="h-8 text-xs" onClick={handleChangeVariantType}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-      <AlertDialog open={deleteAllVariantsDialog} onOpenChange={setDeleteAllVariantsDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm">Confirmation</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
-              This will delete all the variants.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="h-8 text-xs" onClick={handleDeleteAllVariants}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </form>
+        <AlertDialog open={deleteAllVariantsDialog} onOpenChange={setDeleteAllVariantsDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-sm">Confirmation</AlertDialogTitle>
+              <AlertDialogDescription className="text-xs">
+                This will delete all the variants.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+              <AlertDialogAction className="h-8 text-xs" onClick={handleDeleteAllVariants}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </form>
+    </PageWrapper>
   );
 };
 
