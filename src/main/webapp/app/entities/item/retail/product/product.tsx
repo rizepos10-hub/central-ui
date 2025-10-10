@@ -1,59 +1,102 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Link,  useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from 'primereact/button';
-import { getSortState, Translate, translate} from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Button } from '@/components/ui/button';
+import { getSortState, Translate, translate } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import { SummarizeText } from "app/shared/util/SummarizeText";
 import ImageDisplay from "app/shared/components/image/image-display";
 import { applyMatchModeMap, updateTableFilters } from "app/shared/util/filter-match-model-util";
-import SharedFilter from "app/shared/components/item/shared-filter";
 import { initialItemFilterState } from "app/shared/model/filter-state.model";
 import { exportEntities, filterEntities, getEntities, updateEntities, purgeEntities, archiveEntities, unArchiveEntities, updateEntity } from "app/entities/item/retail/product/product.reducer";
 import { IProduct } from "app/shared/model/ITEM/retail/product.model";
 import ImportButton from "app/shared/components/data-import/data-import";
-import { Dropdown } from "primereact/dropdown";
 import { getEntities as getCategories } from 'app/entities/term/retail-item-category/retail-item-category.reducer';
-import { Sidebar } from 'primereact/sidebar';
 import { IItem } from "app/shared/model/ITEM/item.model";
 import { actionOptions, BulkEdit } from "app/shared/components/item/bulk-edit";
-import { confirmDialog } from "primereact/confirmdialog";
-import { FaCog, FaCopy, FaTrash } from "react-icons/fa";
 import { createEntity } from './product.reducer';
-import { ColumnProps } from "primereact/column";
-import { Menu } from "primereact/menu";
-import { Checkbox } from "primereact/checkbox";
-import { FilterMatchMode } from "primereact/api";
-import { ToggleButton } from "primereact/togglebutton";
-import { Dialog } from "primereact/dialog";
 import { IStockQuantity } from "app/shared/model/STOCK/stock-quantity.model";
 import { formatVariant } from "app/shared/util/variant-utils";
 import { getEntities as getWarehouses } from "app/entities/inventory/warehouse/warehouse.reducer";
 import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
 import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
 import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
-import { TabView, TabPanel } from 'primereact/tabview';
 import { SourceType } from "app/shared/model/ENUMS/source-type.model";
-import { Spinner } from "reactstrap";
 import DropDownFilter from "app/shared/components/filter/drop-down-filter";
 import AttributeFilter from "app/shared/components/filter/attribute-filter";
-import { ProgressBar } from "primereact/progressbar";
 import axios from "axios";
-interface ColumnConfig extends Partial<ColumnProps> {
+import {
+  Copy,
+  Pencil,
+  Trash2,
+  Settings,
+  RefreshCw,
+  FileDown,
+  Plus,
+  Filter,
+  ChevronDown,
+  ChevronRight,
+  RotateCcw,
+  Loader2,
+  Download,
+  X,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Circle as CircleIcon
+} from "lucide-react";
+import Select from 'react-select';
+import { FilterMatchMode } from "primereact/api";
+
+interface ColumnConfig {
   field: string;
   header: string;
   key?: string;
   seq: number;
   visible: boolean;
   width?: string;
+  body?: (rowData: any) => React.ReactNode;
+  sortable?: boolean;
 }
+
 export const Product = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = window.location;
   const LOCAL_STORAGE_KEY = 'retail-item-columns';
-  const menu: any = useRef(null);
+
   const products: IProduct[] = useAppSelector(state => state.product.entities)
   const loading = useAppSelector(state => state.product.loading);
   const totalItems = useAppSelector(state => state.product.totalItems);
@@ -67,13 +110,13 @@ export const Product = () => {
   const [selectedActionOption, setSelectedActionOption] = useState(null)
   const [selectedProducts, setSelectedProducts] = useState<IItem[]>([]);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
-  const [expandedRows, setExpandedRows] = useState({});
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const wareHouses = useAppSelector((state) => state.warehouse.entities);
   const salesLocations = useAppSelector((state) => state.salesLocation.entities);
-  
+
   // Export job tracking state
   const EXPORT_JOB_STORAGE_KEY = 'product-export-job';
-  
+
   const [exportJob, setExportJob] = useState<{
     id: string;
     status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
@@ -83,6 +126,13 @@ export const Product = () => {
     errorMessage: string | null;
   } | null>(null);
   const [pollingInterval, setPollingInterval] = useState<number | null>(null);
+
+  // Alert dialogs state
+  const [duplicateConfirm, setDuplicateConfirm] = useState<{ open: boolean; product: IProduct | null }>({ open: false, product: null });
+  const [archiveConfirm, setArchiveConfirm] = useState<{ open: boolean; products: IProduct[] }>({ open: false, products: [] });
+  const [purgeConfirm, setPurgeConfirm] = useState<{ open: boolean; products: IProduct[] }>({ open: false, products: [] });
+  const [unArchiveConfirm, setUnArchiveConfirm] = useState<{ open: boolean; products: IProduct[] }>({ open: false, products: [] });
+  const [exportConfirm, setExportConfirm] = useState<{ open: boolean; type: 'all' | 'selected' }>({ open: false, type: 'all' });
 
   // Persist export job to localStorage
   const persistExportJob = (job: typeof exportJob) => {
@@ -103,10 +153,11 @@ export const Product = () => {
       return null;
     }
   };
+
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getSortState(location, ITEMS_PER_PAGE, "id"), location.search)
   );
-    
+
   const getAllEntities = () => {
     const updatedQuery = applyMatchModeMap(query);
     console.log(updatedQuery, 'updatedQuery')
@@ -122,10 +173,10 @@ export const Product = () => {
     try {
       const response = await axios.get(`/api/export-data/status/${jobId}`);
       const jobData = response.data;
-      
+
       setExportJob(jobData);
       persistExportJob(jobData);
-      
+
       if (jobData.status === 'COMPLETED' || jobData.status === 'FAILED' || jobData.status === 'CANCELLED') {
         if (pollingInterval) {
           clearInterval(pollingInterval);
@@ -172,7 +223,7 @@ export const Product = () => {
     const persistedJob = loadPersistedExportJob();
     if (persistedJob) {
       setExportJob(persistedJob);
-      
+
       // Resume polling if job is still in progress
       if (persistedJob.status === 'PENDING' || persistedJob.status === 'PROCESSING') {
         const interval = setInterval(() => {
@@ -181,7 +232,7 @@ export const Product = () => {
         setPollingInterval(interval);
       }
     }
-    
+
   }, [])
 
   useEffect(() => {
@@ -214,7 +265,6 @@ export const Product = () => {
     getAllEntities();
   };
 
-
   const onPage = (event) => {
     const queryParams = JSON.stringify(event);
     setSearchParams({ query: queryParams }, { replace: true })
@@ -243,7 +293,7 @@ export const Product = () => {
   const nameColumnTemplate = rowData => {
     const editUrl = `/product/${rowData.id}/edit`;
     return (
-      <Link className="font-normal" to={editUrl}>
+      <Link className="font-normal text-xs" to={editUrl}>
         {rowData.name}<br />
         <span className="text-xs">#{rowData?.variants?.length}</span>
       </Link>
@@ -253,33 +303,34 @@ export const Product = () => {
   const duplicateColumnTemplate = (rowData) => {
     return (
       <Button
-        className="d-flex justify-content-center w-100"
-        onClick={() => confirmDialog({
-          message: 'Are you sure you want to duplicate this product?',
-          header: 'Duplicate Product',
-          icon: 'pi pi-exclamation-triangle',
-          accept() {
-            const { id, ...entityWithoutId } = rowData;
-            entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
-              ...variantWithoutId,
-              sku: null,
-            }));
-            dispatch(createEntity(entityWithoutId)).then(res => {
-              const payload = res?.payload as any;
-              const newProductId = payload?.data?.id;
-
-              // @ts-expect-error -- unknown type
-              if (!res?.error) {
-                navigate(`/product/${newProductId}/edit`)
-              }
-            });
-          }
-        })}
-        text
+        variant="ghost"
+        size="sm"
+        className="h-6 w-6 p-0"
+        onClick={() => setDuplicateConfirm({ open: true, product: rowData })}
       >
-        <FaCopy style={{ cursor: 'pointer', color: 'black', marginLeft: '0.3rem' }} />
+        <Copy className="h-3 w-3" />
       </Button>
     );
+  };
+
+  const handleDuplicate = () => {
+    if (!duplicateConfirm.product) return;
+
+    const { id, ...entityWithoutId } = duplicateConfirm.product;
+    entityWithoutId.variants = entityWithoutId?.variants.map(({ id, ...variantWithoutId }) => ({
+      ...variantWithoutId,
+      sku: null,
+    }));
+    dispatch(createEntity(entityWithoutId)).then(res => {
+      const payload = res?.payload as any;
+      const newProductId = payload?.data?.id;
+
+      // @ts-expect-error -- unknown type
+      if (!res?.error) {
+        navigate(`/product/${newProductId}/edit`)
+      }
+    });
+    setDuplicateConfirm({ open: false, product: null });
   };
 
   const editColumnTemplate = (rowData) => {
@@ -287,7 +338,7 @@ export const Product = () => {
 
     return (
       <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer', color: 'silver', marginLeft: '0.3rem' }} />
+        <Pencil className="h-3 w-3 text-muted-foreground hover:text-foreground" />
       </Link>
     );
   };
@@ -296,76 +347,81 @@ export const Product = () => {
     const deleteUrl = `/product/${rowData.id}/delete`;
     return (
       <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
+        <Trash2 className="h-3 w-3 text-destructive" />
       </Link>
     );
   };
 
   const unArchiveColumnTemplate = (rowData: IProduct) => {
     return (
-      <Button outlined text onClick={() => confirmUnArchiveItems([rowData])}>
-        <FontAwesomeIcon icon="trash-restore" style={{ cursor: 'pointer', color: 'green', marginLeft: '1rem' }} />
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-6 w-6 p-0"
+        onClick={() => setUnArchiveConfirm({ open: true, products: [rowData] })}
+      >
+        <RotateCcw className="h-3 w-3 text-green-600" />
       </Button>
     );
   };
 
   const purgeColumnTemplate = (rowData: IProduct) => {
     return (
-      <Button outlined text onClick={() => confirmPurgeItems([rowData])}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer', color: 'red', marginLeft: '1rem' }} />
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-6 w-6 p-0"
+        onClick={() => setPurgeConfirm({ open: true, products: [rowData] })}
+      >
+        <Trash2 className="h-3 w-3 text-destructive" />
       </Button>
     );
   };
-
 
   const TagsBody = rowData => {
     const tags = rowData?.tags;
 
     if (!tags || tags.length === 0) {
-      return "No Tags"; // Display when no addons are available
+      return <span className="text-xs">No Tags</span>;
     }
 
-    // Map through addonGroups and render them as links separated by "|"
     return tags.map((tag, index) => (
-      <>
-        <Link className="font-normal" to={`/tag/${tag.id}/edit`}>
+      <React.Fragment key={tag.id}>
+        <Link className="font-normal text-xs" to={`/tag/${tag.id}/edit`}>
           {tag.name}
           {index < tags.length - 1 && ' | '}
         </Link>
-      </>
+      </React.Fragment>
     ));
   };
 
   const TaxBody = rowData => {
     const taxes = rowData?.accountingGroups;
-    
-    if (!taxes || taxes.length === 0) { 
-      return "No Taxes";
+
+    if (!taxes || taxes.length === 0) {
+      return <span className="text-xs">No Taxes</span>;
     }
 
     return taxes.map((tax, index) => (
-      <span key={tax.id}>{tax.name} {index < taxes.length - 1 && ' | '}</span>
+      <span key={tax.id} className="text-xs">{tax.name} {index < taxes.length - 1 && ' | '}</span>
     ));
   };
 
   const DiscountBody = rowData => {
     const discounts = rowData?.discounts;
     if (!discounts || discounts.length === 0) {
-      return "No Discounts"; // Display when no addons are available
+      return <span className="text-xs">No Discounts</span>;
     }
 
-    // Map through addonGroups and render them as links separated by "|"
     return discounts.map((discount, index) => (
-      <>
-
-        <Link className="font-normal" to={`/discount/${discount.id}/edit`}>
+      <React.Fragment key={discount.id}>
+        <Link className="font-normal text-xs" to={`/discount/${discount.id}/edit`}>
           {discount.value} {discount.type === "PERCENTAGE" ? "%" : "$"}
           {index < discounts.length - 1 && ' | '}
         </Link>
-      </>
+      </React.Fragment>
     ));
   };
-
 
   const handleCreate = () => {
     navigate(`/product/new`)
@@ -373,22 +429,9 @@ export const Product = () => {
 
   useEffect(() => {
     if (selectedActionOption?.code === "MOVE_TO_TRASH") {
-      confirm1()
+      setArchiveConfirm({ open: true, products: selectedProducts });
     }
   }, [selectedActionOption])
-
-
-  const confirm1 = () => {
-    confirmDialog({
-      message: 'Are you sure you want to proceed?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handleItemsArchive(),
-      reject: () => setSelectedActionOption(null)
-    });
-  };
 
   const handleItemsArchive = async () => {
     setIsLoadingAction(true);
@@ -399,56 +442,30 @@ export const Product = () => {
     })).finally(() => setIsLoadingAction(false));
     setSelectedProducts([]);
     setSelectedActionOption(null);
+    setArchiveConfirm({ open: false, products: [] });
   }
 
   useEffect(() => {
     if (selectedActionOption?.code === "EXPORT") {
-      confirmBulkExport()
+      setExportConfirm({ open: true, type: 'selected' });
     }
   }, [selectedActionOption])
-
-  const confirmBulkExport = () => {
-    confirmDialog({
-      message: `Are you sure you want to export ${selectedProducts.length} selected items?`,
-      header: 'Export Selected Items',
-      icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handleItemsExport(),
-      reject: () => setSelectedActionOption(null)
-    });
-  };
-
-
-  const confirm2 = () => {
-    confirmDialog({
-      message: 'Are you sure you want to export all items?',
-      header: 'Export All Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handleExportAll(),
-      reject: () => {}
-    });
-  };
 
   const handleExportAll = async () => {
     setIsLoadingAction(true);
     try {
-      // Pass empty array to export all items
       const result = await dispatch(exportEntities([]));
       const payload = result.payload as any;
-      
+
       if (payload?.data) {
         const jobData = payload.data;
         setExportJob(jobData);
         persistExportJob(jobData);
-        
-        // Start polling for status updates
+
         const interval = setInterval(() => {
           pollExportStatus(jobData.id);
-        }, 2000); // Poll every 2 seconds
-        
+        }, 2000);
+
         setPollingInterval(interval);
       }
     } catch (error) {
@@ -456,6 +473,7 @@ export const Product = () => {
     } finally {
       setIsLoadingAction(false);
     }
+    setExportConfirm({ open: false, type: 'all' });
   };
 
   const handleItemsExport = async () => {
@@ -463,17 +481,16 @@ export const Product = () => {
     try {
       const result = await dispatch(exportEntities(selectedProducts.map(product => product.id)));
       const payload = result.payload as any;
-      
+
       if (payload?.data) {
         const jobData = payload.data;
         setExportJob(jobData);
         persistExportJob(jobData);
-        
-        // Start polling for status updates
+
         const interval = setInterval(() => {
           pollExportStatus(jobData.id);
-        }, 2000); // Poll every 2 seconds
-        
+        }, 2000);
+
         setPollingInterval(interval);
       }
     } catch (error) {
@@ -483,25 +500,14 @@ export const Product = () => {
       setSelectedProducts([]);
       setSelectedActionOption(null);
     }
+    setExportConfirm({ open: false, type: 'selected' });
   }
 
   useEffect(() => {
     if (selectedActionOption?.code === "PURGE") {
-      confirmPurgeItems(selectedProducts);
+      setPurgeConfirm({ open: true, products: selectedProducts });
     }
   }, [selectedActionOption])
-
-  const confirmPurgeItems = (products: IProduct[]) => {
-    confirmDialog({
-      message: 'Are you sure you want to proceed?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handlePurgeItems(products),
-      // reject: () => setSelectedActionOption(null)
-    });
-  };
 
   const handlePurgeItems = async (products: IProduct[]) => {
     const updatedQuery = applyMatchModeMap(query)
@@ -511,25 +517,14 @@ export const Product = () => {
     }))
     setSelectedProducts([]);
     setSelectedActionOption(null);
+    setPurgeConfirm({ open: false, products: [] });
   }
 
   useEffect(() => {
     if (selectedActionOption?.code === "RESTORE") {
-      confirmUnArchiveItems(selectedProducts);
+      setUnArchiveConfirm({ open: true, products: selectedProducts });
     }
   }, [selectedActionOption])
-
-  const confirmUnArchiveItems = (products: IProduct[]) => {
-    confirmDialog({
-      message: 'Are you sure you want to proceed?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
-      defaultFocus: 'accept',
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      accept: () => handleUnArchiveItems(products),
-      // reject: () => setSelectedActionOption(null)
-    });
-  };
 
   const handleUnArchiveItems = async (products: IProduct[]) => {
     const updatedQuery = applyMatchModeMap(query)
@@ -539,6 +534,7 @@ export const Product = () => {
     }))
     setSelectedProducts([]);
     setSelectedActionOption(null);
+    setUnArchiveConfirm({ open: false, products: [] });
   }
 
   const rowExpansionTemplate = (rowData: IProduct) => {
@@ -547,32 +543,35 @@ export const Product = () => {
     }
 
     return (
-      <div className="p-3">
-        <h5>Variants Stock Details</h5>
-        <DataTable value={rowData.variants} responsiveLayout="scroll">
-          <Column 
-            field="name" 
-            header="Variant Name" 
-            body={(variant) => formatVariant(variant?.name, variant?.attributeValues)}
-          />
-          <Column 
-            field="sku" 
-            header="SKU" 
-            body={(variant) => variant.sku || 'N/A'}
-          />
-          <Column 
-            field="stockQuantities" 
-            header="Stock Quantities" 
-            body={(variant) => (
-              Object.entries(variant?.stockQuantities || {}).map(([key, stock]: [string, IStockQuantity]) => (
-                <span key={stock?.location?.id} className="d-flex flex-row">
-                  <span className="col-6 p-0 fs-6">{stock?.location?.name}</span>
-                  <span className="col-6 p-0 fs-6 fw-bold">{stock?.quantity}</span>
-                </span>
-              ))
-            )}
-          />
-        </DataTable>
+      <div className="p-3 bg-muted/30">
+        <h5 className="text-sm font-semibold mb-2">Variants Stock Details</h5>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs">Variant Name</TableHead>
+              <TableHead className="text-xs">SKU</TableHead>
+              <TableHead className="text-xs">Stock Quantities</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rowData.variants.map((variant) => (
+              <TableRow key={variant.id}>
+                <TableCell className="text-xs">
+                  {formatVariant(variant?.name, variant?.attributeValues)}
+                </TableCell>
+                <TableCell className="text-xs">{variant.sku || 'N/A'}</TableCell>
+                <TableCell className="text-xs">
+                  {Object.entries(variant?.stockQuantities || {}).map(([key, stock]: [string, IStockQuantity]) => (
+                    <div key={stock?.location?.id} className="flex flex-row gap-2">
+                      <span className="w-1/2 text-xs">{stock?.location?.name}</span>
+                      <span className="w-1/2 text-xs font-bold">{stock?.quantity}</span>
+                    </div>
+                  ))}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     );
   };
@@ -590,9 +589,9 @@ export const Product = () => {
     wareHouses: any[];
     salesLocations: any[];
   }) => {
-    const [expandedRows, setExpandedRows] = useState({});
+    const [expandedRowsDialog, setExpandedRowsDialog] = useState<Set<string>>(new Set());
     const [tabStateMap, setTabStateMap] = useState<Record<string, "WAREHOUSE" | "SALES_LOCATION">>({});
-  
+
     useEffect(() => {
       const defaultTabs = variants.reduce((acc, v) => {
         acc[v.id] = "WAREHOUSE";
@@ -600,37 +599,70 @@ export const Product = () => {
       }, {});
       setTabStateMap(defaultTabs);
     }, [variants]);
-  
+
     return (
-      <Dialog
-        header="Stock Details"
-        visible={dialogVisible}
-        style={{ width: "60vw" }}
-        onHide={onHide}
-      >
-        <DataTable
-          value={variants}
-          responsiveLayout="scroll"
-          rowExpansionTemplate={(rowData) => (
-            <VariantStockTabs
-              variant={rowData}
-              tabState={tabStateMap}
-              setTabState={setTabStateMap}
-              wareHouses={wareHouses}
-              salesLocations={salesLocations}
-            />
-          )}
-          expandedRows={expandedRows}
-          onRowToggle={(e) => setExpandedRows(e.data)}
-          dataKey="id"
-        >
-          <Column expander style={{ width: "3em" }} />
-          <Column
-            field="variants"
-            header="Variant Name"
-            body={(data) => formatVariant(data?.name, data?.attributeValues)}
-          />
-        </DataTable>
+      <Dialog open={dialogVisible} onOpenChange={onHide}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-base">Stock Details</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs w-10"></TableHead>
+                  <TableHead className="text-xs">Variant Name</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {variants.map((variant) => (
+                  <React.Fragment key={variant.id}>
+                    <TableRow>
+                      <TableCell className="text-xs">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => {
+                            const newExpanded = new Set(expandedRowsDialog);
+                            if (newExpanded.has(variant.id)) {
+                              newExpanded.delete(variant.id);
+                            } else {
+                              newExpanded.add(variant.id);
+                            }
+                            setExpandedRowsDialog(newExpanded);
+                          }}
+                        >
+                          {expandedRowsDialog.has(variant.id) ? (
+                            <ChevronDown className="h-3 w-3" />
+                          ) : (
+                            <ChevronRight className="h-3 w-3" />
+                          )}
+                        </Button>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {formatVariant(variant?.name, variant?.attributeValues)}
+                      </TableCell>
+                    </TableRow>
+                    {expandedRowsDialog.has(variant.id) && (
+                      <TableRow>
+                        <TableCell colSpan={2}>
+                          <VariantStockTabs
+                            variant={variant}
+                            tabState={tabStateMap}
+                            setTabState={setTabStateMap}
+                            wareHouses={wareHouses}
+                            salesLocations={salesLocations}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
       </Dialog>
     );
   };
@@ -651,31 +683,30 @@ export const Product = () => {
     const renderStockByType = (type: "WAREHOUSE" | "SALES_LOCATION") => {
       const relevantLocations = type === "WAREHOUSE" ? wareHouses : salesLocations;
       const locationSet = new Set(relevantLocations.map((l) => l.name));
-  
+
       const filteredStocks = Object.entries(variant.stockQuantities || {})
         .filter(([_, stock]: [string, IStockQuantity]) => locationSet.has(stock?.location?.name))
         .map(([key, stock]) => ({ key, stock }));
-  
+
       return (
         <div className="p-3">
           <StockRowTable stockEntries={filteredStocks} />
         </div>
       );
     };
-  
+
     return (
-      <TabView
-        activeIndex={tabState[variant.id] === "SALES_LOCATION" ? 1 : 0}
-        onTabChange={(e) =>
-          setTabState((prev) => ({
-            ...prev,
-            [variant.id]: e.index === 0 ? "WAREHOUSE" : "SALES_LOCATION",
-          }))
-        }
+      <Tabs
+        value={tabState[variant.id]}
+        onValueChange={(value) => setTabState((prev) => ({ ...prev, [variant.id]: value as "WAREHOUSE" | "SALES_LOCATION" }))}
       >
-        <TabPanel header="Warehouses">{renderStockByType("WAREHOUSE")}</TabPanel>
-        <TabPanel header="Sales Locations">{renderStockByType("SALES_LOCATION")}</TabPanel>
-      </TabView>
+        <TabsList className="h-8">
+          <TabsTrigger value="WAREHOUSE" className="h-7 text-xs">Warehouses</TabsTrigger>
+          <TabsTrigger value="SALES_LOCATION" className="h-7 text-xs">Sales Locations</TabsTrigger>
+        </TabsList>
+        <TabsContent value="WAREHOUSE">{renderStockByType("WAREHOUSE")}</TabsContent>
+        <TabsContent value="SALES_LOCATION">{renderStockByType("SALES_LOCATION")}</TabsContent>
+      </Tabs>
     );
   };
 
@@ -703,8 +734,6 @@ export const Product = () => {
       getAllEntities();
     });
   };
-    
-  
 
   const StockRowTable = ({
     stockEntries,
@@ -712,46 +741,77 @@ export const Product = () => {
     stockEntries: { key: string; stock: IStockQuantity }[];
   }) => {
     return (
-      <DataTable
-        value={stockEntries}
-        responsiveLayout="scroll"
-        style={{ tableLayout: "fixed", width: "100%" }}
-      >
-        <Column
-          field="stock.location.name"
-          header={translate("common.location")}
-          body={(data) => (
-            <span className="font-bold">{data.stock?.location?.name || "Unknown"}</span>
-          )}
-          style={{ width: "25%" }}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-xs">{translate("common.location")}</TableHead>
+            <TableHead className="text-xs">{translate("common.quantity")}</TableHead>
+            <TableHead className="text-xs">{translate("common.minimumStockLevel")}</TableHead>
+            <TableHead className="text-xs">{translate("common.status")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {stockEntries.map((data) => (
+            <TableRow key={data.key}>
+              <TableCell className="text-xs font-bold">{data.stock?.location?.name || "Unknown"}</TableCell>
+              <TableCell className="text-xs font-medium">{data.stock.quantity}</TableCell>
+              <TableCell className="text-xs font-medium">{data.stock.minimumStockLevel}</TableCell>
+              <TableCell className="text-xs">
+                {data.stock.quantity > data.stock.minimumStockLevel ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-destructive" />
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  };
+
+  // Separate component for stock status cell to handle its own state
+  const StockStatusCell = ({ rowData, wareHouses, salesLocations }: { rowData: IProduct; wareHouses: any[]; salesLocations: any[] }) => {
+    const variants = rowData.variants || [];
+    const [dialogVisible, setDialogVisible] = useState(false);
+
+    let totalBelowMin = 0;
+    let totalVariants = 0;
+
+    variants.forEach((variant) => {
+      const stockMap = variant.stockQuantities || {};
+      Object.values(stockMap).forEach((stock: IStockQuantity) => {
+        if (stock.quantity <= stock.minimumStockLevel) totalBelowMin++;
+        totalVariants++;
+      });
+    });
+
+    const color =
+      totalVariants === 0
+        ? "text-destructive"
+        : totalBelowMin === totalVariants
+        ? "text-destructive"
+        : totalBelowMin > 0
+        ? "text-orange-500"
+        : "text-green-600";
+
+    return (
+      <>
+        <div
+          className="flex items-center cursor-pointer"
+          onClick={() => setDialogVisible(true)}
+        >
+          <CircleIcon className={`h-2 w-2 fill-current ${color}`} />
+        </div>
+
+        <StockStatusDialog
+          dialogVisible={dialogVisible}
+          onHide={() => setDialogVisible(false)}
+          variants={variants}
+          wareHouses={wareHouses}
+          salesLocations={salesLocations}
         />
-        <Column
-          field="stock.quantity"
-          header={translate("common.quantity")}
-          body={(data) => <span className="font-medium">{data.stock.quantity}</span>}
-          style={{ width: "25%" }}
-        />
-        <Column
-          field="stock.minimumStockLevel"
-          header={translate("common.minimumStockLevel")}
-          body={(data) => <span className="font-medium">{data.stock.minimumStockLevel}</span>}
-          style={{ width: "25%" }}
-        />
-        <Column
-          field="status"
-          header={translate("common.status")}
-          body={(data) => (
-            <span>
-              {data.stock.quantity > data.stock.minimumStockLevel ? (
-                <i className="pi pi-check-circle" style={{ color: "green", fontSize: "1.2rem" }}></i>
-              ) : (
-                <i className="pi pi-times-circle" style={{ color: "red", fontSize: "1.2rem" }}></i>
-              )}
-            </span>
-          )}
-          style={{ width: "25%" }}
-        />
-      </DataTable>
+      </>
     );
   };
 
@@ -760,9 +820,7 @@ export const Product = () => {
       {
         field: "name",
         header: translate("items.view.fields.name"),
-        style: { width: "100px" },
         body: nameColumnTemplate,
-        filterPlaceholder: translate("items.view.filters.name"),
         sortable: true,
         key: "name",
         seq: 1,
@@ -773,8 +831,9 @@ export const Product = () => {
         field: "categories",
         key: "categories",
         header: "Category",
-        body: (rowData) =>
-          rowData?.categories?.map((cat) => cat?.name).join(" | "),
+        body: (rowData) => (
+          <span className="text-xs">{rowData?.categories?.map((cat) => cat?.name).join(" | ")}</span>
+        ),
         sortable: true,
         seq: 2,
         visible: true,
@@ -802,7 +861,7 @@ export const Product = () => {
         field: "desc",
         key: "desc",
         header: translate("items.view.fields.description"),
-        body: (rowData) => <SummarizeText>{rowData.desc}</SummarizeText>,
+        body: (rowData) => <div className="text-xs"><SummarizeText>{rowData.desc}</SummarizeText></div>,
         seq: 4,
         visible: true,
         width: "100px",
@@ -811,58 +870,13 @@ export const Product = () => {
         field: "stockQuantities",
         key: "stock",
         header: translate("items.view.fields.inStock"),
-        body(rowData) {
-          const variants = rowData.variants || [];
-          const [dialogVisible, setDialogVisible] = useState(false);
-        
-          let totalBelowMin = 0;
-          let totalVariants = 0;
-        
-          variants.forEach((variant) => {
-            const stockMap = variant.stockQuantities || {};
-            Object.values(stockMap).forEach((stock: IStockQuantity) => {
-              if (stock.quantity <= stock.minimumStockLevel) totalBelowMin++;
-              totalVariants++;
-            });
-          });
-        
-          const color =
-            totalVariants === 0
-              ? "red"
-              : totalBelowMin === totalVariants
-              ? "red"
-              : totalBelowMin > 0
-              ? "orange"
-              : "green";
-        
-          return (
-            <>
-              <div
-                style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
-                onClick={() => setDialogVisible(true)}
-              >
-                <div className="p-d-flex p-ai-center p-jc-center" style={{ marginRight: "8px" }}>
-                  <i
-                    className="pi pi-circle-fill"
-                    style={{
-                      fontSize: "10px",
-                      color,
-                      fill: color,
-                    }}
-                  ></i>
-                </div>
-              </div>
-        
-              <StockStatusDialog
-                dialogVisible={dialogVisible}
-                onHide={() => setDialogVisible(false)}
-                variants={variants}
-                wareHouses={wareHouses}
-                salesLocations={salesLocations}
-              />
-            </>
-          );
-        },
+        body: (rowData) => (
+          <StockStatusCell
+            rowData={rowData}
+            wareHouses={wareHouses}
+            salesLocations={salesLocations}
+          />
+        ),
         sortable: true,
         seq: 5,
         visible: true,
@@ -874,24 +888,22 @@ export const Product = () => {
         body: (rowData: IProduct) => (
           <>
             {rowData?.variants?.length === 1 ? (
-              <span className="d-flex gap-0 flex-column">
+              <div className="flex flex-col gap-0">
                 {Object.entries(rowData?.variants?.[0]?.stockQuantities || {}).map(([key, stock]: [string, IStockQuantity]) => (
-                  <div key={stock?.location?.id} className="d-flex gap-2 flex-row border-bottom">
-                    <span className="col-9 p-0 fs-6">{stock?.location?.name}</span>
-                    <span className="col-3 p-0 fs-6 fw-bold">{stock?.quantity}</span>
+                  <div key={stock?.location?.id} className="flex gap-2 border-b">
+                    <span className="flex-1 text-xs">{stock?.location?.name}</span>
+                    <span className="w-12 text-xs font-bold">{stock?.quantity}</span>
                   </div>
                 ))}
-              </span>
+              </div>
             ) : (
-              <span className="d-flex gap-0 flex-column">
-                <span className="fw-bold">{rowData?.variants?.length} variants</span>
-                <span className="text-xs text-500">Expand to view details</span>
-              </span>
+              <div className="flex flex-col gap-0">
+                <span className="font-bold text-xs">{rowData?.variants?.length} variants</span>
+                <span className="text-xs text-muted-foreground">Expand to view details</span>
+              </div>
             )}
           </>
         ),
-        headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
-        bodyStyle: { textAlign: "left", overflow: "visible" },
         seq: 6,
         visible: true,
         width: "300px",
@@ -901,10 +913,8 @@ export const Product = () => {
         key: "productionCenter",
         header: translate("items.view.fields.productionCenter"),
         body: (rowData) => (
-          <SummarizeText>{rowData?.productionCenter?.name}</SummarizeText>
+          <div className="text-xs"><SummarizeText>{rowData?.productionCenter?.name}</SummarizeText></div>
         ),
-        headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
-        bodyStyle: { textAlign: "left", overflow: "visible" },
         seq: 7,
         visible: true,
         width: "100px",
@@ -944,17 +954,14 @@ export const Product = () => {
         body(rowData: IProduct) {
           const visible =
             rowData.visibility?.find(v => v.application === SourceType.BRANCH_POS)?.visible ?? true;
-      
+
           return (
             <Checkbox
-              inputId={`isVisible-BRANCH_POS-${rowData.id}`}
-              onChange={(e) => handleChangeIsVisible(rowData, SourceType.BRANCH_POS, e.checked)}
-              checked={visible}
+              checked={visible === true}
+              onCheckedChange={(checked) => handleChangeIsVisible(rowData, SourceType.BRANCH_POS, checked as boolean)}
             />
           );
         },
-        headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
-        bodyStyle: { textAlign: "left", overflow: "visible" },
         seq: 10,
         visible: true,
         width: "50px",
@@ -966,17 +973,14 @@ export const Product = () => {
         body(rowData: IProduct) {
           const visible =
             rowData.visibility?.find(v => v.application === SourceType.ONLINE_ORDERING)?.visible ?? true;
-      
+
           return (
             <Checkbox
-              inputId={`isVisible-ONLINE_ORDERING-${rowData.id}`}
-              onChange={(e) => handleChangeIsVisible(rowData, SourceType.ONLINE_ORDERING, e.checked)}
-              checked={visible}
+              checked={visible === true}
+              onCheckedChange={(checked) => handleChangeIsVisible(rowData, SourceType.ONLINE_ORDERING, checked as boolean)}
             />
           );
         },
-        headerStyle: { width: "1%", alignItems: "center", alignSelf: "center" },
-        bodyStyle: { textAlign: "left", overflow: "visible" },
         seq: 11,
         visible: true,
         width: "50px",
@@ -986,7 +990,7 @@ export const Product = () => {
         key: "actions",
         header: "Actions",
         body: (rowData) => (
-          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <div className="flex gap-2 items-center">
             {!localFilters?.isArchived?.value ? (
               <>
                 {duplicateColumnTemplate(rowData)}
@@ -1001,8 +1005,6 @@ export const Product = () => {
             )}
           </div>
         ),
-        headerStyle: { width: "5%", textAlign: "center" },
-        bodyStyle: { textAlign: "center", overflow: "visible" },
         seq: 12,
         visible: true,
         width: "100px",
@@ -1023,7 +1025,6 @@ export const Product = () => {
   });
 
   useEffect(() => {
-    // Update visibleColumns when columnsConfig changes to capture updated localFilters
     setVisibleColumns((prev) =>
       columnsConfig.filter(
         (col) =>
@@ -1032,7 +1033,6 @@ export const Product = () => {
       )
     );
   }, [columnsConfig]);
-
 
   const onColumnToggle = (field) => {
     let updatedColumns;
@@ -1046,28 +1046,23 @@ export const Product = () => {
       }
     }
 
-    // Ensure "actions" is always included
     updatedColumns = updatedColumns.filter(col => col.field === "actions" || columnsConfig.some(config => config.field === col.field));
 
-    // Get existing stored items
     const storedData = JSON.parse(localStorage.getItem("visible_columns")) || {};
-    storedData[LOCAL_STORAGE_KEY] = updatedColumns.map(col => col.field); // Store only field names
+    storedData[LOCAL_STORAGE_KEY] = updatedColumns.map(col => col.field);
 
     localStorage.setItem("visible_columns", JSON.stringify(storedData));
 
     setVisibleColumns(updatedColumns || []);
   };
 
-  //localstorage options
   const columnOptions = columnsConfig.filter(({ field }) => field !== 'actions').map(({ field, header }) => ({ field, header }));
-
 
   const archivedActionOptions = [
     { name: 'Restore', code: 'RESTORE', disabled: false },
     { name: 'Permenant Delete', code: 'PURGE', disabled: false },
   ];
 
-  // Download file function
   const downloadFile = (filePath: string) => {
     const link = document.createElement('a');
     link.href = filePath;
@@ -1077,86 +1072,141 @@ export const Product = () => {
     document.body.removeChild(link);
   };
 
-  // Export Status Header Component
   const ExportStatusHeader = () => {
     if (!exportJob) return null;
 
     const getStatusColor = () => {
       switch (exportJob.status) {
-        case 'COMPLETED': return 'text-success';
-        case 'FAILED': return 'text-danger';
-        case 'CANCELLED': return 'text-warning';
-        case 'PROCESSING': return 'text-info';
-        default: return 'text-info';
+        case 'COMPLETED': return 'text-green-600';
+        case 'FAILED': return 'text-destructive';
+        case 'CANCELLED': return 'text-orange-500';
+        case 'PROCESSING': return 'text-blue-600';
+        default: return 'text-blue-600';
       }
     };
 
     const getStatusIcon = () => {
       switch (exportJob.status) {
-        case 'COMPLETED': return 'pi pi-check-circle';
-        case 'FAILED': return 'pi pi-times-circle';
-        case 'CANCELLED': return 'pi pi-exclamation-triangle';
-        case 'PROCESSING': return 'pi pi-spin pi-spinner';
-        default: return 'pi pi-clock';
+        case 'COMPLETED': return <CheckCircle2 className="h-5 w-5" />;
+        case 'FAILED': return <XCircle className="h-5 w-5" />;
+        case 'CANCELLED': return <AlertTriangle className="h-5 w-5" />;
+        case 'PROCESSING': return <Loader2 className="h-5 w-5 animate-spin" />;
+        default: return <Loader2 className="h-5 w-5" />;
       }
     };
 
     return (
-      <div className="bg-light border p-3 mb-3 d-flex align-items-center justify-content-between">
-        <div className="d-flex align-items-center">
-          <i className={`${getStatusIcon()} ${getStatusColor()} me-2`} style={{ fontSize: '1.2rem' }}></i>
+      <div className="bg-muted/50 border p-3 mb-3 flex items-center justify-between rounded-md">
+        <div className="flex items-center gap-2">
+          <div className={getStatusColor()}>{getStatusIcon()}</div>
           <div>
-            <span className="fw-bold me-2">Export Status: {exportJob.status}</span>
-            <small className="text-muted">{exportJob.message}</small>
+            <span className="font-bold text-xs mr-2">Export Status: {exportJob.status}</span>
+            <small className="text-xs text-muted-foreground">{exportJob.message}</small>
             {exportJob.status === 'PROCESSING' && (
               <div className="mt-1">
-                <ProgressBar 
-                  value={exportJob.progress} 
-                  style={{ width: '200px', height: '8px' }}
-                  className="me-2"
-                />
-                <small>{exportJob.progress}%</small>
+                <Progress value={exportJob.progress} className="h-2 w-48" />
+                <small className="text-xs">{exportJob.progress}%</small>
               </div>
             )}
           </div>
         </div>
-        
-        <div className="d-flex gap-2">
+
+        <div className="flex gap-2">
           {exportJob.status === 'COMPLETED' && exportJob.path && (
             <Button
-              label="Download"
-              icon="pi pi-download"
-              size="small"
-              className="p-button-success"
+              size="sm"
+              className="h-8 text-xs"
               onClick={() => downloadFile(exportJob.path)}
-            />
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Download
+            </Button>
           )}
-          
+
           {exportJob.status === 'FAILED' && exportJob.errorMessage && (
-            <small className="text-danger">{exportJob.errorMessage}</small>
+            <small className="text-xs text-destructive">{exportJob.errorMessage}</small>
           )}
-          
+
           {(exportJob.status === 'COMPLETED' || exportJob.status === 'FAILED' || exportJob.status === 'CANCELLED') && (
             <Button
-              icon="pi pi-times"
-              size="small"
-              className="p-button-text p-button-secondary"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
               onClick={() => {
                 setExportJob(null);
                 persistExportJob(null);
               }}
-              tooltip="Dismiss"
-            />
+            >
+              <X className="h-4 w-4" />
+            </Button>
           )}
         </div>
       </div>
     );
   };
-  
+
+  // Custom pagination component
+  const PaginationControls = () => {
+    const totalPages = Math.ceil(totalItems / query.rows);
+    const currentPage = Math.floor(query.first / query.rows) + 1;
+
+    const handlePageChange = (newPage: number) => {
+      const newFirst = (newPage - 1) * query.rows;
+      onPage({ ...query, first: newFirst, page: newPage - 1 });
+    };
+
+    const handleRowsPerPageChange = (newRows: number) => {
+      onPage({ ...query, rows: newRows, first: 0, page: 0 });
+    };
+
+    return (
+      <div className="flex items-center justify-between px-2 py-2 border-t">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Rows per page:</span>
+          <Select
+            value={{ value: query.rows, label: query.rows.toString() }}
+            onChange={(option) => handleRowsPerPageChange(option.value)}
+            options={[10, 20, 30, 40, 50, 100, 200].map(val => ({ value: val, label: val.toString() }))}
+            styles={{
+              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+              menu: (base) => ({ ...base, fontSize: '0.75rem' }),
+            }}
+            className="w-20"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {query.first + 1} - {Math.min(query.first + query.rows, totalItems)} of {totalItems}
+          </span>
+          <div className="flex gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              ‹
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              ›
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <ExportStatusHeader />
-      
+
       {selectedActionOption?.code === "EDIT" && selectedProducts.length > 0 && (
         <BulkEdit
           products={products}
@@ -1169,119 +1219,122 @@ export const Product = () => {
           isRetail={true}
         />
       )}
-      
-      {/* Header moved outside of DataTable */}
-      <div className="bg-dark bg-opacity-10 p-2 d-flex justify-content-between">
-        <span className="text-xl d-flex align-items-center">
-          <Dropdown
+
+      {/* Header */}
+      <div className="bg-muted/50 p-2 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Select
             value={selectedActionOption}
-            onChange={(e) => setSelectedActionOption(e.value)}
+            onChange={(option) => setSelectedActionOption(option)}
             options={localFilters?.isArchived?.value ? archivedActionOptions : actionOptions}
-            optionLabel="name"
+            getOptionLabel={(option) => option.name}
+            getOptionValue={(option) => option.code}
             placeholder="Bulk Actions"
-            className="w-full md:w-14rem"
-            disabled={selectedProducts.length < 1}
-            optionDisabled={(option) => option.disabled}
+            isDisabled={selectedProducts.length < 1}
+            isOptionDisabled={(option) => option.disabled}
+            styles={{
+              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem', minWidth: '200px' }),
+              menu: (base) => ({ ...base, fontSize: '0.75rem' }),
+            }}
           />
-        </span>
+        </div>
+
         {!localFilters?.isArchived?.value ? (
-          <div className="flex align-items-center justify-content-end gap-3">
+          <div className="flex items-center gap-2">
             <Button
-              icon="pi pi-sync"
-              raised severity="info"
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
               onClick={handleSyncList}
               disabled={loading}
-              loading={loading}
-              data-pr-position="top"
-              tooltip={translate('items.view.actions.refreshList')}
-            />
+            >
+              {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+              {translate('items.view.actions.refreshList')}
+            </Button>
             <Button
-              icon="pi pi-file-export"
-              raised
-              onClick={confirm2}
-              tooltip="Export All"
-              data-pr-position="top"
-            />
-
-            <ImportButton type="RETAIL" data-pr-position="top" />
-
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => setExportConfirm({ open: true, type: 'all' })}
+            >
+              <FileDown className="h-4 w-4 mr-1" />
+              Export All
+            </Button>
+            <ImportButton type="RETAIL" />
             <Button
-              icon="pi pi-plus"
-              raised
+              size="sm"
+              className="h-8 text-xs"
               onClick={handleCreate}
-              // disabled={loading}
-              data-pr-position="top"
-              tooltip={translate('items.view.actions.createItem')}
-            />
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              {translate('items.view.actions.createItem')}
+            </Button>
           </div>
         ) : (
-          <h4 className="text-center text-danger">
+          <h4 className="text-sm font-semibold text-destructive">
             Now viewing Recycle Bin
           </h4>
         )}
 
-        <div className="flex justify-between items-center">
-          <div className="relative d-flex justify-end mr-auto">
-            <Menu
-              model={[
-                {
-                  label: "Select Columns",
-                  items: columnOptions.map((col) => ({
-                    template: () => (
-                      <div className="p-menuitem mt-2" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          inputId={col.field}
-                          checked={visibleColumns.some((c) => c.field === col.field)}
-                          onChange={() => onColumnToggle(col.field)}
-                        />
-                        <label className="ml-2" htmlFor={col.field} >{col.header}</label>
-                      </div>
-                    ),
-                  })),
-                },
-              ]}
-              popup
-              ref={menu}
-            />
-            <ToggleButton
-              tooltip="Recycle Bin"
-              data-pr-position="top"
-              checked={localFilters?.isArchived?.value}
-              onChange={(e) => {
-                if (localFilters?.isArchived?.value) {
-                  handleFilterValueChange('isArchived', { value: false, matchMode: FilterMatchMode.EQUALS })
-                } else {
-                  handleFilterValueChange('isArchived', { value: true, matchMode: FilterMatchMode.EQUALS })
-                }
-              }}
-              onIcon={<FaTrash className="text-xl" />}
-              offIcon={<FaTrash className="text-xl" />}
-              onLabel=""
-              offLabel=""
-              className="p-button-text mr-auto"
-            />
+        <div className="flex items-center gap-2">
+          <Button
+            variant={localFilters?.isArchived?.value ? "default" : "outline"}
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => {
+              if (localFilters?.isArchived?.value) {
+                handleFilterValueChange('isArchived', { value: false, matchMode: FilterMatchMode.EQUALS })
+              } else {
+                handleFilterValueChange('isArchived', { value: true, matchMode: FilterMatchMode.EQUALS })
+              }
+            }}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Recycle Bin
+          </Button>
 
-            <Button
-              tooltip="Select Columns"
-              data-pr-position="top"
-              icon={<FaCog className="text-xl" />}
-              className="p-button-text mr-auto"
-              onClick={(event) => menu.current.toggle(event)}
-            />
-          </div>
-          <Button data-pr-position="top" tooltip="Toggle Filters" className="p-button-text mr-auto" icon="pi pi-filter" onClick={() => setFiltersVisible(!filtersVisible)} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Settings className="h-4 w-4 mr-1" />
+                Columns
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {columnOptions.map((col) => (
+                <DropdownMenuCheckboxItem
+                  key={col.field}
+                  checked={visibleColumns.some((c) => c.field === col.field)}
+                  onCheckedChange={() => onColumnToggle(col.field)}
+                  className="text-xs"
+                >
+                  {col.header}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setFiltersVisible(!filtersVisible)}
+          >
+            <Filter className="h-4 w-4 mr-1" />
+            Filters
+          </Button>
         </div>
       </div>
 
       {/* Inline Filters Section */}
       {filtersVisible && (
-        <div className="bg-light p-3 border-top">
-          <div className="row g-3">
-            <div className="col-md-3">
-              <label className="form-label fw-semibold">Name</label>
-              <div className="d-flex gap-1">
-                <select 
-                  className="form-select" 
+        <div className="bg-muted/30 p-3 border-t">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-semibold mb-1">Name</label>
+              <div className="flex gap-1">
+                <select
+                  className="h-8 text-xs border border-input rounded-md px-2 bg-background"
                   style={{ maxWidth: '120px' }}
                   value={localFilters?.name?.matchMode || FilterMatchMode.CONTAINS}
                   onChange={(e) => {
@@ -1297,7 +1350,7 @@ export const Product = () => {
                 </select>
                 <input
                   type="text"
-                  className="form-control"
+                  className="h-8 text-xs flex-1 border border-input rounded-md px-2 bg-background"
                   placeholder="Filter by name"
                   value={localFilters?.name?.value || ''}
                   onChange={(e) => {
@@ -1308,12 +1361,12 @@ export const Product = () => {
                 />
               </div>
             </div>
-            
-            <div className="col-md-3">
-              <label className="form-label fw-semibold">SKU</label>
-              <div className="d-flex gap-1">
-                <select 
-                  className="form-select" 
+
+            <div>
+              <label className="block text-xs font-semibold mb-1">SKU</label>
+              <div className="flex gap-1">
+                <select
+                  className="h-8 text-xs border border-input rounded-md px-2 bg-background"
                   style={{ maxWidth: '120px' }}
                   value={localFilters?.['variants.sku']?.matchMode || FilterMatchMode.CONTAINS}
                   onChange={(e) => {
@@ -1329,7 +1382,7 @@ export const Product = () => {
                 </select>
                 <input
                   type="text"
-                  className="form-control"
+                  className="h-8 text-xs flex-1 border border-input rounded-md px-2 bg-background"
                   placeholder="Filter by SKU"
                   value={localFilters?.['variants.sku']?.value || ''}
                   onChange={(e) => {
@@ -1341,10 +1394,10 @@ export const Product = () => {
               </div>
             </div>
 
-            <div className="col-md-3">
-              <label className="form-label fw-semibold">Tax</label>
+            <div>
+              <label className="block text-xs font-semibold mb-1">Tax</label>
               <DropDownFilter
-                classname={'w-100'}
+                classname={'w-full'}
                 placeholder={'Select Tax'}
                 dropDownOptionType={'PROFILE_GROUP'}
                 selectedOption={localFilters?.['accountingGroups.id']?.value}
@@ -1353,10 +1406,10 @@ export const Product = () => {
               />
             </div>
 
-            <div className="col-md-3">
-              <label className="form-label fw-semibold">Category</label>  
+            <div>
+              <label className="block text-xs font-semibold mb-1">Category</label>
               <DropDownFilter
-                classname={'w-100'}
+                classname={'w-full'}
                 placeholder={'Select Category'}
                 dropDownOptionType={'RETAIL_CATEGORY'}
                 selectedOption={localFilters?.['categories.id']?.value}
@@ -1365,10 +1418,10 @@ export const Product = () => {
               />
             </div>
 
-            <div className="col-md-3">
-              <label className="form-label fw-semibold">Base Measure</label>
+            <div>
+              <label className="block text-xs font-semibold mb-1">Base Measure</label>
               <DropDownFilter
-                classname={'w-100'}
+                classname={'w-full'}
                 dropDownOptionType={'MEASURE'}
                 placeholder={'Select Measure'}
                 selectedOption={localFilters?.['baseMeasure.id']?.value}
@@ -1377,93 +1430,245 @@ export const Product = () => {
               />
             </div>
 
-            <div className="col-md-3 d-flex align-items-end">
-              <div className="form-check">
+            <div className="flex items-end">
+              <div className="flex items-center gap-2">
                 <Checkbox
-                  inputId="showImages"
+                  id="showImages"
                   checked={localFilters?.['attachments']?.matchMode === FilterMatchMode.NOT_EQUALS}
-                  onChange={(e) => {
-                    if (e.checked) {
+                  onCheckedChange={(checked) => {
+                    if (checked) {
                       handleFilterValueChange('attachments', { value: [] as any, matchMode: FilterMatchMode.NOT_EQUALS });
                     } else {
                       handleFilterValueChange('attachments', { value: null as any, matchMode: FilterMatchMode.CUSTOM });
                     }
                   }}
                 />
-                <label className="form-check-label ms-2 fw-semibold" htmlFor="showImages">
+                <label htmlFor="showImages" className="text-xs font-semibold cursor-pointer">
                   Only Items With Images
                 </label>
               </div>
             </div>
           </div>
 
-          {/* Separate row for Attributes */}
-          <div className="row g-3 mt-2">
-            <div className="col-md-3">
-              <AttributeFilter filteredAttributes={filteredAttributes} onFilterValueChange={handleFilterValueChange} />
-            </div>
+          <div className="mt-3">
+            <AttributeFilter filteredAttributes={filteredAttributes} onFilterValueChange={handleFilterValueChange} />
+          </div>
 
-            <div className="col-12 d-flex gap-2 justify-content-end mt-3">
-              <Button 
-                type="button" 
-                severity="secondary" 
-                label="Clear Filters" 
-                onClick={handleClear}
-                outlined
-              />
-              <Button 
-                type="button" 
-                label="Apply Filters" 
-                onClick={() => onFilter(localFilters)}
-              />
-            </div>
+          <div className="flex gap-2 justify-end mt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleClear}
+            >
+              Clear Filters
+            </Button>
+            <Button
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => onFilter(localFilters)}
+            >
+              Apply Filters
+            </Button>
           </div>
         </div>
       )}
 
-      <DataTable
-        value={products}
-        lazy
-        dataKey="id"
-        paginator
-        first={query.first}
-        rows={query?.rows}
-        rowsPerPageOptions={[10, 20, 30, 40, 50, 100, 200]}
-        totalRecords={totalItems}
-        onPage={onPage}
-        onSort={onSort}
-        sortField={query.sortField}
-        sortOrder={query.sortOrder}
-        onFilter={onFilter}
-        filters={query.filters}
-        loading={loading || isLoadingAction}
-        tableStyle={{ minWidth: '75rem' }}
-        removableSort
-        showGridlines
-        className={"mt-3 header-opacity-0"}
-        selectionMode={'checkbox'}
-        selection={selectedProducts}
-        onSelectionChange={(e) => setSelectedProducts(e.value)}
-        expandedRows={expandedRows}
-        onRowToggle={(e) => setExpandedRows(e.data)}
-        rowExpansionTemplate={rowExpansionTemplate}
-      >
-        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
-        <Column 
-          expander={(rowData: IProduct) => rowData.variants && rowData.variants.length > 1} 
-          style={{ width: "3rem" }} 
-        />
-        {visibleColumns.map((col) => (
-          <Column key={col.field} field={col.field} header={col.header} body={col.body} style={{ width: col.width }} />
-        ))}
-      </DataTable>
+      {/* Table */}
+      <div className="border rounded-md mt-3">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs w-12">
+                <Checkbox
+                  checked={selectedProducts.length === products.length && products.length > 0}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedProducts(products);
+                    } else {
+                      setSelectedProducts([]);
+                    }
+                  }}
+                />
+              </TableHead>
+              <TableHead className="text-xs w-10"></TableHead>
+              {visibleColumns.map((col) => (
+                <TableHead key={col.field} className="text-xs" style={{ width: col.width }}>
+                  {col.header}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading || isLoadingAction ? (
+              <TableRow>
+                <TableCell colSpan={visibleColumns.length + 2} className="text-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                </TableCell>
+              </TableRow>
+            ) : products.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={visibleColumns.length + 2} className="text-center text-xs py-8">
+                  No products found
+                </TableCell>
+              </TableRow>
+            ) : (
+              products.map((product) => (
+                <React.Fragment key={product.id}>
+                  <TableRow>
+                    <TableCell className="text-xs">
+                      <Checkbox
+                        checked={selectedProducts.some(p => p.id === product.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedProducts([...selectedProducts, product]);
+                          } else {
+                            setSelectedProducts(selectedProducts.filter(p => p.id !== product.id));
+                          }
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {product.variants && product.variants.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => {
+                            const newExpanded = new Set(expandedRows);
+                            if (newExpanded.has(product.id)) {
+                              newExpanded.delete(product.id);
+                            } else {
+                              newExpanded.add(product.id);
+                            }
+                            setExpandedRows(newExpanded);
+                          }}
+                        >
+                          {expandedRows.has(product.id) ? (
+                            <ChevronDown className="h-3 w-3" />
+                          ) : (
+                            <ChevronRight className="h-3 w-3" />
+                          )}
+                        </Button>
+                      )}
+                    </TableCell>
+                    {visibleColumns.map((col) => (
+                      <TableCell key={col.field} className="text-xs">
+                        {col.body ? col.body(product) : product[col.field]}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {expandedRows.has(product.id) && (
+                    <TableRow>
+                      <TableCell colSpan={visibleColumns.length + 2}>
+                        {rowExpansionTemplate(product)}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              ))
+            )}
+          </TableBody>
+        </Table>
+
+        <PaginationControls />
+      </div>
+
+      {/* Alert Dialogs */}
+      <AlertDialog open={duplicateConfirm.open} onOpenChange={(open) => !open && setDuplicateConfirm({ open: false, product: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Duplicate Product</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to duplicate this product?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="h-8 text-xs" onClick={handleDuplicate}>
+              Duplicate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={archiveConfirm.open} onOpenChange={(open) => !open && setArchiveConfirm({ open: false, products: [] })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Confirm Archive</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="h-8 text-xs" onClick={handleItemsArchive}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={purgeConfirm.open} onOpenChange={(open) => !open && setPurgeConfirm({ open: false, products: [] })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Confirm Permanent Delete</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to proceed? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="h-8 text-xs" onClick={() => handlePurgeItems(purgeConfirm.products)}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={unArchiveConfirm.open} onOpenChange={(open) => !open && setUnArchiveConfirm({ open: false, products: [] })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Confirm Restore</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="h-8 text-xs" onClick={() => handleUnArchiveItems(unArchiveConfirm.products)}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={exportConfirm.open} onOpenChange={(open) => !open && setExportConfirm({ open: false, type: 'all' })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">
+              {exportConfirm.type === 'all' ? 'Export All Items' : 'Export Selected Items'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              {exportConfirm.type === 'all'
+                ? 'Are you sure you want to export all items?'
+                : `Are you sure you want to export ${selectedProducts.length} selected items?`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="h-8 text-xs"
+              onClick={exportConfirm.type === 'all' ? handleExportAll : handleItemsExport}
+            >
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
 export default Product;
-
-function useRef(initialValue: any) {
-  const ref = React.useRef(initialValue);
-  return ref;
-}

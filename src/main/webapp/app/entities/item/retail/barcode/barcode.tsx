@@ -1,9 +1,5 @@
-import { Button } from 'primereact/button'
-import { InputText } from 'primereact/inputtext'
-import { Dialog } from 'primereact/dialog'
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useReactToPrint } from 'react-to-print'
-import { Card, CardBody, Col, Container, Row } from 'reactstrap'
 import ReactBarcode from 'react-barcode'
 import { IProduct } from 'app/shared/model/ITEM/retail/product.model'
 import { useAppDispatch, useAppSelector } from 'app/config/store'
@@ -12,13 +8,17 @@ import { filterEntities } from '../product/product.reducer'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { initialItemFilterState } from 'app/shared/model/filter-state.model'
 import PaginationFilter from 'app/shared/components/pagination/pagination-filter'
-import { Dropdown } from 'primereact/dropdown'
 import { FilterMatchMode } from 'primereact/api'
 import DropDownFilter from 'app/shared/components/filter/drop-down-filter'
-import { Checkbox } from 'primereact/checkbox'
 import "./barcode.css"
-import { InputNumber } from 'primereact/inputnumber'
 import { formatVariant } from 'app/shared/util/variant-utils'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Card, CardContent } from '@/components/ui/card'
+import Select from 'react-select'
 
 type VariantSkus = {
     variantId: string
@@ -268,7 +268,7 @@ const Barcode = () => {
         { label: "pharmacode", value: "pharmacode" },
         { label: "codabar", value: "codabar" },
         { label: "GenericBarcode", value: "GenericBarcode" },
-    ]
+    ] as { label: string; value: string }[]
 
     if (products.length === 0) {
         return (
@@ -279,13 +279,13 @@ const Barcode = () => {
     }
 
     return (
-        <Container className="d-flex flex-column align-items-center p-5">
-            <Row className="w-100 mb-4">
-                <Col md={12}>
-                    <div className="d-flex justify-content-between">
-                        <div className="d-flex gap-2">
-                            <InputText
-                                className="w-100 me-2"
+        <div className="flex flex-col items-center p-5">
+            <div className="w-full mb-4">
+                <div>
+                    <div className="flex justify-between">
+                        <div className="flex gap-2">
+                            <Input
+                                className="w-full h-8 text-xs"
                                 placeholder="search items"
                                 value={searchParams.get('name') || ''}
                                 onChange={e => handleNavigation(createQueryString('name', e.target.value))}
@@ -304,339 +304,347 @@ const Barcode = () => {
                                 }}
                             />
                         </div>
-                        <Button severity="info" onClick={() => setShowPrintDialog(true)}>
+                        <Button onClick={() => setShowPrintDialog(true)} className="h-8 text-xs">
                             Print
                         </Button>
                     </div>
-                </Col>
-            </Row>
-
-            <Dialog
-                header="Print Settings"
-                visible={showPrintDialog}
-                onHide={() => setShowPrintDialog(false)}
-                style={{ width: '80vw', maxWidth: '1000px' }}
-            >
-                <div className="row">
-                    <div className="col-md-6 d-flex flex-column gap-3">
-                        <Row className='d-flex flex-column gap-1'>
-                            <h6 className='m-0 p-0'>Label Settings</h6>
-                            <div className='d-flex gap-2'>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Width (e.g. 50mm)</span>
-                                    <InputText
-                                        value={printSettings.labelWidth}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, labelWidth: e.target.value })
-                                        }
-                                        placeholder="Width"
-                                        className="w-auto"
-                                    />
-                                </div>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Height (e.g. 30mm)</span>
-                                    <InputText
-                                        value={printSettings.labelHeight}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, labelHeight: e.target.value })
-                                        }
-                                        placeholder="Height"
-                                        className="w-auto"
-                                    />
-                                </div>
-                            </div>
-                            <div style={{ marginTop: '8px', fontWeight: 'bold', color: heightValidationColor }}>
-                                {heightValidationColor === 'green'
-                                    ? 'Heights match the label height!'
-                                    : 'Warning: The sum of name, sku, price, and barcode heights does NOT match the label height!'}
-                            </div>
-                        </Row>
-
-                        <Row className='d-flex flex-column gap-1'>
-                            <h6 className='m-0 p-0'>Sku Settings</h6>
-                            <div className="d-flex gap-2">
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Show</span>
-                                    <Checkbox
-                                        checked={printSettings.showSku}
-                                        onChange={(e) => setPrintSettings({ ...printSettings, showSku: e.checked })}
-                                        inputId="showSku"
-                                    />
-                                </div>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Height (e.g. 5mm)</span>
-                                    <InputText
-                                        value={printSettings.skuHeight}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, skuHeight: e.target.value })
-                                        }
-                                        placeholder="Height"
-                                        className="w-auto"
-                                        disabled={!printSettings.showSku}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Font Size (e.g. 12px)</span>
-                                    <InputText
-                                        value={printSettings.skuFontSize}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, skuFontSize: e.target.value })
-                                        }
-                                        placeholder="Font Size"
-                                        className="w-auto"
-                                    />
-                                </div>
-                            </div>
-                        </Row>
-
-                        <Row className='d-flex flex-column gap-1'>
-                            <h6 className='m-0 p-0'>Name Settings</h6>
-                            <div className='d-flex gap-2'>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Show</span>
-                                    <Checkbox
-                                        checked={printSettings.showName}
-                                        onChange={(e) => setPrintSettings({ ...printSettings, showName: e.checked })}
-                                        inputId="showName"
-                                    />
-                                </div>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Height (e.g. 5mm)</span>
-                                    <InputText
-                                        value={printSettings.nameHeight}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, nameHeight: e.target.value })
-                                        }
-                                        placeholder="Height"
-                                        className="w-auto"
-                                        disabled={!printSettings.showName}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Font Size (e.g. 14px)</span>
-                                    <InputText
-                                        value={printSettings.nameFontSize}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, nameFontSize: e.target.value })
-                                        }
-                                        placeholder="Font Size"
-                                        className="w-auto"
-                                    />
-                                </div>
-                            </div>
-                        </Row>
-
-                        <Row className='d-flex flex-column gap-1'>
-                            <h6 className='m-0 p-0'>Price Settings</h6>
-                            <div className='d-flex gap-2'>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Show</span>
-                                    <Checkbox
-                                        checked={printSettings.showPrice}
-                                        onChange={(e) => setPrintSettings({ ...printSettings, showPrice: e.checked })}
-                                        inputId="showPrice"
-                                    />
-                                </div>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Height (e.g. 5mm)</span>
-                                    <InputText
-                                        value={printSettings.priceHeight}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, priceHeight: e.target.value })
-                                        }
-                                        placeholder="Height"
-                                        className="w-auto"
-                                        disabled={!printSettings.showPrice}
-                                    />
-                                </div>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Font Size (e.g. 12px)</span>
-                                    <InputText
-                                        value={printSettings.priceFontSize}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, priceFontSize: e.target.value })
-                                        }
-                                        placeholder="Font Size"
-                                        className="w-auto"
-                                    />
-                                </div>
-                            </div>
-                        </Row>
-
-                        <Row className='d-flex flex-column gap-1'>
-                            <h6 className='m-0 p-0'>Barcode Settings</h6>
-                            <div className='d-flex gap-2'>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Show Value</span>
-                                    <Checkbox
-                                        checked={printSettings.showBarcodeValue}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, showBarcodeValue: e.checked })
-                                        }
-                                        inputId="showBarcodeValue"
-                                    />
-                                </div>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Height (e.g. 20mm)</span>
-                                    <InputText
-                                        value={printSettings.barcodeHeight}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, barcodeHeight: e.target.value })
-                                        }
-                                        placeholder="Height"
-                                        className="w-auto"
-                                    />
-                                </div>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Width (factor)</span>
-                                    <InputNumber
-                                        value={printSettings.barcodeWidth}
-                                        onChange={(e) =>
-                                            setPrintSettings({ ...printSettings, barcodeWidth: e.value })
-                                        }
-                                        step={0.01}
-                                        placeholder="Width"
-                                        className="w-auto"
-                                    />
-                                </div>
-                            </div>
-                            <div className='d-flex gap-2'>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Position</span>
-                                    <Dropdown
-                                        options={[
-                                            { label: 'TOP', value: 'TOP' },
-                                            { label: 'BOTTOM', value: 'BOTTOM' },
-                                        ]}
-                                        value={printSettings.barcodePosition}
-                                        onChange={(e) => setPrintSettings({ ...printSettings, barcodePosition: e.value })}
-                                        placeholder="Position"
-                                    />
-                                </div>
-                                <div className="d-flex flex-column align-items-center gap-2">
-                                    <span>Format</span>
-                                    <Dropdown
-                                        options={barcodeFormats}
-                                        value={printSettings.barcodeFormat}
-                                        onChange={(e) => setPrintSettings({ ...printSettings, barcodeFormat: e.value })}
-                                        placeholder="Format"
-                                    />
-                                </div>
-                            </div>
-                        </Row>
-
-                        <div className="d-flex justify-content-end gap-2 mt-3">
-                            <Button label="Cancel" onClick={() => setShowPrintDialog(false)} />
-                            <Button label="Print" severity="info" onClick={onDialogPrint} />
-                        </div>
-                    </div>
-
-                    <div className='col-md-6 d-flex justify-content-end'>
-                        <div
-                            style={{
-                                maxHeight: '400px',
-                                overflowY: 'auto',
-                                border: '1px solid #ccc',
-                                padding: '10px',
-                            }}
-                        >
-                            {printVariants.length === 0 && (
-                                <div className="text-muted">No items selected</div>
-                            )}
-                            {printVariants.map((vSku) => (
-                                <div
-                                    key={vSku.variantId}
-                                    style={{
-                                        width: printSettings.labelWidth,
-                                        border: '1px dashed #ccc',
-                                        position: 'relative',
-                                        marginBottom: '10px',
-                                        maxHeight: printSettings.labelHeight,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    {printSettings.barcodePosition === 'TOP' && (
-                                        <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper">
-                                            <ReactBarcode
-                                                value={vSku.sku}
-                                                format={printSettings.barcodeFormat}
-                                                displayValue={printSettings.showBarcodeValue}
-                                                lineColor="#1a1a1a"
-                                                background="#ffffff"
-                                                fontSize={10}
-                                                width={printSettings.barcodeWidth}
-                                            />
-                                        </div>
-                                    )}
-                                    {printSettings.showName && (
-                                        <div
-                                            style={{
-                                                height: printSettings.nameHeight,
-                                                width: '100%',
-                                                textAlign: 'center',
-                                                fontSize: printSettings.nameFontSize
-                                            }}
-                                        >
-                                            {vSku.variantName}
-                                        </div>
-                                    )}
-                                    {printSettings.showSku && (
-                                        <div style={{ height: printSettings.skuHeight, fontSize: printSettings.skuFontSize }}>
-                                            {vSku.sku}
-                                        </div>
-                                    )}
-                                    {printSettings.showPrice && (
-                                        <div style={{ height: printSettings.priceHeight, fontSize: printSettings.priceFontSize }}>
-                                            {vSku.price}
-                                        </div>
-                                    )}
-                                    {printSettings.barcodePosition === 'BOTTOM' && (
-                                        <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper">
-                                            <ReactBarcode
-                                                value={vSku.sku}
-                                                format={printSettings.barcodeFormat}
-                                                displayValue={printSettings.showBarcodeValue}
-                                                lineColor="#1a1a1a"
-                                                background="#ffffff"
-                                                fontSize={10}
-                                                width={printSettings.barcodeWidth}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
                 </div>
+            </div>
+
+            <Dialog open={showPrintDialog} onOpenChange={setShowPrintDialog}>
+                <DialogContent className="max-w-[1000px] w-[80vw]">
+                    <DialogHeader>
+                        <DialogTitle className="text-base">Print Settings</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-3">
+                            <div className='flex flex-col gap-1'>
+                                <h6 className='m-0 p-0'>Label Settings</h6>
+                                <div className='flex gap-2'>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Width (e.g. 50mm)</span>
+                                        <Input
+                                            value={printSettings.labelWidth}
+                                            onChange={(e) =>
+                                                setPrintSettings({ ...printSettings, labelWidth: e.target.value })
+                                            }
+                                            placeholder="Width"
+                                            className="w-auto h-8 text-xs"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Height (e.g. 30mm)</span>
+                                        <Input
+                                            value={printSettings.labelHeight}
+                                            onChange={(e) =>
+                                                setPrintSettings({ ...printSettings, labelHeight: e.target.value })
+                                            }
+                                            placeholder="Height"
+                                            className="w-auto h-8 text-xs"
+                                        />
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: '8px', fontWeight: 'bold', color: heightValidationColor }}>
+                                    {heightValidationColor === 'green'
+                                        ? 'Heights match the label height!'
+                                        : 'Warning: The sum of name, sku, price, and barcode heights does NOT match the label height!'}
+                                </div>
+                            </div>
+
+                            <div className='flex flex-col gap-1'>
+                                <h6 className='m-0 p-0'>Sku Settings</h6>
+                                <div className="flex gap-2">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Show</span>
+                                        <Checkbox
+                                            id="showSku"
+                                            checked={printSettings.showSku}
+                                            onCheckedChange={(checked) => setPrintSettings({ ...printSettings, showSku: checked === true })}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Height (e.g. 5mm)</span>
+                                        <Input
+                                            value={printSettings.skuHeight}
+                                            onChange={(e) =>
+                                                setPrintSettings({ ...printSettings, skuHeight: e.target.value })
+                                            }
+                                            placeholder="Height"
+                                            className="w-auto h-8 text-xs"
+                                            disabled={!printSettings.showSku}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Font Size (e.g. 12px)</span>
+                                        <Input
+                                            value={printSettings.skuFontSize}
+                                            onChange={(e) =>
+                                                setPrintSettings({ ...printSettings, skuFontSize: e.target.value })
+                                            }
+                                            placeholder="Font Size"
+                                            className="w-auto h-8 text-xs"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className='flex flex-col gap-1'>
+                                <h6 className='m-0 p-0'>Name Settings</h6>
+                                <div className='flex gap-2'>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Show</span>
+                                        <Checkbox
+                                            id="showName"
+                                            checked={printSettings.showName}
+                                            onCheckedChange={(checked) => setPrintSettings({ ...printSettings, showName: checked === true })}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Height (e.g. 5mm)</span>
+                                        <Input
+                                            value={printSettings.nameHeight}
+                                            onChange={(e) =>
+                                                setPrintSettings({ ...printSettings, nameHeight: e.target.value })
+                                            }
+                                            placeholder="Height"
+                                            className="w-auto h-8 text-xs"
+                                            disabled={!printSettings.showName}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Font Size (e.g. 14px)</span>
+                                        <Input
+                                            value={printSettings.nameFontSize}
+                                            onChange={(e) =>
+                                                setPrintSettings({ ...printSettings, nameFontSize: e.target.value })
+                                            }
+                                            placeholder="Font Size"
+                                            className="w-auto h-8 text-xs"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className='flex flex-col gap-1'>
+                                <h6 className='m-0 p-0'>Price Settings</h6>
+                                <div className='flex gap-2'>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Show</span>
+                                        <Checkbox
+                                            id="showPrice"
+                                            checked={printSettings.showPrice}
+                                            onCheckedChange={(checked) => setPrintSettings({ ...printSettings, showPrice: checked === true })}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Height (e.g. 5mm)</span>
+                                        <Input
+                                            value={printSettings.priceHeight}
+                                            onChange={(e) =>
+                                                setPrintSettings({ ...printSettings, priceHeight: e.target.value })
+                                            }
+                                            placeholder="Height"
+                                            className="w-auto h-8 text-xs"
+                                            disabled={!printSettings.showPrice}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Font Size (e.g. 12px)</span>
+                                        <Input
+                                            value={printSettings.priceFontSize}
+                                            onChange={(e) =>
+                                                setPrintSettings({ ...printSettings, priceFontSize: e.target.value })
+                                            }
+                                            placeholder="Font Size"
+                                            className="w-auto h-8 text-xs"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className='flex flex-col gap-1'>
+                                <h6 className='m-0 p-0'>Barcode Settings</h6>
+                                <div className='flex gap-2'>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Show Value</span>
+                                        <Checkbox
+                                            id="showBarcodeValue"
+                                            checked={printSettings.showBarcodeValue}
+                                            onCheckedChange={(checked) =>
+                                                setPrintSettings({ ...printSettings, showBarcodeValue: checked === true })
+                                            }
+                                        />
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Height (e.g. 20mm)</span>
+                                        <Input
+                                            value={printSettings.barcodeHeight}
+                                            onChange={(e) =>
+                                                setPrintSettings({ ...printSettings, barcodeHeight: e.target.value })
+                                            }
+                                            placeholder="Height"
+                                            className="w-auto h-8 text-xs"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Width (factor)</span>
+                                        <Input
+                                            type="number"
+                                            value={printSettings.barcodeWidth}
+                                            onChange={(e) =>
+                                                setPrintSettings({ ...printSettings, barcodeWidth: parseFloat(e.target.value) || 1 })
+                                            }
+                                            step={0.01}
+                                            placeholder="Width"
+                                            className="w-auto h-8 text-xs"
+                                        />
+                                    </div>
+                                </div>
+                                <div className='flex gap-2'>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Position</span>
+                                        <Select
+                                            value={{ label: printSettings.barcodePosition, value: printSettings.barcodePosition }}
+                                            options={[
+                                                { label: 'TOP', value: 'TOP' },
+                                                { label: 'BOTTOM', value: 'BOTTOM' },
+                                            ]}
+                                            onChange={(option) => setPrintSettings({ ...printSettings, barcodePosition: option?.value as 'TOP' | 'BOTTOM' })}
+                                            placeholder="Position"
+                                            styles={{
+                                                control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                                                option: (base) => ({ ...base, fontSize: '0.75rem' })
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs">Format</span>
+                                        <Select
+                                            value={{ label: printSettings.barcodeFormat, value: printSettings.barcodeFormat }}
+                                            options={barcodeFormats}
+                                            onChange={(option) => setPrintSettings({ ...printSettings, barcodeFormat: option?.value as any })}
+                                            placeholder="Format"
+                                            styles={{
+                                                control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                                                option: (base) => ({ ...base, fontSize: '0.75rem' })
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='flex justify-end'>
+                            <div
+                                style={{
+                                    maxHeight: '400px',
+                                    overflowY: 'auto',
+                                    border: '1px solid #ccc',
+                                    padding: '10px',
+                                }}
+                            >
+                                {printVariants.length === 0 && (
+                                    <div className="text-muted">No items selected</div>
+                                )}
+                                {printVariants.map((vSku) => (
+                                    <div
+                                        key={vSku.variantId}
+                                        style={{
+                                            width: printSettings.labelWidth,
+                                            border: '1px dashed #ccc',
+                                            position: 'relative',
+                                            marginBottom: '10px',
+                                            maxHeight: printSettings.labelHeight,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        {printSettings.barcodePosition === 'TOP' && (
+                                            <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper">
+                                                <ReactBarcode
+                                                    value={vSku.sku}
+                                                    format={printSettings.barcodeFormat}
+                                                    displayValue={printSettings.showBarcodeValue}
+                                                    lineColor="#1a1a1a"
+                                                    background="#ffffff"
+                                                    fontSize={10}
+                                                    width={printSettings.barcodeWidth}
+                                                />
+                                            </div>
+                                        )}
+                                        {printSettings.showName && (
+                                            <div
+                                                style={{
+                                                    height: printSettings.nameHeight,
+                                                    width: '100%',
+                                                    textAlign: 'center',
+                                                    fontSize: printSettings.nameFontSize
+                                                }}
+                                            >
+                                                {vSku.variantName}
+                                            </div>
+                                        )}
+                                        {printSettings.showSku && (
+                                            <div style={{ height: printSettings.skuHeight, fontSize: printSettings.skuFontSize }}>
+                                                {vSku.sku}
+                                            </div>
+                                        )}
+                                        {printSettings.showPrice && (
+                                            <div style={{ height: printSettings.priceHeight, fontSize: printSettings.priceFontSize }}>
+                                                {vSku.price}
+                                            </div>
+                                        )}
+                                        {printSettings.barcodePosition === 'BOTTOM' && (
+                                            <div style={{ height: printSettings.barcodeHeight }} className="barcode-wrapper">
+                                                <ReactBarcode
+                                                    value={vSku.sku}
+                                                    format={printSettings.barcodeFormat}
+                                                    displayValue={printSettings.showBarcodeValue}
+                                                    lineColor="#1a1a1a"
+                                                    background="#ffffff"
+                                                    fontSize={10}
+                                                    width={printSettings.barcodeWidth}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setShowPrintDialog(false)} variant="outline" className="h-8 text-xs">Cancel</Button>
+                        <Button onClick={onDialogPrint} className="h-8 text-xs">Print</Button>
+                    </DialogFooter>
+                </DialogContent>
             </Dialog>
 
-            <div className="selection-container w-100">
-                <Row className="mb-2">
-                    <Col md={12}>
-                        <label>
-                            <input type="checkbox" checked={isAllSelected} onChange={toggleSelectAll} /> Select All
-                        </label>
-                    </Col>
-                </Row>
-                <Row className="mb-3 w-100">
+            <div className="selection-container w-full">
+                <div className="mb-2">
+                    <div>
+                        <Label className="flex items-center gap-2 cursor-pointer">
+                            <Checkbox checked={isAllSelected} onCheckedChange={toggleSelectAll} />
+                            <span>Select All</span>
+                        </Label>
+                    </div>
+                </div>
+                <div className="mb-3 w-full grid grid-cols-1 md:grid-cols-3 gap-4">
                     {variantsSkus.map(vSku => (
-                        <Col md={4} key={vSku.variantId}>
-                            <Card className="p-2 text-center rounded-3">
-                                <CardBody>
-                                    <div className="d-flex justify-content-between align-items-center">
+                        <div key={vSku.variantId}>
+                            <Card className="p-2 text-center rounded-lg">
+                                <CardContent className="p-4">
+                                    <div className="flex justify-between items-center">
                                         <div>
-                                            <h5 className="mb-2">{formatVariant(vSku.variantName, vSku.attributeValues)}</h5>
-                                            <p className="mb-2">SKU: {vSku.sku}</p>
-                                            <p className="mb-2">Price: {vSku.price}</p>
+                                            <h5 className="mb-2 text-base font-semibold">{formatVariant(vSku.variantName, vSku.attributeValues)}</h5>
+                                            <p className="mb-2 text-xs">SKU: {vSku.sku}</p>
+                                            <p className="mb-2 text-xs">Price: {vSku.price}</p>
                                         </div>
                                         <div>
-                                            <input
-                                                type="checkbox"
+                                            <Checkbox
                                                 checked={isVariantSelected(vSku)}
-                                                onChange={() => toggleVariantSelection(vSku)}
+                                                onCheckedChange={() => toggleVariantSelection(vSku)}
                                             />
                                         </div>
                                     </div>
@@ -651,11 +659,11 @@ const Barcode = () => {
                                             height={50}
                                         />
                                     </div>
-                                </CardBody>
+                                </CardContent>
                             </Card>
-                        </Col>
+                        </div>
                     ))}
-                </Row>
+                </div>
             </div>
 
             <div ref={printRef} className='print-container'>
@@ -714,16 +722,17 @@ const Barcode = () => {
                     </div>
                 ))}
             </div>
-            <Row className="w-100">
-                <Col md={12}>
-                    <div className="d-flex justify-content-center">
+            <div className="w-full">
+                <div>
+                    <div className="flex justify-center">
                         <PaginationFilter
                             totalPages={Math.ceil(
                                 productsTotalItems / (Number(searchParams.get('rows')) || 20)
                             )}
                         />
                         <div>
-                            <Dropdown
+                            <Select
+                                value={{ label: searchParams.get('rows') || '25', value: searchParams.get('rows') || '25' }}
                                 options={[
                                     { label: '25', value: '25' },
                                     { label: '50', value: '50' },
@@ -731,15 +740,18 @@ const Barcode = () => {
                                     { label: '100', value: '100' },
                                     { label: '200', value: '200' },
                                 ]}
-                                value={searchParams.get('rows') || '25'}
-                                onChange={e => handleNavigation(createQueryString('rows', e.value))}
+                                onChange={option => handleNavigation(createQueryString('rows', option?.value || '25'))}
                                 placeholder="Rows"
-                                className="w-100"
+                                className="w-full"
+                                styles={{
+                                    control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                                    option: (base) => ({ ...base, fontSize: '0.75rem' })
+                                }}
                             />
                         </div>
                     </div>
-                </Col>
-            </Row>
+                </div>
+            </div>
 
             <style>{`
                 @media screen {
@@ -756,7 +768,7 @@ const Barcode = () => {
                   }
                 }
             `}</style>
-        </Container>
+        </div>
     )
 }
 
