@@ -1,13 +1,12 @@
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
 import React, { useEffect, useState } from "react";
-import {Button} from "primereact/button";
 import {useNavigate} from "react-router-dom";
 import MinimumStockLevelModal from "./minimum-stock-level-modal";
 import { useAppDispatch } from 'app/config/store';
 import { IStockQuantity } from "app/shared/model/STOCK/stock-quantity.model";
 import { partialUpdateMiniStockLevelEntity } from "app/entities/inventory/stock-config/stock-quantity.reducer";
-import { Spinner } from "reactstrap";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Wallet, Ban, Settings, Plus, Pencil, Loader2 } from 'lucide-react';
 
 const ItemStockTab = ({variants, itemId, refreshProduct }) => {
   const dispatch = useAppDispatch();
@@ -42,11 +41,13 @@ const ItemStockTab = ({variants, itemId, refreshProduct }) => {
   const quantityConfigBodyTemplate = (rowData) => {
     const {stockQuantities: quantity} = rowData;
     const editUrl = `/inventory/stock/stock-quantity/${rowData?.id}/edit?variantId=${rowData.id}&variantName=${rowData.name}&itemId=${rowData.itemId}`;
-    const icon = quantity?.length > 0 ? "pi pi-wallet" : "pi pi-ban";
+    const icon = quantity?.length > 0 ? <Wallet className="h-4 w-4" /> : <Ban className="h-4 w-4 text-muted-foreground" />;
     const handleClick = () => {
       navigate(editUrl)
     }
-    return quantity?.length > 0 ?  <Button icon={icon} onClick={handleClick} /> : <i className={icon} style={{ fontSize: '1.5rem'}} />;
+    return quantity?.length > 0 ?
+      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClick}>{icon}</Button> :
+      <span className="inline-flex items-center justify-center">{icon}</span>;
   };
 
 
@@ -54,7 +55,7 @@ const ItemStockTab = ({variants, itemId, refreshProduct }) => {
     const {purchaseConfig: config} = rowData;
     const createUrl = `/inventory/stock/purchase-config/new?variantId=${rowData.id}&variantName=${rowData.name}&itemId=${rowData.itemId}`
     const editUrl = `/inventory/stock/purchase-config/${rowData?.id}/edit?`;
-    const icon = config ? "pi pi-spin pi-cog" : "pi pi-plus";
+    const icon = config ? <Settings className="h-4 w-4" /> : <Plus className="h-4 w-4" />;
     const handleClick = () => {
       if(!config){
         navigate(createUrl);
@@ -62,12 +63,12 @@ const ItemStockTab = ({variants, itemId, refreshProduct }) => {
         navigate(editUrl)
       }
     }
-    return <Button className={'ml-5'} icon={icon} onClick={handleClick} />;
+    return <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClick}>{icon}</Button>;
   };
 
   const minimumStockLevelBodyTemplate = (rowData) => {
     const {stockQuantities: minimumStockLevel} = rowData;
-    const icon = minimumStockLevel?.length > 0 ? "pi pi-pencil" : "pi pi-ban";
+    const icon = minimumStockLevel?.length > 0 ? <Pencil className="h-4 w-4" /> : <Ban className="h-4 w-4 text-muted-foreground" />;
 
     const updatedMinimumStockLevel = minimumStockLevel?.map(stock => ({
       ...stock,
@@ -87,22 +88,40 @@ const ItemStockTab = ({variants, itemId, refreshProduct }) => {
     }
 
     if(loading && rowData?.id == variantSpinnerId) {
-      return <Spinner/>
+      return <Loader2 className="h-4 w-4 animate-spin" />
     } else
-    return minimumStockLevel?.length > 0 ? <Button className={'ml-5'} icon={icon} onClick={handleClick} /> : <i className={icon} style={{ fontSize: '1.5rem'}} />;
+    return minimumStockLevel?.length > 0 ?
+      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClick}>{icon}</Button> :
+      <span className="inline-flex items-center justify-center">{icon}</span>;
 
   };
 
   return (
     <div className="p-3">
-      <DataTable value={variantsWithItemId}>
-        <Column field="name" header="Variant Name" sortable />
-        <Column field="price" header="Price" sortable />
-        <Column field="sku" header="Sku" sortable />
-        <Column headerStyle={{ width: '9rem' }} header={"Quantity"} body={quantityConfigBodyTemplate} />
-        <Column headerStyle={{ width: '12rem' }} header={"Purchase Config"} body={purchaseConfigBodyTemplate} />
-        <Column headerStyle={{ width: '12rem' }} header={"Minimum Stock Level"} body={minimumStockLevelBodyTemplate} />
-      </DataTable>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-xs">Variant Name</TableHead>
+            <TableHead className="text-xs">Price</TableHead>
+            <TableHead className="text-xs">Sku</TableHead>
+            <TableHead className="text-xs w-24">Quantity</TableHead>
+            <TableHead className="text-xs w-32">Purchase Config</TableHead>
+            <TableHead className="text-xs w-32">Minimum Stock Level</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {variantsWithItemId?.map((variant) => (
+            <TableRow key={variant.id}>
+              <TableCell className="text-xs">{variant.name}</TableCell>
+              <TableCell className="text-xs">{variant.price}</TableCell>
+              <TableCell className="text-xs">{variant.sku}</TableCell>
+              <TableCell className="text-xs text-center">{quantityConfigBodyTemplate(variant)}</TableCell>
+              <TableCell className="text-xs text-center">{purchaseConfigBodyTemplate(variant)}</TableCell>
+              <TableCell className="text-xs text-center">{minimumStockLevelBodyTemplate(variant)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       {openedMinimumStockLevelModal && (
         <MinimumStockLevelModal

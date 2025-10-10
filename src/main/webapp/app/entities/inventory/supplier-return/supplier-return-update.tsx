@@ -1,28 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, Row, Col, FormGroup, Label, Input, Table } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate, translate, getSortState } from 'react-jhipster';
+import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ButtonGroup } from '@/components/ui/button-group';
 
 import { getEntity, createEntity, reset, updateEntity } from './supplier-return.reducer';
-import { IReturnLine, ISupplierReturn } from "app/shared/model/STOCK/supplier-return.model";
-import { getEntities as getWarehouses } from "app/entities/inventory/warehouse/warehouse.reducer";
-import { overridePaginationStateWithQueryParams } from "app/shared/util/entity-utils";
-import { getSortState, Translate, translate } from "react-jhipster";
-import { ITEMS_PER_PAGE } from "app/shared/util/pagination.constants";
-import { getEntities as getSalesLocations } from "app/entities/inventory/sales-location/sales-location.reducer";
-import { getEntities as getPurchaseOrders, reset as resetPO, getEntity as getPurchaseOrder } from "app/entities/inventory/purchase-order/purchase-order.reducer";
-import Select from "react-select";
-import { InputNumber } from "primereact/inputnumber";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { IPurchaseOrder } from "app/shared/model/STOCK/purchase-order.model";
-import { InputTextarea } from "primereact/inputtextarea";
-import { ColumnGroup } from "primereact/columngroup";
-import { Button as PrimeButton } from "primereact/button";
-import { SelectButton } from "primereact/selectbutton";
-import { Card } from "primereact/card";
+import { IReturnLine, ISupplierReturn } from 'app/shared/model/STOCK/supplier-return.model';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+import { getEntities as getPurchaseOrders, reset as resetPO, getEntity as getPurchaseOrder } from 'app/entities/inventory/purchase-order/purchase-order.reducer';
 
 
 const statusOptions: any = [
@@ -120,11 +114,11 @@ export const SupplierReturnUpdate = () => {
     setSelectedReturnLines([]);
   };
 
-  const handleReturnQuantityChange = (index, quantity) => {
+  const handleReturnQuantityChange = (index, value) => {
     const updatedReturnLines = [...(supplierReturn?.returnLines || [])];
     updatedReturnLines[index] = {
       ...updatedReturnLines[index],
-      quantity
+      quantity: Number(value) || 0
     };
     setSupplierReturn((prevState) => ({
       ...prevState,
@@ -132,25 +126,17 @@ export const SupplierReturnUpdate = () => {
     }));
   };
 
-  const handleReturnPriceChange = (index, returnPrice) => {
+  const handleReturnPriceChange = (index, value) => {
     const updatedReturnLines = [...(supplierReturn?.returnLines || [])];
     updatedReturnLines[index] = {
       ...updatedReturnLines[index],
-      returnPrice
+      returnPrice: Number(value) || 0
     };
     setSupplierReturn((prevState) => ({
       ...prevState,
       returnLines: updatedReturnLines
     }));
   };
-
-
-  const tableFooterTemplate = (
-    <div className={"d-flex justify-content-end"}>
-      <PrimeButton onClick={handleAdd} disabled={selectedReturnLines?.length === 0}>Add To Return Lines</PrimeButton>
-    </div>
-  );
-
 
   const handleRemoveClick = (index) => {
     setSupplierReturn((prevState) => {
@@ -158,7 +144,7 @@ export const SupplierReturnUpdate = () => {
       return {
         ...prevState,
         returnLines: updatedReturnLines
-      }
+      };
     });
   };
 
@@ -193,162 +179,250 @@ export const SupplierReturnUpdate = () => {
   };
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>{isNew ? `${translate('tempApp.supplierReturn.createNew')}` : `${translate('tempApp.supplierReturn.edit')}`}</h2>
-        </Col>
-      </Row>
-      <Row>
-        <Col md="8" className="d-flex flex-column p-3">
-          <Card>
-            {loading ? (
-              <p>Loading...</p>
-            ) : (
-              <form>
-                <FormGroup>
-                  <div className={'d-flex flex-column'}>
-                    {/* <strong>
-                      <Label for="purchaseOrder">
-                        <Translate contentKey={"tempApp.supplierReturn.purchaseOrder"} />
-                      </Label>
-                    </strong> */}
+    <div className="p-4 space-y-4">
+      <div>
+        <h2 className="text-lg font-bold">
+          {isNew ? translate('tempApp.supplierReturn.createNew') : translate('tempApp.supplierReturn.edit')}
+        </h2>
+      </div>
 
-                    <PurchaseOrderCard purchaseOrder={supplierReturn?.purchaseOrder} />
+      <div className="max-w-5xl">
+        <Card>
+          {loading ? (
+            <CardContent>
+              <p className="text-xs">Loading...</p>
+            </CardContent>
+          ) : (
+            <form className="space-y-4">
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <PurchaseOrderCard purchaseOrder={supplierReturn?.purchaseOrder} />
+                </div>
 
-                    {/* <Select
-                      value={supplierReturn?.purchaseOrder || null}
-                      options={purchaseOrderList}
-                      getOptionLabel={(option: IPurchaseOrder) => option?.id}
-                      getOptionValue={option => option.id}
-                      id="purchaseOrder"
-                      isDisabled={!isNew}
-                      onChange={purchaseOrder => setSupplierReturn(prv => ({ ...prv, purchaseOrder }))}
-                    /> */}
-
-                  </div>
-
-                  <div className={'d-flex flex-column mt-2'}>
-                    <strong>
-                      <Label for="status">
-                        <Translate contentKey={"common.status"} />  Status
-                      </Label>
-                    </strong>
-                    <SelectButton
-                      value={supplierReturn?.status ?? 'PARKED'}
-                      options={statusOptions}
-                      id="status"
-                      disabled={isDisabled}
-                      onChange={e => setSupplierReturn(prv => ({ ...prv, status: e.value }))}
-                    />
-                  </div>
-
-                  <div className={'d-flex flex-column mt-2'}>
-                    <strong>
-                      <Label for="comment">
-                        <Translate contentKey={"common.comment"} />
-                      </Label>
-                    </strong>
-                    <InputTextarea
-                      value={supplierReturn?.comment || ''}
-                      id="comment"
-                      disabled={isDisabled}
-                      onChange={e => setSupplierReturn(prv => ({ ...prv, comment: e.target.value }))}
-                    />
-                  </div>
-
-                  {!isDisabled ? (
-                    <Row className={'mt-3'}>
-                      <DataTable
-                        value={filteredOrderLines || []}
-                        selectionMode={isDisabled ? null : "multiple"}
-                        dataKey="id"
-                        header={translate("tempApp.supplier.orderLines")}
-                        emptyMessage={translate("tempApp.supplier.noOrderLines")}
-                        metaKeySelection={false}
-                        footer={tableFooterTemplate}
-                        selection={selectedReturnLines}
-                        onSelectionChange={isDisabled ? null : (e => setSelectedReturnLines(e.value))}
+                <div className="space-y-2">
+                  <Label htmlFor="status" className="text-xs font-bold">
+                    <Translate contentKey="common.status" />
+                  </Label>
+                  <ButtonGroup>
+                    {statusOptions.map((status) => (
+                      <Button
+                        key={status}
+                        type="button"
+                        variant={supplierReturn?.status === status ? 'default' : 'outline'}
+                        size="sm"
+                        className="h-8 text-xs"
+                        disabled={isDisabled}
+                        onClick={() => setSupplierReturn(prv => ({ ...prv, status }))}
                       >
-                        {!isDisabled && <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />}
-                        <Column field="item.name" header={translate("common.item")} />
-                        <Column field="lineTotal" header={translate("tempApp.supplierReturn.lineTotal")} />
-                        <Column field="price" header={translate("common.price")} />
-                        <Column field="received" header={translate("tempApp.supplierReturn.receivedQuantity")} />
-                        <Column field="returnedQuantity" header={translate("tempApp.supplierReturn.returnedQuantity")} />
-                        <Column body={rowData => rowData.received - rowData.returnedQuantity} header={translate("tempApp.supplierReturn.availableQuantity")} />
-                      </DataTable>
-                    </Row>
-                  ) : null}
+                        {status}
+                      </Button>
+                    ))}
+                  </ButtonGroup>
+                </div>
 
-                  <Row className={'mt-3'}>
-                    <h3>
-                      <Translate contentKey={"tempApp.supplierReturn.returnLines"} />
+                <div className="space-y-2">
+                  <Label htmlFor="comment" className="text-xs font-bold">
+                    <Translate contentKey="common.comment" />
+                  </Label>
+                  <Textarea
+                    value={supplierReturn?.comment || ''}
+                    id="comment"
+                    disabled={isDisabled}
+                    className="h-20 text-xs"
+                    onChange={e => setSupplierReturn(prv => ({ ...prv, comment: e.target.value }))}
+                  />
+                </div>
+
+                {!isDisabled && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-bold">
+                      <Translate contentKey="tempApp.supplier.orderLines" />
                     </h3>
+                    <div className="border rounded-md">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs w-12 text-center">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4"
+                                checked={selectedReturnLines.length === filteredOrderLines?.length && filteredOrderLines?.length > 0}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedReturnLines(filteredOrderLines || []);
+                                  } else {
+                                    setSelectedReturnLines([]);
+                                  }
+                                }}
+                              />
+                            </TableHead>
+                            <TableHead className="text-xs">{translate('common.item')}</TableHead>
+                            <TableHead className="text-xs text-right">{translate('tempApp.supplierReturn.lineTotal')}</TableHead>
+                            <TableHead className="text-xs text-right">{translate('common.price')}</TableHead>
+                            <TableHead className="text-xs text-right">{translate('tempApp.supplierReturn.receivedQuantity')}</TableHead>
+                            <TableHead className="text-xs text-right">{translate('tempApp.supplierReturn.returnedQuantity')}</TableHead>
+                            <TableHead className="text-xs text-right">{translate('tempApp.supplierReturn.availableQuantity')}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredOrderLines?.length > 0 ? (
+                            filteredOrderLines.map((orderLine) => (
+                              <TableRow key={orderLine.id}>
+                                <TableCell className="text-xs text-center">
+                                  <input
+                                    type="checkbox"
+                                    className="h-4 w-4"
+                                    checked={selectedReturnLines.some(line => line.id === orderLine.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedReturnLines([...selectedReturnLines, orderLine]);
+                                      } else {
+                                        setSelectedReturnLines(selectedReturnLines.filter(line => line.id !== orderLine.id));
+                                      }
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell className="text-xs">{orderLine.item?.name}</TableCell>
+                                <TableCell className="text-xs text-right">{orderLine.lineTotal}</TableCell>
+                                <TableCell className="text-xs text-right">{orderLine.price}</TableCell>
+                                <TableCell className="text-xs text-right">{orderLine.received}</TableCell>
+                                <TableCell className="text-xs text-right">{orderLine.returnedQuantity}</TableCell>
+                                <TableCell className="text-xs text-right">{orderLine.received - orderLine.returnedQuantity}</TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-xs text-center text-muted-foreground">
+                                {translate('tempApp.supplier.noOrderLines')}
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                      <div className="flex justify-end p-2 border-t">
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={handleAdd}
+                          disabled={selectedReturnLines?.length === 0}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add To Return Lines
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <h3 className="text-sm font-bold">
+                    <Translate contentKey="tempApp.supplierReturn.returnLines" />
+                  </h3>
+                  <div className="border rounded-md">
                     <Table>
-                      <tbody>
-                        <tr>
-                          <td className={'font-bold'}>Order Line ID</td>
-                          <td className={'font-bold'}>Item</td>
-                          <td className={'font-bold'}>Return Quantity</td>
-                          <td className={'font-bold'}>Return Price</td>
-                          <td></td>
-                          {!isDisabled ? <td className={'font-bold'}>Action</td> : null}
-                        </tr>
-                        {supplierReturn?.returnLines?.map((returnLine, index) => (
-                          <tr key={index}>
-                            <td className={'w-4'}>{returnLine?.orderLineId}</td>
-                            <td className={'w-2'}>{returnLine?.itemName}</td>
-                            <td className={'w-1'}>
-                              <InputNumber
-                                value={returnLine.quantity}
-                                disabled={isDisabled}
-                                onChange={e => handleReturnQuantityChange(index, e.value)}
-                              />
-                            </td>
-                            <td className={'w-2'}>
-                              <InputNumber
-                                value={returnLine.returnPrice}
-                                disabled={isDisabled}
-                                onChange={e => handleReturnPriceChange(index, e.value)}
-                              />
-                            </td>
-                            <td></td>
-                            {!isDisabled ? (
-                              <td>
-                                <PrimeButton label={'Remove'} severity={'danger'} raised onClick={() => handleRemoveClick(index)} />
-                              </td>
-                            ) : null}
-                          </tr>
-                        ))}
-                      </tbody>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">Order Line ID</TableHead>
+                          <TableHead className="text-xs">Item</TableHead>
+                          <TableHead className="text-xs">Return Quantity</TableHead>
+                          <TableHead className="text-xs">Return Price</TableHead>
+                          {!isDisabled && <TableHead className="text-xs w-24">Action</TableHead>}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {supplierReturn?.returnLines?.length > 0 ? (
+                          supplierReturn.returnLines.map((returnLine, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="text-xs">{returnLine?.orderLineId}</TableCell>
+                              <TableCell className="text-xs">{returnLine?.itemName}</TableCell>
+                              <TableCell className="text-xs">
+                                <Input
+                                  type="number"
+                                  value={returnLine.quantity}
+                                  disabled={isDisabled}
+                                  className="h-7 text-xs w-24"
+                                  onChange={e => handleReturnQuantityChange(index, e.target.value)}
+                                />
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                <Input
+                                  type="number"
+                                  value={returnLine.returnPrice}
+                                  disabled={isDisabled}
+                                  className="h-7 text-xs w-24"
+                                  onChange={e => handleReturnPriceChange(index, e.target.value)}
+                                />
+                              </TableCell>
+                              {!isDisabled && (
+                                <TableCell className="text-xs">
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    onClick={() => handleRemoveClick(index)}
+                                  >
+                                    <Trash2 className="h-3 w-3 mr-1" />
+                                    Remove
+                                  </Button>
+                                </TableCell>
+                              )}
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={!isDisabled ? 5 : 4} className="text-xs text-center text-muted-foreground">
+                              No return lines added
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
                     </Table>
-                  </Row>
-                </FormGroup>
-                <Button id="cancel-save" data-cy="entityCreateCancelButton" onClick={() => navigate(-1)} color="info">
-                  <FontAwesomeIcon icon="arrow-left" />
-                  &nbsp;
-                  <span className="d-none d-md-inline">
-                    <Translate contentKey="entity.action.back">Back</Translate>
-                  </span>
+                  </div>
+                </div>
+              </CardContent>
+
+              <div className="flex gap-2 px-2 pb-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => navigate(-1)}
+                  id="cancel-save"
+                  data-cy="entityCreateCancelButton"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  <Translate contentKey="entity.action.back">Back</Translate>
                 </Button>
-                &nbsp;
-                <Button onClick={saveEntity} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating || isDisabled}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={saveEntity}
+                  disabled={updating || isDisabled}
+                  id="save-entity"
+                  data-cy="entityCreateSaveButton"
+                >
+                  <Save className="h-4 w-4 mr-1" />
                   <Translate contentKey="entity.action.save">Save</Translate>
                 </Button>
-                &nbsp;
-                <Button onClick={(e) => saveEntity(e, true)} color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating || isDisabled}>
-                  <FontAwesomeIcon icon="save" />
-                  &nbsp;
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={(e) => saveEntity(e, true)}
+                  disabled={updating || isDisabled}
+                >
+                  <Save className="h-4 w-4 mr-1" />
                   <Translate contentKey="entity.action.saveandnew">Save & create</Translate>
                 </Button>
-              </form>
-            )}
-          </Card>
-        </Col>
-      </Row>
+              </div>
+            </form>
+          )}
+        </Card>
+      </div>
     </div>
   );
 };
@@ -363,78 +437,28 @@ const PurchaseOrderCard = ({ purchaseOrder }) => {
     datePlaced,
     dateDelivered,
     warehouse,
-    // orderLines,
-    // costLines,
   } = purchaseOrder;
 
   const formattedDatePlaced = new Date(datePlaced).toLocaleDateString();
   const formattedDateDelivered = new Date(dateDelivered).toLocaleDateString();
 
   return (
-    <div className="p-0 card">
-      <div className="card-header bg-primary text-white">
-        Purchase Order #{id}
-      </div>
-      <div className="card-body">
-        <h5 className="card-title">{supplier?.name}</h5>
-        <p className="card-text">
-          <strong>Status:</strong> {status} <br />
-          <strong>Date Placed:</strong> {formattedDatePlaced} <br />
-          <strong>Date Delivered:</strong> {formattedDateDelivered} <br />
-          <strong>Warehouse:</strong> {warehouse?.name}
-        </p>
-        {/* {orderLines && orderLines.length > 0 && (
-          <>
-            <h6>Order Lines</h6>
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Quantity</th>
-                  <th>Price</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orderLines.map((line) => (
-                  <tr key={line.id}>
-                    <td>{line?.item?.name}</td>
-                    <td>{line?.quantity}</td>
-                    <td>${line?.price}</td>
-                    <td>${line?.lineTotal}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        )}
-        {costLines && costLines.length > 0 && (
-          <>
-            <h6>Cost Lines</h6>
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Supplier</th>
-                  <th>Cost</th>
-                  <th>Date</th>
-                  <th>Comment</th>
-                </tr>
-              </thead>
-              <tbody>
-                {costLines.map((line, index) => (
-                  <tr key={index}>
-                    <td>{line?.supplier?.name}</td>
-                    <td>${line?.cost}</td>
-                    <td>{new Date(line?.costDate).toLocaleDateString()}</td>
-                    <td>{line?.comment}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        )} */}
-      </div>
-    </div>
+    <Card className="border-primary">
+      <CardHeader className="bg-primary text-primary-foreground">
+        <CardTitle className="text-sm">
+          Purchase Order #{id}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <h5 className="text-sm font-semibold">{supplier?.name}</h5>
+        <div className="text-xs space-y-1">
+          <p><strong>Status:</strong> {status}</p>
+          <p><strong>Date Placed:</strong> {formattedDatePlaced}</p>
+          <p><strong>Date Delivered:</strong> {formattedDateDelivered}</p>
+          <p><strong>Warehouse:</strong> {warehouse?.name}</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

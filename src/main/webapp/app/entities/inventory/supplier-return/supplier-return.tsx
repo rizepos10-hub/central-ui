@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { Translate, translate, getSortState, JhiPagination, JhiItemCount } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Translate, translate, getSortState } from 'react-jhipster';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { RefreshCw, Plus, Pencil, Trash2 } from 'lucide-react';
+import Select from 'react-select';
 
 import { searchEntities, getEntities } from './supplier-return.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {FilterMatchMode} from "primereact/api";
-import {IPurchaseOrder} from "app/shared/model/STOCK/purchase-order.model";
-import {Tag} from "primereact/tag";
-import {Dropdown} from "primereact/dropdown";
+import { ISupplierReturn } from 'app/shared/model/STOCK/supplier-return.model';
 
 export const SupplierReturn = () => {
   const dispatch = useAppDispatch();
@@ -29,11 +30,12 @@ export const SupplierReturn = () => {
   const supplierReturnList = useAppSelector(state => state.supplierReturn.entities);
   const loading = useAppSelector(state => state.supplierReturn.loading);
   const totalItems = useAppSelector(state => state.supplierReturn.totalItems);
+
   const [filters, setFilters] = useState({
-    id: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    "purchaseOrder.id": { value: null, matchMode: FilterMatchMode.CONTAINS },
-    "purchaseOrder.supplier.name": { value: null, matchMode: FilterMatchMode.CONTAINS },
-    status: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    id: '',
+    purchaseOrderId: '',
+    supplierName: '',
+    status: null as string | null,
   });
 
   const getAllEntities = () => {
@@ -81,130 +83,243 @@ export const SupplierReturn = () => {
     sortEntities();
   };
 
-  const statusBodyTemplate = (item) => {
-    const getSeverity = (order: IPurchaseOrder) => {
-      switch (order.status) {
-        case 'PLACED':
-          return 'warning';
-
-        case 'RECEIVED':
-          return 'success';
-
-        default:
-          return null;
-      }
-    };
-    return <Tag value={item.status} severity={getSeverity(item)}></Tag>;
-  };
-
-
-
-  const statusFilterTemplate = () => {
-    const dropdownItems = [
-      { label: 'All', value: null },
-      { label: 'Parked', value: "PARKED" },
-      { label: 'Completed', value: "COMPLETED" },
-    ];
-
-    const handleDropdownChange = (e) => {
-      setFilters((prev :any) => ({
-        ...prev,
-        status: { value: e.value, matchMode: 'equals' }
-      }));
-    };
-
-    return (
-      <Dropdown
-        options={dropdownItems}
-        value={filters?.status?.value}
-        onChange={handleDropdownChange}
-        placeholder={translate("common.search.points")}
-      />
-    );
-  };
-
-
-
-  const idColumnTemplate = rowData => {
-    const editUrl = `/inventory/supplier-return/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData?.id}
-      </Link>
-    );
-  };
-  const editColumnTemplate = (rowData) => {
-    const editUrl = `/inventory/supplier-return/${rowData.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        <FontAwesomeIcon icon="pencil-alt" style={{ cursor: 'pointer' , color: 'silver' , marginLeft: '0.3rem'}} />
-      </Link>
-    );
-  };
-
-  const deleteColumnTemplate = (rowData) => {
-    const deleteUrl = `/inventory/supplier-return/${rowData.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={deleteUrl}>
-        <FontAwesomeIcon icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
-      </Link>
-    );
-  };
   const handleCreate = () => {
-    navigate('/inventory/purchase-order?poAction=true')
-  }
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.supplierReturn.title'}>Supplier Returns</Translate></span>
-      <div className="ms-auto">
-        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        <Button label={translate("tempApp.supplierReturn.createNew")} raised onClick={handleCreate} disabled={loading}>
-          &nbsp;
-        </Button>
-      </div>
-    </div>
-  );
+    navigate('/inventory/purchase-order?poAction=true');
+  };
 
+  const getSeverity = (status: string) => {
+    switch (status) {
+      case 'PARKED':
+        return 'warning';
+      case 'COMPLETED':
+        return 'default';
+      default:
+        return 'secondary';
+    }
+  };
 
+  const statusOptions = [
+    { label: 'All', value: null },
+    { label: 'Parked', value: 'PARKED' },
+    { label: 'Completed', value: 'COMPLETED' },
+  ];
 
+  const filteredItems = useMemo(() => {
+    return supplierReturnList.filter((item: ISupplierReturn) => {
+      const matchesId = !filters.id || item.id?.toLowerCase().includes(filters.id.toLowerCase());
+      const matchesPO = !filters.purchaseOrderId || item.purchaseOrder?.id?.toLowerCase().includes(filters.purchaseOrderId.toLowerCase());
+      const matchesSupplier = !filters.supplierName || item.purchaseOrder?.supplier?.name?.toLowerCase().includes(filters.supplierName.toLowerCase());
+      const matchesStatus = !filters.status || item.status === filters.status;
+      return matchesId && matchesPO && matchesSupplier && matchesStatus;
+    });
+  }, [supplierReturnList, filters]);
 
+  const currentPage = paginationState.activePage - 1;
+  const pageSize = ITEMS_PER_PAGE;
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  const handlePageChange = (page: number) => {
+    setPaginationState({
+      ...paginationState,
+      activePage: page + 1,
+    });
+  };
   return (
-      <div >
-        <DataTable
-          showGridlines
-          value={supplierReturnList}
-          editMode="row"
-          header={header}
-          removableSort
-          filters={filters}
-          filterDisplay="row"
-          paginator
-          loading={loading}
-          totalRecords={totalItems}
-          rows={20}
-        >
-          <Column field="id" header={translate('common.id')} filter body={idColumnTemplate}
-                  filterPlaceholder={translate('common.search.id')}  sortable  />
-          <Column field="purchaseOrder.id" header={translate('tempApp.supplierReturn.purchaseOrder')}
-                  filter filterPlaceholder={translate('tempApp.supplierReturn.search.purchaseOrder')} sortable />
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-bold">
+            <Translate contentKey="tempApp.supplierReturn.title">Supplier Returns</Translate>
+          </h2>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleSyncList} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+              {translate('common.refreshList')}
+            </Button>
+            <Button size="sm" className="h-8 text-xs" onClick={handleCreate} disabled={loading}>
+              <Plus className="h-4 w-4 mr-1" />
+              {translate('tempApp.supplierReturn.createNew')}
+            </Button>
+          </div>
+        </div>
 
-          <Column field="purchaseOrder.supplier.name" header={translate('tempApp.supplierReturn.supplier')}
-                  filter filterPlaceholder={translate('tempApp.supplierReturn.search.supplier')} sortable />
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs">
+                <div className="space-y-1">
+                  <div>{translate('common.id')}</div>
+                  <Input
+                    className="h-7 text-xs"
+                    placeholder={translate('common.search.id')}
+                    value={filters.id}
+                    onChange={(e) => setFilters({ ...filters, id: e.target.value })}
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="text-xs">
+                <div className="space-y-1">
+                  <div>{translate('tempApp.supplierReturn.purchaseOrder')}</div>
+                  <Input
+                    className="h-7 text-xs"
+                    placeholder={translate('tempApp.supplierReturn.search.purchaseOrder')}
+                    value={filters.purchaseOrderId}
+                    onChange={(e) => setFilters({ ...filters, purchaseOrderId: e.target.value })}
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="text-xs">
+                <div className="space-y-1">
+                  <div>{translate('tempApp.supplierReturn.supplier')}</div>
+                  <Input
+                    className="h-7 text-xs"
+                    placeholder={translate('tempApp.supplierReturn.search.supplier')}
+                    value={filters.supplierName}
+                    onChange={(e) => setFilters({ ...filters, supplierName: e.target.value })}
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="text-xs">
+                <div className="space-y-1">
+                  <div>{translate('common.status')}</div>
+                  <Select
+                    options={statusOptions}
+                    value={statusOptions.find(opt => opt.value === filters.status)}
+                    onChange={(option) => setFilters({ ...filters, status: option?.value })}
+                    placeholder={translate('common.search.points')}
+                    isClearable
+                    styles={{
+                      control: (base) => ({ ...base, minHeight: '28px', fontSize: '0.75rem' }),
+                      option: (base) => ({ ...base, fontSize: '0.75rem' }),
+                      menu: (base) => ({ ...base, fontSize: '0.75rem' }),
+                    }}
+                  />
+                </div>
+              </TableHead>
+              <TableHead className="text-xs w-24">
+                {translate('common.actions')}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredItems.map((item: ISupplierReturn) => {
+              const editUrl = `/inventory/supplier-return/${item.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
+              const deleteUrl = `/inventory/supplier-return/${item.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
 
-          <Column field="status" header={translate('common.status')} filter
-                  filterElement={statusFilterTemplate}  body={statusBodyTemplate}  sortable  />
+              return (
+                <TableRow key={item.id}>
+                  <TableCell className="text-xs">
+                    <Link to={editUrl} className="hover:underline">
+                      {item.id}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {item.purchaseOrder?.id}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {item.purchaseOrder?.supplier?.name}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    <Badge variant={getSeverity(item.status)}>
+                      {item.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" asChild>
+                        <Link to={editUrl}>
+                          <Pencil className="h-3 w-3" />
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" asChild>
+                        <Link to={deleteUrl}>
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
 
-          <Column header={translate('common.edit')}  body={editColumnTemplate} headerStyle={{ width: '1%', alignItems: 'center', alignSelf: 'center'}}
-                  bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible'  }} />
+        {totalItems > pageSize && (
+          <div className="flex items-center justify-between px-2 py-3 border-t">
+            <div className="text-xs text-muted-foreground">
+              Showing {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, totalItems)} of {totalItems}
+            </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 0) handlePageChange(currentPage - 1);
+                    }}
+                    className={currentPage === 0 ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
 
-          <Column  header={translate('common.delete')} body={deleteColumnTemplate} headerStyle={{ width: '1%',  }}
-                   bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }} />
+                {(() => {
+                  const pages = [];
 
-        </DataTable>
-    </div>
+                  if (totalPages <= 7) {
+                    for (let i = 0; i < totalPages; i++) {
+                      pages.push(i);
+                    }
+                  } else {
+                    if (currentPage < 3) {
+                      pages.push(0, 1, 2, 3, -1, totalPages - 1);
+                    } else if (currentPage > totalPages - 4) {
+                      pages.push(0, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1);
+                    } else {
+                      pages.push(0, -1, currentPage - 1, currentPage, currentPage + 1, -1, totalPages - 1);
+                    }
+                  }
+
+                  return pages.map((pageNum, idx) => {
+                    if (pageNum === -1) {
+                      return (
+                        <PaginationItem key={`ellipsis-${idx}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(pageNum);
+                          }}
+                          isActive={currentPage === pageNum}
+                        >
+                          {pageNum + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  });
+                })()}
+
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages - 1) handlePageChange(currentPage + 1);
+                    }}
+                    className={currentPage >= totalPages - 1 ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+      </div>
+    </PageWrapper>
   );
 };
 

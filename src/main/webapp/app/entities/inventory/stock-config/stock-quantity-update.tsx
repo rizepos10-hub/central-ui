@@ -1,14 +1,13 @@
-import { Col, Row } from "reactstrap";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
 import React, { useEffect, useState } from "react";
 import { IStockQuantity } from "app/shared/model/STOCK/stock-quantity.model";
-import { Button as PrimeButton } from "primereact/button";
 import StockQuantityModal from "app/entities/inventory/stock-config/stock-quantity-modal";
 import { useLocation, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/config/store";
 import { getStockQuantitiesForVariant } from "app/entities/inventory/stock-config/stock-quantity.reducer";
 import { translate } from "react-jhipster";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 
 const StockQuantityUpdate = () => {
   const dispatch = useAppDispatch();
@@ -34,7 +33,9 @@ const StockQuantityUpdate = () => {
       toggleModal();
     }
     return (
-      <PrimeButton type="button" icon="pi pi-cog" rounded onClick={handleClick}></PrimeButton>
+      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleClick}>
+        <Settings className="h-4 w-4" />
+      </Button>
     )
   };
 
@@ -47,36 +48,35 @@ const StockQuantityUpdate = () => {
 
   return (
     <div>
-      <Row>
-        <Row>
-          <Col md="8">
-            <h2>Stock</h2>
-          </Col>
-        </Row>
-        <Col md="8">
-          <DataTable
-            showGridlines
-            value={stockQuantities}
-            editMode="row"
-            header={`${variantName} ${translate("tempApp.stockConfig.config")}`}
-            removableSort
-            paginator
-            key={"id"}
-            totalRecords={stockQuantities?.length}
-            rows={20}
-          >
-
-            <Column field="location.name" header={"Location"} />
-
-            <Column field="quantity" header={"Quantity"} />
-            <Column field="unitCost" header={"Unit Cost"} />
-
-            <Column headerStyle={{ width: '10rem' }} header={"Edit Details"} bodyStyle={{ textAlign: 'center', overflow: 'visible' }} body={actionBodyTemplate} />
-
-          </DataTable>
-          {isModalOpen ? <StockQuantityModal isOpen={isModalOpen} stockQuantity={editedStock} toggle={toggleModal} /> : null}
-        </Col>
-      </Row>
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold">Stock</h2>
+      </div>
+      <div className="max-w-4xl">
+        <div className="mb-3">
+          <h3 className="text-base font-semibold">{variantName} {translate("tempApp.stockConfig.config")}</h3>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs">Location</TableHead>
+              <TableHead className="text-xs">Quantity</TableHead>
+              <TableHead className="text-xs">Unit Cost</TableHead>
+              <TableHead className="text-xs w-32 text-center">Edit Details</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {stockQuantities?.map((stock) => (
+              <TableRow key={stock.id}>
+                <TableCell className="text-xs">{stock.location?.name}</TableCell>
+                <TableCell className="text-xs">{stock.quantity}</TableCell>
+                <TableCell className="text-xs">{stock.unitCost}</TableCell>
+                <TableCell className="text-xs text-center">{actionBodyTemplate(stock)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        {isModalOpen ? <StockQuantityModal isOpen={isModalOpen} stockQuantity={editedStock} toggle={toggleModal} /> : null}
+      </div>
     </div>
   )
 }

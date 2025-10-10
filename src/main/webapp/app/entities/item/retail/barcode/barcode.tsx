@@ -246,7 +246,7 @@ const Barcode = () => {
         printSettings.showPrice
     ])
 
-    const barcodeFormats = [
+    const barcodeFormats: Array<{ label: string; value: string }> = [
         { label: "CODE39", value: "CODE39" },
         { label: "CODE128", value: "CODE128" },
         { label: "CODE128A", value: "CODE128A" },
@@ -268,7 +268,7 @@ const Barcode = () => {
         { label: "pharmacode", value: "pharmacode" },
         { label: "codabar", value: "codabar" },
         { label: "GenericBarcode", value: "GenericBarcode" },
-    ] as { label: string; value: string }[]
+    ]
 
     if (products.length === 0) {
         return (

@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
 import { Translate, translate, getSortState } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { RefreshCw, Plus } from 'lucide-react';
 import { ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { searchEntities, getToBeStockedEntities } from '../stock-config/stock-quantity.reducer';
-import {DataTable} from "primereact/datatable";
-import {Column} from "primereact/column";
-import {FilterMatchMode} from "primereact/api";
 import { IStockQuantity } from 'app/shared/model/STOCK/stock-quantity.model';
-import { Dropdown } from 'primereact';
-import {  getEntities as getSuppliers, searchEntities as searchSuppliers } from '../supplier/supplier.reducer';
+import { getEntities as getSuppliers, searchEntities as searchSuppliers } from '../supplier/supplier.reducer';
+import { PageWrapper } from 'app/shared/layout/page-wrapper';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import Select from 'react-select';
 
 export const ToBeStocked = () => {
   const dispatch = useAppDispatch();
@@ -33,20 +34,20 @@ export const ToBeStocked = () => {
   const loading = useAppSelector(state => state.stockQuantity.loading);
   const totalItems = useAppSelector(state => state.stockQuantity.totalItems);
   const [filters, setFilters] = useState({
-    itemName: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    "location.name": { value: null, matchMode: FilterMatchMode.CONTAINS },
-    supplierName: { value: null, matchMode: FilterMatchMode.CONTAINS  },
+    itemName: '',
+    locationName: '',
+    supplierName: '',
   });
-  
+
   const getAllEntities = () => {
-      dispatch(
-        getToBeStockedEntities({
-          page: paginationState.activePage - 1,
-          size: paginationState.itemsPerPage,
-          sort: `${paginationState.sort},${paginationState.order}`,
-          supplierId: supplierId || null
-        })
-      );
+    dispatch(
+      getToBeStockedEntities({
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
+        supplierId: supplierId || null
+      })
+    );
   };
 
   const sortEntities = () => {
@@ -58,7 +59,7 @@ export const ToBeStocked = () => {
   };
 
   const getAllSuppliers = () => {
-    if(searchSupplier) {
+    if (searchSupplier) {
       dispatch(
         searchSuppliers({
           query: searchSupplier,
@@ -76,12 +77,10 @@ export const ToBeStocked = () => {
         })
       );
     }
-
   };
 
   useEffect(() => {
     sortEntities();
-    
   }, [paginationState.activePage, paginationState.order, paginationState.sort, supplierId]);
 
   useEffect(() => {
@@ -92,41 +91,22 @@ export const ToBeStocked = () => {
     sortEntities();
   };
 
-
-  const idColumnTemplate = rowData => {
-    const editUrl = `/product/${rowData.itemId}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
-    return (
-      <Link to={editUrl}>
-        {rowData?.itemName}
-      </Link>
-    );
-  };
-
   const handleCreatePurchaseOrder = () => {
     const serializedItems = encodeURIComponent(JSON.stringify(selectedItems));
     const navigateUrl = `/inventory/purchase-order/new?items=${serializedItems}`;
     navigate(navigateUrl)
   }
 
-  const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold"><Translate contentKey={'tempApp.stockConfig.toBeStocked'}>To Be Stocked</Translate></span>
-      <div className="ms-auto">
-        <Button label={translate("common.refreshList")} severity="secondary" raised className="me-5" color="info" onClick={handleSyncList} disabled={loading}>
-          &nbsp;
-          <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-        </Button>
-        {
-          selectedItems.length > 0 && 
-          <Button label={translate("tempApp.purchaseOrder.addNew")} raised onClick={handleCreatePurchaseOrder} disabled={loading}>
-          &nbsp;
-        </Button>
-        }
-      </div>
-    </div>
-  );
+  // Client-side filtering
+  const filteredList = toBeStockedList.filter(item => {
+    const matchesItemName = !filters.itemName || item.itemName?.toLowerCase().includes(filters.itemName.toLowerCase());
+    const matchesLocation = !filters.locationName || item.location?.name?.toLowerCase().includes(filters.locationName.toLowerCase());
+    const matchesSupplier = !filters.supplierName || item.supplierConfigurations?.some(config =>
+      config.supplier?.name?.toLowerCase().includes(filters.supplierName.toLowerCase())
+    );
+    return matchesItemName && matchesLocation && matchesSupplier;
+  });
 
-  
   const statusBodyTemplate = (item) => {
     return (
       item?.supplierConfigurations
@@ -135,84 +115,167 @@ export const ToBeStocked = () => {
     );
   };
 
-  const statusFilterTemplate = () => {
-    // Extract unique supplier names
-    const dropdownItems = [
-      { label: 'All Suppliers', value: null },
-      ...supplierList.map(supplier => ({
-        label: supplier.name,
-        value: supplier.id,
-      })),
-    ];
-  
-    const handleDropdownChange = (e) => {
-      setSupplierId(e.value);
-    };
+  const dropdownItems = [
+    { label: 'All Suppliers', value: null },
+    ...supplierList.map(supplier => ({
+      label: supplier.name,
+      value: supplier.id,
+    })),
+  ];
 
-    const handleFilterChange = (e) => {
-      const query = e.filter;
-      setSearchSupplier(query);
-    };
-
-
-    return (
-      <Dropdown
-        filter
-        options={dropdownItems}
-        onFilter={handleFilterChange}
-        value={supplierId}
-        onChange={handleDropdownChange}
-        placeholder="Select Supplier"
-      />
-    );
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedItems(filteredList);
+    } else {
+      setSelectedItems([]);
+    }
   };
 
+  const handleSelectItem = (item: IStockQuantity, checked: boolean) => {
+    if (checked) {
+      setSelectedItems([...selectedItems, item]);
+    } else {
+      setSelectedItems(selectedItems.filter(i => i.id !== item.id));
+    }
+  };
+
+  const isAllSelected = filteredList.length > 0 && selectedItems.length === filteredList.length;
+  const isIndeterminate = selectedItems.length > 0 && selectedItems.length < filteredList.length;
+
   return (
-      <div>
-        <DataTable
-          showGridlines
-          value={toBeStockedList}
-          editMode="row"
-          header={header}
-          removableSort
-          filters={filters}
-          onFilter={(e:any) => setFilters(e.filters)}
-          filterDisplay="row"
-          paginator
-          loading={loading}
-          totalRecords={totalItems}
-          selectionMode="checkbox"
-          selection={selectedItems}
-          onSelectionChange={(e) => setSelectedItems(e.value)}
-          rows={20}
-        >
-          
-          <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
-          <Column
-            field="itemName"
-            header={translate('common.search.name')}
-            filter
-            body={idColumnTemplate}
-            filterPlaceholder={translate('common.search.name')}
-            sortable
-          />
-          <Column
-            field="location.name"
-            header={translate('tempApp.stockConfig.view.table.search.location')}
-            filter
-            sortable
-          />
-          
-          <Column
-            field="supplierConfigurations"
-            header={translate('tempApp.supplierReturn.supplier')}
-            filter
-            filterElement={statusFilterTemplate} 
-            body={statusBodyTemplate}
-            sortable
-          />
-        </DataTable>
-    </div>
+    <PageWrapper>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-bold">
+            <Translate contentKey={'tempApp.stockConfig.toBeStocked'}>To Be Stocked</Translate>
+          </h2>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleSyncList} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+              {translate("common.refreshList")}
+            </Button>
+            {selectedItems.length > 0 && (
+              <Button size="sm" className="h-8 text-xs" onClick={handleCreatePurchaseOrder} disabled={loading}>
+                <Plus className="h-4 w-4 mr-1" />
+                {translate("tempApp.purchaseOrder.addNew")}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs w-12 text-center">
+                  <Checkbox
+                    checked={isAllSelected}
+                    onCheckedChange={handleSelectAll}
+                    className="h-4 w-4"
+                  />
+                </TableHead>
+                <TableHead className="text-xs">{translate('common.search.name')}</TableHead>
+                <TableHead className="text-xs">{translate('tempApp.stockConfig.view.table.search.location')}</TableHead>
+                <TableHead className="text-xs">{translate('tempApp.supplierReturn.supplier')}</TableHead>
+              </TableRow>
+              <TableRow>
+                <TableHead className="text-xs"></TableHead>
+                <TableHead className="text-xs">
+                  <Input
+                    type="text"
+                    placeholder={translate('common.search.name')}
+                    value={filters.itemName}
+                    onChange={(e) => setFilters(prev => ({ ...prev, itemName: e.target.value }))}
+                    className="h-7 text-xs"
+                  />
+                </TableHead>
+                <TableHead className="text-xs">
+                  <Input
+                    type="text"
+                    placeholder={translate('tempApp.stockConfig.view.table.search.location')}
+                    value={filters.locationName}
+                    onChange={(e) => setFilters(prev => ({ ...prev, locationName: e.target.value }))}
+                    className="h-7 text-xs"
+                  />
+                </TableHead>
+                <TableHead className="text-xs">
+                  <Select
+                    options={dropdownItems}
+                    value={dropdownItems.find(opt => opt.value === supplierId)}
+                    onChange={(selected) => setSupplierId(selected?.value)}
+                    onInputChange={(inputValue) => setSearchSupplier(inputValue)}
+                    placeholder="Select Supplier"
+                    isClearable
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: '28px',
+                        fontSize: '0.75rem',
+                        borderColor: 'hsl(var(--input))',
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        fontSize: '0.75rem',
+                      }),
+                      input: (base) => ({
+                        ...base,
+                        margin: 0,
+                        padding: 0,
+                      }),
+                      valueContainer: (base) => ({
+                        ...base,
+                        padding: '0 8px',
+                      }),
+                      indicatorsContainer: (base) => ({
+                        ...base,
+                        height: '28px',
+                      }),
+                    }}
+                  />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-xs text-center">
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : filteredList.length > 0 ? (
+                filteredList.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="text-xs text-center">
+                      <Checkbox
+                        checked={selectedItems.some(i => i.id === item.id)}
+                        onCheckedChange={(checked) => handleSelectItem(item, checked === true)}
+                        className="h-4 w-4"
+                      />
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <Link
+                        to={`/product/${item.itemId}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {item?.itemName}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-xs">{item.location?.name}</TableCell>
+                    <TableCell className="text-xs">{statusBodyTemplate(item)}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-xs text-center text-muted-foreground">
+                    <Translate contentKey="tempApp.stockConfig.noData">No items to be stocked</Translate>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </PageWrapper>
   );
 };
 

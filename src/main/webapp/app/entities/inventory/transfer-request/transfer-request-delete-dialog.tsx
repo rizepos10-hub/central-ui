@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { Translate } from 'react-jhipster';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { X, Trash2 } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntity, deleteEntity } from './transfer-request.reducer';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 
 export const TransferRequestDeleteDialog = () => {
   const dispatch = useAppDispatch();
@@ -15,6 +23,7 @@ export const TransferRequestDeleteDialog = () => {
   const { id } = useParams<'id'>();
 
   const [loadModal, setLoadModal] = useState(false);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     dispatch(getEntity(id));
@@ -25,6 +34,7 @@ export const TransferRequestDeleteDialog = () => {
   const updateSuccess = useAppSelector(state => state.transferRequest.updateSuccess);
 
   const handleClose = () => {
+    setOpen(false);
     navigate(-1);
   };
 
@@ -40,28 +50,37 @@ export const TransferRequestDeleteDialog = () => {
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="transferRequestDeleteDialogHeading">
-        <Translate contentKey="tempApp.transferRequest.delete.title">Confirm delete operation</Translate>
-      </ModalHeader>
-      <ModalBody id="transferRequests.delete.question">
-        <Translate contentKey="tempApp.transferRequest.delete.question" interpolate={{ id: transferRequestEntity.id }}>
-          Are you sure you want to delete this Supplier?
-        </Translate>
-      </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
-          <FontAwesomeIcon icon="ban" />
-          &nbsp;
-          <Translate contentKey="common.buttons.cancel">Cancel</Translate>
-        </Button>
-        <Button id="jhi-confirm-delete-transferRequest" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
-          <FontAwesomeIcon icon="trash" />
-          &nbsp;
-          <Translate contentKey="common.buttons.delete">Delete</Translate>
-        </Button>
-      </ModalFooter>
-    </Modal>
+    <AlertDialog open={open} onOpenChange={handleClose}>
+      <AlertDialogContent className="text-xs">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-sm">
+            <Translate contentKey="tempApp.transferRequest.delete.title">Confirm delete operation</Translate>
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-xs">
+            <Translate contentKey="tempApp.transferRequest.delete.question" interpolate={{ id: transferRequestEntity.id }}>
+              Are you sure you want to delete this Transfer Request?
+            </Translate>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleClose}>
+            <X className="h-4 w-4 mr-1" />
+            <Translate contentKey="common.buttons.cancel">Cancel</Translate>
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="h-8 text-xs"
+            id="jhi-confirm-delete-transferRequest"
+            data-cy="entityConfirmDeleteButton"
+            onClick={confirmDelete}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            <Translate contentKey="common.buttons.delete">Delete</Translate>
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

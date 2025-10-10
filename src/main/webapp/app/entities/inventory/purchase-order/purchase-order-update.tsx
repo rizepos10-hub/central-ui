@@ -1,25 +1,10 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Link, useLocation, useNavigate, useParams, useSearchParams} from 'react-router-dom';
-import {
-  Button,
-  Row,
-  Col,
-  FormGroup,
-  Label,
-  Input,
-  Table,
-  Spinner,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter
-} from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import {getEntity, updateEntity, createEntity, reset, splitOrder} from './purchase-order.reducer';
-import {InputText} from "primereact/inputtext";
 import {CostLine, IPurchaseOrder, OrderLine} from "app/shared/model/STOCK/purchase-order.model";
 import {getEntities as getBranches} from "app/entities/branch/branch.reducer";
 import {translate, Translate} from "react-jhipster";
@@ -29,23 +14,26 @@ import {  getEntities as getSuppliers } from '../supplier/supplier.reducer';
 import {  getEntities as getWarehouses } from '../warehouse/warehouse.reducer';
 import {ISupplier} from "app/shared/model/STOCK/supplier.model";
 import {IWarehouse} from "app/shared/model/STOCK/warehouse.model";
-import {Calendar} from "primereact/calendar";
 import AsyncSelect from "react-select/async";
 import {IPurchaseConfig} from "app/shared/model/STOCK/purchase-config.model";
 import {getEntities as getInventoryItems, searchEntities as searchInventoryItems} from "app/entities/inventory/stock-config/inventory-items.reducer";
-import {InputNumber, InputNumberValueChangeEvent} from "primereact/inputnumber";
-import {DataTable, DataTableRowEditCompleteEvent} from "primereact/datatable";
-import {Column, ColumnEditorOptions} from "primereact/column";
-import {SummarizeText} from "app/shared/util/SummarizeText";
-import {InputTextarea} from "primereact/inputtextarea";
-import {convertDateTimeToServer, toLocalISOString} from "app/shared/util/date-utils";
-import {SelectButton} from "primereact/selectbutton";
+import {toLocalISOString} from "app/shared/util/date-utils";
 import {IInventoryItem, IInventoryItemVariant} from "app/shared/model/STOCK/inventory-item.model";
 import _ from "lodash";
 import {applyMatchModeMap} from "app/shared/util/filter-match-model-util";
 import AuditLogs from "app/shared/components/logs/audit-logs";
 import { format } from 'date-fns';
 import { formatVariant } from 'app/shared/util/variant-utils';
+import { Loader2, CalendarIcon } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 
 const statusOptions = [
@@ -144,7 +132,7 @@ export const PurchaseOrderUpdate = () => {
     if (updateSuccess) {
       handleClose();
     }
-  
+
     if (purchaseOrderEntity?.id) {
       setPurchaseOrder(purchaseOrderEntity);
     } else if (!items) {
@@ -176,8 +164,7 @@ export const PurchaseOrderUpdate = () => {
     );
   };
 
-  const handleDateChange = (field, e) => {
-    const date = new Date(e.value);
+  const handleDateChange = (field, date: Date) => {
     const isoDateString = toLocalISOString(date);
     if(field === "costDate"){
       setPurchaseCostLine((prevState) => ({...prevState, costDate: isoDateString}))
@@ -310,90 +297,79 @@ export const PurchaseOrderUpdate = () => {
       }
   };
 
-  const textEditor = (options: ColumnEditorOptions) => {
-    return <InputText type="text" value={options.value} onKeyDown={handleKeyDown} onChange={(e: React.ChangeEvent<HTMLInputElement>) => options?.editorCallback(e.target.value)} />;
-  };
-
-  const numberEditor = (options: ColumnEditorOptions) => {
-    return <InputNumber value={options.value} onKeyDown={handleKeyDown}  onValueChange={(e: InputNumberValueChangeEvent) => options.editorCallback(e.value)} />;
-  };
-
-  const receivedEditor = (options: ColumnEditorOptions) => {
-    const {rowData} = options;
-    const {quantity} = rowData;
-    return <InputNumber value={options.value} onKeyDown={handleKeyDown} max={quantity} onChange={(e) => options.editorCallback(e.value)} />
-
-  };
-
-
-  const onRowEditComplete = (e: DataTableRowEditCompleteEvent, field) => {
-    const { newData, index } = e;
-    if(newData.received < 0 || newData.received > newData.quantity){
+  const handleOrderLineEdit = (index: number, field: string, value: any) => {
+    if (field === 'received' && (value < 0 || value > purchaseOrder.orderLines[index].quantity)) {
       alert("Received quantity must be greater than or equal to 0 and less than or equal to the ordered quantity for all order lines.");
-      return
+      return;
     }
+
     setPurchaseOrder((prevState) => {
-      const updatedField = prevState?.[field]?.map((row, i) => {
+      const updatedOrderLines = prevState?.orderLines?.map((line, i) => {
         if (i === index) {
-          return newData
+          return { ...line, [field]: value };
         }
-        return row
+        return line;
       });
 
       return {
         ...prevState,
-        [field]: updatedField
-      }
-    })
+        orderLines: updatedOrderLines
+      };
+    });
   };
 
-
-  const deleteColumnTemplate = (rowData, index, field) => {
-    const {rowIndex} = index
+  const deleteColumnTemplate = (rowIndex: number, field: 'orderLines' | 'costLines') => {
     const handleClick = () =>  {
       setPurchaseOrder((prevState) => {
-        const updatedField = prevState?.[field]?.filter((_, i) => i !== rowIndex);
-        return {
-          ...prevState,
-          [field]: updatedField
+        if (field === 'orderLines') {
+          const updatedField = (prevState?.orderLines || []).filter((_, i) => i !== rowIndex);
+          return { ...prevState, orderLines: updatedField };
+        } else {
+          const updatedField = (prevState?.costLines || []).filter((_, i) => i !== rowIndex);
+          return { ...prevState, costLines: updatedField };
         }
       })
     }
     return (
-        <FontAwesomeIcon onClick={handleClick} icon="trash" style={{ cursor: 'pointer' , color: 'red', marginLeft: '1rem'}} />
+      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleClick}>
+        <Trash2 className="h-3 w-3 text-destructive" />
+      </Button>
     );
   };
 
   if(loading){
-    return <Spinner />
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
   return (
-    <div>
-      <Row>
-        <Col md="8">
-          <h2>
-            {isNew ?
-            `${translate("tempApp.purchaseOrder.addNew")}`
-              :
-            isDisabled ?
-          `${translate("tempApp.purchaseOrder.view")}`
-              :
-          `${translate("tempApp..purchaseOrder.edit")}`}
-          </h2>
-        </Col>
-      </Row>
+    <div className="p-4">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold">
+          {isNew ?
+          `${translate("tempApp.purchaseOrder.addNew")}`
+            :
+          isDisabled ?
+        `${translate("tempApp.purchaseOrder.view")}`
+            :
+        `${translate("tempApp..purchaseOrder.edit")}`}
+        </h2>
+      </div>
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <Row>
-          <form onSubmit={saveEntity} className={'d-flex'}>
-            <Col md="9" className="d-flex flex-column p-3 bg-white">
-              <FormGroup>
-                <Row>
-                  <Col md={4} className={'d-flex flex-column gap-2'}>
-                    <div className={'d-flex gap-2 mt-2'}>
-                      <Label for="supplier" className={'mt-2'}>
+        <div className="flex gap-4">
+          <form onSubmit={saveEntity} className="flex-1">
+            <Card>
+              <CardContent className="p-4">
+                {/* Supplier, Warehouse, Delivery Info */}
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="supplier" className="text-xs whitespace-nowrap">
                         <Translate contentKey={"tempApp.purchaseOrder.supplier"} />
                       </Label>
                       <Select
@@ -406,11 +382,15 @@ export const PurchaseOrderUpdate = () => {
                         getOptionLabel={(option: ISupplier) => option.name}
                         getOptionValue={option => option.id}
                         onChange={selectedSupplier => setPurchaseOrder(prev => ({ ...prev, supplier: selectedSupplier }))}
+                        styles={{
+                          control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                          option: (base) => ({ ...base, fontSize: '0.75rem' })
+                        }}
                       />
                     </div>
 
-                    <div className={'d-flex gap-2 mt-2'}>
-                      <Label for="warehouse" className={'mt-2'}>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="warehouse" className="text-xs whitespace-nowrap">
                         <Translate contentKey={"tempApp.purchaseOrder.warehouse"} />
                       </Label>
                       <Select
@@ -423,352 +403,509 @@ export const PurchaseOrderUpdate = () => {
                         getOptionLabel={(option: IWarehouse) => option.name}
                         getOptionValue={option => option.id}
                         onChange={selectedWarehouse => setPurchaseOrder(prev => ({ ...prev, warehouse: selectedWarehouse }))}
+                        styles={{
+                          control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                          option: (base) => ({ ...base, fontSize: '0.75rem' })
+                        }}
                       />
                     </div>
-                  </Col>
+                  </div>
 
-                  <Col md={4} className={'d-flex flex-column gap-2'}>
-                    <div className={'d-flex gap-2 mt-2'}>
-                      <Label for="delivery" className={'mt-2'}>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="delivery" className="text-xs whitespace-nowrap">
                         <Translate contentKey={"tempApp.purchaseOrder.delivery"} />
                       </Label>
-                      <InputText
+                      <Input
                         name="delivery"
                         id="delivery"
-                        value={purchaseOrder?.delivery}
+                        value={purchaseOrder?.delivery || ''}
                         disabled={isDisabled}
                         onChange={handleChange}
+                        className="h-8 text-xs"
                       />
                     </div>
 
-                    <div className={'d-flex gap-2 mt-2'}>
-                      <Label for="address" className={'mt-2'}>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="address" className="text-xs whitespace-nowrap">
                         <Translate contentKey={"common.address"} />
                       </Label>
-                      <InputText name="address" id="address" value={purchaseOrder?.address} disabled={isDisabled} onChange={handleChange} />
+                      <Input
+                        name="address"
+                        id="address"
+                        value={purchaseOrder?.address || ''}
+                        disabled={isDisabled}
+                        onChange={handleChange}
+                        className="h-8 text-xs"
+                      />
                     </div>
-                  </Col>
+                  </div>
 
-                  <Col md={4} className={'d-flex flex-column gap-2'}>
-                    <div className={'d-flex gap-2  mt-2'}>
-                      <Label for="datePlaced" className={'mt-2'}>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="datePlaced" className="text-xs whitespace-nowrap">
                         <Translate contentKey={"tempApp.purchaseOrder.orderDate"} />
                       </Label>
-                      <Calendar
-                        name="datePlaced"
-                        id="datePlaced"
-                        value={new Date(purchaseOrder.datePlaced)}
-                        disabled={isDisabled}
-                        onChange={e => handleDateChange('datePlaced', e)}
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 text-xs justify-start flex-1" disabled={isDisabled}>
+                            <CalendarIcon className="h-3 w-3 mr-1" />
+                            {purchaseOrder.datePlaced ? format(new Date(purchaseOrder.datePlaced), 'PP') : 'Pick date'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={purchaseOrder.datePlaced ? new Date(purchaseOrder.datePlaced) : undefined}
+                            onSelect={(date) => date && handleDateChange('datePlaced', date)}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
 
-                    <div className={'d-flex gap-2 mt-2'}>
-                      <Label for="dateDelivered" className={'mt-2'}>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="dateDelivered" className="text-xs whitespace-nowrap">
                         <Translate contentKey={"tempApp.purchaseOrder.deliveryDate"} />
                       </Label>
-                      <Calendar
-                        name="dateDelivered"
-                        id="dateDelivered"
-                        value={new Date(purchaseOrder.dateDelivered)}
-                        disabled={isDisabled}
-                        onChange={e => handleDateChange('dateDelivered', e)}
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 text-xs justify-start flex-1" disabled={isDisabled}>
+                            <CalendarIcon className="h-3 w-3 mr-1" />
+                            {purchaseOrder.dateDelivered ? format(new Date(purchaseOrder.dateDelivered), 'PP') : 'Pick date'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={purchaseOrder.dateDelivered ? new Date(purchaseOrder.dateDelivered) : undefined}
+                            onSelect={(date) => date && handleDateChange('dateDelivered', date)}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
-                  </Col>
-                </Row>
+                  </div>
+                </div>
 
                 {/* Order Lines */}
-                <Row className={'mt-3'}>
-                  <h3>
+                <div className="mt-6">
+                  <h3 className="text-sm font-bold mb-2">
                     <Translate contentKey={"tempApp.purchaseOrder.orderLines"} />
                   </h3>
-                  {!isDisabled ? (
+                  {!isDisabled && (
+                    <div className="mb-2 border rounded-md p-2">
+                      <div className="grid grid-cols-8 gap-2 items-end">
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"common.item"} /></Label>
+                          <Select
+                            onInputChange={loadItems}
+                            options={inventoryItemList}
+                            getOptionValue={option => option.id}
+                            getOptionLabel={option => option.name}
+                            onChange={item => setSelectedItem(item)}
+                            value={selectedItem || null}
+                            isDisabled={isDisabled}
+                            isLoading={loadingItems}
+                            styles={{
+                              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                              option: (base) => ({ ...base, fontSize: '0.75rem' })
+                            }}
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"common.variant"} /></Label>
+                          <Select
+                            options={selectedItem?.variants}
+                            getOptionValue={option => option.id}
+                            getOptionLabel={option => formatVariant(option.name, option.attributeValues)}
+                            onChange={handleSelectVariant}
+                            isDisabled={isDisabled || !selectedItem}
+                            value={selectedVariant || null}
+                            styles={{
+                              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                              option: (base) => ({ ...base, fontSize: '0.75rem' })
+                            }}
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"common.description"} /></Label>
+                          <Textarea
+                            value={purchaseOrderLine?.description || ''}
+                            disabled={isDisabled}
+                            onChange={e => handleOrderLineChange('description', e.target.value)}
+                            className="h-8 text-xs resize-none"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"common.quantity"} /></Label>
+                          <Input
+                            type="number"
+                            value={purchaseOrderLine?.quantity || ''}
+                            disabled={isDisabled}
+                            onChange={e => handleOrderLineChange('quantity', Number(e.target.value))}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.costPrice"} /></Label>
+                          <Input
+                            type="number"
+                            value={purchaseOrderLine?.price || ''}
+                            disabled={isDisabled}
+                            onChange={e => handleOrderLineChange('price', Number(e.target.value))}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.deliveryDate"} /></Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-8 text-xs w-full justify-start" disabled={isDisabled}>
+                                <CalendarIcon className="h-3 w-3 mr-1" />
+                                {purchaseOrderLine?.deliveryDate ? format(new Date(purchaseOrderLine.deliveryDate), 'PP') : 'Pick'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={purchaseOrderLine?.deliveryDate ? new Date(purchaseOrderLine.deliveryDate) : undefined}
+                                onSelect={(date) => date && handleOrderLineChange('deliveryDate', date)}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"common.subtotal"} /></Label>
+                          <Input
+                            type="number"
+                            disabled
+                            value={purchaseOrderLine?.price * purchaseOrderLine?.quantity || 0}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <Button
+                            type="button"
+                            disabled={!purchaseOrderLine?.item}
+                            size="sm"
+                            className="h-8 text-xs"
+                            onClick={() => handleAdd('orderLine')}
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="rounded-md border">
                     <Table>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <Translate contentKey={"common.item"} />
-                          </td>
-                          <td>
-                            <Translate contentKey={"common.variant"} />
-                          </td>
-                          <td>
-                            <Translate contentKey={"common.description"} />
-                          </td>
-                          <td>
-                            <Translate contentKey={"common.quantity"} />
-                          </td>
-                          <td>
-                            <Translate contentKey={"tempApp.purchaseOrder.costPrice"} />
-                          </td>
-                          <td>
-                            <Translate contentKey={"tempApp.purchaseOrder.deliveryDate"} />
-                          </td>
-                          <td>
-                            <Translate contentKey={"common.subtotal"} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className={'col-md-3'}>
-                            <Select
-                              onInputChange={loadItems}
-                              options={inventoryItemList}
-                              getOptionValue={option => option.id}
-                              getOptionLabel={option => option.name}
-                              onChange={item => setSelectedItem(item)}
-                              value={selectedItem || null}
-                              onFocus={(e: any) => {
-                                e.preventDefault();
-                              }}
-                              onBlur={(e: any) => {
-                                e.preventDefault();
-                              }}
-                              isDisabled={isDisabled}
-                              isLoading={loadingItems}
-                            />
-                          </td>
-
-                          <td className={'col-md-3'}>
-                            <Select
-                              options={selectedItem?.variants}
-                              getOptionValue={option => option.id}
-                              getOptionLabel={option => formatVariant(option.name, option.attributeValues)}
-                              onChange={handleSelectVariant}
-                              isDisabled={isDisabled || !selectedItem}
-                              value={selectedVariant}
-                            />
-                          </td>
-
-                          <td className={'col-md-2'}>
-                            <InputTextarea
-                              value={purchaseOrderLine?.description || ''}
-                              disabled={isDisabled}
-                              onChange={e => handleOrderLineChange('description', e.target.value)}
-                            />
-                          </td>
-                          <td className={'col-md-1'}>
-                            <InputNumber
-                              value={purchaseOrderLine?.quantity}
-                              disabled={isDisabled}
-                              size={4}
-                              onChange={e => handleOrderLineChange('quantity', e.value)}
-                            />
-                          </td>
-
-                          <td className={'col-md-1'}>
-                            <InputNumber
-                              size={4}
-                              value={purchaseOrderLine?.price}
-                              disabled={isDisabled}
-                              onChange={e => handleOrderLineChange('price', e.value)}
-                            />
-                          </td>
-                          <td className={'col-md-2'}>
-                            <Calendar
-                              name="deliveryDate"
-                              id="deliveryDate"
-                              disabled={isDisabled}
-                              onSelect={e => handleOrderLineChange('deliveryDate', e.value)}
-                              value={new Date(purchaseOrderLine?.deliveryDate)}
-                            />
-                          </td>
-                          <td className={'col-md-2'}>
-                            <InputNumber disabled={true} size={4} value={purchaseOrderLine?.price * purchaseOrderLine?.quantity || null} />
-                          </td>
-                          <td className={'col-md-1'}>
-                            <Button disabled={!purchaseOrderLine?.item} color={'success'} onClick={() => handleAdd('orderLine')}>
-                              Add
-                            </Button>
-                          </td>
-                        </tr>
-                      </tbody>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">{translate("common.item")}</TableHead>
+                          <TableHead className="text-xs">{translate("common.description")}</TableHead>
+                          <TableHead className="text-xs">{translate("common.quantity")}</TableHead>
+                          <TableHead className="text-xs">{translate("tempApp.purchaseOrder.receivedQuantity")}</TableHead>
+                          <TableHead className="text-xs">Returned Quantity</TableHead>
+                          <TableHead className="text-xs">{translate("tempApp.purchaseOrder.costPrice")}</TableHead>
+                          <TableHead className="text-xs">{translate("common.deliveryDate")}</TableHead>
+                          <TableHead className="text-xs">Sub Total</TableHead>
+                          {!isDisabled && <TableHead className="text-xs w-16">Actions</TableHead>}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {purchaseOrder?.orderLines?.map((line, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="text-xs">{line.item?.name}</TableCell>
+                            <TableCell className="text-xs">
+                              {!isDisabled ? (
+                                <Input
+                                  value={line.description || ''}
+                                  onChange={(e) => handleOrderLineEdit(index, 'description', e.target.value)}
+                                  className="h-7 text-xs"
+                                />
+                              ) : (
+                                line.description
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {!isDisabled ? (
+                                <Input
+                                  type="number"
+                                  value={line.quantity}
+                                  onChange={(e) => handleOrderLineEdit(index, 'quantity', Number(e.target.value))}
+                                  className="h-7 text-xs w-20"
+                                />
+                              ) : (
+                                line.quantity
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {!isDisabled ? (
+                                <Input
+                                  type="number"
+                                  value={line.received}
+                                  onChange={(e) => handleOrderLineEdit(index, 'received', Number(e.target.value))}
+                                  className="h-7 text-xs w-20"
+                                  max={line.quantity}
+                                />
+                              ) : (
+                                line.received
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {!isDisabled ? (
+                                <Input
+                                  type="number"
+                                  value={line.returnedQuantity || 0}
+                                  onChange={(e) => handleOrderLineEdit(index, 'returnedQuantity', Number(e.target.value))}
+                                  className="h-7 text-xs w-20"
+                                  max={line.received}
+                                />
+                              ) : (
+                                line.returnedQuantity || 0
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {!isDisabled ? (
+                                <Input
+                                  type="number"
+                                  value={line.price}
+                                  onChange={(e) => handleOrderLineEdit(index, 'price', Number(e.target.value))}
+                                  className="h-7 text-xs w-20"
+                                />
+                              ) : (
+                                line.price
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {line.deliveryDate ? format(new Date(line.deliveryDate), 'yyyy-MM-dd') : ''}
+                            </TableCell>
+                            <TableCell className="text-xs">{line.price * line.quantity}</TableCell>
+                            {!isDisabled && (
+                              <TableCell className="text-xs">
+                                {deleteColumnTemplate(index, 'orderLines')}
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        ))}
+                      </TableBody>
                     </Table>
-                  ) : null}
+                  </div>
+                </div>
 
-                  <DataTable
-                    value={purchaseOrder?.orderLines}
-                    editMode="row"
-                    header={translate("tempApp.purchaseOrder.orderLines")}
-                    removableSort
-                    paginator
-                    totalRecords={purchaseOrder?.orderLines?.length}
-                    rows={20}
-                    onRowEditComplete={e => onRowEditComplete(e, 'orderLines')}
-                  >
-                    <Column field="item.name"  header={translate("common.item")} />
-                    <Column field="description" editor={options => textEditor(options)} header={translate("common.description")} />
-                    <Column field="quantity" editor={options => numberEditor(options)} header={translate("common.quantity")} />
-                    <Column field="received" editor={options => receivedEditor(options)} header={translate("tempApp.purchaseOrder.receivedQuantity")} />
-                    <Column field="returnedQuantity" header={'Returned Quantity'} />
-                    <Column field="price" editor={options => numberEditor(options)} header={translate("tempApp.purchaseOrder.costPrice")} />
-                    <Column
-                      field="deliveryDate"
-                      header={translate("common.deliveryDate")}
-                      body={rowData => (rowData.deliveryDate ? new Date(rowData.deliveryDate).toDateString() : '')}
-                    />
-                    <Column header={'Sub Total'} body={rowData => rowData.price * rowData.quantity} />
-                    {!isDisabled ? (
-                      <Column rowEditor headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }} />
-                    ) : null}
-
-                    {!isDisabled ? (
-                      <Column
-                        header={translate("common.delete")}
-                        body={(rowData, index) => deleteColumnTemplate(rowData, index, 'orderLines')}
-                        headerStyle={{ width: '1%' }}
-                        bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-                      />
-                    ) : null}
-                  </DataTable>
-                </Row>
-
-                <Row className={'mt-3'}>
-                  <h3>
+                {/* Cost Lines */}
+                <div className="mt-6">
+                  <h3 className="text-sm font-bold mb-2">
                     <Translate contentKey={"tempApp.purchaseOrder.costLines"} />
                   </h3>
-                  {!isDisabled ? (
-                    <Table>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <Translate contentKey={"tempApp.purchaseOrder.supplier"} />
-                          </td>
-                          <td>
-                            <Translate contentKey={"tempApp.purchaseOrder.cost"} />
-                          </td>
-                          <td>
-                            <Translate contentKey={"tempApp.purchaseOrder.costDate"} />
-                          </td>
-                          <td>
-                            <Translate contentKey={"tempApp.purchaseOrder.comments"} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className={'w-2'}>
-                            <AsyncSelect
-                              cacheOptions
-                              loadOptions={loadSuppliers}
-                              defaultOptions={supplierList}
-                              getOptionValue={(option: ISupplier) => option.id}
-                              getOptionLabel={option => option.name}
-                              name={translate("tempApp.purchaseOrder.supplier")}
-                              onChange={supplier => setPurchaseCostLine(prevState => ({ ...prevState, supplier }))}
-                              value={purchaseCostLine?.supplier || null}
-                              isDisabled={isDisabled}
-                            />
-                          </td>
-                          <td className={'w-1'}>
-                            <InputNumber
-                              value={purchaseCostLine?.cost}
-                              disabled={isDisabled}
-                              onChange={e =>
-                                setPurchaseCostLine(prevState => ({
-                                  ...prevState,
-                                  cost: e.value,
-                                }))
-                              }
-                            />
-                          </td>
-                          <td className={'w-1'}>
-                            <Calendar
-                              name="costDate"
-                              id="costDate"
-                              disabled={isDisabled}
-                              onSelect={e => handleDateChange('costDate', e)}
-                              value={new Date(purchaseCostLine?.costDate)}
-                            />
-                          </td>
-                          <td className={'w-1'}>
-                            <InputTextarea
-                              name={'comment'}
-                              disabled={isDisabled}
-                              value={purchaseCostLine?.comment || ''}
-                              onChange={handleCostLineChange}
-                            />
-                          </td>
-                          <td className={'w-2'}>
-                            <Button disabled={!purchaseCostLine} color={'success'} onClick={() => handleAdd('costLine')}>
-                              <Translate contentKey={"common.add"} />
-                            </Button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </Table>
-                  ) : null}
+                  {!isDisabled && (
+                    <div className="mb-2 border rounded-md p-2">
+                      <div className="grid grid-cols-5 gap-2 items-end">
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.supplier"} /></Label>
+                          <AsyncSelect
+                            cacheOptions
+                            loadOptions={loadSuppliers}
+                            defaultOptions={supplierList}
+                            getOptionValue={(option: ISupplier) => option.id}
+                            getOptionLabel={option => option.name}
+                            onChange={supplier => setPurchaseCostLine(prevState => ({ ...prevState, supplier }))}
+                            value={purchaseCostLine?.supplier || null}
+                            isDisabled={isDisabled}
+                            styles={{
+                              control: (base) => ({ ...base, minHeight: '32px', fontSize: '0.75rem' }),
+                              option: (base) => ({ ...base, fontSize: '0.75rem' })
+                            }}
+                          />
+                        </div>
 
-                  <DataTable
-                    value={purchaseOrder?.costLines}
-                    editMode="row"
-                    header={translate("tempApp.purchaseOrder.costLines")}
-                    removableSort
-                    paginator
-                    totalRecords={purchaseOrder?.costLines?.length}
-                    rows={20}
-                  >
-                    <Column field="supplier.name" header={translate("tempApp.purchaseOrder.supplier")} />
-                    <Column field="cost" header={translate("tempApp.purchaseOrder.cost")} />
-                    <Column field="costDate" header={translate("tempApp.purchaseOrder.costDate")} body={(rowData) => format(new Date(rowData?.costDate), 'yyyy-MM-dd')} />
-                    <Column field="comment" header={translate("tempApp.purchaseOrder.comment")} />
-                    {!isDisabled ? (
-                      <Column
-                        header={'Delete'}
-                        body={(rowData, index) => deleteColumnTemplate(rowData, index, 'costLines')}
-                        headerStyle={{ width: '1%' }}
-                        bodyStyle={{ textAlign: '-moz-initial', overflow: 'visible' }}
-                      />
-                    ) : null}
-                  </DataTable>
-                </Row>
-              </FormGroup>
-            </Col>
-            <Col md="3" className={'ml-3'}>
-              <Card>
-                <CardHeader>
-                  <Translate contentKey={"common.actions"} />
-                </CardHeader>
-                <CardBody>
-                  <div className={'d-flex flex-column mt-2'}>
-                    <Label for="status">
-                      <Translate contentKey={"common.status"} />
-                    </Label>
-                    <SelectButton
-                      value={purchaseOrder?.status ??  <Translate contentKey={"tempApp.purchaseOrder.PLACED"} />}
-                      options={statusOptions}
-                      id="status"
-                      disabled={isOrderReceived || isNew}
-                      onChange={e => setPurchaseOrder(prv => ({ ...prv, status: e.value }))}
-                    />
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.cost"} /></Label>
+                          <Input
+                            type="number"
+                            value={purchaseCostLine?.cost || ''}
+                            disabled={isDisabled}
+                            onChange={e =>
+                              setPurchaseCostLine(prevState => ({
+                                ...prevState,
+                                cost: Number(e.target.value),
+                              }))
+                            }
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.costDate"} /></Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-8 text-xs w-full justify-start" disabled={isDisabled}>
+                                <CalendarIcon className="h-3 w-3 mr-1" />
+                                {purchaseCostLine?.costDate ? format(new Date(purchaseCostLine.costDate), 'PP') : 'Pick'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={purchaseCostLine?.costDate ? new Date(purchaseCostLine.costDate) : undefined}
+                                onSelect={(date) => date && handleDateChange('costDate', date)}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        <div>
+                          <Label className="text-xs"><Translate contentKey={"tempApp.purchaseOrder.comments"} /></Label>
+                          <Textarea
+                            name="comment"
+                            disabled={isDisabled}
+                            value={purchaseCostLine?.comment || ''}
+                            onChange={handleCostLineChange}
+                            className="h-8 text-xs resize-none"
+                          />
+                        </div>
+
+                        <div>
+                          <Button
+                            type="button"
+                            disabled={!purchaseCostLine}
+                            size="sm"
+                            className="h-8 text-xs"
+                            onClick={() => handleAdd('costLine')}
+                          >
+                            <Translate contentKey={"common.add"} />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">{translate("tempApp.purchaseOrder.supplier")}</TableHead>
+                          <TableHead className="text-xs">{translate("tempApp.purchaseOrder.cost")}</TableHead>
+                          <TableHead className="text-xs">{translate("tempApp.purchaseOrder.costDate")}</TableHead>
+                          <TableHead className="text-xs">{translate("tempApp.purchaseOrder.comment")}</TableHead>
+                          {!isDisabled && <TableHead className="text-xs w-16">Delete</TableHead>}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {purchaseOrder?.costLines?.map((line, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="text-xs">{line.supplier?.name}</TableCell>
+                            <TableCell className="text-xs">{line.cost}</TableCell>
+                            <TableCell className="text-xs">
+                              {line.costDate ? format(new Date(line.costDate), 'yyyy-MM-dd') : ''}
+                            </TableCell>
+                            <TableCell className="text-xs">{line.comment}</TableCell>
+                            {!isDisabled && (
+                              <TableCell className="text-xs">
+                                {deleteColumnTemplate(index, 'costLines')}
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                </CardBody>
-                <div className={'d-flex gap-3 mt-2'}>
-                  <Button tag={Link} to="/inventory/purchase-order" replace color="info">
-                    <FontAwesomeIcon icon="arrow-left" />
-                    &nbsp; <Translate contentKey={"common.back"} />
+                </div>
+              </CardContent>
+            </Card>
+          </form>
+
+          <div className="w-80">
+            <Card>
+              <CardHeader className="p-4">
+                <CardTitle className="text-sm">
+                  <Translate contentKey={"common.actions"} />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-2">
+                <div className="space-y-2">
+                  <Label htmlFor="status" className="text-xs">
+                    <Translate contentKey={"common.status"} />
+                  </Label>
+                  <div className="flex gap-2">
+                    {statusOptions.map((status) => (
+                      <Button
+                        key={status}
+                        type="button"
+                        variant={purchaseOrder?.status === status ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 text-xs flex-1"
+                        disabled={isOrderReceived || isNew}
+                        onClick={() => setPurchaseOrder(prv => ({ ...prv, status: status as "PLACED" | "RECEIVED" }))}
+                      >
+                        <Translate contentKey={`tempApp.purchaseOrder.${status}`} />
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    asChild
+                  >
+                    <Link to="/inventory/purchase-order">
+                      <ArrowLeft className="h-3 w-3 mr-1" />
+                      <Translate contentKey={"common.back"} />
+                    </Link>
                   </Button>
-                  {isOrderReceived ? (
-                    <Button color={'primary'} id="returnItems" onClick={handleSupplierReturn}>
+
+                  {isOrderReceived && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={handleSupplierReturn}
+                    >
                       <Translate contentKey={"tempApp.purchaseOrder.returnItems"} />
                     </Button>
-                  ) : null}
-                  {canSplit ? (
-                    <Button color={'primary'} id="splitOrder" onClick={handleOrderSplit}>
+                  )}
+
+                  {canSplit && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={handleOrderSplit}
+                    >
                       <Translate contentKey={"tempApp.purchaseOrder.splitAndComplete"} />
                     </Button>
-                  ) : null}
-                  {purchaseOrderEntity?.status !== 'RECEIVED' ? (
-                    <Button color="primary" type="submit" disabled={updating || isDisabled}>
-                      <FontAwesomeIcon icon="save" />
-                      &nbsp;<Translate contentKey={"common.save"} />
-                    </Button>
-                  ) : null}
-                </div>
-              </Card>
+                  )}
 
-              {purchaseOrderEntity?.id && <AuditLogs entityId={purchaseOrderEntity?.id} />}
-            </Col>
-          </form>
-        </Row>
+                  {purchaseOrderEntity?.status !== 'RECEIVED' && (
+                    <Button
+                      type="submit"
+                      size="sm"
+                      className="h-8 text-xs"
+                      disabled={updating || isDisabled}
+                      onClick={saveEntity}
+                    >
+                      <Save className="h-3 w-3 mr-1" />
+                      <Translate contentKey={"common.save"} />
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {purchaseOrderEntity?.id && <AuditLogs entityId={purchaseOrderEntity?.id} />}
+          </div>
+        </div>
       )}
     </div>
   );
